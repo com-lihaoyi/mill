@@ -1,0 +1,8 @@
+{
+  "extensions": ["java"],
+  "steps": [
+    {
+      "$type": "GoogleJavaFormat"
+    }
+  ]
+}

@@ -253,6 +253,10 @@ object Deps {
     val revApi = mvn"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
 
+    val spotlessVersion = "3.1.1"
+    val spotlessLib = mvn"com.diffplug.spotless:spotless-lib:$spotlessVersion"
+    val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:$spotlessVersion"
+
     def all = Seq(
       detektCli,
       dokkaAnalysisDescriptors,
@@ -270,7 +274,9 @@ object Deps {
       palantirFormat,
       proguard,
       revApi,
-      sbtTestInterface
+      sbtTestInterface,
+      spotlessLib,
+      spotlessLibExtra
     )
   }
 

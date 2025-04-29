@@ -1,0 +1,49 @@
+// Mill supports auto-formatting Kotlin code via the
+// https://github.com/diffplug/spotless[Spotless] project.
+
+package build
+
+import mill._
+import mill.javalib.spotless.SpotlessModule
+
+object `package` extends RootModule with SpotlessModule
+
+/** See Also: src/A.kt */
+/** See Also: src/B.kt */
+/** See Also: spotless-config.json */
+/** See Also: spotless-config-full.json */
+
+// You can use Spotless on a per-module basis by inheriting from
+// `SpotlessModule` and running the `spotless` command on that module.
+// You can also use `--check` if you wish to error if the code is not formatted,
+// which is useful in CI validation jobs to ensure code is formatted before merging.
+/** Usage
+> ./mill spotless --check     # check should fail initially
+checking format in 2 kt|kts file(s)
+error: format errors in ...src/A.kt
+error: B.kt:L1 ktlint(standard:no-wildcard-imports) Wildcard import
+error: format/lint errors in 2 kt|kts file(s)
+
+> ./mill spotless             # fix format, lint errors require manual fix
+checking format in 2 kt|kts file(s)
+formatting ...src/A.kt
+error: B.kt:L1 ktlint(standard:no-wildcard-imports) Wildcard import
+formatted 1 kt|kts file(s)
+error: format/lint errors in 1 kt|kts file(s)
+*/
+
+// You can also use Spotless xref:fundamentals/modules.adoc#_external_modules[directly].
+// [source,console]
+// ----
+// # format sources in all modules
+// $ ./mill mill.javalib.spotless/
+//
+// # format sources in "lib" module
+// $ ./mill mill.javalib.spotless/ lib.sources
+//
+// # format mixed sources in all modules
+// $ ./mill mill.javalib.spotless/ --config spotless-config-java.json
+// $ ./mill mill.javalib.spotless/ --config spotless-config-kotlin.json
+// ----
+
+/** See Also: spotless-config-full.json */

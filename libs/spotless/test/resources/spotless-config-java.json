@@ -1,0 +1,33 @@
+{
+  "extensions": ["java"],
+  "steps": [
+    {
+      "$type": "LicenseHeader",
+      "headerFile": "license-header.txt",
+      "delimiter": "(package|import|public|class|module) ",
+      "name": "ACME",
+      "yearSeparator": "-",
+      "yearMode": "PRESERVE"
+    },
+    {
+      "$type": "FormatAnnotations",
+      "addedTypeAnnotations": [],
+      "removedTypeAnnotations": []
+    },
+    {
+      "$type": "GoogleJavaFormat",
+      "groupArtifact": "com.google.googlejavaformat:google-java-format",
+      "version": "1.24.0",
+      "style": "GOOGLE",
+      "reflowLongStrings": false,
+      "reorderImports": false,
+      "formatJavadoc": true
+    },
+    {
+      "$type": "PalantirJavaFormat",
+      "version": "2.57.0",
+      "style": "PALANTIR",
+      "formatJavadoc": true
+    }
+  ]
+}
