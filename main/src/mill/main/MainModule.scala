@@ -173,22 +173,11 @@ trait MainModule extends BaseModule with MainModuleApi {
   def allocatePorts(numberOfPorts : Int, registerName : String) = {
     Task.Command(exclusive = true){
       PortManager.synchronized {
-        val ports = PortManager.getPorts(numberOfPorts).get
-        PortManager.portsByName = PortManager.portsByName + (registerName -> ports)
+        val ports = PortManager.getPorts(numberOfPorts)
         println(ports.mkString(","))
       }
     }                    
   }
-
-  def freePorts(registerName : String) = {
-    Task.Command(exclusive = true){
-      PortManager.synchronized {
-        val ports = PortManager.portsByName.get(registerName).get
-        PortManager.portsAllocated = PortManager.portsAllocated  -- ports
-        PortManager.portsByName = PortManager.portsByName + (registerName -> Set.empty)
-      }
-    }
-  }   
 
   /**
    * Deletes the given targets from the out directory. Providing no targets

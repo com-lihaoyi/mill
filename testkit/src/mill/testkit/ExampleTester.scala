@@ -80,7 +80,7 @@ class ExampleTester(
     val propagateJavaHome: Boolean = true
 ) extends IntegrationTesterBase {
 
-  val portsAllocated = PortManager.getPorts(1).get
+  val portsAllocated = PortManager.getPorts(1)
 
   def processCommandBlock(commandBlock: String): Unit = {
     val commandBlockLines = commandBlock.linesIterator.toVector
@@ -221,7 +221,5 @@ class ExampleTester(
       if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
       removeProcessIdFile()
     }
-
-    PortManager.releasePorts(portsAllocated)
   }
 }

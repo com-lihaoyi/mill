@@ -6,10 +6,9 @@ import mill.define.{Discover, ExternalModule}
 import mill.*
 
 object PortManager extends ExternalModule {
-  var portsAllocated = Set.empty[Int]
   var portsByName : Map[String, Set[Int]] = Map.empty[String, Set[Int]]
 
-  def getPorts(tartgetNumberOfPorts : Int): Option[Set[Int]] = {
+  def getPorts(tartgetNumberOfPorts : Int): Set[Int] = {
     var i = 0
     var ports = Set.empty[Int]
 
@@ -17,12 +16,12 @@ object PortManager extends ExternalModule {
       for (z <- 1 to 100) {
 
         if (i >= tartgetNumberOfPorts) {
-          return Some(ports)
+          return ports
         }
         val socket = new ServerSocket(0)
         try {
           val port = socket.getLocalPort
-          if (!ports.contains(port) && !portsAllocated.contains(port)) {
+          if (!ports.contains(port)) {
             ports = ports + port
             i += 1
           }
@@ -31,18 +30,9 @@ object PortManager extends ExternalModule {
           socket.close()
         }
       }
-      portsAllocated = ports ++ portsAllocated
     }
-    Some(ports)
+    ports
   } 
-
-  def getRegisteredPorts(name : String) : Option[Set[Int]] = {
-       portsByName.get(name)
-  }
-
-  def releasePorts(ports : Set[Int]) = {
-       portsAllocated = portsAllocated -- ports
-  }
 
   lazy val millDiscover = Discover[this.type]
 
