@@ -15,7 +15,7 @@ import java.util.Collections
 import scala.jdk.CollectionConverters.*
 
 /**
- * Configuration for building a [[FormatterStepConfig]].
+ * Configuration for building a [[FormatterStep]].
  */
 sealed trait FormatterStepConfig derives Reader {
   def build(using SpotlessContext): FormatterStep
