@@ -32,10 +32,7 @@ import coursier.{Classifier, Dependency, Repository, Type}
 import java.util.concurrent.ConcurrentHashMap
 object CoursierClient {
   def resolveMillRunner() = {
-    val repositories = Await.result(
-      Resolve().finalRepositories.future(),
-      Duration.Inf
-    )
+    val repositories = Await.result(Resolve().finalRepositories.future(), Duration.Inf)
     val coursierCache0 = FileCache[Task]()
       .withLogger(coursier.cache.loggers.RefreshLogger.create())
 
