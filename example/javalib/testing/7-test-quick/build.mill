@@ -1,0 +1,33 @@
+//// SNIPPET:BUILD1
+package build
+import mill._, javalib._
+import os._
+
+object foo extends JavaModule {
+  object test extends JavaTests {
+    def testFramework = "com.novocode.junit.JUnitFramework" // Use JUnit 4 framework interface
+    def mvnDeps = Seq(
+      mvn"junit:junit:4.13.2", // JUnit 4 itself
+      mvn"com.novocode:junit-interface:0.11" // sbt-compatible JUnit interface
+    )
+  }
+  // Ultilities for replacing text in files
+  def replaceBar(args: String*) = Task.Command {
+    val relativePath = os.RelPath("../../../foo/src/Bar.java")
+    val filePath = Task.dest() / relativePath
+    os.write.over(filePath, os.read(filePath).replace(
+      """return String.format("Hi, %s!", name);""",
+      """return String.format("Ciao, %s!", name);"""
+    ))
+  }
+
+  def replaceFooTest2(args: String*) = Task.Command {
+    val relativePath = os.RelPath("../../../foo/test/src/FooTest2.java")
+    val filePath = Task.dest() / relativePath
+    os.write.over(filePath, os.read(filePath).replace(
+      """assertEquals("Hi, " + name + "!", greeted);""",
+      """assertEquals("Ciao, " + name + "!", greeted);""",
+    ))
+  }
+}
+//// SNIPPET:END

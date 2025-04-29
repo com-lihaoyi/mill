@@ -1,0 +1,38 @@
+//// SNIPPET:BUILD1
+package build
+import mill._, kotlinlib._
+import os._
+
+object foo extends KotlinModule {
+  def kotlinVersion = "1.9.24" // Specify your Kotlin version
+
+  object test extends KotlinTests {
+    def testFramework = "com.github.sbt.junit.jupiter.api.JupiterFramework" // Use JUnit 5 framework
+    def mvnDeps = Seq(
+      // JUnit 5 dependencies
+      mvn"org.junit.jupiter:junit-jupiter-api:5.10.0",
+      mvn"org.junit.jupiter:junit-jupiter-engine:5.10.0",
+      // Test runner interface for Mill/sbt
+      mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
+    )
+  }
+
+  def replaceBar(args: String*) = Task.Command {
+    val relativePath = os.RelPath("../../../foo/src/Bar.kt")
+    val filePath = T.dest / relativePath
+    os.write.over(filePath, os.read(filePath).replace(
+      """return "Hi, $name!"""",
+      """return "Ciao, $name!""""
+    ))
+  }
+
+  def replaceFooTest2(args: String*) = Task.Command {
+    val relativePath = os.RelPath("../../../foo/test/src/FooTest2.kt")
+    val filePath = T.dest / relativePath
+    os.write.over(filePath, os.read(filePath).replace(
+      """assertEquals("Hi, $name!", greeted)""",
+      """assertEquals("Ciao, $name!", greeted)"""
+    ))
+  }
+}
+//// SNIPPET:END

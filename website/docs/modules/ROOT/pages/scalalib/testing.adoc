@@ -30,6 +30,10 @@ include::partial$example/scalalib/testing/5-test-grouping.adoc[]
 
 include::partial$example/scalalib/testing/6-test-group-parallel.adoc[]
 
+== Fine-Grained Selective Testing with Test Quick
+
+include::partial$example/scalalib/testing/7-test-quick.adoc[]
+
 == Github Actions Test Reports
 
 If you use Github Actions for CI, you can use https://github.com/mikepenz/action-junit-report in
