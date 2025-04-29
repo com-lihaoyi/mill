@@ -6,7 +6,7 @@ import mill._, scalalib._
 
 import mill.contrib.scoverage._
 
-object `package` extends RootModule with ScoverageModule {
+object `package` extends ScoverageModule {
   def scoverageVersion = "2.1.0"
   def scalaVersion = "2.13.11"
   def mvnDeps = Seq(

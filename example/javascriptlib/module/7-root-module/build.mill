@@ -5,7 +5,7 @@ package build
 
 import mill._, javascriptlib._
 
-object `package` extends RootModule with TypeScriptModule {
+object `package` extends TypeScriptModule {
   def moduleName = "foo"
   def npmDeps = Seq("immutable@4.3.7")
   object test extends TypeScriptTests with TestModule.Jest

@@ -168,9 +168,9 @@ object CodeGen {
     val expectedParent =
       if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "RootModule"
 
-    if (objectData.exists(o => o.name.text == "`package`" && o.parent.text != expectedParent)) {
-      throw new Result.Exception(s"object `package` in $scriptPath must extend `$expectedParent`")
-    }
+    val expectedModuleMsg =
+      if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "mill.Module"
+
     val misnamed =
       objectData.filter(o => o.name.text != "`package`" && o.parent.text == expectedParent)
     if (misnamed.nonEmpty) {
@@ -194,9 +194,7 @@ object CodeGen {
          |}
          |""".stripMargin
 
-    objectData.find(o =>
-      o.name.text == "`package`" && (o.parent.text == "RootModule" || o.parent.text == "MillBuildRootModule")
-    ) match {
+    objectData.find(o => o.name.text == "`package`") match {
       case Some(objectData) =>
         val newParent =
           if (segments.isEmpty) expectedParent else s"mill.main.SubfolderModule(build.millDiscover)"
@@ -224,8 +222,19 @@ object CodeGen {
             ()
         }
 
-        newScriptCode = objectData.parent.applyTo(newScriptCode, newParent)
+        newScriptCode = objectData.parent.applyTo(
+          newScriptCode,
+          if (objectData.parent.text == null) {
+            throw new Result.Exception(
+              s"object `package` in ${scriptPath.relativeTo(millTopLevelProjectRoot)} " +
+                s"must extend a subclass of `$expectedModuleMsg`"
+            )
+          } else if (objectData.parent.text == expectedParent) newParent
+          else newParent + " with " + objectData.parent.text
+        )
+
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
+
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
         s"""$headerCode

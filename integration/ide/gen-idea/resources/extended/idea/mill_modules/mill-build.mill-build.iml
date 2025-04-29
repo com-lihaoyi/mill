@@ -2,8 +2,8 @@
     <component name="NewModuleRootManager">
         <output url="file://$MODULE_DIR$/../../out/mill-build/mill-build/ideaCompileOutput.dest/classes"/>
         <exclude-output/>
-        <content url="file://$MODULE_DIR$/../../out/mill-build/mill-build/generateScriptSources.dest">
-            <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/mill-build/generateScriptSources.dest" isTestSource="false" generated="true"/>
+        <content url="file://$MODULE_DIR$/../../out/mill-build/mill-build/generatedSources.dest">
+            <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/mill-build/generatedSources.dest" isTestSource="false" generated="true"/>
         </content>
         <content url="file://$MODULE_DIR$/../../mill-build">
             <sourceFolder url="file://$MODULE_DIR$/../../mill-build/build.mill" isTestSource="false"/>
@@ -17,21 +17,21 @@
         <orderEntry type="library" name="asm-9.8.jar" level="project"/>
         <orderEntry type="library" name="asm-commons-9.6.jar" level="project"/>
         <orderEntry type="library" name="asm-tree-9.8.jar" level="project"/>
-        <orderEntry type="library" name="cache-util-2.1.25-M6.jar" level="project"/>
+        <orderEntry type="library" name="cache-util-2.1.25-M11.jar" level="project"/>
         <orderEntry type="library" name="commons-codec-1.17.0.jar" level="project"/>
         <orderEntry type="library" name="commons-compress-1.26.2.jar" level="project"/>
         <orderEntry type="library" name="commons-io-2.18.0.jar" level="project"/>
         <orderEntry type="library" name="commons-lang3-3.16.0.jar" level="project"/>
         <orderEntry type="library" name="concurrent-reference-hash-map-1.1.0.jar" level="project"/>
         <orderEntry type="library" name="config_2.13-1.1.3.jar" level="project"/>
-        <orderEntry type="library" name="coursier-cache_2.13-2.1.25-M6.jar" level="project"/>
-        <orderEntry type="library" name="coursier-core_2.13-2.1.25-M6.jar" level="project"/>
-        <orderEntry type="library" name="coursier-env_2.13-2.1.25-M6.jar" level="project"/>
-        <orderEntry type="library" name="coursier-exec-2.1.25-M6.jar" level="project"/>
-        <orderEntry type="library" name="coursier-jvm_2.13-2.1.25-M6.jar" level="project"/>
-        <orderEntry type="library" name="coursier-proxy-setup-2.1.25-M6.jar" level="project"/>
-        <orderEntry type="library" name="coursier-util_2.13-2.1.25-M6.jar" level="project"/>
-        <orderEntry type="library" name="coursier_2.13-2.1.25-M6.jar" level="project"/>
+        <orderEntry type="library" name="coursier-cache_2.13-2.1.25-M11.jar" level="project"/>
+        <orderEntry type="library" name="coursier-core_2.13-2.1.25-M11.jar" level="project"/>
+        <orderEntry type="library" name="coursier-env_2.13-2.1.25-M11.jar" level="project"/>
+        <orderEntry type="library" name="coursier-exec-2.1.25-M11.jar" level="project"/>
+        <orderEntry type="library" name="coursier-jvm_2.13-2.1.25-M11.jar" level="project"/>
+        <orderEntry type="library" name="coursier-proxy-setup-2.1.25-M11.jar" level="project"/>
+        <orderEntry type="library" name="coursier-util_2.13-2.1.25-M11.jar" level="project"/>
+        <orderEntry type="library" name="coursier_2.13-2.1.25-M11.jar" level="project"/>
         <orderEntry type="library" name="dependency_2.13-0.3.2.jar" level="project"/>
         <orderEntry type="library" name="fansi_3-0.5.0.jar" level="project"/>
         <orderEntry type="library" name="fastparse_3-3.1.1.jar" level="project"/>
@@ -66,7 +66,6 @@
         <orderEntry type="library" scope="RUNTIME" name="mill-core-resolve_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-util_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-androidlib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-idea_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-init_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-javascriptlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-kotlinlib-worker_3.jar" level="project"/>
@@ -83,7 +82,6 @@
         <orderEntry type="library" name="mill-libs-testrunner_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3.jar" level="project"/>
         <orderEntry type="library" name="mill-moduledefs_3-0.11.3-M5.jar" level="project"/>
-        <orderEntry type="library" name="mill-runner-bsp_3.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-codesig_3.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-meta_3.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-worker-api_3.jar" level="project"/>
@@ -122,6 +120,6 @@
         <orderEntry type="library" name="windows-jni-utils-0.3.3.jar" level="project"/>
         <orderEntry type="library" name="xbean-reflect-3.7.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="xz-1.9.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="zstd-jni-1.5.6-3.jar" level="project"/>
+        <orderEntry type="library" name="zstd-jni-1.5.7-2.jar" level="project"/>
     </component>
 </module>

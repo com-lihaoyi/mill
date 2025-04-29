@@ -13,7 +13,7 @@ trait AppKotlinModule extends KotlinModule {
 
 trait AppKotlinJsModule extends AppKotlinModule with KotlinJsModule
 
-object `package` extends RootModule with AppKotlinModule {
+object `package` extends AppKotlinModule {
 
   def ktorVersion = "2.3.12"
   def kotlinHtmlVersion = "0.11.0"

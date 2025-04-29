@@ -45,8 +45,6 @@ object app extends AndroidAppModule {
 
     def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
-    override def instrumentationPackage = "com.helloworld.app"
-
     /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
      * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
      * resolution resolves conflicts between androidJvm and jvm platform types
@@ -141,7 +139,7 @@ object app extends AndroidAppModule {
 ]
 ...
 
-> cat out/app/it/testTask.dest/test-report.xml
+> cat out/app/it/testForked.dest/test-report.xml
 ...
 <?xml version='1.0' encoding='UTF-8'?>
 <testsuites tests="1" failures="0" errors="0" skipped="0" time="...">
