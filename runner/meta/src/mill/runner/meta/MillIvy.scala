@@ -1,7 +1,7 @@
 package mill.runner.meta
 object MillIvy {
-  def processMillMvnDepsignature(signatures: Set[String]): Set[String] = {
-    val millSigs: Set[String] =
+  def processMillMvnDepsignature(signatures: Seq[String]): Seq[String] = {
+    val millSigs: Seq[String] =
       for (signature <- signatures) yield {
         signature.split("[:]") match {
           case Array(org, "", name)
