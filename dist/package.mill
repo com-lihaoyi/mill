@@ -84,10 +84,7 @@ object `package` extends MillJavaModule with DistModule {
     val isWin = scala.util.Properties.isWin
     val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
 
-    val launcherForkArgs = testArgs() ++
-      Seq(
-        "-DMILL_CLASSPATH=" + build.runner.runClasspath().map(_.path.toString).mkString(",")
-      )
+    val launcherForkArgs = testArgs()
     val (millArgs, otherArgs) =
       launcherForkArgs.partition(arg =>
         arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION")
@@ -132,9 +129,6 @@ object `package` extends MillJavaModule with DistModule {
     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
     "-Djna.nosys=true"
   )
-
-  def forkShellArgs = Seq("-DMILL_CLASSPATH=$0")
-  def forkCmdArgs = Seq(""""-DMILL_CLASSPATH=%~dpnx0"""")
 
   def mainClass = Some("mill.runner.client.MillClientMain")
 

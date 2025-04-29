@@ -209,54 +209,6 @@ public class MillProcessLauncher {
     }
   }
 
-  static String[] millClasspath() throws Exception {
-    String selfJars = "";
-    String millOptionsPath = System.getProperty("MILL_OPTIONS_PATH");
-    if (millOptionsPath != null) {
-
-      // read MILL_CLASSPATH from file MILL_OPTIONS_PATH
-      Properties millProps = new Properties();
-      try (InputStream is = Files.newInputStream(Paths.get(millOptionsPath))) {
-        millProps.load(is);
-      } catch (IOException e) {
-        throw new RuntimeException("Could not load '" + millOptionsPath + "'", e);
-      }
-
-      for (final String k : millProps.stringPropertyNames()) {
-        String propValue = millProps.getProperty(k);
-        if ("MILL_CLASSPATH".equals(k)) {
-          selfJars = propValue;
-        }
-      }
-    } else {
-      // read MILL_CLASSPATH from file sys props
-      selfJars = System.getProperty("MILL_CLASSPATH");
-    }
-
-    if (selfJars == null || selfJars.trim().isEmpty()) {
-      // We try to use the currently local classpath as MILL_CLASSPATH
-      selfJars = System.getProperty("java.class.path").replace(File.pathSeparator, ",");
-    }
-
-    if (selfJars == null || selfJars.trim().isEmpty()) {
-      // Assuming native assembly run
-      selfJars = MillProcessLauncher.class
-          .getProtectionDomain()
-          .getCodeSource()
-          .getLocation()
-          .getPath();
-    }
-
-    if (selfJars == null || selfJars.trim().isEmpty()) {
-      throw new RuntimeException("MILL_CLASSPATH is empty!");
-    }
-    String[] selfJarsArray = selfJars.split("[,]");
-    for (int i = 0; i < selfJarsArray.length; i++) {
-      selfJarsArray[i] = new java.io.File(selfJarsArray[i]).getCanonicalPath();
-    }
-    return selfJarsArray;
-  }
-
   static List<String> millLaunchJvmCommand(boolean setJnaNoSys) throws Exception {
     final List<String> vmOptions = new ArrayList<>();
 
@@ -271,7 +223,7 @@ public class MillProcessLauncher {
     // sys props
     final Properties sysProps = System.getProperties();
     for (final String k : sysProps.stringPropertyNames()) {
-      if (k.startsWith("MILL_") && !"MILL_CLASSPATH".equals(k)) {
+      if (k.startsWith("MILL_")) {
         vmOptions.add("-D" + k + "=" + sysProps.getProperty(k));
       }
     }
