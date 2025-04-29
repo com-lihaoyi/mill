@@ -1,7 +1,7 @@
 package build
 import mill._, javalib._
 
-object `package` extends RootModule with MicronautModule {
+object `package` extends MicronautModule {
   def micronautVersion = "4.5.3"
   def mvnDeps = Seq(
     mvn"io.micronaut:micronaut-http-server-netty:$micronautVersion",

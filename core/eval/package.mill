@@ -8,6 +8,6 @@ import mill._
  * without any of the user-land logic or helpers necessary to build actual
  * codebases.
  */
-object `package` extends RootModule with build.MillStableScalaModule {
+object `package` extends build.MillStableScalaModule {
   def moduleDeps = Seq(build.core.define, build.core.exec, build.core.resolve)
 }

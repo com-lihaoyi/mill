@@ -289,7 +289,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
         checkChangedClassloaders(tester, null, true, true, true)
 
         causeParseError(workspacePath / "build.mill")
-        evalCheckErr(tester, "\n1 tasks failed", "\ngenerateScriptSources build.mill")
+        evalCheckErr(tester, "\n1 tasks failed", "\ngeneratedSources", "build.mill")
         // exactly which files get watched here can be non-deterministic depending on
         // how far evaluation gets before it terminates due to the task failure
         // checkWatchedFiles(tester, Nil, buildPaths(tester), Nil, Nil)
@@ -303,7 +303,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
 
         fixParseError(workspacePath / "build.mill")
         causeParseError(workspacePath / "mill-build/build.mill")
-        evalCheckErr(tester, "\n1 tasks failed", "\ngenerateScriptSources mill-build/build.mill")
+        evalCheckErr(tester, "\n1 tasks failed", "\ngeneratedSources", "mill-build/build.mill")
         // checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), Nil)
         if (tester.clientServerMode) checkChangedClassloaders(tester, null, null, null, false)
         else checkChangedClassloaders(tester, null, null, null, true)
@@ -313,20 +313,20 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
         evalCheckErr(
           tester,
           "\n1 tasks failed",
-          "\ngenerateScriptSources mill-build/mill-build/build.mill"
+          "\ngeneratedSources mill-build/mill-build/build.mill"
         )
         // checkWatchedFiles(tester, Nil, Nil, Nil, buildPaths3(tester))
         checkChangedClassloaders(tester, null, null, null, null)
 
         fixParseError(workspacePath / "mill-build/mill-build/build.mill")
         causeParseError(workspacePath / "mill-build/build.mill")
-        evalCheckErr(tester, "\n1 tasks failed", "\ngenerateScriptSources mill-build/build.mill")
+        evalCheckErr(tester, "\n1 tasks failed", "\ngeneratedSources", "mill-build/build.mill")
         // checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), Nil)
         checkChangedClassloaders(tester, null, null, null, true)
 
         fixParseError(workspacePath / "mill-build/build.mill")
         causeParseError(workspacePath / "build.mill")
-        evalCheckErr(tester, "\n1 tasks failed", "\ngenerateScriptSources build.mill")
+        evalCheckErr(tester, "\n1 tasks failed", "\ngeneratedSources", "build.mill")
         // checkWatchedFiles(tester, Nil, buildPaths(tester), Nil, Nil)
         if (tester.clientServerMode) checkChangedClassloaders(tester, null, null, true, false)
         else checkChangedClassloaders(tester, null, null, true, true)

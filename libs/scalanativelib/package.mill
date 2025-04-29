@@ -4,10 +4,10 @@ import mill._
 import mill.T
 import mill.define.Cross
 
-object `package` extends RootModule with build.MillStableScalaModule {
+object `package` extends build.MillStableScalaModule {
   def moduleDeps = Seq(build.libs.scalalib, `worker-api`)
-  def testTransitiveDeps =
-    super.testTransitiveDeps() ++ Seq(worker("0.5").testDep())
+  def transitiveLocalTestOverrides =
+    super.transitiveLocalTestOverrides() ++ Seq(worker("0.5").localTestOverride())
 
   object `worker-api` extends build.MillPublishScalaModule {
     def mvnDeps = Agg(build.Deps.sbtTestInterface)

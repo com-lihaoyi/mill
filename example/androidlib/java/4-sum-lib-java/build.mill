@@ -28,6 +28,8 @@ object lib extends AndroidLibModule with PublishModule {
   def androidMinSdk = 19
   def androidCompileSdk = 35
 
+  def androidLibPackage = "com.example"
+
   def publishVersion = "0.0.1"
   def pomSettings = PomSettings(
     description = "sumlib",

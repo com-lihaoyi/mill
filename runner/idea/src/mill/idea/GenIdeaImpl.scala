@@ -26,9 +26,10 @@ import mill.util.BuildInfo
 import collection.mutable
 import java.net.URL
 import mill.api.internal._
+
 class GenIdeaImpl(
     private val evaluators: Seq[EvaluatorApi]
-)(implicit ctx: TaskCtx) {
+) {
   def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
     Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
   }
@@ -43,18 +44,18 @@ class GenIdeaImpl(
     val jdkInfo = extractCurrentJdk(ideaDir / "misc.xml")
       .getOrElse(("JDK_1_8", "1.8 (1)"))
 
-    ctx.log.info("Analyzing modules ...")
+    println("Analyzing modules ...")
     val layout: Seq[(os.SubPath, Node)] =
       xmlFileLayout(evaluators, jdkInfo)
 
-    ctx.log.debug("Cleaning obsolete IDEA project files ...")
+    println("Cleaning obsolete IDEA project files ...")
     os.remove.all(ideaDir / "libraries")
     os.remove.all(ideaDir / "scala_compiler.xml")
     os.remove.all(ideaDir / "mill_modules")
 
-    ctx.log.info(s"Writing ${layout.size} IDEA project files to ${ideaDir} ...")
+    println(s"Writing ${layout.size} IDEA project files to ${ideaDir} ...")
     for ((subPath, xml) <- layout) {
-      ctx.log.debug(s"Writing ${subPath} ...")
+      println(s"Writing ${subPath} ...")
       os.write.over(ideaDir / subPath, pp.format(xml), createFolders = true)
     }
   }
@@ -178,7 +179,7 @@ class GenIdeaImpl(
               s"Config collision in file `${conf.subPath}` and component `${conf.component}`: ${details(
                   conf.config
                 )} vs. ${details(existing)}"
-            ctx.log.error(msg)
+            println(msg)
         }
       }
       result
@@ -495,7 +496,7 @@ class GenIdeaImpl(
           .groupBy(_._1)
           .filter(_._2.size > 1)
       if (map.nonEmpty) {
-        ctx.log.error(
+        println(
           s"Config file collisions detected. Check you `ideaConfigFiles` targets. Colliding files: ${map
               .map(_._1)}. All project files: ${map}"
         )
