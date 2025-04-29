@@ -73,9 +73,6 @@ trait DistModule extends Module {
 
 object `package` extends MillJavaModule with DistModule {
 
-  // disable scalafix here because it crashes when a module has no sources
-  def moduleDeps = Seq(build.runner)
-
   def transitiveLocalTestOverrides = Map(
     Task.traverse(allPublishModules)(_.localTestOverride)(): _*
   )
