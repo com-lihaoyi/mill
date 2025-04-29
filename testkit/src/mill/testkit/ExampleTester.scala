@@ -94,7 +94,9 @@ class ExampleTester(
     val incorrectPlatform =
       (comment.exists(_.startsWith("windows")) && !isWindows) ||
         (comment.exists(_.startsWith("mac/linux")) && isWindows) ||
-        (comment.exists(_.startsWith("--no-server")) && clientServerMode) || (comment.exists(_.startsWith("not --no-server")) && !clientServerMode)
+        (comment.exists(_.startsWith("--no-server")) && clientServerMode) || (comment.exists(
+          _.startsWith("not --no-server")
+        ) && !clientServerMode)
     if (!incorrectPlatform) {
       processCommand(expectedSnippets, commandHead.trim)
     }
