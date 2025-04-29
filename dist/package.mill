@@ -15,7 +15,6 @@ trait DistModule extends Module {
   lazy val allPublishModules = build.moduleInternal.modules.collect {
     case m: build.MillPublishJavaModule => m
   }
-  def moduleDeps = Seq(build.runner.client)
 
   def executableRaw: T[PathRef]
 
@@ -72,6 +71,8 @@ trait DistModule extends Module {
 }
 
 object `package` extends MillJavaModule with DistModule {
+
+  def moduleDeps = Seq(build.runner.client)
 
   def transitiveLocalTestOverrides = Map(
     Task.traverse(allPublishModules)(_.localTestOverride)(): _*

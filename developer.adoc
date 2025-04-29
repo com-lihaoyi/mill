@@ -125,7 +125,7 @@ You can reproduce these tests manually using `dist.installLocal`:
 
 [source,console]
 ----
-> ./mill dist.installLocal && (cd example/basic/1-simple && ../../../mill-assembly.jar run --text hello)
+> ./mill dist.installLocal && (cd example/javalib/basic/1-simple && ../../../../mill-assembly.jar run --text hello)
 ----
 
 You can also use `dist.native.installLocal` for a Graal Native Image executable,
