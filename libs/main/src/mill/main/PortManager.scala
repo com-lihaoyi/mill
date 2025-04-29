@@ -6,9 +6,9 @@ import mill.define.{Discover, ExternalModule}
 import mill.*
 
 object PortManager extends ExternalModule {
-  var portsByName : Map[String, Set[Int]] = Map.empty[String, Set[Int]]
+  var portsByName: Map[String, Set[Int]] = Map.empty[String, Set[Int]]
 
-  def getPorts(tartgetNumberOfPorts : Int): Set[Int] = {
+  def getPorts(tartgetNumberOfPorts: Int): Set[Int] = {
     var i = 0
     var ports = Set.empty[Int]
 
@@ -32,9 +32,8 @@ object PortManager extends ExternalModule {
       }
     }
     ports
-  } 
+  }
 
   lazy val millDiscover = Discover[this.type]
 
 }
-

@@ -5,7 +5,7 @@ import java.io.{BufferedWriter, FileWriter}
 import mill.api.ExecResult.Aborted
 
 =======
->>>>>>> upstream/main
+  >>>>>>> upstream / main
 import mill.api._
 import mill.api.internal._
 import mill.constants.OutFiles.{millChromeProfile, millProfile}

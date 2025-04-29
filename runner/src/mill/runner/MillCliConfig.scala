@@ -157,7 +157,7 @@ case class MillCliConfig(
           |There are currently no guarantees that modules don't attempt to fetch remote sources."""
           .stripMargin
     )
-    offline: Flag = Flag(),
+    offline: Flag = Flag()
 )
 
 import mainargs.ParserForClass

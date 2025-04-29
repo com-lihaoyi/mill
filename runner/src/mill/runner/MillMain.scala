@@ -257,7 +257,7 @@ object MillMain {
 
               } else {
                 val userSpecifiedProperties =
-                  userSpecifiedProperties0 ++ config.extraSystemProperties 
+                  userSpecifiedProperties0 ++ config.extraSystemProperties
 
                 val threadCount = Some(maybeThreadCount.toOption.get)
 

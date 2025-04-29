@@ -310,7 +310,7 @@ object RunModule {
         case Some(b) => b: Boolean
         case None => useCpPassingJar0
       }
-      val env = Option(forkEnv).getOrElse(forkEnv0) 
+      val env = Option(forkEnv).getOrElse(forkEnv0)
 
       os.checker.withValue(os.Checker.Nop) {
         if (background) {
