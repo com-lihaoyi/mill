@@ -1,6 +1,7 @@
-package build
 // mill plugins
-import $ivy.`com.lihaoyi::mill-contrib-bloop:`
+//| mvnDeps:
+//| - com.lihaoyi::mill-contrib-bloop:$MILL_VERSION
+package build
 
 // imports
 import mill._

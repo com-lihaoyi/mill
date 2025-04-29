@@ -1,6 +1,6 @@
 = Mill: A Better JVM Build Tool
 
-https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-main/latest.svg[Mill]]
+https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://index.scala-lang.org/com-lihaoyi/mill/mill-libs-main/latest.svg[Mill]]
 https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable&versionPrefix=0.12.[Maven Central Version]]
 
 Mill is a JVM build tool that supports Java, Scala, and Kotlin:
@@ -64,7 +64,7 @@ understand your Mill build better than any other build system
 * *Flexibility*: Mill's tasks and modules allow anything from adding
 xref:fundamentals/tasks.adoc#primitive-tasks[simple build steps], up to
 entire xref:extending/example-python-support.adoc[language toolchains].
-You can xref:extending/import-ivy-plugins.adoc[import any JVM library] in your build,
+You can xref:extending/import-mvn-plugins.adoc[import any JVM library] in your build,
 use Mill's rich ecosystem of xref:extending/thirdparty-plugins.adoc[Third-Party Mill Plugins],
 or xref:extending/writing-plugins.adoc[write plugins yourself] and
 publish them to Maven Central for others to use.

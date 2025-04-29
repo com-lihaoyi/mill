@@ -14,9 +14,6 @@ import mill.T
 import mill.define.Cross
 import mill.testrunner.TestResult
 
-// plugins and dependencies
-import $meta._
-
 object `package` extends RootModule {
   // We compile the test code once and then offer multiple modes to
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
@@ -25,7 +22,7 @@ object `package` extends RootModule {
   trait IntegrationTestModule extends Cross.Module[String] {
     def moduleDir = super.moduleDir / crossValue
 
-    def moduleDeps = Seq(build.main.test, build.testkit, build.runner)
+    def moduleDeps = Seq(build.libs.main.test, build.testkit, build.runner)
 
     def resources: T[Seq[PathRef]]
     def runClasspath: T[Seq[PathRef]]
@@ -64,11 +61,6 @@ object `package` extends RootModule {
       def resources = IntegrationTestModule.this.resources()
       def runClasspath = IntegrationTestModule.this.runClasspath()
       def localRunClasspath = IntegrationTestModule.this.localRunClasspath()
-
-      def compile: T[mill.scalalib.api.CompilationResult] =
-        Task {
-          mill.scalalib.api.CompilationResult(null, null)
-        } // binary compatibility stub, not used
 
     }
 

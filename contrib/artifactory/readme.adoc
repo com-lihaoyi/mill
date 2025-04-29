@@ -7,7 +7,8 @@ This plugin allows publishing to Artifactory.
 
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-artifactory:`
+//| mvnDeps: ["com.lihaoyi::mill-contrib-artifactory:$MILL_VERSION"]
+
 import mill.contrib.artifactory.ArtifactoryPublishModule
 
 object mymodule extends ArtifactoryPublishModule {

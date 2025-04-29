@@ -1,21 +1,21 @@
 package mill.exec
 
+<<<<<<< HEAD
 import java.io.{BufferedWriter, FileWriter}
 import mill.api.ExecResult.Aborted
 
+=======
+>>>>>>> upstream/main
 import mill.api._
 import mill.api.internal._
+import mill.constants.OutFiles.{millChromeProfile, millProfile}
 import mill.define._
 import mill.internal.PrefixLogger
-import mill.define.MultiBiMap
 
-import mill.api._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
-import mill.api.internal.{BaseModuleApi, EvaluatorApi}
-import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
@@ -38,7 +38,8 @@ private[mill] case class Execution(
     systemExit: Int => Nothing,
     exclusiveSystemStreams: SystemStreams,
     getEvaluator: () => EvaluatorApi,
-    offline: Boolean
+    offline: Boolean,
+    headerData: String
 ) extends GroupExecution with AutoCloseable {
 
   // this (shorter) constructor is used from [[MillBuildBootstrap]] via reflection
@@ -58,7 +59,8 @@ private[mill] case class Execution(
       systemExit: Int => Nothing,
       exclusiveSystemStreams: SystemStreams,
       getEvaluator: () => EvaluatorApi,
-      offline: Boolean
+      offline: Boolean,
+      headerData: String
   ) = this(
     baseLogger,
     new JsonArrayLogger.ChromeProfile(os.Path(outPath) / millChromeProfile),
@@ -77,7 +79,8 @@ private[mill] case class Execution(
     systemExit,
     exclusiveSystemStreams,
     getEvaluator,
-    offline
+    offline,
+    headerData
   )
 
   def withBaseLogger(newBaseLogger: Logger) = this.copy(baseLogger = newBaseLogger)

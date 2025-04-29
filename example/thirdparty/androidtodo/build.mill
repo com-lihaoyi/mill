@@ -1,10 +1,7 @@
 package build
 
-import mill._
-import mill.javalib.android.{AndroidSdkModule, AndroidTestModule}
-import mill.kotlinlib._
-import mill.kotlinlib.android.{AndroidAppKotlinModule, AndroidHiltSupport}
-import mill.javalib.android.AndroidBuildConfig
+import mill._, androidlib._, kotlinlib._
+import hilt.AndroidHiltSupport
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
