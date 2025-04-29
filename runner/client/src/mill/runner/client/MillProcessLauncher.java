@@ -284,7 +284,7 @@ public class MillProcessLauncher {
 
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
-    vmOptions.add(String.join(File.pathSeparator, millClasspath()));
+    vmOptions.add(String.join(File.pathSeparator, CoursierClient.resolveMillRunner()));
 
     return vmOptions;
   }

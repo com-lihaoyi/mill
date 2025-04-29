@@ -49,7 +49,8 @@ object `package` extends build.MillPublishScalaModule {
       build.Deps.coursierInterface,
       build.Deps.coursierJvm,
       build.Deps.logback,
-      build.Deps.snakeyamlEngine
+      build.Deps.snakeyamlEngine,
+      build.Deps.osLib
     )
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Task {
