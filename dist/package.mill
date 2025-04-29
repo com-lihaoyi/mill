@@ -66,7 +66,7 @@ trait DistModule extends Module {
   def publishArtifacts = Task {
     PublishModule.PublishData(
       meta = Artifact(build.Settings.pomOrg, artifactName(), build.millVersion()),
-      payload = Seq(executableRaw() -> s"mill-dist-${build.millVersion()}.jar")
+      payload = Seq(executableRaw() -> s"${artifactName()}-${build.millVersion()}.jar")
     )
   }
 }
@@ -234,6 +234,8 @@ object `package` extends MillJavaModule with DistModule {
     )
   }
 
+  def artifactName = "mill-" + super.artifactName()
+
   object native extends mill.scalalib.NativeImageModule with DistModule {
     def finalMainClass = build.dist.finalMainClass()
     def runClasspath = build.dist.runClasspath()
@@ -252,7 +254,7 @@ object `package` extends MillJavaModule with DistModule {
     }
 
     def artifactName = Task {
-      s"${build.dist.artifactName()}-${artifactOsSuffix()}-${artifactCpuSuffix()}"
+      s"${build.dist.artifactName()}-native-${artifactOsSuffix()}-${artifactCpuSuffix()}"
     }
 
     def nativeImageClasspath = build.runner.client.runClasspath()
