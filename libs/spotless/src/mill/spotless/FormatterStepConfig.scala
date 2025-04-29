@@ -7,6 +7,7 @@ import com.diffplug.spotless.java.{
   PalantirJavaFormatStep
 }
 import com.diffplug.spotless.kotlin.{DiktatStep, KtLintStep, KtfmtStep}
+import com.diffplug.spotless.scala.ScalaFmtStep
 import com.diffplug.spotless.{FileSignature, FormatterStep}
 import upickle.default.*
 
@@ -92,12 +93,7 @@ object FormatterStepConfig {
       configFile: os.RelPath = "diktat-analysis.yml"
   ) extends FormatterStepConfig derives Reader {
     def build(using ctx: SpotlessContext): FormatterStep =
-      DiktatStep.create(
-        version,
-        ctx,
-        isScript,
-        signature(configFile)
-      )
+      DiktatStep.create(version, ctx, isScript, signature(configFile))
   }
 
   case class Ktfmt(
@@ -136,8 +132,20 @@ object FormatterStepConfig {
       )
   }
 
+  case class ScalaFmt(
+      version: String = ScalaFmtStep.defaultVersion(),
+      scalaMajorVersion: String = ScalaFmtStep.defaultScalaMajorVersion(),
+      configFile: os.RelPath = ".scalafmt.conf"
+  ) extends FormatterStepConfig derives Reader {
+    def build(using ctx: SpotlessContext): FormatterStep =
+      ScalaFmtStep.create(version, scalaMajorVersion, ctx, file(configFile))
+  }
+
   private def bytes(rel: os.RelPath)(using res: PathResolver) =
     res.path(rel).map(os.read.bytes)
+
+  private def file(rel: os.RelPath)(using res: PathResolver) =
+    res.path(rel).fold(null)(_.toIO)
 
   private def signature(rel: os.RelPath)(using res: PathResolver) =
     res.path(rel).fold(null)(path => FileSignature.signAsList(path.toIO))
