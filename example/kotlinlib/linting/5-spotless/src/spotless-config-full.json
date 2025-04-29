@@ -1,0 +1,31 @@
+{
+  "extensions": ["kt", "kts"],
+  "steps": [
+    {
+      "$type": "LicenseHeader",
+      "header": "// MIT License.",
+      "delimiter": "(package |@file|import )",
+      "contentPattern": "",
+      "name": "MIT",
+      "yearSeparator": "-",
+      "yearMode": "PRESERVE",
+      "skipLinesMatching": ""
+    },
+    {
+      "$type": "Ktfmt",
+      "version": "0.53",
+      "style": "KOTLINLANG",
+      "maxWidth": 80,
+      "blockIndent": 2,
+      "continuationIndent": 2,
+      "removeUnusedImports": true,
+      "manageTrailingCommas": true
+    },
+    {
+      "$type": "KtLint",
+      "version": "1.5.0",
+      "configFile": ".editorconfig",
+      "customRuleSets": []
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "extensions": ["kt", "kts"],
+  "steps": [
+    {
+      "$type": "Ktfmt"
+    },
+    {
+      "$type": "KtLint"
+    }
+  ]
+}
