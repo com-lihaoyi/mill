@@ -265,7 +265,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
       })
       .distinctBy(_.dest.get)
 
-
     // Include native libraries (.so files) from compileNative task
     val nativeLibsPath = compileNative().path
 
@@ -304,7 +303,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     os.zip(unsignedApk, dexFiles)
     os.zip(unsignedApk, metaInf)
     os.zip(unsignedApk, nativeLibsZipSources)
-    // TODO pack also native (.so) libraries
 
     PathRef(unsignedApk)
   }
@@ -681,7 +679,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidInstallTask = Task.Anon {
     val emulator = runningEmulator()
 
-    if(externalNativeLibs() != Seq.empty) {
+    if (externalNativeLibs() != Seq.empty) {
       Task.log.info("Copying native libs to the device")
 
     }
@@ -1086,7 +1084,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     Seq.empty
   }
 
-
   def supportedAbis: T[Seq[String]] = Task {
     Seq("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
   }
@@ -1111,7 +1108,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     for (abi <- supportedAbis()) {
       // Determine target triple and API level for each ABI
       val (triple, apiLevel) = abi match {
-        case "armeabi-v7a" => ("armv7a-linux-androideabi", apiVersion())   // 32-bit ARM
+        case "armeabi-v7a" => ("armv7a-linux-androideabi", apiVersion()) // 32-bit ARM
         case "arm64-v8a" => ("aarch64-linux-android", apiVersion()) // 64-bit ARM
         case "x86" => ("i686-linux-android", apiVersion())
         case "x86_64" => ("x86_64-linux-android", apiVersion())
@@ -1124,18 +1121,18 @@ trait AndroidAppModule extends AndroidModule { outer =>
       os.makeDir.all(outCxx)
 
       val cmakeArgs = Seq(
-        "/home/irodotos/Android/Sdk/cmake/3.22.1/bin/cmake",
-        "-H/home/irodotos/vaslabs/mill/example/androidlib/java/6-native-libs/app/src/main/cpp",
+        s"${androidSdkModule().cmakePath().path.toString}",
+        s"-H/${Task.workspace.toString}/app/src/main/cpp/",
         "-DCMAKE_SYSTEM_NAME=Android",
         "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
         s"-DCMAKE_SYSTEM_VERSION=${apiVersion()}",
         s"-DANDROID_PLATFORM=android-${apiVersion()}",
         s"-DANDROID_ABI=${abi}",
         s"-DCMAKE_ANDROID_ARCH_ABI=${abi}",
-        s"-DANDROID_NDK=/home/irodotos/Android/Sdk/ndk/${androidSdkModule().ndkVersion()}",
-        s"-DCMAKE_ANDROID_NDK=/home/irodotos/Android/Sdk/ndk/${androidSdkModule().ndkVersion()}",
-        s"-DCMAKE_TOOLCHAIN_FILE=/home/irodotos/Android/Sdk/ndk/${androidSdkModule().ndkVersion()}/build/cmake/android.toolchain.cmake",
-        "-DCMAKE_MAKE_PROGRAM=/home/irodotos/Android/Sdk/cmake/3.22.1/bin/ninja",
+        s"-DANDROID_NDK=${androidSdkModule().ndkPath().path.toString}",
+        s"-DCMAKE_ANDROID_NDK=${androidSdkModule().ndkPath().path.toString}",
+        s"-DCMAKE_TOOLCHAIN_FILE=${androidSdkModule().cmakeToolchainFilePath().path.toString}",
+        s"-DCMAKE_MAKE_PROGRAM=${androidSdkModule().ninjaPath().path.toString}",
         s"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=${outFile.toString}",
         s"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${outFile.toString}",
         "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
@@ -1145,23 +1142,18 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
       T.log.info(s"Calling CMake with arguments: ${cmakeArgs.mkString(" ")}")
 
-      // Execute the command
       os.proc(cmakeArgs).call()
 
       val ninjaArgs = Seq(
-        "/home/irodotos/Android/Sdk/cmake/3.22.1/bin/ninja",
+        s"${androidSdkModule().ninjaPath().path.toString}",
         "-C",
         s"${outCxx.toString}/${abi}",
         s"libnative-lib.so"
       )
 
       os.proc(ninjaArgs).call()
-//      val clangXX = ndkPath / "toolchains" / "llvm" / "prebuilt" / "linux-x86_64" / "bin" / s"${triple}${apiLevel}-clang++"
-      // Run the compiler to build the shared library
-//      os.proc(clangXX, "-shared", "-fPIC", "-o", outFile, srcFile).call(check = true)
     }
 
-    // Return the output directory as a result of the task (so Mill knows about the files)
     PathRef(outDir)
   }
 

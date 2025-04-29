@@ -50,7 +50,12 @@ trait AndroidSdkModule extends Module {
   /**
    * Specifies the version of the Android NDK (Native Development Kit) to be used.
    */
-  def ndkVersion: T[String] = Task{ "27.0.12077973" }
+  def ndkVersion: T[String] = Task { "27.0.12077973" }
+
+  /**
+   * Specifies the version of CMake to be used.
+   */
+  def cmakeVersion: T[String] = Task { "3.22.1" }
 
   /**
    * Specifies the Android platform version (e.g., Android API level).
@@ -232,6 +237,21 @@ trait AndroidSdkModule extends Module {
   def ndkPath: T[PathRef] = Task {
     installAndroidSdkComponents()
     PathRef(sdkPath().path / "ndk" / ndkVersion())
+  }
+
+  def ninjaPath: T[PathRef] = Task {
+    installAndroidSdkComponents()
+    PathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "ninja")
+  }
+
+  def cmakePath: T[PathRef] = Task {
+    installAndroidSdkComponents()
+    PathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "cmake")
+  }
+
+  def cmakeToolchainFilePath: T[PathRef] = Task {
+    installAndroidSdkComponents()
+    PathRef(ndkPath().path / "build" / "cmake" / "android.toolchain.cmake")
   }
 
   /**

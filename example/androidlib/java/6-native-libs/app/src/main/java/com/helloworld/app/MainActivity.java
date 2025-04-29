@@ -8,17 +8,17 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
-    static {
-        System.loadLibrary("native-lib");
-    }
+  static {
+    System.loadLibrary("native-lib");
+  }
 
-    private native String stringFromJNI();
+  private native String stringFromJNI();
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-      String nativeMessage = stringFromJNI();
-//      String nativeMessage = "hello from Java";
-    // Create a new TextView
+    String nativeMessage = stringFromJNI();
+
     TextView textView = new TextView(this);
 
     // Set the text to the string resource
