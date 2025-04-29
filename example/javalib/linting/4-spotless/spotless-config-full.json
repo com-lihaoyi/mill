@@ -2,14 +2,6 @@
   "extensions": ["java"],
   "steps": [
     {
-      "$type": "LicenseHeader",
-      "headerFile": "license-header.txt",
-      "delimiter": "(package|import|public|class|module) ",
-      "name": "ACME",
-      "yearSeparator": "-",
-      "yearMode": "PRESERVE"
-    },
-    {
       "$type": "FormatAnnotations",
       "addedTypeAnnotations": [],
       "removedTypeAnnotations": []
@@ -28,6 +20,14 @@
       "version": "2.57.0",
       "style": "PALANTIR",
       "formatJavadoc": true
+    },
+    {
+      "$type": "LicenseHeader",
+      "headerFile": "license-header.txt",
+      "delimiter": "(package|import|public|class|module) ",
+      "name": "ACME",
+      "yearSeparator": "-",
+      "yearMode": "PRESERVE"
     }
   ]
 }

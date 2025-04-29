@@ -23,33 +23,6 @@ sealed trait FormatterStepConfig derives Reader {
 
 object FormatterStepConfig {
 
-  case class LicenseHeader(
-      delimiter: String,
-      header: Option[String] = None,
-      headerFile: Option[os.RelPath] = None,
-      name: Option[String] = None,
-      contentPattern: Option[String] = None,
-      yearSeparator: String = LicenseHeaderStep.defaultYearDelimiter(),
-      yearMode: LicenseHeaderStep.YearMode = LicenseHeaderStep.YearMode.PRESERVE,
-      skipLinesMatching: Option[String] = None
-  ) extends FormatterStepConfig derives Reader {
-    def build(using ctx: SpotlessContext): FormatterStep = {
-      val _header = header.getOrElse(headerFile
-        .flatMap(bytes(_)).fold(throw new Exception(s"$headerFile not found"))(
-          new String(_, ctx.encoding)
-        ))
-      contentPattern.foldLeft(
-        name.foldLeft(
-          LicenseHeaderStep.headerDelimiter(_header, delimiter)
-        )(_.withName(_))
-      )(_.withContentPattern(_)
-        .withYearSeparator(yearSeparator))
-        .withYearMode(yearMode)
-        .withSkipLinesMatching(skipLinesMatching.orNull)
-        .build()
-    }
-  }
-
   case class FormatAnnotations(
       addedTypeAnnotations: Seq[String] = Nil,
       removedTypeAnnotations: Seq[String] = Nil
@@ -141,8 +114,37 @@ object FormatterStepConfig {
       ScalaFmtStep.create(version, scalaMajorVersion, ctx, file(configFile))
   }
 
+  case class LicenseHeader(
+      delimiter: String,
+      header: Option[String] = None,
+      headerFile: Option[os.RelPath] = None,
+      name: Option[String] = None,
+      contentPattern: Option[String] = None,
+      yearSeparator: String = LicenseHeaderStep.defaultYearDelimiter(),
+      yearMode: LicenseHeaderStep.YearMode = LicenseHeaderStep.YearMode.PRESERVE,
+      skipLinesMatching: Option[String] = None
+  ) extends FormatterStepConfig derives Reader {
+    def build(using ctx: SpotlessContext): FormatterStep = {
+      val _header = header
+        .orElse(headerFile.flatMap(read(_)))
+        .getOrElse(throw new Exception("header|headerFile must be specified"))
+      contentPattern.foldLeft(
+        name.foldLeft(
+          LicenseHeaderStep.headerDelimiter(_header, delimiter)
+        )(_.withName(_))
+      )(_.withContentPattern(_)
+        .withYearSeparator(yearSeparator))
+        .withYearMode(yearMode)
+        .withSkipLinesMatching(skipLinesMatching.orNull)
+        .build()
+    }
+  }
+
   private def bytes(rel: os.RelPath)(using res: PathResolver) =
     res.path(rel).map(os.read.bytes)
+
+  private def read(rel: os.RelPath)(using ctx: SpotlessContext) =
+    bytes(rel).map(new String(_, ctx.encoding))
 
   private def file(rel: os.RelPath)(using res: PathResolver) =
     res.path(rel).fold(null)(_.toIO)

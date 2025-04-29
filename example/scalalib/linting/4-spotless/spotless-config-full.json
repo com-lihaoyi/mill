@@ -2,18 +2,18 @@
   "extensions": ["scala"],
   "steps": [
     {
+      "$type": "ScalaFmt",
+      "version": "3.8.1",
+      "scalaMajorVersion": "2.13",
+      "configFile": ".scalafmt.conf"
+    },
+    {
       "$type": "LicenseHeader",
       "headerFile": "license-header.txt",
       "delimiter": "(package|import|public|class|module) ",
       "name": "ACME",
       "yearSeparator": "-",
       "yearMode": "PRESERVE"
-    },
-    {
-      "$type": "ScalaFmt",
-      "version": "3.8.1",
-      "scalaMajorVersion": "2.13",
-      "configFile": ".scalafmt.conf"
     }
   ]
 }
