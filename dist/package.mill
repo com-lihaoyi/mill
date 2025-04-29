@@ -234,6 +234,8 @@ object `package` extends MillJavaModule with DistModule {
     )
   }
 
+  def artifactName = "mill-" + super.artifactName()
+
   object native extends mill.scalalib.NativeImageModule with DistModule {
     def finalMainClass = build.dist.finalMainClass()
     def runClasspath = build.dist.runClasspath()
