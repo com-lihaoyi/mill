@@ -20,7 +20,7 @@ include::partial$example/javalib/linting/2-checkstyle.adoc[]
 
 include::partial$example/javalib/linting/3-palantirformat.adoc[]
 
-== Auto-formatting with Spotless
+== Autoformatting with Spotless
 
 include::partial$example/javalib/linting/4-spotless.adoc[]
 
