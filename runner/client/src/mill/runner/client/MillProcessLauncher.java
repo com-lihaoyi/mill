@@ -12,7 +12,6 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import mill.client.ClientUtil;
 import mill.constants.BuildInfo;
@@ -112,24 +111,23 @@ public class MillProcessLauncher {
         Path buildFile = Paths.get(rootBuildFileName);
         if (Files.exists(buildFile)) {
           String[] config = cachedComputedValue(
-            "yaml-config-" + key,
-            mill.constants.Util.readYamlHeader(buildFile),
-              () -> {
-                  Object conf = mill.runner.client.ConfigReader.readYaml(buildFile);
-                  if (!(conf instanceof Map)) return new String[]{};
-                  Map<String, List<String>> conf2 = (Map<String, List<String>>) conf;
+              "yaml-config-" + key, mill.constants.Util.readYamlHeader(buildFile), () -> {
+                Object conf = mill.runner.client.ConfigReader.readYaml(buildFile);
+                if (!(conf instanceof Map)) return new String[] {};
+                Map<String, List<String>> conf2 = (Map<String, List<String>>) conf;
 
-                  if (!conf2.containsKey(key)) return new String[]{};
-                  if (conf2.get(key) instanceof List) {
-                      return (String[]) ((List) conf2.get(key))
-                          .stream()
+                if (!conf2.containsKey(key)) return new String[] {};
+                if (conf2.get(key) instanceof List) {
+                  return (String[]) ((List) conf2.get(key))
+                      .stream()
                           .map(x -> mill.constants.Util.interpolateEnvVars(x.toString(), env))
                           .toArray(String[]::new);
-                  } else {
-                      return new String[]{mill.constants.Util.interpolateEnvVars(conf2.get(key).toString(), env)};
-                  }
-              }
-          );
+                } else {
+                  return new String[] {
+                    mill.constants.Util.interpolateEnvVars(conf2.get(key).toString(), env)
+                  };
+                }
+              });
           return Arrays.asList(config);
         }
       }
@@ -176,13 +174,8 @@ public class MillProcessLauncher {
 
     if (jvmId != null) {
       final String jvmIdFinal = jvmId;
-      javaHome = cachedComputedValue(
-          "java-home",
-          jvmId,
-          () -> new String[]{CoursierClient.resolveJavaHome(jvmIdFinal).getAbsolutePath()}
-
-      )[0];
-
+      javaHome = cachedComputedValue("java-home", jvmId, () ->
+          new String[] {CoursierClient.resolveJavaHome(jvmIdFinal).getAbsolutePath()})[0];
     }
 
     if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
@@ -229,38 +222,36 @@ public class MillProcessLauncher {
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
     String[] runnerClasspath = cachedComputedValue(
-        "resolve-runner",
-        BuildInfo.millVersion,
-        () -> CoursierClient.resolveMillRunner()
-    );
+        "resolve-runner", BuildInfo.millVersion, () -> CoursierClient.resolveMillRunner());
     vmOptions.add(String.join(File.pathSeparator, runnerClasspath));
 
     return vmOptions;
   }
 
-  static String[] cachedComputedValue(String name, String key, Supplier<String[]> block){
-      try {
-          Path cacheFile = Paths.get(".").resolve(out).resolve("mill-" + name);
-          String[] value = null;
-          if (Files.exists(cacheFile)) {
-              String[] savedInfo = Files.readString(cacheFile).split("\n");
-              if (savedInfo[0].equals(Escaping.literalize(key))) {
-                  value = Arrays.copyOfRange(savedInfo, 1, savedInfo.length);
-                  for(int i = 0; i < value.length; i++) value[i] = Escaping.unliteralize(value[i]);
-              }
-          }
-
-          if (value == null) {
-              value = block.get();
-              for(int i = 0; i < value.length; i++) value[i] = Escaping.literalize(value[i]);
-
-              Files.createDirectories(cacheFile.getParent());
-              Files.write(cacheFile, (Escaping.literalize(key) + "\n" + String.join("\n", value)).getBytes());
-          }
-          return value;
-      } catch (IOException e) {
-          throw new RuntimeException(e);
+  static String[] cachedComputedValue(String name, String key, Supplier<String[]> block) {
+    try {
+      Path cacheFile = Paths.get(".").resolve(out).resolve("mill-" + name);
+      String[] value = null;
+      if (Files.exists(cacheFile)) {
+        String[] savedInfo = Files.readString(cacheFile).split("\n");
+        if (savedInfo[0].equals(Escaping.literalize(key))) {
+          value = Arrays.copyOfRange(savedInfo, 1, savedInfo.length);
+          for (int i = 0; i < value.length; i++) value[i] = Escaping.unliteralize(value[i]);
+        }
       }
+
+      if (value == null) {
+        value = block.get();
+        for (int i = 0; i < value.length; i++) value[i] = Escaping.literalize(value[i]);
+
+        Files.createDirectories(cacheFile.getParent());
+        Files.write(
+            cacheFile, (Escaping.literalize(key) + "\n" + String.join("\n", value)).getBytes());
+      }
+      return value;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   static int getTerminalDim(String s, boolean inheritError) throws Exception {
