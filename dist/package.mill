@@ -82,6 +82,11 @@ object `package` extends MillJavaModule with DistModule {
 
   def localBinName = "mill-assembly.jar"
 
+  private def millClientJvmArgs = Seq(
+    // Avoid reserving a lot of memory for the client, as the client only forward information
+    "-Xmx32m",
+  )
+
   def launcher = Task {
     val isWin = scala.util.Properties.isWin
     val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
@@ -102,9 +107,7 @@ object `package` extends MillJavaModule with DistModule {
       .mkString("\r\n")
 
     os.write(vmOptionsFile, millOptionsContent)
-    val jvmArgs = otherArgs ++ List(
-      // Avoid reserving a lot of memory for the client, as the client only forward information
-      "-Xmx32m",
+    val jvmArgs = otherArgs ++ millClientJvmArgs ++ List(
       s"-DMILL_OPTIONS_PATH=$vmOptionsFile"
     )
     val classpath = runClasspath().map(_.path.toString)
@@ -129,7 +132,7 @@ object `package` extends MillJavaModule with DistModule {
     mill.scalalib.Assembly.Rule.ExcludePattern("mill/local-test-overrides/.*")
   )
 
-  def forkArgs = Seq(
+  def forkArgs = millClientJvmArgs ++ Seq(
     // Workaround for Zinc/JNA bug
     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
     "-Djna.nosys=true"
