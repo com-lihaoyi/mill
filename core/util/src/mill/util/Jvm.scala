@@ -683,6 +683,10 @@ object Jvm {
     }
 
     try {
+      val envTestOverridesRepo = testOverridesClassloaders.map(cl =>
+        new TestOverridesRepo(os.resource(cl) / "mill/local-test-overrides")
+      )
+
       val resourceTestOverridesRepo =
         new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
 
