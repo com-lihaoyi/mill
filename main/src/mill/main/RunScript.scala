@@ -109,19 +109,25 @@ object RunScript {
     val selectedTargetsOrErr =
       if (!selectiveExecutionEnabled) (targets, Map.empty, None)
       else {
-        if (!os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)) {
-          // Ran when previous selective execution metadata is not available, which happens the first time you run
-          // selective execution.
-          val (newMetadata, results) = SelectiveExecution.Metadata.compute(evaluator, targets.toSeq)
-          (targets, Map.empty, Some(newMetadata))
-        } else {
-          val changedTasks = SelectiveExecution.computeChangedTasks0(evaluator, targets.toSeq)
-          val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
-          (
-            targets.filter(t => t.isExclusiveCommand || selectedSet(terminals(t).render)),
-            changedTasks.results,
-            Some(changedTasks.newMetadata)
-          )
+        val newComputedMetadata = SelectiveExecution.Metadata.compute(evaluator, targets.toSeq)
+
+        val selectiveExecutionStoredData = for {
+          _ <- Option.when(os.exists(evaluator.outPath / OutFiles.millSelectiveExecution))(())
+          changedTasks <- SelectiveExecution.computeChangedTasks0(evaluator, targets.toSeq, newComputedMetadata)
+        } yield changedTasks
+
+        selectiveExecutionStoredData match {
+          case None =>
+            // Ran when previous selective execution metadata is not available, which happens the first time you run
+            // selective execution.
+            (targets, Map.empty, Some(newComputedMetadata.metadata))
+          case Some(changedTasks) =>
+            val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+            (
+              targets.filter(t => t.isExclusiveCommand || selectedSet(terminals(t).render)),
+              newComputedMetadata.results,
+              Some(newComputedMetadata.metadata)
+            )
         }
       }
 
