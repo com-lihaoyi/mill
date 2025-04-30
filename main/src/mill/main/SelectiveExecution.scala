@@ -2,11 +2,11 @@ package mill.main
 
 import mill.api.{Strict, Val}
 import mill.define.{InputImpl, NamedTask, Task}
-import mill.eval.{CodeSigUtils, Evaluator, EvaluatorCore, Plan, Terminal}
+import mill.eval.*
 import mill.main.client.OutFiles
-import mill.util.SpanningForest.breadthFirst
 import mill.resolve.{Resolve, SelectMode}
 import mill.util.SpanningForest
+import mill.util.SpanningForest.breadthFirst
 
 private[mill] object SelectiveExecution {
   case class Metadata(inputHashes: Map[String, Int], methodCodeHashSignatures: Map[String, Int])
@@ -31,8 +31,8 @@ private[mill] object SelectiveExecution {
         inputHashes = results
           .results
           .flatMap { case (task, taskResult) =>
-            inputTasksToLabels.get(task).map { l =>
-              l -> taskResult.result.getOrThrow.value.hashCode
+            inputTasksToLabels.get(task).map { label =>
+              label -> taskResult.result.getOrThrow.value.hashCode
             }
           }
           .toMap,
@@ -117,7 +117,8 @@ private[mill] object SelectiveExecution {
       resolved: Seq[NamedTask[_]],
       changedRootTasks: Set[NamedTask[_]],
       downstreamTasks: Seq[NamedTask[_]],
-      results: Map[Task[_], Evaluator.TaskResult[Val]]
+      results: Map[Task[_], Evaluator.TaskResult[Val]],
+      newMetadata: Metadata
   )
 
   def computeChangedTasks(
@@ -134,21 +135,19 @@ private[mill] object SelectiveExecution {
 
   def computeChangedTasks0(evaluator: Evaluator, tasks: Seq[NamedTask[_]]): ChangedTasks = {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
-    if (oldMetadataTxt == "") ChangedTasks(tasks, tasks.toSet, tasks, Map.empty)
-    else {
-      val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
-      val (newMetadata, results) = SelectiveExecution.Metadata.compute(evaluator, tasks)
+    val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
+    val (newMetadata, results) = SelectiveExecution.Metadata.compute(evaluator, tasks)
 
-      val (changedRootTasks, downstreamTasks) =
-        SelectiveExecution.computeDownstream(tasks, oldMetadata, newMetadata)
+    val (changedRootTasks, downstreamTasks) =
+      SelectiveExecution.computeDownstream(tasks, oldMetadata, newMetadata)
 
-      ChangedTasks(
-        tasks,
-        changedRootTasks.collect { case n: NamedTask[_] => n },
-        downstreamTasks.collect { case n: NamedTask[_] => n },
-        results
-      )
-    }
+    ChangedTasks(
+      tasks,
+      changedRootTasks.collect { case n: NamedTask[_] => n },
+      downstreamTasks.collect { case n: NamedTask[_] => n },
+      results,
+      newMetadata = newMetadata
+    )
   }
 
   def resolve0(evaluator: Evaluator, tasks: Seq[String]): Either[String, Array[String]] = {
