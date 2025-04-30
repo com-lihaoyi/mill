@@ -35,22 +35,41 @@ object CoursierClient {
     val repositories = Await.result(Resolve().finalRepositories.future(), Duration.Inf)
     val coursierCache0 = FileCache[Task]()
       .withLogger(coursier.cache.loggers.RefreshLogger.create())
+    val testOverridesClassloaders = System.getenv("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH") match {
+      case null => Nil
+      case cp =>
+        val url = os.Path(cp).toNIO.toUri.toURL
+        mill.constants.DebugLog.println("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH " + url)
+        Seq(new java.net.URLClassLoader(Array(url)))
+    }
+    val artifactsResultOrError = try {
+      val envTestOverridesRepo = testOverridesClassloaders.map(cl =>
+        new TestOverridesRepo(os.resource(cl) / "mill/local-test-overrides")
+      )
 
-    val resourceTestOverridesRepo =
-      new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
+      val resourceTestOverridesRepo =
+        new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
 
-    val resolve = Resolve()
-      .withCache(coursierCache0)
-      .withDependencies(Seq(Dependency(
-        Module(Organization("com.lihaoyi"), ModuleName("mill-runner_3"), Map()),
-        VersionConstraint(mill.client.BuildInfo.millVersion)
-      )))
-      .withRepositories(Seq(resourceTestOverridesRepo) ++ repositories)
+      val resolve = Resolve()
+        .withCache(coursierCache0)
+        .withDependencies(Seq(Dependency(
+          Module(Organization("com.lihaoyi"), ModuleName("mill-runner_3"), Map()),
+          VersionConstraint(mill.client.BuildInfo.millVersion)
+        )))
+        .withRepositories(Seq(resourceTestOverridesRepo) ++ envTestOverridesRepo ++ repositories)
 
-    val artifactsResultOrError = Artifacts(coursierCache0)
-      .withResolution(resolve.either().right.get)
-      .eitherResult()
-      .right.get
+      resolve.either() match {
+        case Left(err) => sys.error(err.toString)
+        case Right(v) =>
+          Artifacts(coursierCache0)
+            .withResolution(v)
+            .eitherResult()
+            .right.get
+      }
+
+    } finally {
+      testOverridesClassloaders.foreach(_.close())
+    }
 
     artifactsResultOrError.artifacts.map(_._2.toString).toArray
   }
