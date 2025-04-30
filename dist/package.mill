@@ -252,7 +252,7 @@ object `package` extends MillJavaModule with DistModule {
     // Use assembly jar as classpath rather than runClasspath to try
     // and avoid native image command length problems on windows
     def nativeImageClasspath =
-      Seq(build.runner.client.resolvedIvyAssembly()) ++
+      Seq(build.runner.client.resolvedIvyAssembly().pathRef) ++
         build.runner.client.upstreamLocalAssemblyClasspath() ++
         build.runner.client.localClasspath()
 
