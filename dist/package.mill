@@ -281,7 +281,12 @@ object `package` extends MillJavaModule with DistModule {
       PathRef(executable)
     }
 
-    def nativeImageOptions = Seq("--no-fallback", "--enable-url-protocols=https", "-Os")
+    def nativeImageOptions = Seq(
+      "--no-fallback", "--enable-url-protocols=https", "-Os",
+      // Enable JVisualVM support
+      // https://www.graalvm.org/latest/tools/visualvm/#using-visualvm-with-graalvm-native-executables
+      "--enable-monitoring=jvmstat,heapdump"
+    )
 
     def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 
