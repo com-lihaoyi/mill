@@ -237,22 +237,22 @@ trait AndroidSdkModule extends Module {
   }
 
   def ndkPath: T[PathRef] = Task {
-    installAndroidSdkComponents()
+    installAndroidNdk()
     PathRef(sdkPath().path / "ndk" / ndkVersion())
   }
 
   def ninjaPath: T[PathRef] = Task {
-    installAndroidSdkComponents()
+    installAndroidNdk()
     PathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "ninja")
   }
 
   def cmakePath: T[PathRef] = Task {
-    installAndroidSdkComponents()
+    installAndroidNdk()
     PathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "cmake")
   }
 
   def cmakeToolchainFilePath: T[PathRef] = Task {
-    installAndroidSdkComponents()
+    installAndroidNdk()
     PathRef(ndkPath().path / "build" / "cmake" / "android.toolchain.cmake")
   }
 
@@ -305,6 +305,22 @@ trait AndroidSdkModule extends Module {
           )
         }
       }
+    }
+  }
+
+  /**
+  * Install the Android NDK (Native Development Kit) for building native code.
+  */
+  def installAndroidNdk: T[Unit] = Task {
+    installAndroidSdkComponents()
+
+    AndroidNdkLock.synchronized {
+      os.call(
+        Seq(
+          sdkManagerPath().path.toString,
+          s"ndk;${ndkVersion()}"
+        )
+      )
     }
   }
 
@@ -393,6 +409,7 @@ trait AndroidSdkModule extends Module {
 }
 
 private object AndroidSdkLock
+private object AndroidNdkLock
 
 object AndroidSdkModule {
 
