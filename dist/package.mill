@@ -84,7 +84,7 @@ object `package` extends MillJavaModule with DistModule {
 
   private def millClientJvmArgs = Seq(
     // Avoid reserving a lot of memory for the client, as the client only forward information
-    "-Xmx32m",
+    "-Xmx32m"
   )
 
   def launcher = Task {
@@ -282,7 +282,9 @@ object `package` extends MillJavaModule with DistModule {
     }
 
     def nativeImageOptions = Seq(
-      "--no-fallback", "--enable-url-protocols=https", "-Os",
+      "--no-fallback",
+      "--enable-url-protocols=https",
+      "-Os",
       // Enable JVisualVM support
       // https://www.graalvm.org/latest/tools/visualvm/#using-visualvm-with-graalvm-native-executables
       "--enable-monitoring=jvmstat,heapdump"
