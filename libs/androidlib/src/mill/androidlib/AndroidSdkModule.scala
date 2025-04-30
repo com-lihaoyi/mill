@@ -50,11 +50,13 @@ trait AndroidSdkModule extends Module {
   /**
    * Specifies the version of the Android NDK (Native Development Kit) to be used.
    */
+  // TODO: dont have them hardcoded
   def ndkVersion: T[String] = Task { "27.0.12077973" }
 
   /**
    * Specifies the version of CMake to be used.
    */
+  // TODO: dont have them hardcoded
   def cmakeVersion: T[String] = Task { "3.22.1" }
 
   /**

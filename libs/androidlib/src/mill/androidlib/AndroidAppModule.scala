@@ -7,8 +7,9 @@ import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.testrunner.TestResult
 import mill.util.Jvm
-import os.RelPath
+import os.{RelPath, zip}
 import upickle.default.*
+import upickle.default.{ReadWriter, macroRW}
 
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.{Attribute, Elem, NodeBuffer, Null, Text, XML}
@@ -238,6 +239,20 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .toSeq
   }
 
+  implicit val relPathRW: ReadWriter[os.RelPath] = upickle.default.readwriter[String]
+    .bimap[os.RelPath](_.toString, os.RelPath(_))
+  implicit val rw: ReadWriter[AndroidPackagableExtraFile] = macroRW
+
+  case class AndroidPackagableExtraFile(source: PathRef, destination: os.RelPath)
+
+  /**
+   * Provides additional files to be included in the APK package.
+   * This can be used to add custom files or resources that are not
+   * automatically included in the build process like native libraries .so files.
+   */
+  def androidPackagableExtraFiles: T[Seq[AndroidPackagableExtraFile]] =
+    Task { Seq.empty[AndroidPackagableExtraFile] }
+
   /**
    * Packages DEX files and Android resources into an unsigned APK.
    *
@@ -265,28 +280,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
       })
       .distinctBy(_.dest.get)
 
-    // Include native libraries (.so files) from compileNative task
-    val nativeLibsPath = compileNative().path
-
-//    val nativeLibsZipSources =
-//      os.walk(nativeLibsPath)
-//        .filter(_.ext == "so")
-//        .map { soFile =>
-//          val archFolder = soFile.relativeTo(nativeLibsPath).segments.head
-//          // Inside APK, .so files must be in lib/<arch>/*.so
-//          os.zip.ZipSource.fromPathTuple(
-//            (soFile, os.sub / "lib" / archFolder / soFile.last)
-//          )
-//        }
-
-    val nativeLibsZipSources =
-      os.walk(nativeLibsPath / "x86_64")
-        .filter(_.ext == "so")
-        .map { soFile =>
-          os.zip.ZipSource.fromPathTuple(
-            (soFile, os.sub / "lib" / "x86_64" / soFile.last)
-          )
-        }
+    // add all the extra files to the APK
+    val extraFiles: Seq[zip.ZipSource] = androidPackagableExtraFiles().map(extraFile =>
+      os.zip.ZipSource.fromPathTuple((extraFile.source.path, extraFile.destination.asSubPath))
+    )
 
     // TODO generate aar-metadata.properties (for lib distribution, not in this module) or
     //  app-metadata.properties (for app distribution).
@@ -302,7 +299,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     // androidGradlePluginVersion=8.7.2
     os.zip(unsignedApk, dexFiles)
     os.zip(unsignedApk, metaInf)
-    os.zip(unsignedApk, nativeLibsZipSources)
+    os.zip(unsignedApk, extraFiles)
 
     PathRef(unsignedApk)
   }
@@ -679,11 +676,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidInstallTask = Task.Anon {
     val emulator = runningEmulator()
 
-    if (externalNativeLibs() != Seq.empty) {
-      Task.log.info("Copying native libs to the device")
-
-    }
-    Task.log.info("whatever")
     os.call(
       (androidSdkModule().adbPath().path, "-s", emulator, "install", "-r", androidApk().path)
     )
@@ -1078,83 +1070,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val r8Args = r8ArgsBuilder.result()
 
     PathRef(outputPath) -> r8Args
-  }
-
-  def externalNativeLibs: T[Seq[PathRef]] = Task {
-    Seq.empty
-  }
-
-  def supportedAbis: T[Seq[String]] = Task {
-    Seq("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-  }
-
-  def apiVersion: T[String] = Task {
-    androidSdkModule().buildToolsVersion().split('.')(0)
-  }
-
-  def compileNative: T[PathRef] = Task {
-    val srcFile = externalNativeLibs().headOption
-      .map(_.path.toString)
-      .getOrElse("")
-    if (srcFile == "") {
-      Task.log.error("No source file provided for native compilation.")
-      return PathRef(Task.dest)
-    }
-    val outDir = Task.dest // Mill provides a dest dir for this task
-    os.makeDir.all(outDir) // ensure output dir exists
-
-    val ndkPath = androidSdkModule().ndkPath().path
-
-    for (abi <- supportedAbis()) {
-      // Determine target triple and API level for each ABI
-      val (triple, apiLevel) = abi match {
-        case "armeabi-v7a" => ("armv7a-linux-androideabi", apiVersion()) // 32-bit ARM
-        case "arm64-v8a" => ("aarch64-linux-android", apiVersion()) // 64-bit ARM
-        case "x86" => ("i686-linux-android", apiVersion())
-        case "x86_64" => ("x86_64-linux-android", apiVersion())
-      }
-
-      val libName = s"libnative-lib"
-      val outFile = outDir / abi / libName
-      val outCxx = outDir / ".cxx"
-      os.makeDir.all(outDir / abi)
-      os.makeDir.all(outCxx)
-
-      val cmakeArgs = Seq(
-        s"${androidSdkModule().cmakePath().path.toString}",
-        s"-H/${Task.workspace.toString}/app/src/main/cpp/",
-        "-DCMAKE_SYSTEM_NAME=Android",
-        "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
-        s"-DCMAKE_SYSTEM_VERSION=${apiVersion()}",
-        s"-DANDROID_PLATFORM=android-${apiVersion()}",
-        s"-DANDROID_ABI=${abi}",
-        s"-DCMAKE_ANDROID_ARCH_ABI=${abi}",
-        s"-DANDROID_NDK=${androidSdkModule().ndkPath().path.toString}",
-        s"-DCMAKE_ANDROID_NDK=${androidSdkModule().ndkPath().path.toString}",
-        s"-DCMAKE_TOOLCHAIN_FILE=${androidSdkModule().cmakeToolchainFilePath().path.toString}",
-        s"-DCMAKE_MAKE_PROGRAM=${androidSdkModule().ninjaPath().path.toString}",
-        s"-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=${outFile.toString}",
-        s"-DCMAKE_RUNTIME_OUTPUT_DIRECTORY=${outFile.toString}",
-        "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
-        s"-B/${outCxx.toString}/${abi}",
-        "-GNinja"
-      )
-
-      T.log.info(s"Calling CMake with arguments: ${cmakeArgs.mkString(" ")}")
-
-      os.proc(cmakeArgs).call()
-
-      val ninjaArgs = Seq(
-        s"${androidSdkModule().ninjaPath().path.toString}",
-        "-C",
-        s"${outCxx.toString}/${abi}",
-        s"libnative-lib.so"
-      )
-
-      os.proc(ninjaArgs).call()
-    }
-
-    PathRef(outDir)
   }
 
   trait AndroidAppTests extends AndroidAppModule with JavaTests {

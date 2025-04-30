@@ -12,7 +12,7 @@ public class MainActivity extends Activity {
     System.loadLibrary("native-lib");
   }
 
-  private native String stringFromJNI();
+  native String stringFromJNI();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {

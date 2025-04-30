@@ -16,7 +16,7 @@ object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
 }
 
-object app extends AndroidAppModule {
+object app extends AndroidAppModule with AndroidNativeAppModule { // <1>
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
@@ -36,11 +36,10 @@ object app extends AndroidAppModule {
 
   override def androidVirtualDeviceIdentifier: String = "java-test"
 
-  override def externalNativeLibs = Task { // <1>
-    super.externalNativeLibs() ++
-      Seq(
-        PathRef(Task.workspace / "app/src/main/cpp/native-lib.cpp")
-      )
+  def androidExternalNativeLibs = Task { // <2>
+    Seq(
+      PathRef(Task.workspace / "app/src/main/cpp/native-lib.cpp")
+    )
   }
 
   // Unit tests for the application
@@ -72,23 +71,39 @@ object app extends AndroidAppModule {
 
 }
 
-// <1> This is the path to the native library that will be used in the app.
+// <1> You need to extend AndroidNativeLibs trait to use native libraries in the app.
+// <2> This is the path to the native library that will be used in the app.
 
 /** Usage
 
- > ./mill show app.androidApk
- ".../out/app/androidApk.dest/app.apk"
+> ./mill show app.androidApk
+".../out/app/androidApk.dest/app.apk"
 
- > ./mill show app.createAndroidVirtualDevice
- ...Name: java-test, DeviceId: medium_phone...
+> ./mill show app.createAndroidVirtualDevice
+...Name: java-test, DeviceId: medium_phone...
 
- > ./mill show app.startAndroidEmulator
+> ./mill show app.startAndroidEmulator
 
- > ./mill show app.androidInstall
- ...All files should be loaded. Notifying the device...
+> ./mill show app.androidInstall
+...All files should be loaded. Notifying the device...
 
- > ./mill show app.stopAndroidEmulator
+> ./mill show app.it
+...
+[
+  "",
+  [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+]
+...
 
- > ./mill show app.deleteAndroidVirtualDevice
+> ./mill show app.stopAndroidEmulator
 
- */
+> ./mill show app.deleteAndroidVirtualDevice
+
+*/
