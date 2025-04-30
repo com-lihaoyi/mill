@@ -242,11 +242,14 @@ public class MillProcessLauncher {
 
       if (value == null) {
         value = block.get();
-        for (int i = 0; i < value.length; i++) value[i] = Escaping.literalize(value[i]);
+        String[] literalized = new String[value.length];
+        for (int i = 0; i < literalized.length; i++) {
+            literalized[i] = Escaping.literalize(value[i]);
+        }
 
         Files.createDirectories(cacheFile.getParent());
         Files.write(
-            cacheFile, (Escaping.literalize(key) + "\n" + String.join("\n", value)).getBytes());
+            cacheFile, (Escaping.literalize(key) + "\n" + String.join("\n", literalized)).getBytes());
       }
       return value;
     } catch (IOException e) {
