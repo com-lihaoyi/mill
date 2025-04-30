@@ -38,7 +38,7 @@ object CoursierClient {
     val testOverridesClassloaders = System.getenv("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH") match {
       case null => Nil
       case cp =>
-        cp.split(':').map { s =>
+        cp.split(';').map { s =>
           val url = os.Path(s).toNIO.toUri.toURL
           new java.net.URLClassLoader(Array(url))
         }.toList

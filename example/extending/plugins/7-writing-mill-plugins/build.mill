@@ -25,7 +25,7 @@ object myplugin extends ScalaModule with PublishModule {
       Map(
         "MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString,
         "MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" ->
-          (sys.env.get("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH") ++ Seq(Task.dest)).mkString(":")
+          (sys.env.get("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH") ++ Seq(Task.dest)).mkString(";")
       )
     }
 
