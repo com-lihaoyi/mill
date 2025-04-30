@@ -66,7 +66,7 @@ object FormatterStepConfig {
       configFile: os.RelPath = "diktat-analysis.yml"
   ) extends FormatterStepConfig derives Reader {
     def build(using ctx: SpotlessContext): FormatterStep =
-      DiktatStep.create(version, ctx, isScript, signature(configFile))
+      DiktatStep.create(version, ctx, isScript, signature(configFile).orNull)
   }
 
   case class Ktfmt(
@@ -99,7 +99,7 @@ object FormatterStepConfig {
       KtLintStep.create(
         version,
         ctx,
-        signature(configFile),
+        signature(configFile).orNull,
         Collections.emptyMap(),
         customRuleSets.asJava
       )
@@ -111,7 +111,7 @@ object FormatterStepConfig {
       configFile: os.RelPath = ".scalafmt.conf"
   ) extends FormatterStepConfig derives Reader {
     def build(using ctx: SpotlessContext): FormatterStep =
-      ScalaFmtStep.create(version, scalaMajorVersion, ctx, file(configFile))
+      ScalaFmtStep.create(version, scalaMajorVersion, ctx, file(configFile).orNull)
   }
 
   case class LicenseHeader(
@@ -140,17 +140,14 @@ object FormatterStepConfig {
     }
   }
 
-  private def bytes(rel: os.RelPath)(using res: PathResolver) =
-    res.path(rel).map(os.read.bytes)
-
   private def read(rel: os.RelPath)(using ctx: SpotlessContext) =
-    bytes(rel).map(new String(_, ctx.encoding))
+    ctx.path(rel).map(path => new String(os.read.bytes(path), ctx.encoding))
 
   private def file(rel: os.RelPath)(using res: PathResolver) =
-    res.path(rel).fold(null)(_.toIO)
+    res.path(rel).map(_.toIO)
 
-  private def signature(rel: os.RelPath)(using res: PathResolver) =
-    res.path(rel).fold(null)(path => FileSignature.signAsList(path.toIO))
+  private def signature(rel: os.RelPath)(using PathResolver) =
+    file(rel).map(FileSignature.signAsList(_))
 
   private given Reader[os.RelPath] = reader[String].map(os.RelPath(_))
 
