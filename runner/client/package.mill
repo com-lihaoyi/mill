@@ -3,7 +3,6 @@ package build.runner.client
 import mill._
 import mill.contrib.buildinfo.BuildInfo
 
-
 object `package` extends build.MillPublishScalaModule with BuildInfo {
   // Disable scalafix because it seems to misbehave and cause
   // spurious errors when there are mixed Java/Scala sources
