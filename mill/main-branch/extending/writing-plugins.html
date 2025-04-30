@@ -690,17 +690,20 @@ object myplugin extends ScalaModule with PublishModule {
   // Testing Config, with necessary setup for unit/integration/example tests
   object test extends ScalaTests with TestModule.Utest {
     def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-testkit:$millVersion&quot;)
-    def forkEnv = Map(&quot;MILL_EXECUTABLE_PATH&quot; -&gt; millExecutable.assembly().path.toString)
+    def forkEnv = Task {
+      val p = Task.dest / &quot;mill/local-test-overrides&quot; / s&quot;com.lihaoyi-${myplugin.artifactId()}&quot;
+      os.write(p, myplugin.localClasspath().map(_.path).mkString(&quot;\n&quot;), createFolders = true)
+      Map(
+        &quot;MILL_EXECUTABLE_PATH&quot; -&gt; millExecutable.assembly().path.toString,
+        &quot;MILL_LOCAL_TEST_OVERRIDE_CLASSPATH&quot; -&gt;
+          (sys.env.get(&quot;MILL_LOCAL_TEST_OVERRIDE_CLASSPATH&quot;) ++ Seq(Task.dest)).mkString(&quot;;&quot;)
+      )
+    }
 
     // Create a Mill executable configured for testing our plugin
     object millExecutable extends JavaModule {
-      def mvnDeps = Seq(mvn&quot;com.lihaoyi:mill-runner_3:$millVersion&quot;)
+      def mvnDeps = Seq(mvn&quot;com.lihaoyi:mill-runner-client_3:$millVersion&quot;)
       def mainClass = Some(&quot;mill.runner.client.MillClientMain&quot;)
-      def resources = Task {
-        val p = Task.dest / &quot;mill/local-test-overrides&quot; / s&quot;com.lihaoyi-${myplugin.artifactId()}&quot;
-        os.write(p, myplugin.localClasspath().map(_.path).mkString(&quot;\n&quot;), createFolders = true)
-        Seq(PathRef(Task.dest))
-      }
     }
   }
 
@@ -968,7 +971,8 @@ object IntegrationTests extends TestSuite {
     println(&quot;initializing myplugin.IntegrationTest.tests&quot;)
 
     test(&quot;integration&quot;) {
-      pprint.log(sys.env(&quot;MILL_EXECUTABLE_PATH&quot;))
+//      pprint.log(sys.env(&quot;MILL_EXECUTABLE_PATH&quot;))
+//      pprint.log(sys.env(&quot;MILL_LOCAL_TEST_OVERRIDE_CLASSPATH&quot;))
       val resourceFolder = os.Path(sys.env(&quot;MILL_TEST_RESOURCE_DIR&quot;))
       val tester = new IntegrationTester(
         clientServerMode = true,
@@ -1065,6 +1069,8 @@ object ExampleTests extends TestSuite {
 
   def tests: Tests = Tests {
     test(&quot;example&quot;) {
+//      pprint.log(sys.env(&quot;MILL_EXECUTABLE_PATH&quot;))
+//      pprint.log(sys.env(&quot;MILL_LOCAL_TEST_OVERRIDE_CLASSPATH&quot;))
       val resourceFolder = os.Path(sys.env(&quot;MILL_TEST_RESOURCE_DIR&quot;))
       ExampleTester.run(
         clientServerMode = true,
