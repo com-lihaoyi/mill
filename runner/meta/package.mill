@@ -6,7 +6,7 @@ import mill.contrib.buildinfo.BuildInfo
 object `package` extends build.MillPublishScalaModule with BuildInfo {
   def moduleDeps = Seq(
     build.runner.codesig,
-    `worker-api`,
+    build.runner.`worker-api`,
     build.libs.main
   )
 
@@ -15,7 +15,7 @@ object `package` extends build.MillPublishScalaModule with BuildInfo {
   def buildInfoMembers = Seq(
     BuildInfo.Value(
       "bootstrapDeps",
-      worker.bootstrapDeps().mkString(";"),
+      build.runner.worker.bootstrapDeps().mkString(";"),
       "Depedendencies used to bootstrap the scala compiler worker."
     )
   )
