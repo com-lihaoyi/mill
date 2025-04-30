@@ -309,8 +309,8 @@ trait AndroidSdkModule extends Module {
   }
 
   /**
-  * Install the Android NDK (Native Development Kit) for building native code.
-  */
+   * Install the Android NDK (Native Development Kit) for building native code.
+   */
   def installAndroidNdk: T[Unit] = Task {
     installAndroidSdkComponents()
 
@@ -318,7 +318,9 @@ trait AndroidSdkModule extends Module {
       os.call(
         Seq(
           sdkManagerPath().path.toString,
-          s"ndk;${ndkVersion()}"
+          "--install",
+          s"ndk;${ndkVersion()}",
+          s"cmake;${cmakeVersion()}"
         )
       )
     }

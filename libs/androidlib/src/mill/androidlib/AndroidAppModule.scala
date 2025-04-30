@@ -250,7 +250,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * This can be used to add custom files or resources that are not
    * automatically included in the build process like native libraries .so files.
    */
-  def androidPackagableExtraFiles: T[Seq[AndroidPackagableExtraFile]] =
+  def androidPackageableExtraFiles: T[Seq[AndroidPackagableExtraFile]] =
     Task { Seq.empty[AndroidPackagableExtraFile] }
 
   /**
@@ -281,7 +281,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .distinctBy(_.dest.get)
 
     // add all the extra files to the APK
-    val extraFiles: Seq[zip.ZipSource] = androidPackagableExtraFiles().map(extraFile =>
+    val extraFiles: Seq[zip.ZipSource] = androidPackageableExtraFiles().map(extraFile =>
       os.zip.ZipSource.fromPathTuple((extraFile.source.path, extraFile.destination.asSubPath))
     )
 
