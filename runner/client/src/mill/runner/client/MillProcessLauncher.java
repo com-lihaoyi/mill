@@ -5,6 +5,7 @@ import static mill.constants.OutFiles.*;
 import io.github.alexarchambault.nativeterm.NativeTerminal;
 import io.github.alexarchambault.nativeterm.TerminalSize;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -238,28 +239,28 @@ public class MillProcessLauncher {
   }
 
   static String[] cachedComputedValue(String name, String key, Supplier<String[]> block){
-      //      // Fast path to avoid calling `CoursierClient` and paying the classloading cost
-      //      // when the `javaHome` JVM has already been initialized for the configured `jvmId`
-      //      // and is ready to use directly
-      //      Path millJavaHomeFile = Paths.get(".").resolve(out).resolve(millJavaHome);
-      //      if (Files.exists(millJavaHomeFile)) {
-      //        String[] savedJavaHomeInfo = Files.readString(millJavaHomeFile).split(" ");
-      //        if (savedJavaHomeInfo[0].equals(jvmId)) {
-      //          // Make sure we check to see if the saved java home exists before using
-      //          // it, since it may have been since uninstalled, or the `out/` folder
-      //          // may have been transferred to a different machine
-      //          if (Files.exists(Paths.get(savedJavaHomeInfo[1]))) {
-      //            javaHome = savedJavaHomeInfo[1];
-      //          }
-      //        }
-      //      }
-      //
-      //        if (javaHome == null) {
-      //            javaHome = ;
-      //            Files.createDirectories(millJavaHomeFile.getParent());
-      //            Files.write(millJavaHomeFile, (jvmId + " " + javaHome).getBytes());
-      //        }
-      return block.get();
+      try {
+          Path cacheFile = Paths.get(".").resolve(out).resolve("mill-" + name);
+          String[] value = null;
+          if (Files.exists(cacheFile)) {
+              String[] savedInfo = Files.readString(cacheFile).split("\n");
+              if (savedInfo[0].equals(Escaping.literalize(key))) {
+                  value = Arrays.copyOfRange(savedInfo, 1, savedInfo.length);
+                  for(int i = 0; i < value.length; i++) value[i] = Escaping.unliteralize(value[i]);
+              }
+          }
+
+          if (value == null) {
+              value = block.get();
+              for(int i = 0; i < value.length; i++) value[i] = Escaping.literalize(value[i]);
+
+              Files.createDirectories(cacheFile.getParent());
+              Files.write(cacheFile, (Escaping.literalize(key) + "\n" + String.join("\n", value)).getBytes());
+          }
+          return value;
+      } catch (IOException e) {
+          throw new RuntimeException(e);
+      }
   }
 
   static int getTerminalDim(String s, boolean inheritError) throws Exception {
