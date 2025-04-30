@@ -284,7 +284,7 @@ object `package` extends MillJavaModule with DistModule {
     def nativeImageOptions = Seq(
       "--no-fallback",
       "--enable-url-protocols=https",
-      "-Os",
+      "-Os"
       // Enable JVisualVM support
       // https://www.graalvm.org/latest/tools/visualvm/#using-visualvm-with-graalvm-native-executables
       // "--enable-monitoring=jvmstat,heapdump"
