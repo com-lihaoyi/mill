@@ -112,7 +112,8 @@ object BspServerTestUtil {
 
   def withBspServer[T](
       workspacePath: os.Path,
-      millTestSuiteEnv: Map[String, String]
+      millTestSuiteEnv: Map[String, String],
+      client: b.BuildClient = DummyBuildClient
   )(f: (MillBuildServer, b.InitializeBuildResult) => T): T = {
 
     val bspMetadataFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
@@ -138,8 +139,6 @@ object BspServerTestUtil {
         else os.Inherit,
       env = millTestSuiteEnv
     )
-
-    val client: b.BuildClient = DummyBuildClient
 
     var success = false
     try {

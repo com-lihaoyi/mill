@@ -36,6 +36,33 @@ object BspServerTests extends UtestIntegrationTestSuite {
   }
 
   def tests: Tests = Tests {
+    test("diagnostics test") - integrationTest { tester =>
+      import tester._
+      eval(
+        "--bsp-install",
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_MAIN_CLI" -> tester.millExecutable.toString)
+      )
+
+      val client = new DummyBuildClient {
+        override def onBuildPublishDiagnostics(params: b.PublishDiagnosticsParams): Unit =
+          // 4. assert that received params are correct and they contain correct paths
+          ()
+      }
+
+      withBspServer(
+        workspacePath,
+        millTestSuiteEnv,
+        client
+      ) { (buildServer, initRes) =>
+        // 1. Trigger build to compile current build.mill file
+        val result = buildServer.workspaceBuildTargets().get()
+        // 2. adjust file to have typo in module trait name e.g BazeModule instead of BaseModule
+        // 3. rerun build
+      }
+    }
     test("requestSnapshots") - integrationTest { tester =>
       import tester._
       eval(
