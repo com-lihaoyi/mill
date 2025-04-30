@@ -1,6 +1,7 @@
 package mill.constants;
 
 import java.io.Console;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -76,14 +77,18 @@ public class Util {
     return hasConsole0;
   }
 
-  public static String readYamlHeader(java.nio.file.Path buildFile) throws java.io.IOException {
-    java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
-    String yamlString = lines.stream()
-        .takeWhile(line -> line.startsWith("//|"))
-        .map(line -> line.substring(4)) // Remove the `//|` prefix
-        .collect(java.util.stream.Collectors.joining("\n"));
+  public static String readYamlHeader(java.nio.file.Path buildFile) {
+    try {
+      java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
+      String yamlString = lines.stream()
+          .takeWhile(line -> line.startsWith("//|"))
+          .map(line -> line.substring(4)) // Remove the `//|` prefix
+          .collect(java.util.stream.Collectors.joining("\n"));
 
-    return yamlString;
+      return yamlString;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private static String envInterpolatorPattern0 = "(\\$|[A-Z_][A-Z0-9_]*)";

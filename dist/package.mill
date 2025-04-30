@@ -15,7 +15,6 @@ trait DistModule extends Module {
   lazy val allPublishModules = build.moduleInternal.modules.collect {
     case m: build.MillPublishJavaModule => m
   }
-  def moduleDeps = Seq(build.runner)
 
   def executableRaw: T[PathRef]
 
@@ -73,8 +72,7 @@ trait DistModule extends Module {
 
 object `package` extends MillJavaModule with DistModule {
 
-  // disable scalafix here because it crashes when a module has no sources
-  def moduleDeps = Seq(build.runner)
+  def moduleDeps = Seq(build.runner.client)
 
   def transitiveLocalTestOverrides = Map(
     Task.traverse(allPublishModules)(_.localTestOverride)(): _*
@@ -91,10 +89,7 @@ object `package` extends MillJavaModule with DistModule {
     val isWin = scala.util.Properties.isWin
     val outputPath = Task.dest / (if (isWin) "run.bat" else "run")
 
-    val launcherForkArgs = testArgs() ++
-      Seq(
-        "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(",")
-      )
+    val launcherForkArgs = testArgs()
     val (millArgs, otherArgs) =
       launcherForkArgs.partition(arg =>
         arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION")
@@ -137,9 +132,6 @@ object `package` extends MillJavaModule with DistModule {
     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
     "-Djna.nosys=true"
   )
-
-  def forkShellArgs = Seq("-DMILL_CLASSPATH=$0")
-  def forkCmdArgs = Seq(""""-DMILL_CLASSPATH=%~dpnx0"""")
 
   def mainClass = Some("mill.runner.client.MillClientMain")
 
@@ -260,26 +252,18 @@ object `package` extends MillJavaModule with DistModule {
       s"${build.dist.artifactName()}-native-${artifactOsSuffix()}-${artifactCpuSuffix()}"
     }
 
-    def nativeImageClasspath = build.runner.client.runClasspath()
+    // Use assembly jar as the upstream ivy classpath rather than using runClasspath
+    // directly to try and avoid native image command length problems on windows
+    def nativeImageClasspath =
+      Seq(build.runner.client.resolvedIvyAssembly().pathRef) ++
+        build.runner.client.upstreamLocalAssemblyClasspath() ++
+        build.runner.client.localClasspath()
 
     def localBinName = "mill-native"
 
     def cacheBinarySuffix = "-native"
 
-    def executableRaw = Task {
-      val previous = nativeImage().path
-      val executable = Task.dest / previous.baseName
-
-      Using(os.write.outputStream(executable)) { out =>
-        out.write(os.read.bytes(previous))
-        out.write(System.lineSeparator.getBytes)
-        out.write(os.read.bytes(assembly().path))
-      }
-
-      if (!mill.constants.Util.isWindows) os.perms.set(executable, "rwxrwxrwx")
-
-      PathRef(executable)
-    }
+    def executableRaw = nativeImage()
 
     def nativeImageOptions = Seq(
       "--no-fallback",

@@ -14,5 +14,9 @@ object `package` extends build.MillPublishScalaModule {
   def sources = super.sources() ++ sources0()
 
   def forkEnv =
-    super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString())
+    super.forkEnv() ++
+      Map(
+        "MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString(),
+        "MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" -> build.dist.localTestOverridesClasspath().path.toString
+      )
 }
