@@ -113,7 +113,8 @@ object RunScript {
 
         val selectiveExecutionStoredData = for {
           _ <- Option.when(os.exists(evaluator.outPath / OutFiles.millSelectiveExecution))(())
-          changedTasks <- SelectiveExecution.computeChangedTasks0(evaluator, targets.toSeq, newComputedMetadata)
+          changedTasks <-
+            SelectiveExecution.computeChangedTasks0(evaluator, targets.toSeq, newComputedMetadata)
         } yield changedTasks
 
         selectiveExecutionStoredData match {
