@@ -2,7 +2,7 @@ package mill.main
 
 import mill.api.{Strict, Val}
 import mill.define.{InputImpl, NamedTask, Task}
-import mill.eval.*
+import mill.eval._
 import mill.main.client.OutFiles
 import mill.resolve.{Resolve, SelectMode}
 import mill.util.SpanningForest

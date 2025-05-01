@@ -2,8 +2,8 @@ package mill.main
 
 import mill.api.Strict.Agg
 import mill.api.{PathRef, Result, Val}
-import mill.define.*
-import mill.eval.Evaluator.*
+import mill.define._
+import mill.eval.Evaluator._
 import mill.eval.{Evaluator, EvaluatorPaths, Plan}
 import mill.main.client.OutFiles
 import mill.resolve.{Resolve, SelectMode}
