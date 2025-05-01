@@ -99,8 +99,8 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
    * @note throws if the metadata file does not exist.
    */
   def computeChangedTasks0(
-    tasks: Seq[NamedTask[?]],
-    computedMetadata: SelectiveExecution.Metadata.Computed
+      tasks: Seq[NamedTask[?]],
+      computedMetadata: SelectiveExecution.Metadata.Computed
   ): Option[ChangedTasks] = {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
 
@@ -113,7 +113,11 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
       val transitiveNamed = PlanImpl.transitiveNamed(tasks)
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
       val (changedRootTasks, downstreamTasks) =
-        evaluator.selective.computeDownstream(transitiveNamed, oldMetadata, computedMetadata.metadata)
+        evaluator.selective.computeDownstream(
+          transitiveNamed,
+          oldMetadata,
+          computedMetadata.metadata
+        )
 
       ChangedTasks(
         tasks,
