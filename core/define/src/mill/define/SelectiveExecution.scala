@@ -1,8 +1,8 @@
 package mill.define
 
-import mill.api.{Result, Val, ExecResult}
+import mill.api.{ExecResult, Result, Val}
 private[mill] trait SelectiveExecution {
-  import SelectiveExecution._
+  import SelectiveExecution.*
   def computeHashCodeSignatures(
       transitiveNamed: Seq[NamedTask[?]],
       codeSignatures: Map[String, Int]
@@ -20,7 +20,10 @@ private[mill] trait SelectiveExecution {
       tasks: Seq[String]
   ): Result[ChangedTasks]
 
-  def computeChangedTasks0(tasks: Seq[NamedTask[?]]): ChangedTasks
+  def computeChangedTasks0(
+      tasks: Seq[NamedTask[?]],
+      computedMetadata: SelectiveExecution.Metadata.Computed
+  ): Option[ChangedTasks]
 
   def resolve0(tasks: Seq[String]): Result[Array[String]]
 
@@ -30,17 +33,27 @@ private[mill] trait SelectiveExecution {
 
   def computeMetadata(
       tasks: Seq[NamedTask[?]]
-  ): (SelectiveExecution.Metadata, Map[Task[?], ExecResult[Val]])
+  ): SelectiveExecution.Metadata.Computed
 }
 object SelectiveExecution {
   case class Metadata(inputHashes: Map[String, Int], codeSignatures: Map[String, Int])
+  object Metadata {
+    case class Computed(
+        metadata: Metadata,
+        results: Map[Task[?], ExecResult[Val]]
+    )
+  }
 
   implicit val rw: upickle.default.ReadWriter[Metadata] = upickle.default.macroRW
 
   case class ChangedTasks(
       resolved: Seq[NamedTask[?]],
       changedRootTasks: Set[NamedTask[?]],
-      downstreamTasks: Seq[NamedTask[?]],
-      results: Map[Task[?], ExecResult[Val]]
+      downstreamTasks: Seq[NamedTask[?]]
   )
+  object ChangedTasks {
+
+    /** Indicates that all of the passed in tasks were changed. */
+    def all(tasks: Seq[NamedTask[?]]): ChangedTasks = ChangedTasks(tasks, tasks.toSet, tasks)
+  }
 }
