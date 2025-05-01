@@ -2,11 +2,11 @@ package mill.main
 
 import mill.api.{Strict, Val}
 import mill.define.{InputImpl, NamedTask, Task}
-import mill.eval.{CodeSigUtils, Evaluator, EvaluatorCore, Plan, Terminal}
+import mill.eval._
 import mill.main.client.OutFiles
-import mill.util.SpanningForest.breadthFirst
 import mill.resolve.{Resolve, SelectMode}
 import mill.util.SpanningForest
+import mill.util.SpanningForest.breadthFirst
 
 private[mill] object SelectiveExecution {
   case class Metadata(inputHashes: Map[String, Int], methodCodeHashSignatures: Map[String, Int])
@@ -14,10 +14,16 @@ private[mill] object SelectiveExecution {
   implicit val rw: upickle.default.ReadWriter[Metadata] = upickle.default.macroRW
 
   object Metadata {
+    case class Computed(
+        metadata: Metadata,
+        // TODO: better name
+        results: Map[Task[_], Evaluator.TaskResult[Val]]
+    )
+
     def compute(
         evaluator: Evaluator,
         tasks: Seq[NamedTask[_]]
-    ): (Metadata, Map[Task[_], Evaluator.TaskResult[Val]]) = {
+    ): Computed = {
       val (sortedGroups, transitive) = Plan.plan(tasks)
       val inputTasksToLabels: Map[Task[_], String] = sortedGroups.keys()
         .collect { case Terminal.Labelled(task: InputImpl[_], segments) =>
@@ -27,17 +33,20 @@ private[mill] object SelectiveExecution {
 
       val results = evaluator.evaluate(Strict.Agg.from(inputTasksToLabels.keys))
 
-      new Metadata(
-        inputHashes = results
-          .results
-          .flatMap { case (task, taskResult) =>
-            inputTasksToLabels.get(task).map { l =>
-              l -> taskResult.result.getOrThrow.value.hashCode
+      Computed(
+        new Metadata(
+          inputHashes = results
+            .results
+            .flatMap { case (task, taskResult) =>
+              inputTasksToLabels.get(task).map { label =>
+                label -> taskResult.result.getOrThrow.value.hashCode
+              }
             }
-          }
-          .toMap,
-        methodCodeHashSignatures = evaluator.methodCodeHashSignatures
-      ) -> results.results.toMap
+            .toMap,
+          methodCodeHashSignatures = evaluator.methodCodeHashSignatures
+        ),
+        results.results.toMap
+      )
     }
   }
 
@@ -116,9 +125,13 @@ private[mill] object SelectiveExecution {
   case class ChangedTasks(
       resolved: Seq[NamedTask[_]],
       changedRootTasks: Set[NamedTask[_]],
-      downstreamTasks: Seq[NamedTask[_]],
-      results: Map[Task[_], Evaluator.TaskResult[Val]]
+      downstreamTasks: Seq[NamedTask[_]]
   )
+  object ChangedTasks {
+
+    /** Indicates that all of the passed in tasks were changed. */
+    def all(tasks: Seq[NamedTask[_]]): ChangedTasks = ChangedTasks(tasks, tasks.toSet, tasks)
+  }
 
   def computeChangedTasks(
       evaluator: Evaluator,
@@ -129,24 +142,39 @@ private[mill] object SelectiveExecution {
       tasks,
       SelectMode.Separated,
       evaluator.allowPositionalCommandArgs
-    ).map(computeChangedTasks0(evaluator, _))
+    ).map { tasks =>
+      computeChangedTasks0(evaluator, tasks, SelectiveExecution.Metadata.compute(evaluator, tasks))
+        // If we did not have the metadata, presume everything was changed.
+        .getOrElse(ChangedTasks.all(tasks))
+    }
   }
 
-  def computeChangedTasks0(evaluator: Evaluator, tasks: Seq[NamedTask[_]]): ChangedTasks = {
+  /**
+   * @return [[None]] when the metadata file is empty.
+   * @note throws if the metadata file does not exist.
+   */
+  def computeChangedTasks0(
+      evaluator: Evaluator,
+      tasks: Seq[NamedTask[_]],
+      computedMetadata: SelectiveExecution.Metadata.Computed
+  ): Option[ChangedTasks] = {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
-    if (oldMetadataTxt == "") ChangedTasks(tasks, tasks.toSet, tasks, Map.empty)
-    else {
+
+    // We allow to clear the selective execution metadata to rerun all tasks.
+    //
+    // You would think that removing the file achieves the same result, however, blanking the file indicates that
+    // this was intentional and you did not simply forgot to run `selective.prepare` beforehand.
+    if (oldMetadataTxt == "") None
+    else Some {
       val oldMetadata = upickle.default.read[SelectiveExecution.Metadata](oldMetadataTxt)
-      val (newMetadata, results) = SelectiveExecution.Metadata.compute(evaluator, tasks)
 
       val (changedRootTasks, downstreamTasks) =
-        SelectiveExecution.computeDownstream(tasks, oldMetadata, newMetadata)
+        SelectiveExecution.computeDownstream(tasks, oldMetadata, computedMetadata.metadata)
 
       ChangedTasks(
         tasks,
         changedRootTasks.collect { case n: NamedTask[_] => n },
-        downstreamTasks.collect { case n: NamedTask[_] => n },
-        results
+        downstreamTasks.collect { case n: NamedTask[_] => n }
       )
     }
   }

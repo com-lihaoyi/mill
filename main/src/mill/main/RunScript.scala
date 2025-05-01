@@ -1,13 +1,13 @@
 package mill.main
 
-import mill.define._
-import mill.eval.{Evaluator, EvaluatorPaths, Plan}
-import mill.util.Watchable
-import mill.api.{PathRef, Result, Val}
 import mill.api.Strict.Agg
-import Evaluator._
+import mill.api.{PathRef, Result, Val}
+import mill.define._
+import mill.eval.Evaluator._
+import mill.eval.{Evaluator, EvaluatorPaths, Plan}
 import mill.main.client.OutFiles
 import mill.resolve.{Resolve, SelectMode}
+import mill.util.Watchable
 
 import scala.annotation.nowarn
 
@@ -107,19 +107,33 @@ object RunScript {
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
     val selectedTargetsOrErr =
-      if (
-        selectiveExecutionEnabled && os.exists(evaluator.outPath / OutFiles.millSelectiveExecution)
-      ) {
-        val changedTasks = SelectiveExecution.computeChangedTasks0(evaluator, targets.toSeq)
-        val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
-        (
-          targets.filter(t => t.isExclusiveCommand || selectedSet(terminals(t).render)),
-          changedTasks.results
-        )
-      } else (targets -> Map.empty)
+      if (!selectiveExecutionEnabled) (targets, Map.empty, None)
+      else {
+        val newComputedMetadata = SelectiveExecution.Metadata.compute(evaluator, targets.toSeq)
+
+        val selectiveExecutionStoredData = for {
+          _ <- Option.when(os.exists(evaluator.outPath / OutFiles.millSelectiveExecution))(())
+          changedTasks <-
+            SelectiveExecution.computeChangedTasks0(evaluator, targets.toSeq, newComputedMetadata)
+        } yield changedTasks
+
+        selectiveExecutionStoredData match {
+          case None =>
+            // Ran when previous selective execution metadata is not available, which happens the first time you run
+            // selective execution.
+            (targets, Map.empty, Some(newComputedMetadata.metadata))
+          case Some(changedTasks) =>
+            val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+            (
+              targets.filter(t => t.isExclusiveCommand || selectedSet(terminals(t).render)),
+              newComputedMetadata.results,
+              Some(newComputedMetadata.metadata)
+            )
+        }
+      }
 
     selectedTargetsOrErr match {
-      case (selectedTargets, selectiveResults) =>
+      case (selectedTargets, selectiveResults, maybeNewMetadata) =>
         val evaluated: Results = evaluator.evaluate(selectedTargets, serialCommandExec = true)
         val watched = (evaluated.results.iterator ++ selectiveResults)
           .collect {
@@ -134,15 +148,8 @@ object RunScript {
           .flatten
           .toSeq
 
-        val allInputHashes = evaluated.results
-          .iterator
-          .collect {
-            case (t: InputImpl[_], TaskResult(Result.Success(Val(value)), _)) =>
-              (terminals(t).render, value.##)
-          }
-          .toMap
-
-        if (selectiveExecutionEnabled) {
+        maybeNewMetadata.foreach { newMetadata =>
+          val allInputHashes = newMetadata.inputHashes
           SelectiveExecution.saveMetadata(
             evaluator,
             SelectiveExecution.Metadata(allInputHashes, evaluator.methodCodeHashSignatures)
