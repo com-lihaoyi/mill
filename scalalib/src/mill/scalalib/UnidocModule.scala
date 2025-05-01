@@ -19,6 +19,15 @@ trait UnidocModule extends ScalaModule {
     allSourceFiles() ++ Task.traverse(moduleDeps)(_.allSourceFiles)().flatten
   }
 
+  /** The title of the scaladoc site. */
+  def unidocDocumentTitle: T[String] = Task { "Mill" }
+
+  /** Extra options passed to scaladoc. */
+  def unidocOptions: T[Seq[String]] = Task { Seq.empty[String] }
+
+  /**
+   * @param local whether to use 'file://' as the `-doc-source-url`.
+   */
   def unidocCommon(local: Boolean) = Task.Anon {
 
     val unidocSourceFiles0 = unidocSourceFiles()
@@ -30,7 +39,7 @@ trait UnidocModule extends ScalaModule {
     // below is for scala-2 variant
     val options: Seq[String] = Seq(
       "-doc-title",
-      "Mill",
+      unidocDocumentTitle(),
       "-d",
       Task.dest.toString,
       "-classpath",
@@ -48,7 +57,7 @@ trait UnidocModule extends ScalaModule {
           "-sourcepath",
           Task.workspace.toString
         )
-      }
+      } ++ unidocOptions()
 
     jvmWorker().worker().docJar(
       scalaVersion(),
