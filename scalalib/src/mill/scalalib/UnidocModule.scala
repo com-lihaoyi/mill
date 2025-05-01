@@ -1,5 +1,5 @@
 package mill.scalalib
-import mill.*
+import mill._
 
 /**
  * Mix this in to any [[ScalaModule]] to provide a [[unidocSite]] target that
