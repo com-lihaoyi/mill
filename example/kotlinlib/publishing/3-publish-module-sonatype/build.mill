@@ -18,7 +18,3 @@ object foo extends KotlinModule with SonatypeCentralPublishModule {
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 }
-
-// This example configured for publishing to Sonatype Maven Central via
-// Central Portal. Extends SonatypeCentralPublishModule which provides
-// simplified publishing tasks without requiring Nexus repository manager.
