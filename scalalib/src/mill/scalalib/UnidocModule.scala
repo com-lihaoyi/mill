@@ -34,30 +34,30 @@ trait UnidocModule extends ScalaModule {
 
     Task.log.info(s"Staging scaladoc for ${unidocSourceFiles0.length} files")
 
-    val options: Seq[String] = // the details of the options and zincWorker call are significantly
-      // different between scala-2 scaladoc and scala-3 scaladoc
-      // below is for scala-2 variant
-      Seq(
-        "-doc-title",
-        unidocDocumentTitle(),
-        "-d",
-        Task.dest.toString,
-        "-classpath",
-        unidocCompileClasspath().map(_.path).mkString(sys.props("path.separator"))
-      ) ++
-        unidocVersion().toSeq.flatMap(Seq("-doc-version", _)) ++
-        unidocSourceUrl().toSeq.flatMap { url =>
-          if (local) Seq(
-            "-doc-source-url",
-            "file://€{FILE_PATH}.scala"
-          )
-          else Seq(
-            "-doc-source-url",
-            url + "€{FILE_PATH}.scala",
-            "-sourcepath",
-            Task.workspace.toString
-          )
-        } ++ unidocOptions()
+    // the details of the options and zincWorker call are significantly
+    // different between scala-2 scaladoc and scala-3 scaladoc
+    // below is for scala-2 variant
+    val options: Seq[String] = Seq(
+      "-doc-title",
+      unidocDocumentTitle(),
+      "-d",
+      Task.dest.toString,
+      "-classpath",
+      unidocCompileClasspath().map(_.path).mkString(sys.props("path.separator"))
+    ) ++
+      unidocVersion().toSeq.flatMap(Seq("-doc-version", _)) ++
+      unidocSourceUrl().toSeq.flatMap { url =>
+        if (local) Seq(
+          "-doc-source-url",
+          "file://€{FILE_PATH}.scala"
+        )
+        else Seq(
+          "-doc-source-url",
+          url + "€{FILE_PATH}.scala",
+          "-sourcepath",
+          Task.workspace.toString
+        )
+      } ++ unidocOptions()
 
     jvmWorker().worker().docJar(
       scalaVersion(),
