@@ -43,8 +43,8 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     override final def kotlinVersion = outer.kotlinVersion
     override final def androidSdkModule = outer.androidSdkModule
 
+    def kotlinSources = Task.Sources("src/androidTest/kotlin")
     override def sources: T[Seq[PathRef]] =
-      def kotlinSources = Task.Sources("src/androidTest/kotlin")
       super[AndroidAppInstrumentedTests].sources() ++ kotlinSources()
   }
 
