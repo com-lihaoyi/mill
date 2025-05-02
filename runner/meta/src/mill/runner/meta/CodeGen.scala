@@ -10,10 +10,11 @@ import scala.util.control.Breaks.*
 
 object CodeGen {
 
-  def generateWrappedSources(
+  def generateWrappedAndSupportSources(
       projectRoot: os.Path,
       allScriptCode: Map[os.Path, String],
-      targetDest: os.Path,
+      wrappedDest: os.Path,
+      supportDest: os.Path,
       compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       output: os.Path,
@@ -35,7 +36,8 @@ object CodeGen {
       }
 
       val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)
-      val dest = targetDest / packageSegments
+      val wrappedDestFile = wrappedDest / packageSegments
+      val supportDestDir = supportDest / packageSegments / os.up
 
       val childNames = scriptSources
         .flatMap { path =>
@@ -92,46 +94,86 @@ object CodeGen {
         .filter(s => s != "build_" && s != "package_")
         .map(s => s"import $pkg.${backtickWrap(s)}.*").mkString("\n")
 
+      if (isBuildScript) {
+        val segments = calcSegments(scriptFolderPath, projectRoot)
+        val miscInfo = generateMillMiscInfo(
+          pkg = pkg,
+          scriptFolderPath = scriptFolderPath,
+          segments = segments,
+          millTopLevelProjectRoot = millTopLevelProjectRoot,
+          compilerWorkerClasspath = compilerWorkerClasspath,
+          output = output,
+          isMetaBuild = projectRoot != millTopLevelProjectRoot
+        )
+        os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
+      }
+
       val parts =
         if (!isBuildScript) {
           val wrapperName = backtickWrap(scriptPath.last.split('.').head + "_")
-          s"""package $pkg
-             |$aliasImports
-             |$importSiblingScripts
-             |object $wrapperName {
-             |$markerComment
-             |$scriptCode
-             |}
-             |export $wrapperName._
-             |""".stripMargin
+          s"""|package $pkg
+              |
+              |$aliasImports
+              |$importSiblingScripts
+              |
+              |object $wrapperName {
+              |$markerComment
+              |$scriptCode
+              |}
+              |
+              |export $wrapperName._
+              |""".stripMargin
         } else {
           generateBuildScript(
-            projectRoot,
-            compilerWorkerClasspath,
-            millTopLevelProjectRoot,
-            output,
-            scriptPath,
-            scriptFolderPath,
-            childAliases,
-            pkg,
-            aliasImports,
-            scriptCode,
-            markerComment,
-            parser,
-            siblingScripts,
-            importSiblingScripts
+            projectRoot = projectRoot,
+            millTopLevelProjectRoot = millTopLevelProjectRoot,
+            scriptPath = scriptPath,
+            scriptFolderPath = scriptFolderPath,
+            childAliases = childAliases,
+            pkg = pkg,
+            aliasImports = aliasImports,
+            scriptCode = scriptCode,
+            markerComment = markerComment,
+            parser = parser,
+            siblingScripts = siblingScripts,
+            importSiblingScripts = importSiblingScripts
           )
         }
 
-      os.write.over(dest, parts, createFolders = true)
+      os.write.over(wrappedDestFile, parts, createFolders = true)
     }
+  }
+
+  private def calcSegments(scriptFolderPath: os.Path, projectRoot: os.Path) =
+    scriptFolderPath.relativeTo(projectRoot).segments
+
+  private def generateMillMiscInfo(
+      pkg: String,
+      scriptFolderPath: os.Path,
+      segments: Seq[String],
+      millTopLevelProjectRoot: os.Path,
+      output: os.Path,
+      isMetaBuild: Boolean,
+      compilerWorkerClasspath: Seq[os.Path]
+  ): String = {
+    val header = if (pkg.isBlank()) "" else s"package $pkg"
+    val body = if (segments.nonEmpty) subfolderMiscInfo(scriptFolderPath, segments)
+    else rootMiscInfo(
+      scriptFolderPath,
+      compilerWorkerClasspath,
+      millTopLevelProjectRoot,
+      output,
+      isMetaBuild
+    )
+    s"""|$header
+        |
+        |$body
+        |""".stripMargin
   }
 
   private def generateBuildScript(
       projectRoot: os.Path,
-      compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
-      output: os.Path,
       scriptPath: os.Path,
       scriptFolderPath: os.Path,
       childAliases: String,
@@ -142,26 +184,17 @@ object CodeGen {
       parser: MillScalaParser,
       siblingScripts: Seq[String],
       importSiblingScripts: String
-  ) = {
-    val segments = scriptFolderPath.relativeTo(projectRoot).segments
+  ): String = {
+    val segments = calcSegments(scriptFolderPath, projectRoot)
 
     val exportSiblingScripts =
       siblingScripts.map(s => s"export $pkg.${backtickWrap(s)}.*").mkString("\n")
 
     val prelude =
-      s"""import MillMiscInfo._
-         |import _root_.mill.util.TokenReaders.given, _root_.mill.define.JsonFormatters.given
-         |""".stripMargin
-
-    val miscInfo =
-      if (segments.nonEmpty) subfolderMiscInfo(scriptFolderPath, segments)
-      else rootMiscInfo(
-        scriptFolderPath,
-        compilerWorkerClasspath,
-        millTopLevelProjectRoot,
-        output,
-        projectRoot != millTopLevelProjectRoot
-      )
+      s"""|import MillMiscInfo._
+          |import _root_.mill.util.TokenReaders.given
+          |import _root_.mill.define.JsonFormatters.given
+          |""".stripMargin
 
     val objectData = parser.parseObjectData(scriptCode)
 
@@ -179,20 +212,21 @@ object CodeGen {
       )
     }
     val headerCode =
-      s"""package $pkg
-         |$miscInfo
-         |$aliasImports
-         |$importSiblingScripts
-         |$prelude
-         |object wrapper_object_getter {
-         |  def value = os.checker.withValue(mill.define.internal.ResolveChecker(mill.define.WorkspaceRoot.workspaceRoot)){ $wrapperObjectName }
-         |}
-         |object $wrapperObjectName extends $wrapperObjectName {
-         |  ${childAliases.linesWithSeparators.mkString("  ")}
-         |  $exportSiblingScripts
-         |  ${millDiscover(segments.nonEmpty)}
-         |}
-         |""".stripMargin
+      s"""|package $pkg
+          |
+          |$aliasImports
+          |$importSiblingScripts
+          |$prelude
+          |
+          |object wrapper_object_getter {
+          |  def value = os.checker.withValue(mill.define.internal.ResolveChecker(mill.define.WorkspaceRoot.workspaceRoot)){ $wrapperObjectName }
+          |}
+          |object $wrapperObjectName extends $wrapperObjectName {
+          |  ${childAliases.linesWithSeparators.mkString("  ")}
+          |  $exportSiblingScripts
+          |  ${millDiscover(segments.nonEmpty)}
+          |}
+          |""".stripMargin
 
     objectData.find(o => o.name.text == "`package`") match {
       case Some(objectData) =>
@@ -244,10 +278,11 @@ object CodeGen {
 
       case None =>
         val extendsClause =
-          if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule(build.millDiscover) "
+          if (segments.nonEmpty)
+            s"    extends _root_.mill.main.SubfolderModule(build.millDiscover) "
           else if (millTopLevelProjectRoot == scriptFolderPath)
-            s"extends _root_.mill.main.MainRootModule "
-          else s"extends _root_.mill.runner.meta.MillBuildRootModule() "
+            s"    extends _root_.mill.main.MainRootModule "
+          else s"    extends _root_.mill.runner.meta.MillBuildRootModule() "
 
         s"""$headerCode
            |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type =>
@@ -262,12 +297,12 @@ object CodeGen {
       scriptFolderPath: os.Path,
       segments: Seq[String]
   ): String = {
-    s"""object MillMiscInfo
-       |extends mill.main.SubfolderModule.Info(
-       |  os.Path(${literalize(scriptFolderPath.toString)}),
-       |  _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
-       |)
-       |""".stripMargin
+    s"""|object MillMiscInfo
+        |    extends mill.main.SubfolderModule.Info(
+        |  os.Path(${literalize(scriptFolderPath.toString)}),
+        |  _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
+        |)
+        |""".stripMargin
   }
 
   def millDiscover(segmentsNonEmpty: Boolean): String = {
@@ -285,15 +320,17 @@ object CodeGen {
       output: os.Path,
       isMetaBuild: Boolean
   ): String = {
-    s"""${if (isMetaBuild) "import _root_.mill.runner.meta.MillBuildRootModule" else ""}
-       |@_root_.scala.annotation.nowarn
-       |object MillMiscInfo extends mill.define.RootModule0.Info(
-       |  ${compilerWorkerClasspath.map(p => literalize(p.toString))},
-       |  ${literalize(scriptFolderPath.toString)},
-       |  ${literalize(output.toString)},
-       |  ${literalize(millTopLevelProjectRoot.toString)}
-       |)
-       |""".stripMargin
+    s"""|${if (isMetaBuild) "import _root_.mill.runner.meta.MillBuildRootModule" else ""}
+        |@_root_.scala.annotation.nowarn
+        |object MillMiscInfo 
+        |    extends mill.define.RootModule0.Info(
+        |  ${compilerWorkerClasspath.map(p => literalize(p.toString))
+         .mkString("Vector(\n    ", ",\n    ", "\n  )")},
+        |  ${literalize(scriptFolderPath.toString)},
+        |  ${literalize(output.toString)},
+        |  ${literalize(millTopLevelProjectRoot.toString)}
+        |)
+        |""".stripMargin
   }
 
 }
