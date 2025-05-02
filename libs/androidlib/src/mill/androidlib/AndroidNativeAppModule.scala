@@ -6,10 +6,16 @@ import mill.define.{PathRef, Task}
 @mill.api.experimental
 trait AndroidNativeAppModule extends AndroidAppModule {
 
+  def androidNativeSource: T[PathRef] = Task.Source {
+    moduleDir / "src/main/cpp"
+  }
+
   /**
    * The path of each of the C/C++ source files to be compiled.
    */
-  def androidExternalNativeLibs: T[Seq[PathRef]]
+  def androidExternalNativeLibs: T[Seq[PathRef]] = Task {
+    os.walk(androidNativeSource().path).map(PathRef(_))
+  }
 
   /**
    * All the different ABI's that are supported by the Android SDK.
@@ -35,6 +41,16 @@ trait AndroidNativeAppModule extends AndroidAppModule {
   }
 
   /**
+   * Extra args to pass to cmake for [[androidCompileNative]].
+   *
+   * For more information see [[https://developer.android.com/ndk/guides/cmake#build-command]]
+   * @return
+   */
+  def androidCMakeExtraArgs: T[Seq[String]] = Task {
+    Seq.empty[String]
+  }
+
+  /**
    * This method compiles all the native libraries using CMake and Ninja
    * and generates the .so files in the output directory for each of the supported ABI's.
    *
@@ -53,7 +69,7 @@ trait AndroidNativeAppModule extends AndroidAppModule {
 
       val cmakeArgs = Seq(
         s"${androidSdkModule().cmakePath().path.toString}",
-        s"-H/${Task.workspace.toString}/app/src/main/cpp/",
+        s"-H/${androidNativeSource().path}",
         "-DCMAKE_SYSTEM_NAME=Android",
         "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
         s"-DCMAKE_SYSTEM_VERSION=${androidBuildToolsVersion()}",
@@ -69,7 +85,7 @@ trait AndroidNativeAppModule extends AndroidAppModule {
         "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
         s"-B/${outCxx.toString}/${abi}",
         "-GNinja"
-      )
+      ) ++ androidCMakeExtraArgs()
 
       T.log.info(s"Calling CMake with arguments: ${cmakeArgs.mkString(" ")}")
 
