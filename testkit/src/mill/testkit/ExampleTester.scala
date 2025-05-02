@@ -112,7 +112,9 @@ class ExampleTester(
       case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
       case s => s
     }
-    Console.err.println(s"$workspacePath> $commandStr")
+    /** The command we're about to execute */
+    val debugCommandStr = s"$workspacePath> $commandStr"
+    Console.err.println(debugCommandStr)
     Console.err.println(
       s"""--- Expected output ----------
          |${expectedSnippets.mkString("\n")}
@@ -142,14 +144,16 @@ class ExampleTester(
         fansi.Str(res.out.text(), errorMode = fansi.ErrorMode.Strip).plainText,
         fansi.Str(res.err.text(), errorMode = fansi.ErrorMode.Strip).plainText
       ),
-      check
+      check,
+      debugCommandStr,
     )
   }
 
   def validateEval(
       expectedSnippets: Vector[String],
       evalResult: IntegrationTester.EvalResult,
-      check: Boolean = true
+      check: Boolean = true,
+      command: String = "",
   ): Unit = {
     if (check) {
       if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
@@ -181,7 +185,11 @@ class ExampleTester(
     for (expectedLine <- unwrappedExpected.linesIterator) {
       Predef.assert(
         filteredOut.linesIterator.exists(globMatches(expectedLine, _)),
-        s"==== filteredOut:\n$filteredOut\n==== Missing expectedLine: \n$expectedLine"
+        (if (command == "") "" else s"==== command:\n$command\n") +
+          s"""==== filteredOut:
+             |$filteredOut
+             |==== Missing expectedLine:
+             |$expectedLine""".stripMargin
       )
     }
   }

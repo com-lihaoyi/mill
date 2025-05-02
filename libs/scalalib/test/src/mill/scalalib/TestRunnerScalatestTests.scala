@@ -30,24 +30,23 @@ object TestRunnerScalatestTests extends TestSuite {
       test("singleClass") - tester.testOnly(
         Seq("mill.scalalib.ScalaTestSpec"),
         3,
-        Map(
-          // No test grouping is triggered because we only run one test class
-          testrunner.scalatest -> Set(
+        {
+          val results = Set(
             "out.json",
             "result.log",
             "sandbox",
             "test-report.xml",
             "testargs"
-          ),
-          testrunnerGrouping.scalatest -> Set(
-            "out.json",
-            "result.log",
-            "sandbox",
-            "test-report.xml",
-            "testargs"
-          ),
-          testrunnerWorkStealing.scalatest -> Set("worker-0", "test-classes", "test-report.xml")
-        )
+          )
+
+          Map(
+            testrunner.scalatest -> results,
+            // No test grouping is triggered because we only run one test class
+            testrunnerGrouping.scalatest -> results,
+            // No workers are triggered because we only run one test class
+            testrunnerWorkStealing.scalatest -> results
+          )
+        }
       )
 
       // Runs three test classes with 3 test cases each, and trigger test grouping
