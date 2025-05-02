@@ -705,7 +705,8 @@ Sorted with lodash: [a,b,e,k,l,m,o,p]</code></pre>
 import mill._, javascriptlib._
 
 object foo extends TypeScriptModule {
-  def unmanagedDeps = Seq.from(os.list(moduleDir / &quot;lib&quot;).map(PathRef(_)))
+  def unmanagedDepsFolder = Task.Source(&quot;lib&quot;)
+  def unmanagedDeps = Task { Seq.from(os.list(unmanagedDepsFolder().path).map(PathRef(_))) }
 }</code></pre>
 </div>
 </div>
@@ -823,12 +824,12 @@ Sorted with lodash: [a,b,e,k,l,m,o,p]
 {
   version: '4.17.21',
   resolved: 'https://registry.npmmirror.com/lodash/-/lodash-4.17.21.tgz',
-  integrity: ...,
+  integrity: ...
 ...
 }
 
 &gt; cd out/foo/npmInstall.dest &amp;&amp; npm config get registry
-https://registry.npmmirror.com</code></pre>
+https://registry.npmmirror.com...</code></pre>
 </div>
 </div>
 </div>

@@ -1193,14 +1193,12 @@ object bar extends JavaModule with RevapiModule {
     developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
   )
 
-  override def revapiConfigFiles: T[Seq[PathRef]] =
-    // add Revapi config JSON file(s)
-    Task.Sources(&quot;conf/revapi.json&quot;)
+  // add Revapi config JSON file(s)
+  override def revapiConfigFiles: T[Seq[PathRef]] = Task.Sources(&quot;conf/revapi.json&quot;)
 
-  override def revapiClasspath: T[Seq[PathRef]] = Task {
-    // add folder containing logback.xml
-    super.revapiClasspath() ++ Seq(PathRef(moduleDir / &quot;conf&quot;))
-  }
+  // add folder containing logback.xml
+  override def revapiClasspath = Task { super.revapiClasspath() ++ confClasspath() }
+  def confClasspath = Task.Sources(&quot;conf&quot;)
 }</code></pre>
 </div>
 </div>

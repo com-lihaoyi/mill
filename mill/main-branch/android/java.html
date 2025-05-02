@@ -736,7 +736,7 @@ import mill._, androidlib._, scalalib._</code></pre>
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  def androidReleaseKeyName: T[Option[String]] = Task { Some(&quot;releaseKey.jks&quot;) }
+  def androidReleaseKeyName: Option[String] = Some(&quot;releaseKey.jks&quot;)
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
@@ -968,7 +968,7 @@ object bundle extends AndroidAppBundle {
   def androidApplicationId = &quot;com.helloworld.app&quot;
   def androidApplicationNamespace = &quot;com.helloworld.app&quot;
 
-  def androidReleaseKeyName: T[Option[String]] = Task { Some(&quot;releaseKey.jks&quot;) }
+  def androidReleaseKeyName: Option[String] = Some(&quot;releaseKey.jks&quot;)
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
@@ -1103,7 +1103,7 @@ object app extends AndroidAppModule { <i class="conum" data-value="2"></i><b>(2)
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  def androidReleaseKeyName: T[Option[String]] = Task { Some(&quot;releaseKey.jks&quot;) }
+  def androidReleaseKeyName: Option[String] = Some(&quot;releaseKey.jks&quot;)
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }

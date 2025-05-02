@@ -694,6 +694,45 @@ object foo extends Module {
 .../out/foo/tDestTask.dest</code></pre>
 </div>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def bannedWriteTask = Task {
+  os.write(Task.workspace / &quot;banned-path&quot;, &quot;hello&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bannedWriteTask
+error: ...Writing to banned-path not allowed during execution phase</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def bannedReadTask = Task {
+  os.read(Task.workspace / &quot;build.mill&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bannedReadTask
+error: ...Reading from build.mill not allowed during execution phase</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def bannedReadTask2 = Task {
+  os.read(Task.workspace / &quot;out/foo/tDestTask.json&quot;)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bannedReadTask2
+error: ...Reading from out/foo/tDestTask.json not allowed during execution phase</code></pre>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_task_os_pwd_redirection"><a class="anchor" href="#_task_os_pwd_redirection"></a>Task <code>os.pwd</code> redirection</h3>

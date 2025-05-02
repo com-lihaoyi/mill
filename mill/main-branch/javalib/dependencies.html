@@ -825,9 +825,10 @@ way to do it.</p>
 import mill._, javalib._
 
 object `package` extends JavaModule {
+  def lib = Task.Source(&quot;lib&quot;)
   def unmanagedClasspath = Task {
-    if (!os.exists(moduleDir / &quot;lib&quot;)) Seq()
-    else Seq.from(os.list(moduleDir / &quot;lib&quot;).map(PathRef(_)))
+    if (!os.exists(lib().path)) Seq()
+    else Seq.from(os.list(lib().path).map(PathRef(_)))
   }
 }</code></pre>
 </div>

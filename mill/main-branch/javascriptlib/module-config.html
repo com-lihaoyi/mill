@@ -676,7 +676,9 @@ object foo extends TypeScriptModule {
 
   def sources = Task { super.sources() ++ customSource() }
 
-  def resources = super.resources() ++ Seq(PathRef(moduleDir / &quot;custom-resources&quot;))
+  def customResources = Task.Sources(&quot;custom-resources&quot;)
+
+  def resources = super.resources() ++ customResources()
 
   def generatedSources = Task {
     for (name &lt;- Seq(&quot;A&quot;, &quot;B&quot;, &quot;C&quot;)) os.write(
