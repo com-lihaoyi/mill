@@ -41,6 +41,15 @@ def bannedReadTask = Task {
 error: ...Reading from build.mill not allowed during execution phase
 */
 
+def bannedReadTask2 = Task {
+  os.read(Task.workspace / "out/foo/tDestTask.json")
+}
+
+/** Usage
+> ./mill bannedReadTask2
+error: ...Reading from out/foo/tDestTask.json not allowed during execution phase
+*/
+
 // === Task `os.pwd` redirection
 // Mill also redirects the `os.pwd` property from https://github.com/com-lihaoyi/os-lib[OS-Lib],
 // such that that also points towards a running task's own `.dest/` folder
