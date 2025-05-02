@@ -32,8 +32,7 @@ object TestRunnerUtestTests extends TestSuite {
       test("prefix") - tester.testOnly(Seq("mill.scalalib.FooT*"), 1)
       test("exactly") - tester.testOnly(
         Seq("mill.scalalib.FooTests"),
-        1,
-        {
+        1, {
           val results = Set(
             "out.json",
             "result.log",

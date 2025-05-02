@@ -29,8 +29,7 @@ object TestRunnerScalatestTests extends TestSuite {
 
       test("singleClass") - tester.testOnly(
         Seq("mill.scalalib.ScalaTestSpec"),
-        3,
-        {
+        3, {
           val results = Set(
             "out.json",
             "result.log",
