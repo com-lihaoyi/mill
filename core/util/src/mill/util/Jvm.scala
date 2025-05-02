@@ -576,9 +576,11 @@ object Jvm {
       artifactTypes,
       resolutionParams
     ).map { res =>
-      res.files
-        .map(os.Path(_))
-        .map(PathRef(_, quick = true))
+      os.checker.withValue(os.Checker.Nop) {
+        res.files
+          .map(os.Path(_))
+          .map(PathRef(_, quick = true))
+      }
     }
 
   def jvmIndex(
