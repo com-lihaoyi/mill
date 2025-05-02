@@ -303,7 +303,12 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
 
         fixParseError(workspacePath / "build.mill")
         causeParseError(workspacePath / "mill-build/build.mill")
-        evalCheckErr(tester, "\n1 tasks failed", "\ngeneratedScriptSources", "mill-build/build.mill")
+        evalCheckErr(
+          tester,
+          "\n1 tasks failed",
+          "\ngeneratedScriptSources",
+          "mill-build/build.mill"
+        )
         // checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), Nil)
         if (tester.clientServerMode) checkChangedClassloaders(tester, null, null, null, false)
         else checkChangedClassloaders(tester, null, null, null, true)
@@ -320,7 +325,12 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
 
         fixParseError(workspacePath / "mill-build/mill-build/build.mill")
         causeParseError(workspacePath / "mill-build/build.mill")
-        evalCheckErr(tester, "\n1 tasks failed", "\ngeneratedScriptSources", "mill-build/build.mill")
+        evalCheckErr(
+          tester,
+          "\n1 tasks failed",
+          "\ngeneratedScriptSources",
+          "mill-build/build.mill"
+        )
         // checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), Nil)
         checkChangedClassloaders(tester, null, null, null, true)
 

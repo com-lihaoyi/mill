@@ -21,7 +21,9 @@ trait IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
 
         val res2 = tester.eval("testTask")
         assert(!res2.err.contains("compiling 1 Scala source")) // no need to re-compile `build.mill`
-        assert(!res2.err.contains("compiling 2 Scala sources")) // no need to re-compile `build.mill`
+        assert(
+          !res2.err.contains("compiling 2 Scala sources")
+        ) // no need to re-compile `build.mill`
         assert(tester.out("testTask").value[String] == "HELLO WORLD SOURCE FILE!!!")
 
         val suffix = if (clientServerMode) "mill-server" else "mill-no-server"
