@@ -88,8 +88,9 @@ trait TypeScriptModule extends Module { outer =>
     )
   }
 
+  def npmRc = Task.Source(Task.workspace / ".npmrc")
   def npmInstall: T[PathRef] = Task {
-    Try(os.copy.over(Task.workspace / ".npmrc", Task.dest / ".npmrc")).getOrElse(())
+    if (os.exists(npmRc().path)) os.copy.over(npmRc().path, Task.dest / ".npmrc")
 
     // build package.json with
     mkPackageJson()
