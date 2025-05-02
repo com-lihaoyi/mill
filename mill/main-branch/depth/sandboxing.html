@@ -937,13 +937,13 @@ working directory, without colliding with each other on disk:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; find . | grep generated.html
-.../out/foo/test/testForked.dest/worker-0/sandbox/generated.html
-.../out/bar/test/testForked.dest/worker-0/sandbox/generated.html
+.../out/foo/test/testForked.dest/sandbox/generated.html
+.../out/bar/test/testForked.dest/sandbox/generated.html
 
-&gt; cat out/foo/test/testForked.dest/worker-0/sandbox/generated.html
+&gt; cat out/foo/test/testForked.dest/sandbox/generated.html
 &lt;h1&gt;hello&lt;/h1&gt;
 
-&gt; cat out/bar/test/testForked.dest/worker-0/sandbox/generated.html
+&gt; cat out/bar/test/testForked.dest/sandbox/generated.html
 &lt;p&gt;world&lt;/p&gt;</code></pre>
 </div>
 </div>
@@ -1059,9 +1059,9 @@ public class FooTests {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; find . | grep .html
 ...
-.../out/foo/test/testForked.dest/worker-0/sandbox/foo.html
+.../out/foo/test/testForked.dest/sandbox/foo.html
 
-&gt; cat out/foo/test/testForked.dest/worker-0/sandbox/foo.html
+&gt; cat out/foo/test/testForked.dest/sandbox/foo.html
 &lt;h1&gt;foo&lt;/h1&gt;</code></pre>
 </div>
 </div>
