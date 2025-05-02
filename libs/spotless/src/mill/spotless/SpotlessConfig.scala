@@ -1,6 +1,7 @@
 package mill.spotless
 
 import upickle.default.*
+import upickle.implicits.flatten
 
 /**
  * Configuration for running Spotless.
@@ -8,5 +9,5 @@ import upickle.default.*
 case class SpotlessConfig(
     extensions: Seq[String],
     steps: Seq[FormatterStepConfig],
-    formatter: FormatterConfig = FormatterConfig()
+    @flatten formatter: FormatterConfig
 ) derives Reader

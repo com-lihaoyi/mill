@@ -1,4 +1,5 @@
 {
+  "lineEnding": "GIT_ATTRIBUTES",
   "extensions": ["scala"],
   "steps": [
     {

@@ -1,4 +1,6 @@
 {
+  "lineEnding": "UNIX",
+  "encoding": "UTF-8",
   "extensions": ["java"],
   "steps": [
     {

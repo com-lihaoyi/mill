@@ -1,4 +1,6 @@
 {
+  "lineEnding": "GIT_ATTRIBUTES_FAST_ALLSAME",
+  "encoding": "UTF-8",
   "extensions": ["scala"],
   "steps": [
     {

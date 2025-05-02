@@ -27,15 +27,18 @@ object ConfigTest extends TestSuite {
     }
 
     test("java steps can be built and applied") {
-      val lintState = fmt("spotless-config-java.json", os.temp(suffix = ".java").toIO)
+      val file = (resources / "A.java").toIO
+      val lintState = fmt("spotless-config-java.json", file)
       assert(!lintState.isClean)
     }
     test("kotlin steps can be built and applied") {
-      val lintState = fmt("spotless-config-kotlin.json", os.temp(suffix = ".kt").toIO)
+      val file = (resources / "B.kt").toIO
+      val lintState = fmt("spotless-config-kotlin.json", file)
       assert(!lintState.isClean)
     }
     test("scala steps can be built and applied") {
-      val lintState = fmt("spotless-config-scala.json", os.temp(suffix = ".scala").toIO)
+      val file = (resources / "C.scala").toIO
+      val lintState = fmt("spotless-config-scala.json", file)
       assert(!lintState.isClean)
     }
   }

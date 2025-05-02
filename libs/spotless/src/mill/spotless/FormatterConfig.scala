@@ -12,7 +12,7 @@ import scala.jdk.CollectionConverters.*
  * Configuration for building a [[Formatter]].
  */
 case class FormatterConfig(
-    lineEnding: LineEnding = LineEnding.UNIX,
+    lineEnding: LineEnding,
     encoding: Charset = StandardCharsets.UTF_8
 ) derives Reader {
 
@@ -34,9 +34,6 @@ case class FormatterConfig(
   }
 }
 
-object FormatterConfig {
+private given Reader[LineEnding] = reader[String].map(LineEnding.valueOf)
 
-  private given Reader[LineEnding] = reader[String].map(LineEnding.valueOf)
-
-  private given Reader[Charset] = reader[String].map(Charset.forName)
-}
+private given Reader[Charset] = reader[String].map(Charset.forName)
