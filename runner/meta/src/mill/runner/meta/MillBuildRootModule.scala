@@ -38,9 +38,11 @@ class MillBuildRootModule()(implicit
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
-  val scriptSourcesPaths = FileImportGraph
-    .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
-    .sorted
+  val scriptSourcesPaths = os.checker.withValue(os.Checker.Nop) {
+    FileImportGraph
+      .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
+      .sorted
+  }
 
   /**
    * All script files (that will get wrapped later)
@@ -52,7 +54,9 @@ class MillBuildRootModule()(implicit
 
   def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
-    MillBuildRootModule.parseBuildFiles(compilerWorker(), rootModuleInfo)
+    os.checker.withValue(os.Checker.Nop) {
+      MillBuildRootModule.parseBuildFiles(compilerWorker(), rootModuleInfo)
+    }
   }
 
   private[runner] def compilerWorker: Worker[ScalaCompilerWorkerApi] = Task.Worker {

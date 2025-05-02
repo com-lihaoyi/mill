@@ -152,21 +152,21 @@ trait TypeScriptModule extends Module { outer =>
     if (!os.exists(T.dest)) os.makeDir.all(T.dest)
 
     // Copy everything except "build.mill" and the "/out" directory from Task.workspace
-    os.walk(moduleDir, skip = _.last == "out")
-      .filter(_.last != "build.mill")
-      .filter(_.last != "mill")
-      .filter(_.last != "package.json")
-      .filter(_.last != "package-lock.json")
-      .filter(_.last != "tsconfig.json")
-      .foreach { path =>
-        val relativePath = path.relativeTo(moduleDir)
-        val destination = T.dest / relativePath
+    os.checker.withValue(os.Checker.Nop) {
+      os.walk(moduleDir, skip = _.last == "out")
+        .filter(_.last != "build.mill")
+        .filter(_.last != "mill")
+        .filter(_.last != "package.json")
+        .filter(_.last != "package-lock.json")
+        .filter(_.last != "tsconfig.json")
+        .foreach { path =>
+          val relativePath = path.relativeTo(moduleDir)
+          val destination = T.dest / relativePath
 
-        if (os.isDir(path)) os.makeDir.all(destination)
-        else os.checker.withValue(os.Checker.Nop) {
-          os.copy.over(path, destination)
+          if (os.isDir(path)) os.makeDir.all(destination)
+          else os.copy.over(path, destination)
         }
-      }
+    }
 
     object IsSrcDirectory {
       def unapply(path: Path): Option[Path] =
