@@ -3,7 +3,7 @@ import mill._, javascriptlib._
 
 object foo extends TypeScriptModule {
   def unmanagedDepsFolder = Task.Source("lib")
-  def unmanagedDeps = Task { Seq.from(os.list(unmanagedDepsFolder()).map(PathRef(_))) }
+  def unmanagedDeps = Task { Seq.from(os.list(unmanagedDepsFolder().path).map(PathRef(_))) }
 }
 
 // You can override `unmanagedDeps` to point to a

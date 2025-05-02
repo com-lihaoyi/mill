@@ -36,12 +36,12 @@ trait KtlintModule extends JavaModule {
     )
   }
 
+
+  def ktlintConfig0 = Task.Source(Task.workspace / ".editorconfig")
   /**
    * Ktlint configuration file.
    */
-  def ktlintConfig: T[Option[PathRef]] = Task {
-    Some(PathRef(Task.workspace / ".editorconfig"))
-  }
+  def ktlintConfig: T[Option[PathRef]] = Task { Some(ktlintConfig0()) }
 
   /**
    * Ktlint version.
