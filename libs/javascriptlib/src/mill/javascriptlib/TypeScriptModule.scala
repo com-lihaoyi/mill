@@ -11,8 +11,6 @@ trait TypeScriptModule extends Module { outer =>
   // custom module names
   def moduleName: String = super.toString
 
-  def moduleDirSources = Task.Sources(moduleDir)
-
   override def toString: String = moduleName
 
   def moduleDeps: Seq[TypeScriptModule] = Nil
@@ -116,17 +114,17 @@ trait TypeScriptModule extends Module { outer =>
 
   def generatedSources: T[Seq[PathRef]] = Task { Seq[PathRef]() }
 
-  private def tscModDepsResources: T[Seq[(PathRef, Seq[PathRef])]] =
+  private def tscModDepsResources: T[Seq[(os.Path, Seq[PathRef])]] =
     Task
       .traverse(recModuleDeps)(_.resources)()
       .zip(recModuleDeps)
-      .map { case (r, m) => (PathRef(m.moduleDir), r) }
+      .map { case (r, m) => (m.moduleDir, r) }
 
-  private def tscModDepsSources: T[Seq[(PathRef, Seq[PathRef])]] =
+  private def tscModDepsSources: T[Seq[(os.Path, Seq[PathRef])]] =
     Task
       .traverse(recModuleDeps)(_.sources)()
       .zip(recModuleDeps)
-      .map { case (s, m) => (PathRef(m.moduleDir), s) }
+      .map { case (s, m) => (m.moduleDir, s) }
 
   private def tscCoreGenSources: T[Seq[PathRef]] = Task {
     for {
@@ -136,13 +134,13 @@ trait TypeScriptModule extends Module { outer =>
     } yield PathRef(file)
   }
 
-  private def tscModDepsGenSources: T[Seq[(PathRef, Seq[PathRef])]] =
+  private def tscModDepsGenSources: T[Seq[(os.Path, Seq[PathRef])]] =
     Task
       .traverse(recModuleDeps)(_.generatedSources)()
       .zip(recModuleDeps)
       .map { case (s, m) =>
         (
-          PathRef(m.moduleDir),
+          m.moduleDir,
           s.flatMap { genS => os.walk(genS.path).filter(_.ext == "ts").map(PathRef(_)) }
         )
       }
@@ -199,7 +197,7 @@ trait TypeScriptModule extends Module { outer =>
     // mod deps
     tscModDepsSources()
       .foreach { case (mod, sources_) =>
-        copyOutSources(sources_, T.dest / mod.path.relativeTo(Task.workspace) / "src")
+        copyOutSources(sources_, T.dest / mod.relativeTo(Task.workspace) / "src")
       }
 
   }
@@ -211,11 +209,13 @@ trait TypeScriptModule extends Module { outer =>
     targets.foreach { target =>
       val destination = T.dest / target
       os.makeDir.all(destination / os.up)
-      os.copy(
-        Task.workspace / target,
-        destination,
-        mergeFolders = true
-      )
+      os.checker.withValue(os.Checker.Nop) {
+        os.copy(
+          Task.workspace / target,
+          destination,
+          mergeFolders = true
+        )
+      }
     }
   }
 
@@ -233,7 +233,7 @@ trait TypeScriptModule extends Module { outer =>
 
     tscModDepsGenSources().foreach { case (mod, source_) =>
       source_.foreach { target =>
-        val modDir = mod.path.relativeTo(Task.workspace)
+        val modDir = mod.relativeTo(Task.workspace)
         val destination = T.dest / modDir / "generatedSources" / target.path.last
         copyGeneratedSources(target.path, destination)
       }
@@ -263,7 +263,7 @@ trait TypeScriptModule extends Module { outer =>
     linkResource(resources(), dest)
 
     tscModDepsResources().foreach { case (mod, r) =>
-      val modDir = mod.path.relativeTo(Task.workspace)
+      val modDir = mod.relativeTo(Task.workspace)
       val modDest = T.dest / modDir / "resources"
       if (!os.exists(modDest)) os.makeDir.all(modDest)
       linkResource(r, modDest)
@@ -320,7 +320,7 @@ trait TypeScriptModule extends Module { outer =>
           .flatMap(pr => if (isDir(pr.path)) os.walk(pr.path) else Seq(pr.path))
           .filter(fileExt)
           .flatMap { p =>
-            val modDir = mod.path.relativeTo(Task.workspace)
+            val modDir = mod.relativeTo(Task.workspace)
             val modmoduleDir = Task.workspace / modDir
             val modOutPath = Task.workspace / "out" / modDir
 
@@ -342,7 +342,7 @@ trait TypeScriptModule extends Module { outer =>
     val modGenSources = tscModDepsGenSources()
       .toIndexedSeq
       .flatMap { case (mod, source_) =>
-        val modDir = mod.path.relativeTo(Task.workspace)
+        val modDir = mod.relativeTo(Task.workspace)
         source_.map(s"$modDir/generatedSources/" + _.path.last)
       }
 
