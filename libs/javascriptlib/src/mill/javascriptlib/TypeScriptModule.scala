@@ -162,7 +162,9 @@ trait TypeScriptModule extends Module { outer =>
         val destination = T.dest / relativePath
 
         if (os.isDir(path)) os.makeDir.all(destination)
-        else os.copy.over(path, destination)
+        else os.checker.withValue(os.Checker.Nop) {
+          os.copy.over(path, destination)
+        }
       }
 
     object IsSrcDirectory {
