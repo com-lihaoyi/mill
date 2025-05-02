@@ -833,8 +833,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
       pf => androidProguardPath / pf
     }
     val userProguardFiles = proguardFilesFromReleaseSettings.localFiles
-
-    (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(_))
+    os.checker.withValue(os.Checker.Nop) {
+      (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(_))
+    }
   }
 
   /**
