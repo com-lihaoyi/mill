@@ -31,7 +31,10 @@ object OsCheckerTests extends UtestIntegrationTestSuite {
       ))
 
       tester.modifyFile(workspacePath / "build.mill", _.replace("if (true)", "if (false)"))
-      tester.modifyFile(workspacePath / "build.mill", _ + "\nprintln(os.read(mill.define.WorkspaceRoot.workspaceRoot / \"build.mill\"))")
+      tester.modifyFile(
+        workspacePath / "build.mill",
+        _ + "\nprintln(os.read(mill.define.WorkspaceRoot.workspaceRoot / \"build.mill\"))"
+      )
       val res4 = tester.eval("baz")
 
       assert(res4.isSuccess == false)

@@ -3,7 +3,8 @@ package mill.define.internal
 class ResolveChecker(workspace: os.Path) extends os.Checker {
   def onRead(path: os.ReadablePath): Unit = {
     path match {
-      case path: os.Path => sys.error(s"Reading from ${path.relativeTo(workspace)} not allowed during resolution phase")
+      case path: os.Path =>
+        sys.error(s"Reading from ${path.relativeTo(workspace)} not allowed during resolution phase")
       case _ =>
     }
   }

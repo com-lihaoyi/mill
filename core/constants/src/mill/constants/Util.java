@@ -124,7 +124,6 @@ public class Util {
         matcher.appendReplacement(result, "\\$");
       } else {
         String envVarValue;
-        mill.constants.DebugLog.println("MATCH " + match);
         envVarValue = env.containsKey(match) ? env.get(match) : onMissing.apply(match);
         matcher.appendReplacement(result, envVarValue);
       }
