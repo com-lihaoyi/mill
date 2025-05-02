@@ -52,7 +52,9 @@ class MillBuildRootModule()(implicit
 
   def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
-    MillBuildRootModule.parseBuildFiles(compilerWorker(), rootModuleInfo)
+    os.checker.withValue(os.Checker.Nop) {
+      MillBuildRootModule.parseBuildFiles(compilerWorker(), rootModuleInfo)
+    }
   }
 
   private[runner] def compilerWorker: Worker[ScalaCompilerWorkerApi] = Task.Worker {
