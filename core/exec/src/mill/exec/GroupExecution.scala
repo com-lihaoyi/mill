@@ -320,11 +320,11 @@ private trait GroupExecution {
             } ++
               paths.map(_.dest)
 
-          mill.constants.DebugLog(results.keys.toString())
           lazy val validReadDests = group.collect {
             case n: NamedTask[_] =>
               ExecutionPaths.resolve(outPath, n.ctx.segments).dest
-          } ++ upstreamPathRefs.map(_.path)
+          } ++ validWriteDests
+
           val executionChecker = new os.Checker {
             def onRead(path: os.ReadablePath): Unit = path match {
               case path: os.Path =>
