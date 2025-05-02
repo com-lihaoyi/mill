@@ -1,5 +1,6 @@
 import mill._
 import mill.scalalib._
+import mill.runner.meta._
 
 object `package` extends MillBuildRootModule {
   def mvnDeps = Seq(mvn"org.scalameta::munit:0.7.29")
