@@ -141,8 +141,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   override def resources: T[Seq[PathRef]] = Task {
     val libResFolders = androidUnpackArchives().flatMap(_.resources)
-    libResFolders :+ PathRef(moduleDir / "src/main/res")
+    libResFolders :+ resFolder()
   }
+
+  def resFolder = Task.Source(moduleDir / "src/main/res")
 
   @internal
   override def bspCompileClasspath = Task.Anon { (ev: EvaluatorApi) =>
