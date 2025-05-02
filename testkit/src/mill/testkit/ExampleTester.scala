@@ -112,6 +112,7 @@ class ExampleTester(
       case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
       case s => s
     }
+
     /** The command we're about to execute */
     val debugCommandStr = s"$workspacePath> $commandStr"
     Console.err.println(debugCommandStr)
@@ -145,7 +146,7 @@ class ExampleTester(
         fansi.Str(res.err.text(), errorMode = fansi.ErrorMode.Strip).plainText
       ),
       check,
-      debugCommandStr,
+      debugCommandStr
     )
   }
 
@@ -153,7 +154,7 @@ class ExampleTester(
       expectedSnippets: Vector[String],
       evalResult: IntegrationTester.EvalResult,
       check: Boolean = true,
-      command: String = "",
+      command: String = ""
   ): Unit = {
     if (check) {
       if (expectedSnippets.exists(_.startsWith("error: "))) assert(!evalResult.isSuccess)
