@@ -156,7 +156,6 @@ object Deps {
   val jna = mvn"net.java.dev.jna:jna:${jnaVersion}"
   val jnaPlatform = mvn"net.java.dev.jna:jna-platform:${jnaVersion}"
 
-  val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.18.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.24.3"
   val osLib = mvn"com.lihaoyi::os-lib:0.11.5-M2"
@@ -240,6 +239,7 @@ object Deps {
     val dokkaCli = mvn"org.jetbrains.dokka:dokka-cli:$dokkaVersion"
     val errorProneCore = mvn"com.google.errorprone:error_prone_core:2.31.0"
     val freemarker = mvn"org.freemarker:freemarker:2.3.34"
+    val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
     val jupiterInterface = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
     val kotestJvm =
       mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:5.9.1"
@@ -251,7 +251,6 @@ object Deps {
     val palantirFormat = mvn"com.palantir.javaformat:palantir-java-format:2.51.0"
     val proguard = mvn"com.guardsquare:proguard-base:7.7.0"
     val revApi = mvn"org.revapi:revapi-standalone:0.12.0"
-    val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
 
     def all = Seq(
       detektCli,
@@ -260,6 +259,7 @@ object Deps {
       dokkaCli,
       errorProneCore,
       freemarker,
+      junitInterface,
       jupiterInterface,
       kotestJvm,
       kotlinxHtmlJvm,
@@ -269,8 +269,7 @@ object Deps {
       ktlint,
       palantirFormat,
       proguard,
-      revApi,
-      sbtTestInterface
+      revApi
     )
   }
 
