@@ -157,14 +157,16 @@ object CodeGen {
       compilerWorkerClasspath: Seq[os.Path]
   ): String = {
     val header = if (pkg.isBlank()) "" else s"package $pkg"
-    val body = if (segments.nonEmpty) subfolderMiscInfo(scriptFolderPath, segments)
-    else rootMiscInfo(
-      scriptFolderPath,
-      compilerWorkerClasspath,
-      millTopLevelProjectRoot,
-      output,
-      isMetaBuild
-    )
+    val body =
+      if (segments.nonEmpty) subfolderMiscInfo(scriptFolderPath, segments)
+      else rootMiscInfo(
+        scriptFolderPath,
+        compilerWorkerClasspath,
+        millTopLevelProjectRoot,
+        output,
+        isMetaBuild
+      )
+
     s"""|$header
         |
         |$body
@@ -321,6 +323,7 @@ object CodeGen {
       isMetaBuild: Boolean
   ): String = {
     s"""|${if (isMetaBuild) "import _root_.mill.runner.meta.MillBuildRootModule" else ""}
+        |
         |@_root_.scala.annotation.nowarn
         |object MillMiscInfo 
         |    extends mill.define.RootModule0.Info(
