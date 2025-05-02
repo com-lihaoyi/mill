@@ -48,7 +48,7 @@ object `package` extends RootModule {
     def compileMvnDeps = Agg(build.Deps.testng)
     def runMvnDeps = Agg(build.Deps.testng)
     def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
-    def docJar: T[PathRef] = super[JavaModule].docJar
+    def docJar: T[PathRef] = super[JavaModule].docJar()
   }
 
   object twirllib extends ContribModule {
