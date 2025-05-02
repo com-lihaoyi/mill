@@ -52,7 +52,7 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Segments]] = {
-    os.checker.withValue(ResolveChecker) {
+    os.checker.withValue(ResolveChecker(workspace)) {
       Resolve.Segments.resolve(
         rootModule,
         scriptArgs,
@@ -73,7 +73,7 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[NamedTask[?]]] = {
-    os.checker.withValue(ResolveChecker) {
+    os.checker.withValue(ResolveChecker(workspace)) {
       Evaluator.currentEvaluator0.withValue(this) {
         Resolve.Tasks.resolve(
           rootModule,
@@ -91,7 +91,7 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Either[Module, NamedTask[?]]]] = {
-    os.checker.withValue(ResolveChecker) {
+    os.checker.withValue(ResolveChecker(workspace)) {
       Evaluator.currentEvaluator0.withValue(this) {
         Resolve.Inspect.resolve(
           rootModule,
@@ -249,7 +249,7 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val resolved = os.checker.withValue(ResolveChecker) {
+    val resolved = os.checker.withValue(ResolveChecker(workspace)) {
       Evaluator.currentEvaluator0.withValue(this) {
         Resolve.Tasks.resolve(
           rootModule,

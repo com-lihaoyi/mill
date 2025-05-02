@@ -166,7 +166,7 @@ private[mill] case class Execution(
             .toMap
 
           futures(terminal) = Future.successful(
-            Some(GroupExecution.Results(taskResults, group.toSeq, false, -1, -1, false))
+            Some(GroupExecution.Results(taskResults, group.toSeq, false, -1, -1, false, Nil))
           )
         } else {
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
@@ -185,6 +185,11 @@ private[mill] case class Execution(
                   .iterator
                   .flatMap(_.iterator.flatMap(_.newResults))
                   .toMap
+
+                val upstreamPathRefs = upstreamValues
+                  .iterator
+                  .flatMap(_.iterator.flatMap(_.serializedPaths))
+                  .toSeq
 
                 val startTime = System.nanoTime() / 1000
 
@@ -219,7 +224,8 @@ private[mill] case class Execution(
                   allTransitiveClassMethods,
                   forkExecutionContext,
                   exclusive,
-                  offline
+                  offline,
+                  upstreamPathRefs
                 )
 
                 // Count new failures - if there are upstream failures, tasks should be skipped, not failed

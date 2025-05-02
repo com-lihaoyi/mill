@@ -185,7 +185,7 @@ object CodeGen {
          |$importSiblingScripts
          |$prelude
          |object wrapper_object_getter {
-         |  def value = os.checker.withValue(mill.define.internal.ResolveChecker){ $wrapperObjectName }
+         |  def value = os.checker.withValue(mill.define.internal.ResolveChecker(mill.define.WorkspaceRoot.workspaceRoot)){ $wrapperObjectName }
          |}
          |object $wrapperObjectName extends $wrapperObjectName {
          |  ${childAliases.linesWithSeparators.mkString("  ")}
