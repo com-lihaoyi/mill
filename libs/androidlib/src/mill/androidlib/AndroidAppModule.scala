@@ -239,12 +239,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .toSeq
   }
 
-  implicit val relPathRW: ReadWriter[os.RelPath] = upickle.default.readwriter[String]
-    .bimap[os.RelPath](_.toString, os.RelPath(_))
-  implicit val rw: ReadWriter[AndroidPackagableExtraFile] = macroRW
-
-  case class AndroidPackagableExtraFile(source: PathRef, destination: os.RelPath)
-
   /**
    * Provides additional files to be included in the APK package.
    * This can be used to add custom files or resources that are not

@@ -3,6 +3,7 @@ package mill.androidlib
 import mill.T
 import mill.define.{PathRef, Task}
 
+@mill.api.experimental
 trait AndroidNativeAppModule extends AndroidAppModule {
 
   /**
@@ -12,6 +13,8 @@ trait AndroidNativeAppModule extends AndroidAppModule {
 
   /**
    * All the different ABI's that are supported by the Android SDK.
+   *
+   * For more information, see [[https://developer.android.com/ndk/guides/abis]]
    */
   def androidSupportedAbis: T[Seq[String]] = Task {
     Seq("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
@@ -34,6 +37,8 @@ trait AndroidNativeAppModule extends AndroidAppModule {
   /**
    * This method compiles all the native libraries using CMake and Ninja
    * and generates the .so files in the output directory for each of the supported ABI's.
+   *
+   * For more information see [[https://developer.android.com/ndk/guides/cmake#build-command]]
    */
   def androidCompileNative: T[PathRef] = Task {
     val outDir = Task.dest // Mill provides a dest dir for this task
