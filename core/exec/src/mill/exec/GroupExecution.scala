@@ -88,7 +88,8 @@ private trait GroupExecution {
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       executionContext: mill.define.TaskCtx.Fork.Api,
       exclusive: Boolean,
-      offline: Boolean
+      offline: Boolean,
+      upstreamPathRefs: Seq[PathRef]
   ): GroupExecution.Results = {
     logger.withPromptLine {
       val externalInputsHash = MurmurHash3.orderedHash(
@@ -123,16 +124,19 @@ private trait GroupExecution {
           labelled.ctx.segments.value match {
             case Seq(Segment.Label(single)) if parsedHeaderData.contains(single) =>
               val jsonData = parsedHeaderData(single)
-              val resultData = upickle.default.read[Any](jsonData)(
-                using labelled.readWriterOpt.get.asInstanceOf[upickle.default.Reader[Any]]
-              )
+              val (resultData, serializedPaths) = PathRef.withSerializedPaths {
+                upickle.default.read[Any](jsonData)(
+                  using labelled.readWriterOpt.get.asInstanceOf[upickle.default.Reader[Any]]
+                )
+              }
               GroupExecution.Results(
                 Map(labelled -> ExecResult.Success(Val(resultData), resultData.##)),
                 Nil,
                 cached = true,
                 inputsHash,
                 -1,
-                false
+                false,
+                serializedPaths
               )
             case _ =>
               val out = if (!labelled.ctx.external) outPath else externalOutPath
@@ -143,13 +147,13 @@ private trait GroupExecution {
               val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled, cached.isEmpty)
 
               val cachedValueAndHash =
-                upToDateWorker.map((_, inputsHash))
+                upToDateWorker.map(w => (w -> Nil, inputsHash))
                   .orElse(cached.flatMap { case (inputHash, valOpt, valueHash) =>
                     valOpt.map((_, valueHash))
                   })
 
               cachedValueAndHash match {
-                case Some((v, hashCode)) =>
+                case Some(((v, serializedPaths), hashCode)) =>
                   val res = ExecResult.Success((v, hashCode))
                   val newResults: Map[Task[?], ExecResult[(Val, Int)]] =
                     Map(labelled -> res)
@@ -160,7 +164,8 @@ private trait GroupExecution {
                     cached = true,
                     inputsHash,
                     -1,
-                    valueHashChanged = false
+                    valueHashChanged = false,
+                    serializedPaths
                   )
 
                 case _ =>
@@ -181,15 +186,18 @@ private trait GroupExecution {
                       executionContext = executionContext,
                       exclusive = exclusive,
                       isCommand = labelled.isInstanceOf[Command[?]],
+                      isInput = labelled.isInstanceOf[InputImpl[?]],
                       deps = deps,
-                      offline = offline
+                      offline = offline,
+                      upstreamPathRefs = upstreamPathRefs
                     )
 
-                  val valueHash = newResults(labelled) match {
+                  val (valueHash, serializedPaths) = newResults(labelled) match {
                     case ExecResult.Success((v, _)) =>
                       val valueHash = getValueHash(v, terminal, inputsHash)
-                      handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-                      valueHash
+                      val serializedPaths =
+                        handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
+                      (valueHash, serializedPaths)
 
                     case _ =>
                       // Wipe out any cached meta.json file that exists, so
@@ -197,7 +205,7 @@ private trait GroupExecution {
                       // assume it's associated with the possibly-borked state of the
                       // destPath after an evaluation failure.
                       os.remove.all(paths.meta)
-                      0
+                      (0, Nil)
                   }
 
                   GroupExecution.Results(
@@ -206,7 +214,8 @@ private trait GroupExecution {
                     cached = if (labelled.isInstanceOf[InputImpl[?]]) null else false,
                     inputsHash,
                     cached.map(_._1).getOrElse(-1),
-                    !cached.map(_._3).contains(valueHash)
+                    !cached.map(_._3).contains(valueHash),
+                    serializedPaths
                   )
               }
           }
@@ -224,8 +233,10 @@ private trait GroupExecution {
             executionContext = executionContext,
             exclusive = exclusive,
             isCommand = task.isInstanceOf[Command[?]],
+            isInput = task.isInstanceOf[InputImpl[?]],
             deps = deps,
-            offline = offline
+            offline = offline,
+            upstreamPathRefs = upstreamPathRefs
           )
           GroupExecution.Results(
             newResults,
@@ -233,7 +244,8 @@ private trait GroupExecution {
             null,
             inputsHash,
             -1,
-            valueHashChanged = false
+            valueHashChanged = false,
+            serializedPaths = Nil
           )
 
       }
@@ -253,8 +265,10 @@ private trait GroupExecution {
       executionContext: mill.define.TaskCtx.Fork.Api,
       exclusive: Boolean,
       isCommand: Boolean,
+      isInput: Boolean,
       deps: Seq[Task[?]],
-      offline: Boolean
+      offline: Boolean,
+      upstreamPathRefs: Seq[PathRef]
   ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
 
     val newEvaluated = mutable.Buffer.empty[Task[?]]
@@ -300,18 +314,36 @@ private trait GroupExecution {
           // Tasks must be allowed to write to upstream worker's dest folders, because
           // the point of workers is to manualy manage long-lived state which includes
           // state on disk.
-          val validDests =
+          lazy val validWriteDests =
             deps.collect { case n: Worker[?] =>
               ExecutionPaths.resolve(outPath, n.ctx.segments).dest
             } ++
               paths.map(_.dest)
 
+          mill.constants.DebugLog(results.keys.toString())
+          lazy val validReadDests = group.collect {
+            case n: NamedTask[_] =>
+              ExecutionPaths.resolve(outPath, n.ctx.segments).dest
+          } ++ upstreamPathRefs.map(_.path)
           val executionChecker = new os.Checker {
-            def onRead(path: os.ReadablePath): Unit = ()
+            def onRead(path: os.ReadablePath): Unit = path match {
+              case path: os.Path =>
+                if (!isCommand && !isInput) {
+                  if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
+                    sys.error(
+                      s"Reading from ${path.relativeTo(workspace)} not allowed during execution phase"
+                    )
+                  }
+                }
+              case _ =>
+            }
+
             def onWrite(path: os.Path): Unit = {
               if (!isCommand) {
-                if (path.startsWith(workspace) && !validDests.exists(path.startsWith(_))) {
-                  sys.error(s"Writing to $path not allowed during execution phase")
+                if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
+                  sys.error(
+                    s"Writing to ${path.relativeTo(workspace)} not allowed during execution phase"
+                  )
                 }
               }
             }
@@ -394,36 +426,41 @@ private trait GroupExecution {
       metaPath: os.Path,
       inputsHash: Int,
       labelled: NamedTask[?]
-  ): Unit = {
+  ): Seq[PathRef] = {
     for (w <- labelled.asWorker)
       workerCache.synchronized {
         workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v))
       }
 
-    val terminalResult = labelled
-      .writerOpt
-      .map { w =>
-        upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
-      }
-      .orElse {
-        labelled.asWorker.map { w =>
-          ujson.Obj(
-            "worker" -> ujson.Str(labelled.toString),
-            "toString" -> ujson.Str(v.value.toString),
-            "inputsHash" -> ujson.Num(inputsHash)
-          )
-        }
-      }
+    def normalJson(w: upickle.default.Writer[_]) = PathRef.withSerializedPaths {
+      upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
+    }
+    lazy val workerJson = labelled.asWorker.map { w =>
+      ujson.Obj(
+        "worker" -> ujson.Str(labelled.toString),
+        "toString" -> ujson.Str(v.value.toString),
+        "inputsHash" -> ujson.Num(inputsHash)
+      ) -> Nil
+    }
 
-    for (json <- terminalResult) {
-      os.write.over(
-        metaPath,
-        upickle.default.stream(
-          mill.define.Cached(json, hashCode, inputsHash),
-          indent = 4
-        ),
-        createFolders = true
-      )
+    val terminalResult: Option[(ujson.Value, Seq[PathRef])] = labelled
+      .writerOpt
+      .map(normalJson)
+      .orElse(workerJson)
+
+    terminalResult match {
+      case Some((json, serializedPaths)) =>
+        os.write.over(
+          metaPath,
+          upickle.default.stream(
+            mill.define.Cached(json, hashCode, inputsHash),
+            indent = 4
+          ),
+          createFolders = true
+        )
+        serializedPaths
+      case _ =>
+        Nil
     }
   }
 
@@ -448,7 +485,7 @@ private trait GroupExecution {
       inputsHash: Int,
       labelled: NamedTask[?],
       paths: ExecutionPaths
-  ): Option[(Int, Option[Val], Int)] = {
+  ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
     for {
       cached <-
         try Some(upickle.default.read[Cached](paths.meta.toIO))
@@ -460,8 +497,8 @@ private trait GroupExecution {
       for {
         _ <- Option.when(cached.inputsHash == inputsHash)(())
         reader <- labelled.readWriterOpt
-        parsed <-
-          try Some(upickle.default.read(cached.value)(using reader))
+        (parsed, serializedPaths) <-
+          try Some(PathRef.withSerializedPaths(upickle.default.read(cached.value)(using reader)))
           catch {
             case e: PathRef.PathRefValidationException =>
               logger.debug(
@@ -470,7 +507,7 @@ private trait GroupExecution {
               None
             case NonFatal(_) => None
           }
-      } yield Val(parsed),
+      } yield (Val(parsed), serializedPaths),
       cached.valueHash
     )
   }
@@ -527,6 +564,7 @@ private object GroupExecution {
       cached: java.lang.Boolean,
       inputsHash: Int,
       previousInputsHash: Int,
-      valueHashChanged: Boolean
+      valueHashChanged: Boolean,
+      serializedPaths: Seq[PathRef]
   )
 }

@@ -23,6 +23,24 @@ object foo extends Module {
 .../out/foo/tDestTask.dest
 */
 
+def bannedWriteTask = Task {
+  os.write(Task.workspace / "banned-path", "hello")
+}
+
+/** Usage
+> ./mill bannedWriteTask
+error: ...Writing to banned-path not allowed during execution phase
+*/
+
+def bannedReadTask = Task {
+  os.read(Task.workspace / "build.mill")
+}
+
+/** Usage
+> ./mill bannedReadTask
+error: ...Reading from build.mill not allowed during execution phase
+*/
+
 // === Task `os.pwd` redirection
 // Mill also redirects the `os.pwd` property from https://github.com/com-lihaoyi/os-lib[OS-Lib],
 // such that that also points towards a running task's own `.dest/` folder
