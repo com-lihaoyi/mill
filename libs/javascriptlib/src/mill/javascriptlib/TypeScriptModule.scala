@@ -11,6 +11,8 @@ trait TypeScriptModule extends Module { outer =>
   // custom module names
   def moduleName: String = super.toString
 
+  def moduleDirSources = Task.Sources(moduleDir)
+
   override def toString: String = moduleName
 
   def moduleDeps: Seq[TypeScriptModule] = Nil
@@ -110,7 +112,7 @@ trait TypeScriptModule extends Module { outer =>
   // sources :)
   def sources: T[Seq[PathRef]] = Task.Sources("src")
 
-  def resources: T[Seq[PathRef]] = Task { Seq(PathRef(moduleDir / "resources")) }
+  def resources: T[Seq[PathRef]] = Task.Sources("resources")
 
   def generatedSources: T[Seq[PathRef]] = Task { Seq[PathRef]() }
 
