@@ -88,19 +88,24 @@ trait AndroidNativeAppModule extends AndroidAppModule {
     PathRef(outDir)
   }
 
-  def androidPackageableNativeLibs: T[Seq[AndroidPackagableExtraFile]] = Task {
+  /**
+   * Declares the native libraries (.so files) from [[androidCompileNative]]
+   * to be included in the APK
+   * @return
+   */
+  def androidPackageableNativeLibs: T[Seq[AndroidPackageableExtraFile]] = Task {
     // Include native libraries (.so files) from androidCompileNative task
     val nativeLibsDir = androidCompileNative().path
     os.walk(nativeLibsDir).filter(_.ext == "so").map {
       path =>
-        AndroidPackagableExtraFile(PathRef(path), path.relativeTo(nativeLibsDir))
+        AndroidPackageableExtraFile(PathRef(path), path.relativeTo(nativeLibsDir))
     }
   }
 
   /**
    * Include the compiled native libraries in the APK.
    */
-  override def androidPackageableExtraFiles: T[Seq[AndroidPackagableExtraFile]] = Task {
+  override def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
     super.androidPackageableExtraFiles() ++ androidPackageableNativeLibs()
 
   }

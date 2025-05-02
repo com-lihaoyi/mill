@@ -9,7 +9,6 @@ import mill.testrunner.TestResult
 import mill.util.Jvm
 import os.{RelPath, zip}
 import upickle.default.*
-import upickle.default.{ReadWriter, macroRW}
 
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.{Attribute, Elem, NodeBuffer, Null, Text, XML}
@@ -244,8 +243,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * This can be used to add custom files or resources that are not
    * automatically included in the build process like native libraries .so files.
    */
-  def androidPackageableExtraFiles: T[Seq[AndroidPackagableExtraFile]] =
-    Task { Seq.empty[AndroidPackagableExtraFile] }
+  def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] =
+    Task { Seq.empty[AndroidPackageableExtraFile] }
 
   /**
    * Packages DEX files and Android resources into an unsigned APK.
