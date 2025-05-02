@@ -11,8 +11,10 @@ object `package` extends build.MillPublishScalaModule {
 
   def moduleDeps = Seq(build.libs.scalalib, build.libs.kotlinlib)
 
-  def testTransitiveDeps =
-    super.testTransitiveDeps() ++ Seq(build.libs.kotlinlib.worker.impl.testDep())
+  def transitiveLocalTestOverrides =
+    super.transitiveLocalTestOverrides() ++ Seq(
+      build.libs.kotlinlib.worker.impl.localTestOverride()
+    )
 
   object hilt extends build.MillPublishScalaModule {
     override def repositoriesTask = Task.Anon {

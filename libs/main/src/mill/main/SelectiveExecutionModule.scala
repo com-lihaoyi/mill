@@ -39,9 +39,9 @@ trait SelectiveExecutionModule extends mill.define.Module {
         if (tasks.isEmpty) Seq("__") else tasks,
         SelectMode.Multi
       ).map { resolvedTasks =>
-        val (metadata, _) = evaluator.selective.computeMetadata(resolvedTasks)
+        val computed = evaluator.selective.computeMetadata(resolvedTasks)
 
-        evaluator.selective.saveMetadata(metadata)
+        evaluator.selective.saveMetadata(computed.metadata)
       }
     }
 

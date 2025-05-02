@@ -141,8 +141,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   override def resources: T[Seq[PathRef]] = Task {
     val libResFolders = androidUnpackArchives().flatMap(_.resources)
-    libResFolders :+ PathRef(moduleDir / "src/main/res")
+    libResFolders :+ resFolder()
   }
+
+  def resFolder = Task.Source(moduleDir / "src/main/res")
 
   @internal
   override def bspCompileClasspath = Task.Anon { (ev: EvaluatorApi) =>
@@ -361,9 +363,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   /**
    * Name of the release keystore file. Default is not set.
    */
-  def androidReleaseKeyName: T[Option[String]] = Task {
-    None
-  }
+  def androidReleaseKeyName: Option[String] = None
 
   /**
    * Password for the release key. Default is not set.
@@ -667,8 +667,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * Default os.Path to the keystore file, derived from `androidReleaseKeyName()`.
    * Users can customize the keystore file name to change this path.
    */
-  def androidReleaseKeyPath: T[Option[PathRef]] = Task {
-    androidReleaseKeyName().map(name => PathRef(moduleDir / name))
+  def androidReleaseKeyPath: T[Seq[PathRef]] = {
+    val subPaths = androidReleaseKeyName.map(os.sub / _).toSeq
+    Task.Sources(subPaths: _*)
   }
 
   /*
@@ -714,12 +715,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   protected def androidKeystore: T[PathRef] = Task {
-    val pathRef = if (androidIsDebug()) {
-      androidDebugKeystore()
-    } else {
-      androidReleaseKeyPath().get
-    }
-    pathRef
+    if (androidIsDebug()) androidDebugKeystore()
+    else androidReleaseKeyPath().head
   }
 
   // TODO consider managing with proguard and/or r8
@@ -836,8 +833,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
       pf => androidProguardPath / pf
     }
     val userProguardFiles = proguardFilesFromReleaseSettings.localFiles
-
-    (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(_))
+    os.checker.withValue(os.Checker.Nop) {
+      (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(_))
+    }
   }
 
   /**
@@ -1094,10 +1092,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def androidApplicationNamespace: String = outer.androidApplicationNamespace
 
     override def androidReleaseKeyAlias: T[Option[String]] = outer.androidReleaseKeyAlias()
-    override def androidReleaseKeyName: T[Option[String]] = outer.androidReleaseKeyName()
+    override def androidReleaseKeyName: Option[String] = outer.androidReleaseKeyName
     override def androidReleaseKeyPass: T[Option[String]] = outer.androidReleaseKeyPass()
     override def androidReleaseKeyStorePass: T[Option[String]] = outer.androidReleaseKeyStorePass()
-    override def androidReleaseKeyPath: T[Option[PathRef]] = outer.androidReleaseKeyPath()
+    override def androidReleaseKeyPath: T[Seq[PathRef]] = outer.androidReleaseKeyPath()
 
     override def androidEmulatorPort: String = outer.androidEmulatorPort
 
