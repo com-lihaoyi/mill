@@ -29,7 +29,8 @@ object app extends AndroidAppModule {
   def androidLintConfigPath = Task.Sources { "lint.xml" }
 
   // Set path to the custom `baseline.xml` file. It is usually at the root of the project
-  def androidLintBaselinePath = Task.Sources { "lint-baseline.xml" }
+  def androidLintBaselinePath0 = Task.Sources { "lint-baseline.xml" }
+  def androidLintBaselinePath = Task{ androidLintBaselinePath0().headOption }
 
   // Set the linting report to be generated as both text and html files
   def androidLintReportFormat =
