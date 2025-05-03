@@ -151,7 +151,6 @@ object CodeGen {
             millTopLevelProjectRoot = millTopLevelProjectRoot,
             scriptPath = scriptPath,
             scriptFolderPath = scriptFolderPath,
-            childAliases = childAliases,
             pkg = pkg,
             aliasImports = aliasImports,
             scriptCode = scriptCode,
@@ -228,7 +227,6 @@ object CodeGen {
       millTopLevelProjectRoot: os.Path,
       scriptPath: os.Path,
       scriptFolderPath: os.Path,
-      childAliases: String,
       pkg: String,
       aliasImports: String,
       scriptCode: String,
@@ -273,7 +271,6 @@ object CodeGen {
           |$prelude
           |
           |object $wrapperObjectName extends $wrapperObjectName with ModuleAliases {
-          |  // ${childAliases.linesWithSeparators.mkString("  // ")}
           |  $exportSiblingScripts
           |  ${millDiscover(segments.nonEmpty)}
           |}
