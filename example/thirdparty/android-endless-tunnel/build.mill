@@ -1,12 +1,5 @@
-// Native libraries are libraries written in C/C++  that are compiled to android code
-// and are used in the app. They are usually used for performance reasons or to use
-// libraries that are not available in Java/Kotlin.
-// This example shows how to use native libraries in the app.
-// The native library is a simple C++ library that returns a string "Hello from C++"
-// and is used in the app to show a toast with the string. In my example i used also
-// one of the core C/C++  libraires that can be used in the android and are already given ( <android/log.h> ).
-// There is a list of the core C/C++ libraries that can be used in the android here:
-// https://developer.android.com/ndk/reference
+// This is how endless-tunnel from android ndk-sample can be built with mill.
+// The original code is in https://github.com/android/ndk-samples/tree/main/endless-tunnel
 
 package build
 
