@@ -211,17 +211,17 @@ object CodeGen {
   }
 
   private def generateModuleAliasesTrait(
-    pkg: String,
-    childAliases: String
-    ): String = {
-      s"""|$generatedFileHeader
-          |package $pkg
-          |
-          |trait ModuleAliases {
-          |  ${childAliases.linesWithSeparators.mkString("  ")}
-          |}
-          |""".stripMargin
-    }
+      pkg: String,
+      childAliases: String
+  ): String = {
+    s"""|$generatedFileHeader
+        |package $pkg
+        |
+        |trait ModuleAliases {
+        |  ${childAliases.linesWithSeparators.mkString("  ")}
+        |}
+        |""".stripMargin
+  }
 
   private def generateBuildScript(
       projectRoot: os.Path,
