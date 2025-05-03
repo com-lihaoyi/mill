@@ -19,10 +19,10 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       assert(res.out == "<h1>hello</h1>")
       assert(
         res.err.replace('\\', '/').replaceAll("(\r\n)|\r", "\n") ==
-          s"""[info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
-             |[info] done compiling
-             |[info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
-             |[info] done compiling""".stripMargin.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")
+          s"""|[info] compiling 2 Scala sources to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
+              |[info] done compiling
+              |[info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
+              |[info] done compiling""".stripMargin.replace('\\', '/').replaceAll("(\r\n)|\r", "\n")
       )
     }
     test("ticker") - integrationTest { tester =>
@@ -34,15 +34,15 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
       val expectedErrorRegex = java.util.regex.Pattern
         .quote(
-          s"""<dashes> run --text hello <dashes>
-             |[build.mill-<digits>/<digits>] compile
-             |[build.mill-<digits>] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
-             |[build.mill-<digits>] [info] done compiling
-             |[<digits>/<digits>] compile
-             |[<digits>] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
-             |[<digits>] [info] done compiling
-             |[<digits>/<digits>] run
-             |[<digits>/<digits>] <dashes> run --text hello <dashes> <digits>s"""
+          s"""|<dashes> run --text hello <dashes>
+              |[build.mill-<digits>/<digits>] compile
+              |[build.mill-<digits>] [info] compiling 2 Scala sources to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
+              |[build.mill-<digits>] [info] done compiling
+              |[<digits>/<digits>] compile
+              |[<digits>] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
+              |[<digits>] [info] done compiling
+              |[<digits>/<digits>] run
+              |[<digits>/<digits>] <dashes> run --text hello <dashes> <digits>s"""
             .stripMargin
             .replaceAll("(\r\n)|\r", "\n")
             .replace('\\', '/')
@@ -62,17 +62,17 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
 
       val expectedErrorRegex = java.util.regex.Pattern
         .quote(
-          s"""<dashes> jar <dashes>
-             |[build.mill-<digits>/<digits>] compile
-             |[build.mill-<digits>] [info] compiling 1 Scala source to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
-             |[build.mill-<digits>] [info] done compiling
-             |[<digits>/<digits>] compile
-             |[<digits>] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
-             |[<digits>] [error] ${tester.workspacePath}/src/foo/Foo.java:36:10: reached end of file while parsing
-             |[<digits>] compile failed
-             |[<digits>/<digits>, 1 failed] <dashes> jar <dashes> <digits>s
-             |1 tasks failed
-             |compile javac returned non-zero exit code"""
+          s"""|<dashes> jar <dashes>
+              |[build.mill-<digits>/<digits>] compile
+              |[build.mill-<digits>] [info] compiling 2 Scala sources to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...
+              |[build.mill-<digits>] [info] done compiling
+              |[<digits>/<digits>] compile
+              |[<digits>] [info] compiling 1 Java source to ${tester.workspacePath}/out/compile.dest/classes ...
+              |[<digits>] [error] ${tester.workspacePath}/src/foo/Foo.java:36:10: reached end of file while parsing
+              |[<digits>] compile failed
+              |[<digits>/<digits>, 1 failed] <dashes> jar <dashes> <digits>s
+              |1 tasks failed
+              |compile javac returned non-zero exit code"""
             .stripMargin
             .replaceAll("(\r\n)|\r", "\n")
             .replace('\\', '/')
