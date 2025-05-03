@@ -53,6 +53,15 @@ package build
   containing `def qux` you can refer to the definition via `build.foo.bar.qux`
   or `import build.foo.bar.qux` without needing the `import $file`
 
+* `os.*` filesystem operations are now restricted by default: 
+
+** Task implementations can only write to their own `.dest` folder, and only read from their own or upstream `.dest` folders
+
+** Code running during module/task resolution cannot write to disk, and can only perform reads wrapped in `interp.watchValue` blocks
+
+** These filesystem guardrails are best effort to guide users towards best practices, and are not intended to be a fully hermetic sandbox. You can disable them via `os.checker.withValue(os.Checker.Nop){ ... }`
+
+
 * `build.mill` files are now compiled with a minimized classpath containing only
   the necessary APIs, without all of Mill's internal code on the classpath
   ({link-pr}/4879[#4879]).
