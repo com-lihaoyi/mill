@@ -11,6 +11,7 @@ import mill.util.BuildInfo
 import mill.runner.meta.ScalaCompilerWorker
 import mill.internal.{Colors, MultiStream, PromptLogger}
 import mill.server.Server
+import java.lang.NumberFormatException
 
 import java.io.{InputStream, PipedInputStream, PrintStream}
 import java.lang.reflect.InvocationTargetException
@@ -191,6 +192,7 @@ object MillMain {
             (false, RunnerState.empty)
 
           case Result.Success(config) =>
+
             val noColorViaEnv = env.get("NO_COLOR").exists(_.nonEmpty)
             val colored = config.color.getOrElse(mainInteractive && !noColorViaEnv)
             val colors =

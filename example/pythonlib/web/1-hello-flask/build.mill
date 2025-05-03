@@ -16,7 +16,7 @@ object foo extends PythonModule {
 
 //  Running these commands will test and run the Flask server with desired outputs.
 
-// The app is ready to serve at `http://localhost:5000`.
+// The app is ready to serve at `http://localhost:$PORT`.
 
 /** Usage
 
@@ -31,7 +31,7 @@ OK
 
 > ./mill foo.runBackground
 
-> curl http://localhost:5000
+> curl http://localhost:$PORT
 ...<h1>Hello, Mill!</h1>...
 
 > ./mill clean foo.runBackground

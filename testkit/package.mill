@@ -6,8 +6,8 @@ import mill._
  * Mill unit/integration/example-testing helpers. Both used internally
  * and published for third-party plugins to use in their own tests.
  */
-object `package` extends build.MillPublishScalaModule {
-  def moduleDeps = Seq(build.core.eval, build.core.util)
+object `package` extends RootModule with build.MillPublishScalaModule {
+  def moduleDeps = Seq(build.core.eval, build.core.util, build.libs.main)
   def mvnDeps = Agg(build.Deps.TestDeps.utest)
 
   private def sources0 = Task.Sources { Task.workspace / "mill-build/src-testkit" }

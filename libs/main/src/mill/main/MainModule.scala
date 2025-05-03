@@ -170,6 +170,15 @@ trait MainModule extends BaseModule with MainModuleApi {
     clean(evaluator.asInstanceOf[Evaluator], targets*)().map(_.path.toNIO)
   }
 
+  def allocatePorts(numberOfPorts: Int, registerName: String) = {
+    Task.Command(exclusive = true) {
+      PortManager.synchronized {
+        val ports = PortManager.getPorts(numberOfPorts)
+        println(ports.mkString(","))
+      }
+    }
+  }
+
   /**
    * Deletes the given targets from the out directory. Providing no targets
    * will clean everything.

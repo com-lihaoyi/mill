@@ -3,6 +3,8 @@ import scalatags.Text.all._
 import scalatags.Text.tags2
 
 object WebApp extends cask.MainRoutes {
+  override def port = sys.env.get("PORT").getOrElse("!").toInt
+
   case class Todo(checked: Boolean, text: String)
 
   object Todo {

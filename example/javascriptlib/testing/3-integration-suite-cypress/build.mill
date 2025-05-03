@@ -15,11 +15,9 @@ object server extends TypeScriptModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  override def forkEnv = super.forkEnv() + ("PORT" -> "4000")
-
   object test extends TypeScriptTests with TestModule.Cypress {
     def service = server
-    def port = "4000"
+    def port = sys.env.get("PORT").get
   }
 }
 
@@ -32,7 +30,6 @@ object server extends TypeScriptModule {
 
 > mill server.test
 ...
-...Server listening on port 4000
 ... app.cy.ts...
 ... All specs passed!...
 ...
