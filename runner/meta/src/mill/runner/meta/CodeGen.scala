@@ -162,13 +162,13 @@ object CodeGen {
     val objectData = parser.parseObjectData(scriptCode)
 
     val expectedParent =
-      if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "RootModule"
+      if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule"
+      else "_root_.mill.main.MainRootModule"
 
     val expectedModuleMsg =
       if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "mill.Module"
 
-    val misnamed =
-      objectData.filter(o => o.name.text != "`package`" && o.parent.text == expectedParent)
+    val misnamed = objectData.filter(o => o.name.text != "`package`")
     if (misnamed.nonEmpty) {
       throw new Result.Exception(
         s"Only one RootModule named `package` can be defined in a build, not: ${misnamed.map(_.name.text).mkString(", ")}"
