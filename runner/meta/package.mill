@@ -17,6 +17,11 @@ object `package` extends build.MillPublishScalaModule with BuildInfo {
       "bootstrapDeps",
       build.runner.worker.bootstrapDeps().mkString(";"),
       "Depedendencies used to bootstrap the scala compiler worker."
+    ),
+    BuildInfo.Value(
+      "millRunnerMetaVersion",
+      this.publishVersion(),
+      s"Version of artifact ${artifactId()}"
     )
   )
 }
