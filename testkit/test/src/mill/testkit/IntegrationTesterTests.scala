@@ -14,7 +14,7 @@ trait IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
       val workspacePath = integrationTest { tester =>
         val res1 = tester.eval("testTask")
         assert(res1.isSuccess)
-        assert(res1.err.contains("compiling 2 Scala sources")) // compiling the `build.mill`
+        assert(res1.err.contains("compiling 3 Scala sources")) // compiling the `build.mill`
         assert(tester.out("testTask").value[String] == "HELLO WORLD SOURCE FILE")
 
         tester.modifyFile(tester.workspacePath / "source-file.txt", _ + "!!!")
@@ -22,7 +22,7 @@ trait IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
         val res2 = tester.eval("testTask")
         assert(!res2.err.contains("compiling 1 Scala source")) // no need to re-compile `build.mill`
         assert(
-          !res2.err.contains("compiling 2 Scala sources")
+          !res2.err.contains("compiling 3 Scala sources")
         ) // no need to re-compile `build.mill`
         assert(tester.out("testTask").value[String] == "HELLO WORLD SOURCE FILE!!!")
 
