@@ -95,12 +95,6 @@ package build
   `Task.Sources{ super.sources() ++ Seq(PathRef(...)) }` with
   `def customSources =  Task.Sources()` and `def sources = Task { super.sources() ++ customSources() }`
 
-* `Task` bodies are no longer allowed to write files to disk outside of their `Task.dest`
-  folder ({link-pr}/4635[#4635]), except for ``Task.Command``s which are expected to be
-  side-effecting. You can disable this check with `os.checker.withValue(os.Checker.Nop) {...}`
-  if you have some special reason you need to write a file somewhere and you are sure it is
-  safe to do so.
-
 * Mill's bootstrap scripts now use the native launcher by the default, except for
   Windows-ARM which is not supported by the Graal tooling we used to build these native
   image. To use the JVM-based launcher, you need to explicitly use a `-jvm` suffix in
