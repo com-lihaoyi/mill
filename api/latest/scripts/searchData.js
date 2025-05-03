@@ -467,6 +467,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/define/JsonFormatters.html#enumFormat-982","e":false,"i":"","n":"enumFormat","t":"enumFormat[T <: Enum[_] : ClassTag]: ReadWriter[T]","d":"mill.define.JsonFormatters","k":"def","x":""},
 {"l":"mill/define/JsonFormatters.html#pathReadWrite-0","e":false,"i":"","n":"pathReadWrite","t":"pathReadWrite: ReadWriter[Path]","d":"mill.define.JsonFormatters","k":"val","x":""},
 {"l":"mill/define/JsonFormatters.html#regexReadWrite-0","e":false,"i":"","n":"regexReadWrite","t":"regexReadWrite: ReadWriter[Regex]","d":"mill.define.JsonFormatters","k":"val","x":""},
+{"l":"mill/define/JsonFormatters.html#relPathRW-0","e":false,"i":"","n":"relPathRW","t":"relPathRW: ReadWriter[RelPath]","d":"mill.define.JsonFormatters","k":"val","x":""},
 {"l":"mill/define/JsonFormatters.html#stackTraceRW-0","e":false,"i":"","n":"stackTraceRW","t":"stackTraceRW: ReadWriter[StackTraceElement]","d":"mill.define.JsonFormatters","k":"val","x":""},
 {"l":"mill/define/JsonFormatters$.html#","e":false,"i":"","n":"JsonFormatters","t":"JsonFormatters extends JsonFormatters","d":"mill.define","k":"object","x":""},
 {"l":"mill/define/Lazy.html#","e":false,"i":"","n":"Lazy","t":"Lazy[T](t: () => T)","d":"mill.define","k":"class","x":""},

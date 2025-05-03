@@ -1211,6 +1211,126 @@ After the emulator is started, you can run the <code>androidReleaseInstall</code
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_using_third_party_native_libraries"><a class="anchor" href="#_using_third_party_native_libraries"></a>Using Third-Party Native Libraries</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Native libraries are libraries written in C/C  that are compiled to android code
+and are used in the app. They are usually used for performance reasons or to use
+libraries that are not available in Java/Kotlin.
+This example shows how to use native libraries in the app.
+The native library is a simple C library that returns a string &quot;Hello from C&quot;
+and is used in the app to show a toast with the string. In my example i used also
+one of the core C/C  libraires that can be used in the android and are already given ( &lt;android/log.h&gt; ).
+There is a list of the core C/C++ libraries that can be used in the android here:
+<a href="https://developer.android.com/ndk/reference" class="bare">https://developer.android.com/ndk/reference</a></p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-androidlib-java-6-native-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/androidlib/java/6-native-libs">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill._, androidlib._, scalalib._
+
+object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = &quot;35.0.0&quot;
+}
+
+object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i><b>(1)</b>
+  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidMinSdk = 19
+  def androidCompileSdk = 35
+  def androidApplicationId = &quot;com.helloworld.app&quot;
+  def androidApplicationNamespace = &quot;com.helloworld.app&quot;
+
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some(&quot;releaseKey&quot;) }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some(&quot;MillBuildTool&quot;) }
+
+  override def androidVirtualDeviceIdentifier: String = &quot;java-test&quot;
+
+  def androidExternalNativeLibs = Task { <i class="conum" data-value="2"></i><b>(2)</b>
+    Seq(
+      PathRef(Task.workspace / &quot;app/src/main/cpp/native-lib.cpp&quot;)
+    )
+  }
+
+  // Instrumented tests (runs on emulator)
+  object it extends AndroidAppInstrumentedTests with AndroidTestModule.AndroidJUnit {
+    def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+
+    /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
+     * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
+     * resolution resolves conflicts between androidJvm and jvm platform types
+     */
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn&quot;androidx.test.ext:junit:1.2.1&quot;.exclude(
+        (&quot;org.jetbrains.kotlinx&quot;, &quot;kotlinx-coroutines-core-jvm&quot;)
+      ),
+      mvn&quot;androidx.test:runner:1.6.2&quot;,
+      mvn&quot;androidx.test.espresso:espresso-core:3.5.1&quot;.exclude(
+        (&quot;org.jetbrains.kotlinx&quot;, &quot;kotlinx-coroutines-core-jvm&quot;)
+      ),
+      mvn&quot;junit:junit:4.13.2&quot;
+    )
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>You need to extend AndroidNativeLibs trait to use native libraries in the app.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>This is the path to the native library that will be used in the app.</td>
+</tr>
+</tbody></table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.androidApk
+&quot;.../out/app/androidApk.dest/app.apk&quot;
+
+&gt; ./mill show app.createAndroidVirtualDevice
+...Name: java-test, DeviceId: medium_phone...
+
+&gt; ./mill show app.startAndroidEmulator
+
+&gt; ./mill show app.androidInstall
+...All files should be loaded. Notifying the device...
+
+&gt; ./mill show app.it
+...
+[
+  &quot;&quot;,
+  [
+    {
+      &quot;fullyQualifiedName&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp&quot;,
+      &quot;selector&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp&quot;,
+      &quot;duration&quot;: ...,
+      &quot;status&quot;: &quot;Success&quot;
+    }
+  ]
+]
+...
+
+&gt; ./mill show app.stopAndroidEmulator
+
+&gt; ./mill show app.deleteAndroidVirtualDevice</code></pre>
+</div>
+</div>
+</div>
+</div>
 <nav class="pagination">
   <span class="prev"><a href="../javascriptlib/build-examples.html">JavaScript Build Examples</a></span>
   <span class="next"><a href="kotlin.html">Android Kotlin Projects</a></span>
