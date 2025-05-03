@@ -120,6 +120,13 @@ object CodeGen {
           wrapperObjectGetter,
           createFolders = true
         )
+
+        val moduleAliasesTrait = generateModuleAliasesTrait(pkg, childAliases)
+        os.write(
+          supportDestDir / "ModuleAliases.scala",
+          moduleAliasesTrait,
+          createFolders = true
+        )
       }
 
       val parts =
@@ -203,6 +210,19 @@ object CodeGen {
         |""".stripMargin
   }
 
+  private def generateModuleAliasesTrait(
+    pkg: String,
+    childAliases: String
+    ): String = {
+      s"""|$generatedFileHeader
+          |package $pkg
+          |
+          |trait ModuleAliases {
+          |  ${childAliases.linesWithSeparators.mkString("  ")}
+          |}
+          |""".stripMargin
+    }
+
   private def generateBuildScript(
       projectRoot: os.Path,
       millTopLevelProjectRoot: os.Path,
@@ -252,8 +272,8 @@ object CodeGen {
           |$importSiblingScripts
           |$prelude
           |
-          |object $wrapperObjectName extends $wrapperObjectName {
-          |  ${childAliases.linesWithSeparators.mkString("  ")}
+          |object $wrapperObjectName extends $wrapperObjectName with ModuleAliases {
+          |  // ${childAliases.linesWithSeparators.mkString("  // ")}
           |  $exportSiblingScripts
           |  ${millDiscover(segments.nonEmpty)}
           |}
