@@ -252,7 +252,7 @@ public class MillProcessLauncher {
         }
       }
 
-      if (!validate.apply(value)) value = null;
+      if (value != null && !validate.apply(value)) value = null;
 
       if (value == null) {
         value = block.get();
