@@ -1,6 +1,6 @@
 package build.`-#+&%`
 import mill._
 
-object `package` extends RootModule {
+object `package` extends mill.Module {
   def input = Task {}
 }
