@@ -105,7 +105,7 @@ object CodeGen {
           output = output,
           isMetaBuild = projectRoot != millTopLevelProjectRoot
         )
-        os.write.over(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
+        os.write(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
       }
 
       val parts =
@@ -140,7 +140,7 @@ object CodeGen {
           )
         }
 
-      os.write.over(wrappedDestFile, parts, createFolders = true)
+      os.write(wrappedDestFile, parts, createFolders = true)
     }
   }
 
