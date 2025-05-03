@@ -8,7 +8,7 @@ import java.io.File;
 trait PathUtils {
   // TEMPORARY! A better solution needs to be found.
   def findOutRoot(): os.Path = {
-    //os.PWD breaks in some parts of the codebase under some situations. The native java methods do not.
+    // os.PWD breaks in some parts of the codebase under some situations. The native java methods do not.
     val root = os.Path(new File("").getCanonicalPath().toString)
     var currentPath = root
 
