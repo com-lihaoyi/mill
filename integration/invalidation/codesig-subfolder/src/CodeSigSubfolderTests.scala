@@ -18,7 +18,7 @@ object CodeSigSubfolderTests extends UtestIntegrationTestSuite {
       val initial = eval("foo")
 
       assert(initial.out.linesIterator.toSeq == Seq("running foo", "running helperFoo"))
-      assert(initial.err.contains("compiling 30 Scala sources"))
+      assert(initial.err.contains("compiling 40 Scala sources"))
 
       val cached = eval("foo")
       assert(cached.out == "")
