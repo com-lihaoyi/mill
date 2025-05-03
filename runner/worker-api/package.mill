@@ -1,0 +1,6 @@
+package build.runner.`worker-api`
+// imports
+import mill._
+import mill.contrib.buildinfo.BuildInfo
+
+object `package` extends build.MillPublishScalaModule {}

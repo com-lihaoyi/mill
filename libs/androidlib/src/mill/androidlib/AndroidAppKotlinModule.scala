@@ -27,12 +27,14 @@ import mill.T
 @mill.api.experimental
 trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule { outer =>
 
+  def kotlinSources = Task.Sources("src/main/kotlin")
   override def sources: T[Seq[PathRef]] =
-    super[AndroidAppModule].sources() :+ PathRef(moduleDir / "src/main/kotlin")
+    super[AndroidAppModule].sources() ++ kotlinSources()
 
   trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests {
+    def kotlinSources = Task.Sources("src/test/kotlin")
     override def sources: T[Seq[PathRef]] =
-      super[AndroidAppTests].sources() ++ Seq(PathRef(outer.moduleDir / "src/test/kotlin"))
+      super[AndroidAppTests].sources() ++ kotlinSources()
   }
 
   trait AndroidAppKotlinInstrumentedTests extends AndroidAppKotlinModule
@@ -41,10 +43,9 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     override final def kotlinVersion = outer.kotlinVersion
     override final def androidSdkModule = outer.androidSdkModule
 
+    def kotlinSources = Task.Sources("src/androidTest/kotlin")
     override def sources: T[Seq[PathRef]] =
-      super[AndroidAppInstrumentedTests].sources() :+ PathRef(
-        outer.moduleDir / "src/androidTest/kotlin"
-      )
+      super[AndroidAppInstrumentedTests].sources() ++ kotlinSources()
   }
 
   trait AndroidAppKotlinScreenshotTests extends AndroidAppKotlinModule with TestModule with Junit5 {
@@ -65,8 +66,6 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     override def androidApplicationNamespace: String = outer.androidApplicationNamespace
 
     override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
-
-    override def androidMergedManifest: T[PathRef] = outer.androidMergedManifest()
 
     override def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
 

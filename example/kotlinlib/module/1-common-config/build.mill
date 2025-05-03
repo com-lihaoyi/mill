@@ -2,7 +2,7 @@
 package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
     mvn"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"

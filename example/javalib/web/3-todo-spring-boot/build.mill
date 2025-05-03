@@ -1,7 +1,7 @@
 package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def mvnDeps = Seq(
     mvn"org.springframework.boot:spring-boot-starter-data-jpa:2.5.4",
     mvn"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",

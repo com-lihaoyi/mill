@@ -1,4 +1,4 @@
-//| mill-version: 0.13.0-M1-43-b217bc
+//| mill-version: 0.13.0-M2-42-a720c3
 
 package build
 // imports
@@ -17,11 +17,6 @@ import mill.define.SelectMode
 import mill.T
 import mill.define.Cross
 import scala.util.Properties
-
-// plugins and dependencies
-import $meta._
-
-import $packages._
 
 object Settings {
   val pomOrg = "com.lihaoyi"
@@ -88,7 +83,7 @@ object Deps {
   }
 
   object Scalanative_0_5 {
-    val scalanativeVersion = "0.5.6"
+    val scalanativeVersion = "0.5.7"
     val scalanativeTools = mvn"org.scala-native::tools:${scalanativeVersion}"
     val scalanativeUtil = mvn"org.scala-native::util:${scalanativeVersion}"
     val scalanativeNir = mvn"org.scala-native::nir:${scalanativeVersion}"
@@ -132,7 +127,7 @@ object Deps {
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.179"
-  val coursierVersion = "2.1.25-M6"
+  val coursierVersion = "2.1.25-M11"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierInterface = mvn"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm =
@@ -417,7 +412,8 @@ val bridgeVersion = "0.0.1"
 trait MillJavaModule extends JavaModule {
 
   // Test setup
-  def testDep = Task { (s"com.lihaoyi-${artifactId()}", testDepPaths().map(_.path).mkString("\n")) }
+  def localTestOverride =
+    Task { (s"com.lihaoyi-${artifactId()}", localTestOverridePaths().map(_.path).mkString("\n")) }
 
   def testArgs: T[Seq[String]] = Task {
     // Workaround for Zinc/JNA bug
@@ -428,14 +424,15 @@ trait MillJavaModule extends JavaModule {
       else Nil
     jnaArgs ++ userLang
   }
-  def testDepPaths = Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
+  def localTestOverridePaths =
+    Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
 
-  def testTransitiveDeps: T[Map[String, String]] = Task {
+  def transitiveLocalTestOverrides: T[Map[String, String]] = Task {
     val upstream = Task.traverse(moduleDeps ++ compileModuleDeps) {
-      case m: MillJavaModule => m.testTransitiveDeps.map(Some(_))
+      case m: MillJavaModule => m.transitiveLocalTestOverrides.map(Some(_))
       case _ => Task.Anon(None)
     }().flatten.flatten
-    val current = Seq(testDep())
+    val current = Seq(localTestOverride())
     upstream.toMap ++ current
   }
 
@@ -446,7 +443,7 @@ trait MillJavaModule extends JavaModule {
     else Seq(this, build.libs.main.test)
 
   def localTestOverridesClasspath = Task {
-    for ((k, v) <- testTransitiveDeps()) {
+    for ((k, v) <- transitiveLocalTestOverrides()) {
       os.write(Task.dest / "mill/local-test-overrides" / k, v, createFolders = true)
     }
     PathRef(Task.dest)

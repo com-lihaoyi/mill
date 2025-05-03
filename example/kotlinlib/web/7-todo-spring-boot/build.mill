@@ -1,7 +1,7 @@
 package build
 import mill._, kotlinlib._
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
   def kotlinVersion = "1.9.24"
 
   def mainClass = Some("com.example.TodomvcApplicationKt")

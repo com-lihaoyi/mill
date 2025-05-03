@@ -41,10 +41,17 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
         if (tester.clientServerMode) workspacePath / "out/mill-server"
         else workspacePath / "out/mill-no-server"
 
-      os.list(processRoot).map(p => os.remove(p / "processId"))
+      eventually {
+        os.walk(processRoot).exists(_.last == "processId")
+      }
 
-      // Not sure why this is flaky on windows but disable it
-      if (!mill.constants.Util.isWindows) eventually { watchTerminated == true }
+      os.list(processRoot).map { p =>
+        os.remove(p / "processId")
+      }
+
+      eventually {
+        watchTerminated == true
+      }
     }
   }
 }

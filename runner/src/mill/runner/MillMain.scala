@@ -336,6 +336,15 @@ object MillMain {
                       )
 
                       (true, RunnerState(None, Nil, None))
+                    } else if (
+                      config.leftoverArgs.value == Seq("mill.idea.GenIdea/idea") ||
+                      config.leftoverArgs.value == Seq("mill.idea.GenIdea/")
+                    ) {
+                      val runnerState = runMillBootstrap(false, None, Seq("version"), streams)
+                      new mill.idea.GenIdeaImpl(
+                        runnerState.result.frames.flatMap(_.evaluator)
+                      ).run()
+                      (true, RunnerState(None, Nil, None))
                     } else {
                       // When starting a --watch, clear the `mill-selective-execution.json`
                       // file, so that the first run always selects everything and only
