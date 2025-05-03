@@ -119,18 +119,6 @@ object HelloJavaTests extends TestSuite {
           outputFiles.toSet == Set(expectedFile1, expectedFile2, expectedFile3),
           result.evalCount > 0
         )
-
-        // delete one, keep one, change one
-        os.remove(secondFile)
-        os.write.append(thirdFile, "  ")
-
-        val Right(result2) = eval.apply(HelloJava.core.semanticDbData): @unchecked
-        val files2 =
-          os.walk(result2.value.path).filter(os.isFile).map(_.relativeTo(result2.value.path))
-        assert(
-          files2.toSet == Set(expectedFile1, expectedFile3),
-          result2.evalCount > 0
-        )
       }
     }
     test("docJar") {

@@ -14,10 +14,10 @@ trait PathUtils {
 
     for (i <- 1 to 100) {
       if (os.exists(currentPath / "mill-java-home")) {
-        currentPath
+        return currentPath / ".."
       } else {
         if (currentPath == os.root) {
-          root
+          return root
         } else {
           currentPath = currentPath / ".."
         }
@@ -54,7 +54,6 @@ trait PathUtils {
     var depth = 0
     subs.foreach { case (path, sub) =>
       // Serializes by replacing the path with the substitution
-      //
       val pathDepth = path.segments.length
       val pathString = path.toString
       if (stringified.startsWith(pathString) && pathDepth >= depth) {
@@ -83,8 +82,6 @@ trait PathUtils {
         result = a.replace(sub, path.toString)
       }
     }
-
-    // println(s"2!! $a -> $result")
     os.Path(result)
   }
 }
