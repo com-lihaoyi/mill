@@ -1,10 +1,5 @@
 package mill.define
-import os.Path
-import upickle.default.ReadWriter as RW
 import scala.reflect.ClassTag
-import scala.util.matching.Regex
-import mill.constants.EnvVars
-import mill.constants.{OutFiles}
 import java.io.File;
 
 /**
@@ -13,16 +8,16 @@ import java.io.File;
 trait PathUtils {
   // TEMPORARY! A better solution needs to be found.
   def findOutRoot(): os.Path = {
-    val outFolderName = OutFiles.out
+    //os.PWD breaks in some parts of the codebase under some situations. The native java methods do not.
     val root = os.Path(new File("").getCanonicalPath().toString)
     var currentPath = root
 
     for (i <- 1 to 100) {
       if (os.exists(currentPath / "mill-java-home")) {
-        return currentPath
+        currentPath
       } else {
         if (currentPath == os.root) {
-          return root
+          root
         } else {
           currentPath = currentPath / ".."
         }
@@ -82,7 +77,6 @@ trait PathUtils {
     var depth = 0
     subs.foreach { case (path, sub) =>
       val pathDepth = path.segments.length
-      val pathString = path.toString
       // In the case that a path is in the folder of another path, it picks the path with the most depth
       if (result.startsWith(sub) && pathDepth >= depth) {
         depth = pathDepth
