@@ -30,21 +30,6 @@ trait MyModule extends JavaModule with PublishModule {
 
 object foo extends MyModule with SpringBootAssemblyModule { // <1>
   def moduleDeps = Seq(bar, qux)
-
-  def generatedSources = Task {
-    os.write(
-      Task.dest / "Version.java",
-      s"""
-         |package foo;
-         |public class Version {
-         |    public static String value() {
-         |        return "${publishVersion()}";
-         |    }
-         |}
-      """.stripMargin
-    )
-    Seq(PathRef(Task.dest))
-  }
 }
 
 object bar extends MyModule {
@@ -58,7 +43,6 @@ object qux extends MyModule
 /** Usage
 
 > mill foo.run
-foo version 0.0.1
 Foo.value: <h1>hello</h1>
 Bar.value: <p>world</p>
 Qux.value: 31337
@@ -67,9 +51,18 @@ Qux.value: 31337
 ".../out/foo/springBootAssembly.dest/out.jar"
 
 > ./out/foo/springBootAssembly.dest/out.jar
-foo version 0.0.1
 Foo.value: <h1>hello</h1>
 Bar.value: <p>world</p>
 Qux.value: 31337
+
+> unzip -l ./out/foo/springBootAssembly.dest/out.jar "BOOT-INF/lib*"
+...BOOT-INF/lib/thymeleaf-3.1.1.RELEASE.jar
+...BOOT-INF/lib/ognl-3.3.4.jar
+...BOOT-INF/lib/attoparser-2.0.6.RELEASE.jar
+...BOOT-INF/lib/unbescape-1.1.6.RELEASE.jar
+...BOOT-INF/lib/slf4j-api-2.0.5.jar
+...BOOT-INF/lib/javassist-3.29.0-GA.jar
+...BOOT-INF/lib/qux-0.0.1.jar
+...BOOT-INF/lib/bar-0.0.1.jar
 
 */
