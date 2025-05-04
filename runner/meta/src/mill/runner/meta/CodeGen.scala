@@ -30,10 +30,10 @@ object CodeGen {
       val isBuildScript = specialNames(scriptPath.last)
       val scriptFolderPath = scriptPath / os.up
 
-      val scriptBaseName = scriptPath.last.split('.').head
+      val scriptName = scriptPath.last
 
-      if (scriptFolderPath == projectRoot && scriptBaseName == "package") break()
-      if (scriptFolderPath != projectRoot && scriptBaseName == "build") break()
+      if (scriptFolderPath == projectRoot && CodeGenConstants.nestedBuildFileNames.contains(scriptName)) break()
+      if (scriptFolderPath != projectRoot && ConGenConstants.rootBuildFileNames.contains(scripName)) break()
 
       val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)
       val wrappedDestFile = wrappedDest / packageSegments
