@@ -1,12 +1,11 @@
 // An alternative way produce self-executable assemblies is the `Repackager` from the https://docs.spring.io/spring-boot/build-tool-plugin/index.html[Spring Boot Tools suite].
 // Instead of copying and merging dependencies classes and resources into a flat jar file, it embeds all dependencies as-is in the final jar.
-// One of the cons of this approach is, that all dependencies are kept untouched which makes later introspection for authorship and copyright easier.
+// One of the pros of this approach is, that all dependency archives are kept unextracted, which makes later introspection for checksums, authorship and copyright questions easier.
 //
-// To achieve that, a small wrapper application needs to be added, which is run as entry point and manages loading the embedded jars transparently and run your `main` method.
-// This works for all Java (or Scala and Kotlin) applications. 
-// It's not necessary to use the Spring Framework in it.
+// On the cons side, a small wrapper application needs to be added, which is run as entry point and transparently manages loading the embedded jars and running your `main` method.
+// This works for all Java (also Scala or Kotlin) applications. 
+// It's not necessary to use the Spring Framework in the application.
 
-//// SNIPPET:ALL
 package build
 
 import mill._, javalib._, publish._
@@ -54,7 +53,7 @@ object bar extends MyModule {
 
 object qux extends MyModule
 
-// <1> We need to add the `SpringBootAssemblyModule` to the executable module to add the `springBootAssembly` task.
+// <1> Add the `SpringBootAssemblyModule` to the executable module.
 
 /** Usage
 
