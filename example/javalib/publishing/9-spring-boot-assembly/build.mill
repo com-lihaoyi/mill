@@ -3,7 +3,7 @@
 // One of the pros of this approach is, that all dependency archives are kept unextracted, which makes later introspection for checksums, authorship and copyright questions easier.
 //
 // On the cons side, a small wrapper application needs to be added, which is run as entry point and transparently manages loading the embedded jars and running your `main` method.
-// This works for all Java (also Scala or Kotlin) applications. 
+// This works for all Java (also Scala or Kotlin) applications.
 // It's not necessary to use the Spring Framework in the application.
 
 package build
