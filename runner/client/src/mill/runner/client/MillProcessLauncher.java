@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import mill.client.ClientUtil;
@@ -174,8 +175,14 @@ public class MillProcessLauncher {
 
     if (jvmId != null) {
       final String jvmIdFinal = jvmId;
-      javaHome = cachedComputedValue("java-home", jvmId, () ->
-          new String[] {CoursierClient.resolveJavaHome(jvmIdFinal).getAbsolutePath()})[0];
+      javaHome = cachedComputedValue0(
+          "java-home",
+          jvmId,
+          () -> new String[] {CoursierClient.resolveJavaHome(jvmIdFinal).getAbsolutePath()},
+          // Make sure we check to see if the saved java home exists before using
+          // it, since it may have been since uninstalled, or the `out/` folder
+          // may have been transferred to a different machine
+          arr -> Files.exists(Paths.get(arr[0])))[0];
     }
 
     if (javaHome == null || javaHome.isEmpty()) javaHome = System.getProperty("java.home");
@@ -221,14 +228,22 @@ public class MillProcessLauncher {
 
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
-    String[] runnerClasspath = cachedComputedValue(
-        "resolve-runner", BuildInfo.millVersion, () -> CoursierClient.resolveMillRunner());
+    String[] runnerClasspath = cachedComputedValue0(
+        "resolve-runner",
+        BuildInfo.millVersion,
+        () -> CoursierClient.resolveMillRunner(),
+        arr -> Arrays.stream(arr).allMatch(s -> Files.exists(Paths.get(s))));
     vmOptions.add(String.join(File.pathSeparator, runnerClasspath));
 
     return vmOptions;
   }
 
   static String[] cachedComputedValue(String name, String key, Supplier<String[]> block) {
+    return cachedComputedValue0(name, key, block, arr -> true);
+  }
+
+  static String[] cachedComputedValue0(
+      String name, String key, Supplier<String[]> block, Function<String[], Boolean> validate) {
     try {
       Path cacheFile = Paths.get(".").resolve(out).resolve("mill-" + name);
       String[] value = null;
@@ -239,6 +254,8 @@ public class MillProcessLauncher {
           for (int i = 0; i < value.length; i++) value[i] = Escaping.unliteralize(value[i]);
         }
       }
+
+      if (value != null && !validate.apply(value)) value = null;
 
       if (value == null) {
         value = block.get();

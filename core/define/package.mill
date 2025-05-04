@@ -28,7 +28,6 @@ object `package` extends build.MillStableScalaModule {
     // Necessary so we can share the JNA classes throughout the build process
     build.Deps.jna,
     build.Deps.jnaPlatform,
-    build.Deps.jarjarabrams,
     build.Deps.mainargs,
     build.Deps.scalaparse,
     mvn"org.apache.commons:commons-lang3:3.16.0"

@@ -48,6 +48,18 @@ trait AndroidSdkModule extends Module {
   def buildToolsVersion: T[String]
 
   /**
+   * Specifies the version of the Android NDK (Native Development Kit) to be used.
+   */
+  // TODO: dont have them hardcoded
+  def ndkVersion: T[String] = Task { "27.0.12077973" }
+
+  /**
+   * Specifies the version of CMake to be used.
+   */
+  // TODO: dont have them hardcoded
+  def cmakeVersion: T[String] = Task { "3.22.1" }
+
+  /**
    * Specifies the Android platform version (e.g., Android API level).
    */
   def platformsVersion: T[String] = Task { "android-" + buildToolsVersion().split('.').head }
@@ -224,6 +236,26 @@ trait AndroidSdkModule extends Module {
     PathRef(sdkPath().path / "cmdline-tools/latest/bin/r8")
   }
 
+  def ndkPath: T[PathRef] = Task {
+    installAndroidNdk()
+    PathRef(sdkPath().path / "ndk" / ndkVersion())
+  }
+
+  def ninjaPath: T[PathRef] = Task {
+    installAndroidNdk()
+    PathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "ninja")
+  }
+
+  def cmakePath: T[PathRef] = Task {
+    installAndroidNdk()
+    PathRef(sdkPath().path / "cmake" / cmakeVersion() / "bin" / "cmake")
+  }
+
+  def cmakeToolchainFilePath: T[PathRef] = Task {
+    installAndroidNdk()
+    PathRef(ndkPath().path / "build" / "cmake" / "android.toolchain.cmake")
+  }
+
   /**
    * Installs the necessary Android SDK components such as platform-tools, build-tools, and Android platforms.
    *
@@ -273,6 +305,24 @@ trait AndroidSdkModule extends Module {
           )
         }
       }
+    }
+  }
+
+  /**
+   * Install the Android NDK (Native Development Kit) for building native code.
+   */
+  def installAndroidNdk: T[Unit] = Task {
+    installAndroidSdkComponents()
+
+    AndroidNdkLock.synchronized {
+      os.call(
+        Seq(
+          sdkManagerPath().path.toString,
+          "--install",
+          s"ndk;${ndkVersion()}",
+          s"cmake;${cmakeVersion()}"
+        )
+      )
     }
   }
 
@@ -361,6 +411,7 @@ trait AndroidSdkModule extends Module {
 }
 
 private object AndroidSdkLock
+private object AndroidNdkLock
 
 object AndroidSdkModule {
 

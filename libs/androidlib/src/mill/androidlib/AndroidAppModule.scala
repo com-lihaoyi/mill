@@ -7,7 +7,7 @@ import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.testrunner.TestResult
 import mill.util.Jvm
-import os.RelPath
+import os.{RelPath, zip}
 import upickle.default.*
 
 import scala.jdk.OptionConverters.RichOptional
@@ -239,6 +239,14 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
+   * Provides additional files to be included in the APK package.
+   * This can be used to add custom files or resources that are not
+   * automatically included in the build process like native libraries .so files.
+   */
+  def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] =
+    Task { Seq.empty[AndroidPackageableExtraFile] }
+
+  /**
    * Packages DEX files and Android resources into an unsigned APK.
    *
    * @return A `PathRef` to the generated unsigned APK file (`app.unsigned.apk`).
@@ -265,6 +273,11 @@ trait AndroidAppModule extends AndroidModule { outer =>
       })
       .distinctBy(_.dest.get)
 
+    // add all the extra files to the APK
+    val extraFiles: Seq[zip.ZipSource] = androidPackageableExtraFiles().map(extraFile =>
+      os.zip.ZipSource.fromPathTuple((extraFile.source.path, extraFile.destination.asSubPath))
+    )
+
     // TODO generate aar-metadata.properties (for lib distribution, not in this module) or
     //  app-metadata.properties (for app distribution).
     // Example of aar-metadata.properties:
@@ -279,7 +292,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     // androidGradlePluginVersion=8.7.2
     os.zip(unsignedApk, dexFiles)
     os.zip(unsignedApk, metaInf)
-    // TODO pack also native (.so) libraries
+    os.zip(unsignedApk, extraFiles)
 
     PathRef(unsignedApk)
   }
@@ -653,7 +666,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     androidInstallTask()
   }
 
-  def androidInstallTask = Task.Anon {
+  def androidInstallTask: Task[String] = Task.Anon {
     val emulator = runningEmulator()
 
     os.call(
@@ -661,6 +674,33 @@ trait AndroidAppModule extends AndroidModule { outer =>
     )
 
     emulator
+  }
+
+  /**
+   * Run your application by providing the activity.
+   *
+   * E.g. `com.package.name.ActivityName`
+   *
+   * See also [[https://developer.android.com/tools/adb#am]] and [[https://developer.android.com/tools/adb#IntentSpec]]
+   * @param activity
+   * @return
+   */
+  def androidRun(activity: String): Command[Vector[String]] = Task.Command(exclusive = true) {
+    val emulator = runningEmulator()
+
+    os.call(
+      (
+        androidSdkModule().adbPath().path,
+        "-s",
+        emulator,
+        "shell",
+        "am",
+        "start",
+        "-n",
+        s"${androidApplicationNamespace}/${activity}",
+        "-W"
+      )
+    ).out.lines()
   }
 
   /**
