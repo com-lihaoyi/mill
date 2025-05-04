@@ -148,7 +148,7 @@ trait AssemblyModule extends mill.define.Module {
     }
   }
 }
-object AssemblyModule extends ExternalModule with CoursierModule with OfflineSupportModule{
+object AssemblyModule extends ExternalModule with CoursierModule with OfflineSupportModule {
 
   def jarjarabramsWorkerClasspath: T[Seq[PathRef]] = T {
     defaultResolver().classpath(Seq(
@@ -160,7 +160,7 @@ object AssemblyModule extends ExternalModule with CoursierModule with OfflineSup
     (
       super.prepareOffline(all)() ++
         jarjarabramsWorkerClasspath()
-      ).distinct
+    ).distinct
   }
 
   private[mill] def jarjarabramsWorkerClassloader: Worker[ClassLoader] = Task.Worker {
@@ -170,7 +170,10 @@ object AssemblyModule extends ExternalModule with CoursierModule with OfflineSup
     )
   }
 
-  def jarjarabramsWorker: Worker[(Seq[(String, String)], String, UnopenedInputStream) => Option[(String, UnopenedInputStream)]] = Task.Worker {
+  def jarjarabramsWorker: Worker[(Seq[(String, String)], String, UnopenedInputStream) => Option[(
+      String,
+      UnopenedInputStream
+  )]] = Task.Worker {
     (relocates: Seq[(String, String)], name: String, is: UnopenedInputStream) =>
       jarjarabramsWorkerClassloader()
         .loadClass("mill.scalalib.jarjarabrams.impl.JarJarAbramsWorkerImpl")
@@ -180,7 +183,6 @@ object AssemblyModule extends ExternalModule with CoursierModule with OfflineSup
         .invoke(null, relocates, name, is)
         .asInstanceOf[Option[(String, UnopenedInputStream)]]
   }
-
 
   override protected def millDiscover: Discover = Discover[this.type]
 }

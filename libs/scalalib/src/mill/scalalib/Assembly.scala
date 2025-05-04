@@ -110,9 +110,10 @@ object Assembly {
 
   def loadShadedClasspath(
       inputPaths: Seq[os.Path],
-      shader: (String, UnopenedInputStream) => Option[(String, UnopenedInputStream)] = (n, is) => Some((n, is))
+      shader: (String, UnopenedInputStream) => Option[(String, UnopenedInputStream)] =
+        (n, is) => Some((n, is))
   ): (Generator[(String, UnopenedInputStream)], ResourceCloser) = {
-    
+
     val pathsWithResources = inputPaths.filter(os.exists).map { path =>
       if (os.isFile(path)) path -> Some(new JarFile(path.toIO))
       else path -> None
@@ -161,7 +162,11 @@ object Assembly {
       prependShellScript: Option[String] = None,
       base: Option[Assembly] = None,
       assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules,
-      shader: (Seq[(String, String)], String, UnopenedInputStream) => Option[(String, UnopenedInputStream)] = (_, n, is) => Some((n, is))
+      shader: (
+          Seq[(String, String)],
+          String,
+          UnopenedInputStream
+      ) => Option[(String, UnopenedInputStream)] = (_, n, is) => Some((n, is))
   ): Assembly = {
     val rawJar = os.temp("out-tmp", deleteOnExit = false)
     // we create the file later
@@ -186,8 +191,9 @@ object Assembly {
         manifest.build.write(manifestOut)
       }
 
-      val relocates =  assemblyRules.collect { case Rule.Relocate(from, to) => (from -> to) }
-      val (mappings, resourceCleaner) = Assembly.loadShadedClasspath(inputPaths, shader(relocates, _, _))
+      val relocates = assemblyRules.collect { case Rule.Relocate(from, to) => (from -> to) }
+      val (mappings, resourceCleaner) =
+        Assembly.loadShadedClasspath(inputPaths, shader(relocates, _, _))
       try {
         Assembly.groupAssemblyEntries(mappings, assemblyRules).foreach {
           case (mapping, entry) =>

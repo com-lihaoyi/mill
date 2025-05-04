@@ -7,9 +7,11 @@ import java.io.{ByteArrayInputStream, InputStream}
 object JarJarAbramsWorkerImpl {
   type UnopenedInputStream = () => InputStream
 
-  def apply(relocates: Seq[(String, String)],
-            name: String,
-            inputStream: UnopenedInputStream): Option[(String, UnopenedInputStream)] = {
+  def apply(
+      relocates: Seq[(String, String)],
+      name: String,
+      inputStream: UnopenedInputStream
+  ): Option[(String, UnopenedInputStream)] = {
     val shadeRules = relocates.map {
       case (from, to) => ShadePattern.Rename(List(from -> to)).inAll
     }
@@ -20,7 +22,7 @@ object JarJarAbramsWorkerImpl {
       shader(is.readAllBytes(), name).map {
         case (bytes, name) =>
           name ->
-            (() => new ByteArrayInputStream(bytes) { override def close(): Unit = is.close()})
+            (() => new ByteArrayInputStream(bytes) { override def close(): Unit = is.close() })
       }
     }
   }
