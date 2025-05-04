@@ -53,15 +53,15 @@ object CodeGen {
       def pkgSelector0(pre: Option[String], s: Option[String]) =
         (pre ++ pkgSegments ++ s).map(backtickWrap).mkString(".")
       def pkgSelector2(s: Option[String]) = s"_root_.${pkgSelector0(Some(globalPackagePrefix), s)}"
-      val (childSels, childAliases0) = childNames
+      val childAliases0 = childNames
         .map { c =>
           // Dummy references to sub-modules. Just used as metadata for the discover and
           // resolve logic to traverse, cannot actually be evaluated and used
           val comment = "// subfolder module reference"
           val lhs = backtickWrap(c)
           val rhs = s"${pkgSelector2(Some(c))}.package_"
-          (rhs, s"final lazy val $lhs: $rhs.type = $rhs $comment")
-        }.unzip
+          s"final lazy val $lhs: $rhs.type = $rhs $comment"
+        }
       val childAliases = childAliases0.mkString("\n")
 
       val pkg = pkgSelector0(Some(globalPackagePrefix), None)
