@@ -736,7 +736,7 @@ BarQux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Note that in this example, <code>foo/package.mill</code> defines <code>object module extends RootModule</code>,
+<p>Note that in this example, <code>foo/package.mill</code> defines <code>object module extends mill.Module</code>,
 and so the name <code>.module</code> does not need to be provided at the command line. In contrast,
 <code>bar/qux/package.mill</code> defines <code>object mymodule</code> that does not extend <code>RootModule</code>, and so
 we need to explicitly reference it with a <code>.mymodule</code> suffix.</p>

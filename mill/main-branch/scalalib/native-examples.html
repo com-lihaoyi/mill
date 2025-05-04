@@ -813,7 +813,7 @@ object bar extends MyModule</code></pre>
 </div>
 <div class="paragraph">
 <p>This example contains a simple Mill build with two modules, <code>foo</code> and <code>bar</code>.
-We don’t mark either module as top-level using <code>extends RootModule</code>, so
+We don’t mark either module as top-level using <code>extends mill.Module</code>, so
 running tasks needs to use the module name as the prefix e.g. <code>foo.run</code> or
 <code>bar.run</code>. You can define multiple modules the same way you define a single
 module, using <code>def moduleDeps</code> to define the relationship between them.</p>
