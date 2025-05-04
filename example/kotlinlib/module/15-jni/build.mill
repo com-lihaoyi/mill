@@ -1,7 +1,7 @@
 package build
 import mill._, kotlinlib._, util.Jvm
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def mainClass = Some("foo.HelloWorldKt")
 
@@ -33,8 +33,8 @@ object `package` extends RootModule with KotlinModule {
   def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
 
   object test extends KotlinTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Seq(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
     )
     def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
   }

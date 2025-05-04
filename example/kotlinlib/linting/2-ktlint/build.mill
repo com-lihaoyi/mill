@@ -6,10 +6,11 @@ import mill.util.Jvm
 import kotlinlib.KotlinModule
 import kotlinlib.ktlint.KtlintModule
 
-object `package` extends RootModule with KotlinModule with KtlintModule {
+object `package` extends KotlinModule with KtlintModule {
   def kotlinVersion = "1.9.24"
 
-  def ktlintConfig = Some(PathRef(Task.workspace / ".editorconfig"))
+  def ktlintConfig0 = Task.Source(Task.workspace / ".editorconfig")
+  def ktlintConfig = Some(ktlintConfig0())
 }
 
 // This example shows how to use the https://github.com/pinterest/ktlint[KtLint]
@@ -28,6 +29,6 @@ error: ...src/example/FooWrong.kt:6:28: Missing newline before ")" (standard:par
 
 > ./mill ktlint # after fixing the violations, ktlint no longer errors
 
-> ./mill mill.kotlinlib.ktlint.KtlintModule/ # alternatively, use external module to check/format
+> ./mill mill.kotlinlib.ktlint/ # alternatively, use external module to check/format
 
 */

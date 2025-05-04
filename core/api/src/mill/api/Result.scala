@@ -1,7 +1,6 @@
 package mill.api
 
-import scala.collection.BuildFrom
-import collection.mutable
+import scala.collection.{BuildFrom, mutable}
 
 /**
  * Represents a computation that either succeeds with a value [[T]] or
@@ -17,7 +16,11 @@ sealed trait Result[+T] {
   def errorOpt: Option[String]
 }
 object Result {
-  implicit def create[T](value: T): Result[T] = Success(value)
+  implicit def create[T](value: T): Result[T] =
+    try Success(value)
+    catch {
+      case e: Result.Exception => Result.Failure(e.error)
+    }
 
   case class Success[+T](value: T) extends Result[T] {
 

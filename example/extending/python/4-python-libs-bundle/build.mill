@@ -41,7 +41,9 @@ trait PythonModule extends Module {
   def gatherScripts(upstream: Seq[(PathRef, PythonModule)]) = {
     for ((sourcesFolder, mod) <- upstream) {
       val destinationPath = os.pwd / mod.moduleDir.subRelativeTo(build.moduleDir)
-      os.copy.over(sourcesFolder.path / os.up, destinationPath)
+      os.checker.withValue(os.Checker.Nop) {
+        os.copy.over(sourcesFolder.path / os.up, destinationPath)
+      }
     }
   }
 
@@ -124,7 +126,8 @@ Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 // The final module tree and task graph is now as follows, with the additional dependencies
 // tasks with upstream and the bundle tasks downstream:
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -176,4 +179,4 @@ Numpy : Sum: 150 | Pandas: Mean: 30.0, Max: 50
 //   "foo.sources" -> "qux.run"
 //   "foo.sources" -> "qux.bundle" [color=green, penwidth=3]
 // }
-// ```
+// ....

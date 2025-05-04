@@ -3,7 +3,9 @@ package build
 import mill._
 import mill.javascriptlib._
 
-object foo extends TypeScriptModule {
+object `package` extends TypeScriptModule {
+  def moduleName = "foo"
+
   def sources = Task {
     val srcPath = Task.dest / "src"
     val filePath = srcPath / "foo.ts"
@@ -18,7 +20,7 @@ object foo extends TypeScriptModule {
       """.stripMargin
     )
 
-    PathRef(Task.dest)
+    Seq(PathRef(Task.dest))
   }
 
   def compile = Task {
@@ -46,7 +48,7 @@ object foo extends TypeScriptModule {
 
 /** Usage
 
-> mill foo.run "added tags"
+> mill run "added tags"
 Compiling...
 Hello World!
 Running... added tags

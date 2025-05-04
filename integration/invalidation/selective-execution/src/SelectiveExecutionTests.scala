@@ -200,8 +200,13 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
             eval(
               ("--watch", "{foo.fooCommand,bar.barCommand}"),
               check = true,
-              stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
-              stderr = os.Inherit
+              stdout = os.ProcessOutput.Readlines { line =>
+                println("stdout " + line)
+                output0 = output0 :+ line
+              },
+              stderr = os.ProcessOutput.Readlines { line =>
+                println("stderr " + line)
+              }
             )
           }
 
@@ -212,6 +217,13 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           // Make sure editing each individual input results in the corresponding downstream
           // command being re-run, and watches on both are maintained even if in a prior run
           // one set of tasks was ignored.
+          output0 = Nil
+          modifyFile(workspacePath / "bar/bar.txt", _ + "!")
+          eventually {
+            !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+          }
+
+          // Test for a bug where modifying the sources 2nd time would run tasks from both modules.
           output0 = Nil
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
           eventually {
@@ -268,7 +280,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
               ("--watch", "{foo.fooCommand,bar.barCommand}"),
               check = true,
               stdout = os.ProcessOutput.Readlines { line => output0 = output0 :+ line },
-              stderr = os.Inherit
+              stderr = os.ProcessOutput.Readlines { line => System.err.println(line) }
             )
           }
 

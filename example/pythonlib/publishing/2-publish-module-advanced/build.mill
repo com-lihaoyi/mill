@@ -26,7 +26,7 @@
 
 import mill._, pythonlib._
 
-object `package` extends RootModule with PythonModule with PublishModule {
+object `package` extends PythonModule with PublishModule {
 
   def publishMeta = PublishMeta(
     name = "testpackage",

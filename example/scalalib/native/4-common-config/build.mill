@@ -1,14 +1,14 @@
 package build
 import mill._, scalalib._, scalanativelib._, scalanativelib.api._
 
-object `package` extends RootModule with ScalaNativeModule {
+object `package` extends ScalaNativeModule {
   def scalaVersion = "3.3.4"
   def scalaNativeVersion = "0.5.5"
 
   // You can have arbitrary numbers of third-party dependencies
   // Scala Native uses double colon `::` between organization and the dependency names
-  def ivyDeps = Seq(
-    ivy"com.lihaoyi::fansi::0.5.0"
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::fansi::0.5.0"
   )
 
   // Set the releaseMode to ReleaseFast.

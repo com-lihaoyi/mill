@@ -1,10 +1,14 @@
+//| mvnDeps:
+//| - com.lihaoyi::scalatags:0.13.1
+//| - com.atlassian.commonmark:commonmark:0.13.1
+
 // The following example demonstrates a use case: using cross modules to
-// turn files on disk into blog posts. To begin with, we xref:extending/import-ivy-plugins.adoc[import $ivy]
+// turn files on disk into blog posts. To begin with, we xref:extending/import-mvn-plugins.adoc[import $ivy]
 // two third-party libraries - Commonmark and Scalatags - to deal with Markdown parsing and
 // HTML generation respectively:
 package build
-import $ivy.`com.lihaoyi::scalatags:0.13.1`, scalatags.Text.all._
-import $ivy.`com.atlassian.commonmark:commonmark:0.13.1`
+
+import scalatags.Text.all._
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
 
@@ -119,7 +123,8 @@ def dist = Task {
 // All caching, incremental re-computation, and parallelism is done using the
 // Mill task graph. For this simple example, the graph is as follows
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   node [shape=box width=0 height=0]
 //   "1 - Foo.md" -> "post[1]\nrender"
@@ -132,9 +137,9 @@ def dist = Task {
 //   "index" -> "dist"
 //
 // }
-// ```
+// ....
 //
 // This example use case is taken from the following blog post, which contains
 // some extensions and fun exercises to further familiarize yourself with Mill
 //
-// * http://www.lihaoyi.com/post/HowtocreateBuildPipelinesinScala.html[How to create Build Pipelines in Scala]
+// * https://www.lihaoyi.com/post/HowtocreateBuildPipelinesinScala.html[How to create Build Pipelines in Scala]

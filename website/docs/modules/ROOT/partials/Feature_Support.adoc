@@ -1,0 +1,58 @@
+[cols="1a,1a"]
+|===
+|
+
+
+*Languages*
+
+* xref:javalib/intro.adoc[Java], xref:kotlinlib/intro.adoc[Kotlin], xref:scalalib/intro.adoc[Scala]
+
+
+*Dependency Management*
+
+* xref:javalib/dependencies.adoc#_adding_ivy_dependencies[Adding Dependencies]
+* xref:fundamentals/library-deps.adoc#_dependency_management[Dependency Version Management and BOMs]
+* xref:javalib/dependencies.adoc#_unmanaged_jars[Unmanaged Dependencies]
+* xref:fundamentals/configuring-jvm-versions.adoc[JVM Version Management]
+
+*Testing*
+
+* xref:javalib/testing.adoc#_defining_unit_test_suites[JUnit4, JUnit5, TestNG, ScalaTest, Specs2, Munit]
+* xref:javalib/testing.adoc#_defining_integration_test_suites[Integration Testing]
+* xref:javalib/testing.adoc#_test_parallelism[Test Parallelism]
+
+*Linting*
+
+* xref:javalib/linting.adoc#_linting_with_errorprone[ErrorProne], xref:javalib/linting.adoc#_linting_with_checkstyle[Checkstyle], xref:javalib/linting.adoc#_autoformatting_with_palantir_java_format[Palantir Java Format], xref:javalib/linting.adoc#_code_coverage_with_jacoco[Jacoco], xref:javalib/publishing.adoc#_checking_api_compatibility[RevApi]
+* xref:kotlinlib/linting.adoc#_linting_with_detekt[Detekt], xref:kotlinlib/linting.adoc#_linting_with_ktlint[KtLint], xref:kotlinlib/linting.adoc#_autoformatting_with_ktfmt[KtFmt], xref:kotlinlib/linting.adoc#_code_coverage_with_kover[Kover]
+* xref:scalalib/linting.adoc#_linting_and_autofixing_with_scalafix[Scalafix], xref:scalalib/linting.adoc#_autoformatting_with_scalafmt[Scalafmt], xref:scalalib/linting.adoc#_code_coverage_with_scoverage[Scoverage], xref:scalalib/linting.adoc#_binary_compatibility_enforcement[Mima]
+
+|
+
+
+*Packaging*
+
+* xref:javalib/publishing.adoc#_building_executable_assemblies[Executable Assemblies]
+* xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Image], xref:javalib/publishing.adoc#_java_app_and_bundles_using_jlink[JLink], xref:javalib/publishing.adoc#_java_installers_using_jpackage[JPackage]
+* xref:contrib/docker.adoc[Docker]
+
+*Publishing*
+
+* xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[Maven Central], xref:contrib/artifactory.adoc[Artifactory], xref:contrib/bintray.adoc[Bintray]
+
+
+*Web Frameworks*
+
+* xref:javalib/web-examples.adoc#_spring_boot_todomvc_app[Spring Boot], xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut]
+* xref:kotlinlib/web-examples.adoc#_ktor_todomvc_app[Ktor], xref:kotlinlib/web-examples.adoc#_ktor_webapp_kotlinjs_client[Kotlin.js]
+* xref:scalalib/web-examples.adoc#_todomvc_http4s_web_app[Http4s], xref:scalalib/web-examples.adoc#_scala_js_webserver_integration[Scala.js]
+
+
+*Others*
+
+* xref:javalib/module-config.adoc#_annotation_processors[Java Annotation Processors], xref:kotlinlib/module-config.adoc#_kotlin_compiler_plugins[Kotlin Compiler Plugins], xref:scalalib/module-config.adoc#_scala_compiler_plugins[Scala Compiler Plugins]
+* xref:javalib/module-config.adoc#_native_c_code_with_jni[JNI]
+* xref:scalalib/spark.adoc[Apache Spark], xref:scalalib/native-examples.adoc[Scala-Native]
+* xref:large/selective-execution.adoc[Selective Test Execution], xref:large/multi-language-builds.adoc[Multi-Language Builds]
+
+|===

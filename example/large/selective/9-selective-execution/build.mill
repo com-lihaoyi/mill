@@ -10,16 +10,17 @@
 //
 // * `mill selective.run <selector>`: run on the codebase after the code change,
 // runs tasks in the given `<selector>` which are affected by the code changes
-// that have happen since `selective.prepare` was run
+// that have happened since `selective.prepare` was run
 //
 // * `mill selective.resolve <selector>`: a dry-run version of `selective.run`, prints
 // out the tasks in `<selector>` that are affected by the code changes and would have
-// run, without actually tunning them.
+// run, without actually running them.
 //
 // For example, if you want to run all tests related to the code changes in a pull
 // request branch, you can do that as follows:
 //
-// ```bash
+// [source,console]
+// ----
 // > git checkout main # start from the target branch of the PR
 //
 // > ./mill selective.prepare
@@ -27,7 +28,7 @@
 // > git checkout pull-request-branch # go to the pull request branch
 //
 // > ./mill selective.run __.test
-// ```
+// ----
 //
 // The example below demonstrates selective test execution on a small 3-module Java build,
 // where `bar` depends on `foo` but `qux` is standalone:
@@ -47,7 +48,8 @@ object bar extends MyModule
 
 object qux extends MyModule
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -56,14 +58,15 @@ object qux extends MyModule
 //   bar -> foo
 //   foo -> "foo.test"
 // }
-// ```
+// ....
 //
 //
 // In this example, `qux.test` starts off failing with an error, while `foo.test` and
 // `bar.test` pass successfully. Normally, running `__.test` will run all three test
 // suites and show both successes and the one failure:
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -75,7 +78,7 @@ object qux extends MyModule
 //   "bar.test"  [color=red penwidth=2]
 //   "foo.test"  [color=red penwidth=2]
 // }
-// ```
+// ....
 
 /** Usage
 
@@ -107,8 +110,8 @@ Test run qux.QuxTests finished: 1 failed, 0 ignored, 1 total, ...
 > echo '//' >> bar/src/bar/Bar.java # emulate the code change
 
 > mill selective.resolve __.test # dry-run selective execution to show what would get run
-foo.test.test
-bar.test.test
+foo.test.testForked
+bar.test.testForked
 
 > mill selective.run __.test
 Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
@@ -119,7 +122,8 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 // As we only touched ``bar``'s source files, we only need to run tests for
 //
 //
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   rankdir=LR
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
@@ -132,7 +136,7 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 //   "bar.test" [color=red penwidth=2]
 //   "foo.test" [color=red penwidth=2]
 // }
-// ```
+// ....
 //
 // For a more detailed report of how the changed inputs resulted in the selected tasks
 // being chosen, you can also use `selective.resolveChanged` to print out the upstream
@@ -150,27 +154,19 @@ bar.sources
 > mill selective.resolveTree __.test
 {
   "bar.sources": {
-    "bar.test.sources": {
-      "bar.test.allSources": {
-        "bar.test.allSourceFiles": {
-          "bar.test.compile": {
-            "bar.test.localRunClasspath": {
-              "bar.test.testClasspath": {
-                "bar.test.test": {}
-              }
-            }
-          }
-        }
-      }
-    },
     "bar.allSources": {
       "bar.allSourceFiles": {
         "bar.compile": {
           "bar.localRunClasspath": {
             "bar.localClasspath": {
+              "bar.test.transitiveLocalClasspath": {
+                "bar.test.runClasspath": {
+                  "bar.test.testForked": {}
+                }
+              },
               "foo.test.transitiveLocalClasspath": {
                 "foo.test.runClasspath": {
-                  "foo.test.test": {}
+                  "foo.test.testForked": {}
                 }
               }
             }
@@ -180,6 +176,7 @@ bar.sources
     }
   }
 }
+
 
 */
 

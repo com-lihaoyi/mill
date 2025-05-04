@@ -1,11 +1,11 @@
 package mill.runner
 
-import mill.api.{PathRef, Val, internal}
-import mill.define.Segments
-import mill.define.Watchable
+import mill.api.Val
+import mill.api.internal.{EvaluatorApi, internal}
+import mill.define.PathRef
+import mill.define.internal.Watchable
 import upickle.default.{ReadWriter, macroRW}
-import mill.eval.Evaluator
-import mill.main.RootModule
+import mill.define.RootModule0
 
 /**
  * This contains a list of frames each representing cached data from a single
@@ -28,7 +28,7 @@ import mill.main.RootModule
  */
 @internal
 case class RunnerState(
-    bootstrapModuleOpt: Option[RootModule],
+    bootstrapModuleOpt: Option[RootModule0],
     frames: Seq[RunnerState.Frame],
     errorOpt: Option[String],
     buildFile: Option[String] = None
@@ -55,23 +55,27 @@ object RunnerState {
 
   @internal
   case class Frame(
-      workerCache: Map[Segments, (Int, Val)],
+      workerCache: Map[String, (Int, Val)],
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
-      methodCodeHashSignatures: Map[String, Int],
+      codeSignatures: Map[String, Int],
       classLoaderOpt: Option[RunnerState.URLClassLoader],
       runClasspath: Seq[PathRef],
       compileOutput: Option[PathRef],
-      evaluator: Option[Evaluator]
+      evaluator: Option[EvaluatorApi]
   ) {
 
     def loggedData: Frame.Logged = {
       Frame.Logged(
         workerCache.map { case (k, (i, v)) =>
-          (k.render, Frame.WorkerInfo(System.identityHashCode(v), i))
+          (k, Frame.WorkerInfo(System.identityHashCode(v), i))
         },
-        evalWatched.collect { case Watchable.Path(p) => p },
-        moduleWatched.collect { case Watchable.Path(p) => p },
+        evalWatched.collect { case Watchable.Path(p, quick, sig) =>
+          new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once)
+        },
+        moduleWatched.collect { case Watchable.Path(p, quick, sig) =>
+          new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once)
+        },
         classLoaderOpt.map(_.identity),
         runClasspath,
         runClasspath.hashCode()

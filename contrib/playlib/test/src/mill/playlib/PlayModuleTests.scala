@@ -1,7 +1,7 @@
 package mill
 package playlib
 
-import mill.scalalib.api.ZincWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.testkit.{TestBaseModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
 import mill.define.Discover
@@ -15,7 +15,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
       override def playVersion = crossPlayVersion
       override def scalaVersion = crossScalaVersion
       object test extends PlayTests
-      override def ivyDeps = Task { super.ivyDeps() ++ Seq(ws()) }
+      override def mvnDeps = Task { super.mvnDeps() ++ Seq(ws()) }
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -66,7 +66,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
         matrix.foreach { case (scalaVersion, playVersion) =>
           UnitTester(playmulti, resourcePath).scoped { eval =>
             val Right(result) =
-              eval.apply(playmulti.core(scalaVersion, playVersion).ivyDeps): @unchecked
+              eval.apply(playmulti.core(scalaVersion, playVersion).mvnDeps): @unchecked
             val expectedModules = Seq[String](
               "play",
               "play-guice",
@@ -82,11 +82,11 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
           }
         }
       }
-      test("resolvedRunIvyDeps") {
+      test("resolvedRunMvnDeps") {
         matrix.foreach { case (scalaVersion, playVersion) =>
           UnitTester(playmulti, resourcePath).scoped { eval =>
             val Right(_) =
-              eval.apply(playmulti.core(scalaVersion, playVersion).resolvedRunIvyDeps): @unchecked
+              eval.apply(playmulti.core(scalaVersion, playVersion).resolvedRunMvnDeps): @unchecked
           }
         }
       }
@@ -108,7 +108,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
               os.RelPath("controllers/routes$javascript.class"),
               os.RelPath("controllers/javascript/ReverseHomeController.class"),
               os.RelPath("controllers/javascript/ReverseAssets.class"),
-              if (ZincWorkerUtil.isScala3(scalaVersion)) os.RelPath("router/Routes$$anon$1.class")
+              if (JvmWorkerUtil.isScala3(scalaVersion)) os.RelPath("router/Routes$$anon$1.class")
               else os.RelPath("router/Routes$$anonfun$routes$1.class"),
               os.RelPath("router/Routes.class"),
               os.RelPath("router/RoutesPrefix$.class"),

@@ -9,7 +9,8 @@ Make sure your module extends from `BintrayPublishModule`:
 
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-bintray:`
+//| mvnDeps: ["com.lihaoyi::mill-contrib-bintray:$MILL_VERSION"]
+
 import mill.contrib.bintray.BintrayPublishModule
 
 object mymodule extends BintrayPublishModule {
@@ -28,7 +29,8 @@ the package used, you can do that like this:
 
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::mill-contrib-bintray:`
+//| mvnDeps: ["com.lihaoyi::mill-contrib-bintray:$MILL_VERSION"]
+
 import mill.contrib.bintray.BintrayPublishModule
 
 object mymodule extends BintrayPublishModule {
@@ -42,7 +44,7 @@ object mymodule extends BintrayPublishModule {
 
 Then in your terminal:
 
-[source,bash]
+[source,console]
 ----
 $ mill mymodule.publishBintray --credentials $BINTRAY_USER:$BINTRAY_PASSWORD
 ----

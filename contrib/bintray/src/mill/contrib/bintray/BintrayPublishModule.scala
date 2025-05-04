@@ -67,7 +67,7 @@ object BintrayPublishModule extends ExternalModule {
       bintrayOwner: String,
       bintrayRepo: String,
       release: Boolean = true,
-      publishArtifacts: mill.main.Tasks[BintrayPublishData],
+      publishArtifacts: mill.util.Tasks[BintrayPublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
   ): Command[Unit] = Task.Command {
@@ -90,14 +90,14 @@ object BintrayPublishModule extends ExternalModule {
         username <- Task.env.get("BINTRAY_USERNAME")
         password <- Task.env.get("BINTRAY_PASSWORD")
       } yield {
-        Result.Success(s"$username:$password")
+        s"$username:$password"
       }).getOrElse(
-        Result.Failure(
+        Task.fail(
           "Consider using BINTRAY_USERNAME/BINTRAY_PASSWORD environment variables or passing `credentials` argument"
         )
       )
     } else {
-      Result.Success(credentials)
+      credentials
     }
   }
 

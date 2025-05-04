@@ -3,9 +3,9 @@ package build
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.15"
   object test extends ScalaTests {
-    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -28,11 +28,13 @@ object foo extends ScalaModule {
 compiling 1 ... source...
 
 > mill foo.test.compile
-compiling 1 ... source...
+compiling 2 ... source...
 
-> mill foo.test.test
+> mill foo.test.testForked
 ...foo.FooTests...hello ...
 ...foo.FooTests...world ...
+...foo.FooMoreTests...hello ...
+...foo.FooMoreTests...world ...
 
 > mill foo.test # same as above, `.test` is the default task for the `test` module
 ...foo.FooTests...hello ...
@@ -53,6 +55,7 @@ compiling 1 ... source...
 // * `TestModule.ScalaTest`, using https://github.com/scalatest/scalatest[ScalaTest]
 // * `TestModule.Specs2`, using https://github.com/etorreborre/specs2[Specs2]
 // * `TestModule.Utest`, using https://github.com/com-lihaoyi/utest[uTest]
+// * `TestModule.Waever`, using https://github.com/disneystreaming/weaver-test[Weaver]
 // * `TestModule.ZioTest`, using https://zio.dev/reference/test/[ZioTest]
 //
 // Each testing framework has their own flags and configuration options that are
@@ -61,10 +64,10 @@ compiling 1 ... source...
 //
 //// SNIPPET:BUILD2
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.15"
 
   object test extends ScalaTests with TestModule.Utest {
-    def ivyDeps = Seq(ivy"com.lihaoyi::utest:0.8.5")
+    def utestVersion = "0.8.5"
   }
 }
 
@@ -96,7 +99,7 @@ object bar extends ScalaModule {
 > mill foo.test
 */
 // `foo.test`: runs tests in a subprocess in an empty `sandbox/` folder. This is short
-// for `foo.test.test`, as `test` is the default task for ``TestModule``s.
+// for `foo.test.testForked`, as `testForked` is the default task for ``TestModule``s.
 
 /** Usage
 > mill foo.test.testCached
@@ -130,6 +133,16 @@ object bar extends ScalaModule {
 // If you want to pass any arguments to the test framework, you can pass them after
 // `foo.test` in the command line. e.g. {utest-github-url}[uTest]
 // lets you pass in a selector to decide which test to run, which in Mill would be:
+
+//// SNIPPET:RUNSINGLE
+/** Usage
+
+> mill foo.test foo.FooMoreTests
+...foo.FooMoreTests...hello ...
+
+*/
+
+//// SNIPPET:END
 
 /** Usage
 

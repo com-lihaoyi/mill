@@ -1,5 +1,6 @@
 package build
-import mill._
+import mill.*
+import mill.define.WorkspaceRoot
 
 println("Setting up build.mill")
 
@@ -33,10 +34,12 @@ def lol = Task {
 
 def writeCompletionMarker(name: String) = {
 
-  Range(0, 10)
-    .map(i => mill.api.WorkspaceRoot.workspaceRoot / "out" / s"$name$i")
-    .find(!os.exists(_))
-    .foreach(os.write(_, ""))
+  os.checker.withValue(os.Checker.Nop) {
+    Range(0, 10)
+      .map(i => WorkspaceRoot.workspaceRoot / "out" / s"$name$i")
+      .find(!os.exists(_))
+      .foreach(os.write(_, ""))
+  }
 }
 
 writeCompletionMarker("initialized")

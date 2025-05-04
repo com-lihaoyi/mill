@@ -13,7 +13,7 @@ object foo extends MavenModule {
 }
 
 // `MavenModule` is a variant of `JavaModule`
-// that uses the more verbose folder layout of Maven, SBT, and other tools:
+// that uses the more verbose folder layout of Maven, `sbt`, and other tools:
 //
 // - `foo/src/main/java`
 // - `foo/src/test/java`
@@ -35,7 +35,7 @@ compiling 1 Java source...
 > mill foo.test.compile
 compiling 1 Java source...
 
-> mill foo.test.test
+> mill foo.test.testForked
 ...foo.FooTests.hello ...
 
 > mill foo.test

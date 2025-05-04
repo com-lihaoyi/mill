@@ -18,7 +18,7 @@ object BspServerTestUtil {
 
   val updateSnapshots = false
 
-  def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
+  private[mill] def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
 
   trait DummyBuildClient extends b.BuildClient {
     def onBuildLogMessage(params: b.LogMessageParams): Unit = ()
@@ -50,8 +50,8 @@ object BspServerTestUtil {
 
     // This can be false only when generating test data for the first time.
     // In that case, updateSnapshots needs to be true, so that we write test data on disk.
-    val exists = os.exists(snapshotPath)
-    val expectedValueOpt = Option.when(exists) {
+    val snapshotExists = os.exists(snapshotPath)
+    val expectedValueOpt = Option.when(snapshotExists) {
       gson.fromJson(
         normalizeLocalValues(os.read(snapshotPath), inverse = true),
         implicitly[ClassTag[T]].runtimeClass
@@ -70,17 +70,19 @@ object BspServerTestUtil {
       case None => ""
     }
     if (updateSnapshots) {
-      System.err.println(if (exists) s"Updating $snapshotPath" else s"Writing $snapshotPath")
+      System.err.println(if (snapshotExists) s"Updating $snapshotPath"
+      else s"Writing $snapshotPath")
       os.write.over(snapshotPath, jsonStr, createFolders = true)
     } else {
       Predef.assert(
         jsonStr == expectedJsonStr,
-        if (exists) {
+        if (snapshotExists) {
           val diff = os.call((
-            "git",
+            // "git",
             "diff",
-            os.temp(jsonStr, suffix = s"${snapshotPath.last}-jsonStr"),
-            os.temp(expectedJsonStr, suffix = s"${snapshotPath.last}-expectedJsonStr")
+            "-u",
+            os.temp(expectedJsonStr, suffix = s"${snapshotPath.last}-expectedJsonStr"),
+            os.temp(jsonStr, suffix = s"${snapshotPath.last}-jsonStr")
           ))
           s"""Error: value differs from snapshot in $snapshotPath
              |
@@ -170,19 +172,24 @@ object BspServerTestUtil {
 
       val value =
         try f(buildServer, initRes)
-        finally buildServer.buildShutdown().get()
+        finally {
+          buildServer.buildShutdown().get()
+          buildServer.onBuildExit()
+        }
       success = true
       value
     } finally {
-      proc.stdin.close()
-      proc.stdout.close()
+      try {
+        proc.stdin.close()
+        proc.stdout.close()
 
-      proc.join(30000L)
-
-      if (!success && outputOnErrorOnly) {
-        System.err.println(" == BSP server output ==")
-        System.err.write(stderr.toByteArray)
-        System.err.println(" == end of BSP server output ==")
+        proc.join(30000L)
+      } finally {
+        if (!success && outputOnErrorOnly) {
+          System.err.println(" == BSP server output ==")
+          System.err.write(stderr.toByteArray)
+          System.err.println(" == end of BSP server output ==")
+        }
       }
     }
   }

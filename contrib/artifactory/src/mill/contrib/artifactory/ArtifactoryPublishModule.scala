@@ -57,7 +57,7 @@ object ArtifactoryPublishModule extends ExternalModule {
       credentials: String = "",
       artifactoryUri: String,
       artifactorySnapshotUri: String,
-      publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
+      publishArtifacts: mill.util.Tasks[PublishModule.PublishData],
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
   ): Command[Unit] = Task.Command {
@@ -83,14 +83,14 @@ object ArtifactoryPublishModule extends ExternalModule {
         username <- Task.env.get("ARTIFACTORY_USERNAME")
         password <- Task.env.get("ARTIFACTORY_PASSWORD")
       } yield {
-        Result.Success(s"$username:$password")
+        s"$username:$password"
       }).getOrElse(
-        Result.Failure(
+        Task.fail(
           "Consider using ARTIFACTORY_USERNAME/ARTIFACTORY_PASSWORD environment variables or passing `credentials` argument"
         )
       )
     } else {
-      Result.Success(credentials)
+      credentials
     }
   }
 

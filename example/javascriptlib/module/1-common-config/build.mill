@@ -5,13 +5,13 @@ import mill.javascriptlib._
 
 object foo extends TypeScriptModule {
 
-  def customSource = Task {
-    Seq(PathRef(moduleDir / "custom-src/foo2.ts"))
-  }
+  def customSource = Task.Sources("custom-src/foo2.ts")
 
-  def allSources = super.allSources() ++ customSource()
+  def sources = Task { super.sources() ++ customSource() }
 
-  def resources = super.resources() ++ Seq(PathRef(moduleDir / "custom-resources"))
+  def customResources = Task.Sources("custom-resources")
+
+  def resources = super.resources() ++ customResources()
 
   def generatedSources = Task {
     for (name <- Seq("A", "B", "C")) os.write(
@@ -29,7 +29,7 @@ object foo extends TypeScriptModule {
 
   def mainFileName = s"foo2.ts"
 
-  def mainFilePath = compile()._2.path / "custom-src" / mainFileName()
+  def mainFilePath = compile().path / "custom-src" / mainFileName()
 
 }
 

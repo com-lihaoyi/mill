@@ -1,13 +1,32 @@
 @echo off
 
-rem This is a wrapper script, that automatically download mill from GitHub release pages
-rem You can give the required mill version with --mill-version parameter
-rem If no version is given, it falls back to the value of DEFAULT_MILL_VERSION
+rem This is a wrapper script, that automatically selects or downloads Mill from Maven Central or GitHub release pages.
 rem
-rem Original Project page: https://github.com/lefou/millw
-rem Script Version: 0.4.12
+rem This script determines the Mill version to use by trying these sources
+rem   - env-variable `MILL_VERSION`
+rem   - local file `.mill-version`
+rem   - local file `.config/mill-version`
+rem   - `mill-version` from YAML fronmatter of current buildfile
+rem   - if accessible, find the latest stable version available on Maven Central (https://repo1.maven.org/maven2)
+rem   - env-variable `DEFAULT_MILL_VERSION`
+rem
+rem If a version has the suffix '-native' a native binary will be used.
+rem If a version has the suffix '-jvm' an executable jar file will be used, requiring an already installed Java runtime.
+rem If no such suffix is found, the script will pick a default based on version and platform.
+rem
+rem Once a version was determined, it tries to use either
+rem    - a system-installed mill, if found and it's version matches
+rem    - an already downloaded version under %USERPROFILE%\.mill\download
+rem
+rem If no working mill version was found on the system,
+rem this script downloads a binary file from Maven Central or Github Pages (this is version dependent)
+rem into a cache location (%USERPROFILE%\.mill\download).
+rem
+rem Mill Project URL: https://github.com/com-lihaoyi/mill
+rem Script Version: 0.13.0-M2-3-ba7090
 rem
 rem If you want to improve this script, please also contribute your changes back!
+rem This script was generated from: scripts/src/mill.bat
 rem
 rem Licensed under the Apache License, Version 2.0
 
@@ -16,7 +35,7 @@ rem but I don't think we need to support them in 2019
 setlocal enabledelayedexpansion
 
 if [!DEFAULT_MILL_VERSION!]==[] (
-    set "DEFAULT_MILL_VERSION=0.11.4"
+    set "DEFAULT_MILL_VERSION=0.12.10"
 )
 
 if [!GITHUB_RELEASE_CDN!]==[] (
@@ -29,25 +48,15 @@ if [!MILL_MAIN_CLI!]==[] (
 
 set "MILL_REPO_URL=https://github.com/com-lihaoyi/mill"
 
-rem %~1% removes surrounding quotes
-if [%~1%]==[--mill-version] (
-  if not [%~2%]==[] (
-    set MILL_VERSION=%~2%
-    rem shift command doesn't work within parentheses
-    set "STRIP_VERSION_PARAMS=true"
-  ) else (
-    echo You specified --mill-version without a version. 1>&2
-    echo Please provide a version that matches one provided on 1>&2
-    echo %MILL_REPO_URL%/releases 1>&2
-    exit /b 1
-  )
-)
+SET MILL_BUILD_SCRIPT=
 
-if not defined STRIP_VERSION_PARAMS GOTO AfterStripVersionParams
-rem strip the: --mill-version {version}
-shift
-shift
-:AfterStripVersionParams
+IF EXIST "build.mill" (
+    SET MILL_BUILD_SCRIPT=build.mill
+) ELSE IF EXIST "build.mill.scala" (
+    SET MILL_BUILD_SCRIPT=build.mill.scala
+) ELSE IF EXIST "build.sc" (
+    SET MILL_BUILD_SCRIPT=build.sc
+)
 
 if [!MILL_VERSION!]==[] (
   if exist .mill-version (
@@ -55,6 +64,12 @@ if [!MILL_VERSION!]==[] (
   ) else (
     if exist .config\mill-version (
       set /p MILL_VERSION=<.config\mill-version
+    ) else (
+      if not "%MILL_BUILD_SCRIPT%"=="" (
+        for /f "tokens=1-2*" %%a in ('findstr /r "[/][/][|]  *mill-version:  *" %MILL_BUILD_SCRIPT%') do (
+          set "MILL_VERSION=%%c"
+        )
+      )
     )
   )
 )
@@ -70,15 +85,52 @@ if [!MILL_DOWNLOAD_PATH!]==[] (
 rem without bat file extension, cmd doesn't seem to be able to run it
 
 set "MILL_NATIVE_SUFFIX=-native"
+set "MILL_JVM_SUFFIX=-jvm"
 set "FULL_MILL_VERSION=%MILL_VERSION%"
 set "MILL_EXT=.bat"
 set "ARTIFACT_SUFFIX="
 REM Check if MILL_VERSION contains MILL_NATIVE_SUFFIX
-echo %MILL_VERSION% | findstr /C:"%MILL_NATIVE_SUFFIX%" >nul
-if %errorlevel% equ 0 (
+echo !MILL_VERSION! | findstr /C:"%MILL_NATIVE_SUFFIX%" >nul
+if !errorlevel! equ 0 (
     set "MILL_VERSION=%MILL_VERSION:-native=%"
-    set "ARTIFACT_SUFFIX=-native-windows-amd64"
-    set "MILL_EXT=.exe"
+    REM -native images compiled with graal do not support windows-arm
+    REM https://github.com/oracle/graal/issues/9215
+    IF /I NOT "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
+        set "ARTIFACT_SUFFIX=-native-windows-amd64"
+        set "MILL_EXT=.exe"
+    ) else (
+        rem no-op
+    )
+) else (
+    echo !MILL_VERSION! | findstr /C:"%MILL_JVM_SUFFIX%" >nul
+    if !errorlevel! equ 0 (
+        set "MILL_VERSION=%MILL_VERSION:-jvm=%"
+    ) else (
+        set "SKIP_VERSION=false"
+        set "PREFIX=%MILL_VERSION:~0,4%"
+        if "!PREFIX!"=="0.1." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.2." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.3." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.4." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.5." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.6." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.7." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.8." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.9." set "SKIP_VERSION=true"
+        set "PREFIX=%MILL_VERSION:~0,5%"
+        if "!PREFIX!"=="0.10." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.11." set "SKIP_VERSION=true"
+        if "!PREFIX!"=="0.12." set "SKIP_VERSION=true"
+
+        if "!SKIP_VERSION!"=="false" (
+            IF /I NOT "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
+                set "ARTIFACT_SUFFIX=-native-windows-amd64"
+                set "MILL_EXT=.exe"
+            )
+        ) else (
+            rem no-op
+        )
+    )
 )
 
 set MILL=%MILL_DOWNLOAD_PATH%\!FULL_MILL_VERSION!!MILL_EXT!
@@ -136,7 +188,7 @@ if not exist "%MILL%" (
 
     for /F "delims=- tokens=1" %%A in ("!MILL_VERSION!") do set MILL_VERSION_BASE=%%A
     for /F "delims=- tokens=2" %%A in ("!MILL_VERSION!") do set MILL_VERSION_MILESTONE=%%A
-	set VERSION_MILESTONE_START=!MILL_VERSION_MILESTONE:~0,1!
+    set VERSION_MILESTONE_START=!MILL_VERSION_MILESTONE:~0,1!
     if [!VERSION_MILESTONE_START!]==[M] (
         set MILL_VERSION_TAG="!MILL_VERSION_BASE!-!MILL_VERSION_MILESTONE!"
     ) else (
@@ -152,13 +204,13 @@ if not exist "%MILL%" (
         set DOWNLOAD_URL=!GITHUB_RELEASE_CDN!%MILL_REPO_URL%/releases/download/!MILL_VERSION_TAG!/!MILL_VERSION!!DOWNLOAD_SUFFIX!
     )
 
-    echo Downloading mill %MILL_VERSION% from !DOWNLOAD_URL! ... 1>&2
+    echo Downloading mill !MILL_VERSION! from !DOWNLOAD_URL! ... 1>&2
 
     if not exist "%MILL_DOWNLOAD_PATH%" mkdir "%MILL_DOWNLOAD_PATH%"
     rem curl is bundled with recent Windows 10
     rem but I don't think we can expect all the users to have it in 2019
     where /Q curl
-    if %ERRORLEVEL% EQU 0 (
+    if !ERRORLEVEL! EQU 0 (
         curl -f -L "!DOWNLOAD_URL!" -o "!DOWNLOAD_FILE!"
     ) else (
         rem bitsadmin seems to be available on Windows 7
@@ -167,7 +219,7 @@ if not exist "%MILL%" (
         bitsadmin /transfer millDownloadJob /dynamic /priority foreground "!DOWNLOAD_URL!" "!DOWNLOAD_FILE!"
     )
     if not exist "!DOWNLOAD_FILE!" (
-        echo Could not download mill %MILL_VERSION% 1>&2
+        echo Could not download mill !MILL_VERSION! 1>&2
         exit /b 1
     )
 
@@ -210,23 +262,8 @@ if [%~1%]==[--bsp] (
 set "MILL_PARAMS=%*%"
 
 if not [!MILL_FIRST_ARG!]==[] (
-  if defined STRIP_VERSION_PARAMS (
-    for /f "tokens=1-3*" %%a in ("%*") do (
-        set "MILL_PARAMS=%%d"
-    )
-  ) else (
-    for /f "tokens=1*" %%a in ("%*") do (
-      set "MILL_PARAMS=%%b"
-    )
-  )
-) else (
-  if defined STRIP_VERSION_PARAMS (
-    for /f "tokens=1-2*" %%a in ("%*") do (
-        rem strip %%a - It's the "--mill-version" option.
-        rem strip %%b - it's the version number that comes after the option.
-        rem keep  %%c - It's the remaining options.
-        set "MILL_PARAMS=%%c"
-    )
+  for /f "tokens=1*" %%a in ("%*") do (
+    set "MILL_PARAMS=%%b"
   )
 )
 

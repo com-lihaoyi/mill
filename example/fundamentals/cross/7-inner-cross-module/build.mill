@@ -19,7 +19,8 @@ trait FooModule extends Cross.Module[String] {
 
 def baz = Task { s"hello ${foo("a").bar.param()}" }
 
-// ```graphviz
+// [graphviz]
+// ....
 // digraph G {
 //   node [shape=box width=0 height=0 style=filled fillcolor=white]
 //   "root-module" [style=dashed]
@@ -44,7 +45,7 @@ def baz = Task { s"hello ${foo("a").bar.param()}" }
 //   "..." [color=white]
 //   "foo[a].bar.name" -> "foo[a].bar.param" [constraint=false]
 // }
-// ```
+// ....
 //
 // You can use the `CrossValue` trait within any `Cross.Module` to
 // propagate the `crossValue` defined by an enclosing `Cross.Module` to some

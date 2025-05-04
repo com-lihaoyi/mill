@@ -8,9 +8,10 @@ import mill.util.Jvm
  *
  * Example configuration:
  * {{{
+ * //| mvnDeps: ["com.lihaoyi::mill-contrib-jmh:$MILL_VERSION"]
+ *
  * import mill._, scalalib._
  *
- * import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
  * import contrib.jmh.JmhModule
  *
  * object foo extends ScalaModule with JmhModule {
@@ -33,7 +34,7 @@ trait JmhModule extends JavaModule {
   def jmhCoreVersion: T[String]
   def jmhGeneratorByteCodeVersion: T[String] = jmhCoreVersion
 
-  def ivyDeps = super.ivyDeps() ++ Seq(ivy"org.openjdk.jmh:jmh-core:${jmhCoreVersion()}")
+  def mvnDeps = super.mvnDeps() ++ Seq(mvn"org.openjdk.jmh:jmh-core:${jmhCoreVersion()}")
 
   def runJmh(args: String*) =
     Task.Command {
@@ -44,7 +45,7 @@ trait JmhModule extends JavaModule {
           Seq(compileGeneratedSources().path, resources),
         mainArgs = args,
         cwd = Task.ctx().dest,
-        javaHome = zincWorker().javaHome().map(_.path),
+        javaHome = jvmWorker().javaHome().map(_.path),
         stdin = os.Inherit,
         stdout = os.Inherit
       )
@@ -94,7 +95,7 @@ trait JmhModule extends JavaModule {
           resourcesDir.toString,
           "default"
         ),
-        javaHome = zincWorker().javaHome().map(_.path),
+        javaHome = jvmWorker().javaHome().map(_.path),
         jvmArgs = forkedArgs,
         stdin = os.Inherit,
         stdout = os.Inherit
@@ -104,8 +105,8 @@ trait JmhModule extends JavaModule {
     }
 
   def generatorDeps = Task {
-    defaultResolver().resolveDeps(
-      Seq(ivy"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}")
+    defaultResolver().classpath(
+      Seq(mvn"org.openjdk.jmh:jmh-generator-bytecode:${jmhGeneratorByteCodeVersion()}")
     )
   }
 }

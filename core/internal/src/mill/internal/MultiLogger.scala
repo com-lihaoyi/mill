@@ -1,33 +1,34 @@
 package mill.internal
 
-import fansi.Attrs
-import mill.api.{ColorLogger, Logger, SystemStreams}
+import mill.api.{Logger, SystemStreams}
 
 import java.io.{InputStream, PrintStream}
 
 private[mill] class MultiLogger(
-    val colored: Boolean,
     val logger1: Logger,
     val logger2: Logger,
-    val inStream0: InputStream,
-    override val debugEnabled: Boolean
-) extends ColorLogger {
+    val inStream0: InputStream
+) extends Logger {
   override def toString: String = s"MultiLogger($logger1, $logger2)"
-  lazy val systemStreams = new SystemStreams(
-    new MultiStream(logger1.systemStreams.out, logger2.systemStreams.out),
-    new MultiStream(logger1.systemStreams.err, logger2.systemStreams.err),
+  lazy val streams = new SystemStreams(
+    new MultiStream(logger1.streams.out, logger2.streams.out),
+    new MultiStream(logger1.streams.err, logger2.streams.err),
     inStream0
   )
 
-  private[mill] override lazy val unprefixedSystemStreams: SystemStreams = new SystemStreams(
-    new MultiStream(logger1.unprefixedSystemStreams.out, logger2.unprefixedSystemStreams.out),
-    new MultiStream(logger1.unprefixedSystemStreams.err, logger2.unprefixedSystemStreams.err),
+  private[mill] override lazy val unprefixedStreams: SystemStreams = new SystemStreams(
+    new MultiStream(logger1.unprefixedStreams.out, logger2.unprefixedStreams.out),
+    new MultiStream(logger1.unprefixedStreams.err, logger2.unprefixedStreams.err),
     inStream0
   )
 
   def info(s: String): Unit = {
     logger1.info(s)
     logger2.info(s)
+  }
+  def warn(s: String): Unit = {
+    logger1.warn(s)
+    logger2.warn(s)
   }
   def error(s: String): Unit = {
     logger1.error(s)
@@ -38,84 +39,78 @@ private[mill] class MultiLogger(
     logger2.ticker(s)
   }
 
-  override def setPromptDetail(key: Seq[String], s: String): Unit = {
-    logger1.setPromptDetail(key, s)
-    logger2.setPromptDetail(key, s)
-  }
+  def prompt: Logger.Prompt = new Logger.Prompt {
 
-  private[mill] override def setPromptLine(
-      key: Seq[String],
-      verboseKeySuffix: String,
-      message: String
-  ): Unit = {
-    logger1.setPromptLine(key, verboseKeySuffix, message)
-    logger2.setPromptLine(key, verboseKeySuffix, message)
-  }
+    override def setPromptDetail(key: Seq[String], s: String): Unit = {
+      logger1.prompt.setPromptDetail(key, s)
+      logger2.prompt.setPromptDetail(key, s)
+    }
 
-  private[mill] override def setPromptLine(): Unit = {
-    logger1.setPromptLine()
-    logger2.setPromptLine()
-  }
+    private[mill] override def setPromptLine(
+        key: Seq[String],
+        keySuffix: String,
+        message: String
+    ): Unit = {
+      logger1.prompt.setPromptLine(key, keySuffix, message)
+      logger2.prompt.setPromptLine(key, keySuffix, message)
+    }
 
+    private[mill] override def reportKey(key: Seq[String]): Unit = {
+      logger1.prompt.reportKey(key)
+      logger2.prompt.reportKey(key)
+    }
+
+    private[mill] override def clearPromptStatuses(): Unit = {
+      logger1.prompt.clearPromptStatuses()
+      logger2.prompt.clearPromptStatuses()
+    }
+
+    private[mill] override def removePromptLine(key: Seq[String]): Unit = {
+      logger1.prompt.removePromptLine(key)
+      logger2.prompt.removePromptLine(key)
+    }
+
+    private[mill] override def setPromptHeaderPrefix(s: String): Unit = {
+      logger1.prompt.setPromptHeaderPrefix(s)
+      logger2.prompt.setPromptHeaderPrefix(s)
+    }
+
+    private[mill] override def withPromptPaused[T](t: => T): T = {
+      logger1.prompt.withPromptPaused(logger2.prompt.withPromptPaused(t))
+    }
+
+    private[mill] override def withPromptUnpaused[T](t: => T): T = {
+      logger1.prompt.withPromptUnpaused(logger2.prompt.withPromptUnpaused(t))
+    }
+
+    override def enableTicker: Boolean = logger1.prompt.enableTicker || logger2.prompt.enableTicker
+
+    override def debugEnabled: Boolean = logger1.prompt.debugEnabled || logger2.prompt.debugEnabled
+
+    override def infoColor(s: String): String =
+      logger1.prompt.infoColor(logger2.prompt.infoColor(s))
+    override def warnColor(s: String): String =
+      logger1.prompt.warnColor(logger2.prompt.warnColor(s))
+    override def errorColor(s: String): String =
+      logger1.prompt.errorColor(logger2.prompt.errorColor(s))
+    override def colored: Boolean = logger1.prompt.colored || logger2.prompt.colored
+  }
   def debug(s: String): Unit = {
     logger1.debug(s)
     logger2.debug(s)
   }
 
-  override def close(): Unit = {
-    logger1.close()
-    logger2.close()
-  }
-  private[mill] override def reportKey(key: Seq[String]): Unit = {
-    logger1.reportKey(key)
-    logger2.reportKey(key)
-  }
+  private[mill] override def logKey = logger1.logKey ++ logger2.logKey
 
-  override def rawOutputStream: PrintStream = systemStreams.out
+  private[mill] override def message = logger1.message ++ logger2.message
 
-  private[mill] override def removePromptLine(key: Seq[String]): Unit = {
-    logger1.removePromptLine(key)
-    logger2.removePromptLine(key)
-  }
-  private[mill] override def removePromptLine(): Unit = {
-    logger1.removePromptLine()
-    logger2.removePromptLine()
-  }
-  private[mill] override def setPromptHeaderPrefix(s: String): Unit = {
-    logger1.setPromptHeaderPrefix(s)
-    logger2.setPromptHeaderPrefix(s)
-  }
+  private[mill] override def keySuffix = logger1.keySuffix ++ logger2.keySuffix
 
-  private[mill] override def withPromptPaused[T](t: => T): T = {
-    logger1.withPromptPaused(logger2.withPromptPaused(t))
-  }
-  private[mill] override def withPromptUnpaused[T](t: => T): T = {
-    logger1.withPromptUnpaused(logger2.withPromptUnpaused(t))
-  }
-
-  override def enableTicker: Boolean = logger1.enableTicker || logger2.enableTicker
-
-  private[mill] override def subLogger(path: os.Path, key: String, message: String): Logger = {
+  override def withOutStream(outStream: PrintStream): Logger = {
     new MultiLogger(
-      colored,
-      logger1.subLogger(path, key, message),
-      logger2.subLogger(path, key, message),
-      inStream0,
-      debugEnabled
-    )
-  }
-
-  override def infoColor: Attrs = logger1.infoColor ++ logger2.infoColor
-  override def errorColor: Attrs = logger1.errorColor ++ logger2.errorColor
-  private[mill] override def logPrefixKey = logger1.logPrefixKey ++ logger2.logPrefixKey
-
-  override def withOutStream(outStream: PrintStream): ColorLogger = {
-    new MultiLogger(
-      colored,
       logger1.withOutStream(outStream),
       logger2.withOutStream(outStream),
-      inStream0,
-      debugEnabled
+      inStream0
     )
   }
 }

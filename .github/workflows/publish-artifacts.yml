@@ -27,22 +27,22 @@ jobs:
       matrix:
         include:
         - os: ubuntu-latest
-          coursierarchive: ""
+          coursierarchive: "/tmp"
           publishartifacts: __.publishArtifacts
           uploadgithub: true
 
         - os: ubuntu-24.04-arm
-          coursierarchive: ""
+          coursierarchive: "/tmp"
           publishartifacts: dist.native.publishArtifacts
           uploadgithub: false
 
         - os: macos-13
-          coursierarchive: ""
+          coursierarchive: "/tmp"
           publishartifacts: dist.native.publishArtifacts
           uploadgithub: false
 
         - os: macos-latest
-          coursierarchive: ""
+          coursierarchive: "/tmp"
           publishartifacts: dist.native.publishArtifacts
           uploadgithub: false
 
@@ -76,6 +76,3 @@ jobs:
       - run: "echo temurin:11 > .mill-jvm-version"
 
       - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts ${{ matrix.publishartifacts }}
-
-      - run: ./mill -i dist.uploadToGithub --authKey $REPO_ACCESS_TOKEN
-        if: ${{ matrix.uploadgithub }}

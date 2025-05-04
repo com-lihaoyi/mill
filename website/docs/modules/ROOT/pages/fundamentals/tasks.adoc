@@ -1,8 +1,6 @@
 = Tasks
 :page-aliases: Tasks.adoc
 
-
-
 One of Mill's core abstractions is its _Task Graph_: this is how Mill defines,
 orders and caches work it needs to do, and exists independently of any support
 for building Java, Kotlin, or Scala.
@@ -54,6 +52,3 @@ include::partial$example/fundamentals/tasks/6-workers.adoc[]
 
 include::partial$example/fundamentals/tasks/3-anonymous-tasks.adoc[]
 
-== (Experimental) Forking Concurrent Futures within Tasks
-
-include::partial$example/fundamentals/tasks/7-forking-futures.adoc[]

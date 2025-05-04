@@ -4,7 +4,7 @@ import mill._
 import kotlinlib.KotlinModule
 import kotlinlib.detekt.DetektModule
 
-object `package` extends RootModule with KotlinModule with DetektModule {
+object `package` extends KotlinModule with DetektModule {
   def kotlinVersion = "1.9.24"
 }
 

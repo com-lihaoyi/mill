@@ -19,4 +19,8 @@ def testTask = Task { os.read(testSource().path).toUpperCase() }
 > cat out/testTask.json
 ..."HELLO WORLD SOURCE FILE!!!"...
 
+> ls out/mill-server # not --no-server, make sure `mill-server` is generated
+
+> ls out/mill-no-server # --no-server, make sure `mill-no-server` is generated
+
 */

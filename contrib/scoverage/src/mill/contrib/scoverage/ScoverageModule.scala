@@ -2,12 +2,12 @@ package mill.contrib.scoverage
 
 import coursier.Repository
 import mill._
-import mill.api.{PathRef, Result}
+import mill.define.{PathRef}
+import mill.api.{Result}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
-import mill.main.BuildInfo
-import mill.scalalib.api.ZincWorkerUtil
+import mill.util.BuildInfo
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
-import mill.util.MillModuleUtil.millProjectModule
 
 /**
  * Adds targets to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
@@ -22,17 +22,16 @@ import mill.util.MillModuleUtil.millProjectModule
  * `ScoverageTests` trait that belongs to your instance of `ScoverageModule`.
  *
  * {{{
- * // You have to replace VERSION
- * import $ivy.`com.lihaoyi::mill-contrib-buildinfo:VERSION`
+ * //| mvnDeps: ["com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION"]
+ *
  * import mill.contrib.scoverage.ScoverageModule
  *
  * Object foo extends ScoverageModule  {
  *   def scalaVersion = "2.13.15"
  *   def scoverageVersion = "2.1.1"
  *
- *   object test extends ScoverageTests {
- *     def ivyDeps = Seq(ivy"org.scalatest::scalatest:3.2.19")
- *     def testFrameworks = Seq("org.scalatest.tools.Framework")
+ *   object test extends ScoverageTests with TestModule.ScalaTest {
+ *     def scalaTestVersion = "3.2.19"
  *   }
  * }
  * }}}
@@ -58,13 +57,13 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
    */
   def scoverageVersion: T[String]
 
-  private def isScala3: Task[Boolean] = Task.Anon { ZincWorkerUtil.isScala3(outer.scalaVersion()) }
+  private def isScala3: Task[Boolean] = Task.Anon { JvmWorkerUtil.isScala3(outer.scalaVersion()) }
 
   def scoverageRuntimeDeps: T[Seq[Dep]] = Task {
     if (isScala3()) {
       Seq.empty
     } else {
-      Seq(ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}")
+      Seq(mvn"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}")
     }
   }
 
@@ -74,10 +73,10 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       Seq.empty
     } else {
       Seq(
-        ivy"org.scoverage:::scalac-scoverage-plugin:${sv}",
-        ivy"org.scoverage::scalac-scoverage-domain:${sv}",
-        ivy"org.scoverage::scalac-scoverage-serializer:${sv}",
-        ivy"org.scoverage::scalac-scoverage-reporter:${sv}"
+        mvn"org.scoverage:::scalac-scoverage-plugin:${sv}",
+        mvn"org.scoverage::scalac-scoverage-domain:${sv}",
+        mvn"org.scoverage::scalac-scoverage-serializer:${sv}",
+        mvn"org.scoverage::scalac-scoverage-reporter:${sv}"
       )
     }
   }
@@ -95,38 +94,35 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     }
   }
 
-  private def scoverageReporterIvyDeps: T[Seq[Dep]] = Task {
+  private def scoverageReporterMvnDeps: T[Seq[Dep]] = Task {
     checkVersions()
 
     val sv = scoverageVersion()
     val millScalaVersion = BuildInfo.scalaVersion
 
     // we need to resolve with same Scala version used for Mill, not the project Scala version
-    val scalaBinVersion = ZincWorkerUtil.scalaBinaryVersion(millScalaVersion)
+    val scalaBinVersion = JvmWorkerUtil.scalaBinaryVersion(millScalaVersion)
     // In Scoverage 2.x, the reporting API is no longer bundled in the plugin jar
     Seq(
-      ivy"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
-      ivy"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
-      ivy"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
+      mvn"org.scoverage:scalac-scoverage-domain_${scalaBinVersion}:${sv}",
+      mvn"org.scoverage:scalac-scoverage-serializer_${scalaBinVersion}:${sv}",
+      mvn"org.scoverage:scalac-scoverage-reporter_${scalaBinVersion}:${sv}"
     )
   }
 
   def scoverageToolsClasspath: T[Seq[PathRef]] = Task {
     scoverageReportWorkerClasspath() ++
-      defaultResolver().resolveDeps(scoverageReporterIvyDeps())
+      defaultResolver().classpath(scoverageReporterMvnDeps())
   }
 
   def scoverageClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().resolveDeps(scoveragePluginDeps())
+    defaultResolver().classpath(scoveragePluginDeps())
   }
 
   def scoverageReportWorkerClasspath: T[Seq[PathRef]] = Task {
-    val workerArtifact = "mill-contrib-scoverage-worker2"
-
-    millProjectModule(
-      workerArtifact,
-      repositoriesTask()
-    )
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-contrib-scoverage-worker2")
+    ))
   }
 
   /** Inner worker module. This is not an `object` to allow users to override and customize it. */
@@ -161,14 +157,14 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
       internalRepositories() ++ outer.repositoriesTask()
     }
-    override def compileIvyDeps: T[Seq[Dep]] = Task { outer.compileIvyDeps() }
-    override def ivyDeps: T[Seq[Dep]] =
-      Task { outer.ivyDeps() ++ outer.scoverageRuntimeDeps() }
+    override def compileMvnDeps: T[Seq[Dep]] = Task { outer.compileMvnDeps() }
+    override def mvnDeps: T[Seq[Dep]] =
+      Task { outer.mvnDeps() ++ outer.scoverageRuntimeDeps() }
     override def unmanagedClasspath: T[Seq[PathRef]] = Task { outer.unmanagedClasspath() }
 
     /** Add the scoverage scalac plugin. */
-    override def scalacPluginIvyDeps: T[Seq[Dep]] =
-      Task { outer.scalacPluginIvyDeps() ++ outer.scoveragePluginDeps() }
+    override def scalacPluginMvnDeps: T[Seq[Dep]] =
+      Task { outer.scalacPluginMvnDeps() ++ outer.scoveragePluginDeps() }
 
     /** Add the scoverage specific plugin settings (`dataDir`). */
     override def scalacOptions: T[Seq[String]] =
@@ -209,7 +205,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       val outerScoverageClassesPath = outer.scoverage.compile().classes
       (super.runClasspath().map { path =>
         if (outerClassesPath == path) outerScoverageClassesPath else path
-      } ++ defaultResolver().resolveDeps(outer.scoverageRuntimeDeps())).distinct
+      } ++ defaultResolver().classpath(outer.scoverageRuntimeDeps())).distinct
     }
   }
 }

@@ -1,0 +1,365 @@
+// `ollam-js` library provides the easiest way to integrate
+// your JavaScript project with Ollama.
+
+// In this example we show how to integrate `ollama-js` with mill,
+// showing off mill's scalability with custom tasks and traits.
+
+// Using custom tasks we build our library and then prepare the bundled code to be used
+// as an unmanaged dependcy (file-based package installation) for the mini example projects.
+
+// Project home: https://github.com/ollama/ollama-js
+
+// Project Layout:
+
+// [source,text]
+// ----
+// <project-root>
+// examples/
+// src/
+// test/
+// package.json
+// tsconfig.json
+
+package build
+
+import mill._, javascriptlib._
+import os._
+import ujson._
+
+trait OllamaModule extends TypeScriptModule {
+  def moduleName = "ollama"
+  def npmDeps = Seq("whatwg-fetch@3.6.20")
+  def npmDevDeps = Seq(
+    "@swc/core@1.10.12",
+    "@types/whatwg-fetch@0.0.33",
+    "unbuild@2.0.0"
+  )
+
+  def packageJson = PackageJson(
+    name = "ollama",
+    version = "0.0.0",
+    description = "Ollama Javascript library",
+    main = "dist/index.cjs",
+    module = "dist/index.mjs",
+    types = "dist/index.d.ts",
+    exports = ujson.Obj(
+      "." -> ujson.Obj(
+        "require" -> "./dist/index.cjs",
+        "import" -> "./dist/index.mjs",
+        "types" -> "./dist/index.d.ts"
+      ),
+      "./browser" -> ujson.Obj(
+        "require" -> "./dist/browser.cjs",
+        "import" -> "./dist/browser.mjs",
+        "types" -> "./dist/browser.d.ts"
+      ),
+      "./*" -> "./*"
+    )
+  )
+
+  def options =
+    super.options() + (
+      "ts-node" -> ujson.Obj(
+        "swc" -> ujson.True,
+        "esm" -> ujson.True
+      )
+    )
+
+  def compilerOptions =
+    super.compilerOptions() + (
+      "noImplicitAny" -> ujson.True,
+      "noImplicitThis" -> ujson.True,
+      "strictNullChecks" -> ujson.True,
+      "declarationMap" -> ujson.True,
+      "skipLibCheck" -> ujson.True,
+      "strict" -> ujson.True,
+      "forceConsistentCasingInFileNames" -> ujson.True,
+      "module" -> ujson.Str("ES2022"),
+      "target" -> ujson.Str("es6"),
+      "lib" -> ujson.Arr.from(Seq("es6", "es2018.asyncgenerator", "dom"))
+    )
+
+  // disable declarations output in compile stage
+  def runTypeCheck = false
+
+  // bundle ollama with `unbuild`
+  def unbuild = Task {
+    createNodeModulesSymlink()
+    val out = compile().path
+
+    os.walk(
+      out,
+      skip = p =>
+        p.last == "node_modules" ||
+          p.last == "package-lock.json"
+    )
+      .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
+
+    os.call("node_modules/.bin/unbuild", cwd = T.dest)
+
+    // prepare bundled ouptut to be used as `unmanagedDeps` in examples section.
+    os.makeDir.all(T.dest / "ollama")
+    os.copy(T.dest / "package.json", T.dest / "ollama" / "package.json")
+    os.copy(T.dest / "dist", T.dest / "ollama" / "dist")
+
+    PathRef(T.dest / "ollama")
+  }
+}
+
+// Here we take advantage of mill to reduce boiler plate code, providing clean,
+// reusable traits specific to our many mini example usage projects found in `ollama-js` source.
+
+trait Examples extends TypeScriptModule {
+  trait ExampleModule extends TypeScriptModule {
+    def sources = Task.Sources(moduleDir)
+    def mainFilePath = Task { compile().path / mainFileName() }
+    def unmanagedDeps = Examples.this.unmanagedDeps()
+  }
+
+  trait EsmModule extends ExampleModule {
+    def enableEsm = true
+    def runTypeCheck = false
+  }
+
+  trait Es6Module extends ExampleModule {
+    def compilerOptions =
+      super.compilerOptions() + (
+        "module" -> ujson.Str("nodenext"),
+        "moduleResolution" -> ujson.Str("nodenext"),
+        "target" -> ujson.Str("es6")
+      )
+  }
+}
+
+object `package` extends OllamaModule with TsLintModule {
+  def npmLintDeps = Seq(
+    "prettier@3.2.4",
+    "eslint@8.29.0",
+    "@typescript-eslint/eslint-plugin@5.42.1",
+    "@typescript-eslint/parser@5.42.1"
+  )
+
+  object test extends TypeScriptTests with TestModule.Vitest
+
+  object examples extends Examples {
+    def unmanagedDeps = Seq(unbuild())
+    object abort extends ExampleModule {
+      def mainFileName = "abort-all-requests.ts"
+    }
+
+    object `fill-in-middle` extends EsmModule {
+      def npmDeps = Seq("ollama@0.5.12")
+      def mainFileName = "fill.ts"
+    }
+
+    object multimodal extends EsmModule {
+      def mainFileName = "multimodal.ts"
+    }
+
+    object `pull-progress` extends EsmModule {
+      def mainFileName = "pull.ts"
+    }
+
+    object structured_outputs extends Es6Module {
+      def npmDeps = Seq("zod@3.24.1", "zod-to-json-schema@3.24.1")
+      def mainFileName = "structured-outputs.ts"
+    }
+
+    object tools extends Es6Module {
+      def mainFileName = "calculator.ts"
+    }
+  }
+}
+
+//// `unbuild`:
+// The `unbuild` task defined in `OllamaModule`, uses the `unbuild` npm package to bundle the ollama-js project,
+// it then prepares the output to be used as an unmanaged dependency `unmanagedDeps` for our example projects.
+// See: https://github.com/unjs/unbuild
+
+//// Example projects:
+// All example projects featured in `examples/` do not have a `src` directory,
+// they contain stand alone file(s) intended to be run independently with a command like
+// `npx tsx <folder-name>/<file-name>.ts`.
+
+// The `ExampleModule` trait configures the `sources` and `mainFilePath` task,
+// accounting for the absence of `src` directory in the example projects.
+
+// `EsmModule` enables esm, defining `compilerOptions` for select project with esm features,
+// while the `Es6Module` defines compilerOptions for projects with `es6` features.
+
+// Ordinarily the compile stages `mill compile` would build our `declarations` and or `dist` files (depending on configurations),
+// but since we intend to use `unbuild` task to handle bundling we don't need this output
+// from running the `tsc` command. We can turn of its generation by settig the task `runTypeCheck` to false.
+
+//// User Defined JSON:
+
+//// package.json
+// [source,json]
+// ----
+// {
+//  "name": "ollama",
+//  "version": "0.0.0",
+//  "description": "Ollama Javascript library",
+//  "main": "dist/index.cjs",
+//  "module": "dist/index.mjs",
+//  "types": "dist/index.d.ts",
+//  "exports": {
+//    ".": {
+//      "require": "./dist/index.cjs",
+//      "import": "./dist/index.mjs",
+//      "types": "./dist/index.d.ts"
+//    },
+//    "./browser": {
+//      "require": "./dist/browser.cjs",
+//      "import": "./dist/browser.mjs",
+//      "types": "./dist/browser.d.ts"
+//    },
+//    "./*": "./*"
+//  },
+//  "scripts": {
+//    "format": "prettier --write .",
+//    "test": "vitest --run",
+//    "build": "unbuild",
+//    "lint": "eslint ./src/*",
+//    "prepublishOnly": "npm run build"
+//  },
+//  "homepage": "https://github.com/ollama/ollama-js",
+//  "repository": {
+//    ...
+//  },
+//  "author": "Saul Boyd",
+//  "license": "MIT",
+//  "devDependencies": {
+//    ...
+//  },
+//  "dependencies": {
+//    ...
+//  }
+//}
+// ----
+
+//// tsconfig.json
+// [source,json]
+// ----
+// {
+//   "compilerOptions": {
+//    "noImplicitAny": false,
+//    "noImplicitThis": true,
+//    "strictNullChecks": true,
+//    "esModuleInterop": true,
+//    "declaration": true,
+//    "declarationMap": true,
+//    "skipLibCheck": true,
+//    "strict": true,
+//    "forceConsistentCasingInFileNames": true,
+//    "moduleResolution": "node",
+//    "module": "ES2022",
+//    "outDir": "./dist",
+//    "target": "ES6",
+//    "lib": [
+//      "es6",
+//      "es2018.asyncgenerator",
+//      "dom"
+//    ]
+//  },
+//
+//  "ts-node": {
+//    "swc": true,
+//    "esm": true,
+//  },
+//
+//  "include": ["./src/**/*.ts"],
+//
+//  "exclude": ["node_modules"]
+//}
+// ----
+
+/** Usage
+
+> ./mill checkFormatEslint # expected no failures, equivalent of running `npm run lint`
+
+> ./mill checkFormatPrettier # expected failures, equivalent of running `prettier --check .`
+...
+Checking formatting...
+[warn] examples/abort/abort-all-requests.ts
+[warn] examples/abort/abort-single-request.ts
+[warn] examples/structured_outputs/structured-outputs-image.ts
+[warn] examples/structured_outputs/structured-outputs.ts
+[warn] examples/tools/calculator.ts
+[warn] examples/tools/flight-tracker.ts
+[warn] src/browser.ts
+[warn] src/constant.ts
+[warn] src/index.ts
+[warn] src/interfaces.ts
+[warn] src/utils.ts
+[warn] test/utils.test.ts
+...
+
+> ./mill reformatPrettier # fixes code style issues with prettier, equivalent of running `npm run format`
+...
+examples/abort/abort-all-requests.ts...
+examples/abort/abort-single-request.ts...
+examples/fill-in-middle/fill.ts...
+examples/multimodal/multimodal.ts...
+examples/pull-progress/pull.ts...
+examples/structured_outputs/structured-outputs-image.ts...
+examples/structured_outputs/structured-outputs.ts...
+examples/tools/calculator.ts...
+examples/tools/flight-tracker.ts...
+src/browser.ts...
+src/constant.ts...
+src/index.ts...
+src/interfaces.ts...
+src/utils.ts...
+src/version.ts...
+test/index.test.ts...
+test/utils.test.ts...
+All matched files have been reformatted!
+
+> ./mill checkFormatPrettier # no more failures after formatting, equivalent of running `prettier --check .`
+...
+Checking formatting...
+All matched files use Prettier code style!
+
+> ./mill test # Run vitest, this would be the equivalent of the `npm run test` command
+...
+.../index.test.ts (15 tests) ...
+.../utils.test.ts (5 tests) ...
+...
+...Test Files  2 passed (2)
+...     Tests  20 passed (20)
+...
+
+> ./mill examples.abort.run
+...Aborting all requests...
+
+> ./mill examples.fill-in-middle.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
+...
+
+> ./mill examples.multimodal.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
+...
+
+> ./mill examples.pull-progress.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
+...
+
+> ./mill examples.structured_outputs.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
+...
+
+> ./mill examples.tools.run
+...syscall: 'connect',
+...address: '127.0.0.1',
+...port: 11434
+...
+*/

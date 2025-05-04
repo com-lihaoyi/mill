@@ -1,13 +1,13 @@
 package mill.runner.client;
 
-import static mill.runner.client.MillProcessLauncher.millOptsFile;
-
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import mill.client.*;
 import mill.client.lock.Locks;
+import mill.constants.OutFiles;
+import mill.constants.Util;
 
 /**
  * This is a Java implementation to speed up repetitive starts.
@@ -37,7 +37,8 @@ public class MillClientMain {
     } else
       try {
         // start in client-server mode
-        java.util.List<String> optsArgs = ClientUtil.readOptsFileLines(millOptsFile());
+        java.util.List<String> optsArgs = new java.util.ArrayList<>();
+        optsArgs.addAll(MillProcessLauncher.millOpts());
         Collections.addAll(optsArgs, args);
 
         ServerLauncher launcher =

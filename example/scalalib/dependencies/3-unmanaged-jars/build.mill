@@ -1,4 +1,4 @@
-// In most scenarios you should rely on `ivyDeps`/`moduleDeps` and let Mill manage
+// In most scenarios you should rely on `mvnDeps`/`moduleDeps` and let Mill manage
 // the compilation/downloading/caching of classpath jars for you, as Mill will
 // automatically pull in transitive dependencies which are generally needed for things
 // to work, and avoids including different versions of the same classfiles or jar which
@@ -10,11 +10,12 @@
 package build
 import mill._, scalalib._
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = "2.13.8"
+  def lib = Task.Source("lib")
   def unmanagedClasspath = Task {
-    if (!os.exists(moduleDir / "lib")) Seq()
-    else Seq.from(os.list(moduleDir / "lib").map(PathRef(_)))
+    if (!os.exists(lib().path)) Seq()
+    else Seq.from(os.list(lib().path).map(PathRef(_)))
   }
 }
 

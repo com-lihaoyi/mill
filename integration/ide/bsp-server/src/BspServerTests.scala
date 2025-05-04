@@ -4,7 +4,7 @@ import ch.epfl.scala.{bsp4j => b}
 import mill.api.BuildInfo
 import mill.bsp.Constants
 import mill.integration.BspServerTestUtil._
-import mill.testkit.{UtestIntegrationTestSuite, IntegrationTester}
+import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
 import scala.jdk.CollectionConverters._
@@ -39,7 +39,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
     test("requestSnapshots") - integrationTest { tester =>
       import tester._
       eval(
-        "mill.bsp.BSP/install",
+        "--bsp-install",
         stdout = os.Inherit,
         stderr = os.Inherit,
         check = true,
@@ -48,7 +48,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
       withBspServer(
         workspacePath,
-        IntegrationTester.millTestSuiteEnv
+        millTestSuiteEnv
       ) { (buildServer, initRes) =>
         val scala2Version = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
         val scala3Version = sys.props.getOrElse("MILL_SCALA_3_NEXT_VERSION", ???)

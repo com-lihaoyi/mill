@@ -4,7 +4,7 @@
 package build
 import mill._, javalib._, checkstyle._
 
-object `package` extends RootModule with CheckstyleModule {
+object `package` extends CheckstyleModule {
   def checkstyleVersion = "9.3"
 }
 
@@ -139,7 +139,7 @@ Audit done.
 // [source,scala]
 // ----
 // import mill._
-// import mill.api.PathRef
+// import mill.define.PathRef
 // import mill.contrib.checkstyle.CheckstyleXsltModule
 // import mill.contrib.checkstyle.CheckstyleXsltReport
 // import mill.scalalib._

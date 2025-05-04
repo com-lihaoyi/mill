@@ -1,10 +1,12 @@
 package mill.exec
 
+import mill.internal.{FileLogger, MultiLogger, PrefixLogger}
 import os.Path
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
-import java.util.concurrent.{ExecutorService, LinkedBlockingQueue, ThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.{PriorityBlockingQueue, ThreadPoolExecutor, TimeUnit}
+import mill.api.Logger
 
 private object ExecutionContexts {
 
@@ -13,33 +15,36 @@ private object ExecutionContexts {
    * spawning a separate thread or thread-pool. Used to turn parallel-async
    * Future code into nice single-threaded code without needing to rewrite it
    */
-  object RunNow extends mill.api.Ctx.Fork.Impl {
+  object RunNow extends mill.define.TaskCtx.Fork.Impl {
     def await[T](t: Future[T]): T = Await.result(t, Duration.Inf)
     def execute(runnable: Runnable): Unit = runnable.run()
     def reportFailure(cause: Throwable): Unit = {}
     def close(): Unit = () // do nothing
 
-    def async[T](dest: Path, key: String, message: String)(t: => T)(implicit
-        ctx: mill.api.Ctx
+    def blocking[T](t: => T): T = t
+    def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
+        ctx: mill.define.TaskCtx
     ): Future[T] =
-      Future.successful(t)
+      Future.successful(t(ctx.log))
   }
 
   /**
    * A simple thread-pool-based ExecutionContext with configurable thread count
    * and AutoCloseable support
    */
-  class ThreadPool(threadCount0: Int) extends mill.api.Ctx.Fork.Impl {
+  class ThreadPool(threadCount0: Int) extends mill.define.TaskCtx.Fork.Impl {
     def await[T](t: Future[T]): T = blocking { Await.result(t, Duration.Inf) }
-    val executor: ThreadPoolExecutor = new ThreadPoolExecutor(
+    private val executor: ThreadPoolExecutor = new ThreadPoolExecutor(
       threadCount0,
       threadCount0,
       0,
       TimeUnit.SECONDS,
-      new LinkedBlockingQueue[Runnable]()
+      // Use a `Deque` rather than a normal `Queue`, with the various `poll`/`take`
+      // operations reversed, providing elements in a LIFO order. This ensures that
+      // child `fork.async` tasks always take priority over parent tasks, avoiding
+      // large numbers of blocked parent tasks from piling up
+      new PriorityBlockingQueue[Runnable]()
     )
-
-    val threadPool: ExecutorService = executor
 
     def updateThreadCount(delta: Int): Unit = synchronized {
       if (delta > 0) {
@@ -62,29 +67,59 @@ private object ExecutionContexts {
       // context which submitted it
       lazy val submitterPwd = os.pwd
       lazy val submitterStreams = new mill.api.SystemStreams(System.out, System.err, System.in)
-      threadPool.submit(new Runnable {
-        def run() = {
+      executor.execute(new PriorityRunnable(
+        0,
+        () =>
           os.dynamicPwdFunction.withValue(() => submitterPwd) {
-            mill.api.SystemStreams.withStreams(submitterStreams) {
+            mill.define.SystemStreams.withStreams(submitterStreams) {
               runnable.run()
             }
           }
-        }
-      })
+      ))
+
     }
 
     def reportFailure(t: Throwable): Unit = {}
-    def close(): Unit = threadPool.shutdown()
+    def close(): Unit = executor.shutdown()
+
+    val priorityRunnableCount = java.util.concurrent.atomic.AtomicLong()
+
+    /**
+     * Subclass of [[java.lang.Runnable]] that assigns a priority to execute it
+     *
+     * Priority 0 is the default priority of all Mill task, priorities <0 can be used to
+     * prioritize this runnable over most other tasks, while priorities >0 can be used to
+     * de-prioritize it.
+     */
+    class PriorityRunnable(val priority: Int, run0: () => Unit) extends Runnable
+        with Comparable[PriorityRunnable] {
+      def run() = run0()
+      val priorityRunnableIndex: Long = priorityRunnableCount.getAndIncrement()
+      override def compareTo(o: PriorityRunnable): Int = priority.compareTo(o.priority) match {
+        case 0 =>
+          // `Comparable` wants a *total* ordering, so we need to use `priorityRunnableIndex`
+          // to break ties between instances with the same priority. This index is assigned
+          // when a task is submitted, so it should more or less follow insertion order,
+          // and is a `Long` which should be big enough never to overflow
+          assert(this == o || this.priorityRunnableIndex != o.priorityRunnableIndex)
+          this.priorityRunnableIndex.compareTo(o.priorityRunnableIndex)
+        case n => n
+      }
+    }
 
     /**
      * A variant of `scala.concurrent.Future{...}` that sets the `pwd` to a different
      * folder [[dest]] and duplicates the logging streams to [[dest]].log while evaluating
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
-    def async[T](dest: Path, key: String, message: String)(t: => T)(implicit
-        ctx: mill.api.Ctx
+    def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
+        ctx: mill.define.TaskCtx
     ): Future[T] = {
-      val logger = ctx.log.subLogger(dest / os.up / s"${dest.last}.log", key, message)
+      val logger = new MultiLogger(
+        new PrefixLogger(ctx.log, Seq(key), ctx.log.keySuffix, message),
+        new FileLogger(dest / os.up / s"${dest.last}.log", false),
+        ctx.log.streams.in
+      )
 
       var destInitialized: Boolean = false
       def makeDest() = synchronized {
@@ -95,15 +130,23 @@ private object ExecutionContexts {
 
         dest
       }
-      Future {
-        logger.withPrompt {
-          os.dynamicPwdFunction.withValue(() => makeDest()) {
-            mill.api.SystemStreams.withStreams(logger.systemStreams) {
-              t
+      val promise = concurrent.Promise[T]
+      val runnable = new PriorityRunnable(
+        priority = priority,
+        run0 = () => {
+          val result = scala.util.Try(logger.withPromptLine {
+            os.dynamicPwdFunction.withValue(() => makeDest()) {
+              mill.define.SystemStreams.withStreams(logger.streams) {
+                t(logger)
+              }
             }
-          }
+          })
+          promise.complete(result)
         }
-      }(this)
+      )
+
+      executor.execute(runnable)
+      promise.future
     }
   }
 }

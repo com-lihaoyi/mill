@@ -1,7 +1,4 @@
 = Typescript Module Configuration
-
-
-
 :language: Typescript
 :language-small: typescript
 
@@ -28,3 +25,7 @@ include::partial$example/javascriptlib/module/5-resources.adoc[]
 == Bundling Configuration
 
 include::partial$example/javascriptlib/module/6-executable-config.adoc[]
+
+== Root Module
+
+include::partial$example/javascriptlib/module/7-root-module.adoc[]

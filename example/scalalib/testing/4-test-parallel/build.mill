@@ -1,0 +1,40 @@
+// Test parallelism is an opt-in that enables parallel test execution, automatically
+// distributing your test classes across multiple JVM subprocesses, while minimizing the
+// overhead of JVM creation by re-using the subprocesses where possible.
+// Test parallelism should be able to reduce testing times for most project's test suites
+//
+// Test parallelism can be enabled by overriding `def testParallelism`, as demonstrated below.
+// This feature is expected to be enabled by default in future versions of Mill.
+
+//// SNIPPET:BUILD1
+package build
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.8"
+  object test extends ScalaTests with TestModule.Utest {
+    def utestVersion = "0.8.5"
+
+    def testParallelism = true
+  }
+}
+
+//// SNIPPET:END
+
+/** Usage
+
+> mill --jobs 3 foo.test
+
+> find out/foo/test/testForked.dest
+...
+out/foo/test/testForked.dest/worker-0.log
+out/foo/test/testForked.dest/worker-0
+out/foo/test/testForked.dest/worker-1.log
+out/foo/test/testForked.dest/worker-1
+out/foo/test/testForked.dest/worker-2.log
+out/foo/test/testForked.dest/worker-2
+out/foo/test/testForked.dest/test-classes
+out/foo/test/testForked.dest/test-report.xml
+...
+
+*/

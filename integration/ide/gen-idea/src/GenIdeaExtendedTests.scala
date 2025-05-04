@@ -4,6 +4,7 @@ import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
 import os.Path
+import mill.integration.GenIdeaUtils.assertIdeaXmlResourceMatchesFile
 
 object GenIdeaExtendedTests extends UtestIntegrationTestSuite {
 
@@ -15,14 +16,10 @@ object GenIdeaExtendedTests extends UtestIntegrationTestSuite {
       val expectedBase = workspacePath / "idea"
       val resources = os.walk(expectedBase).filter(os.isFile).map(_.subRelativeTo(expectedBase))
 
-      eval("mill.idea.GenIdea/")
+      eval("mill.idea.GenIdea/", check = true, stdout = os.Inherit, stderr = os.Inherit)
 
-      for (resource <- resources) {
-        GenIdeaUtils.assertIdeaXmlResourceMatchesFile(
-          workspacePath,
-          resource
-        )
-      }
+      for (resource <- resources)
+        assertIdeaXmlResourceMatchesFile(tester.workspaceSourcePath, workspacePath, resource)
     }
   }
 }
