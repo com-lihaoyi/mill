@@ -20,7 +20,7 @@ case class PathRef private[mill] (
     quick: Boolean,
     sig: Int,
     revalidate: PathRef.Revalidate
-) {
+) extends PathUtils {
 
   def recomputeSig(): Int = PathRef.apply(path, quick).sig
   def validate(): Boolean = recomputeSig() == sig
@@ -44,11 +44,11 @@ case class PathRef private[mill] (
       case PathRef.Revalidate.Always => "vn:"
     }
     val sig = String.format("%08x", this.sig: Integer)
-    quick + valid + sig + ":" + path.toString()
+    quick + valid + sig + ":" + serializeEnvVariables(path)
   }
 }
 
-object PathRef {
+object PathRef extends PathUtils {
   implicit def shellable(p: PathRef): os.Shellable = p.path
 
   /**
@@ -198,7 +198,7 @@ object PathRef {
     s => {
       val Array(prefix, valid0, hex, pathString) = s.split(":", 4)
 
-      val path = os.Path(pathString)
+      val path = deserializeEnvVariables(pathString)
       val quick = prefix match {
         case "qref" => true
         case "ref" => false

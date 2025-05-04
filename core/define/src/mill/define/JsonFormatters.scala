@@ -9,7 +9,7 @@ import scala.util.matching.Regex
 /**
  * Defines various default JSON formatters used in mill.
  */
-trait JsonFormatters {
+trait JsonFormatters extends PathUtils {
 
   /**
    * Additional [[mainargs.TokensReader]] instance to teach it how to read Ammonite paths
@@ -24,8 +24,8 @@ trait JsonFormatters {
 
   implicit val pathReadWrite: RW[os.Path] = upickle.default.readwriter[String]
     .bimap[os.Path](
-      _.toString,
-      os.Path(_)
+      path => serializeEnvVariables(path),
+      path => deserializeEnvVariables(path)
     )
 
   implicit val relPathRW: RW[os.RelPath] = upickle.default.readwriter[String]
