@@ -26,6 +26,6 @@ object `package` extends build.MillStableScalaModule {
     build.Deps.pprint,
     build.Deps.fansi,
     build.Deps.mainargs,
-    build.Deps.fastparse,
+    build.Deps.fastparse
   )
 }
