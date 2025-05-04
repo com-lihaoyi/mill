@@ -7,6 +7,7 @@ import mill.define.PathRef
 import mill.javalib.JavaModule
 import mill.scalalib.RunModule
 import mill.util.Jvm
+import mill.scalalib.PublishModule
 
 trait SpringBootAssemblyModule extends JavaModule {
 
@@ -25,7 +26,7 @@ trait SpringBootAssemblyModule extends JavaModule {
   def springBootPrependScript: T[Option[String]] = Task {
     Option(
       Jvm.launcherUniversalScript(
-        mainClass = "org.springframework.boot.loader.JarLauncher",
+        mainClass = "org.springframework.boot.loader.launch.JarLauncher",
         shellClassPath = Seq("$0"),
         cmdClassPath = Seq("%~dpnx0"),
         shebang = false,
@@ -40,48 +41,34 @@ trait SpringBootAssemblyModule extends JavaModule {
    * The Class holding the Spring Boot Application entrypoint.
    * This uses the [[RunMdoule.mainClass]] (if defined) or falls back to a auto-detection of a `SpringBootApplication` class.
    */
-  def springBootMainClass: T[String] = {
-    def handleResult(res: Either[String, String]): Result[String] = res match {
-      case Right(r) => Result.Success(r)
-      case Left(l) => Result.Failure(l)
-    }
+  def springBootMainClass: T[String] = Task {
+    mainClass()
+      .toRight("No main class specified")
+      .orElse(
+        springBootToolsModule()
+          .springBootToolsWorker()
+          .findMainClass(localRunClasspath().map(_.path))
+      )
+      .fold(l => Task.fail(l), r => r)
 
-    this match {
-      //      case m: JavaModule => Task {
-      //          handleResult(
-      //            m.mainClass()
-      //              .toRight("No main class specified")
-      //              .orElse(
-      //                springBootToolsModule().springBootToolsWorker()
-      //                  .findMainClass(m.compile().classes.path)
-      //              )
-      //          )
-      //        }
+  }
 
-      case m: RunModule => Task {
-          handleResult(
-            m.mainClass()
-              .toRight("No main class specified")
-              .orElse(
-                springBootToolsModule()
-                  .springBootToolsWorker()
-                  .findMainClass(m.localRunClasspath().map(_.path))
-              )
-          )
-        }
-      case m => Task {
-          handleResult(
-            springBootToolsModule()
-              .springBootToolsWorker()
-              .findMainClass(m.localClasspath().map(_.path))
-          )
-        }
-    }
+  def springBootAssemblyUpstreamIvyAssemblyClasspath: T[Seq[PathRef]] = Task {
+    resolvedRunMvnDeps()
+  }
+  def springBootAssemblyUpstreamLocalAssemblyClasspath: T[Seq[PathRef]] = Task {
+    Task.traverse(transitiveModuleRunModuleDeps)(m =>
+      // We need to renamed potential duplicated jar names (`out.jar`)
+      // Instead of doing it in-place, we do it in the context of each module,
+      // to avoid re-doing it for all jars when something changes
+      m.springBootAssemblyModule.springBootEmbeddableJar
+    )()
   }
 
   def springBootAssembly: T[PathRef] = Task {
 
-    val libs = runClasspath().map(_.path)
+    val libs = springBootAssemblyUpstreamIvyAssemblyClasspath() ++
+      springBootAssemblyUpstreamLocalAssemblyClasspath()
     val base = jar().path
     val mainClass = springBootMainClass()
     val dest = T.dest / "out.jar"
@@ -93,11 +80,29 @@ trait SpringBootAssemblyModule extends JavaModule {
         dest = dest,
         base = base,
         mainClass = mainClass,
-        libs = libs,
+        libs = libs.map(_.path),
         assemblyScript = script
       )
 
     PathRef(dest)
   }
 
+  private implicit class EmbeddableSpringBootModule(jm: JavaModule) extends mill.define.Module {
+    override def moduleCtx = jm.moduleCtx
+    // Hacky way to attach some generated resources under the context of the task dependency
+    object springBootAssemblyModule extends mill.define.Module {
+      def springBootEmbeddableJar = jm match {
+        case m: PublishModule => Task {
+            val dest = Task.dest / s"${m.artifactId()}-${m.publishVersion()}.jar"
+            os.copy(m.jar().path, dest)
+            PathRef(dest)
+          }
+        case m => Task {
+            val dest = Task.dest / s"${m.artifactId()}.jar"
+            os.copy(m.jar().path, dest)
+            PathRef(dest)
+          }
+      }
+    }
+  }
 }
