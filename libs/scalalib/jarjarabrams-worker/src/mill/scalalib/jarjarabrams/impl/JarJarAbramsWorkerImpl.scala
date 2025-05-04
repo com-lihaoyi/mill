@@ -1,13 +1,20 @@
 package mill.scalalib.jarjarabrams.impl
 
-import java.io.File
+import com.eed3si9n.jarjarabrams.{ShadePattern, Shader}
+import mill.define.PathRef
+import mill.util.JarManifest
+import os.Generator
 
+import java.io.{ByteArrayInputStream, InputStream, SequenceInputStream}
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.StandardOpenOption
+import java.util.Collections
+import java.util.jar.JarFile
+import java.util.regex.Pattern
 import scala.jdk.CollectionConverters._
 import scala.util.Using
-
-import io.github.classgraph.ClassGraph
-import mill.define.TaskCtx
-import mill.scalalib.classgraph.ClassgraphWorker
+import mill.scalalib.Assembly
+import mill.scalalib.Assembly.*
 
 object JarJarAbramsWorkerImpl  {
 
