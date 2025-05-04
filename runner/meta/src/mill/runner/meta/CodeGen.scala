@@ -239,8 +239,7 @@ object CodeGen {
       scriptFolderPath: os.Path,
       segments: Seq[String]
   ): String = {
-    s"""object MillMiscInfo
-       |extends mill.main.SubfolderModule.Info(
+    s"""object MillMiscInfo extends mill.main.SubfolderModule.Info(
        |  os.Path(${literalize(scriptFolderPath.toString)}),
        |  _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
        |)
