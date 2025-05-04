@@ -24,7 +24,7 @@ object `package` extends build.MillStableScalaModule {
       // used in ScalaModule.scalacHelp,
       // (also transitively included by com.eed3si9n.jarjarabrams:jarjar-abrams-core)
       // perhaps the class can be copied here?
-      Agg(build.Deps.scalaReflect(scalaVersion()))
+      Agg(build.Deps.scalaReflect(scalaVersion())) ++ Agg(build.Deps.sonatypeCentralClient)
     }
   }
   def testMvnDeps = super.testMvnDeps() ++ Agg(build.Deps.TestDeps.scalaCheck)

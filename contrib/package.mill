@@ -206,12 +206,11 @@ object `package` extends mill.Module {
     def mvnDeps = Agg(build.Deps.requests)
   }
 
-  object sonatypecentral extends ContribModule {
+  object versionfile extends ContribModule {
     def compileModuleDeps = Seq(build.libs.scalalib)
-    def mvnDeps = Agg(build.Deps.sonatypeCentralClient)
   }
 
-  object versionfile extends ContribModule {
+  object sonatypecentral extends ContribModule {
     def compileModuleDeps = Seq(build.libs.scalalib)
   }
 
