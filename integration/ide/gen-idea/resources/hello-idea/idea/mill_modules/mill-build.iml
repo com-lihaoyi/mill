@@ -12,9 +12,6 @@
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-SDK-3.6.4" level="project"/>
         <orderEntry type="library" name="aircompressor-0.27.jar" level="project"/>
-        <orderEntry type="library" name="asm-9.6.jar" level="project"/>
-        <orderEntry type="library" name="asm-commons-9.6.jar" level="project"/>
-        <orderEntry type="library" name="asm-tree-9.6.jar" level="project"/>
         <orderEntry type="library" name="cache-util-2.1.25-M11.jar" level="project"/>
         <orderEntry type="library" name="commons-codec-1.17.0.jar" level="project"/>
         <orderEntry type="library" name="commons-compress-1.26.2.jar" level="project"/>
@@ -39,8 +36,6 @@
         <orderEntry type="library" name="interface-1.0.29-M1.jar" level="project"/>
         <orderEntry type="library" name="is-terminal-0.1.2.jar" level="project"/>
         <orderEntry type="library" name="jansi-2.4.1.jar" level="project"/>
-        <orderEntry type="library" name="jarjar-1.14.1.jar" level="project"/>
-        <orderEntry type="library" name="jarjar-abrams-core_2.13-1.14.1.jar" level="project"/>
         <orderEntry type="library" name="javax.inject-1.jar" level="project"/>
         <orderEntry type="library" name="jcl-over-slf4j-1.7.30.jar" level="project"/>
         <orderEntry type="library" name="jgrapht-core-1.4.0.jar" level="project"/>
