@@ -25,9 +25,6 @@ object `package` extends build.MillStableScalaModule {
     build.Deps.upickle,
     build.Deps.pprint,
     build.Deps.fansi,
-    // Necessary so we can share the JNA classes throughout the build process
-    build.Deps.jna,
-    build.Deps.jnaPlatform,
     build.Deps.mainargs,
     build.Deps.fastparse,
   )
