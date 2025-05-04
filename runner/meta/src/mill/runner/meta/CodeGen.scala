@@ -26,25 +26,20 @@ object CodeGen {
       val isBuildScript = specialNames(scriptPath.last)
       val scriptFolderPath = scriptPath / os.up
 
-      if (scriptFolderPath == projectRoot && scriptPath.last.split('.').head == "package") {
-        break()
-      }
+      val scriptBaseName = scriptPath.last.split('.').head
 
-      if (scriptFolderPath != projectRoot && scriptPath.last.split('.').head == "build") {
-        break()
-      }
+      if (scriptFolderPath == projectRoot && scriptBaseName == "package") break()
+      if (scriptFolderPath != projectRoot && scriptBaseName == "build") break()
 
       val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)
       val dest = targetDest / packageSegments
 
       val childNames = scriptSources
-        .flatMap { path =>
-          if (path == scriptPath) None
-          else if (nestedBuildFileNames.contains(path.last)) {
-            Option.when(path / os.up / os.up == scriptFolderPath) {
-              (path / os.up).last
-            }
-          } else None
+        .collect {
+          case path
+              if path != scriptPath
+                && nestedBuildFileNames.contains(path.last)
+                && path / os.up / os.up == scriptFolderPath => (path / os.up).last
         }
         .distinct
 
@@ -52,15 +47,16 @@ object CodeGen {
 
       def pkgSelector0(pre: Option[String], s: Option[String]) =
         (pre ++ pkgSegments ++ s).map(backtickWrap).mkString(".")
+
       def pkgSelector2(s: Option[String]) = s"_root_.${pkgSelector0(Some(globalPackagePrefix), s)}"
-      val childAliases0 = childNames
+
+      val childAliases = childNames
         .map { c =>
           // Dummy references to sub-modules. Just used as metadata for the discover and
           // resolve logic to traverse, cannot actually be evaluated and used
-          val comment = "// subfolder module reference"
           val lhs = backtickWrap(c)
           val rhs = s"${pkgSelector2(Some(c))}.package_"
-          s"final lazy val $lhs: $rhs.type = $rhs $comment"
+          s"final lazy val $lhs: $rhs.type = $rhs // subfolder module reference"
         }
         .mkString("\n")
 
@@ -198,12 +194,10 @@ object CodeGen {
             val statLines = finalStat.text.linesWithSeparators.toSeq
             val fenced = Seq(
               "",
-              if statLines.sizeIs > 1 then statLines.tail.mkString
-              else finalStat.text
+              if statLines.sizeIs > 1 then statLines.tail.mkString else finalStat.text
             ).mkString(System.lineSeparator())
             newScriptCode = finalStat.applyTo(newScriptCode, fenced)
-          case None =>
-            ()
+          case None => ()
         }
 
         newScriptCode = objectData.parent.applyTo(
@@ -217,7 +211,6 @@ object CodeGen {
         )
 
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
-
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
         s"""$headerCode
