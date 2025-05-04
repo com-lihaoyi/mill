@@ -23,7 +23,7 @@ import build.Deps
  * to collaborate on Mill plugins that is more discoverable than individuals
  * hosting their own Github repositories
  */
-object `package` extends RootModule {
+object `package` extends mill.Module {
   def contribModules: Seq[ContribModule] =
     moduleInternal.modules.collect { case m: ContribModule => m }
 

@@ -241,7 +241,7 @@ object BuildGenUtil {
             val mergedImports = module.imports ++ nested.imports
             val mergedInner = {
               val name = backtickWrap(dir)
-              val supertypes = nested.supertypes.filterNot(_ == "RootModule")
+              val supertypes = nested.supertypes
 
               s"""${module.inner}
                  |

@@ -7,7 +7,7 @@ import scalalib._
 import scala.jdk.CollectionConverters._
 
 /** Generates the mill documentation with Antora. */
-object `package` extends RootModule {
+object `package` extends mill.Module {
   // This module isn't really a ScalaModule, but we use it to generate
   // consolidated documentation using the Scaladoc tool.
   object site extends UnidocModule {

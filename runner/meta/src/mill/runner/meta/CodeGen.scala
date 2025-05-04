@@ -67,14 +67,10 @@ object CodeGen {
       val pkg = pkgSelector0(Some(globalPackagePrefix), None)
 
       val aliasImports = Seq(
-        // `$file` as an alias for `build_` to make usage of `import $file` when importing
-        // helper methods work
-        "import _root_.{build_ => $file}",
         // Provide `build` as an alias to the root `build_.package_`, since from the user's
         // perspective it looks like they're writing things that live in `package build`,
         // but at compile-time we rename things, we so provide an alias to preserve the fiction
-        "import build_.{package_ => build}",
-        "import _root_.mill.main.{MainRootModule => RootModule}"
+        "import build_.{package_ => build}"
       ).mkString("\n")
 
       val scriptCode = allScriptCode(scriptPath)
@@ -166,18 +162,12 @@ object CodeGen {
     val objectData = parser.parseObjectData(scriptCode)
 
     val expectedParent =
-      if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "RootModule"
+      if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule"
+      else "_root_.mill.main.MainRootModule"
 
     val expectedModuleMsg =
       if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "mill.Module"
 
-    val misnamed =
-      objectData.filter(o => o.name.text != "`package`" && o.parent.text == expectedParent)
-    if (misnamed.nonEmpty) {
-      throw new Result.Exception(
-        s"Only one RootModule named `package` can be defined in a build, not: ${misnamed.map(_.name.text).mkString(", ")}"
-      )
-    }
     val headerCode =
       s"""package $pkg
          |$miscInfo
