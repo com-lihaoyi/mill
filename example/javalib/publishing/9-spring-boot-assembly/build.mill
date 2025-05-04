@@ -1,4 +1,4 @@
-// An alternative way produce self-executable assemblies is the `Repackager` from the https://docs.spring.io/spring-boot/build-tool-plugin/index.html[Spring Boot Tools suite].
+// An alternative way to produce self-executable assemblies is the `Repackager` from the https://docs.spring.io/spring-boot/build-tool-plugin/index.html[Spring Boot Tools suite].
 // Instead of copying and merging dependencies classes and resources into a flat jar file, it embeds all dependencies as-is in the final jar.
 // One of the pros of this approach is, that all dependency archives are kept unextracted, which makes later introspection for checksums, authorship and copyright questions easier.
 //
@@ -66,3 +66,6 @@ Qux.value: 31337
 ...BOOT-INF/lib/bar-0.0.1.jar
 
 */
+
+// Since the final jar produced with the `springBootAssembly` task often contain significantly less ZIP entries, using this
+// module can we a workaround when the https://github.com/com-lihaoyi/mill/issues/2650[`JavaModule.assembly` tasks cannot produce executable assemblies] due to some JVM limitations in ZIP file handling.
