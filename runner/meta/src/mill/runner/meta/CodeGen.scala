@@ -155,8 +155,7 @@ object CodeGen {
         scriptFolderPath,
         compilerWorkerClasspath,
         millTopLevelProjectRoot,
-        output,
-        projectRoot != millTopLevelProjectRoot
+        output
       )
 
     val objectData = parser.parseObjectData(scriptCode)
@@ -180,11 +179,11 @@ object CodeGen {
          |}
          |""".stripMargin
 
+    val newParent =
+      if (segments.isEmpty) "_root_.mill.main.MainRootModule"
+      else "_root_.mill.main.SubfolderModule(build.millDiscover)"
     objectData.find(o => o.name.text == "`package`") match {
       case Some(objectData) =>
-        val newParent =
-          if (segments.isEmpty) "_root_.mill.main.MainRootModule"
-          else s"mill.main.SubfolderModule(build.millDiscover)"
 
         var newScriptCode = scriptCode
         objectData.endMarker match {
@@ -195,14 +194,11 @@ object CodeGen {
         }
         objectData.finalStat match {
           case Some((leading, finalStat)) =>
+            val statLines = finalStat.text.linesWithSeparators.toSeq
             val fenced = Seq(
-              "", {
-                val statLines = finalStat.text.linesWithSeparators.toSeq
-                if statLines.sizeIs > 1 then
-                  statLines.tail.mkString
-                else
-                  finalStat.text
-              }
+              "",
+              if statLines.sizeIs > 1 then statLines.tail.mkString
+              else finalStat.text
             ).mkString(System.lineSeparator())
             newScriptCode = finalStat.applyTo(newScriptCode, fenced)
           case None =>
@@ -229,12 +225,8 @@ object CodeGen {
            |""".stripMargin
 
       case None =>
-        val extendsClause =
-          if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule(build.millDiscover) "
-          else s"extends _root_.mill.main.MainRootModule "
-
         s"""$headerCode
-           |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type =>
+           |abstract class $wrapperObjectName extends $newParent { this: $wrapperObjectName.type =>
            |$markerComment
            |$scriptCode
            |}""".stripMargin
@@ -266,8 +258,7 @@ object CodeGen {
       scriptFolderPath: os.Path,
       compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
-      output: os.Path,
-      isMetaBuild: Boolean
+      output: os.Path
   ): String = {
     s"""
        |@_root_.scala.annotation.nowarn
