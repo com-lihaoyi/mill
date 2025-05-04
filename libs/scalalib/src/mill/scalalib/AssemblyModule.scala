@@ -1,9 +1,10 @@
 package mill.scalalib
 
-import mill.define.{PathRef}
-import mill.api.{Result}
+import mill.define.PathRef
+import mill.api.Result
 import mill.util.JarManifest
-import mill.define.{Target => T, _}
+import mill.define.{Target as T, *}
+import mill.scalalib.Assembly.UnopenedInputStream
 import mill.util.Jvm
 
 /**
@@ -90,7 +91,8 @@ trait AssemblyModule extends mill.define.Module {
       destJar = Task.dest / "out.jar",
       inputPaths = upstreamIvyAssemblyClasspath().map(_.path),
       manifest = manifest(),
-      assemblyRules = assemblyRules
+      assemblyRules = assemblyRules,
+      shader = AssemblyModule.jarjarabramsWorker()
     )
   }
 
@@ -107,7 +109,8 @@ trait AssemblyModule extends mill.define.Module {
       inputPaths = upstreamLocalAssemblyClasspath().map(_.path),
       manifest = manifest(),
       base = Some(resolvedIvyAssembly()),
-      assemblyRules = assemblyRules
+      assemblyRules = assemblyRules,
+      shader = AssemblyModule.jarjarabramsWorker()
     )
   }
 
@@ -125,7 +128,8 @@ trait AssemblyModule extends mill.define.Module {
       manifest = manifest(),
       prependShellScript = prependScript,
       base = Some(upstream),
-      assemblyRules = assemblyRules
+      assemblyRules = assemblyRules,
+      shader = AssemblyModule.jarjarabramsWorker()
     )
     // See https://github.com/com-lihaoyi/mill/pull/2655#issuecomment-1672468284
     val problematicEntryCount = 65535
@@ -165,6 +169,18 @@ object AssemblyModule extends ExternalModule with CoursierModule with OfflineSup
       parent = getClass().getClassLoader()
     )
   }
+
+  def jarjarabramsWorker: Worker[(Seq[(String, String)], String, UnopenedInputStream) => Option[(String, UnopenedInputStream)]] = Task.Worker {
+    (relocates: Seq[(String, String)], name: String, is: UnopenedInputStream) =>
+      jarjarabramsWorkerClassloader()
+        .loadClass("mill.scalalib.jarjarabrams.impl.JarJarAbramsWorkerImpl")
+        .getMethods
+        .filter(_.getName == "apply")
+        .head
+        .invoke(null, relocates, name, is)
+        .asInstanceOf[Option[(String, UnopenedInputStream)]]
+  }
+
 
   override protected def millDiscover: Discover = Discover[this.type]
 }

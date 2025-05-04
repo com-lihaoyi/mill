@@ -110,9 +110,28 @@ object Assembly {
 
   def loadShadedClasspath(
       inputPaths: Seq[os.Path],
-      assemblyRules: Seq[Assembly.Rule]
+      shader: (String, UnopenedInputStream) => Option[(String, UnopenedInputStream)] = (n, is) => Some((n, is))
   ): (Generator[(String, UnopenedInputStream)], ResourceCloser) = {
-    ???
+    
+    val pathsWithResources = inputPaths.filter(os.exists).map { path =>
+      if (os.isFile(path)) path -> Some(new JarFile(path.toIO))
+      else path -> None
+    }
+
+    val generators = Generator.from(pathsWithResources).flatMap {
+      case (path, Some(jarFile)) =>
+        Generator.from(jarFile.entries().asScala.filterNot(_.isDirectory))
+          .flatMap(entry => shader(entry.getName, () => jarFile.getInputStream(entry)))
+      case (path, None) =>
+        os.walk
+          .stream(path)
+          .filter(os.isFile)
+          .flatMap(subPath =>
+            shader(subPath.relativeTo(path).toString, () => os.read.inputStream(subPath))
+          )
+    }
+
+    (generators, () => pathsWithResources.flatMap(_._2).iterator.foreach(_.close()))
   }
 
   type UnopenedInputStream = () => InputStream
@@ -141,7 +160,8 @@ object Assembly {
       manifest: JarManifest = JarManifest.MillDefault,
       prependShellScript: Option[String] = None,
       base: Option[Assembly] = None,
-      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
+      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules,
+      shader: (Seq[(String, String)], String, UnopenedInputStream) => Option[(String, UnopenedInputStream)] = (_, n, is) => Some((n, is))
   ): Assembly = {
     val rawJar = os.temp("out-tmp", deleteOnExit = false)
     // we create the file later
@@ -166,7 +186,8 @@ object Assembly {
         manifest.build.write(manifestOut)
       }
 
-      val (mappings, resourceCleaner) = Assembly.loadShadedClasspath(inputPaths, assemblyRules)
+      val relocates =  assemblyRules.collect { case Rule.Relocate(from, to) => (from -> to) }
+      val (mappings, resourceCleaner) = Assembly.loadShadedClasspath(inputPaths, shader(relocates, _, _))
       try {
         Assembly.groupAssemblyEntries(mappings, assemblyRules).foreach {
           case (mapping, entry) =>
