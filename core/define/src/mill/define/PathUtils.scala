@@ -6,38 +6,13 @@ import java.io.File;
  * Defines a trait which handles deerialization of paths, in a way that can be used by both path refs and paths
  */
 trait PathUtils {
-  // TEMPORARY! A better solution needs to be found.
-  def findOutRoot(): os.Path = {
-    // os.PWD breaks in some parts of the codebase under some situations. The native java methods do not.
-    val root = os.Path(new File("").getCanonicalPath().toString)
-    var currentPath = root
-
-    for (i <- 1 to 100) {
-      if (os.exists(currentPath / "mill-java-home")) {
-        return currentPath / ".."
-      } else {
-        if (currentPath == os.root) {
-          return root
-        } else {
-          currentPath = currentPath / ".."
-        }
-      }
-    }
-    root
-  }
-
-  lazy val outFolderRoot: os.Path = findOutRoot()
-
   /*
    * Returns a list of paths and their variables to be substituted with.
    */
   implicit def substitutions(): List[(os.Path, String)] = {
-    var result = List((outFolderRoot, "*$WorkplaceRoot*"))
     val javaHome = os.Path(System.getProperty("java.home"))
-    result = result :+ (javaHome, "*$JavaHome*")
-
+    var result = List((javaHome, "*$JavaHome*"))
     val courseierPath = os.Path(coursier.paths.CoursierPaths.cacheDirectory().getAbsolutePath())
-
     result = result :+ (courseierPath, "*$CourseirCache*")
     result
   }
@@ -56,12 +31,8 @@ trait PathUtils {
       // Serializes by replacing the path with the substitution
       val pathDepth = path.segments.length
       val pathString = path.toString
-      if (stringified.startsWith(pathString) && pathDepth >= depth) {
-        depth = pathDepth
-        result = stringified.replace(pathString, sub)
-      }
+      result = stringified.replace(pathString, sub)
     }
-    // println(s"1!! $stringified -> $result")
     result
   }
 
@@ -77,11 +48,14 @@ trait PathUtils {
     subs.foreach { case (path, sub) =>
       val pathDepth = path.segments.length
       // In the case that a path is in the folder of another path, it picks the path with the most depth
-      if (result.startsWith(sub) && pathDepth >= depth) {
-        depth = pathDepth
-        result = a.replace(sub, path.toString)
-      }
+      result = a.replace(sub, path.toString)
     }
     os.Path(result)
+  }
+}
+
+object PathUtils extends PathUtils {
+  def getSubstitutions(): List[(os.Path, String)] = {
+    substitutions()
   }
 }

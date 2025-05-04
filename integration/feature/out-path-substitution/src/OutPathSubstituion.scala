@@ -5,6 +5,7 @@ import utest._
 import scala.collection.immutable.{Map}
 import scala.collection.mutable.{Map}
 object OutPathTestSuite extends UtestIntegrationTestSuite {
+import mill.define.PathUtils
 
   val referencePath = os.pwd / "6one"
   val modifiedPath = os.pwd / "6two"
@@ -82,6 +83,8 @@ object OutPathTestSuite extends UtestIntegrationTestSuite {
         libPath,
         modifiedPath
       )
+
+      println(PathUtils.getSubstitutions())
 
       assert(os.exists(referencePath) && os.exists(modifiedPath))
     }
