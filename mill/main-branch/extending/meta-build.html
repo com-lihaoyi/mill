@@ -761,6 +761,7 @@ compiled and executed to perform your build. This &quot;meta-build&quot; module 
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
+import mill.runner.meta.MillBuildRootModule
 
 object `package` extends MillBuildRootModule {
   val scalatagsVersion = &quot;0.13.1&quot;
@@ -882,6 +883,7 @@ object `package` extends ScalaModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
+import mill.runner.meta.MillBuildRootModule
 
 object `package` extends MillBuildRootModule</code></pre>
 </div>
