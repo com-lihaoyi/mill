@@ -112,7 +112,7 @@ object Assembly {
       inputPaths: Seq[os.Path],
       assemblyRules: Seq[Assembly.Rule]
   ): (Generator[(String, UnopenedInputStream)], ResourceCloser) = {
-    AssemblyModule.jarjarabramsWorkerClassloader
+    ???
   }
 
   type UnopenedInputStream = () => InputStream
