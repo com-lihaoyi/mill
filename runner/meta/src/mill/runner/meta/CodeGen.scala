@@ -161,10 +161,6 @@ object CodeGen {
 
     val objectData = parser.parseObjectData(scriptCode)
 
-    val expectedParent =
-      if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule"
-      else "_root_.mill.main.MainRootModule"
-
     val expectedModuleMsg =
       if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "mill.Module"
 
@@ -187,7 +183,8 @@ object CodeGen {
     objectData.find(o => o.name.text == "`package`") match {
       case Some(objectData) =>
         val newParent =
-          if (segments.isEmpty) expectedParent else s"mill.main.SubfolderModule(build.millDiscover)"
+          if (segments.isEmpty) "_root_.mill.main.MainRootModule"
+          else s"mill.main.SubfolderModule(build.millDiscover)"
 
         var newScriptCode = scriptCode
         objectData.endMarker match {
@@ -219,8 +216,7 @@ object CodeGen {
               s"object `package` in ${scriptPath.relativeTo(millTopLevelProjectRoot)} " +
                 s"must extend a subclass of `$expectedModuleMsg`"
             )
-          } else if (objectData.parent.text == expectedParent) newParent
-          else newParent + " with " + objectData.parent.text
+          } else newParent + " with " + objectData.parent.text
         )
 
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
@@ -235,9 +231,7 @@ object CodeGen {
       case None =>
         val extendsClause =
           if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule(build.millDiscover) "
-          else if (millTopLevelProjectRoot == scriptFolderPath)
-            s"extends _root_.mill.main.MainRootModule "
-          else s"extends _root_.mill.runner.meta.MillBuildRootModule() "
+          else s"extends _root_.mill.main.MainRootModule "
 
         s"""$headerCode
            |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type =>
@@ -275,7 +269,7 @@ object CodeGen {
       output: os.Path,
       isMetaBuild: Boolean
   ): String = {
-    s"""${if (isMetaBuild) "import _root_.mill.runner.meta.MillBuildRootModule" else ""}
+    s"""
        |@_root_.scala.annotation.nowarn
        |object MillMiscInfo extends mill.define.RootModule0.Info(
        |  ${compilerWorkerClasspath.map(p => literalize(p.toString))},
