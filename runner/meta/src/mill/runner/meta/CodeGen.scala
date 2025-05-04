@@ -62,7 +62,7 @@ object CodeGen {
           val rhs = s"${pkgSelector2(Some(c))}.package_"
           s"final lazy val $lhs: $rhs.type = $rhs $comment"
         }
-      val childAliases = childAliases0.mkString("\n")
+        .mkString("\n")
 
       val pkg = pkgSelector0(Some(globalPackagePrefix), None)
 
