@@ -1,7 +1,7 @@
 package mill.runner.meta
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
-import mill.constants.CodeGenConstants.*
+import mill.constants.{CodeGenConstants as CGConst}
 import mill.api.Result
 import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
@@ -25,15 +25,22 @@ object CodeGen {
   ): Unit = {
     val scriptSources = allScriptCode.keys.toSeq.sorted
     for (scriptPath <- scriptSources) breakable {
-      val specialNames = (nestedBuildFileNames.asScala ++ rootBuildFileNames.asScala).toSet
+      val specialNames =
+        (CGConst.nestedBuildFileNames.asScala ++ CGConst.rootBuildFileNames.asScala).toSet
 
       val isBuildScript = specialNames(scriptPath.last)
       val scriptFolderPath = scriptPath / os.up
 
       val scriptName = scriptPath.last
 
-      if (scriptFolderPath == projectRoot && CodeGenConstants.nestedBuildFileNames.contains(scriptName)) break()
-      if (scriptFolderPath != projectRoot && ConGenConstants.rootBuildFileNames.contains(scripName)) break()
+      if (
+        scriptFolderPath == projectRoot
+        && CGConst.nestedBuildFileNames.contains(scriptName)
+      ) break()
+      if (
+        scriptFolderPath != projectRoot
+        && CGConst.rootBuildFileNames.contains(scriptName)
+      ) break()
 
       val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)
       val wrappedDestFile = wrappedDest / packageSegments
@@ -43,7 +50,7 @@ object CodeGen {
         .collect {
           case path
               if path != scriptPath
-                && nestedBuildFileNames.contains(path.last)
+                && CGConst.nestedBuildFileNames.contains(path.last)
                 && path / os.up / os.up == scriptFolderPath => (path / os.up).last
         }
         .distinct
@@ -53,7 +60,8 @@ object CodeGen {
       def pkgSelector0(pre: Option[String], s: Option[String]) =
         (pre ++ pkgSegments ++ s).map(backtickWrap).mkString(".")
 
-      def pkgSelector2(s: Option[String]) = s"_root_.${pkgSelector0(Some(globalPackagePrefix), s)}"
+      def pkgSelector2(s: Option[String]) =
+        s"_root_.${pkgSelector0(Some(CGConst.globalPackagePrefix), s)}"
 
       val childAliases = childNames
         .map { c =>
@@ -65,7 +73,7 @@ object CodeGen {
         }
         .mkString("\n")
 
-      val pkg = pkgSelector0(Some(globalPackagePrefix), None)
+      val pkg = pkgSelector0(Some(CGConst.globalPackagePrefix), None)
 
       val aliasImports = Seq(
         // Provide `build` as an alias to the root `build_.package_`, since from the user's
@@ -97,8 +105,7 @@ object CodeGen {
           segments = segments,
           millTopLevelProjectRoot = millTopLevelProjectRoot,
           compilerWorkerClasspath = compilerWorkerClasspath,
-          output = output,
-          isMetaBuild = projectRoot != millTopLevelProjectRoot
+          output = output
         )
         os.write(
           supportDestDir / "MillMiscInfo.scala",
@@ -160,7 +167,6 @@ object CodeGen {
       segments: Seq[String],
       millTopLevelProjectRoot: os.Path,
       output: os.Path,
-      isMetaBuild: Boolean,
       compilerWorkerClasspath: Seq[os.Path]
   ): String = {
     val header = if (pkg.isBlank()) "" else s"package $pkg"
@@ -170,8 +176,7 @@ object CodeGen {
         scriptFolderPath,
         compilerWorkerClasspath,
         millTopLevelProjectRoot,
-        output,
-        isMetaBuild
+        output
       )
 
     s"""|$generatedFileHeader
@@ -190,7 +195,7 @@ object CodeGen {
         |    _root_.mill.define.internal.ResolveChecker(
         |       _root_.mill.define.WorkspaceRoot.workspaceRoot
         |    )
-        |  ){ $wrapperObjectName }
+        |  ){ ${CGConst.wrapperObjectName} }
         |}
         |""".stripMargin
   }
@@ -225,14 +230,6 @@ object CodeGen {
     val expectedModuleMsg =
       if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "mill.Module"
 
-    val misnamed =
-      objectData.filter(o => o.name.text != "`package`" && o.parent.text == expectedParent)
-    if (misnamed.nonEmpty) {
-      throw new Result.Exception(
-        s"Only one RootModule named `package` can be defined in a build, not: ${misnamed.map(_.name.text).mkString(", ")}"
-      )
-    }
-
     val headerCode =
       s"""|$generatedFileHeader
           |package $pkg
@@ -241,7 +238,7 @@ object CodeGen {
           |$importSiblingScripts
           |$prelude
           |
-          |object $wrapperObjectName extends $wrapperObjectName {
+          |object ${CGConst.wrapperObjectName} extends ${CGConst.wrapperObjectName} {
           |  ${childAliases.linesWithSeparators.mkString("  ")}
           |  $exportSiblingScripts
           |  ${millDiscover(segments.nonEmpty)}
@@ -258,7 +255,7 @@ object CodeGen {
         var newScriptCode = scriptCode
         objectData.endMarker match {
           case Some(endMarker) =>
-            newScriptCode = endMarker.applyTo(newScriptCode, wrapperObjectName)
+            newScriptCode = endMarker.applyTo(newScriptCode, CGConst.wrapperObjectName)
           case None =>
             ()
         }
@@ -283,7 +280,7 @@ object CodeGen {
           } else newParent + " with " + objectData.parent.text
         )
 
-        newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
+        newScriptCode = objectData.name.applyTo(newScriptCode, CGConst.wrapperObjectName)
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
         s"""$headerCode
@@ -293,7 +290,8 @@ object CodeGen {
 
       case None =>
         s"""$headerCode
-           |abstract class $wrapperObjectName extends $newParent { this: $wrapperObjectName.type =>
+           |abstract class ${CGConst.wrapperObjectName}
+           |    extends $newParent { this: ${CGConst.wrapperObjectName}.type =>
            |$markerComment
            |$scriptCode
            |}""".stripMargin
