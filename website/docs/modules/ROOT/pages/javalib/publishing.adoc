@@ -62,3 +62,7 @@ The `revapi` task returns the path to a directory that can be used to resolve th
 
 include::partial$Publishing_Footer.adoc[]
 
+== Spring Boot Assemblies
+
+include::partial$example/javalib/publishing/9-spring-boot-assembly.adoc[]
+

@@ -1,0 +1,76 @@
+// An alternative way produce self-executable assemblies is the `Repackager` from the https://docs.spring.io/spring-boot/build-tool-plugin/index.html[Spring Boot Tools suite].
+// Instead of copying and merging dependencies classes and resources into a flat jar file, it embeds all dependencies as-is in the final jar.
+// One of the cons of this approach is, that all dependencies are kept untouched which makes later introspection for authorship and copyright easier.
+//
+// To achieve that, a small wrapper application needs to be added, which is run as entry point and manages loading the embedded jars transparently and run your `main` method.
+// This works for all Java (or Scala and Kotlin) applications. 
+// It's not necessary to use the Spring Framework in it.
+
+//// SNIPPET:ALL
+package build
+
+import mill._, javalib._, publish._
+import mill.javalib.spring.boot.SpringBootAssemblyModule
+
+trait MyModule extends JavaModule with PublishModule {
+  def publishVersion = "0.0.1"
+
+  def pomSettings = PomSettings(
+    description = "Hello",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/example",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "example"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+  )
+
+  def mvnDeps = Seq(mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE")
+
+  object test extends JavaTests with TestModule.Junit4
+}
+
+object foo extends MyModule with SpringBootAssemblyModule { // <1>
+  def moduleDeps = Seq(bar, qux)
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / "Version.java",
+      s"""
+         |package foo;
+         |public class Version {
+         |    public static String value() {
+         |        return "${publishVersion()}";
+         |    }
+         |}
+      """.stripMargin
+    )
+    Seq(PathRef(Task.dest))
+  }
+}
+
+object bar extends MyModule {
+  def moduleDeps = Seq(qux)
+}
+
+object qux extends MyModule
+
+// <1> We need to add the `SpringBootAssemblyModule` to the executable module to add the `springBootAssembly` task.
+
+/** Usage
+
+> mill foo.run
+foo version 0.0.1
+Foo.value: <h1>hello</h1>
+Bar.value: <p>world</p>
+Qux.value: 31337
+
+> mill show foo.springBootAssembly
+".../out/foo/springBootAssembly.dest/out.jar"
+
+> ./out/foo/springBootAssembly.dest/out.jar
+foo version 0.0.1
+Foo.value: <h1>hello</h1>
+Bar.value: <p>world</p>
+Qux.value: 31337
+
+*/
