@@ -89,6 +89,12 @@ object OutPathTestSuite extends UtestIntegrationTestSuite {
     test("Compile") - integrationTest { tester =>
       val env = scala.collection.immutable.Map("COURSIER_CACHE" -> (os.home.toString))
       val pwd = os.pwd.toString
+
+      os.copy(
+        os.home / ".ivy2",
+        os.pwd / ".ivy2"
+      )
+
       val resReference1 = tester.eval(("runBackground"), cwd = referencePath)
       val resModified1 =
         tester.eval((s"-Duser.home=$pwd", "runBackground"), cwd = modifiedPath, env = env)
