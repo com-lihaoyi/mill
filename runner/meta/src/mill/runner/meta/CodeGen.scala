@@ -26,25 +26,20 @@ object CodeGen {
       val isBuildScript = specialNames(scriptPath.last)
       val scriptFolderPath = scriptPath / os.up
 
-      if (scriptFolderPath == projectRoot && scriptPath.last.split('.').head == "package") {
-        break()
-      }
+      val scriptBaseName = scriptPath.last.split('.').head
 
-      if (scriptFolderPath != projectRoot && scriptPath.last.split('.').head == "build") {
-        break()
-      }
+      if (scriptFolderPath == projectRoot && scriptBaseName == "package") break()
+      if (scriptFolderPath != projectRoot && scriptBaseName == "build") break()
 
       val packageSegments = FileImportGraph.fileImportToSegments(projectRoot, scriptPath)
       val dest = targetDest / packageSegments
 
       val childNames = scriptSources
-        .flatMap { path =>
-          if (path == scriptPath) None
-          else if (nestedBuildFileNames.contains(path.last)) {
-            Option.when(path / os.up / os.up == scriptFolderPath) {
-              (path / os.up).last
-            }
-          } else None
+        .collect {
+          case path
+              if path != scriptPath
+                && nestedBuildFileNames.contains(path.last)
+                && path / os.up / os.up == scriptFolderPath => (path / os.up).last
         }
         .distinct
 
@@ -52,17 +47,18 @@ object CodeGen {
 
       def pkgSelector0(pre: Option[String], s: Option[String]) =
         (pre ++ pkgSegments ++ s).map(backtickWrap).mkString(".")
+
       def pkgSelector2(s: Option[String]) = s"_root_.${pkgSelector0(Some(globalPackagePrefix), s)}"
-      val (childSels, childAliases0) = childNames
+
+      val childAliases = childNames
         .map { c =>
           // Dummy references to sub-modules. Just used as metadata for the discover and
           // resolve logic to traverse, cannot actually be evaluated and used
-          val comment = "// subfolder module reference"
           val lhs = backtickWrap(c)
           val rhs = s"${pkgSelector2(Some(c))}.package_"
-          (rhs, s"final lazy val $lhs: $rhs.type = $rhs $comment")
-        }.unzip
-      val childAliases = childAliases0.mkString("\n")
+          s"final lazy val $lhs: $rhs.type = $rhs // subfolder module reference"
+        }
+        .mkString("\n")
 
       val pkg = pkgSelector0(Some(globalPackagePrefix), None)
 
@@ -155,15 +151,10 @@ object CodeGen {
         scriptFolderPath,
         compilerWorkerClasspath,
         millTopLevelProjectRoot,
-        output,
-        projectRoot != millTopLevelProjectRoot
+        output
       )
 
     val objectData = parser.parseObjectData(scriptCode)
-
-    val expectedParent =
-      if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule"
-      else "_root_.mill.main.MainRootModule"
 
     val expectedModuleMsg =
       if (projectRoot != millTopLevelProjectRoot) "MillBuildRootModule" else "mill.Module"
@@ -184,10 +175,12 @@ object CodeGen {
          |}
          |""".stripMargin
 
+    val newParent =
+      if (segments.isEmpty) "_root_.mill.main.MainRootModule"
+      else "_root_.mill.main.SubfolderModule(build.millDiscover)"
+
     objectData.find(o => o.name.text == "`package`") match {
       case Some(objectData) =>
-        val newParent =
-          if (segments.isEmpty) expectedParent else s"mill.main.SubfolderModule(build.millDiscover)"
 
         var newScriptCode = scriptCode
         objectData.endMarker match {
@@ -198,18 +191,13 @@ object CodeGen {
         }
         objectData.finalStat match {
           case Some((leading, finalStat)) =>
+            val statLines = finalStat.text.linesWithSeparators.toSeq
             val fenced = Seq(
-              "", {
-                val statLines = finalStat.text.linesWithSeparators.toSeq
-                if statLines.sizeIs > 1 then
-                  statLines.tail.mkString
-                else
-                  finalStat.text
-              }
+              "",
+              if statLines.sizeIs > 1 then statLines.tail.mkString else finalStat.text
             ).mkString(System.lineSeparator())
             newScriptCode = finalStat.applyTo(newScriptCode, fenced)
-          case None =>
-            ()
+          case None => ()
         }
 
         newScriptCode = objectData.parent.applyTo(
@@ -219,12 +207,10 @@ object CodeGen {
               s"object `package` in ${scriptPath.relativeTo(millTopLevelProjectRoot)} " +
                 s"must extend a subclass of `$expectedModuleMsg`"
             )
-          } else if (objectData.parent.text == expectedParent) newParent
-          else newParent + " with " + objectData.parent.text
+          } else newParent + " with " + objectData.parent.text
         )
 
         newScriptCode = objectData.name.applyTo(newScriptCode, wrapperObjectName)
-
         newScriptCode = objectData.obj.applyTo(newScriptCode, "abstract class")
 
         s"""$headerCode
@@ -233,14 +219,8 @@ object CodeGen {
            |""".stripMargin
 
       case None =>
-        val extendsClause =
-          if (segments.nonEmpty) s"extends _root_.mill.main.SubfolderModule(build.millDiscover) "
-          else if (millTopLevelProjectRoot == scriptFolderPath)
-            s"extends _root_.mill.main.MainRootModule "
-          else s"extends _root_.mill.runner.meta.MillBuildRootModule() "
-
         s"""$headerCode
-           |abstract class $wrapperObjectName $extendsClause { this: $wrapperObjectName.type =>
+           |abstract class $wrapperObjectName extends $newParent { this: $wrapperObjectName.type =>
            |$markerComment
            |$scriptCode
            |}""".stripMargin
@@ -252,8 +232,7 @@ object CodeGen {
       scriptFolderPath: os.Path,
       segments: Seq[String]
   ): String = {
-    s"""object MillMiscInfo
-       |extends mill.main.SubfolderModule.Info(
+    s"""object MillMiscInfo extends mill.main.SubfolderModule.Info(
        |  os.Path(${literalize(scriptFolderPath.toString)}),
        |  _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
        |)
@@ -272,10 +251,9 @@ object CodeGen {
       scriptFolderPath: os.Path,
       compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
-      output: os.Path,
-      isMetaBuild: Boolean
+      output: os.Path
   ): String = {
-    s"""${if (isMetaBuild) "import _root_.mill.runner.meta.MillBuildRootModule" else ""}
+    s"""
        |@_root_.scala.annotation.nowarn
        |object MillMiscInfo extends mill.define.RootModule0.Info(
        |  ${compilerWorkerClasspath.map(p => literalize(p.toString))},
