@@ -19,7 +19,7 @@ given mainargs.TokensReader.Simple[DayValue] with
 enum DayValue:
   case Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
 
-object `package` extends RootModule:
+object `package` extends mill.Module:
 
   def someTopLevelCommand(): Command[Unit] = Task.Command:
     println(s"Hello, world! ${summon[Box[Int]]} ${build.sub.subTask()}")

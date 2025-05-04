@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import com.eed3si9n.jarjarabrams.{ShadePattern, Shader}
 import mill.define.PathRef
 import mill.util.JarManifest
 import os.Generator
@@ -111,28 +110,9 @@ object Assembly {
 
   def loadShadedClasspath(
       inputPaths: Seq[os.Path],
-      assemblyRules: Seq[Assembly.Rule]
+      shader: (String, UnopenedInputStream) => Option[(String, UnopenedInputStream)] =
+        (n, is) => Some((n, is))
   ): (Generator[(String, UnopenedInputStream)], ResourceCloser) = {
-    val shadeRules = assemblyRules.collect {
-      case Rule.Relocate(from, to) => ShadePattern.Rename(List(from -> to)).inAll
-    }
-    val shader =
-      if (shadeRules.isEmpty)
-        (name: String, inputStream: UnopenedInputStream) => Some(name -> inputStream)
-      else {
-        val shader = Shader.bytecodeShader(shadeRules, verbose = false, skipManifest = true)
-        (name: String, inputStream: UnopenedInputStream) => {
-          val is = inputStream()
-          shader(is.readAllBytes(), name).map {
-            case (bytes, name) =>
-              name -> (() =>
-                new ByteArrayInputStream(bytes) {
-                  override def close(): Unit = is.close()
-                }
-              )
-          }
-        }
-      }
 
     val pathsWithResources = inputPaths.filter(os.exists).map { path =>
       if (os.isFile(path)) path -> Some(new JarFile(path.toIO))
@@ -181,7 +161,12 @@ object Assembly {
       manifest: JarManifest = JarManifest.MillDefault,
       prependShellScript: Option[String] = None,
       base: Option[Assembly] = None,
-      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
+      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules,
+      shader: (
+          Seq[(String, String)],
+          String,
+          UnopenedInputStream
+      ) => Option[(String, UnopenedInputStream)] = (_, n, is) => Some((n, is))
   ): Assembly = {
     val rawJar = os.temp("out-tmp", deleteOnExit = false)
     // we create the file later
@@ -206,7 +191,9 @@ object Assembly {
         manifest.build.write(manifestOut)
       }
 
-      val (mappings, resourceCleaner) = Assembly.loadShadedClasspath(inputPaths, assemblyRules)
+      val relocates = assemblyRules.collect { case Rule.Relocate(from, to) => (from -> to) }
+      val (mappings, resourceCleaner) =
+        Assembly.loadShadedClasspath(inputPaths, shader(relocates, _, _))
       try {
         Assembly.groupAssemblyEntries(mappings, assemblyRules).foreach {
           case (mapping, entry) =>

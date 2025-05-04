@@ -32,25 +32,22 @@ object TestRunnerUtestTests extends TestSuite {
       test("prefix") - tester.testOnly(Seq("mill.scalalib.FooT*"), 1)
       test("exactly") - tester.testOnly(
         Seq("mill.scalalib.FooTests"),
-        1,
-        Map(
-          testrunner.utest -> Set(
+        1, {
+          val results = Set(
             "out.json",
             "result.log",
             "sandbox",
             "test-report.xml",
             "testargs"
-          ),
-          // When there is only one test group with test classes, we do not put it in a subfolder
-          testrunnerGrouping.utest -> Set(
-            "out.json",
-            "result.log",
-            "sandbox",
-            "test-report.xml",
-            "testargs"
-          ),
-          testrunnerWorkStealing.utest -> Set("worker-0", "test-classes", "test-report.xml")
-        )
+          )
+          Map(
+            testrunner.utest -> results,
+            // When there is only one test group with test classes, we do not put it in a subfolder
+            testrunnerGrouping.utest -> results,
+            // When there is only one test group with test classes, we do not run workers
+            testrunnerWorkStealing.utest -> results
+          )
+        }
       )
       test("multi") - tester.testOnly(
         Seq("*Bar*", "*bar*"),
