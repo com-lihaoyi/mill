@@ -666,7 +666,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     androidInstallTask()
   }
 
-  def androidInstallTask = Task.Anon {
+  def androidInstallTask: Task[String] = Task.Anon {
     val emulator = runningEmulator()
 
     os.call(
@@ -674,6 +674,33 @@ trait AndroidAppModule extends AndroidModule { outer =>
     )
 
     emulator
+  }
+
+  /**
+   * Run your application by providing the activity.
+   *
+   * E.g. `com.package.name.ActivityName`
+   *
+   * See also [[https://developer.android.com/tools/adb#am]] and [[https://developer.android.com/tools/adb#IntentSpec]]
+   * @param activity
+   * @return
+   */
+  def androidRun(activity: String): Command[Vector[String]] = Task.Command(exclusive = true) {
+    val emulator = runningEmulator()
+
+    os.call(
+      (
+        androidSdkModule().adbPath().path,
+        "-s",
+        emulator,
+        "shell",
+        "am",
+        "start",
+        "-n",
+        s"${androidApplicationNamespace}/${activity}",
+        "-W"
+      )
+    ).out.lines()
   }
 
   /**
