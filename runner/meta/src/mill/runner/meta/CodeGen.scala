@@ -220,15 +220,6 @@ object CodeGen {
           |import _root_.mill.define.JsonFormatters.given
           |""".stripMargin
 
-    val miscInfo =
-      if (segments.nonEmpty) subfolderMiscInfo(scriptFolderPath, segments)
-      else rootMiscInfo(
-        scriptFolderPath,
-        compilerWorkerClasspath,
-        millTopLevelProjectRoot,
-        output
-      )
-
     val objectData = parser.parseObjectData(scriptCode)
 
     val expectedModuleMsg =
