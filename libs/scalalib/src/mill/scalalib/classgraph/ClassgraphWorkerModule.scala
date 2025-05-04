@@ -31,7 +31,7 @@ trait ClassgraphWorkerModule extends CoursierModule with OfflineSupportModule {
 
   def classgraphWorker: Worker[ClassgraphWorker] = Task.Worker {
     classgraphWorkerClassloader()
-      .loadClass("mill.scalalib.classgraph.impl.ClassgraphWorkerImpl")
+      .loadClass("mill.scalalib.classgraph.impl.JarJarAbramsWorkerImpl")
       .getConstructor().newInstance().asInstanceOf[ClassgraphWorker]
   }
 

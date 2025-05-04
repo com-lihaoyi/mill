@@ -104,8 +104,8 @@ object `package` extends build.MillStableScalaModule {
     )
   }
 
-  object `classgraph-worker` extends build.MillPublishScalaModule {
+  object `jarjarabrams-worker` extends build.MillPublishScalaModule {
     def moduleDeps = Seq(api, build.core.util)
-    def mvnDeps = Agg(build.Deps.classgraph)
+    def mvnDeps = Agg(build.Deps.jarjarabrams)
   }
 }

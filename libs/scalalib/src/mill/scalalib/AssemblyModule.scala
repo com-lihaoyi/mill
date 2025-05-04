@@ -144,3 +144,27 @@ trait AssemblyModule extends mill.define.Module {
     }
   }
 }
+object AssemblyModule extends ExternalModule with CoursierModule with OfflineSupportModule{
+
+  def jarjarabramsWorkerClasspath: T[Seq[PathRef]] = T {
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-libs-scalalib-jarjarabrams-worker")
+    ))
+  }
+
+  override def prepareOffline(all: mainargs.Flag): Command[Seq[PathRef]] = Task.Command {
+    (
+      super.prepareOffline(all)() ++
+        jarjarabramsWorkerClasspath()
+      ).distinct
+  }
+
+  private[mill] def jarjarabramsWorkerClassloader: Worker[ClassLoader] = Task.Worker {
+    Jvm.createClassLoader(
+      classPath = jarjarabramsWorkerClasspath().map(_.path),
+      parent = getClass().getClassLoader()
+    )
+  }
+
+  override protected def millDiscover: Discover = Discover[this.type]
+}
