@@ -48,7 +48,6 @@ public class MillLauncherMain {
                 System.err,
                 System.getenv(),
                 optsArgs.toArray(new String[0]),
-                null,
                 -1) {
               public void initServer(Path serverDir, boolean setJnaNoSys, Locks locks)
                   throws Exception {
