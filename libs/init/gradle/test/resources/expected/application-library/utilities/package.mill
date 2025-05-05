@@ -4,7 +4,7 @@ import mill._
 import mill.javalib._
 import mill.javalib.publish._
 
-object `package` extends RootModule with MavenModule {
+object `package` extends MavenModule {
 
   def moduleDeps = super.moduleDeps ++ Seq(build.list)
 

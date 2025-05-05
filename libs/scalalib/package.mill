@@ -14,7 +14,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
 
-object `package` extends RootModule with build.MillStableScalaModule {
+object `package` extends build.MillStableScalaModule {
 
   def moduleDeps = Seq(build.core.util, build.libs.scalalib.api, build.libs.testrunner)
   def mvnDeps = {
@@ -24,12 +24,16 @@ object `package` extends RootModule with build.MillStableScalaModule {
       // used in ScalaModule.scalacHelp,
       // (also transitively included by com.eed3si9n.jarjarabrams:jarjar-abrams-core)
       // perhaps the class can be copied here?
-      Agg(build.Deps.scalaReflect(scalaVersion()))
+      Agg(build.Deps.scalaReflect(scalaVersion())) ++ Agg(build.Deps.sonatypeCentralClient)
     }
   }
   def testMvnDeps = super.testMvnDeps() ++ Agg(build.Deps.TestDeps.scalaCheck)
-  def testTransitiveDeps =
-    super.testTransitiveDeps() ++ Seq(worker.testDep(), `classgraph-worker`.testDep())
+  def transitiveLocalTestOverrides =
+    super.transitiveLocalTestOverrides() ++ Seq(
+      worker.localTestOverride(),
+      `classgraph-worker`.localTestOverride(),
+      `jarjarabrams-worker`.localTestOverride()
+    )
   def testForkEnv = {
     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
     super.testForkEnv() ++ Map("LC_ALL" -> locale)
@@ -105,4 +109,10 @@ object `package` extends RootModule with build.MillStableScalaModule {
     def moduleDeps = Seq(api, build.core.util)
     def mvnDeps = Agg(build.Deps.classgraph)
   }
+
+  object `jarjarabrams-worker` extends build.MillPublishScalaModule {
+    def moduleDeps = Seq(api, build.core.util, build.libs.scalalib)
+    def mvnDeps = Agg(build.Deps.jarjarabrams)
+  }
+
 }

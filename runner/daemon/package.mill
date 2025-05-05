@@ -1,0 +1,35 @@
+package build.runner.daemon
+import mill.*
+import mill.contrib.buildinfo.BuildInfo
+
+/**
+ * Logic around the Mill command-line runner, script loading,
+ * process management, and build bootstrapping process.
+ *
+ * Mostly tested by [[build.integration]] and [[build.example]] tests.
+ */
+object `package` extends build.MillPublishScalaModule {
+
+  def transitiveLocalTestOverrides = Map(
+    Task.traverse(build.dist.allPublishModules)(_.localTestOverride)(): _*
+  )
+
+  def mvnDeps = Seq(
+    build.Deps.sourcecode,
+    build.Deps.osLib,
+    build.Deps.mainargs,
+    build.Deps.upickle,
+    build.Deps.pprint,
+    build.Deps.fansi
+  )
+  def moduleDeps = Seq(
+    build.runner.idea,
+    build.runner.bsp,
+    build.runner.bsp.worker,
+    build.core.eval,
+    build.runner.server,
+    build.runner.launcher,
+    build.runner.compilerworker.api,
+    build.runner.meta
+  )
+}

@@ -5,13 +5,13 @@
 // == Project Configuration
 package build
 import mill._, scalalib._, publish._
-import mill.util.BuildInfo.millVersion
+import mill.util.BuildInfo.{millVersion, millBinPlatform}
 
 object myplugin extends ScalaModule with PublishModule {
   def scalaVersion = "3.6.2"
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
-  def platformSuffix = "_mill" + mill.util.BuildInfo.millBinPlatform
+  def platformSuffix = s"_mill$millBinPlatform"
 
   // Depend on `mill-libs` so we can compile against Mill APIs
   def mvnDeps = Seq(mvn"com.lihaoyi::mill-libs:$millVersion")
@@ -19,17 +19,20 @@ object myplugin extends ScalaModule with PublishModule {
   // Testing Config, with necessary setup for unit/integration/example tests
   object test extends ScalaTests with TestModule.Utest {
     def mvnDeps = Seq(mvn"com.lihaoyi::mill-testkit:$millVersion")
-    def forkEnv = Map("MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString)
+    def forkEnv = Task {
+      val p = Task.dest / "mill/local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"
+      os.write(p, myplugin.localClasspath().map(_.path).mkString("\n"), createFolders = true)
+      Map(
+        "MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString,
+        "MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" ->
+          (sys.env.get("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH") ++ Seq(Task.dest)).mkString(";")
+      )
+    }
 
     // Create a Mill executable configured for testing our plugin
     object millExecutable extends JavaModule {
-      def mvnDeps = Seq(mvn"com.lihaoyi:mill-dist:$millVersion")
-      def mainClass = Some("mill.runner.client.MillClientMain")
-      def resources = Task {
-        val p = Task.dest / "mill/local-test-overrides" / s"com.lihaoyi-${myplugin.artifactId()}"
-        os.write(p, myplugin.localClasspath().map(_.path).mkString("\n"), createFolders = true)
-        Seq(PathRef(Task.dest))
-      }
+      def mvnDeps = Seq(mvn"com.lihaoyi:mill-runner-launcher_3:$millVersion")
+      def mainClass = Some("mill.launcher.MillLauncherMain")
     }
   }
 

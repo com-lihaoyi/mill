@@ -10,7 +10,7 @@
 package build
 import mill._, kotlinlib._, kotlinlib.js._
 
-object `package` extends RootModule with KotlinJsModule {
+object `package` extends KotlinJsModule {
   override def kotlinJsModuleKind = ModuleKind.ESModule
   override def kotlinVersion = "1.9.25"
   override def kotlinJsRunTarget = Some(RunTarget.Node)

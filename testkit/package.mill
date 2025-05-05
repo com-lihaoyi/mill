@@ -6,7 +6,7 @@ import mill._
  * Mill unit/integration/example-testing helpers. Both used internally
  * and published for third-party plugins to use in their own tests.
  */
-object `package` extends RootModule with build.MillPublishScalaModule {
+object `package` extends build.MillPublishScalaModule {
   def moduleDeps = Seq(build.core.eval, build.core.util)
   def mvnDeps = Agg(build.Deps.TestDeps.utest)
 
@@ -14,5 +14,9 @@ object `package` extends RootModule with build.MillPublishScalaModule {
   def sources = super.sources() ++ sources0()
 
   def forkEnv =
-    super.forkEnv() ++ Map("MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString())
+    super.forkEnv() ++
+      Map(
+        "MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString(),
+        "MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" -> build.dist.localTestOverridesClasspath().path.toString
+      )
 }

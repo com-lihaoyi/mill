@@ -82,6 +82,9 @@ object PathRef {
   private[mill] val validatedPaths: DynamicVariable[ValidatedPaths] =
     new DynamicVariable[ValidatedPaths](new ValidatedPaths())
 
+  private[mill] val serializedPaths: DynamicVariable[List[PathRef]] =
+    new DynamicVariable(null)
+
   class PathRefValidationException(val pathRef: PathRef)
       extends RuntimeException(s"Invalid path signature detected: ${pathRef}")
 
@@ -169,11 +172,29 @@ object PathRef {
     new PathRef(path, quick, sig, revalidate)
   }
 
+  private[mill] def withSerializedPaths[T](block: => T): (T, Seq[PathRef]) = {
+    serializedPaths.value = Nil
+    try {
+      val res = block
+      (res, serializedPaths.value)
+    } finally serializedPaths.value = null
+  }
+  private def storeSerializedPaths(pr: PathRef) = {
+    if (serializedPaths.value != null) {
+      serializedPaths.synchronized {
+        serializedPaths.value = pr :: serializedPaths.value
+      }
+    }
+  }
+
   /**
    * Default JSON formatter for [[PathRef]].
    */
   implicit def jsonFormatter: RW[PathRef] = upickle.default.readwriter[String].bimap[PathRef](
-    p => p.toString(),
+    p => {
+      storeSerializedPaths(p)
+      p.toString()
+    },
     s => {
       val Array(prefix, valid0, hex, pathString) = s.split(":", 4)
 
@@ -192,6 +213,7 @@ object PathRef {
       val sig = java.lang.Long.parseLong(hex, 16).toInt
       val pr = PathRef(path, quick, sig, revalidate = validOrig)
       validatedPaths.value.revalidateIfNeededOrThrow(pr)
+      storeSerializedPaths(pr)
       pr
     }
   )

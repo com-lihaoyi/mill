@@ -1,7 +1,7 @@
 package build
 import mill._, javalib._
 
-object `package` extends RootModule with MicronautModule {
+object `package` extends MicronautModule {
   def micronautVersion = "4.4.3"
   def runMvnDeps = Seq(
     mvn"ch.qos.logback:logback-classic:1.5.3",

@@ -14,7 +14,7 @@ import mill.T
 import mill.define.Cross
 import mill.testrunner.TestResult
 
-object `package` extends RootModule {
+object `package` extends mill.Module {
   // We compile the test code once and then offer multiple modes to
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
   // and pass `lib`'s compile output back to `test`.
@@ -22,7 +22,7 @@ object `package` extends RootModule {
   trait IntegrationTestModule extends Cross.Module[String] {
     def moduleDir = super.moduleDir / crossValue
 
-    def moduleDeps = Seq(build.libs.main.test, build.testkit, build.runner)
+    def moduleDeps = Seq(build.libs.main.test, build.testkit, build.runner.daemon)
 
     def resources: T[Seq[PathRef]]
     def runClasspath: T[Seq[PathRef]]

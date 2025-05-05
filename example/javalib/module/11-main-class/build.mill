@@ -2,6 +2,6 @@
 package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def mainClass = Some("foo.Qux")
 }

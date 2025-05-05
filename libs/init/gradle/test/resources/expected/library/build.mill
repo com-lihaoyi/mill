@@ -4,7 +4,7 @@ import mill._
 import mill.javalib._
 import mill.javalib.publish._
 
-object `package` extends RootModule {
+object `package` extends mill.Module {
 
   def artifactName = "single-module"
 

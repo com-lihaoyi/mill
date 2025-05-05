@@ -171,7 +171,9 @@ object VisualizeModule extends ExternalModule {
             stdout = os.Inherit
           )
 
-          os.list(dest).sorted.map(PathRef(_))
+          os.checker.withValue(os.Checker.Nop) {
+            os.list(dest).sorted.map(PathRef(_))
+          }
         }
         out.put(res)
       }

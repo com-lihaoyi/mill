@@ -30,7 +30,7 @@ object app extends AndroidAppModule {
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
+  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
@@ -44,8 +44,6 @@ object app extends AndroidAppModule {
   object it extends AndroidAppInstrumentedTests with AndroidTestModule.AndroidJUnit {
 
     def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
-
-    override def instrumentationPackage = "com.helloworld.app"
 
     /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
      * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
@@ -109,7 +107,7 @@ object app extends AndroidAppModule {
 > ./mill show app.test
 ...compiling 2 Java source...
 
-> cat out/app/test/testForked.dest/worker-0/out.json
+> cat out/app/test/testForked.dest/out.json
 ["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.textSize_isCorrect","selector":"com.helloworld.ExampleUnitTest.textSize_isCorrect","duration":...,"status":"Success"}]]
 
 */
@@ -141,7 +139,7 @@ object app extends AndroidAppModule {
 ]
 ...
 
-> cat out/app/it/testTask.dest/test-report.xml
+> cat out/app/it/testForked.dest/test-report.xml
 ...
 <?xml version='1.0' encoding='UTF-8'?>
 <testsuites tests="1" failures="0" errors="0" skipped="0" time="...">

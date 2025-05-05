@@ -1,10 +1,10 @@
-// You can use ``object `package` extends RootModule`` to use a `Module`
+// You can use ``object `package` extends mill.Module`` to use a `Module`
 // as the root module of the file:
 
 package build
 import mill._, javalib._
 
-object `package` extends RootModule with JavaModule {
+object `package` extends JavaModule {
   def mvnDeps = Seq(
     mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
@@ -17,7 +17,7 @@ object `package` extends RootModule with JavaModule {
   }
 }
 
-// Since our ``object `package` extends RootModule``, its files live in a
+// Since our ``object `package` extends mill.Module``, its files live in a
 // top-level `src/` folder, and you can call its tasks via un-prefixed `bar`
 
 // ----
