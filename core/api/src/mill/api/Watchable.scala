@@ -8,6 +8,7 @@ package mill.api
  */
 private[mill] sealed trait Watchable
 private[mill] object Watchable {
+
   /** A [[Watchable]] that is being watched via polling. */
   private[mill] sealed trait Pollable extends Watchable
 

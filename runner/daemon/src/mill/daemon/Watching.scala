@@ -74,7 +74,8 @@ object Watching {
           if (alreadyStale) {
             enterKeyPressed = false
           } else {
-            enterKeyPressed = watchAndWait(streams, watchArgs.setIdle, streams.in, watchables, watchArgs.colors)
+            enterKeyPressed =
+              watchAndWait(streams, watchArgs.setIdle, streams.in, watchables, watchArgs.colors)
           }
         }
         // QUESTION: this never exits?
