@@ -1,4 +1,4 @@
-// An alternative way to produce self-executable assemblies is the `Repackager` from the https://docs.spring.io/spring-boot/build-tool-plugin/index.html[Spring Boot Tools suite].
+// An alternative way to produce self-executable assemblies is the `RepackageModule` which used the https://docs.spring.io/spring-boot/build-tool-plugin/index.html[Spring Boot Tools suite].
 // Instead of copying and merging dependencies classes and resources into a flat jar file, it embeds all dependencies as-is in the final jar.
 // One of the pros of this approach is, that all dependency archives are kept unextracted, which makes later introspection for checksums, authorship and copyright questions easier.
 //
@@ -9,7 +9,7 @@
 package build
 
 import mill._, javalib._, publish._
-import mill.javalib.spring.boot.SpringBootAssemblyModule
+import mill.javalib.repackage.RepackageModule
 
 trait MyModule extends JavaModule with PublishModule {
   def publishVersion = "0.0.1"
@@ -28,7 +28,7 @@ trait MyModule extends JavaModule with PublishModule {
   object test extends JavaTests with TestModule.Junit4
 }
 
-object foo extends MyModule with SpringBootAssemblyModule { // <1>
+object foo extends MyModule with RepackageModule { // <1>
   def moduleDeps = Seq(bar, qux)
 }
 
@@ -38,7 +38,7 @@ object bar extends MyModule {
 
 object qux extends MyModule
 
-// <1> Add the `SpringBootAssemblyModule` to the executable module.
+// <1> Add the `mill.javalib.repackage.RepackageModule` to the executable module.
 
 /** Usage
 
@@ -47,15 +47,15 @@ Foo.value: <h1>hello</h1>
 Bar.value: <p>world</p>
 Qux.value: 31337
 
-> mill show foo.springBootAssembly
-".../out/foo/springBootAssembly.dest/out.jar"
+> mill show foo.repackagedJar
+".../out/foo/repackagedJar.dest/out.jar"
 
-> ./out/foo/springBootAssembly.dest/out.jar
+> ./out/foo/repackagedJar.dest/out.jar
 Foo.value: <h1>hello</h1>
 Bar.value: <p>world</p>
 Qux.value: 31337
 
-> unzip -l ./out/foo/springBootAssembly.dest/out.jar "BOOT-INF/lib*"
+> unzip -l ./out/foo/repackagedJar.dest/out.jar "BOOT-INF/lib*"
 ...BOOT-INF/lib/thymeleaf-3.1.1.RELEASE.jar
 ...BOOT-INF/lib/ognl-3.3.4.jar
 ...BOOT-INF/lib/attoparser-2.0.6.RELEASE.jar
@@ -67,5 +67,7 @@ Qux.value: 31337
 
 */
 
-// Since the final jar produced with the `springBootAssembly` task often contain significantly less ZIP entries, using this
-// module can we a workaround when the https://github.com/com-lihaoyi/mill/issues/2650[`JavaModule.assembly` tasks cannot produce executable assemblies] due to some JVM limitations in ZIP file handling.
+// Since the final jar produced with the `RepackageModule.repackagedJar` task often contain significantly less ZIP entries
+// then the jar file produced with `AssemblyModule.assembly`, we can workaround
+// an https://github.com/com-lihaoyi/mill/issues/2650[issue where `JavaModule.assembly` cannot produce executable assemblies]
+// due to some JVM limitations in ZIP file handling of large files.

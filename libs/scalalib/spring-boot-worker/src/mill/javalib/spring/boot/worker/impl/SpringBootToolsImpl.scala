@@ -14,7 +14,8 @@ import mill.define.TaskCtx
 
 class SpringBootToolsImpl() extends SpringBootTools {
 
-  override def findMainClass(classesPaths: Seq[os.Path]): Either[String, String] = {
+  override def findSpringBootApplicationClass(classesPaths: Seq[os.Path])
+      : Either[String, String] = {
     val candidates = classesPaths.distinct.filter(os.exists).map { classesPath =>
       Option(
         MainClassFinder.findSingleMainClass(

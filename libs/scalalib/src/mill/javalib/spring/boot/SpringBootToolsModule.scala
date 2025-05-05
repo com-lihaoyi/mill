@@ -18,41 +18,50 @@ trait SpringBootToolsModule extends CoursierModule {
     Versions.springBuildToolsVersion
   }
 
-  def springBootToolsIvyDeps: T[Seq[Dep]] = Agg(
+  def springBootToolsDeps: T[Seq[Dep]] = Seq(
     mvn"org.springframework.boot:spring-boot-loader-tools:${springBootToolsVersion()}"
   )
 
-  private def fullWorkerIvyDeps: T[Seq[Dep]] = Task {
-    springBootToolsIvyDeps() ++ Seq(
+  private def fullWorkerDeps: T[Seq[Dep]] = Task {
+    springBootToolsDeps() ++ Seq(
       mvn"${Versions.millSpringBootWorkerDep}"
     )
   }
 
   def springBootToolsClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(fullWorkerIvyDeps())
+    defaultResolver().classpath(fullWorkerDeps())
+  }
+
+  def springBootToolsClassLoader: Worker[ClassLoader] = Task.Worker {
+    new URLClassLoader(
+      springBootToolsClasspath()
+        .map(_.path.toIO.toURI().toURL())
+        .toArray[URL],
+      getClass().getClassLoader()
+    )
   }
 
   def springBootToolsWorker: Worker[SpringBootTools] = Task.Worker {
-    val cl =
-      new URLClassLoader(
-        springBootToolsClasspath().map(_.path.toIO.toURI().toURL()).iterator.toArray[URL],
-        getClass().getClassLoader()
-      )
+    val cl = springBootToolsClassLoader()
     val className =
-      classOf[SpringBootTools].getPackage().getName() + ".impl." + classOf[
-        SpringBootTools
-      ].getSimpleName() + "Impl"
-    val impl = cl.loadClass(className)
-    val ctr = impl.getConstructor()
-    val worker = ctr.newInstance().asInstanceOf[SpringBootTools]
+      classOf[SpringBootTools].getPackage().getName() + ".impl." +
+        classOf[SpringBootTools].getSimpleName() + "Impl"
+
+    val worker = cl
+      .loadClass(className)
+      .getConstructor()
+      .newInstance()
+      .asInstanceOf[SpringBootTools]
+
     if (worker.getClass().getClassLoader() != cl) {
-      T.log.error(
-        s"""Worker not loaded from worker classloader.
-           |You should not add the ${Versions.millSpringBootWorkerDep} JAR to the mill build classpath""".stripMargin
+      Task.log.error(
+        s"""|Worker was not loaded from worker classloader.
+            |You should not add the ${Versions.millSpringBootWorkerDep} JAR to the mill build classpath"""
+          .stripMargin
       )
     }
     if (worker.getClass().getClassLoader() == classOf[SpringBootTools].getClassLoader()) {
-      T.log.error("Worker classloader used to load interface and implementation")
+      Task.log.error("Same worker classloader was used to load interface and implementation")
     }
     worker
   }
