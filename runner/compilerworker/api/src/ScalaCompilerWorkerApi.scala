@@ -1,0 +1,2 @@
+package mill.compilerworker.api
+trait ScalaCompilerWorkerApi extends MillScalaParser

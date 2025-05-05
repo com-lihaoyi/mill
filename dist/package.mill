@@ -19,7 +19,7 @@ trait DistModule extends Module {
   def executableRaw: T[PathRef]
 
   def executable = Task {
-    Task.traverse(allPublishModules)(m => m.publishLocalCached)()
+    Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
     executableRaw()
   }
 
@@ -72,7 +72,7 @@ trait DistModule extends Module {
 
 object `package` extends MillJavaModule with DistModule {
 
-  def moduleDeps = Seq(build.runner.client)
+  def moduleDeps = Seq(build.runner.launcher)
 
   def transitiveLocalTestOverrides = Map(
     Task.traverse(allPublishModules)(_.localTestOverride)(): _*
@@ -133,7 +133,7 @@ object `package` extends MillJavaModule with DistModule {
     "-Djna.nosys=true"
   )
 
-  def mainClass = Some("mill.runner.client.MillClientMain")
+  def mainClass = Some("mill.launcher.MillLauncherMain")
 
   def executableRaw = Task {
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
@@ -196,20 +196,20 @@ object `package` extends MillJavaModule with DistModule {
     prepareBootstrapLauncher(millBootstrapBat().path, Task.dest, build.millVersion(), "mill.bat")
   }
 
-  def examplePathsWithArtifactName: Task[Seq[(os.Path, String)]] = Task.Anon {
+  def examplePathsWithArtifactName: Task[Seq[(PathRef, String)]] = Task.Input {
     for {
       exampleMod <- build.example.exampleModules
       path = exampleMod.moduleDir
     } yield {
       val example = path.subRelativeTo(Task.workspace)
       val artifactName = example.segments.mkString("-")
-      (path, artifactName)
+      (PathRef(path), artifactName)
     }
   }
 
   def exampleZips: T[Seq[PathRef]] = Task {
     examplePathsWithArtifactName().map { case (examplePath, exampleStr) =>
-      os.copy(examplePath, Task.dest / exampleStr, createFolders = true)
+      os.copy(examplePath.path, Task.dest / exampleStr, createFolders = true)
       val ignoreErrorsOnCI = Task.dest / exampleStr / "ignoreErrorsOnCI"
       if (os.exists(ignoreErrorsOnCI)) os.remove(ignoreErrorsOnCI)
       os.write(Task.dest / exampleStr / ".mill-version", build.millLastTag())
@@ -255,9 +255,9 @@ object `package` extends MillJavaModule with DistModule {
     // Use assembly jar as the upstream ivy classpath rather than using runClasspath
     // directly to try and avoid native image command length problems on windows
     def nativeImageClasspath =
-      Seq(build.runner.client.resolvedIvyAssembly().pathRef) ++
-        build.runner.client.upstreamLocalAssemblyClasspath() ++
-        build.runner.client.localClasspath()
+      Seq(build.runner.launcher.resolvedIvyAssembly().pathRef) ++
+        build.runner.launcher.upstreamLocalAssemblyClasspath() ++
+        build.runner.launcher.localClasspath()
 
     def localBinName = "mill-native"
 

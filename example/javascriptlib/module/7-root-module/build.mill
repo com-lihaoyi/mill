@@ -1,4 +1,4 @@
-// You can use ``object `package` extends RootModule`` to use a `Module`
+// You can use ``object `package` extends mill.Module`` to use a `Module`
 // as the root module of the file:
 
 package build
@@ -11,7 +11,7 @@ object `package` extends TypeScriptModule {
   object test extends TypeScriptTests with TestModule.Jest
 }
 
-// Since our ``object `package` extends RootModule``, its files live in a
+// Since our ``object `package` extends mill.Module``, its files live in a
 // top-level `src/` folder.
 
 // Mill will ordinarily use the name of the singleton object, as

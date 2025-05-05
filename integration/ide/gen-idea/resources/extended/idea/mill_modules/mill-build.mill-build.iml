@@ -2,8 +2,11 @@
     <component name="NewModuleRootManager">
         <output url="file://$MODULE_DIR$/../../out/mill-build/mill-build/ideaCompileOutput.dest/classes"/>
         <exclude-output/>
-        <content url="file://$MODULE_DIR$/../../out/mill-build/mill-build/generatedSources.dest">
-            <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/mill-build/generatedSources.dest" isTestSource="false" generated="true"/>
+        <content url="file://$MODULE_DIR$/../../out/mill-build/mill-build/generatedScriptSources.dest/support">
+            <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/mill-build/generatedScriptSources.dest/support" isTestSource="false" generated="true"/>
+        </content>
+        <content url="file://$MODULE_DIR$/../../out/mill-build/mill-build/generatedScriptSources.dest/wrapped">
+            <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/mill-build/generatedScriptSources.dest/wrapped" isTestSource="false" generated="true"/>
         </content>
         <content url="file://$MODULE_DIR$/../../mill-build">
             <sourceFolder url="file://$MODULE_DIR$/../../mill-build/build.mill" isTestSource="false"/>
@@ -15,13 +18,12 @@
         <orderEntry type="library" name="scala-SDK-3.6.4" level="project"/>
         <orderEntry type="library" name="aircompressor-0.27.jar" level="project"/>
         <orderEntry type="library" name="asm-9.8.jar" level="project"/>
-        <orderEntry type="library" name="asm-commons-9.6.jar" level="project"/>
         <orderEntry type="library" name="asm-tree-9.8.jar" level="project"/>
         <orderEntry type="library" name="cache-util-2.1.25-M11.jar" level="project"/>
         <orderEntry type="library" name="commons-codec-1.17.0.jar" level="project"/>
         <orderEntry type="library" name="commons-compress-1.26.2.jar" level="project"/>
         <orderEntry type="library" name="commons-io-2.18.0.jar" level="project"/>
-        <orderEntry type="library" name="commons-lang3-3.16.0.jar" level="project"/>
+        <orderEntry type="library" name="commons-lang3-3.14.0.jar" level="project"/>
         <orderEntry type="library" name="concurrent-reference-hash-map-1.1.0.jar" level="project"/>
         <orderEntry type="library" name="config_2.13-1.1.3.jar" level="project"/>
         <orderEntry type="library" name="coursier-cache_2.13-2.1.25-M11.jar" level="project"/>
@@ -41,8 +43,6 @@
         <orderEntry type="library" name="interface-1.0.29-M1.jar" level="project"/>
         <orderEntry type="library" name="is-terminal-0.1.2.jar" level="project"/>
         <orderEntry type="library" name="jansi-2.4.1.jar" level="project"/>
-        <orderEntry type="library" name="jarjar-1.14.1.jar" level="project"/>
-        <orderEntry type="library" name="jarjar-abrams-core_2.13-1.14.1.jar" level="project"/>
         <orderEntry type="library" name="javax.inject-1.jar" level="project"/>
         <orderEntry type="library" name="jcl-over-slf4j-1.7.30.jar" level="project"/>
         <orderEntry type="library" name="jgrapht-core-1.4.0.jar" level="project"/>
@@ -50,7 +50,6 @@
         <orderEntry type="library" name="jline-3.28.0.jar" level="project"/>
         <orderEntry type="library" name="jline-native-3.29.0.jar" level="project"/>
         <orderEntry type="library" name="jna-5.17.0.jar" level="project"/>
-        <orderEntry type="library" name="jna-platform-5.16.0.jar" level="project"/>
         <orderEntry type="library" name="jsoniter-scala-core_2.13-2.13.39.jar" level="project"/>
         <orderEntry type="library" name="jsr305-3.0.2.jar" level="project"/>
         <orderEntry type="library" name="jul-to-slf4j-1.7.30.jar" level="project"/>
@@ -83,8 +82,8 @@
         <orderEntry type="library" name="mill-libs_3.jar" level="project"/>
         <orderEntry type="library" name="mill-moduledefs_3-0.11.3-M5.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-codesig_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-runner-compilerworker-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-runner-meta_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-runner-worker-api_3.jar" level="project"/>
         <orderEntry type="library" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
         <orderEntry type="library" name="os-lib_3-0.11.5-M2.jar" level="project"/>
         <orderEntry type="library" name="plexus-archiver-4.10.0.jar" level="project"/>
@@ -103,9 +102,11 @@
         <orderEntry type="library" name="scala-xml_3-2.3.0.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-3.3.3.jar" level="project"/>
         <orderEntry type="library" name="scala3-library_3-3.6.4.jar" level="project"/>
-        <orderEntry type="library" name="scalaparse_3-3.1.1.jar" level="project"/>
         <orderEntry type="library" name="slf4j-api-2.0.17.jar" level="project"/>
         <orderEntry type="library" name="snakeyaml-engine-2.9.jar" level="project"/>
+        <orderEntry type="library" name="sonatype-central-client-core_3-0.3.0.jar" level="project"/>
+        <orderEntry type="library" name="sonatype-central-client-requests_3-0.3.0.jar" level="project"/>
+        <orderEntry type="library" name="sonatype-central-client-upickle_3-0.3.0.jar" level="project"/>
         <orderEntry type="library" name="sourcecode_3-0.4.3-M5.jar" level="project"/>
         <orderEntry type="library" name="specification-level_2.13-1.1.3.jar" level="project"/>
         <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>

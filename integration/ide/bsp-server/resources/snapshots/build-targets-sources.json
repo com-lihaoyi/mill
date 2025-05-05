@@ -76,7 +76,12 @@
           "generated": false
         },
         {
-          "uri": "file:///workspace/out/mill-build/generatedSources.dest",
+          "uri": "file:///workspace/out/mill-build/generatedScriptSources.dest/wrapped",
+          "kind": 2,
+          "generated": true
+        },
+        {
+          "uri": "file:///workspace/out/mill-build/generatedScriptSources.dest/support",
           "kind": 2,
           "generated": true
         }
