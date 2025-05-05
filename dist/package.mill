@@ -196,20 +196,20 @@ object `package` extends MillJavaModule with DistModule {
     prepareBootstrapLauncher(millBootstrapBat().path, Task.dest, build.millVersion(), "mill.bat")
   }
 
-  def examplePathsWithArtifactName: Task[Seq[(os.Path, String)]] = Task.Anon {
+  def examplePathsWithArtifactName: Task[Seq[(PathRef, String)]] = Task.Input {
     for {
       exampleMod <- build.example.exampleModules
       path = exampleMod.moduleDir
     } yield {
       val example = path.subRelativeTo(Task.workspace)
       val artifactName = example.segments.mkString("-")
-      (path, artifactName)
+      (PathRef(path), artifactName)
     }
   }
 
   def exampleZips: T[Seq[PathRef]] = Task {
     examplePathsWithArtifactName().map { case (examplePath, exampleStr) =>
-      os.copy(examplePath, Task.dest / exampleStr, createFolders = true)
+      os.copy(examplePath.path, Task.dest / exampleStr, createFolders = true)
       val ignoreErrorsOnCI = Task.dest / exampleStr / "ignoreErrorsOnCI"
       if (os.exists(ignoreErrorsOnCI)) os.remove(ignoreErrorsOnCI)
       os.write(Task.dest / exampleStr / ".mill-version", build.millLastTag())
