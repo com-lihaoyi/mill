@@ -25,7 +25,7 @@ trait DistModule extends Module {
 
   def localBinName: String
 
-  def cacheBinarySuffix: String = ""
+  def cacheBinarySuffix: Task[String] = Task.Anon("")
 
   /**
    * Build and install Mill locally.
@@ -43,7 +43,7 @@ trait DistModule extends Module {
   def installLocalCache() = Task.Command {
     val path = installLocalTask(
       Task.Anon(
-        (os.home / ".cache/mill/download" / (build.millVersion() + cacheBinarySuffix + batExt)).toString()
+        (os.home / ".cache/mill/download" / (build.millVersion() + cacheBinarySuffix() + batExt)).toString()
       )
     )()
     Task.log.streams.out.println(path.toString())
@@ -261,7 +261,7 @@ object `package` extends MillJavaModule with DistModule {
 
     def localBinName = "mill-native"
 
-    def cacheBinarySuffix = "-native"
+    def cacheBinarySuffix = Task.Anon { s"-native-${artifactOsSuffix()}-${artifactCpuSuffix()}" }
 
     def executableRaw = nativeImage()
 
