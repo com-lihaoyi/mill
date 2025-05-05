@@ -231,7 +231,7 @@ trait MillBuildRootModule()(implicit
       // the real input-sources
       allSources() ++
         // also sources, but derived from `scriptSources`
-        generateScriptSources()._1
+        generatedScriptSources()._1
 
     val candidates =
       Lib.findSourceFiles(allMillSources, Seq("scala", "java") ++ buildFileExtensions.asScala.toSeq)
