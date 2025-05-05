@@ -76,7 +76,7 @@ public class MillProcessLauncher {
     Path sandbox = serverDir.resolve(ServerFiles.sandbox);
     Files.createDirectories(sandbox);
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
-    builder.environment().put("MILL_EXECUTABLE_PATH", getExecutablePath());
+    builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());
 
     String jdkJavaOptions = System.getenv("JDK_JAVA_OPTIONS");
     if (jdkJavaOptions == null) jdkJavaOptions = "";
