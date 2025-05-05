@@ -56,6 +56,7 @@ public abstract class ServerLauncher {
   PrintStream stderr;
   Map<String, String> env;
   String[] args;
+  Locks memoryLock;
   int forceFailureForTestingMillisDelay;
 
   public ServerLauncher(
@@ -64,12 +65,18 @@ public abstract class ServerLauncher {
       PrintStream stderr,
       Map<String, String> env,
       String[] args,
+      Locks memoryLock,
       int forceFailureForTestingMillisDelay) {
     this.stdin = stdin;
     this.stdout = stdout;
     this.stderr = stderr;
     this.env = env;
     this.args = args;
+
+    // For testing in memory, we need to pass in the locks separately, so that the
+    // locks can be shared between the different instances of `ServerLauncher` the
+    // same way file locks are shared between different Mill client/server processes
+    this.memoryLock = memoryLock;
 
     this.forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay;
   }
@@ -89,7 +96,7 @@ public abstract class ServerLauncher {
 
   int run(Path serverDir, boolean setJnaNoSys) throws Exception {
 
-    try (Locks locks = Locks.files(serverDir.toString());
+    try (Locks locks = memoryLock != null? memoryLock: Locks.files(serverDir.toString());
         mill.client.lock.Locked locked = locks.clientLock.lock()) {
       if (locks.processLock.probe()) {
         try (OutputStream f = Files.newOutputStream(serverDir.resolve(ServerFiles.runArgs))) {

@@ -76,6 +76,7 @@ object ClientServerTests extends TestSuite {
     os.makeDir.all(dest)
     val outDir = os.temp.dir(dest, deleteOnExit = false)
 
+    val memoryLock = Locks.memory()
 
     def apply(
         env: Map[String, String] = Map(),
@@ -91,6 +92,7 @@ object ClientServerTests extends TestSuite {
         new PrintStream(err),
         env.asJava,
         args,
+        memoryLock,
         forceFailureForTestingMillisDelay
       ) {
         def preRun(serverDir: Path) = { /*do nothing*/ }
