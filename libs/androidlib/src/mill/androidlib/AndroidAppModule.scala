@@ -7,7 +7,7 @@ import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.testrunner.TestResult
 import mill.util.Jvm
-import os.RelPath
+import os.{RelPath, zip}
 import upickle.default.*
 
 import scala.jdk.OptionConverters.RichOptional
@@ -141,8 +141,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   override def resources: T[Seq[PathRef]] = Task {
     val libResFolders = androidUnpackArchives().flatMap(_.resources)
-    libResFolders :+ PathRef(moduleDir / "src/main/res")
+    libResFolders :+ resFolder()
   }
+
+  def resFolder = Task.Source(moduleDir / "src/main/res")
 
   @internal
   override def bspCompileClasspath = Task.Anon { (ev: EvaluatorApi) =>
@@ -237,6 +239,14 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
+   * Provides additional files to be included in the APK package.
+   * This can be used to add custom files or resources that are not
+   * automatically included in the build process like native libraries .so files.
+   */
+  def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] =
+    Task { Seq.empty[AndroidPackageableExtraFile] }
+
+  /**
    * Packages DEX files and Android resources into an unsigned APK.
    *
    * @return A `PathRef` to the generated unsigned APK file (`app.unsigned.apk`).
@@ -263,6 +273,11 @@ trait AndroidAppModule extends AndroidModule { outer =>
       })
       .distinctBy(_.dest.get)
 
+    // add all the extra files to the APK
+    val extraFiles: Seq[zip.ZipSource] = androidPackageableExtraFiles().map(extraFile =>
+      os.zip.ZipSource.fromPathTuple((extraFile.source.path, extraFile.destination.asSubPath))
+    )
+
     // TODO generate aar-metadata.properties (for lib distribution, not in this module) or
     //  app-metadata.properties (for app distribution).
     // Example of aar-metadata.properties:
@@ -277,7 +292,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     // androidGradlePluginVersion=8.7.2
     os.zip(unsignedApk, dexFiles)
     os.zip(unsignedApk, metaInf)
-    // TODO pack also native (.so) libraries
+    os.zip(unsignedApk, extraFiles)
 
     PathRef(unsignedApk)
   }
@@ -361,9 +376,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   /**
    * Name of the release keystore file. Default is not set.
    */
-  def androidReleaseKeyName: T[Option[String]] = Task {
-    None
-  }
+  def androidReleaseKeyName: Option[String] = None
 
   /**
    * Password for the release key. Default is not set.
@@ -653,7 +666,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     androidInstallTask()
   }
 
-  def androidInstallTask = Task.Anon {
+  def androidInstallTask: Task[String] = Task.Anon {
     val emulator = runningEmulator()
 
     os.call(
@@ -664,11 +677,39 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
+   * Run your application by providing the activity.
+   *
+   * E.g. `com.package.name.ActivityName`
+   *
+   * See also [[https://developer.android.com/tools/adb#am]] and [[https://developer.android.com/tools/adb#IntentSpec]]
+   * @param activity
+   * @return
+   */
+  def androidRun(activity: String): Command[Vector[String]] = Task.Command(exclusive = true) {
+    val emulator = runningEmulator()
+
+    os.call(
+      (
+        androidSdkModule().adbPath().path,
+        "-s",
+        emulator,
+        "shell",
+        "am",
+        "start",
+        "-n",
+        s"${androidApplicationNamespace}/${activity}",
+        "-W"
+      )
+    ).out.lines()
+  }
+
+  /**
    * Default os.Path to the keystore file, derived from `androidReleaseKeyName()`.
    * Users can customize the keystore file name to change this path.
    */
-  def androidReleaseKeyPath: T[Option[PathRef]] = Task {
-    androidReleaseKeyName().map(name => PathRef(moduleDir / name))
+  def androidReleaseKeyPath: T[Seq[PathRef]] = {
+    val subPaths = androidReleaseKeyName.map(os.sub / _).toSeq
+    Task.Sources(subPaths: _*)
   }
 
   /*
@@ -714,12 +755,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   protected def androidKeystore: T[PathRef] = Task {
-    val pathRef = if (androidIsDebug()) {
-      androidDebugKeystore()
-    } else {
-      androidReleaseKeyPath().get
-    }
-    pathRef
+    if (androidIsDebug()) androidDebugKeystore()
+    else androidReleaseKeyPath().head
   }
 
   // TODO consider managing with proguard and/or r8
@@ -836,8 +873,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
       pf => androidProguardPath / pf
     }
     val userProguardFiles = proguardFilesFromReleaseSettings.localFiles
-
-    (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(_))
+    os.checker.withValue(os.Checker.Nop) {
+      (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(_))
+    }
   }
 
   /**
@@ -1094,10 +1132,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def androidApplicationNamespace: String = outer.androidApplicationNamespace
 
     override def androidReleaseKeyAlias: T[Option[String]] = outer.androidReleaseKeyAlias()
-    override def androidReleaseKeyName: T[Option[String]] = outer.androidReleaseKeyName()
+    override def androidReleaseKeyName: Option[String] = outer.androidReleaseKeyName
     override def androidReleaseKeyPass: T[Option[String]] = outer.androidReleaseKeyPass()
     override def androidReleaseKeyStorePass: T[Option[String]] = outer.androidReleaseKeyStorePass()
-    override def androidReleaseKeyPath: T[Option[PathRef]] = outer.androidReleaseKeyPath()
+    override def androidReleaseKeyPath: T[Seq[PathRef]] = outer.androidReleaseKeyPath()
 
     override def androidEmulatorPort: String = outer.androidEmulatorPort
 

@@ -6,7 +6,7 @@ import java.util.regex.Pattern
 import mill.*
 import mill.api.Result
 
-object `package` extends RootModule { scripts =>
+object `package` extends mill.Module { scripts =>
 
   trait BootstrapScriptModule extends Module {
     override def moduleDir = scripts.moduleDir

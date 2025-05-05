@@ -20,7 +20,7 @@ object foo extends MyModule {
 object bar extends MyModule
 
 // This example contains a simple Mill build with two modules, `foo` and `bar`.
-// We don't mark either module as top-level using `extends RootModule`, so
+// We don't mark either module as top-level using `extends mill.Module`, so
 // running tasks needs to use the module name as the prefix e.g. `foo.run` or
 // `bar.run`. You can define multiple modules the same way you define a single
 // module, using `def moduleDeps` to define the relationship between them.

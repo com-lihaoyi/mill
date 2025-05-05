@@ -58,8 +58,10 @@ private final class TestModuleUtil(
         "\nRun discoveredTestClasses to see available tests"
     )
 
+    /** This is filtered by mill. */
     val filteredClassLists0 = testClassLists.map(_.filter(globFilter)).filter(_.nonEmpty)
 
+    /** This is filtered by the test framework. */
     val filteredClassLists =
       if (filteredClassLists0.size == 1 && !testParallelism) filteredClassLists0
       else {
@@ -102,7 +104,10 @@ private final class TestModuleUtil(
       }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
-    val result = if (testParallelism) {
+    /** If we only have a single group with one test there is no point in running things in parallel. */
+    val parallelismIsUseless =
+      filteredClassLists.sizeIs == 1 && filteredClassLists.forall(_.sizeIs == 1)
+    val result = if (testParallelism && !parallelismIsUseless) {
       runTestQueueScheduler(filteredClassLists)
     } else {
       runTestDefault(filteredClassLists)

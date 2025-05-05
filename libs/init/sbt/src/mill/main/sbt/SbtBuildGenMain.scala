@@ -286,7 +286,7 @@ object SbtBuildGenMain
   def getMillSourcePath(project: Project): Path = os.Path(project.projectDirectory)
 
   override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Project]): Seq[String] =
-    Seq("RootModule") ++ getModuleSupertypes(cfg)
+    Seq("mill.Module") ++ getModuleSupertypes(cfg)
 
   def getJavacOptions(buildInfo: BuildInfo): Seq[String] =
     buildInfo.javacOptions.getOrElse(Seq.empty)

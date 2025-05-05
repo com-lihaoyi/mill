@@ -30,7 +30,7 @@ object app extends AndroidAppModule {
    * Never use these defaults in a production environment as they are not secure.
    * This is just for testing purposes.
    */
-  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
+  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
@@ -107,7 +107,7 @@ object app extends AndroidAppModule {
 > ./mill show app.test
 ...compiling 2 Java source...
 
-> cat out/app/test/testForked.dest/worker-0/out.json
+> cat out/app/test/testForked.dest/out.json
 ["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.textSize_isCorrect","selector":"com.helloworld.ExampleUnitTest.textSize_isCorrect","duration":...,"status":"Success"}]]
 
 */
