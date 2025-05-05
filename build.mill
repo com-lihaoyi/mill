@@ -192,7 +192,7 @@ object Deps {
   val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.4"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.3-M5"
-  val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.2.6"
+  val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.4.5"
   val upickle = mvn"com.lihaoyi::upickle:4.1.0"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
