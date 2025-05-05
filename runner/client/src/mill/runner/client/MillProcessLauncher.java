@@ -390,7 +390,7 @@ public class MillProcessLauncher {
 
   public static String getExecutablePath() {
     try {
-      // Gets the location of the JAR or class file
+      // Gets the location of the JAR or native image
       Path path = Paths.get(MillProcessLauncher.class
           .getProtectionDomain()
           .getCodeSource()
