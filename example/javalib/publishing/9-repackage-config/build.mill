@@ -64,7 +64,7 @@ Qux.value: 31337
 */
 
 // *Futher notes:*
-// 
+//
 // * a small wrapper application needs to be added, which is run as entry point and transparently manages loading the embedded jars and running your `main` method.
 // This works for all Java (also Scala or Kotlin) applications.
 // * It's not necessary to use the Spring Framework in the application.
@@ -74,4 +74,3 @@ Qux.value: 31337
 // then the jar file produced with `.assembly`, it's possible to workaround
 // an https://github.com/com-lihaoyi/mill/issues/2650[issue where `JavaModule.assembly` cannot produce executable assemblies]
 // due to some JVM limitations in ZIP file handling of large files.
-
