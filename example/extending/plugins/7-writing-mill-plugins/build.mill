@@ -32,7 +32,7 @@ object myplugin extends ScalaModule with PublishModule {
     // Create a Mill executable configured for testing our plugin
     object millExecutable extends JavaModule {
       def mvnDeps = Seq(mvn"com.lihaoyi:mill-runner-client_3:$millVersion")
-      def mainClass = Some("mill.client.MillLauncherMain")
+      def mainClass = Some("mill.launcher.MillLauncherMain")
     }
   }
 

@@ -133,7 +133,7 @@ object `package` extends MillJavaModule with DistModule {
     "-Djna.nosys=true"
   )
 
-  def mainClass = Some("mill.client.MillLauncherMain")
+  def mainClass = Some("mill.launcher.MillLauncherMain")
 
   def executableRaw = Task {
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
