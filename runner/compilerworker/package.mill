@@ -1,0 +1,27 @@
+package build.runner.compilerworker
+// imports
+import mill._
+import mill.contrib.buildinfo.BuildInfo
+
+object `package` extends build.MillPublishScalaModule {
+  def moduleDeps = Seq(build.runner.compilerworker.api)
+
+  def mvnDeps = Agg(build.Deps.scalaCompiler(scalaVersion()))
+
+  def bootstrapDeps = Task {
+    val moduleDep = {
+      val m = artifactMetadata()
+      s"${m.group}:${m.id}:${m.version}"
+    }
+    val boundIvys = allMvnDeps()
+    val nameFilter = "scala(.*)-compiler(.*)".r
+    Agg(moduleDep) ++ boundIvys.collect {
+      case dep if nameFilter.matches(dep.name) =>
+        s"${dep.organization}:${dep.name}:${dep.version}"
+    }
+  }
+
+  def reportDeps() = Task.Command {
+    bootstrapDeps().foreach(d => T.log.info(s"ivy dep: $d"))
+  }
+}
