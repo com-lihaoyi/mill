@@ -18,6 +18,7 @@ object `package` extends build.MillPublishScalaModule {
   def mvnDeps = Seq(
     build.Deps.sourcecode,
     build.Deps.osLib,
+    build.Deps.osLibWatch,
     build.Deps.mainargs,
     build.Deps.upickle,
     build.Deps.pprint,

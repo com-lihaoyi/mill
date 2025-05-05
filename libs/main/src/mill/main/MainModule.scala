@@ -22,8 +22,8 @@ abstract class MainRootModule()(implicit
  * [[show]], [[inspect]], [[plan]], etc.
  */
 trait MainModule extends BaseModule with MainModuleApi {
-  protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
-  protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
+  protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty
+  protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty
   object interp {
     def watchValue[T](v0: => T)(implicit fn: sourcecode.FileName, ln: sourcecode.Line): T = {
       val v = v0
