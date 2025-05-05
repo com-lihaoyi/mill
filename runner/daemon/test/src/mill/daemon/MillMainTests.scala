@@ -1,7 +1,6 @@
 package mill.daemon
 
 import mill.api.Result
-import mill.daemon.MillMain
 import utest.*
 
 import scala.util.chaining.*
