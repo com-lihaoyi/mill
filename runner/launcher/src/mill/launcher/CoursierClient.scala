@@ -32,7 +32,7 @@ import coursier.{Classifier, Dependency, Repository, Type}
 
 import java.util.concurrent.ConcurrentHashMap
 object CoursierClient {
-  def resolveMillRunner() = {
+  def resolveMillDaemon() = {
     val repositories = Await.result(Resolve().finalRepositories.future(), Duration.Inf)
     val coursierCache0 = FileCache[Task]()
       .withLogger(coursier.cache.loggers.RefreshLogger.create())
@@ -56,7 +56,7 @@ object CoursierClient {
         val resolve = Resolve()
           .withCache(coursierCache0)
           .withDependencies(Seq(Dependency(
-            Module(Organization("com.lihaoyi"), ModuleName("mill-runner_3"), Map()),
+            Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), Map()),
             VersionConstraint(mill.client.BuildInfo.millVersion)
           )))
           .withRepositories(Seq(resourceTestOverridesRepo) ++ envTestOverridesRepo ++ repositories)

@@ -232,7 +232,7 @@ public class MillProcessLauncher {
     String[] runnerClasspath = cachedComputedValue0(
         "resolve-runner",
         BuildInfo.millVersion,
-        () -> CoursierClient.resolveMillRunner(),
+        () -> CoursierClient.resolveMillDaemon(),
         arr -> Arrays.stream(arr).allMatch(s -> Files.exists(Paths.get(s))));
     vmOptions.add(String.join(File.pathSeparator, runnerClasspath));
 
