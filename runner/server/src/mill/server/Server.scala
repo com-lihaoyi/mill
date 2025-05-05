@@ -202,7 +202,7 @@ abstract class Server[T](
       // We cannot simply use Lock#await here, because the filesystem doesn't
       // realize the clientLock/serverLock are held by different threads in the
       // two processes and gives a spurious deadlock error
-      while (!done && !locks.clientLock.probe()) Thread.sleep(1)
+      while (!done && clientSocket.isConnected) Thread.sleep(1)
 
       if (!idle) {
         serverLog("client interrupted while server was executing command")

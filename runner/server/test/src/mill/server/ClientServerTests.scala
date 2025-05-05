@@ -135,7 +135,7 @@ object ClientServerTests extends TestSuite {
 
   def tests = Tests {
 
-    test("hello") - retry(3) {
+    test("hello") - {
       // Continue logging when out folder is deleted so we can see the logs
       // and ensure the correct code path is taken as the server exits
       val tester = new Tester(testLogEvenWhenServerIdWrong = true)
