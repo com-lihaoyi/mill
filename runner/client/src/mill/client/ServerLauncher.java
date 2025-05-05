@@ -45,7 +45,6 @@ public abstract class ServerLauncher {
     public Path serverDir;
   }
 
-  final int serverProcessesLimit = 5;
   final int serverInitWaitMillis = 10000;
 
   public abstract void initServer(Path serverDir, boolean b, Locks locks) throws Exception;
