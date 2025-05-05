@@ -76,6 +76,7 @@ public class MillProcessLauncher {
     Path sandbox = serverDir.resolve(ServerFiles.sandbox);
     Files.createDirectories(sandbox);
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
+    builder.environment().put("MILL_EXECUTABLE_PATH", getExecutablePath());
 
     String jdkJavaOptions = System.getenv("JDK_JAVA_OPTIONS");
     if (jdkJavaOptions == null) jdkJavaOptions = "";
@@ -385,5 +386,21 @@ public class MillProcessLauncher {
         "TermInfoPropagatorThread");
     termInfoPropagatorThread.setDaemon(true);
     termInfoPropagatorThread.start();
+  }
+
+  public static String getExecutablePath() {
+    try {
+      // Gets the location of the JAR or class file
+      Path path = Paths.get(MillProcessLauncher.class
+          .getProtectionDomain()
+          .getCodeSource()
+          .getLocation()
+          .toURI());
+
+      File file = path.toFile();
+      return file.getAbsolutePath();
+    } catch (java.net.URISyntaxException e) {
+      throw new RuntimeException("Failed to determine Mill client executable path", e);
+    }
   }
 }
