@@ -96,19 +96,27 @@ trait MillBuildRootModule()(implicit
   override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
 
   override def generatedSources: T[Seq[PathRef]] = Task {
+    generatedScriptSources()._1 ++ generatedScriptSources()._2
+  }
+
+  def generatedScriptSources: T[MillBuildRootModule.GeneratedScriptSourcesResult] = Task {
+    val wrapped = Task.dest / "wrapped"
+    val support = Task.dest / "support"
+
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Task.fail(parsed.errors.mkString("\n"))
     else {
-      CodeGen.generateWrappedSources(
+      CodeGen.generateWrappedAndSupportSources(
         rootModuleInfo.projectRoot / os.up,
         parsed.seenScripts,
-        Task.dest,
+        wrapped,
+        support,
         rootModuleInfo.compilerWorkerClasspath,
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.output,
         compilerWorker()
       )
-      Seq(PathRef(Task.dest))
+      (Seq(PathRef(wrapped)), Seq(PathRef(support)))
     }
   }
 
@@ -292,6 +300,8 @@ trait MillBuildRootModule()(implicit
 }
 
 object MillBuildRootModule {
+
+  type GeneratedScriptSourcesResult = (Seq[PathRef], Seq[PathRef])
 
   class BootstrapModule()(implicit
       rootModuleInfo: RootModule0.Info,
