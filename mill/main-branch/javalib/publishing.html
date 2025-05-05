@@ -662,12 +662,12 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>This page will discuss common topics around packaging and publishing your Java projects for others to use</p>
+<p>This page will discuss common topics around packaging and publishing your Java projects for others to use.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_building_executable_assemblies"><a class="anchor" href="#_building_executable_assemblies"></a>Building Executable Assemblies</h2>
+<h2 id="_building_executable_assemblies_with_assemblymodule"><a class="anchor" href="#_building_executable_assemblies_with_assemblymodule"></a>Building Executable Assemblies with <code>AssemblyModule</code></h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill’s built in <code>.assembly</code> task makes it easy to generate an executable assembly
@@ -733,6 +733,109 @@ to use via <code>JAVA_HOME</code>.</p>
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; JAVA_OPTS=-Dtest.property=1337 ./out/foo/assembly.dest/out.jar
 Loaded test.property: 1337</code></pre>
 </div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building_executable_assemblies_with_repackagemodule"><a class="anchor" href="#_building_executable_assemblies_with_repackagemodule"></a>Building Executable Assemblies with <code>RepackageModule</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>An alternative way to produce self-executable assemblies is the <code>RepackageModule</code> which used the <a href="https://docs.spring.io/spring-boot/build-tool-plugin/index.html">Spring Boot Tools suite</a>.
+Instead of copying and merging dependencies classes and resources into a flat jar file, it embeds all dependencies as-is in the final jar.
+One of the pros of this approach is, that all dependency archives are kept unextracted, which makes later introspection for checksums, authorship and copyright questions easier.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.13.0-M2/example-javalib-publishing-9-repackage-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.13.0-M2/example/javalib/publishing/9-repackage-config">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill._, javalib._, publish._
+import mill.javalib.repackage.RepackageModule
+
+trait MyModule extends JavaModule with PublishModule {
+  def publishVersion = &quot;0.0.1&quot;
+
+  def pomSettings = PomSettings(
+    description = &quot;Hello&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/lihaoyi/example&quot;,
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;example&quot;),
+    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+  )
+
+  def mvnDeps = Seq(mvn&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;)
+
+  object test extends JavaTests with TestModule.Junit4
+}
+
+object foo extends MyModule with RepackageModule { <i class="conum" data-value="1"></i><b>(1)</b>
+  def moduleDeps = Seq(bar, qux)
+}
+
+object bar extends MyModule {
+  def moduleDeps = Seq(qux)
+}
+
+object qux extends MyModule</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Add the <code>mill.javalib.repackage.RepackageModule</code> to the executable module.</td>
+</tr>
+</tbody></table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+Bar.value: &lt;p&gt;world&lt;/p&gt;
+Qux.value: 31337
+
+&gt; mill show foo.repackagedJar
+&quot;.../out/foo/repackagedJar.dest/out.jar&quot;
+
+&gt; ./out/foo/repackagedJar.dest/out.jar
+Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
+Bar.value: &lt;p&gt;world&lt;/p&gt;
+Qux.value: 31337
+
+&gt; unzip -l ./out/foo/repackagedJar.dest/out.jar &quot;BOOT-INF/lib*&quot;
+...BOOT-INF/lib/thymeleaf-3.1.1.RELEASE.jar
+...BOOT-INF/lib/ognl-3.3.4.jar
+...BOOT-INF/lib/attoparser-2.0.6.RELEASE.jar
+...BOOT-INF/lib/unbescape-1.1.6.RELEASE.jar
+...BOOT-INF/lib/slf4j-api-2.0.5.jar
+...BOOT-INF/lib/javassist-3.29.0-GA.jar
+...BOOT-INF/lib/qux-0.0.1.jar
+...BOOT-INF/lib/bar-0.0.1.jar</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Futher notes:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>a small wrapper application needs to be added, which is run as entry point and transparently manages loading the embedded jars and running your <code>main</code> method.
+This works for all Java (also Scala or Kotlin) applications.</p>
+</li>
+<li>
+<p>It’s not necessary to use the Spring Framework in the application.</p>
+</li>
+<li>
+<p>The resulting jar is a self-executable application, but it might not suitable to be used on the classpath of other applications.</p>
+</li>
+<li>
+<p>Since the final jar produced with the <code>RepackageModule.repackagedJar</code> task often contains significantly less ZIP entries
+then the jar file produced with <code>.assembly</code>, it’s possible to workaround
+an <a href="https://github.com/com-lihaoyi/mill/issues/2650">issue where <code>JavaModule.assembly</code> cannot produce executable assemblies</a>
+due to some JVM limitations in ZIP file handling of large files.</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
