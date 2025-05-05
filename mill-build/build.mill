@@ -1,5 +1,5 @@
 import mill._
-import mill.runner.meta.MillBuildRootModule
+import mill.meta.MillBuildRootModule
 import mill.scalalib._
 
 object `package` extends MillBuildRootModule {
