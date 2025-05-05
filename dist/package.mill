@@ -19,7 +19,7 @@ trait DistModule extends Module {
   def executableRaw: T[PathRef]
 
   def executable = Task {
-    Task.traverse(allPublishModules)(m => m.publishLocalCached)()
+    Task.traverse(allPublishModules)(m => m.publishLocal(doc = false))()
     executableRaw()
   }
 
