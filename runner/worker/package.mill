@@ -4,11 +4,11 @@ import mill._
 import mill.contrib.buildinfo.BuildInfo
 
 object `package` extends build.MillPublishScalaModule {
-  def moduleDeps = Seq(build.runner.`worker-api`)
+  def moduleDeps = Seq(build.runner.worker.api)
 
   def mvnDeps = Agg(build.Deps.scalaCompiler(scalaVersion()))
 
-  private[runner] def bootstrapDeps = Task {
+  def bootstrapDeps = Task {
     val moduleDep = {
       val m = artifactMetadata()
       s"${m.group}:${m.id}:${m.version}"

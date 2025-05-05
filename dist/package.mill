@@ -72,7 +72,7 @@ trait DistModule extends Module {
 
 object `package` extends MillJavaModule with DistModule {
 
-  def moduleDeps = Seq(build.runner.client)
+  def moduleDeps = Seq(build.runner.launcher)
 
   def transitiveLocalTestOverrides = Map(
     Task.traverse(allPublishModules)(_.localTestOverride)(): _*
@@ -133,7 +133,7 @@ object `package` extends MillJavaModule with DistModule {
     "-Djna.nosys=true"
   )
 
-  def mainClass = Some("mill.runner.client.MillClientMain")
+  def mainClass = Some("mill.client.MillLauncherMain")
 
   def executableRaw = Task {
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
@@ -255,9 +255,9 @@ object `package` extends MillJavaModule with DistModule {
     // Use assembly jar as the upstream ivy classpath rather than using runClasspath
     // directly to try and avoid native image command length problems on windows
     def nativeImageClasspath =
-      Seq(build.runner.client.resolvedIvyAssembly().pathRef) ++
-        build.runner.client.upstreamLocalAssemblyClasspath() ++
-        build.runner.client.localClasspath()
+      Seq(build.runner.launcher.resolvedIvyAssembly().pathRef) ++
+        build.runner.launcher.upstreamLocalAssemblyClasspath() ++
+        build.runner.launcher.localClasspath()
 
     def localBinName = "mill-native"
 

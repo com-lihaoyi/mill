@@ -14,5 +14,5 @@ object `package` extends build.MillPublishScalaModule {
       build.libs.scalalib.backgroundwrapper.localTestOverride()
     )
 
-  def testModuleDeps = super.testModuleDeps ++ Seq(build.runner.server.client)
+  def testModuleDeps = super.testModuleDeps ++ Seq(build.runner.client)
 }

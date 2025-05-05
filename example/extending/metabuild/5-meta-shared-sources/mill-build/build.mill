@@ -1,5 +1,5 @@
 package build
 import mill._
-import mill.runner.meta.MillBuildRootModule
+import mill.meta.MillBuildRootModule
 
 object `package` extends MillBuildRootModule

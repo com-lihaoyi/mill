@@ -32,6 +32,6 @@ def validate() = Task.Command {
   PathRef(file)
 }
 
-def checkExecutable() = Task.Command{
+def checkExecutable() = Task.Command {
   println("checkExecutable succeeded")
 }
