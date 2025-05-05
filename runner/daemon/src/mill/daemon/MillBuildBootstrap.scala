@@ -9,7 +9,7 @@ import mill.define.{PathRef, RootModule0, SelectMode, WorkspaceRoot}
 import mill.internal.PrefixLogger
 import mill.meta.{FileImportGraph, MillBuildRootModule}
 import mill.meta.{CliImports, ScalaCompilerWorker}
-import mill.worker.api.MillScalaParser
+import mill.compilerworker.api.MillScalaParser
 import mill.util.BuildInfo
 
 import java.io.File

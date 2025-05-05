@@ -1,4 +1,4 @@
-package mill.worker.api
+package mill.compilerworker.api
 // @internal
 case class ImportTree(
     prefix: Seq[(String, Int)],

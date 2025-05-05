@@ -1,4 +1,4 @@
-package build.runner.worker.api // imports
+package build.runner.compilerworker.api // imports
 import mill.*
 import mill.contrib.buildinfo.BuildInfo
 

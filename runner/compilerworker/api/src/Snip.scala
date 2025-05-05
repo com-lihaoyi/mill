@@ -1,4 +1,4 @@
-package mill.worker.api
+package mill.compilerworker.api
 trait Snip {
   def text: String | Null
   def start: Int

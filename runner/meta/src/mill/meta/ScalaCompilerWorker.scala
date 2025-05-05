@@ -1,7 +1,7 @@
 package mill.meta
 
 import mill.PathRef
-import mill.worker.api.ScalaCompilerWorkerApi
+import mill.compilerworker.api.ScalaCompilerWorkerApi
 import mill.api.Result
 
 import mill.api.ExecResult.catchWrapException
@@ -80,7 +80,7 @@ private[mill] object ScalaCompilerWorker {
       getClass.getClassLoader
     )
     val bridge = cl
-      .loadClass("mill.runner.worker.ScalaCompilerWorkerImpl")
+      .loadClass("mill.compilerworker.ScalaCompilerWorkerImpl")
       .getDeclaredConstructor()
       .newInstance()
       .asInstanceOf[ScalaCompilerWorkerApi]

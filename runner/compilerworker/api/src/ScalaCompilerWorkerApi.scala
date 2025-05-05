@@ -1,2 +1,2 @@
-package mill.worker.api
+package mill.compilerworker.api
 trait ScalaCompilerWorkerApi extends MillScalaParser

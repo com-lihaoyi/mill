@@ -29,7 +29,7 @@ public class MillProcessLauncher {
 
     final List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand(setJnaNoSys));
-    l.add("mill.runner.MillMain");
+    l.add("mill.daemon.MillMain");
     l.add(processDir.toAbsolutePath().toString());
     l.addAll(millOpts());
     l.addAll(Arrays.asList(args));
@@ -60,7 +60,7 @@ public class MillProcessLauncher {
   static void launchMillServer(Path serverDir, boolean setJnaNoSys) throws Exception {
     List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand(setJnaNoSys));
-    l.add("mill.runner.MillServerMain");
+    l.add("mill.daemon.MillServerMain");
     l.add(serverDir.toFile().getCanonicalPath());
 
     ProcessBuilder builder = new ProcessBuilder()

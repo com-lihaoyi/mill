@@ -1,4 +1,4 @@
-package mill.worker.api
+package mill.compilerworker.api
 trait MillScalaParser {
   def splitScript(rawCode: String, fileName: String): Either[String, (Seq[String], Seq[String])]
 

@@ -1,4 +1,4 @@
-package mill.worker.api
+package mill.compilerworker.api
 trait ObjectData {
   def obj: Snip
   def name: Snip

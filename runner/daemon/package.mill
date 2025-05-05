@@ -29,7 +29,7 @@ object `package` extends build.MillPublishScalaModule {
     build.core.eval,
     build.runner.server,
     build.runner.launcher,
-    build.runner.worker.api,
+    build.runner.compilerworker.api,
     build.runner.meta
   )
 }

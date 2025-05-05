@@ -1,4 +1,4 @@
-package mill.worker
+package mill.compilerworker
 
 import dotty.tools.dotc.CompilationUnit
 import dotty.tools.dotc.Driver
@@ -25,10 +25,10 @@ import dotty.tools.dotc.reporting.StoreReporter
 import dotty.tools.dotc.reporting.UniqueMessagePositions
 import dotty.tools.dotc.util.SourceFile
 import dotty.tools.dotc.util.Spans.Span
-import mill.worker.api.ImportTree
-import mill.worker.api.ObjectData
-import mill.worker.api.ScalaCompilerWorkerApi
-import mill.worker.api.Snip
+import mill.compilerworker.api.ImportTree
+import mill.compilerworker.api.ObjectData
+import mill.compilerworker.api.ScalaCompilerWorkerApi
+import mill.compilerworker.api.Snip
 
 import dotty.tools.dotc.util.SourcePosition
 

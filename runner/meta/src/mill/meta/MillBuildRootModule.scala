@@ -9,8 +9,8 @@ import mill.define.{PathRef, Discover, RootModule0, Target, Task}
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.util.BuildInfo
-import mill.worker.api.ScalaCompilerWorkerApi
-import mill.worker.api.MillScalaParser
+import mill.compilerworker.api.ScalaCompilerWorkerApi
+import mill.compilerworker.api.MillScalaParser
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 
