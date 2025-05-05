@@ -702,8 +702,8 @@ object myplugin extends ScalaModule with PublishModule {
 
     // Create a Mill executable configured for testing our plugin
     object millExecutable extends JavaModule {
-      def mvnDeps = Seq(mvn&quot;com.lihaoyi:mill-runner-client_3:$millVersion&quot;)
-      def mainClass = Some(&quot;mill.runner.client.MillClientMain&quot;)
+      def mvnDeps = Seq(mvn&quot;com.lihaoyi:mill-runner-launcher_3:$millVersion&quot;)
+      def mainClass = Some(&quot;mill.launcher.MillLauncherMain&quot;)
     }
   }
 
