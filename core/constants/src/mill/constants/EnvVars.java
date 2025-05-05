@@ -42,4 +42,9 @@ public class EnvVars {
    * e.g. to turn on additional testing/debug/log-related code
    */
   public static final String MILL_TEST_SUITE = "MILL_TEST_SUITE";
+
+  /**
+   * The path to the currently executing Mill launcher executable
+   */
+  public static final String MILL_EXECUTABLE_PATH = "MILL_EXECUTABLE_PATH";
 }

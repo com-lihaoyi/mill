@@ -31,3 +31,7 @@ def validate() = Task.Command {
   os.write(file, content)
   PathRef(file)
 }
+
+def checkExecutable() = Task.Command {
+  println("checkExecutable succeeded")
+}

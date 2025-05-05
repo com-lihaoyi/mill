@@ -17,7 +17,7 @@
         <orderEntry type="library" name="commons-codec-1.17.0.jar" level="project"/>
         <orderEntry type="library" name="commons-compress-1.26.2.jar" level="project"/>
         <orderEntry type="library" name="commons-io-2.18.0.jar" level="project"/>
-        <orderEntry type="library" name="commons-lang3-3.16.0.jar" level="project"/>
+        <orderEntry type="library" name="commons-lang3-3.14.0.jar" level="project"/>
         <orderEntry type="library" name="concurrent-reference-hash-map-1.1.0.jar" level="project"/>
         <orderEntry type="library" name="config_2.13-1.1.3.jar" level="project"/>
         <orderEntry type="library" name="coursier-cache_2.13-2.1.25-M11.jar" level="project"/>
@@ -45,7 +45,6 @@
         <orderEntry type="library" name="jline-3.28.0.jar" level="project"/>
         <orderEntry type="library" name="jline-native-3.29.0.jar" level="project"/>
         <orderEntry type="library" name="jna-5.17.0.jar" level="project"/>
-        <orderEntry type="library" name="jna-platform-5.16.0.jar" level="project"/>
         <orderEntry type="library" name="jsoniter-scala-core_2.13-2.13.39.jar" level="project"/>
         <orderEntry type="library" name="jsr305-3.0.2.jar" level="project"/>
         <orderEntry type="library" name="jul-to-slf4j-1.7.30.jar" level="project"/>
@@ -98,7 +97,6 @@
         <orderEntry type="library" name="scala-xml_3-2.3.0.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-3.3.3.jar" level="project"/>
         <orderEntry type="library" name="scala3-library_3-3.6.4.jar" level="project"/>
-        <orderEntry type="library" name="scalaparse_3-3.1.1.jar" level="project"/>
         <orderEntry type="library" name="slf4j-api-2.0.17.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="snakeyaml-engine-2.9.jar" level="project"/>
         <orderEntry type="library" name="sonatype-central-client-core_3-0.3.0.jar" level="project"/>

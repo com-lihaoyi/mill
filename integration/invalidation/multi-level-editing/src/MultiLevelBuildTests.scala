@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
 import mill.constants.OutFiles._
-import mill.runner.RunnerState
+import mill.daemon.RunnerState
 import utest._
 
 import scala.util.matching.Regex
