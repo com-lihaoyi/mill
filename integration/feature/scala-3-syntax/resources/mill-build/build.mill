@@ -3,7 +3,6 @@ package build
 import mill.*
 import mill.meta.MillBuildRootModule
 import mill.scalalib.*
-import mill.runner.meta.*
 
 object `package` extends MillBuildRootModule:
   def mvnDeps = Seq(
