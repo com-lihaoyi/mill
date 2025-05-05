@@ -90,16 +90,17 @@ public abstract class ServerLauncher {
 
   int run(Path serverDir, boolean setJnaNoSys) throws Exception {
 
-    try (OutputStream f = Files.newOutputStream(serverDir.resolve(ServerFiles.runArgs))) {
-      f.write(Util.hasConsole() ? 1 : 0);
-      ClientUtil.writeString(f, BuildInfo.millVersion);
-      ClientUtil.writeArgs(args, f);
-      ClientUtil.writeMap(env, f);
-    }
-
     try (Locks locks = Locks.files(serverDir.toString());
         mill.client.lock.Locked locked = locks.clientLock.lock()) {
-      if (locks.processLock.probe()) initServer(serverDir, setJnaNoSys, locks);
+      if (locks.processLock.probe()) {
+        try (OutputStream f = Files.newOutputStream(serverDir.resolve(ServerFiles.runArgs))) {
+          f.write(Util.hasConsole() ? 1 : 0);
+          ClientUtil.writeString(f, BuildInfo.millVersion);
+          ClientUtil.writeArgs(args, f);
+          ClientUtil.writeMap(env, f);
+        }
+        initServer(serverDir, setJnaNoSys, locks);
+      }
 
       while (locks.processLock.probe()) Thread.sleep(1);
     }
