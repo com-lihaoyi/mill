@@ -76,18 +76,18 @@ object `package` extends mill.Module { scripts =>
   def installInRepo: T[Seq[PathRef]] = Task {
     Task.traverse(scriptsModules)(m =>
       Task.Anon {
-        val script = m.compile0().path
-        val dest = T.workspace / m.inRepoDir()
-        if (os.isDir(dest)) {
-          sys.error(s"Install destination is a directory: ${dest}")
-        } else if (os.exists(dest)) {
-          Task.log.warn(s"Overwriting file: ${dest}")
-        }
-        Task.log.info(s"Installing script: ${dest}")
         os.checker.withValue(os.Checker.Nop) {
+          val script = m.compile0().path
+          val dest = T.workspace / m.inRepoDir()
+          if (os.isDir(dest)) {
+            sys.error(s"Install destination is a directory: ${dest}")
+          } else if (os.exists(dest)) {
+            Task.log.warn(s"Overwriting file: ${dest}")
+          }
+          Task.log.info(s"Installing script: ${dest}")
           os.copy.over(script, dest)
+          Result.Success(dest)
         }
-        Result.Success(dest)
       }
     )().map(path => PathRef(path).withRevalidateOnce)
   }
