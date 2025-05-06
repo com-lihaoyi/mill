@@ -90,7 +90,7 @@ trait MillBuildRootModule()(implicit
   override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
 
   override def generatedSources: T[Seq[PathRef]] = Task {
-    generatedScriptSources()._2
+    generatedScriptSources().support
   }
 
   /**
@@ -224,7 +224,7 @@ trait MillBuildRootModule()(implicit
       // the real input-sources
       allSources() ++
         // also sources, but derived from `scriptSources`
-        generatedScriptSources()._1
+        generatedScriptSources().wrapped
 
     val candidates =
       Lib.findSourceFiles(allMillSources, Seq("scala", "java") ++ buildFileExtensions.asScala.toSeq)
@@ -313,7 +313,7 @@ trait MillBuildRootModule()(implicit
 
 object MillBuildRootModule {
 
-  type GeneratedScriptSourcesResult = (Seq[PathRef], Seq[PathRef])
+  type GeneratedScriptSourcesResult = (wrapped: Seq[PathRef], support: Seq[PathRef])
 
   class BootstrapModule()(implicit
       rootModuleInfo: RootModule0.Info
