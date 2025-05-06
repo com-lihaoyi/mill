@@ -136,19 +136,38 @@ abstract class Server[T](
   def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit = {
 
     val currentOutErr = clientSocket.getOutputStream
+    var clientDisappeared = false
+    // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
+    // detect client-side connection closing, so instead we send a no-op heartbeat
+    // message to see if the socket can receive data.
+    def checkClientAlive() = {
+      try {
+        currentOutErr.write(ProxyStream.HEARTBEAT)
+        true
+      } catch {case e: Throwable =>
+        clientDisappeared = true
+        false
+      }
+    }
     try {
       val stdout = new PrintStream(new Output(currentOutErr, ProxyStream.OUT), true)
       val stderr = new PrintStream(new Output(currentOutErr, ProxyStream.ERR), true)
 
+      val socketIn = clientSocket.getInputStream
+
+      val interactive = socketIn.read() != 0
+      val clientMillVersion = ClientUtil.readString(socketIn)
+      val args = ClientUtil.parseArgs(socketIn)
+      val env = ClientUtil.parseMap(socketIn)
+      serverLog("args " + upickle.default.write(args))
+      serverLog("env " + upickle.default.write(env.asScala))
+//      val userSpecifiedProperties = ClientUtil.parseMap(socketIn)
       // Proxy the input stream through a pair of Piped**putStream via a pumper,
       // as the `UnixDomainSocketInputStream` we get directly from the socket does
       // not properly implement `available(): Int` and thus messes up polling logic
       // that relies on that method
-      val proxiedSocketInput = proxyInputStreamThroughPumper(clientSocket.getInputStream)
+      val proxiedSocketInput = proxyInputStreamThroughPumper(socketIn)
 
-      val argStream = os.read.inputStream(serverDir / ServerFiles.runArgs)
-      val interactive = argStream.read() != 0
-      val clientMillVersion = ClientUtil.readString(argStream)
       val serverMillVersion = BuildInfo.millVersion
       if (clientMillVersion != serverMillVersion) {
         stderr.println(
@@ -160,12 +179,7 @@ abstract class Server[T](
         )
         System.exit(ClientUtil.ExitServerCodeWhenVersionMismatch())
       }
-      val args = ClientUtil.parseArgs(argStream)
-      val env = ClientUtil.parseMap(argStream)
-      serverLog("args " + upickle.default.write(args))
-      serverLog("env " + upickle.default.write(env.asScala))
-      val userSpecifiedProperties = ClientUtil.parseMap(argStream)
-      argStream.close()
+
 
       @volatile var done = false
       @volatile var idle = false
@@ -179,7 +193,7 @@ abstract class Server[T](
               new SystemStreams(stdout, stderr, proxiedSocketInput),
               env.asScala.toMap,
               idle = _,
-              userSpecifiedProperties.asScala.toMap,
+              Map(),
               initialSystemProperties,
               systemExit = exitCode => {
                 os.write.over(serverDir / ServerFiles.exitCode, exitCode.toString)
@@ -202,7 +216,7 @@ abstract class Server[T](
       // We cannot simply use Lock#await here, because the filesystem doesn't
       // realize the clientLock/serverLock are held by different threads in the
       // two processes and gives a spurious deadlock error
-      while (!done && clientSocket.isConnected) Thread.sleep(1)
+      while (!done && checkClientAlive()) Thread.sleep(1)
 
       if (!idle) {
         serverLog("client interrupted while server was executing command")
@@ -224,7 +238,9 @@ abstract class Server[T](
       System.out.flush()
       System.err.flush()
 
-    } finally ProxyStream.sendEnd(currentOutErr) // Send a termination
+    } finally {
+      if (!clientDisappeared) ProxyStream.sendEnd(currentOutErr) // Send a termination
+    }
   }
 
   def main0(

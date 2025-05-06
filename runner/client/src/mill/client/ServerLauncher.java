@@ -98,16 +98,8 @@ public abstract class ServerLauncher {
 
     try (Locks locks = memoryLock != null? memoryLock: Locks.files(serverDir.toString());
         mill.client.lock.Locked locked = locks.clientLock.lock()) {
-      if (locks.processLock.probe()) {
-        try (OutputStream f = Files.newOutputStream(serverDir.resolve(ServerFiles.runArgs))) {
-          f.write(Util.hasConsole() ? 1 : 0);
-          ClientUtil.writeString(f, BuildInfo.millVersion);
-          ClientUtil.writeArgs(args, f);
-          ClientUtil.writeMap(env, f);
-        }
-        initServer(serverDir, setJnaNoSys, locks);
-      }
 
+      if (locks.processLock.probe()) initServer(serverDir, setJnaNoSys, locks);
       while (locks.processLock.probe()) Thread.sleep(1);
     }
     long retryStart = System.currentTimeMillis();
@@ -129,6 +121,10 @@ public abstract class ServerLauncher {
 
     InputStream outErr = ioSocket.getInputStream();
     OutputStream in = ioSocket.getOutputStream();
+    in.write(Util.hasConsole() ? 1 : 0);
+    ClientUtil.writeString(in, BuildInfo.millVersion);
+    ClientUtil.writeArgs(args, in);
+    ClientUtil.writeMap(env, in);
     ProxyStream.Pumper outPumper = new ProxyStream.Pumper(outErr, stdout, stderr);
     InputPumper inPump = new InputPumper(() -> stdin, () -> in, true);
     Thread outPumperThread = new Thread(outPumper, "outPump");
@@ -138,13 +134,14 @@ public abstract class ServerLauncher {
     outPumperThread.start();
     inThread.start();
 
-    if (forceFailureForTestingMillisDelay > 0) {
-      Thread.sleep(forceFailureForTestingMillisDelay);
-      throw new Exception("Force failure for testing: " + serverDir);
-    }
-    outPumperThread.join();
 
     try {
+      if (forceFailureForTestingMillisDelay > 0) {
+        Thread.sleep(forceFailureForTestingMillisDelay);
+        throw new Exception("Force failure for testing: " + serverDir);
+      }
+      outPumperThread.join();
+
       Path exitCodeFile = serverDir.resolve(ServerFiles.exitCode);
       if (Files.exists(exitCodeFile)) {
         return Integer.parseInt(Files.readAllLines(exitCodeFile).get(0));
@@ -153,6 +150,7 @@ public abstract class ServerLauncher {
         return 1;
       }
     } finally {
+      System.out.println("ServerLauncher ioSocket.close()");
       ioSocket.close();
     }
   }
