@@ -11,7 +11,7 @@
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
-        <orderEntry type="library" name="scala-SDK-3.6.4" level="project"/>
+        <orderEntry type="library" name="scala-SDK-3.7.0" level="project"/>
         <orderEntry type="library" name="aircompressor-0.27.jar" level="project"/>
         <orderEntry type="library" name="cache-util-2.1.25-M11.jar" level="project"/>
         <orderEntry type="library" name="commons-codec-1.17.0.jar" level="project"/>
@@ -74,7 +74,7 @@
         <orderEntry type="library" name="mill-libs-testrunner-entrypoint.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-testrunner_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-moduledefs_3-0.11.3-M5.jar" level="project"/>
+        <orderEntry type="library" name="mill-moduledefs_3-0.11.4.jar" level="project"/>
         <orderEntry type="library" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
         <orderEntry type="library" name="os-lib_3-0.11.5-M2.jar" level="project"/>
         <orderEntry type="library" name="plexus-archiver-4.10.0.jar" level="project"/>
@@ -92,7 +92,7 @@
         <orderEntry type="library" name="scala-xml_2.13-2.3.0.jar" level="project"/>
         <orderEntry type="library" name="scala-xml_3-2.3.0.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-3.3.3.jar" level="project"/>
-        <orderEntry type="library" name="scala3-library_3-3.6.4.jar" level="project"/>
+        <orderEntry type="library" name="scala3-library_3-3.7.0.jar" level="project"/>
         <orderEntry type="library" name="slf4j-api-2.0.17.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="snakeyaml-engine-2.9.jar" level="project"/>
         <orderEntry type="library" name="sonatype-central-client-core_3-0.3.0.jar" level="project"/>
