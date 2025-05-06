@@ -20,8 +20,7 @@ class MemoryLock extends Lock {
   @Override
   public MemoryTryLocked tryLock() {
     MemoryTryLocked res =
-      innerLock.tryLock() ? new MemoryTryLocked(innerLock)
-      : new MemoryTryLocked(null);
+        innerLock.tryLock() ? new MemoryTryLocked(innerLock) : new MemoryTryLocked(null);
 
     return res;
   }

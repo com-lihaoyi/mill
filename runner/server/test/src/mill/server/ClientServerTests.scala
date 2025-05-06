@@ -106,7 +106,7 @@ object ClientServerTests extends TestSuite {
             testLogEvenWhenServerIdWrong
           )).start()
         }
-      }.acquireLocksAndRun((outDir / "server-0").relativeTo(os.pwd).toNIO)
+      }.run((outDir / "server-0").relativeTo(os.pwd).toNIO)
 
       ClientResult(
         result.exitCode,

@@ -63,9 +63,9 @@ public class MillLauncherMain {
         final String versionAndJvmHomeEncoding =
             Util.md5hex(mill.client.BuildInfo.millVersion + MillProcessLauncher.javaHome());
         Path serverDir0 = Paths.get(OutFiles.out, OutFiles.millServer, versionAndJvmHomeEncoding);
-        int exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
+        int exitCode = launcher.run(serverDir0).exitCode;
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
-          exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
+          exitCode = launcher.run(serverDir0).exitCode;
         }
         System.exit(exitCode);
       } catch (ServerCouldNotBeStarted e) {
