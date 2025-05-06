@@ -1,6 +1,5 @@
 package mill.client.lock;
 
-
 public class DoubleLock extends Lock {
 
   private final Lock lock1;
@@ -34,8 +33,8 @@ public class DoubleLock extends Lock {
     TryLocked tl = tryLock();
     if (!tl.isLocked()) return true;
     else {
-        tl.release();
-        return false;
+      tl.release();
+      return false;
     }
   }
 
