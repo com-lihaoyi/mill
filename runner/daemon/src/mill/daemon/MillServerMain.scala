@@ -49,9 +49,11 @@ class MillServerMain(
   }
   def stateCache0 = RunnerState.empty
 
+  val out = os.Path(OutFiles.out, mill.define.WorkspaceRoot.workspaceRoot)
+
   val outLock = new DoubleLock(
     Lock.memory(),
-    Lock.file((serverDir / OutFiles.millOutLock).toString),
+    Lock.file((out / OutFiles.millOutLock).toString),
   )
 
   def main0(

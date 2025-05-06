@@ -72,7 +72,7 @@ object MillMain {
           initialSystemProperties = sys.props.toMap,
           systemExit = i => sys.exit(i),
           serverDir = serverDir,
-          outLock = Lock.file((serverDir / OutFiles.millOutLock).toString)
+          outLock = Lock.file((out / OutFiles.millOutLock).toString)
         )
       catch handleMillException(initialSystemStreams.err, ())
 
