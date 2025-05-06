@@ -2,7 +2,8 @@ package mill.daemon
 
 import mill.api.SystemStreams
 import mill.client.ClientUtil
-import mill.client.lock.{DoubleLock, Locks}
+import mill.client.lock.{DoubleLock, Lock, Locks}
+import mill.constants.ServerFiles
 import sun.misc.{Signal, SignalHandler}
 
 import scala.util.Try
@@ -49,8 +50,8 @@ class MillServerMain(
   def stateCache0 = RunnerState.empty
 
   val outLock = new DoubleLock(
-    Locks.files(serverDir.toString).serverLock,
-    Locks.memory().serverLock
+    Lock.memory(),
+    Lock.file((serverDir / ServerFiles.serverLock).toString),
   )
 
   def main0(
