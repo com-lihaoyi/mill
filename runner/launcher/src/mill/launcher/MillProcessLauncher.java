@@ -366,7 +366,6 @@ public class MillProcessLauncher {
     // never hit issues where we are reading the files from a previous run
     Files.deleteIfExists(serverDir.resolve(ServerFiles.exitCode));
     Files.deleteIfExists(serverDir.resolve(ServerFiles.terminfo));
-    Files.deleteIfExists(serverDir.resolve(ServerFiles.runArgs));
 
     Path sandbox = serverDir.resolve(ServerFiles.sandbox);
     Files.createDirectories(sandbox);

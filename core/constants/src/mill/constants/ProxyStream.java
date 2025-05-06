@@ -43,6 +43,7 @@ public class ProxyStream {
       out.flush();
     }
   }
+
   public static void sendHeartbeat(OutputStream out) throws IOException {
     synchronized (out) {
       out.write(ProxyStream.HEARTBEAT);

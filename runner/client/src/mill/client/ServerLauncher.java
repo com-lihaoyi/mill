@@ -96,7 +96,7 @@ public abstract class ServerLauncher {
 
   int run(Path serverDir, boolean setJnaNoSys) throws Exception {
 
-    try (Locks locks = memoryLock != null? memoryLock: Locks.files(serverDir.toString());
+    try (Locks locks = memoryLock != null ? memoryLock : Locks.files(serverDir.toString());
         mill.client.lock.Locked locked = locks.clientLock.lock()) {
 
       if (locks.processLock.probe()) initServer(serverDir, setJnaNoSys, locks);
@@ -133,7 +133,6 @@ public abstract class ServerLauncher {
     inThread.setDaemon(true);
     outPumperThread.start();
     inThread.start();
-
 
     try {
       if (forceFailureForTestingMillisDelay > 0) {

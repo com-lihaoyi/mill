@@ -49,12 +49,6 @@ public class ServerFiles {
   public static final String serverLog = "server.log";
 
   /**
-   * File that the client writes to pass the arguments, environment variables,
-   * and other necessary metadata to the Mill server to kick off a run
-   */
-  public static final String runArgs = "runArgs";
-
-  /**
    * File the server writes to pass the exit code of a completed run back to the
    * client
    */
