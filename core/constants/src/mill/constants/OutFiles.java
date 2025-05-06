@@ -60,7 +60,7 @@ public class OutFiles {
   /**
    * Lock file used for exclusive access to the Mill output directory
    */
-  public static final String millLock = "mill-lock";
+  public static final String millOutLock = "mill-out-lock";
 
   /**
    * Any active Mill command that is currently run, for debugging purposes

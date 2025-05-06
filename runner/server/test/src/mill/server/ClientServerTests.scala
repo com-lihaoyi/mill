@@ -76,7 +76,7 @@ object ClientServerTests extends TestSuite {
     os.makeDir.all(dest)
     val outDir = os.temp.dir(dest, deleteOnExit = false)
 
-    val memoryLocks = Array.fill(10)(Locks.memory());
+    val memoryLock = Locks.memory()
 
     def apply(
         env: Map[String, String] = Map(),
@@ -92,11 +92,11 @@ object ClientServerTests extends TestSuite {
         new PrintStream(err),
         env.asJava,
         args,
-        memoryLocks,
+        memoryLock,
         forceFailureForTestingMillisDelay
       ) {
-        def preRun(serverDir: Path) = { /*do nothing*/ }
-        def initServer(serverDir: Path, b: Boolean, locks: Locks) = {
+        def prepareServerDir(serverDir: Path) = { /*do nothing*/ }
+        def initServer(serverDir: Path, locks: Locks) = {
           val processId = "server-" + nextServerId
           nextServerId += 1
           new Thread(new EchoServer(
@@ -106,7 +106,7 @@ object ClientServerTests extends TestSuite {
             testLogEvenWhenServerIdWrong
           )).start()
         }
-      }.acquireLocksAndRun((outDir / "server-0").relativeTo(os.pwd).toNIO)
+      }.run((outDir / "server-0").relativeTo(os.pwd).toNIO)
 
       ClientResult(
         result.exitCode,
@@ -135,7 +135,7 @@ object ClientServerTests extends TestSuite {
 
   def tests = Tests {
 
-    test("hello") - retry(3) {
+    test("hello") - {
       // Continue logging when out folder is deleted so we can see the logs
       // and ensure the correct code path is taken as the server exits
       val tester = new Tester(testLogEvenWhenServerIdWrong = true)
@@ -214,8 +214,8 @@ object ClientServerTests extends TestSuite {
       assert(resF1.outDir == resF2.outDir)
       assert(resF2.outDir == resF3.outDir)
       // but the serverDir is placed in different subfolders
-      assert(resF1.serverDir != resF2.serverDir)
-      assert(resF2.serverDir != resF3.serverDir)
+      assert(resF1.serverDir == resF2.serverDir)
+      assert(resF2.serverDir == resF3.serverDir)
 
       assert(resF1.out == s"hello World$ENDL")
       assert(resF2.out == s"hello WORLD$ENDL")
@@ -238,12 +238,9 @@ object ClientServerTests extends TestSuite {
       val logLines = os.read.lines(os.Path(pathStr, os.pwd) / "server.log")
 
       assert(
-        logLines.takeRight(5) ==
+        logLines.takeRight(2) ==
           Seq(
             "server-0 client interrupted while server was executing command",
-            "server-0 exiting server",
-            "server-0 server loop ended",
-            "server-0 finally exitServer",
             "server-0 exiting server"
           )
       )

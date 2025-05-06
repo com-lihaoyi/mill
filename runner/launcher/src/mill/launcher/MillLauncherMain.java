@@ -50,12 +50,11 @@ public class MillLauncherMain {
                 optsArgs.toArray(new String[0]),
                 null,
                 -1) {
-              public void initServer(Path serverDir, boolean setJnaNoSys, Locks locks)
-                  throws Exception {
-                MillProcessLauncher.launchMillServer(serverDir, setJnaNoSys);
+              public void initServer(Path serverDir, Locks locks) throws Exception {
+                MillProcessLauncher.launchMillServer(serverDir);
               }
 
-              public void preRun(Path serverDir) throws Exception {
+              public void prepareServerDir(Path serverDir) throws Exception {
                 MillProcessLauncher.prepareMillRunFolder(serverDir);
               }
             };
@@ -63,22 +62,11 @@ public class MillLauncherMain {
         final String versionAndJvmHomeEncoding =
             Util.md5hex(mill.client.BuildInfo.millVersion + MillProcessLauncher.javaHome());
         Path serverDir0 = Paths.get(OutFiles.out, OutFiles.millServer, versionAndJvmHomeEncoding);
-        int exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
+        int exitCode = launcher.run(serverDir0).exitCode;
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
-          exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
+          exitCode = launcher.run(serverDir0).exitCode;
         }
         System.exit(exitCode);
-      } catch (ServerCouldNotBeStarted e) {
-        // TODO: try to run in-process
-        System.err.println("Could not start a Mill server process.\n"
-            + "This could be caused by too many already running Mill instances "
-            + "or by an unsupported platform.\n"
-            + e.getMessage() + "\n");
-
-        System.err.println(
-            "Loading Mill in-process isn't possible.\n" + "Please check your Mill installation!");
-        throw e;
-
       } catch (Exception e) {
         System.err.println("Mill client failed with unknown exception");
         e.printStackTrace();
