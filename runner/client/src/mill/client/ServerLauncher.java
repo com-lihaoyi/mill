@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import mill.client.lock.Locks;
-import mill.client.lock.TryLocked;
 import mill.constants.InputPumper;
 import mill.constants.ProxyStream;
 import mill.constants.ServerFiles;
@@ -23,10 +22,10 @@ import mill.constants.Util;
  *
  * - Client:
  *   - Take clientLock
- *   - If processLock is not yet taken, it means server is not running, so spawn a server
+ *   - If serverLock is not yet taken, it means server is not running, so spawn a server
  *   - Wait for server socket to be available for connection
  * - Server:
- *   - Take processLock.
+ *   - Take serverLock.
  *     - If already taken, it means another server was running
  *       (e.g. spawned by a different client) so exit immediately
  * - Server: loop:
@@ -46,7 +45,6 @@ public abstract class ServerLauncher {
     public Path serverDir;
   }
 
-  final int serverProcessesLimit = 5;
   final int serverInitWaitMillis = 10000;
 
   public abstract void initServer(Path serverDir, boolean b, Locks locks) throws Exception;
@@ -58,7 +56,7 @@ public abstract class ServerLauncher {
   PrintStream stderr;
   Map<String, String> env;
   String[] args;
-  Locks[] memoryLocks;
+  Locks memoryLock;
   int forceFailureForTestingMillisDelay;
 
   public ServerLauncher(
@@ -67,7 +65,7 @@ public abstract class ServerLauncher {
       PrintStream stderr,
       Map<String, String> env,
       String[] args,
-      Locks[] memoryLocks,
+      Locks memoryLock,
       int forceFailureForTestingMillisDelay) {
     this.stdin = stdin;
     this.stdout = stdout;
@@ -78,56 +76,32 @@ public abstract class ServerLauncher {
     // For testing in memory, we need to pass in the locks separately, so that the
     // locks can be shared between the different instances of `ServerLauncher` the
     // same way file locks are shared between different Mill client/server processes
-    this.memoryLocks = memoryLocks;
+    this.memoryLock = memoryLock;
 
     this.forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay;
   }
 
-  public Result acquireLocksAndRun(Path serverDir0) throws Exception {
-
+  public Result acquireLocksAndRun(Path serverDir) throws Exception {
     final boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
-    if (setJnaNoSys) {
-      System.setProperty("jna.nosys", "true");
-    }
+    if (setJnaNoSys) System.setProperty("jna.nosys", "true");
 
-    int serverIndex = 0;
-    while (serverIndex < serverProcessesLimit) { // Try each possible server process (-1 to -5)
-      serverIndex++;
-      final Path serverDir =
-          serverDir0.getParent().resolve(serverDir0.getFileName() + "-" + serverIndex);
+    Files.createDirectories(serverDir);
 
-      Files.createDirectories(serverDir);
-
-      try (Locks locks = memoryLocks != null
-              ? memoryLocks[serverIndex - 1]
-              : Locks.files(serverDir.toString());
-          TryLocked clientLocked = locks.clientLock.tryLock()) {
-        if (clientLocked.isLocked()) {
-          Result result = new Result();
-          preRun(serverDir);
-          result.exitCode = run(serverDir, setJnaNoSys, locks);
-          result.serverDir = serverDir;
-          return result;
-        }
-      }
-    }
-    throw new ServerCouldNotBeStarted(
-        "Reached max server processes limit: " + serverProcessesLimit);
+    Result result = new Result();
+    preRun(serverDir);
+    result.exitCode = run(serverDir, setJnaNoSys);
+    result.serverDir = serverDir;
+    return result;
   }
 
-  int run(Path serverDir, boolean setJnaNoSys, Locks locks) throws Exception {
+  int run(Path serverDir, boolean setJnaNoSys) throws Exception {
 
-    try (OutputStream f = Files.newOutputStream(serverDir.resolve(ServerFiles.runArgs))) {
-      f.write(Util.hasConsole() ? 1 : 0);
-      ClientUtil.writeString(f, BuildInfo.millVersion);
-      ClientUtil.writeArgs(args, f);
-      ClientUtil.writeMap(env, f);
+    try (Locks locks = memoryLock != null ? memoryLock : Locks.files(serverDir.toString());
+        mill.client.lock.Locked locked = locks.clientLock.lock()) {
+
+      if (locks.serverLock.probe()) initServer(serverDir, setJnaNoSys, locks);
+      while (locks.serverLock.probe()) Thread.sleep(1);
     }
-
-    if (locks.processLock.probe()) initServer(serverDir, setJnaNoSys, locks);
-
-    while (locks.processLock.probe()) Thread.sleep(1);
-
     long retryStart = System.currentTimeMillis();
     Socket ioSocket = null;
     Throwable socketThrowable = null;
@@ -147,6 +121,10 @@ public abstract class ServerLauncher {
 
     InputStream outErr = ioSocket.getInputStream();
     OutputStream in = ioSocket.getOutputStream();
+    in.write(Util.hasConsole() ? 1 : 0);
+    ClientUtil.writeString(in, BuildInfo.millVersion);
+    ClientUtil.writeArgs(args, in);
+    ClientUtil.writeMap(env, in);
     ProxyStream.Pumper outPumper = new ProxyStream.Pumper(outErr, stdout, stderr);
     InputPumper inPump = new InputPumper(() -> stdin, () -> in, true);
     Thread outPumperThread = new Thread(outPumper, "outPump");
@@ -156,13 +134,13 @@ public abstract class ServerLauncher {
     outPumperThread.start();
     inThread.start();
 
-    if (forceFailureForTestingMillisDelay > 0) {
-      Thread.sleep(forceFailureForTestingMillisDelay);
-      throw new Exception("Force failure for testing: " + serverDir);
-    }
-    outPumperThread.join();
-
     try {
+      if (forceFailureForTestingMillisDelay > 0) {
+        Thread.sleep(forceFailureForTestingMillisDelay);
+        throw new Exception("Force failure for testing: " + serverDir);
+      }
+      outPumperThread.join();
+
       Path exitCodeFile = serverDir.resolve(ServerFiles.exitCode);
       if (Files.exists(exitCodeFile)) {
         return Integer.parseInt(Files.readAllLines(exitCodeFile).get(0));

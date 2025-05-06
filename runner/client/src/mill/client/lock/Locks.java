@@ -5,17 +5,17 @@ import mill.constants.ServerFiles;
 public final class Locks implements AutoCloseable {
 
   public final Lock clientLock;
-  public final Lock processLock;
+  public final Lock serverLock;
 
-  public Locks(Lock clientLock, Lock processLock) {
+  public Locks(Lock clientLock, Lock serverLock) {
     this.clientLock = clientLock;
-    this.processLock = processLock;
+    this.serverLock = serverLock;
   }
 
   public static Locks files(String serverDir) throws Exception {
     return new Locks(
         new FileLock(serverDir + "/" + ServerFiles.clientLock),
-        new FileLock(serverDir + "/" + ServerFiles.processLock));
+        new FileLock(serverDir + "/" + ServerFiles.serverLock));
   }
 
   public static Locks memory() {
@@ -25,6 +25,6 @@ public final class Locks implements AutoCloseable {
   @Override
   public void close() throws Exception {
     clientLock.delete();
-    processLock.delete();
+    serverLock.delete();
   }
 }
