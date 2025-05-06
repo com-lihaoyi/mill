@@ -3,7 +3,7 @@ package mill.daemon
 import mill.api.SystemStreams
 import mill.client.ClientUtil
 import mill.client.lock.{DoubleLock, Lock, Locks}
-import mill.constants.ServerFiles
+import mill.constants.{OutFiles, ServerFiles}
 import sun.misc.{Signal, SignalHandler}
 
 import scala.util.Try
@@ -51,7 +51,7 @@ class MillServerMain(
 
   val outLock = new DoubleLock(
     Lock.memory(),
-    Lock.file((serverDir / ServerFiles.serverLock).toString),
+    Lock.file((serverDir / OutFiles.millOutLock).toString),
   )
 
   def main0(

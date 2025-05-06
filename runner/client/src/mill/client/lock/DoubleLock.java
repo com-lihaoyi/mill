@@ -32,8 +32,11 @@ public class DoubleLock extends Lock {
   @Override
   public boolean probe() throws Exception {
     TryLocked tl = tryLock();
-    if (tl.isLocked()) return false;
-    else return true;
+    if (!tl.isLocked()) return true;
+    else {
+        tl.release();
+        return false;
+    }
   }
 
   @Override
