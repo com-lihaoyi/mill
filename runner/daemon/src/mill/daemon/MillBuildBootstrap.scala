@@ -277,7 +277,6 @@ class MillBuildBootstrap(
         // look at the `moduleWatched` of one frame up (`prevOuterFrameOpt`),
         // and not the `moduleWatched` from the current frame (`prevFrameOpt`)
         val moduleWatchChanged =
-          // QUESTION: is polling appropriate here?
           prevOuterFrameOpt.exists(_.moduleWatched.exists(w => !Watching.validateAnyWatchable(w)))
 
         val classLoader = if (runClasspathChanged || moduleWatchChanged) {

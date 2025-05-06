@@ -64,6 +64,7 @@ object Watching {
         var prevState: Option[T] = None
         var enterKeyPressed = false
 
+        // Exits when the thread gets interruped.
         while (true) {
           val Result(watchables, errorOpt, result) = evaluate(enterKeyPressed, prevState)
           prevState = Some(result)
@@ -74,10 +75,10 @@ object Watching {
           if (alreadyStale) {
             enterKeyPressed = false
           } else {
-            enterKeyPressed = watchAndWait(streams, watchArgs.setIdle, streams.in, watchables, watchArgs.colors)
+            enterKeyPressed =
+              watchAndWait(streams, watchArgs.setIdle, streams.in, watchables, watchArgs.colors)
           }
         }
-        // QUESTION: this never exits?
         throw new IllegalStateException("unreachable")
     }
   }
@@ -90,28 +91,46 @@ object Watching {
       colors: Colors
   ): Boolean = {
     setIdle(true)
-    val (watchedPollables, watchedPaths) = watched.partitionMap {
+    val (watchedPollables, watchedPathsSeq) = watched.partitionMap {
       case w: Watchable.Pollable => Left(w)
       case p: Watchable.Path => Right(p)
     }
-    val watchedValueCount = watched.size - watchedPaths.size
+    val watchedPathsSet = watchedPathsSeq.iterator.map(p => os.Path(p.p)).toSet
+    val watchedValueCount = watched.size - watchedPathsSeq.size
 
     val watchedValueStr =
       if (watchedValueCount == 0) "" else s" and $watchedValueCount other values"
 
     streams.err.println(
       colors.info(
-        s"Watching for changes to ${watchedPaths.size} paths$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
+        s"Watching for changes to ${watchedPathsSeq.size} paths$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
       ).toString
     )
 
     @volatile var pathChangesDetected = false
+
+    // oslib watch only works with folders, so we have to watch the parent folders instead
+    val osLibWatchPaths = watchedPathsSet.iterator.map(p => p / "..").toSet
+//    mill.constants.DebugLog(
+//      colors.info(s"[watch:watched-paths] ${osLibWatchPaths.mkString("\n")}").toString
+//    )
+
     Using.resource(os.watch.watch(
-      watchedPaths.map(path => os.Path(path.p)),
-      onEvent = _ => pathChangesDetected = true,
-      logger = (eventType, data) => {
-        streams.out.println(colors.info(s"[watch] $eventType: ${pprint.apply(data)}"))
-      }
+      osLibWatchPaths.toSeq,
+      onEvent = changedPaths => {
+        // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
+        // same folder
+        val hasWatchedPath = changedPaths.exists(p => watchedPathsSet.contains(p))
+//        mill.constants.DebugLog(colors.info(
+//          s"[watch:changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
+//        ).toString)
+        if (hasWatchedPath) {
+          pathChangesDetected = true
+        }
+      },
+//      logger = (eventType, data) => {
+//        mill.constants.DebugLog(colors.info(s"[watch] $eventType: ${pprint.apply(data)}").toString)
+//      }
     )) { _ =>
       val enterKeyPressed =
         statWatchWait(watchedPollables, stdin, notifiablesChanged = () => pathChangesDetected)
