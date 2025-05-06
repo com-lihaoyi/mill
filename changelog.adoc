@@ -103,9 +103,15 @@ package build
 
 * Mill's server-client model has been simplified, from having an elastic pool of JVM daemons
   each connected to a single client at a time, to a single shared JVM that handles potentially
-  multiple client simultaneously ({link-pr}/5066[#5066]). Note that Mill still only processes
-  one command at a time, but it is possible to have multiple clients connected to the server
-  if e.g. one client is idle in `--watch` while the other client is running a command.
+  multiple client simultaneously ({link-pr}/5066[#5066]). 
+
+** Note that Mill still only processes
+   one command at a time, but it is possible to have multiple clients connected to the server
+   if e.g. one client is idle in `--watch` while the other client is running a command.
+
+** This fixes some long-standing bugs, e.g. `mill shutdown` used to only shutdown the first
+   process in the Mill daemon pool and provided no way to shutdown the others, whereas now
+   there is only one process which should get terminated correctly
 
 * Mill's native launcher is able to run on systems without a JVM installed, and will
   download an appropriate JVM distribution on demand if necessary ({link-pr}/4597[#4597])
