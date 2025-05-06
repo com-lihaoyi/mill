@@ -68,17 +68,6 @@ public class MillLauncherMain {
           exitCode = launcher.run(serverDir0).exitCode;
         }
         System.exit(exitCode);
-      } catch (ServerCouldNotBeStarted e) {
-        // TODO: try to run in-process
-        System.err.println("Could not start a Mill server process.\n"
-            + "This could be caused by too many already running Mill instances "
-            + "or by an unsupported platform.\n"
-            + e.getMessage() + "\n");
-
-        System.err.println(
-            "Loading Mill in-process isn't possible.\n" + "Please check your Mill installation!");
-        throw e;
-
       } catch (Exception e) {
         System.err.println("Mill client failed with unknown exception");
         e.printStackTrace();
