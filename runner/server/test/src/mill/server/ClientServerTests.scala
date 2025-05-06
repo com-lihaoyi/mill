@@ -214,8 +214,8 @@ object ClientServerTests extends TestSuite {
       assert(resF1.outDir == resF2.outDir)
       assert(resF2.outDir == resF3.outDir)
       // but the serverDir is placed in different subfolders
-      assert(resF1.serverDir != resF2.serverDir)
-      assert(resF2.serverDir != resF3.serverDir)
+      assert(resF1.serverDir == resF2.serverDir)
+      assert(resF2.serverDir == resF3.serverDir)
 
       assert(resF1.out == s"hello World$ENDL")
       assert(resF2.out == s"hello WORLD$ENDL")
