@@ -357,7 +357,10 @@ object MillMain {
                       if (config.watch.value) os.remove(out / OutFiles.millSelectiveExecution)
                       Watching.watchLoop(
                         ringBell = config.ringBell.value,
-                        watch = Option.when(config.watch.value)(Watching.WatchArgs(setIdle = setIdle, colors)),
+                        watch = Option.when(config.watch.value)(Watching.WatchArgs(
+                          setIdle = setIdle,
+                          colors
+                        )),
                         streams = streams,
                         evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
                           adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
