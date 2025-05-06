@@ -2,7 +2,7 @@ package mill.server
 
 import mill.api.SystemStreams
 import mill.constants.ProxyStream.Output
-import mill.client.lock.{Lock, Locks}
+import mill.client.lock.{DoubleLock, Lock, Locks}
 import mill.client.*
 import mill.constants.ServerFiles
 import mill.constants.InputPumper
@@ -317,12 +317,11 @@ object Server {
       noWaitForBuildLock: Boolean,
       out: os.Path,
       targetsAndParams: Seq[String],
-      streams: SystemStreams
+      streams: SystemStreams,
+      outLock: Lock
   )(t: => T): T = {
     if (noBuildLock) t
     else {
-      val outLock = Lock.file((out / OutFiles.millLock).toString)
-
       def activeTaskString =
         try os.read(out / OutFiles.millActiveCommand)
         catch {

@@ -3,6 +3,7 @@ package mill.daemon
 import mill.api.internal.{BspServerResult, internal}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
+import mill.client.lock.Lock
 import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.{api, define}
 import mill.define.WorkspaceRoot
@@ -14,6 +15,7 @@ import mill.util.BuildInfo
 import java.io.{InputStream, PipedInputStream, PrintStream}
 import java.lang.reflect.InvocationTargetException
 import java.util.Locale
+import java.util.concurrent.locks.ReentrantLock
 import scala.collection.immutable
 import scala.jdk.CollectionConverters.*
 import scala.util.{Properties, Using}
@@ -68,7 +70,8 @@ object MillMain {
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap,
           systemExit = i => sys.exit(i),
-          serverDir = os.Path(args.head)
+          serverDir = os.Path(args.head),
+          outLock = mill.client.lock.Locks.files(args.head).processLock
         )
       catch handleMillException(initialSystemStreams.err, ())
 
@@ -121,7 +124,8 @@ object MillMain {
       userSpecifiedProperties0: Map[String, String],
       initialSystemProperties: Map[String, String],
       systemExit: Int => Nothing,
-      serverDir: os.Path
+      serverDir: os.Path,
+      outLock: Lock
   ): (Boolean, RunnerState) = {
 
     os.SubProcess.env.withValue(env) {
@@ -276,7 +280,8 @@ object MillMain {
                       config.noWaitForBuildLock.value,
                       out,
                       targetsAndParams,
-                      streams
+                      streams,
+                      outLock
                     ) {
                       Using.resource(getLogger(
                         streams,
@@ -330,7 +335,8 @@ object MillMain {
                             prevRunnerState,
                             Seq("version"),
                             streams
-                          ).result
+                          ).result,
+                        outLock
                       )
 
                       (true, RunnerState(None, Nil, None))
@@ -394,7 +400,8 @@ object MillMain {
   def runBspSession(
       bspStreams: SystemStreams,
       logStreams: SystemStreams,
-      runMillBootstrap: Option[RunnerState] => RunnerState
+      runMillBootstrap: Option[RunnerState] => RunnerState,
+      outLock: Lock
   ): Result[BspServerResult] = {
     logStreams.err.println("Trying to load BSP server...")
 
@@ -406,7 +413,8 @@ object MillMain {
         define.WorkspaceRoot.workspaceRoot,
         bspStreams,
         logDir,
-        true
+        true,
+        outLock
       )
     }
 

@@ -2,7 +2,7 @@ package mill.daemon
 
 import mill.api.SystemStreams
 import mill.client.ClientUtil
-import mill.client.lock.Locks
+import mill.client.lock.{DoubleLock, Locks}
 import sun.misc.{Signal, SignalHandler}
 
 import scala.util.Try
@@ -48,6 +48,11 @@ class MillServerMain(
   }
   def stateCache0 = RunnerState.empty
 
+  val outLock = new DoubleLock(
+    Locks.files(serverDir.toString).processLock,
+    Locks.memory().processLock
+  )
+
   def main0(
       args: Array[String],
       stateCache: RunnerState,
@@ -57,7 +62,7 @@ class MillServerMain(
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
-      systemExit: Int => Nothing
+      systemExit: Int => Nothing,
   ): (Boolean, RunnerState) = {
     try MillMain.main0(
         args = args,
@@ -69,7 +74,8 @@ class MillServerMain(
         userSpecifiedProperties0 = userSpecifiedProperties,
         initialSystemProperties = initialSystemProperties,
         systemExit = systemExit,
-        serverDir = serverDir
+        serverDir = serverDir,
+        outLock = outLock
       )
     catch MillMain.handleMillException(streams.err, stateCache)
   }
