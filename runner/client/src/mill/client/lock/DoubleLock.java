@@ -40,8 +40,8 @@ public class DoubleLock extends Lock {
 
   @Override
   public void close() throws Exception {
-    lock1.close();
     lock2.close();
+    lock1.close();
   }
 
   @Override
