@@ -57,10 +57,11 @@ package build
 
 ** Task implementations can only write to their own `.dest` folder, and only read from their own or upstream `.dest` folders
 
-** Code running during module/task resolution cannot write to disk, and can only perform reads wrapped in `interp.watchValue` blocks
+** Code running during module/task resolution cannot write to disk, and can only perform
+   reads wrapped in `interp.watchValue` blocks
 
-** These filesystem guardrails are best effort to guide users towards best practices, and are not intended to be a fully hermetic sandbox. You can disable them via `os.checker.withValue(os.Checker.Nop){ ... }`
-
+** These filesystem guardrails are best effort to guide users towards best practices, and are not 
+   intended to be a fully hermetic sandbox. You can disable them via `os.checker.withValue(os.Checker.Nop){ ... }`
 
 * `build.mill` files are now compiled with a minimized classpath containing only
   the necessary APIs, without all of Mill's internal code on the classpath
@@ -99,6 +100,12 @@ package build
   Windows-ARM which is not supported by the Graal tooling we used to build these native
   image. To use the JVM-based launcher, you need to explicitly use a `-jvm` suffix in
   your `.mill-version` file e.g. `1.0.0-jvm`
+
+* Mill's server-client model has been simplified, from having an elastic pool of JVM daemons
+  each connected to a single client at a time, to a single shared JVM that handles potentially
+  multiple client simultaneously ({link-pr}/5066[#5066]). Note that Mill still only processes
+  one command at a time, but it is possible to have multiple clients connected to the server
+  if e.g. one client is idle in `--watch` while the other client is running a command.
 
 * Mill's native launcher is able to run on systems without a JVM installed, and will
   download an appropriate JVM distribution on demand if necessary ({link-pr}/4597[#4597])
