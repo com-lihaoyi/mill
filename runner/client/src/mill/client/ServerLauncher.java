@@ -50,7 +50,7 @@ public abstract class ServerLauncher {
 
   public abstract void initServer(Path serverDir, boolean b, Locks locks) throws Exception;
 
-  public abstract void preRun(Path serverDir) throws Exception;
+  public abstract void prepareServerDir(Path serverDir) throws Exception;
 
   InputStream stdin;
   PrintStream stdout;
@@ -88,7 +88,7 @@ public abstract class ServerLauncher {
 
     Files.createDirectories(serverDir);
 
-    preRun(serverDir);
+    prepareServerDir(serverDir);
 
     Socket ioSocket = launchConnectToServer(serverDir, setJnaNoSys);
 

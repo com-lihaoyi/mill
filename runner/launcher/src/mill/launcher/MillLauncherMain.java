@@ -55,7 +55,7 @@ public class MillLauncherMain {
                 MillProcessLauncher.launchMillServer(serverDir, setJnaNoSys);
               }
 
-              public void preRun(Path serverDir) throws Exception {
+              public void prepareServerDir(Path serverDir) throws Exception {
                 MillProcessLauncher.prepareMillRunFolder(serverDir);
               }
             };
