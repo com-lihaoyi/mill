@@ -22,8 +22,10 @@ public class DoubleLock extends Lock {
     if (l1.isLocked() && l2.isLocked()) {
       return new DoubleTryLocked(l1, l2);
     } else {
-      l1.release();
+      // Unlock the locks in the opposite order in which we originally took them
       l2.release();
+      l1.release();
+
       return new DoubleTryLocked(null, null);
     }
   }
@@ -40,6 +42,7 @@ public class DoubleLock extends Lock {
 
   @Override
   public void close() throws Exception {
+    // Unlock the locks in the opposite order in which we originally took them
     lock2.close();
     lock1.close();
   }
