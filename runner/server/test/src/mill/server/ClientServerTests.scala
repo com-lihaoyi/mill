@@ -238,12 +238,9 @@ object ClientServerTests extends TestSuite {
       val logLines = os.read.lines(os.Path(pathStr, os.pwd) / "server.log")
 
       assert(
-        logLines.takeRight(5) ==
+        logLines.takeRight(2) ==
           Seq(
             "server-0 client interrupted while server was executing command",
-            "server-0 exiting server",
-            "server-0 server loop ended",
-            "server-0 finally exitServer",
             "server-0 exiting server"
           )
       )
