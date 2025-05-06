@@ -42,6 +42,9 @@ if [!GITHUB_RELEASE_CDN!]==[] (
     set "GITHUB_RELEASE_CDN="
 )
 
+if [!MILL_MAIN_CLI!]==[] (
+    set "MILL_MAIN_CLI=%~f0"
+)
 
 set "MILL_REPO_URL=https://github.com/com-lihaoyi/mill"
 
@@ -264,4 +267,4 @@ if not [!MILL_FIRST_ARG!]==[] (
   )
 )
 
-"%MILL%" %MILL_FIRST_ARG%  %MILL_PARAMS%
+"%MILL%" %MILL_FIRST_ARG% -D "mill.main.cli=%MILL_MAIN_CLI%" %MILL_PARAMS%

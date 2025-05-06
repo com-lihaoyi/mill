@@ -122,7 +122,7 @@ if (-not (Test-Path -Path $MILL -PathType Leaf)) {
     Invoke-WebRequest -Uri $DOWNLOAD_URL -OutFile $MILL
 }
 
-
+$MILL_MAIN_CLI = $Env:MILL_MAIN_CLI ?? $PSCommandPath
 
 $MILL_FIRST_ARG = $null
 $REMAINING_ARGUMENTS = $remainingArgs
@@ -134,4 +134,4 @@ if ($null -ne $remainingArgs) {
     }
 }
 
-& $MILL $MILL_FIRST_ARG $REMAINING_ARGUMENTS
+& $MILL $MILL_FIRST_ARG -D "mill.main.cli=$MILL_MAIN_CLI" $REMAINING_ARGUMENTS
