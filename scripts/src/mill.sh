@@ -311,6 +311,7 @@ unset OLD_MILL
 unset MILL_VERSION
 unset MILL_REPO_URL
 
+# -D mill.main.cli is for compatibility with Mill 0.10.9 - 0.13.0-M2
 # We don't quote MILL_FIRST_ARG on purpose, so we can expand the empty value without quotes
 # shellcheck disable=SC2086
 exec "${MILL}" $MILL_FIRST_ARG -D "mill.main.cli=${MILL_MAIN_CLI}" "$@"

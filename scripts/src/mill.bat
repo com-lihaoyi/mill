@@ -267,4 +267,5 @@ if not [!MILL_FIRST_ARG!]==[] (
   )
 )
 
+rem -D mill.main.cli is for compatibility with Mill 0.10.9 - 0.13.0-M2
 "%MILL%" %MILL_FIRST_ARG% -D "mill.main.cli=%MILL_MAIN_CLI%" %MILL_PARAMS%
