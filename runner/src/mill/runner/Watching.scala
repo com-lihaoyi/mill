@@ -1,9 +1,8 @@
 package mill.runner
 
-import mill.api.internal
-import mill.util.{Colors, Watchable}
-import mill.api.SystemStreams
+import mill.api.{SystemStreams, internal}
 import mill.main.client.DebugLog
+import mill.util.{Colors, Watchable}
 
 import java.io.InputStream
 import scala.annotation.tailrec
@@ -15,6 +14,8 @@ import scala.util.Using
  */
 @internal
 object Watching {
+  private final val enableDebugLog = false
+
   case class Result[T](watched: Seq[Watchable], error: Option[String], result: T)
 
   trait Evaluate[T] {
@@ -22,15 +23,15 @@ object Watching {
   }
 
   case class WatchArgs(
-    setIdle: Boolean => Unit,
-    colors: Colors
+      setIdle: Boolean => Unit,
+      colors: Colors
   )
 
   def watchLoop[T](
       ringBell: Boolean,
       watch: Option[WatchArgs],
       streams: SystemStreams,
-      evaluate: Evaluate[T],
+      evaluate: Evaluate[T]
   ): (Boolean, T) = {
     def handleError(errorOpt: Option[String]): Unit = {
       errorOpt.foreach(streams.err.println)
@@ -106,50 +107,59 @@ object Watching {
 
     // oslib watch only works with folders, so we have to watch the parent folders instead
 
-    mill.main.client.DebugLog.println(
-      colors.info(s"[watch:watched-paths:unfiltered] ${watchedPathsSet.toSeq.sorted.mkString("\n")}").toString
+    if (enableDebugLog) DebugLog.println(
+      colors.info(
+        s"[watch:watched-paths:unfiltered] ${watchedPathsSet.toSeq.sorted.mkString("\n")}"
+      ).toString
     )
 
+    /** A hardcoded list of folders to ignore that we know have no impact on the build. */
     val ignoredFolders = Seq(
       mill.api.WorkspaceRoot.workspaceRoot / "out",
       mill.api.WorkspaceRoot.workspaceRoot / ".bloop",
       mill.api.WorkspaceRoot.workspaceRoot / ".metals",
       mill.api.WorkspaceRoot.workspaceRoot / ".idea",
       mill.api.WorkspaceRoot.workspaceRoot / ".git",
-      mill.api.WorkspaceRoot.workspaceRoot / ".bsp",
+      mill.api.WorkspaceRoot.workspaceRoot / ".bsp"
     )
-    mill.main.client.DebugLog.println(
+    if (enableDebugLog) DebugLog.println(
       colors.info(s"[watch:ignored-paths] ${ignoredFolders.toSeq.sorted.mkString("\n")}").toString
     )
 
     val osLibWatchPaths = watchedPathsSet.iterator.map(p => p / "..").toSet
-    mill.main.client.DebugLog.println(
+    if (enableDebugLog) DebugLog.println(
       colors.info(s"[watch:watched-paths] ${osLibWatchPaths.toSeq.sorted.mkString("\n")}").toString
     )
 
     Using.resource(os.watch.watch(
       osLibWatchPaths.toSeq,
-//      filter = path => {
-//        val shouldBeIgnored = ignoredFolders.exists(ignored => path.startsWith(ignored))
-//        mill.main.client.DebugLog.println(
-//          colors.info(s"[watch:filter] $path (ignored=$shouldBeIgnored), ignoredFolders=${ignoredFolders.mkString("[\n  ", "\n  ", "\n]")}").toString
-//        )
-//        !shouldBeIgnored
-//      },
+      filter = path => {
+        val shouldBeIgnored = ignoredFolders.exists(ignored => path.startsWith(ignored))
+        if (enableDebugLog) {
+          val ignoredFoldersStr = ignoredFolders.mkString("[\n  ", "\n  ", "\n]")
+          DebugLog.println(
+            colors.info(s"[watch:filter] $path (ignored=$shouldBeIgnored), ignoredFolders=$ignoredFoldersStr").toString
+          )
+        }
+        !shouldBeIgnored
+      },
       onEvent = changedPaths => {
         // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
         // same folder
-        val hasWatchedPath = changedPaths.exists(p => watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath)))
-        mill.main.client.DebugLog.println(colors.info(
+        val hasWatchedPath =
+          changedPaths.exists(p => watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath)))
+        if (enableDebugLog) DebugLog.println(colors.info(
           s"[watch:changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
         ).toString)
         if (hasWatchedPath) {
           pathChangesDetected = true
         }
       },
-      logger = (eventType, data) => {
-        mill.main.client.DebugLog.println(colors.info(s"[watch] $eventType: ${pprint.apply(data)}").toString)
-      }
+      logger =
+        if (enableDebugLog) (eventType, data) => {
+          DebugLog.println(colors.info(s"[watch] $eventType: ${pprint.apply(data)}").toString)
+        }
+        else (_, _) => {}
     )) { _ =>
       val enterKeyPressed =
         statWatchWait(watchedPollables, stdin, notifiablesChanged = () => pathChangesDetected)
@@ -163,7 +173,11 @@ object Watching {
    *
    * @return `true` if enter key is pressed to re-run tasks explicitly, false if changes in watched files occured.
    */
-  def statWatchWait(watched: Seq[Watchable], stdin: InputStream, notifiablesChanged: () => Boolean): Boolean = {
+  def statWatchWait(
+      watched: Seq[Watchable],
+      stdin: InputStream,
+      notifiablesChanged: () => Boolean
+  ): Boolean = {
     val buffer = new Array[Byte](4 * 1024)
 
     @tailrec def statWatchWait0(): Boolean = {
