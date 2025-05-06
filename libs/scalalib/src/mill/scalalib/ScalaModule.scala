@@ -65,24 +65,27 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
    */
   def scalaVersion: T[String]
 
-  override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
-    super.mapDependencies().andThen { (d: coursier.Dependency) =>
-      val artifacts =
-        if (JvmWorkerUtil.isDotty(scalaVersion()))
-          Set("dotty-library", "dotty-compiler")
-        else if (JvmWorkerUtil.isScala3(scalaVersion()))
-          Set("scala3-library", "scala3-compiler")
-        else
-          Set("scala-library", "scala-compiler", "scala-reflect")
-      if (!artifacts(d.module.name.value)) d
+  override def resolutionParams: Task[coursier.params.ResolutionParams] = Task.Anon {
+    val isTypelevelScala = scalaOrganization() == "org.typelevel"
+    val scalaModuleNames =
+      if (JvmWorkerUtil.isDotty(scalaVersion()))
+        Seq("dotty-library", "dotty-compiler")
+      else if (JvmWorkerUtil.isScala3(scalaVersion()))
+        Seq("scala3-library", "scala3-compiler")
       else
-        d.withModule(
-          d.module.withOrganization(
-            coursier.Organization(scalaOrganization())
-          )
-        )
-          .withVersion(scalaVersion())
+        Seq("scala-library", "scala-compiler", "scala-reflect")
+    val constraint = coursier.version.VersionConstraint(scalaVersion())
+    val forced = scalaModuleNames.map { name =>
+      val mod = coursier.core.Module(
+        coursier.core.Organization(scalaOrganization()),
+        coursier.core.ModuleName(name),
+        Map.empty
+      )
+      (mod, constraint)
     }
+    super.resolutionParams()
+      .withTypelevel(isTypelevelScala)
+      .addForceVersion0(forced*)
   }
 
   def bindDependency: Task[Dep => BoundDep] = Task.Anon { (dep: Dep) =>

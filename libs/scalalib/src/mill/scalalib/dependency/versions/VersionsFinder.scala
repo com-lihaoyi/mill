@@ -56,7 +56,6 @@ private[dependency] object VersionsFinder {
       val compileMvnDeps = javaModule.compileMvnDeps()
       val runMvnDeps = javaModule.runMvnDeps()
       val repos = javaModule.repositoriesTask()
-      val mapDeps = javaModule.mapDependencies()
       val custom = javaModule.resolutionCustomizer()
       val cacheCustom = javaModule.coursierCacheCustomizer()
 
@@ -70,7 +69,6 @@ private[dependency] object VersionsFinder {
       val x = Lib.resolveDependenciesMetadataSafe(
         repositories = repos,
         deps = dependencies: IterableOnce[BoundDep],
-        mapDependencies = Option(mapDeps),
         customizer = custom,
         ctx = Option(Task.ctx()),
         coursierCacheCustomizer = cacheCustom,

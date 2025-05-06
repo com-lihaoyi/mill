@@ -28,7 +28,6 @@ object Lib {
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
-      mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[TaskCtx] = None,
       coursierCacheCustomizer: Option[
@@ -42,7 +41,6 @@ object Lib {
       repositories = repositories,
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
-      mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
@@ -62,7 +60,6 @@ object Lib {
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
       sources: Boolean = false,
-      mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[TaskCtx] = None,
       coursierCacheCustomizer: Option[
@@ -78,7 +75,6 @@ object Lib {
       force = depSeq.filter(_.force).map(_.dep),
       sources = sources,
       artifactTypes = artifactTypes,
-      mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,

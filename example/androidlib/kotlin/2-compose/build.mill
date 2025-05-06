@@ -40,20 +40,19 @@ object app extends AndroidAppKotlinModule {
   )
 
   // This is a temporary fix
-  def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
-    super.mapDependencies().andThen { (d: coursier.Dependency) =>
-      // otherwise there are some resolution problems (version conflicts), because Coursier is using pom files only,
-      // but Gradle is working with .module files if available
-      if (d.module.organization.value == "androidx.collection") {
-        d.withVersion("1.4.4")
-      } else if (d.module.organization.value == "androidx.lifecycle") {
-        d.withVersion("2.8.3")
-      } else if (d.module.organization.value == "androidx.compose.runtime") {
-        d.withVersion("1.7.5")
-      } else {
-        d
-      }
+  def resolutionParams: Task[coursier.params.ResolutionParams] = Task.Anon {
+    // otherwise there are some resolution problems (version conflicts), because Coursier is using pom files only,
+    // but Gradle is working with .module files if available
+    def forOrg(org: String, ver: String) = {
+      val mod = coursier.Module(coursier.Organization(org), coursier.ModuleName("*"), Map.empty)
+      val constraint = coursier.version.VersionConstraint(ver)
+      (mod, constraint)
     }
+    super.resolutionParams().addForceVersion0(
+      forOrg("androidx.collection", "1.4.4"),
+      forOrg("androidx.lifecycle", "2.8.3"),
+      forOrg("androidx.compose.runtime", "1.7.5")
+    )
   }
 }
 
