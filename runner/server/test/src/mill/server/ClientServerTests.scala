@@ -96,7 +96,7 @@ object ClientServerTests extends TestSuite {
         forceFailureForTestingMillisDelay
       ) {
         def prepareServerDir(serverDir: Path) = { /*do nothing*/ }
-        def initServer(serverDir: Path, b: Boolean, locks: Locks) = {
+        def initServer(serverDir: Path, locks: Locks) = {
           val processId = "server-" + nextServerId
           nextServerId += 1
           new Thread(new EchoServer(

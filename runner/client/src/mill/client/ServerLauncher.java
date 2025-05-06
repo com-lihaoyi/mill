@@ -48,7 +48,7 @@ public abstract class ServerLauncher {
 
   final int serverInitWaitMillis = 10000;
 
-  public abstract void initServer(Path serverDir, boolean b, Locks locks) throws Exception;
+  public abstract void initServer(Path serverDir, Locks locks) throws Exception;
 
   public abstract void prepareServerDir(Path serverDir) throws Exception;
 
@@ -83,14 +83,12 @@ public abstract class ServerLauncher {
   }
 
   public Result run(Path serverDir) throws Exception {
-    final boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
-    if (setJnaNoSys) System.setProperty("jna.nosys", "true");
 
     Files.createDirectories(serverDir);
 
     prepareServerDir(serverDir);
 
-    Socket ioSocket = launchConnectToServer(serverDir, setJnaNoSys);
+    Socket ioSocket = launchConnectToServer(serverDir);
 
     try {
       Thread outPumperThread = startStreamPumpers(ioSocket);
@@ -106,12 +104,12 @@ public abstract class ServerLauncher {
     return result;
   }
 
-  Socket launchConnectToServer(Path serverDir, boolean setJnaNoSys) throws Exception {
+  Socket launchConnectToServer(Path serverDir) throws Exception {
 
     try (Locks locks = memoryLock != null ? memoryLock : Locks.files(serverDir.toString());
         mill.client.lock.Locked locked = locks.clientLock.lock()) {
 
-      if (locks.serverLock.probe()) initServer(serverDir, setJnaNoSys, locks);
+      if (locks.serverLock.probe()) initServer(serverDir, locks);
       while (locks.serverLock.probe()) Thread.sleep(1);
     }
     long retryStart = System.currentTimeMillis();

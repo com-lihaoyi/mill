@@ -23,12 +23,11 @@ import mill.constants.ServerFiles;
 public class MillProcessLauncher {
 
   static int launchMillNoServer(String[] args) throws Exception {
-    final boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
     final Path processDir = Paths.get(".").resolve(out).resolve(millNoServer).resolve(sig);
 
     final List<String> l = new ArrayList<>();
-    l.addAll(millLaunchJvmCommand(setJnaNoSys));
+    l.addAll(millLaunchJvmCommand());
     l.add("mill.daemon.MillMain");
     l.add(processDir.toAbsolutePath().toString());
     l.addAll(millOpts());
@@ -57,9 +56,9 @@ public class MillProcessLauncher {
     }
   }
 
-  static void launchMillServer(Path serverDir, boolean setJnaNoSys) throws Exception {
+  static void launchMillServer(Path serverDir) throws Exception {
     List<String> l = new ArrayList<>();
-    l.addAll(millLaunchJvmCommand(setJnaNoSys));
+    l.addAll(millLaunchJvmCommand());
     l.add("mill.daemon.MillServerMain");
     l.add(serverDir.toFile().getCanonicalPath());
 
@@ -202,16 +201,11 @@ public class MillProcessLauncher {
     }
   }
 
-  static List<String> millLaunchJvmCommand(boolean setJnaNoSys) throws Exception {
+  static List<String> millLaunchJvmCommand() throws Exception {
     final List<String> vmOptions = new ArrayList<>();
 
     // Java executable
     vmOptions.add(javaExe());
-
-    // jna
-    if (setJnaNoSys) {
-      vmOptions.add("-Djna.nosys=true");
-    }
 
     // sys props
     final Properties sysProps = System.getProperties();

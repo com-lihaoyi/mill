@@ -50,9 +50,8 @@ public class MillLauncherMain {
                 optsArgs.toArray(new String[0]),
                 null,
                 -1) {
-              public void initServer(Path serverDir, boolean setJnaNoSys, Locks locks)
-                  throws Exception {
-                MillProcessLauncher.launchMillServer(serverDir, setJnaNoSys);
+              public void initServer(Path serverDir, Locks locks) throws Exception {
+                MillProcessLauncher.launchMillServer(serverDir);
               }
 
               public void prepareServerDir(Path serverDir) throws Exception {
