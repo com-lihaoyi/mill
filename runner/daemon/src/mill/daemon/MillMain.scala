@@ -71,7 +71,7 @@ object MillMain {
           initialSystemProperties = sys.props.toMap,
           systemExit = i => sys.exit(i),
           serverDir = os.Path(args.head),
-          outLock = mill.client.lock.Locks.files(args.head).processLock
+          outLock = mill.client.lock.Locks.files(args.head).serverLock
         )
       catch handleMillException(initialSystemStreams.err, ())
 

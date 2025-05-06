@@ -20,7 +20,7 @@ public class ServerFiles {
    * folder. If multiple servers are spawned in the same folder, only one takes
    * the lock and the others fail to do so and terminate immediately.
    */
-  public static final String processLock = "processLock";
+  public static final String serverLock = "serverLock";
 
   /**
    * The port used to connect between server and client

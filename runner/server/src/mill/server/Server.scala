@@ -47,7 +47,7 @@ abstract class Server[T](
     val initialSystemProperties = sys.props.toMap
 
     try {
-      Server.tryLockBlock(locks.processLock) {
+      Server.tryLockBlock(locks.serverLock) {
         serverLog("server file locked")
         Server.watchProcessIdFile(
           serverDir / ServerFiles.processId,

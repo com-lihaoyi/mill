@@ -22,10 +22,10 @@ import mill.constants.Util;
  *
  * - Client:
  *   - Take clientLock
- *   - If processLock is not yet taken, it means server is not running, so spawn a server
+ *   - If serverLock is not yet taken, it means server is not running, so spawn a server
  *   - Wait for server socket to be available for connection
  * - Server:
- *   - Take processLock.
+ *   - Take serverLock.
  *     - If already taken, it means another server was running
  *       (e.g. spawned by a different client) so exit immediately
  * - Server: loop:
@@ -99,8 +99,8 @@ public abstract class ServerLauncher {
     try (Locks locks = memoryLock != null ? memoryLock : Locks.files(serverDir.toString());
         mill.client.lock.Locked locked = locks.clientLock.lock()) {
 
-      if (locks.processLock.probe()) initServer(serverDir, setJnaNoSys, locks);
-      while (locks.processLock.probe()) Thread.sleep(1);
+      if (locks.serverLock.probe()) initServer(serverDir, setJnaNoSys, locks);
+      while (locks.serverLock.probe()) Thread.sleep(1);
     }
     long retryStart = System.currentTimeMillis();
     Socket ioSocket = null;

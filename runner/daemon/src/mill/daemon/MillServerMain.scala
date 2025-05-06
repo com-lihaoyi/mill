@@ -49,8 +49,8 @@ class MillServerMain(
   def stateCache0 = RunnerState.empty
 
   val outLock = new DoubleLock(
-    Locks.files(serverDir.toString).processLock,
-    Locks.memory().processLock
+    Locks.files(serverDir.toString).serverLock,
+    Locks.memory().serverLock
   )
 
   def main0(
