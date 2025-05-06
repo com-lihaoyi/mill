@@ -144,7 +144,7 @@ abstract class Server[T](
     // message to see if the socket can receive data.
     def checkClientAlive() = {
       try {
-        currentOutErr.write(ProxyStream.HEARTBEAT)
+        ProxyStream.sendHeartbeat(currentOutErr)
         true
       } catch {case e: Throwable =>
         clientDisappeared = true
