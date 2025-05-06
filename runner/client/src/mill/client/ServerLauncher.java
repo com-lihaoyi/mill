@@ -148,9 +148,6 @@ public abstract class ServerLauncher {
         System.err.println("mill-server/ exitCode file not found");
         return 1;
       }
-    } finally {
-      System.out.println("ServerLauncher ioSocket.close()");
-      ioSocket.close();
-    }
+    } finally ioSocket.close();
   }
 }
