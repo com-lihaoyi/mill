@@ -53,7 +53,7 @@ class MillServerMain(
 
   val outLock = new DoubleLock(
     Lock.memory(),
-    Lock.file((out / OutFiles.millOutLock).toString),
+    Lock.file((out / OutFiles.millOutLock).toString)
   )
 
   def main0(
@@ -65,7 +65,7 @@ class MillServerMain(
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
-      systemExit: Int => Nothing,
+      systemExit: Int => Nothing
   ): (Boolean, RunnerState) = {
     try MillMain.main0(
         args = args,

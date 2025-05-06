@@ -146,9 +146,10 @@ abstract class Server[T](
       try {
         ProxyStream.sendHeartbeat(currentOutErr)
         true
-      } catch {case e: Throwable =>
-        clientDisappeared = true
-        false
+      } catch {
+        case e: Throwable =>
+          clientDisappeared = true
+          false
       }
     }
     try {
@@ -181,7 +182,6 @@ abstract class Server[T](
         )
         System.exit(ClientUtil.ExitServerCodeWhenVersionMismatch())
       }
-
 
       @volatile var done = false
       @volatile var idle = false
