@@ -95,8 +95,8 @@ object ClientServerTests extends TestSuite {
         memoryLock,
         forceFailureForTestingMillisDelay
       ) {
-        def preRun(serverDir: Path) = { /*do nothing*/ }
-        def initServer(serverDir: Path, b: Boolean, locks: Locks) = {
+        def prepareServerDir(serverDir: Path) = { /*do nothing*/ }
+        def initServer(serverDir: Path, locks: Locks) = {
           val processId = "server-" + nextServerId
           nextServerId += 1
           new Thread(new EchoServer(
@@ -106,7 +106,7 @@ object ClientServerTests extends TestSuite {
             testLogEvenWhenServerIdWrong
           )).start()
         }
-      }.acquireLocksAndRun((outDir / "server-0").relativeTo(os.pwd).toNIO)
+      }.run((outDir / "server-0").relativeTo(os.pwd).toNIO)
 
       ClientResult(
         result.exitCode,

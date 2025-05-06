@@ -1,5 +1,6 @@
 package mill.client;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -47,9 +48,9 @@ public abstract class ServerLauncher {
 
   final int serverInitWaitMillis = 10000;
 
-  public abstract void initServer(Path serverDir, boolean b, Locks locks) throws Exception;
+  public abstract void initServer(Path serverDir, Locks locks) throws Exception;
 
-  public abstract void preRun(Path serverDir) throws Exception;
+  public abstract void prepareServerDir(Path serverDir) throws Exception;
 
   InputStream stdin;
   PrintStream stdout;
@@ -81,25 +82,34 @@ public abstract class ServerLauncher {
     this.forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay;
   }
 
-  public Result acquireLocksAndRun(Path serverDir) throws Exception {
-    final boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
-    if (setJnaNoSys) System.setProperty("jna.nosys", "true");
+  public Result run(Path serverDir) throws Exception {
 
     Files.createDirectories(serverDir);
 
+    prepareServerDir(serverDir);
+
+    Socket ioSocket = launchConnectToServer(serverDir);
+
+    try {
+      Thread outPumperThread = startStreamPumpers(ioSocket);
+      forceTestFailure(serverDir);
+      outPumperThread.join();
+    } finally {
+      ioSocket.close();
+    }
+
     Result result = new Result();
-    preRun(serverDir);
-    result.exitCode = run(serverDir, setJnaNoSys);
+    result.exitCode = readExitCode(serverDir);
     result.serverDir = serverDir;
     return result;
   }
 
-  int run(Path serverDir, boolean setJnaNoSys) throws Exception {
+  Socket launchConnectToServer(Path serverDir) throws Exception {
 
     try (Locks locks = memoryLock != null ? memoryLock : Locks.files(serverDir.toString());
         mill.client.lock.Locked locked = locks.clientLock.lock()) {
 
-      if (locks.serverLock.probe()) initServer(serverDir, setJnaNoSys, locks);
+      if (locks.serverLock.probe()) initServer(serverDir, locks);
       while (locks.serverLock.probe()) Thread.sleep(1);
     }
     long retryStart = System.currentTimeMillis();
@@ -114,11 +124,20 @@ public abstract class ServerLauncher {
         Thread.sleep(1);
       }
     }
-
     if (ioSocket == null) {
       throw new Exception("Failed to connect to server", socketThrowable);
     }
+    return ioSocket;
+  }
 
+  private void forceTestFailure(Path serverDir) throws Exception {
+    if (forceFailureForTestingMillisDelay > 0) {
+      Thread.sleep(forceFailureForTestingMillisDelay);
+      throw new Exception("Force failure for testing: " + serverDir);
+    }
+  }
+
+  Thread startStreamPumpers(Socket ioSocket) throws Exception {
     InputStream outErr = ioSocket.getInputStream();
     OutputStream in = ioSocket.getOutputStream();
     in.write(Util.hasConsole() ? 1 : 0);
@@ -133,23 +152,16 @@ public abstract class ServerLauncher {
     inThread.setDaemon(true);
     outPumperThread.start();
     inThread.start();
+    return outPumperThread;
+  }
 
-    try {
-      if (forceFailureForTestingMillisDelay > 0) {
-        Thread.sleep(forceFailureForTestingMillisDelay);
-        throw new Exception("Force failure for testing: " + serverDir);
-      }
-      outPumperThread.join();
-
-      Path exitCodeFile = serverDir.resolve(ServerFiles.exitCode);
-      if (Files.exists(exitCodeFile)) {
-        return Integer.parseInt(Files.readAllLines(exitCodeFile).get(0));
-      } else {
-        System.err.println("mill-server/ exitCode file not found");
-        return 1;
-      }
-    } finally {
-      ioSocket.close();
+  int readExitCode(Path serverDir) throws IOException {
+    Path exitCodeFile = serverDir.resolve(ServerFiles.exitCode);
+    if (Files.exists(exitCodeFile)) {
+      return Integer.parseInt(Files.readAllLines(exitCodeFile).get(0));
+    } else {
+      System.err.println("mill-server/ exitCode file not found");
+      return 1;
     }
   }
 }
