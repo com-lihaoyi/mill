@@ -206,8 +206,13 @@ class UnitTester(
     evaluator.close()
 
     assert(
+<<<<<<< HEAD
       mill.util.MillURLClassLoader.openClassloaders.isEmpty,
       s"Unit tester detected leaked classloaders on close: \n${mill.util.MillURLClassLoader.openClassloaders.mkString("\n")}"
+=======
+      mill.util.Jvm.openClassloaders.isEmpty,
+      s"Unit tester detected leaked classloaders on close: \n${mill.util.Jvm.openClassloaders.mkString("\n")}"
+>>>>>>> main
     )
   }
 }
