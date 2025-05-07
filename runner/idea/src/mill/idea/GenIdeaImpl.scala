@@ -26,6 +26,7 @@ import mill.util.BuildInfo
 import collection.mutable
 import java.net.URL
 import mill.api.internal._
+import os.SubPath
 
 class GenIdeaImpl(
     private val evaluators: Seq[EvaluatorApi]
@@ -45,7 +46,7 @@ class GenIdeaImpl(
       .getOrElse(("JDK_1_8", "1.8 (1)"))
 
     println("Analyzing modules ...")
-    val layout: Seq[(os.SubPath, Node)] =
+    val layout: Seq[(subPath : SubPath, xml : Node)] =
       xmlFileLayout(evaluators, jdkInfo)
 
     println("Cleaning obsolete IDEA project files ...")
@@ -54,7 +55,7 @@ class GenIdeaImpl(
     os.remove.all(ideaDir / "mill_modules")
 
     println(s"Writing ${layout.size} IDEA project files to ${ideaDir} ...")
-    for ((subPath, xml) <- layout) {
+    for ((subPath = subPath, xml = xml) <- layout) {
       println(s"Writing ${subPath} ...")
       os.write.over(ideaDir / subPath, pp.format(xml), createFolders = true)
     }
@@ -77,34 +78,46 @@ class GenIdeaImpl(
       evaluators: Seq[EvaluatorApi],
       jdkInfo: (String, String),
       fetchMillModules: Boolean = true
-  ): Seq[(os.SubPath, scala.xml.Node)] = {
+  ): Seq[(subPath: os.SubPath, xml: scala.xml.Node)] = {
 
     val rootModules = evaluators.zipWithIndex.map { case (ev, idx) =>
-      (ev.rootModule, ev, idx)
+      (rootModule = ev.rootModule, evaluator = ev, index = idx)
     }
-    val transitive: Seq[(BaseModuleApi, Seq[ModuleApi], EvaluatorApi, Int)] = rootModules
-      .map { case (rootModule, ev, idx) =>
-        (rootModule, transitiveModules(rootModule), ev, idx)
-      }
+    val transitive = rootModules.map { case (rootModule, ev, idx) =>
+      (
+        rootModule = rootModule,
+        transitive = transitiveModules(rootModule),
+        evaluator = ev,
+        index = idx
+      )
+    }
 
-    val foundModules: Seq[(Segments, ModuleApi, EvaluatorApi)] = transitive
-      .flatMap { case (rootMod, transModules, ev, idx) =>
-        transModules.collect {
+    val foundModules = transitive
+      .flatMap { t =>
+        t.transitive.collect {
           case m: ModuleApi =>
-            val rootSegs = os.Path(rootMod.moduleDirJava).relativeTo(workDir).segments
+            val rootSegs = os.Path(t.rootModule.moduleDirJava).relativeTo(workDir).segments
             val modSegs = m.moduleSegments.parts
             val segments: Seq[String] = rootSegs ++ modSegs
-            (Segments(segments.map(Segment.Label(_))), m, ev)
+            (
+              segments = Segments(segments.map(Segment.Label(_))),
+              module = m,
+              evaluator = t.evaluator
+            )
         }
       }
 
-    val modules: Seq[(Segments, JavaModuleApi, EvaluatorApi)] = foundModules
-      .collect { case (s, x: JavaModuleApi, ev) => (s, x, ev) }
-      .filterNot(_._2.skipIdea)
-      .distinct
+    val modules: Seq[(segments: Segments, module: JavaModuleApi, evaluator: EvaluatorApi)] =
+      foundModules
+        .collect { case (segments = s, module = x: JavaModuleApi, evaluator = ev) =>
+          (segments = s, module = x, evaluator = ev)
+        }
+        .filterNot(_.module.skipIdea)
+        .distinct
 
-    lazy val modulesByEvaluator: Map[EvaluatorApi, Seq[(Segments, JavaModuleApi)]] = modules
-      .groupMap { case (_, _, ev) => ev } { case (s, m, _) => (s, m) }
+    lazy val modulesByEvaluator
+        : Map[EvaluatorApi, Seq[(segments: Segments, module: JavaModuleApi)]] = modules
+      .groupMap { case (evaluator = ev) => ev } { m => (segments = m.segments, module = m.module) }
 
     // is head the right one?
     val buildDepsPaths = GenIdeaImpl.allJars(evaluators.head.rootModule.getClass.getClassLoader)
@@ -131,7 +144,7 @@ class GenIdeaImpl(
       }
     }
 
-    val moduleLabels = modules.map { case (s, m, e) => (m, s) }.toMap
+    val moduleLabels = modules.map { case (module = m, segments = s) => (m, s) }.toMap
 
     val allResolved: Seq[os.Path] =
       (resolvedModules.flatMap(_.classpath).map(s => os.Path(s.value)) ++ buildDepsPaths)
@@ -149,7 +162,7 @@ class GenIdeaImpl(
         os.sub / os.SubPath(wf._1) -> ideaConfigElementTemplate(wf._2)
       }
 
-    type FileComponent = (os.SubPath, Option[String])
+    type FileComponent = (subPath: os.SubPath, component: Option[String])
 
     /** Ensure, the additional configs don't collide. */
     def collisionFreeExtraConfigs(
@@ -160,7 +173,7 @@ class GenIdeaImpl(
       var result: Map[os.SubPath, Seq[IdeaConfigFile]] = Map()
       confs.foreach { conf =>
         val subPath = os.SubPath(conf.subPath)
-        val key = subPath -> conf.component
+        val key = (subPath = subPath, component = conf.component)
         seen.get(key) match {
           case None =>
             seen += key -> conf.config
@@ -301,11 +314,12 @@ class GenIdeaImpl(
 
     def libraryNames(resolvedJar: ResolvedLibrary): Seq[String] =
       resolvedJar match {
-        case CoursierResolved(path, pom, _) if buildDepsPaths.contains(path) && pom.toIO.exists() =>
+        case CoursierResolved(path = path, pom = pom)
+            if buildDepsPaths.contains(path) && pom.toIO.exists() =>
           Seq(sbtLibraryNameFromPom(pom), pathToLibName(path))
-        case CoursierResolved(path, _, _) =>
+        case CoursierResolved(path = path) =>
           Seq(pathToLibName(path))
-        case WithSourcesResolved(path, _) =>
+        case WithSourcesResolved(path = path) =>
           Seq(pathToLibName(path))
         case OtherResolved(path) =>
           Seq(pathToLibName(path))
@@ -329,7 +343,7 @@ class GenIdeaImpl(
       Tuple2(
         os.sub / "modules.xml",
         allModulesXmlTemplate(
-          modules.map { case (segments, mod, _) => moduleName(segments) }.sorted
+          modules.map { case (segments = segments) => moduleName(segments) }.sorted
         )
       ),
       Tuple2(
@@ -350,8 +364,8 @@ class GenIdeaImpl(
       resolvedLibraries(allResolved).flatMap { resolved =>
         val names = libraryNames(resolved)
         val sources = resolved match {
-          case CoursierResolved(_, _, s) => s
-          case WithSourcesResolved(_, s) => s
+          case CoursierResolved(sources = s) => s
+          case WithSourcesResolved(sources = s) => s
           case OtherResolved(_) => None
         }
         for (name <- names)
