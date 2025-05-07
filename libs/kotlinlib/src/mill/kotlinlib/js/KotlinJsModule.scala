@@ -1,5 +1,7 @@
 package mill.kotlinlib.js
 
+import coursier.core.VariantSelector.VariantMatcher
+import coursier.params.ResolutionParams
 import mainargs.arg
 import mill.define.{PathRef}
 import mill.api.{Result}
@@ -84,6 +86,14 @@ trait KotlinJsModule extends KotlinModule { outer =>
           m.localCompileClasspath() ++ Seq(m.compile().classes)
         }
     }().flatten
+  }
+
+  override def resolutionParams: Task[ResolutionParams] = Task.Anon {
+    super.resolutionParams().addVariantAttributes(
+      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("js"),
+      "org.gradle.jvm.environment" -> VariantMatcher.Equals("non-jvm"),
+      "org.jetbrains.kotlin.js.compiler" -> VariantMatcher.Equals("ir")
+    )
   }
 
   /**
@@ -697,7 +707,10 @@ trait KotlinJsModule extends KotlinModule { outer =>
     )
 
     override def mandatoryMvnDeps: T[Seq[Dep]] = super.mandatoryMvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-framework-engine-js:${kotestVersion()}",
+      mvn"io.kotest:kotest-framework-engine-js:${kotestVersion()}"
+        // buggy JVM dependency of a kotlin-js dependency?
+        // seems that exclusion can be dropped for kotest-framework-engine-js >= 6.0.0.M2
+        .exclude(("org.jetbrains.kotlinx", "kotlinx-coroutines-debug")),
       mvn"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
     )
   }

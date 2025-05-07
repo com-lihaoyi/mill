@@ -1,16 +1,17 @@
 package mill.util
 
 import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
-import coursier.core.{BomDependency, Module}
-import mill.define.{PathRef, TaskCtx}
+import coursier.core.{BomDependency, Module, VariantSelector}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
+import coursier.maven.MavenRepositoryLike
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.*
+import mill.define.{PathRef, TaskCtx}
 
 import java.io.BufferedOutputStream
 import java.io.File
@@ -536,6 +537,7 @@ object Jvm {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency] = Nil,
+      checkGradleModules: Boolean,
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
@@ -548,6 +550,7 @@ object Jvm {
       repositories,
       deps,
       force,
+      checkGradleModules,
       mapDependencies,
       customizer,
       ctx,
@@ -563,6 +566,10 @@ object Jvm {
         .withClassifiers(
           if (sources) Set(Classifier("sources"))
           else Set.empty
+        )
+        .withAttributes(
+          if (sources) Seq(VariantSelector.AttributesBased.sources)
+          else Nil
         )
         .withArtifactTypesOpt(artifactTypes)
         .eitherResult()
@@ -593,6 +600,7 @@ object Jvm {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
+      checkGradleModules: Boolean,
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
@@ -605,6 +613,7 @@ object Jvm {
       repositories,
       deps,
       force,
+      checkGradleModules,
       sources,
       mapDependencies,
       customizer,
@@ -693,6 +702,7 @@ object Jvm {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
+      checkGradleModules: Boolean,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.define.TaskCtx] = None,
@@ -733,10 +743,20 @@ object Jvm {
       val resourceTestOverridesRepo =
         new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
 
+      val repositories0 =
+        if (checkGradleModules)
+          repositories.map {
+            case m: MavenRepositoryLike.WithModuleSupport =>
+              m.withCheckModule(true)
+            case other => other
+          }
+        else
+          repositories
+
       val resolve = Resolve()
         .withCache(coursierCache0)
         .withDependencies(rootDeps)
-        .withRepositories(Seq(resourceTestOverridesRepo) ++ envTestOverridesRepo ++ repositories)
+        .withRepositories(Seq(resourceTestOverridesRepo) ++ envTestOverridesRepo ++ repositories0)
         .withResolutionParams(resolutionParams0)
         .withMapDependenciesOpt(mapDependencies)
         .withBoms(boms.iterator.toSeq)
