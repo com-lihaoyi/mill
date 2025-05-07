@@ -37,22 +37,4 @@ private class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
       case e: Exception => // noop
     }
   }
-
-  override def error(s: String): Unit = {
-    super.error(s)
-    client.onBuildShowMessage(new ShowMessageParams(MessageType.ERROR, s))
-  }
-
-  override def info(s: String): Unit = {
-    super.info(s)
-    client.onBuildShowMessage(new ShowMessageParams(MessageType.INFO, s))
-  }
-
-  override def debug(s: String): Unit = {
-    super.debug(s)
-    if (debugEnabled) {
-      client.onBuildLogMessage(new LogMessageParams(MessageType.LOG, s))
-    }
-  }
-
 }
