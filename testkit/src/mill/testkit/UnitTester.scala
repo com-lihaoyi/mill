@@ -57,6 +57,7 @@ class UnitTester(
     resetSourcePath: Boolean,
     offline: Boolean
 )(implicit fullName: sourcecode.FullName) extends AutoCloseable {
+  assert(mill.util.Jvm.openClassloaders.isEmpty)
   val outPath: os.Path = module.moduleDir / "out"
 
   if (resetSourcePath) {
@@ -200,5 +201,7 @@ class UnitTester(
       obsolete.close()
     }
     evaluator.close()
+
+    assert(mill.util.Jvm.openClassloaders.isEmpty)
   }
 }

@@ -226,10 +226,30 @@ object Jvm {
       classPath.iterator.map(_.toNIO.toUri.toURL).toArray,
       refinePlatformParent(parent)
     ) {
+      addOpenClassloader(classPath)
       override def findClass(name: String): Class[?] =
         if (sharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
         else super.findClass(name)
+
+      override def close() = {
+        removeOpenClassloader(classPath)
+        super.close()
+      }
     }
+
+  private[mill] val openClassloaders = collection.mutable.Map.empty[Iterable[os.Path], Int]
+  private[mill] def addOpenClassloader(classPath: Iterable[os.Path]) = openClassloaders.synchronized{
+    openClassloaders.updateWith(classPath){
+      case None => Some(1)
+      case Some(n) => Some(n+1)
+    }
+  }
+  private[mill] def removeOpenClassloader(classPath: Iterable[os.Path]) = openClassloaders.synchronized{
+    openClassloaders.updateWith(classPath){
+      case Some(1) => None
+      case Some(n) => Some(n-1)
+    }
+  }
 
   /**
    * @param classPath URLs from which to load classes and resources
