@@ -456,9 +456,8 @@ object MainModuleTests extends TestSuite {
       }
 
       test("single-module") {
-        UnitTester(cleanModule, null).scoped {
-          ev =>
-            val out = ev.evaluator.outPath
+        UnitTester(cleanModule, null).scoped { ev =>
+          val out = ev.evaluator.outPath
           val r1 = ev.evaluator.execute(Seq(cleanModule.all)).executionResults
           assert(r1.transitiveFailing.size == 0)
           checkExists(out, true)(
