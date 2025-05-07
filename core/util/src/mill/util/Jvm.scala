@@ -222,20 +222,27 @@ object Jvm {
       sharedLoader: ClassLoader = getClass.getClassLoader,
       sharedPrefixes: Iterable[String] = Seq()
   ): URLClassLoader =
-    new URLClassLoader(
-      classPath.iterator.map(_.toNIO.toUri.toURL).toArray,
-      refinePlatformParent(parent)
-    ) {
-      addOpenClassloader(classPath)
-      override def findClass(name: String): Class[?] =
-        if (sharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
-        else super.findClass(name)
+    new MillURLClassLoader(classPath, parent, sharedLoader, sharedPrefixes)
 
-      override def close() = {
-        removeOpenClassloader(classPath)
-        super.close()
-      }
+  class MillURLClassLoader(
+      classPath: Iterable[os.Path],
+      parent: ClassLoader,
+      sharedLoader: ClassLoader,
+      sharedPrefixes: Iterable[String]
+  ) extends URLClassLoader(
+        classPath.iterator.map(_.toNIO.toUri.toURL).toArray,
+        refinePlatformParent(parent)
+      ) {
+    addOpenClassloader(classPath)
+    override def findClass(name: String): Class[?] =
+      if (sharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
+      else super.findClass(name)
+
+    override def close() = {
+      removeOpenClassloader(classPath)
+      super.close()
     }
+  }
 
   private[mill] val openClassloaders = collection.mutable.Map.empty[Iterable[os.Path], Int]
   private[mill] def addOpenClassloader(classPath: Iterable[os.Path]) =
