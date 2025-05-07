@@ -110,6 +110,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    core.bomMvnDeps
           |    core.depManagement
           |    core.repositories
+          |    core.checkGradleModules
           |""".stripMargin,
         mvnDepsTree
       )

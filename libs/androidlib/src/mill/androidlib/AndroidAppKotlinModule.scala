@@ -25,13 +25,13 @@ import mill.T
  * [[https://developer.android.com/studio Android Studio Documentation]]
  */
 @mill.api.experimental
-trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule { outer =>
+trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule { outer =>
 
   def kotlinSources = Task.Sources("src/main/kotlin")
   override def sources: T[Seq[PathRef]] =
     super[AndroidAppModule].sources() ++ kotlinSources()
 
-  trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests {
+  trait AndroidAppKotlinTests extends KotlinTests with AndroidAppTests {
     def kotlinSources = Task.Sources("src/test/kotlin")
     override def sources: T[Seq[PathRef]] =
       super[AndroidAppTests].sources() ++ kotlinSources()
