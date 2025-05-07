@@ -247,7 +247,8 @@ object Jvm {
   private[mill] val openClassloaders = collection.mutable.Map.empty[Iterable[os.Path], Int]
   private[mill] def addOpenClassloader(classPath: Iterable[os.Path]) =
     openClassloaders.synchronized {
-      // new Exception().printStackTrace()
+      // println(s"addOpenClassLoader ${classPath.hashCode}\n  " + new Exception().getStackTrace.mkString("\n  "))
+
       openClassloaders.updateWith(classPath) {
         case None => Some(1)
         case Some(n) => Some(n + 1)
@@ -255,7 +256,7 @@ object Jvm {
     }
   private[mill] def removeOpenClassloader(classPath: Iterable[os.Path]) =
     openClassloaders.synchronized {
-      // new Exception().printStackTrace()
+      // println(s"removeOpenClassLoader ${classPath.hashCode}\n  " + new Exception().getStackTrace.mkString("\n  "))
       openClassloaders.updateWith(classPath) {
         case Some(1) => None
         case Some(n) => Some(n - 1)
@@ -273,11 +274,16 @@ object Jvm {
   def withClassLoader[T](
       classPath: Iterable[os.Path],
       parent: ClassLoader = null,
+      sharedLoader: ClassLoader = getClass.getClassLoader,
       sharedPrefixes: Seq[String] = Seq.empty
   )(f: ClassLoader => T): T = {
     val oldClassloader = Thread.currentThread().getContextClassLoader
-    val newClassloader =
-      createClassLoader(classPath = classPath, parent = parent, sharedPrefixes = sharedPrefixes)
+    val newClassloader = createClassLoader(
+      classPath = classPath,
+      parent = parent,
+      sharedLoader = sharedLoader,
+      sharedPrefixes = sharedPrefixes
+    )
     Thread.currentThread().setContextClassLoader(newClassloader)
     try {
       f(newClassloader)
