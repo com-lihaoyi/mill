@@ -74,82 +74,88 @@ object JavaHomeTests extends TestSuite {
 
     test("javaHome") {
       test("compile11") {
-        val eval = UnitTester(HelloJavaJavaHome11Override, resourcePath)
+        UnitTester(HelloJavaJavaHome11Override, resourcePath).scoped { eval =>
 
-        val Right(result) = eval.apply(HelloJavaJavaHome11Override.core.compile): @unchecked
+          val Right(result) = eval.apply(HelloJavaJavaHome11Override.core.compile): @unchecked
 
-        val coreClassFile = os.walk(result.value.classes.path).find(_.last == "Core.class")
+          val coreClassFile = os.walk(result.value.classes.path).find(_.last == "Core.class")
 
-        assert(
-          coreClassFile.isDefined,
+          assert(
+            coreClassFile.isDefined,
 
-          // The first eight bytes are magic numbers followed by two bytes for major version and two bytes for minor version
-          // We are overriding to java 11 which corresponds to class file version 55
-          os.read.bytes(coreClassFile.get, 4, 4).toSeq == Seq[Byte](0, 0, 0, 55)
-        )
+            // The first eight bytes are magic numbers followed by two bytes for major version and two bytes for minor version
+            // We are overriding to java 11 which corresponds to class file version 55
+            os.read.bytes(coreClassFile.get, 4, 4).toSeq == Seq[Byte](0, 0, 0, 55)
+          )
+        }
       }
       test("compile17") {
-        val eval = UnitTester(HelloJavaJavaHome17Override, resourcePath)
+        UnitTester(HelloJavaJavaHome17Override, resourcePath).scoped { eval =>
 
-        val Right(result) = eval.apply(HelloJavaJavaHome17Override.core.compile): @unchecked
+          val Right(result) = eval.apply(HelloJavaJavaHome17Override.core.compile): @unchecked
 
-        val coreClassFile = os.walk(result.value.classes.path).find(_.last == "Core.class")
+          val coreClassFile = os.walk(result.value.classes.path).find(_.last == "Core.class")
 
-        assert(
-          coreClassFile.isDefined,
+          assert(
+            coreClassFile.isDefined,
 
-          // The first eight bytes are magic numbers followed by two bytes for major version and two bytes for minor version
-          // We are overriding to java 17 which corresponds to class file version 67
-          os.read.bytes(coreClassFile.get, 4, 4).toSeq == Seq[Byte](0, 0, 0, 61)
-        )
+            // The first eight bytes are magic numbers followed by two bytes for major version and two bytes for minor version
+            // We are overriding to java 17 which corresponds to class file version 67
+            os.read.bytes(coreClassFile.get, 4, 4).toSeq == Seq[Byte](0, 0, 0, 61)
+          )
+        }
       }
       test("run11") {
-        val eval = UnitTester(HelloJavaJavaHome11Override, resourcePath)
+        UnitTester(HelloJavaJavaHome11Override, resourcePath).scoped { eval =>
 
-        val path = eval.evaluator.workspace / "java.version"
-        val Right(_) =
-          eval.apply(HelloJavaJavaHome11Override.core.run(Task.Anon(Args(path)))): @unchecked
+          val path = eval.evaluator.workspace / "java.version"
+          val Right(_) =
+            eval.apply(HelloJavaJavaHome11Override.core.run(Task.Anon(Args(path)))): @unchecked
 
-        assert(
-          os.read(path).startsWith("11.")
-        )
+          assert(
+            os.read(path).startsWith("11.")
+          )
+        }
       }
       test("run17") {
-        val eval = UnitTester(HelloJavaJavaHome17Override, resourcePath)
+        UnitTester(HelloJavaJavaHome17Override, resourcePath).scoped { eval =>
 
-        val path = eval.evaluator.workspace / "java.version"
-        val Right(_) =
-          eval.apply(HelloJavaJavaHome17Override.core.run(Task.Anon(Args(path)))): @unchecked
+          val path = eval.evaluator.workspace / "java.version"
+          val Right(_) =
+            eval.apply(HelloJavaJavaHome17Override.core.run(Task.Anon(Args(path)))): @unchecked
 
-        assert(
-          os.read(path).startsWith("17.")
-        )
+          assert(
+            os.read(path).startsWith("17.")
+          )
+        }
       }
       test("test11") {
-        val eval = UnitTester(HelloJavaJavaHome11Override, resourcePath)
+        UnitTester(HelloJavaJavaHome11Override, resourcePath).scoped { eval =>
 
-        val Left(ExecResult.Failure(ref1)) =
-          eval.apply(HelloJavaJavaHome11Override.core.test.testForked()): @unchecked
+          val Left(ExecResult.Failure(ref1)) =
+            eval.apply(HelloJavaJavaHome11Override.core.test.testForked()): @unchecked
 
-//        assert(
-//          v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",
-//          v1._2(0).status == "Success",
-//          v1._2(1).fullyQualifiedName == "hello.MyCoreTests.java17Test",
-//          v1._2(1).status == "Failure"
-//        )
+          //        assert(
+          //          v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",
+          //          v1._2(0).status == "Success",
+          //          v1._2(1).fullyQualifiedName == "hello.MyCoreTests.java17Test",
+          //          v1._2(1).status == "Failure"
+          //        )
+        }
       }
       test("test17") {
-        val eval = UnitTester(HelloJavaJavaHome17Override, resourcePath)
+        UnitTester(HelloJavaJavaHome17Override, resourcePath).scoped { eval =>
 
-        val Left(ExecResult.Failure(ref1)) =
-          eval.apply(HelloJavaJavaHome17Override.core.test.testForked()): @unchecked
+          val Left(ExecResult.Failure(ref1)) =
+            eval.apply(HelloJavaJavaHome17Override.core.test.testForked()): @unchecked
 
-//        assert(
-//          v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",
-//          v1._2(0).status == "Failure",
-//          v1._2(1).fullyQualifiedName == "hello.MyCoreTests.java17Test",
-//          v1._2(1).status == "Success"
-//        )
+          //        assert(
+          //          v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",
+          //          v1._2(0).status == "Failure",
+          //          v1._2(1).fullyQualifiedName == "hello.MyCoreTests.java17Test",
+          //          v1._2(1).status == "Success"
+          //        )
+        }
       }
     }
 
@@ -157,16 +163,21 @@ object JavaHomeTests extends TestSuite {
       val resourcePathCompile = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "java-scala-11"
       test("jdk11java") {
         val baos = new ByteArrayOutputStream()
-        val eval =
-          UnitTester(JavaJdk11DoesntCompile, resourcePathCompile, errStream = new PrintStream(baos))
-        val Left(result) = eval.apply(JavaJdk11DoesntCompile.javamodule.compile): @unchecked
-        assert(baos.toString.contains("cannot find symbol"))
-        assert(baos.toString.contains("method indent"))
+        UnitTester(
+          JavaJdk11DoesntCompile,
+          resourcePathCompile,
+          errStream = new PrintStream(baos)
+        ).scoped { eval =>
+          val Left(result) = eval.apply(JavaJdk11DoesntCompile.javamodule.compile): @unchecked
+          assert(baos.toString.contains("cannot find symbol"))
+          assert(baos.toString.contains("method indent"))
+        }
       }
 
       test("jdk17java") {
-        val eval = UnitTester(JavaJdk17Compiles, resourcePathCompile)
-        val Right(result) = eval.apply(JavaJdk17Compiles.javamodule.compile): @unchecked
+        UnitTester(JavaJdk17Compiles, resourcePathCompile).scoped { eval =>
+          val Right(result) = eval.apply(JavaJdk17Compiles.javamodule.compile): @unchecked
+        }
       }
 
       // This doesn't work because Zinc doesn't apply the javaHome config to
@@ -178,8 +189,9 @@ object JavaHomeTests extends TestSuite {
 //      }
 
       test("jdk17scala") {
-        val eval = UnitTester(JavaJdk17Compiles, resourcePathCompile)
-        val Right(result) = eval.apply(JavaJdk17Compiles.scalamodule.compile): @unchecked
+        UnitTester(JavaJdk17Compiles, resourcePathCompile).scoped { eval =>
+          val Right(result) = eval.apply(JavaJdk17Compiles.scalamodule.compile): @unchecked
+        }
       }
     }
 

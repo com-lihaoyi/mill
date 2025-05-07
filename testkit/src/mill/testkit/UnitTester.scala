@@ -57,7 +57,10 @@ class UnitTester(
     resetSourcePath: Boolean,
     offline: Boolean
 )(implicit fullName: sourcecode.FullName) extends AutoCloseable {
-  assert(mill.util.Jvm.openClassloaders.isEmpty)
+  assert(
+    mill.util.Jvm.openClassloaders.isEmpty,
+    s"Unit tester detected leaked classloaders on initialization: \n${mill.util.Jvm.openClassloaders.mkString("\n")}"
+  )
   val outPath: os.Path = module.moduleDir / "out"
 
   if (resetSourcePath) {
@@ -202,6 +205,9 @@ class UnitTester(
     }
     evaluator.close()
 
-    assert(mill.util.Jvm.openClassloaders.isEmpty)
+    assert(
+      mill.util.Jvm.openClassloaders.isEmpty,
+      s"Unit tester detected leaked classloaders on close: \n${mill.util.Jvm.openClassloaders.mkString("\n")}"
+    )
   }
 }

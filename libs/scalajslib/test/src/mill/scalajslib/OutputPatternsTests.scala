@@ -26,19 +26,19 @@ object OutputPatternsTests extends TestSuite {
 
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-js-world"
 
-  val evaluator = UnitTester(OutputPatternsModule, millSourcePath)
-
   val tests: Tests = Tests {
     test("output patterns") {
-      val Right(result) =
-        evaluator(OutputPatternsModule.build.fastLinkJS): @unchecked
-      val publicModules = result.value.publicModules.toSeq
-      assert(publicModules.length == 1)
-      val main = publicModules(0)
-      assert(main.jsFileName == "main.mjs")
-      assert(os.exists(result.value.dest.path / "main.mjs"))
-      assert(main.sourceMapName == Some("main.mjs.map"))
-      assert(os.exists(result.value.dest.path / "main.mjs.map"))
+      UnitTester(OutputPatternsModule, millSourcePath).scoped { evaluator =>
+        val Right(result) =
+          evaluator(OutputPatternsModule.build.fastLinkJS): @unchecked
+        val publicModules = result.value.publicModules.toSeq
+        assert(publicModules.length == 1)
+        val main = publicModules(0)
+        assert(main.jsFileName == "main.mjs")
+        assert(os.exists(result.value.dest.path / "main.mjs"))
+        assert(main.sourceMapName == Some("main.mjs.map"))
+        assert(os.exists(result.value.dest.path / "main.mjs.map"))
+      }
     }
   }
 }

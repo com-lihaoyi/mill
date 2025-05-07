@@ -102,42 +102,44 @@ object KtfmtModuleTests extends TestSuite {
       sources: Seq[mill.define.NamedTask[Seq[PathRef]]] = Seq.empty
   ): Seq[os.Path] = {
 
-    val eval = UnitTester(module, moduleRoot)
+    UnitTester(module, moduleRoot).scoped { eval =>
 
-    eval(module.ktfmt(
-      KtfmtArgs(
-        style = style,
-        format = format,
-        removeUnusedImports = removeUnusedImports
-      ),
-      sources = Tasks(sources)
-    )).get
+      eval(module.ktfmt(
+        KtfmtArgs(
+          style = style,
+          format = format,
+          removeUnusedImports = removeUnusedImports
+        ),
+        sources = Tasks(sources)
+      )).get
 
-    val Right(sources2) = eval(module.sources): @unchecked
+      val Right(sources2) = eval(module.sources): @unchecked
 
-    sources2.value.flatMap(ref => walkFiles(ref.path))
+      sources2.value.flatMap(ref => walkFiles(ref.path))
+    }
   }
 
   def afterFormatAll(modulesRoot: os.Path, format: Boolean = true): Seq[os.Path] = {
 
     object module extends TestBaseModule with KotlinModule {
       override def kotlinVersion: T[String] = KtfmtModuleTests.kotlinVersion
+
       lazy val millDiscover = Discover[this.type]
     }
 
-    val eval = UnitTester(module, modulesRoot)
-    eval(KtfmtModule.formatAll(
-      KtfmtArgs(
-        style = "kotlin",
-        format = format,
-        removeUnusedImports = true
-      ),
-      sources = Tasks(Seq(module.sources))
-    )).get
-    val Right(sources) = eval(module.sources): @unchecked
-    sources.value.flatMap(ref => walkFiles(ref.path))
+    UnitTester(module, modulesRoot).scoped { eval =>
+      eval(KtfmtModule.formatAll(
+        KtfmtArgs(
+          style = "kotlin",
+          format = format,
+          removeUnusedImports = true
+        ),
+        sources = Tasks(Seq(module.sources))
+      )).get
+      val Right(sources) = eval(module.sources): @unchecked
+      sources.value.flatMap(ref => walkFiles(ref.path))
+    }
   }
-
   def walkFiles(root: os.Path): Seq[os.Path] =
     os.walk(root).filter(os.isFile)
 }

@@ -23,25 +23,25 @@ object SmallModulesForTests extends TestSuite {
 
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "small-modules-for"
 
-  val evaluator = UnitTester(SmallModulesForModule, millSourcePath)
-
   val tests: Tests = Tests {
     test("ModuleSplitStyle.SmallModulesFor") {
-      println(evaluator(SmallModulesForModule.sources))
+      UnitTester(SmallModulesForModule, millSourcePath).scoped { evaluator =>
+        println(evaluator(SmallModulesForModule.sources))
 
-      val Right(result) = evaluator(SmallModulesForModule.fastLinkJS): @unchecked
-      val publicModules = result.value.publicModules
-      test("it should have a single publicModule") {
-        assert(publicModules.size == 1)
-      }
-      test("my.Foo should not have its own file since it is in a separate package") {
-        assert(!os.exists(result.value.dest.path / "otherpackage.Foo.js"))
-      }
-      println(os.list(result.value.dest.path))
-      val modulesLength = os.list(result.value.dest.path).length
+        val Right(result) = evaluator(SmallModulesForModule.fastLinkJS): @unchecked
+        val publicModules = result.value.publicModules
+        test("it should have a single publicModule") {
+          assert(publicModules.size == 1)
+        }
+        test("my.Foo should not have its own file since it is in a separate package") {
+          assert(!os.exists(result.value.dest.path / "otherpackage.Foo.js"))
+        }
+        println(os.list(result.value.dest.path))
+        val modulesLength = os.list(result.value.dest.path).length
 
-      // this changed from 10 to 8 after Scala JS version 1.13
-      assert(modulesLength == 8)
+        // this changed from 10 to 8 after Scala JS version 1.13
+        assert(modulesLength == 8)
+      }
     }
   }
 }

@@ -82,12 +82,13 @@ object RevapiModuleTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    var eval = UnitTester(module1, root1)
-    eval(module1.publishLocal())
-
-    eval = UnitTester(module2, root2)
-    val Right(dir) = eval(module2.revapi()): @unchecked
-    dir.value.path
+    UnitTester(module1, root1).scoped { eval =>
+      eval(module1.publishLocal())
+    }
+    UnitTester(module2, root2).scoped { eval =>
+      val Right(dir) = eval(module2.revapi()): @unchecked
+      dir.value.path
+    }
   }
 
   def revapiRemote(
@@ -121,8 +122,9 @@ object RevapiModuleTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    val eval = UnitTester(module, os.temp.dir())
-    val Right(dir) = eval(module.revapi()): @unchecked
-    dir.value.path
+    UnitTester(module, os.temp.dir()).scoped { eval =>
+      val Right(dir) = eval(module.revapi()): @unchecked
+      dir.value.path
+    }
   }
 }

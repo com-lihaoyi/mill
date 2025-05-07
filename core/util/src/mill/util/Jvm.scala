@@ -238,18 +238,22 @@ object Jvm {
     }
 
   private[mill] val openClassloaders = collection.mutable.Map.empty[Iterable[os.Path], Int]
-  private[mill] def addOpenClassloader(classPath: Iterable[os.Path]) = openClassloaders.synchronized{
-    openClassloaders.updateWith(classPath){
-      case None => Some(1)
-      case Some(n) => Some(n+1)
+  private[mill] def addOpenClassloader(classPath: Iterable[os.Path]) =
+    openClassloaders.synchronized {
+      // new Exception().printStackTrace()
+      openClassloaders.updateWith(classPath) {
+        case None => Some(1)
+        case Some(n) => Some(n + 1)
+      }
     }
-  }
-  private[mill] def removeOpenClassloader(classPath: Iterable[os.Path]) = openClassloaders.synchronized{
-    openClassloaders.updateWith(classPath){
-      case Some(1) => None
-      case Some(n) => Some(n-1)
+  private[mill] def removeOpenClassloader(classPath: Iterable[os.Path]) =
+    openClassloaders.synchronized {
+      // new Exception().printStackTrace()
+      openClassloaders.updateWith(classPath) {
+        case Some(1) => None
+        case Some(n) => Some(n - 1)
+      }
     }
-  }
 
   /**
    * @param classPath URLs from which to load classes and resources
