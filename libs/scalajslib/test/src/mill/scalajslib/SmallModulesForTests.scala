@@ -30,17 +30,14 @@ object SmallModulesForTests extends TestSuite {
 
         val Right(result) = evaluator(SmallModulesForModule.fastLinkJS): @unchecked
         val publicModules = result.value.publicModules
-        test("it should have a single publicModule") {
-          assert(publicModules.size == 1)
-        }
-        test("my.Foo should not have its own file since it is in a separate package") {
-          assert(!os.exists(result.value.dest.path / "otherpackage.Foo.js"))
-        }
+
         println(os.list(result.value.dest.path))
         val modulesLength = os.list(result.value.dest.path).length
 
         // this changed from 10 to 8 after Scala JS version 1.13
         assert(modulesLength == 8)
+        assert(publicModules.size == 1)
+        assert(!os.exists(result.value.dest.path / "otherpackage.Foo.js"))
       }
     }
   }
