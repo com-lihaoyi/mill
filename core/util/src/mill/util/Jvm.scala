@@ -223,13 +223,45 @@ object Jvm {
       sharedLoader: ClassLoader = getClass.getClassLoader,
       sharedPrefixes: Iterable[String] = Seq()
   ): URLClassLoader =
-    new URLClassLoader(
-      classPath.iterator.map(_.toNIO.toUri.toURL).toArray,
-      refinePlatformParent(parent)
-    ) {
-      override def findClass(name: String): Class[?] =
-        if (sharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
-        else super.findClass(name)
+    new MillURLClassLoader(classPath, parent, sharedLoader, sharedPrefixes)
+
+  class MillURLClassLoader(
+      classPath: Iterable[os.Path],
+      parent: ClassLoader,
+      sharedLoader: ClassLoader,
+      sharedPrefixes: Iterable[String]
+  ) extends URLClassLoader(
+        classPath.iterator.map(_.toNIO.toUri.toURL).toArray,
+        refinePlatformParent(parent)
+      ) {
+    addOpenClassloader(classPath)
+    override def findClass(name: String): Class[?] =
+      if (sharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
+      else super.findClass(name)
+
+    override def close() = {
+      removeOpenClassloader(classPath)
+      super.close()
+    }
+  }
+
+  private[mill] val openClassloaders = collection.mutable.Map.empty[Iterable[os.Path], Int]
+  private[mill] def addOpenClassloader(classPath: Iterable[os.Path]) =
+    openClassloaders.synchronized {
+      // println(s"addOpenClassLoader ${classPath.hashCode}\n  " + new Exception().getStackTrace.mkString("\n  "))
+
+      openClassloaders.updateWith(classPath) {
+        case None => Some(1)
+        case Some(n) => Some(n + 1)
+      }
+    }
+  private[mill] def removeOpenClassloader(classPath: Iterable[os.Path]) =
+    openClassloaders.synchronized {
+      // println(s"removeOpenClassLoader ${classPath.hashCode}\n  " + new Exception().getStackTrace.mkString("\n  "))
+      openClassloaders.updateWith(classPath) {
+        case Some(1) => None
+        case Some(n) => Some(n - 1)
+      }
     }
 
   /**
@@ -243,11 +275,16 @@ object Jvm {
   def withClassLoader[T](
       classPath: Iterable[os.Path],
       parent: ClassLoader = null,
+      sharedLoader: ClassLoader = getClass.getClassLoader,
       sharedPrefixes: Seq[String] = Seq.empty
   )(f: ClassLoader => T): T = {
     val oldClassloader = Thread.currentThread().getContextClassLoader
-    val newClassloader =
-      createClassLoader(classPath = classPath, parent = parent, sharedPrefixes = sharedPrefixes)
+    val newClassloader = createClassLoader(
+      classPath = classPath,
+      parent = parent,
+      sharedLoader = sharedLoader,
+      sharedPrefixes = sharedPrefixes
+    )
     Thread.currentThread().setContextClassLoader(newClassloader)
     try {
       f(newClassloader)

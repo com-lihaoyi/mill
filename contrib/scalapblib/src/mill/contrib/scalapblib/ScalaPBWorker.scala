@@ -6,41 +6,33 @@ import java.io.File
 import mill.define.PathRef
 import mill.define.{Discover, ExternalModule, Worker}
 
-class ScalaPBWorker extends AutoCloseable {
-
-  private var scalaPBInstanceCache = Option.empty[(Long, ScalaPBWorkerApi)]
+class ScalaPBWorker {
 
   private def scalaPB(scalaPBClasspath: Seq[PathRef])(implicit ctx: mill.define.TaskCtx) = {
-    val classloaderSig = scalaPBClasspath.hashCode
-    scalaPBInstanceCache match {
-      case Some((sig, instance)) if sig == classloaderSig => instance
-      case _ =>
+    val instance = new ScalaPBWorkerApi {
+      override def compileScalaPB(
+          roots: Seq[File],
+          sources: Seq[File],
+          scalaPBOptions: String,
+          generatedDirectory: File,
+          otherArgs: Seq[String]
+      ): Unit = {
         val pbcClasspath = scalaPBClasspath.map(_.path).toVector
-        val cl = mill.util.Jvm.createClassLoader(pbcClasspath, null)
-        val scalaPBCompilerClass = cl.loadClass("scalapb.ScalaPBC")
-        val mainMethod = scalaPBCompilerClass.getMethod("main", classOf[Array[java.lang.String]])
-
-        val instance = new ScalaPBWorkerApi {
-          override def compileScalaPB(
-              roots: Seq[File],
-              sources: Seq[File],
-              scalaPBOptions: String,
-              generatedDirectory: File,
-              otherArgs: Seq[String]
-          ): Unit = {
-            val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
-            val args = otherArgs ++ Seq(
-              s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}"
-            ) ++ roots.map(root => s"--proto_path=${root.getCanonicalPath}") ++ sources.map(
-              _.getCanonicalPath
-            )
-            ctx.log.debug(s"ScalaPBC args: ${args.mkString(" ")}")
-            mainMethod.invoke(null, args.toArray)
-          }
+        mill.util.Jvm.withClassLoader(pbcClasspath, null) { cl =>
+          val scalaPBCompilerClass = cl.loadClass("scalapb.ScalaPBC")
+          val mainMethod = scalaPBCompilerClass.getMethod("main", classOf[Array[java.lang.String]])
+          val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
+          val args = otherArgs ++ Seq(
+            s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}"
+          ) ++ roots.map(root => s"--proto_path=${root.getCanonicalPath}") ++ sources.map(
+            _.getCanonicalPath
+          )
+          ctx.log.debug(s"ScalaPBC args: ${args.mkString(" ")}")
+          mainMethod.invoke(null, args.toArray)
         }
-        scalaPBInstanceCache = Some((classloaderSig, instance))
-        instance
+      }
     }
+    instance
   }
 
   /**
@@ -96,10 +88,6 @@ class ScalaPBWorker extends AutoCloseable {
     val roots = scalaPBSources.map(_.toIO).filter(_.isDirectory)
     compiler.compileScalaPB(roots, sources, scalaPBOptions, dest.toIO, scalaPBCExtraArgs)
     mill.api.Result.Success(PathRef(dest))
-  }
-
-  override def close(): Unit = {
-    scalaPBInstanceCache = None
   }
 }
 

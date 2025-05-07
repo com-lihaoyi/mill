@@ -47,15 +47,16 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("compile with lowest Kotlin version") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val Right(_) = eval.apply(module.foo(kotlinLowestVersion).compile): @unchecked
+        val Right(_) = eval.apply(module.foo(kotlinLowestVersion).compile): @unchecked
+      }
     }
 
     test("compile with highest Kotlin version") {
-      val eval = testEval()
-
-      eval.apply(module.foo(kotlinHighestVersion).compile).fold(_.get, _.value)
+      testEval().scoped { eval =>
+        eval.apply(module.foo(kotlinHighestVersion).compile).fold(_.get, _.value)
+      }
     }
   }
 

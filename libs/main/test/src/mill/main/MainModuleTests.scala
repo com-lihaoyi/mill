@@ -233,153 +233,162 @@ object MainModuleTests extends TestSuite {
             runCheck()
         }
       }
+
       test("single") {
         val outStream = new ByteArrayOutputStream()
         val errStream = new ByteArrayOutputStream()
-        val evaluator = UnitTester(
+        UnitTester(
           mainModule,
           null,
           outStream = new PrintStream(outStream, true),
           errStream = new PrintStream(errStream, true)
-        )
+        ).scoped { evaluator =>
 
-        val results =
-          evaluator.evaluator.execute(Seq(mainModule.show(
-            evaluator.evaluator,
-            "hello"
-          ))).executionResults
+          val results =
+            evaluator.evaluator.execute(Seq(mainModule.show(
+              evaluator.evaluator,
+              "hello"
+            ))).executionResults
 
-        assert(results.transitiveFailing.size == 0)
+          assert(results.transitiveFailing.size == 0)
 
-        val ExecResult.Success(Val(value)) = results.results.head: @unchecked
+          val ExecResult.Success(Val(value)) = results.results.head: @unchecked
 
-        val shown = ujson.read(outStream.toByteArray)
-        val expected = ujson.Arr.from(Seq("hello", "world"))
-        assert(value == expected)
-        assert(shown == expected)
+          val shown = ujson.read(outStream.toByteArray)
+          val expected = ujson.Arr.from(Seq("hello", "world"))
+          assert(value == expected)
+          assert(shown == expected)
 
-        checkErrStream(errStream) { strippedErr =>
-          assert(strippedErr.contains("Hello System Stdout"))
-          assert(strippedErr.contains("Hello System Stderr"))
-          assert(strippedErr.contains("Hello Console Stdout"))
-          assert(strippedErr.contains("Hello Console Stderr"))
+          checkErrStream(errStream) { strippedErr =>
+            assert(strippedErr.contains("Hello System Stdout"))
+            assert(strippedErr.contains("Hello System Stderr"))
+            assert(strippedErr.contains("Hello Console Stdout"))
+            assert(strippedErr.contains("Hello Console Stderr"))
+          }
         }
       }
       test("multi") {
         val outStream = new ByteArrayOutputStream()
         val errStream = new ByteArrayOutputStream()
-        val evaluator = UnitTester(
+        UnitTester(
           mainModule,
           null,
           outStream = new PrintStream(outStream, true),
           errStream = new PrintStream(errStream, true)
-        )
+        ).scoped { evaluator =>
 
-        val results =
-          evaluator.evaluator.execute(Seq(mainModule.show(
-            evaluator.evaluator,
-            "hello",
-            "+",
-            "hello2"
-          ))).executionResults
+          val results =
+            evaluator.evaluator.execute(Seq(mainModule.show(
+              evaluator.evaluator,
+              "hello",
+              "+",
+              "hello2"
+            ))).executionResults
 
-        assert(results.transitiveFailing.size == 0)
+          assert(results.transitiveFailing.size == 0)
 
-        val ExecResult.Success(Val(value)) = results.results.head: @unchecked
+          val ExecResult.Success(Val(value)) = results.results.head: @unchecked
 
-        val shown = ujson.read(outStream.toByteArray)
+          val shown = ujson.read(outStream.toByteArray)
 
-        val expected = ujson.Obj(
-          "hello" -> ujson.Arr("hello", "world"),
-          "hello2" -> ujson.Obj("1" -> "hello", "2" -> "world")
-        )
-        assert(value == expected)
-        assert(shown == expected)
+          val expected = ujson.Obj(
+            "hello" -> ujson.Arr("hello", "world"),
+            "hello2" -> ujson.Obj("1" -> "hello", "2" -> "world")
+          )
+          assert(value == expected)
+          assert(shown == expected)
 
-        checkErrStream(errStream) { strippedErr =>
-          assert(strippedErr.contains("Hello System Stdout"))
-          assert(strippedErr.contains("Hello System Stderr"))
-          assert(strippedErr.contains("Hello Console Stdout"))
-          assert(strippedErr.contains("Hello Console Stderr"))
-          assert(strippedErr.contains("Hello2 System Stdout"))
-          assert(strippedErr.contains("Hello2 System Stderr"))
-          assert(strippedErr.contains("Hello2 Console Stdout"))
-          assert(strippedErr.contains("Hello2 Console Stderr"))
+          checkErrStream(errStream) { strippedErr =>
+            assert(strippedErr.contains("Hello System Stdout"))
+            assert(strippedErr.contains("Hello System Stderr"))
+            assert(strippedErr.contains("Hello Console Stdout"))
+            assert(strippedErr.contains("Hello Console Stderr"))
+            assert(strippedErr.contains("Hello2 System Stdout"))
+            assert(strippedErr.contains("Hello2 System Stderr"))
+            assert(strippedErr.contains("Hello2 Console Stdout"))
+            assert(strippedErr.contains("Hello2 Console Stderr"))
+          }
         }
       }
 
       test("command") {
-        val evaluator = UnitTester(
+        UnitTester(
           mainModule,
           null,
           outStream = new PrintStream(OutputStream.nullOutputStream(), true),
           errStream = new PrintStream(OutputStream.nullOutputStream(), true)
-        )
+        ).scoped { evaluator =>
 
-        val Left(ExecResult.Failure(failureMsg)) =
-          evaluator.apply("show", "helloCommand"): @unchecked
-        assert(
-          failureMsg.contains("Expected Signature: helloCommand"),
-          failureMsg.contains("-x <int>"),
-          failureMsg.contains("-y <str>")
-        )
-        val Right(result) =
-          evaluator.apply("show", "helloCommand", "-x", "1337", "-y", "lol"): @unchecked
+          val Left(ExecResult.Failure(failureMsg)) =
+            evaluator.apply("show", "helloCommand"): @unchecked
+          assert(
+            failureMsg.contains("Expected Signature: helloCommand"),
+            failureMsg.contains("-x <int>"),
+            failureMsg.contains("-y <str>")
+          )
+          val Right(result) =
+            evaluator.apply("show", "helloCommand", "-x", "1337", "-y", "lol"): @unchecked
 
-        val Seq(res) = result.value
-        assert(res == ujson.Arr(1337, "lol", ujson.Arr("hello", "world")))
+          val Seq(res) = result.value
+          assert(res == ujson.Arr(1337, "lol", ujson.Arr("hello", "world")))
+        }
       }
 
       test("worker") {
-        val evaluator = UnitTester(
+        UnitTester(
           mainModule,
           null,
           outStream = new PrintStream(OutputStream.nullOutputStream(), true),
           errStream = new PrintStream(OutputStream.nullOutputStream(), true)
-        )
+        ).scoped { evaluator =>
 
-        val Right(result) = evaluator.apply("show", "helloWorker"): @unchecked
-        val Seq(res: ujson.Obj) = result.value: @unchecked
-        assert(res("toString").str == "theHelloWorker")
-        assert(res("worker").str == "helloWorker")
-        assert(res("inputsHash").numOpt.isDefined)
+          val Right(result) = evaluator.apply("show", "helloWorker"): @unchecked
+          val Seq(res: ujson.Obj) = result.value: @unchecked
+          assert(res("toString").str == "theHelloWorker")
+          assert(res("worker").str == "helloWorker")
+          assert(res("inputsHash").numOpt.isDefined)
+        }
       }
     }
 
     test("showNamed") {
-      val evaluator = UnitTester(mainModule, null)
+
       test("single") {
-        val results =
-          evaluator.evaluator.execute(Seq(mainModule.showNamed(
-            evaluator.evaluator,
-            "hello"
-          ))).executionResults
+        UnitTester(mainModule, null).scoped { evaluator =>
+          val results =
+            evaluator.evaluator.execute(Seq(mainModule.showNamed(
+              evaluator.evaluator,
+              "hello"
+            ))).executionResults
 
-        assert(results.transitiveFailing.size == 0)
+          assert(results.transitiveFailing.size == 0)
 
-        val ExecResult.Success(Val(value)) = results.results.head: @unchecked
+          val ExecResult.Success(Val(value)) = results.results.head: @unchecked
 
-        assert(value == ujson.Obj.from(Map(
-          "hello" -> ujson.Arr.from(Seq("hello", "world"))
-        )))
+          assert(value == ujson.Obj.from(Map(
+            "hello" -> ujson.Arr.from(Seq("hello", "world"))
+          )))
+        }
       }
       test("multi") {
-        val results =
-          evaluator.evaluator.execute(Seq(mainModule.showNamed(
-            evaluator.evaluator,
-            "hello",
-            "+",
-            "hello2"
-          ))).executionResults
+        UnitTester(mainModule, null).scoped { evaluator =>
+          val results =
+            evaluator.evaluator.execute(Seq(mainModule.showNamed(
+              evaluator.evaluator,
+              "hello",
+              "+",
+              "hello2"
+            ))).executionResults
 
-        assert(results.transitiveFailing.size == 0)
+          assert(results.transitiveFailing.size == 0)
 
-        val ExecResult.Success(Val(value)) = results.results.head: @unchecked
+          val ExecResult.Success(Val(value)) = results.results.head: @unchecked
 
-        assert(value == ujson.Obj.from(Map(
-          "hello" -> ujson.Arr.from(Seq("hello", "world")),
-          "hello2" -> ujson.Obj.from(Map("1" -> "hello", "2" -> "world"))
-        )))
+          assert(value == ujson.Obj.from(Map(
+            "hello" -> ujson.Arr.from(Seq("hello", "world")),
+            "hello2" -> ujson.Obj.from(Map("1" -> "hello", "2" -> "world"))
+          )))
+        }
       }
     }
 
@@ -396,69 +405,80 @@ object MainModuleTests extends TestSuite {
     }
 
     test("clean") {
-      val ev = UnitTester(cleanModule, null)
-      val out = ev.evaluator.outPath
 
-      def checkExists(exists: Boolean)(paths: os.SubPath*): Unit = {
+      def checkExists(out: os.Path, exists: Boolean)(paths: os.SubPath*): Unit = {
         paths.foreach { path =>
           assert(os.exists(out / path) == exists)
         }
       }
 
       test("all") {
-        val r1 = ev.evaluator.execute(Seq(cleanModule.all)).executionResults
-        assert(r1.transitiveFailing.size == 0)
-        checkExists(true)(os.sub / "foo")
+        UnitTester(cleanModule, null).scoped { ev =>
+          val out = ev.evaluator.outPath
+          val r1 = ev.evaluator.execute(Seq(cleanModule.all)).executionResults
+          assert(r1.transitiveFailing.size == 0)
+          checkExists(out, true)(os.sub / "foo")
 
-        val r2 = ev.evaluator.execute(Seq(cleanModule.clean(ev.evaluator))).executionResults
-        assert(r2.transitiveFailing.size == 0)
-        checkExists(false)(os.sub / "foo")
+          val r2 = ev.evaluator.execute(Seq(cleanModule.clean(ev.evaluator))).executionResults
+          assert(r2.transitiveFailing.size == 0)
+          checkExists(out, false)(os.sub / "foo")
+        }
       }
 
       test("single-target") {
-        val r1 = ev.evaluator.execute(Seq(cleanModule.all)).executionResults
-        assert(r1.transitiveFailing.size == 0)
-        checkExists(true)(
-          os.sub / "foo/target.json",
-          os.sub / "foo/target.dest/dummy.txt",
-          os.sub / "bar/target.json",
-          os.sub / "bar/target.dest/dummy.txt"
-        )
+        UnitTester(cleanModule, null).scoped { ev =>
+          val out = ev.evaluator.outPath
+          val r1 = ev.evaluator.execute(Seq(cleanModule.all)).executionResults
+          assert(r1.transitiveFailing.size == 0)
+          checkExists(out, true)(
+            os.sub / "foo/target.json",
+            os.sub / "foo/target.dest/dummy.txt",
+            os.sub / "bar/target.json",
+            os.sub / "bar/target.dest/dummy.txt"
+          )
 
-        val r2 =
-          ev.evaluator.execute(Seq(cleanModule.clean(ev.evaluator, "foo.target"))).executionResults
-        assert(r2.transitiveFailing.size == 0)
-        checkExists(false)(
-          os.sub / "foo/target.log",
-          os.sub / "foo/target.json",
-          os.sub / "foo/target.dest/dummy.txt"
-        )
-        checkExists(true)(
-          os.sub / "bar/target.json",
-          os.sub / "bar/target.dest/dummy.txt"
-        )
+          val r2 =
+            ev.evaluator.execute(Seq(cleanModule.clean(
+              ev.evaluator,
+              "foo.target"
+            ))).executionResults
+          assert(r2.transitiveFailing.size == 0)
+          checkExists(out, false)(
+            os.sub / "foo/target.log",
+            os.sub / "foo/target.json",
+            os.sub / "foo/target.dest/dummy.txt"
+          )
+          checkExists(out, true)(
+            os.sub / "bar/target.json",
+            os.sub / "bar/target.dest/dummy.txt"
+          )
+        }
       }
 
       test("single-module") {
-        val r1 = ev.evaluator.execute(Seq(cleanModule.all)).executionResults
-        assert(r1.transitiveFailing.size == 0)
-        checkExists(true)(
-          os.sub / "foo/target.json",
-          os.sub / "foo/target.dest/dummy.txt",
-          os.sub / "bar/target.json",
-          os.sub / "bar/target.dest/dummy.txt"
-        )
+        UnitTester(cleanModule, null).scoped { ev =>
+          val out = ev.evaluator.outPath
+          val r1 = ev.evaluator.execute(Seq(cleanModule.all)).executionResults
+          assert(r1.transitiveFailing.size == 0)
+          checkExists(out, true)(
+            os.sub / "foo/target.json",
+            os.sub / "foo/target.dest/dummy.txt",
+            os.sub / "bar/target.json",
+            os.sub / "bar/target.dest/dummy.txt"
+          )
 
-        val r2 = ev.evaluator.execute(Seq(cleanModule.clean(ev.evaluator, "bar"))).executionResults
-        assert(r2.transitiveFailing.size == 0)
-        checkExists(true)(
-          os.sub / "foo/target.json",
-          os.sub / "foo/target.dest/dummy.txt"
-        )
-        checkExists(false)(
-          os.sub / "bar/target.json",
-          os.sub / "bar/target.dest/dummy.txt"
-        )
+          val r2 =
+            ev.evaluator.execute(Seq(cleanModule.clean(ev.evaluator, "bar"))).executionResults
+          assert(r2.transitiveFailing.size == 0)
+          checkExists(out, true)(
+            os.sub / "foo/target.json",
+            os.sub / "foo/target.dest/dummy.txt"
+          )
+          checkExists(out, false)(
+            os.sub / "bar/target.json",
+            os.sub / "bar/target.dest/dummy.txt"
+          )
+        }
       }
     }
 
@@ -466,120 +486,123 @@ object MainModuleTests extends TestSuite {
       test("all") {
         val workers = new mutable.HashSet[TestWorker]
         val workerModule = new WorkerModule(workers)
-        val ev = UnitTester(workerModule, null)
+        UnitTester(workerModule, null).scoped { ev =>
 
-        val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
-        assert(r1.transitiveFailing.size == 0)
-        assert(workers.size == 5)
+          val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
+          assert(r1.transitiveFailing.size == 0)
+          assert(workers.size == 5)
 
-        val r2 = ev.evaluator.execute(Seq(workerModule.clean(ev.evaluator))).executionResults
-        assert(r2.transitiveFailing.size == 0)
-        assert(workers.isEmpty)
+          val r2 = ev.evaluator.execute(Seq(workerModule.clean(ev.evaluator))).executionResults
+          assert(r2.transitiveFailing.size == 0)
+          assert(workers.isEmpty)
+        }
       }
 
       test("single-target") {
         val workers = new mutable.HashSet[TestWorker]
         val workerModule = new WorkerModule(workers)
-        val ev = UnitTester(workerModule, null)
+        UnitTester(workerModule, null).scoped { ev =>
 
-        val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
-        assert(r1.transitiveFailing.size == 0)
-        assert(workers.size == 5)
+          val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
+          assert(r1.transitiveFailing.size == 0)
+          assert(workers.size == 5)
 
-        val r2 = ev.evaluator.execute(Seq(workerModule.clean(
-          ev.evaluator,
-          "foo.theWorker"
-        ))).executionResults
-        assert(r2.transitiveFailing.size == 0)
-        assert(workers.size == 4)
+          val r2 = ev.evaluator.execute(Seq(workerModule.clean(
+            ev.evaluator,
+            "foo.theWorker"
+          ))).executionResults
+          assert(r2.transitiveFailing.size == 0)
+          assert(workers.size == 4)
 
-        val r3 = ev.evaluator.execute(Seq(workerModule.clean(
-          ev.evaluator,
-          "bar.theWorker"
-        ))).executionResults
-        assert(r3.transitiveFailing.size == 0)
-        assert(workers.size == 3)
+          val r3 = ev.evaluator.execute(Seq(workerModule.clean(
+            ev.evaluator,
+            "bar.theWorker"
+          ))).executionResults
+          assert(r3.transitiveFailing.size == 0)
+          assert(workers.size == 3)
 
-        val r4 = ev.evaluator.execute(Seq(workerModule.clean(
-          ev.evaluator,
-          "bazz[1].theWorker"
-        ))).executionResults
-        assert(r4.transitiveFailing.size == 0)
-        assert(workers.size == 2)
+          val r4 = ev.evaluator.execute(Seq(workerModule.clean(
+            ev.evaluator,
+            "bazz[1].theWorker"
+          ))).executionResults
+          assert(r4.transitiveFailing.size == 0)
+          assert(workers.size == 2)
+        }
       }
 
       test("single-target via rm") {
         val workers = new mutable.HashSet[TestWorker]
         val workerModule = new WorkerModule(workers)
-        val ev = UnitTester(workerModule, null)
+        UnitTester(workerModule, null).scoped { ev =>
 
-        ev.evaluator.execute(Seq(workerModule.foo.theWorker)).executionResults
-          .ensuring(_.transitiveFailing.size == 0)
-        assert(workers.size == 1)
+          ev.evaluator.execute(Seq(workerModule.foo.theWorker)).executionResults
+            .ensuring(_.transitiveFailing.size == 0)
+          assert(workers.size == 1)
 
-        val originalFooWorker = workers.head
+          val originalFooWorker = workers.head
 
-        ev.evaluator.execute(Seq(workerModule.bar.theWorker)).executionResults
-          .ensuring(_.transitiveFailing.size == 0)
-        assert(workers.size == 2)
-        assert(workers.exists(_ eq originalFooWorker))
+          ev.evaluator.execute(Seq(workerModule.bar.theWorker)).executionResults
+            .ensuring(_.transitiveFailing.size == 0)
+          assert(workers.size == 2)
+          assert(workers.exists(_ eq originalFooWorker))
 
-        val originalBarWorker = workers.filter(_ ne originalFooWorker).head
+          val originalBarWorker = workers.filter(_ ne originalFooWorker).head
 
-        ev.evaluator.execute(Seq(workerModule.foo.theWorker)).executionResults
-          .ensuring(_.transitiveFailing.size == 0)
-        assert(workers.size == 2)
-        assert(workers.exists(_ eq originalFooWorker))
+          ev.evaluator.execute(Seq(workerModule.foo.theWorker)).executionResults
+            .ensuring(_.transitiveFailing.size == 0)
+          assert(workers.size == 2)
+          assert(workers.exists(_ eq originalFooWorker))
 
-        ev.evaluator.execute(Seq(workerModule.bar.theWorker)).executionResults
-          .ensuring(_.transitiveFailing.size == 0)
-        assert(workers.size == 2)
-        assert(workers.exists(_ eq originalBarWorker))
+          ev.evaluator.execute(Seq(workerModule.bar.theWorker)).executionResults
+            .ensuring(_.transitiveFailing.size == 0)
+          assert(workers.size == 2)
+          assert(workers.exists(_ eq originalBarWorker))
 
-        val outDir = os.Path(OutFiles.out, workerModule.moduleDir)
+          val outDir = os.Path(OutFiles.out, workerModule.moduleDir)
 
-        assert(!originalFooWorker.closed)
-        os.remove(outDir / "foo/theWorker.json")
+          assert(!originalFooWorker.closed)
+          os.remove(outDir / "foo/theWorker.json")
 
-        ev.evaluator.execute(Seq(workerModule.foo.theWorker)).executionResults
-          .ensuring(_.transitiveFailing.size == 0)
-        assert(workers.size == 2)
-        assert(!workers.exists(_ eq originalFooWorker))
-        assert(originalFooWorker.closed)
+          ev.evaluator.execute(Seq(workerModule.foo.theWorker)).executionResults
+            .ensuring(_.transitiveFailing.size == 0)
+          assert(workers.size == 2)
+          assert(!workers.exists(_ eq originalFooWorker))
+          assert(originalFooWorker.closed)
 
-        assert(!originalBarWorker.closed)
-        os.remove(outDir / "bar/theWorker.json")
+          assert(!originalBarWorker.closed)
+          os.remove(outDir / "bar/theWorker.json")
 
-        ev.evaluator.execute(Seq(workerModule.bar.theWorker)).executionResults
-          .ensuring(_.transitiveFailing.size == 0)
-        assert(workers.size == 2)
-        assert(!workers.exists(_ eq originalBarWorker))
-        assert(originalBarWorker.closed)
+          ev.evaluator.execute(Seq(workerModule.bar.theWorker)).executionResults
+            .ensuring(_.transitiveFailing.size == 0)
+          assert(workers.size == 2)
+          assert(!workers.exists(_ eq originalBarWorker))
+          assert(originalBarWorker.closed)
+        }
       }
-
       test("single-module") {
         val workers = new mutable.HashSet[TestWorker]
         val workerModule = new WorkerModule(workers)
-        val ev = UnitTester(workerModule, null)
+        UnitTester(workerModule, null).scoped { ev =>
 
-        val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
-        assert(r1.transitiveFailing.size == 0)
-        assert(workers.size == 5)
+          val r1 = ev.evaluator.execute(Seq(workerModule.all)).executionResults
+          assert(r1.transitiveFailing.size == 0)
+          assert(workers.size == 5)
 
-        val r2 =
-          ev.evaluator.execute(Seq(workerModule.clean(ev.evaluator, "foo"))).executionResults
-        assert(r2.transitiveFailing.size == 0)
-        assert(workers.size == 4)
+          val r2 =
+            ev.evaluator.execute(Seq(workerModule.clean(ev.evaluator, "foo"))).executionResults
+          assert(r2.transitiveFailing.size == 0)
+          assert(workers.size == 4)
 
-        val r3 =
-          ev.evaluator.execute(Seq(workerModule.clean(ev.evaluator, "bar"))).executionResults
-        assert(r3.transitiveFailing.size == 0)
-        assert(workers.size == 3)
+          val r3 =
+            ev.evaluator.execute(Seq(workerModule.clean(ev.evaluator, "bar"))).executionResults
+          assert(r3.transitiveFailing.size == 0)
+          assert(workers.size == 3)
 
-        val r4 =
-          ev.evaluator.execute(Seq(workerModule.clean(ev.evaluator, "bazz[1]"))).executionResults
-        assert(r4.transitiveFailing.size == 0)
-        assert(workers.size == 2)
+          val r4 =
+            ev.evaluator.execute(Seq(workerModule.clean(ev.evaluator, "bazz[1]"))).executionResults
+          assert(r4.transitiveFailing.size == 0)
+          assert(workers.size == 2)
+        }
       }
     }
   }

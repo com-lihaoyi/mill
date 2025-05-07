@@ -47,40 +47,42 @@ object WasmTests extends TestSuite {
 
   val tests: Tests = Tests {
     test("should emit wasm") {
-      val evaluator = UnitTester(Wasm, millSourcePath)
-      val Right(result) =
-        evaluator(Wasm.fastLinkJS): @unchecked
-      val publicModules = result.value.publicModules.toSeq
-      val path = result.value.dest.path
-      val main = publicModules.head
-      assert(main.jsFileName == "main.js")
-      val mainPath = path / "main.js"
-      assert(os.exists(mainPath))
-      val wasmPath = path / "main.wasm"
-      assert(os.exists(wasmPath))
-      val wasmMapPath = path / "main.wasm.map"
-      assert(os.exists(wasmMapPath))
+      UnitTester(Wasm, millSourcePath).scoped { evaluator =>
+        val Right(result) =
+          evaluator(Wasm.fastLinkJS): @unchecked
+        val publicModules = result.value.publicModules.toSeq
+        val path = result.value.dest.path
+        val main = publicModules.head
+        assert(main.jsFileName == "main.js")
+        val mainPath = path / "main.js"
+        assert(os.exists(mainPath))
+        val wasmPath = path / "main.wasm"
+        assert(os.exists(wasmPath))
+        val wasmMapPath = path / "main.wasm.map"
+        assert(os.exists(wasmMapPath))
+      }
     }
 
     test("wasm is runnable") {
-      val evaluator = UnitTester(Wasm, millSourcePath)
-      val Right(result) = evaluator(Wasm.fastLinkJS): @unchecked
-      val path = result.value.dest.path
-      os.proc("node", "--experimental-wasm-exnref", "main.js").call(
-        cwd = path,
-        check = true,
-        stdin = os.Inherit,
-        stdout = os.Inherit,
-        stderr = os.Inherit
-      )
-
+      UnitTester(Wasm, millSourcePath).scoped { evaluator =>
+        val Right(result) = evaluator(Wasm.fastLinkJS): @unchecked
+        val path = result.value.dest.path
+        os.proc("node", "--experimental-wasm-exnref", "main.js").call(
+          cwd = path,
+          check = true,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          stderr = os.Inherit
+        )
+      }
     }
 
     test("should throw for older scalaJS versions") {
-      val evaluator = UnitTester(OldWasmModule, millSourcePath)
-      val Left(ExecResult.Exception(ex, _)) = evaluator(OldWasmModule.fastLinkJS): @unchecked
-      val error = ex.getMessage
-      assert(error == "Emitting wasm is not supported with Scala.js < 1.17")
+      UnitTester(OldWasmModule, millSourcePath).scoped { evaluator =>
+        val Left(ExecResult.Exception(ex, _)) = evaluator(OldWasmModule.fastLinkJS): @unchecked
+        val error = ex.getMessage
+        assert(error == "Emitting wasm is not supported with Scala.js < 1.17")
+      }
     }
 
   }
