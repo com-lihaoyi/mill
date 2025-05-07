@@ -55,7 +55,6 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
 
     test("compile with highest Kotlin version") {
       testEval().scoped { eval =>
-
         eval.apply(module.foo(kotlinHighestVersion).compile).fold(_.get, _.value)
       }
     }

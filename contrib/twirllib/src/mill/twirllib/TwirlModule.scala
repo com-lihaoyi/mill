@@ -79,11 +79,16 @@ trait TwirlModule extends mill.Module { twirlModule =>
     twirlCoursierResolver.defaultResolver().classpath(twirlMvnDeps())
   }
 
+  def twirlClassLoader = Task.Worker {
+    mill.util.Jvm.createClassLoader(
+      twirlClasspath().map(_.path)
+    )
+  }
   def twirlImports: T[Seq[String]] = Task {
-    TwirlWorkerApi.twirlWorker.defaultImports(twirlClasspath())
+    TwirlWorker.defaultImports(twirlClassLoader())
   }
 
-  def twirlFormats: T[Map[String, String]] = TwirlWorkerApi.twirlWorker.defaultFormats
+  def twirlFormats: T[Map[String, String]] = TwirlWorker.defaultFormats
 
   def twirlConstructorAnnotations: Seq[String] = Nil
 
@@ -92,9 +97,9 @@ trait TwirlModule extends mill.Module { twirlModule =>
   def twirlInclusiveDot: Boolean = false
 
   def compileTwirl: T[mill.scalalib.api.CompilationResult] = Task(persistent = true) {
-    TwirlWorkerApi.twirlWorker
+    TwirlWorker
       .compile(
-        twirlClasspath(),
+        twirlClassLoader(),
         twirlSources().map(_.path),
         Task.dest,
         twirlImports(),

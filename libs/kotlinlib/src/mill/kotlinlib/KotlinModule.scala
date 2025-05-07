@@ -78,8 +78,6 @@ trait KotlinModule extends JavaModule { outer =>
 
   protected def jvmWorkerRef: ModuleRef[JvmWorkerModule] = jvmWorker
 
-  protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
-
   override def checkGradleModules: T[Boolean] = true
   override def resolutionParams: Task[ResolutionParams] = Task.Anon {
     super.resolutionParams().addVariantAttributes(
@@ -162,8 +160,11 @@ trait KotlinModule extends JavaModule { outer =>
     jars.toSeq
   }
 
+  def kotlinWorkerClassLoader = Task.Worker {
+    mill.util.Jvm.createClassLoader(kotlinCompilerClasspath().map(_.path), getClass.getClassLoader)
+  }
   def kotlinWorkerTask: Task[KotlinWorker] = Task.Anon {
-    kotlinWorkerRef().kotlinWorkerManager().get(kotlinCompilerClasspath())
+    KotlinWorkerManager.get(kotlinWorkerClassLoader())
   }
 
   /**
