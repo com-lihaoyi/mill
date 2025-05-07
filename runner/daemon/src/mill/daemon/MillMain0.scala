@@ -266,7 +266,8 @@ object MillMain0 {
                         prevState: Option[RunnerState],
                         targetsAndParams: Seq[String],
                         streams: SystemStreams,
-                        millActiveCommandMessage: String
+                        millActiveCommandMessage: String,
+                        loggerOpt: Option[Logger] = None
                     ) = Server.withOutLock(
                       config.noBuildLock.value,
                       config.noWaitForBuildLock.value,
@@ -275,18 +276,7 @@ object MillMain0 {
                       streams,
                       outLock
                     ) {
-                      Using.resource(getLogger(
-                        streams,
-                        config,
-                        enableTicker =
-                          if (bspMode) Some(false)
-                          else config.ticker
-                            .orElse(config.enableTicker)
-                            .orElse(Option.when(config.disableTicker.value)(false)),
-                        daemonDir,
-                        colored = colored,
-                        colors = colors
-                      )) { logger =>
+                      def proceed(logger: Logger): Watching.Result[RunnerState] = {
                         // Enter key pressed, removing mill-selective-execution.json to
                         // ensure all tasks re-run even though no inputs may have changed
                         if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
@@ -315,23 +305,53 @@ object MillMain0 {
 
                         }
                       }
+
+                      loggerOpt match {
+                        case Some(logger) =>
+                          proceed(logger)
+                        case None =>
+                          Using.resource(getLogger(
+                            streams,
+                            config,
+                            enableTicker =
+                              if (bspMode) Some(false)
+                              else config.ticker
+                                .orElse(config.enableTicker)
+                                .orElse(Option.when(config.disableTicker.value)(false)),
+                            daemonDir,
+                            colored = colored,
+                            colors = colors
+                          )) { logger =>
+                            proceed(logger)
+                          }
+                      }
                     }
 
                     if (bspMode) {
 
-                      runBspSession(
-                        streams0,
+                      Using.resource(getLogger(
                         streams,
-                        prevRunnerState =>
-                          runMillBootstrap(
-                            false,
-                            prevRunnerState,
-                            Seq("version"),
-                            streams,
-                            "BSP:initialize"
-                          ).result,
-                        outLock
-                      )
+                        config,
+                        enableTicker = Some(false),
+                        daemonDir,
+                        colored = colored,
+                        colors = colors
+                      )) { logger =>
+                        runBspSession(
+                          streams0,
+                          streams,
+                          prevRunnerState =>
+                            runMillBootstrap(
+                              false,
+                              prevRunnerState,
+                              Seq("version"),
+                              streams,
+                              "BSP:initialize",
+                              loggerOpt = Some(logger)
+                            ).result,
+                          outLock
+                        )
+                      }
 
                       (true, RunnerState(None, Nil, None))
                     } else if (
