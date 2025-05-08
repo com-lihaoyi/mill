@@ -1,5 +1,6 @@
 package mill.androidlib
 
+import coursier.params.ResolutionParams
 import mill.*
 import mill.api.Logger
 import mill.api.internal.{BspBuildTarget, EvaluatorApi, internal}
@@ -158,37 +159,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     baseDirectory = Some((moduleDir / "src/main").toNIO),
     tags = Seq("application")
   )
-
-  def androidTransformAarFiles: T[Seq[UnpackedDep]] = Task {
-    val transformDest = Task.dest / "transform"
-    val aarFiles = super.resolvedRunMvnDeps()
-      .map(_.path)
-      .filter(_.ext == "aar")
-      .distinct
-
-    // TODO do it in some shared location, otherwise each module is doing the same, having its own copy for nothing
-    extractAarFiles(aarFiles, transformDest)
-  }
-
-  override def resolvedRunMvnDeps: T[Seq[PathRef]] = Task {
-    val transformedAarFilesToJar: Seq[PathRef] = androidTransformAarFiles().flatMap(_.classesJar)
-    val jarFiles = super.resolvedRunMvnDeps()
-      .filter(_.path.ext == "jar")
-      .distinct
-    transformedAarFilesToJar ++ jarFiles
-  }
-
-  /**
-   * Replaces AAR files in classpath with their extracted JARs.
-   */
-  override def compileClasspath: T[Seq[PathRef]] = Task {
-    // TODO process metadata shipped with Android libs. It can have some rules with Target SDK, for example.
-    // TODO support baseline profiles shipped with Android libs.
-
-    (super.compileClasspath().filter(_.path.ext != "aar") ++ resolvedRunMvnDeps()).map(
-      _.path
-    ).distinct.map(PathRef(_))
-  }
 
   def androidTransitiveResources: Target[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps) { m =>
@@ -1146,6 +1116,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def androidTargetSdk: T[Int] = outer.androidTargetSdk()
 
     override def androidIsDebug: T[Boolean] = Task { true }
+
+    override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer.resolutionParams())
 
     override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
     override def androidApplicationNamespace: String = outer.androidApplicationNamespace

@@ -38,23 +38,6 @@ object app extends AndroidAppKotlinModule {
     mvn"androidx.compose.material3:material3:1.3.1"
   )
 
-  // This is a temporary fix
-  def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
-    super.mapDependencies().andThen { (d: coursier.Dependency) =>
-      // otherwise there are some resolution problems (version conflicts), because Coursier is using pom files only,
-      // but Gradle is working with .module files if available
-      if (d.module.organization.value == "androidx.collection") {
-        d.withVersion("1.4.4")
-      } else if (d.module.organization.value == "androidx.lifecycle") {
-        d.withVersion("2.8.3")
-      } else if (d.module.organization.value == "androidx.compose.runtime") {
-        d.withVersion("1.7.5")
-      } else {
-        d
-      }
-    }
-  }
-
   object screenshotTest extends AndroidAppKotlinScreenshotTests {
 
     // TODO this exists until auto discovery of methods is implemented
