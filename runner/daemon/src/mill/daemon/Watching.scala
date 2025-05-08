@@ -7,6 +7,7 @@ import mill.define.{PathRef, WorkspaceRoot}
 import mill.internal.Colors
 
 import java.io.InputStream
+import java.nio.channels.ClosedChannelException
 import scala.annotation.tailrec
 import scala.util.Using
 
@@ -124,8 +125,12 @@ object Watching {
     def doWatchFsNotify() = {
       Using.resource(os.write.outputStream(watchArgs.serverDir / "fsNotifyWatchLog")) { watchLog =>
         def writeToWatchLog(s: String): Unit = {
-          watchLog.write(s.getBytes(java.nio.charset.StandardCharsets.UTF_8))
-          watchLog.write('\n')
+          try {
+            watchLog.write(s.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            watchLog.write('\n')
+          } catch {
+            case _: ClosedChannelException => /* do nothing, the file is already closed */
+          }
         }
 
         @volatile var pathChangesDetected = false
