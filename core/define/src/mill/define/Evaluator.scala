@@ -113,8 +113,12 @@ object Evaluator {
   // the TargetScopt#read call, which does not accept additional parameters.
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
   // in directly) we are forced to pass it in via a ThreadLocal
-  private[mill] val currentEvaluator0 = new DynamicVariable[Evaluator](null)
+  private val currentEvaluator0 = new DynamicVariable[Evaluator](null)
   private[mill] def withCurrentEvaluator[T](ev: Evaluator)(t: => T) = {
+    // Make sure we only put a `EvaluatorProxy` in the `DynamicVariable` rather than a
+    // raw `Evaluator`, and `.close()` it after we're done to `null` out the contents.
+    // This is so that if the `InheritableThreadLocal` gets captured by long-lived spawned
+    // thread pools, we do not end up leaking the contents.
     scala.util.Using.resource(new EvaluatorProxy(() => ev)){ev2 =>
       currentEvaluator0.withValue(ev2){
         t
