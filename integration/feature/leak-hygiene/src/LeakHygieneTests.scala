@@ -31,7 +31,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
       case s"scala-execution-context-$_" => false
       case _ => true
     }
-    pprint.log(filtered)
     // pprint.log(read)
     // pprint.log(expected)
     assert(filtered == expected)
@@ -181,6 +180,31 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         )
 
       }
+
+      // Make sure we can detect leaked classloaders and threads when the do happen
+      tester.eval(("leakThreadClassloader"))
+      checkClassloaders(tester)(
+        "leaked classloader" -> 1,
+        "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
+        "mill.kotlinlib.KotlinModule#kotlinWorkerClassLoader" -> 1,
+        "mill.meta.ScalaCompilerWorker.reflectUnsafe cl" -> 1,
+        "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
+        "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
+      )
+      checkThreads(tester)(
+        "HandleRunThread",
+        "MillServerActionRunner",
+        "MillSocketTimeoutInterruptThread",
+        "Process ID Checker Thread",
+        "Tail",
+        "Tail",
+        "execution-contexts-threadpool-thread",
+        "leaked thread",
+        "main",
+        "prompt-logger-stream-pumper-thread",
+        "proxyInputStreamThroughPumper"
+      )
+
     }
   }
 }
