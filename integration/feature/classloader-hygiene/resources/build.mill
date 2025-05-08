@@ -39,5 +39,5 @@ object app extends scalalib.JavaModule {
 }
 
 def countClassLoaders() = Task.Command{
-  mill.util.MillURLClassLoader.countOpenClassloaders
+  mill.api.MillURLClassLoader.countOpenClassloaders0
 }
