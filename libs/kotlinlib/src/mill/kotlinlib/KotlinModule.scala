@@ -160,13 +160,6 @@ trait KotlinModule extends JavaModule { outer =>
     jars.toSeq
   }
 
-  def kotlinWorkerClassLoader = Task.Worker {
-    mill.util.Jvm.createClassLoader(kotlinCompilerClasspath().map(_.path), getClass.getClassLoader)
-  }
-  def kotlinWorkerTask: Task[KotlinWorker] = Task.Anon {
-    KotlinWorkerManager.get(kotlinWorkerClassLoader())
-  }
-
   /**
    * Compiles all the sources to JVM class files.
    */
@@ -341,7 +334,10 @@ trait KotlinModule extends JavaModule { outer =>
           (kotlinSourceFiles ++ javaSourceFiles).map(_.toString())
         ).flatten
 
-        val workerResult = kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
+        val workerResult =
+          KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath().map(_.path)) {
+            _._2.compile(KotlinWorkerTarget.Jvm, compilerArgs)
+          }
 
         val analysisFile = dest / "kotlin.analysis.dummy"
         os.write(target = analysisFile, data = "", createFolders = true)
