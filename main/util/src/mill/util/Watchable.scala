@@ -10,6 +10,7 @@ import mill.api.internal
  */
 @internal
 private[mill] trait Watchable {
+
   /** @return the hashcode of a watched value. */
   def poll(): Long
 
