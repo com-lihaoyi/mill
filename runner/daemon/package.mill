@@ -1,6 +1,8 @@
 package build.runner.daemon
+
 import mill.*
 import mill.contrib.buildinfo.BuildInfo
+import millbuild.*
 
 /**
  * Logic around the Mill command-line runner, script loading,
@@ -8,21 +10,22 @@ import mill.contrib.buildinfo.BuildInfo
  *
  * Mostly tested by [[build.integration]] and [[build.example]] tests.
  */
-object `package` extends build.MillPublishScalaModule {
+object `package` extends MillPublishScalaModule {
 
   def transitiveLocalTestOverrides = Map(
-    Task.traverse(build.dist.allPublishModules)(_.localTestOverride)(): _*
+    Task.traverse(build.dist.allPublishModules)(_.localTestOverride)()*
   )
 
   def mvnDeps = Seq(
-    build.Deps.sourcecode,
-    build.Deps.osLib,
-    build.Deps.mainargs,
-    build.Deps.upickle,
-    build.Deps.pprint,
-    build.Deps.fansi,
-    build.Deps.scalaCompiler(scalaVersion())
+    Deps.sourcecode,
+    Deps.osLib,
+    Deps.mainargs,
+    Deps.upickle,
+    Deps.pprint,
+    Deps.fansi,
+    Deps.scalaCompiler(scalaVersion())
   )
+
   def moduleDeps = Seq(
     build.runner.idea,
     build.runner.bsp,

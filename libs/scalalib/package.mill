@@ -14,21 +14,22 @@ import mill.define.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
+import millbuild.*
 
-object `package` extends build.MillStableScalaModule {
+object `package` extends MillStableScalaModule {
 
   def moduleDeps = Seq(build.core.util, build.libs.scalalib.api, build.libs.testrunner)
   def mvnDeps = {
-    Agg(build.Deps.scalaXml) ++ {
+    Seq(Deps.scalaXml) ++ {
       // despite compiling with Scala 3, we need to include scala-reflect
       // for the scala.reflect.internal.util.ScalaClassLoader
       // used in ScalaModule.scalacHelp,
       // (also transitively included by com.eed3si9n.jarjarabrams:jarjar-abrams-core)
       // perhaps the class can be copied here?
-      Agg(build.Deps.scalaReflect(scalaVersion())) ++ Agg(build.Deps.sonatypeCentralClient)
+      Seq(Deps.scalaReflect(scalaVersion())) ++ Seq(Deps.sonatypeCentralClient)
     }
   }
-  def testMvnDeps = super.testMvnDeps() ++ Agg(build.Deps.TestDeps.scalaCheck)
+  def testMvnDeps = super.testMvnDeps() ++ Seq(Deps.TestDeps.scalaCheck)
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(
       worker.localTestOverride(),
@@ -40,36 +41,36 @@ object `package` extends build.MillStableScalaModule {
     super.testForkEnv() ++ Map("LC_ALL" -> locale)
   }
 
-  object backgroundwrapper extends build.MillPublishJavaModule with build.MillJavaModule {
-    def mvnDeps = Agg(build.Deps.sbtTestInterface)
+  object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
+    def mvnDeps = Seq(Deps.sbtTestInterface)
   }
 
-  object api extends build.MillStableScalaModule with BuildInfo {
+  object api extends MillStableScalaModule with BuildInfo {
     def moduleDeps = Seq(build.core.define)
     def buildInfoPackageName = "mill.scalalib.api"
     def buildInfoObjectName = "Versions"
 
     def buildInfoMembers = Seq(
-      BuildInfo.Value("ammonite", build.Deps.ammoniteVersion, "Version of Ammonite."),
-      BuildInfo.Value("zinc", build.Deps.zinc.version, "Version of Zinc"),
+      BuildInfo.Value("ammonite", Deps.ammoniteVersion, "Version of Ammonite."),
+      BuildInfo.Value("zinc", Deps.zinc.version, "Version of Zinc"),
       BuildInfo.Value(
         "scalafmtVersion",
-        build.Deps.scalafmtDynamic.version,
+        Deps.scalafmtDynamic.version,
         "Version of Scalafmt"
       ),
       BuildInfo.Value(
         "semanticDBVersion",
-        build.Deps.semanticDBscala.version,
+        Deps.semanticDBscala.version,
         "SemanticDB version."
       ),
       BuildInfo.Value(
         "semanticDbJavaVersion",
-        build.Deps.semanticDbJava.version,
+        Deps.semanticDbJava.version,
         "Java SemanticDB plugin version."
       ),
       BuildInfo.Value(
         "millModuledefsVersion",
-        build.Deps.millModuledefsVersion,
+        Deps.millModuledefsVersion,
         "Mill ModuleDefs plugins version."
       ),
       BuildInfo.Value("millCompilerBridgeScalaVersions", build.bridgeScalaVersions.mkString(",")),
@@ -77,23 +78,23 @@ object `package` extends build.MillStableScalaModule {
       BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
       BuildInfo.Value(
         "sbtTestInterface",
-        Dep.unparse(build.Deps.RuntimeDeps.sbtTestInterface).get,
+        Dep.unparse(Deps.RuntimeDeps.sbtTestInterface).get,
         "Dependency sbt-test-interface"
       ),
       BuildInfo.Value(
         "jupiterInterface",
-        Dep.unparse(build.Deps.RuntimeDeps.jupiterInterface).get,
+        Dep.unparse(Deps.RuntimeDeps.jupiterInterface).get,
         "Dependency to jupiter-interface"
       ),
-      BuildInfo.Value("errorProneVersion", build.Deps.RuntimeDeps.errorProneCore.version),
-      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion),
-      BuildInfo.Value("palantirFormatVersion", build.Deps.RuntimeDeps.palantirFormat.version),
+      BuildInfo.Value("errorProneVersion", Deps.RuntimeDeps.errorProneCore.version),
+      BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion),
+      BuildInfo.Value("palantirFormatVersion", Deps.RuntimeDeps.palantirFormat.version),
       BuildInfo.Value(
         "revApiVersion",
-        build.Deps.RuntimeDeps.revApi.version,
+        Deps.RuntimeDeps.revApi.version,
         "Version of revApi"
       ),
-      BuildInfo.Value("springBuildToolsVersion", build.Deps.springBootTools.version),
+      BuildInfo.Value("springBuildToolsVersion", Deps.springBootTools.version),
       BuildInfo.Value(
         "millSpringBootWorkerDep", {
           val dep = `spring-boot-worker`.publishSelfDependency()
@@ -104,31 +105,31 @@ object `package` extends build.MillStableScalaModule {
     )
   }
 
-  object worker extends build.MillPublishScalaModule with BuildInfo {
+  object worker extends MillPublishScalaModule with BuildInfo {
     def moduleDeps = Seq(api, build.core.util)
-    def mvnDeps = Seq(build.Deps.zinc, build.Deps.log4j2Core)
+    def mvnDeps = Seq(Deps.zinc, Deps.log4j2Core)
     def buildInfoPackageName = "mill.scalalib.worker"
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(
-      BuildInfo.Value("zinc", build.Deps.zinc.version, "Version of Zinc.")
+      BuildInfo.Value("zinc", Deps.zinc.version, "Version of Zinc.")
     )
   }
 
-  object `classgraph-worker` extends build.MillPublishScalaModule {
+  object `classgraph-worker` extends MillPublishScalaModule {
     def moduleDeps = Seq(api, build.core.util)
-    def mvnDeps = Seq(build.Deps.classgraph)
+    def mvnDeps = Seq(Deps.classgraph)
   }
 
-  object `jarjarabrams-worker` extends build.MillPublishScalaModule {
+  object `jarjarabrams-worker` extends MillPublishScalaModule {
     def moduleDeps = Seq(api, build.core.util, build.libs.scalalib)
-    def mvnDeps = Agg(build.Deps.jarjarabrams)
+    def mvnDeps = Seq(Deps.jarjarabrams)
   }
 
-  object `spring-boot-worker` extends build.MillPublishScalaModule {
+  object `spring-boot-worker` extends MillPublishScalaModule {
     def moduleDeps = Seq(api)
     def compileMvnDeps = Seq(
       // we just bind against the API, will be loaded at Mill runtime by the module
-      build.Deps.springBootTools
+      Deps.springBootTools
     )
   }
 

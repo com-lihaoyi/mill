@@ -1,9 +1,10 @@
 package build.runner.meta
-// imports
-import mill._
-import mill.contrib.buildinfo.BuildInfo
 
-object `package` extends build.MillPublishScalaModule with BuildInfo {
+import mill.*
+import mill.contrib.buildinfo.BuildInfo
+import millbuild.*
+
+object `package` extends MillPublishScalaModule with BuildInfo {
   def moduleDeps = Seq(
     build.runner.codesig,
     build.libs.main
