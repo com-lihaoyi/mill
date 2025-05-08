@@ -17,7 +17,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
     val res = tester.eval(("show", "countClassLoaders"))
 
     val read = upickle.default.read[SortedMap[String, Int]](res.out)
-    val expected = SortedMap(kvs *)
+    val expected = SortedMap(kvs*)
     // pprint.log(read)
     // pprint.log(expected)
     assert(read == expected)
@@ -153,7 +153,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         "prompt-logger-stream-pumper-thread",
         "proxyInputStreamThroughPumper"
       )
-
 
       for (i <- Range(0, 2)) {
         tester.modifyFile(tester.workspacePath / "build.mill", "\n" + _)

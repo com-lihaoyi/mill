@@ -513,7 +513,6 @@ private trait GroupExecution {
 
 private object GroupExecution {
 
-
   class DestCreator(paths: Option[ExecutionPaths]) {
     var usedDest = Option.empty[os.Path]
 
@@ -528,18 +527,20 @@ private object GroupExecution {
       }
     }
   }
-  def wrap[T](workspace: os.Path,
-              validWriteDests: Seq[os.Path],
-              validReadDests: Seq[os.Path],
-              isCommand: Boolean,
-              isInput: Boolean,
-              exclusive: Boolean,
-              multiLogger: Logger,
-              logger: Logger,
-              exclusiveSystemStreams: SystemStreams,
-              counterMsg: String,
-              destCreator: DestCreator,
-              evaluator: Evaluator)(t: => T): T = {
+  def wrap[T](
+      workspace: os.Path,
+      validWriteDests: Seq[os.Path],
+      validReadDests: Seq[os.Path],
+      isCommand: Boolean,
+      isInput: Boolean,
+      exclusive: Boolean,
+      multiLogger: Logger,
+      logger: Logger,
+      exclusiveSystemStreams: SystemStreams,
+      counterMsg: String,
+      destCreator: DestCreator,
+      evaluator: Evaluator
+  )(t: => T): T = {
     val executionChecker = new os.Checker {
       def onRead(path: os.ReadablePath): Unit = path match {
         case path: os.Path =>

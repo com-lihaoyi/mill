@@ -42,28 +42,27 @@ def countClassLoaders() = Task.Command {
   mill.api.MillURLClassLoader.countOpenClassloaders0
 }
 
-
 def countThreads() = Task.Command {
   import collection.JavaConverters._
   mill.constants.DebugLog.println(
     "\n\n" +
-    Thread
-      .getAllStackTraces
-      .keySet
-      .asScala
-      .toSeq
-      .mkString("\n")
+      Thread
+        .getAllStackTraces
+        .keySet
+        .asScala
+        .toSeq
+        .mkString("\n")
   )
   Thread
     .getAllStackTraces
     .keySet
     .asScala
     .toSeq
-    .collect{case t if t.getThreadGroup.getName == "main" => t.getName }
+    .collect { case t if t.getThreadGroup.getName == "main" => t.getName }
     .sorted
 }
 
-def leakThreadClassloader() = Task.Command{
+def leakThreadClassloader() = Task.Command {
   new Thread(() => Thread.sleep(9999999), "leaked thread").start()
   mill.util.Jvm.createClassLoader(Nil, label = "leaked classloader")
   ()
