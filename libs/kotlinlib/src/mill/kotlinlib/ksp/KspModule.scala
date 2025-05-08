@@ -5,7 +5,7 @@ import mill.define.PathRef
 import mill.api.Result
 import mill.define.Task
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
+import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 
 import java.io.File
 
@@ -200,7 +200,9 @@ trait KspModule extends KotlinModule { outer =>
 
     T.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
 
-    kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
+    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath().map(_.path)) {
+      _._2.compile(KotlinWorkerTarget.Jvm, compilerArgs)
+    }
 
     GeneratedKSPSources(PathRef(java), PathRef(kotlin), PathRef(resources), PathRef(classes))
   }

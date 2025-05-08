@@ -1,23 +1,29 @@
-package mill.util
+package mill.api
 
 import java.net.URLClassLoader
+
+/**
+ * Convenience wrapper around `java.net.URLClassLoader`. Allows configuration
+ * of shared class prefixes, and tracks creation/closing to help detect leaks
+ */
 class MillURLClassLoader(
-    classPath: Iterable[os.Path],
+    classPath: Iterable[java.nio.file.Path],
     parent: ClassLoader,
     sharedLoader: ClassLoader,
-    sharedPrefixes: Iterable[String]
+    sharedPrefixes: Iterable[String],
+    val label: String
 ) extends URLClassLoader(
-      classPath.iterator.map(_.toNIO.toUri.toURL).toArray,
+      classPath.iterator.map(_.toUri.toURL).toArray,
       MillURLClassLoader.refinePlatformParent(parent)
     ) {
-  import MillURLClassLoader._
-  addOpenClassloader(classPath)
+  import MillURLClassLoader.*
+  addOpenClassloader(label)
   override def findClass(name: String): Class[?] =
     if (sharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
     else super.findClass(name)
 
   override def close() = {
-    removeOpenClassloader(classPath)
+    removeOpenClassloader(label)
     super.close()
   }
 
@@ -28,22 +34,24 @@ class MillURLClassLoader(
 }
 
 object MillURLClassLoader {
-  private[mill] val openClassloaders = collection.mutable.Map.empty[Iterable[os.Path], Int]
+  def countOpenClassloaders = countOpenClassloaders0.values.sum
+  def countOpenClassloaders0 = openClassloaders.synchronized { openClassloaders.toMap }
+  private[mill] val openClassloaders = collection.mutable.Map.empty[String, Int]
 
-  private[mill] def addOpenClassloader(classPath: Iterable[os.Path]) =
+  private[mill] def addOpenClassloader(label: String) =
     openClassloaders.synchronized {
       // println(s"addOpenClassLoader ${classPath.hashCode}\n  " + new Exception().getStackTrace.mkString("\n  "))
 
-      openClassloaders.updateWith(classPath) {
+      openClassloaders.updateWith(label) {
         case None => Some(1)
         case Some(n) => Some(n + 1)
       }
     }
 
-  private[mill] def removeOpenClassloader(classPath: Iterable[os.Path]) =
+  private[mill] def removeOpenClassloader(label: String) =
     openClassloaders.synchronized {
       // println(s"removeOpenClassLoader ${classPath.hashCode}\n  " + new Exception().getStackTrace.mkString("\n  "))
-      openClassloaders.updateWith(classPath) {
+      openClassloaders.updateWith(label) {
         case Some(1) => None
         case Some(n) => Some(n - 1)
       }

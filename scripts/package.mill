@@ -5,6 +5,7 @@ import java.util.regex.Pattern
 
 import mill.*
 import mill.api.Result
+import millbuild.*
 
 object `package` extends mill.Module { scripts =>
 
@@ -14,8 +15,8 @@ object `package` extends mill.Module { scripts =>
     def finalName: T[String]
     def substitutions: T[Map[String, String]] = Map(
       "mill-version" -> build.millVersionTruth(),
-      "mill-repo-url" -> build.Settings.projectUrl,
-      "mill-maven-url" -> build.Settings.mavenRepoUrl,
+      "mill-repo-url" -> Settings.projectUrl,
+      "mill-maven-url" -> Settings.mavenRepoUrl,
       "mill-best-version" -> "0.12.10", // TODO: build.millVersionTruth()
       "mill-download-cache-unix" -> "~/.cache/mill/download",
       "mill-download-cache-win" -> "%USERPROFILE%\\\\.mill\\\\download",
