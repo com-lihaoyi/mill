@@ -12,7 +12,7 @@ import mill.define.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
-import millbuild.* 
+import millbuild.*
 
 /**
  * [[build.contrib]] contains user-contributed Mill plugins that satisfy

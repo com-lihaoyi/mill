@@ -40,8 +40,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       build.runner.client,
       build.core.api
     ) ++ build.libs.scalalib.compileModuleDeps
-    def 
-    mvnDeps = Seq(
+    def mvnDeps = Seq(
       Deps.bsp4j,
       Deps.sbtTestInterface,
       Deps.osLib

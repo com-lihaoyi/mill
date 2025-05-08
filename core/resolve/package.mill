@@ -1,6 +1,6 @@
 package build.core.resolve
 
-import mill.* 
+import mill.*
 import millbuild.*
 
 /**

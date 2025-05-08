@@ -5,7 +5,7 @@ import java.util.regex.Pattern
 
 import mill.*
 import mill.api.Result
-import millbuild.* 
+import millbuild.*
 
 object `package` extends mill.Module { scripts =>
 
