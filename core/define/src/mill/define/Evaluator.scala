@@ -126,11 +126,7 @@ object Evaluator {
     }
   }
 
-  private[mill] def currentEvaluator = currentEvaluator0.value match {
-    case null =>
-      sys.error("No evaluator available here; Evaluator is only available in exclusive commands")
-    case v => v
-  }
+  private[mill] def currentEvaluator = currentEvaluator0.value
 
   /**
    * @param watchable the list of [[Watchable]]s that were generated during this evaluation,

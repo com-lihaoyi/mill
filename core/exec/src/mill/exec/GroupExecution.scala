@@ -572,7 +572,13 @@ private object GroupExecution {
       os.checker.withValue(executionChecker) {
         mill.define.SystemStreams.withStreams(streams) {
           val exposedEvaluator =
-            if (!exclusive) null else evaluator.asInstanceOf[Evaluator]
+            if (exclusive) evaluator.asInstanceOf[Evaluator]
+            else new EvaluatorProxy(() =>
+              sys.error(
+                "No evaluator available here; Evaluator is only available in exclusive commands"
+              )
+            )
+
           Evaluator.withCurrentEvaluator(exposedEvaluator) {
             if (!exclusive) t
             else {

@@ -133,7 +133,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         "proxyInputStreamThroughPumper"
       )
 
-
       // Exercise clean compile all post-shutdown
       for (i <- Range(0, 2)) {
         tester.eval(("show", "clean"))
