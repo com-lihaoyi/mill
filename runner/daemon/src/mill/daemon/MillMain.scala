@@ -359,7 +359,9 @@ object MillMain {
                         ringBell = config.ringBell.value,
                         watch = Option.when(config.watch.value)(Watching.WatchArgs(
                           setIdle = setIdle,
-                          colors
+                          colors, 
+                          useNotify = config.watchViaFsNotify, 
+                          serverDir = serverDir
                         )),
                         streams = streams,
                         evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {

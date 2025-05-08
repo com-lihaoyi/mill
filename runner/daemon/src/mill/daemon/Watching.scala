@@ -2,8 +2,8 @@ package mill.daemon
 
 import mill.api.SystemStreams
 import mill.api.internal.internal
-import mill.define.PathRef
 import mill.define.internal.Watchable
+import mill.define.{PathRef, WorkspaceRoot}
 import mill.internal.Colors
 
 import java.io.InputStream
@@ -22,9 +22,15 @@ object Watching {
     def apply(enterKeyPressed: Boolean, previousState: Option[T]): Result[T]
   }
 
+  /**
+   * @param useNotify whether to use filesystem based watcher. If it is false uses polling.
+   * @param serverDir the directory for storing logs of the mill server
+   */
   case class WatchArgs(
       setIdle: Boolean => Unit,
-      colors: Colors
+      colors: Colors,
+      useNotify: Boolean,
+      serverDir: os.Path
   )
 
   /**
@@ -75,8 +81,7 @@ object Watching {
           if (alreadyStale) {
             enterKeyPressed = false
           } else {
-            enterKeyPressed =
-              watchAndWait(streams, watchArgs.setIdle, streams.in, watchables, watchArgs.colors)
+            enterKeyPressed = watchAndWait(streams, streams.in, watchables, watchArgs)
           }
         }
         throw new IllegalStateException("unreachable")
@@ -85,12 +90,11 @@ object Watching {
 
   def watchAndWait(
       streams: SystemStreams,
-      setIdle: Boolean => Unit,
       stdin: InputStream,
       watched: Seq[Watchable],
-      colors: Colors
+      watchArgs: WatchArgs
   ): Boolean = {
-    setIdle(true)
+    watchArgs.setIdle(true)
     val (watchedPollables, watchedPathsSeq) = watched.partitionMap {
       case w: Watchable.Pollable => Left(w)
       case p: Watchable.Path => Right(p)
@@ -101,42 +105,98 @@ object Watching {
     val watchedValueStr =
       if (watchedValueCount == 0) "" else s" and $watchedValueCount other values"
 
-    streams.err.println(
-      colors.info(
-        s"Watching for changes to ${watchedPathsSeq.size} paths$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
+    streams.err.println {
+      val viaFsNotify = if (watchArgs.useNotify) " (via fsnotify)" else ""
+      watchArgs.colors.info(
+        s"Watching for changes to ${watchedPathsSeq.size} paths$viaFsNotify$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
       ).toString
-    )
+    }
 
-    @volatile var pathChangesDetected = false
-
-    // oslib watch only works with folders, so we have to watch the parent folders instead
-    val osLibWatchPaths = watchedPathsSet.iterator.map(p => p / "..").toSet
-//    mill.constants.DebugLog(
-//      colors.info(s"[watch:watched-paths] ${osLibWatchPaths.mkString("\n")}").toString
-//    )
-
-    Using.resource(os.watch.watch(
-      osLibWatchPaths.toSeq,
-      onEvent = changedPaths => {
-        // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
-        // same folder
-        val hasWatchedPath = changedPaths.exists(p => watchedPathsSet.contains(p))
-//        mill.constants.DebugLog(colors.info(
-//          s"[watch:changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
-//        ).toString)
-        if (hasWatchedPath) {
-          pathChangesDetected = true
-        }
-      },
-//      logger = (eventType, data) => {
-//        mill.constants.DebugLog(colors.info(s"[watch] $eventType: ${pprint.apply(data)}").toString)
-//      }
-    )) { _ =>
-      val enterKeyPressed =
-        statWatchWait(watchedPollables, stdin, notifiablesChanged = () => pathChangesDetected)
-      setIdle(false)
+    def doWatch(notifiablesChanged: () => Boolean) = {
+      val enterKeyPressed = statWatchWait(watchedPollables, stdin, notifiablesChanged)
+      watchArgs.setIdle(false)
       enterKeyPressed
     }
+
+    def doWatchPolling() =
+      doWatch(notifiablesChanged = () => watchedPathsSeq.exists(p => !validateAnyWatchable(p)))
+
+    def doWatchFsNotify() = {
+      Using.resource(os.write.outputStream(watchArgs.serverDir / "fsNotifyWatchLog")) { watchLog =>
+        def writeToWatchLog(s: String): Unit = {
+          watchLog.write(s.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+          watchLog.write('\n')
+        }
+
+        @volatile var pathChangesDetected = false
+
+        // oslib watch only works with folders, so we have to watch the parent folders instead
+
+        writeToWatchLog(
+          s"[watched-paths:unfiltered] ${watchedPathsSet.toSeq.sorted.mkString("\n")}"
+        )
+
+        val workspaceRoot = WorkspaceRoot.workspaceRoot
+
+        /** Paths that are descendants of [[workspaceRoot]]. */
+        val pathsUnderWorkspaceRoot = watchedPathsSet.filter { path =>
+          val isUnderWorkspaceRoot = path.startsWith(workspaceRoot)
+          if (!isUnderWorkspaceRoot) {
+            streams.err.println(watchArgs.colors.error(
+              s"Watched path $path is outside workspace root $workspaceRoot, this is unsupported."
+            ).toString())
+          }
+
+          isUnderWorkspaceRoot
+        }
+
+        // If I have 'root/a/b/c'
+        //
+        // Then I want to watch:
+        //   root/a/b/c
+        //   root/a/b
+        //   root/a
+        //   root
+        val filterPaths = pathsUnderWorkspaceRoot.flatMap { path =>
+          path.relativeTo(workspaceRoot).segments.inits.map(segments => workspaceRoot / segments)
+        }
+        writeToWatchLog(s"[watched-paths:filtered] ${filterPaths.toSeq.sorted.mkString("\n")}")
+
+        Using.resource(os.watch.watch(
+          // Just watch the root folder
+          Seq(workspaceRoot),
+          filter = path => {
+            val shouldBeWatched =
+              filterPaths.contains(path) || watchedPathsSet.exists(watchedPath =>
+                path.startsWith(watchedPath)
+              )
+            writeToWatchLog(s"[filter] (shouldBeWatched=$shouldBeWatched) $path")
+            shouldBeWatched
+          },
+          onEvent = changedPaths => {
+            // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
+            // same folder
+            val hasWatchedPath =
+              changedPaths.exists(p =>
+                watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath))
+              )
+            writeToWatchLog(
+              s"[changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
+            )
+            if (hasWatchedPath) {
+              pathChangesDetected = true
+            }
+          },
+          logger = (eventType, data) =>
+            writeToWatchLog(s"[watch:event] $eventType: ${pprint.apply(data).plainText}")
+        )) { _ =>
+          doWatch(notifiablesChanged = () => pathChangesDetected)
+        }
+      }
+    }
+
+    if (watchArgs.useNotify) doWatchFsNotify()
+    else doWatchPolling()
   }
 
   /**
