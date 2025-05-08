@@ -41,3 +41,15 @@ object app extends scalalib.JavaModule {
 def countClassLoaders() = Task.Command {
   mill.api.MillURLClassLoader.countOpenClassloaders0
 }
+
+
+def countThreads() = Task.Command {
+  import collection.JavaConverters._
+  Thread
+    .getAllStackTraces
+    .keySet
+    .asScala
+    .toSeq
+    .collect{case t if t.getThreadGroup.getName == "main" => t.getName }
+    .sorted
+}

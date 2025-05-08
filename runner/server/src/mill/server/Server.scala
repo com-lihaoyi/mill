@@ -73,7 +73,8 @@ abstract class Server[T](
                     case e: Throwable =>
                       serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
                   } finally sock.close();
-                ).start()
+                ,
+                "HandleRunThread").start()
                 true
             }
           }
@@ -293,7 +294,7 @@ object Server {
             case Some(msg) => exit(msg)
           }
         },
-      "Process ID Checker Thread: " + processIdFile
+      "Process ID Checker Thread"
     )
     processIdThread.setDaemon(true)
     processIdThread.start()

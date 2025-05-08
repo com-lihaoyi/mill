@@ -46,7 +46,7 @@ case class Retry(
           val result = Promise[T]
           val thread = new Thread({ () =>
             result.complete(scala.util.Try(t(retryCount)))
-          }: Runnable)
+          }: Runnable, "RetryThread")
           thread.start()
           Await.result(result.future, Duration.apply(timeoutMillis, TimeUnit.MILLISECONDS))
         }
