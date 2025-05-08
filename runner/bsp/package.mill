@@ -5,7 +5,7 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import millbuild.*
 
-object `package` extends build.MillPublishScalaModule with BuildInfo {
+object `package` extends MillPublishScalaModule with BuildInfo {
   def compileModuleDeps = Seq(build.libs.scalalib)
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
   def buildInfoPackageName = "mill.bsp"
@@ -33,7 +33,7 @@ object `package` extends build.MillPublishScalaModule with BuildInfo {
     def forkArgs = super.forkArgs() ++ Seq(s"-DBSP4J_VERSION=${Deps.bsp4j.version}")
   }
 
-  object worker extends build.MillPublishScalaModule {
+  object worker extends MillPublishScalaModule {
     def moduleDeps = Seq(build.runner.server)
     def compileModuleDeps = Seq(
       build.runner.bsp,

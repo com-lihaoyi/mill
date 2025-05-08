@@ -8,7 +8,7 @@ import millbuild.*
 
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version with kotlinlib is released,
 //  because currently there is no previous artifact version
-object `package` extends build.MillPublishScalaModule with BuildInfo {
+object `package` extends MillPublishScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.libs.scalalib, build.libs.testrunner, worker)
   def transitiveLocalTestOverrides =
@@ -42,7 +42,7 @@ object `package` extends build.MillPublishScalaModule with BuildInfo {
     )
   )
 
-  trait MillKotlinModule extends build.MillPublishScalaModule {
+  trait MillKotlinModule extends MillPublishScalaModule {
     override def javacOptions = {
       val release =
         if (scala.util.Properties.isJavaAtLeast(11)) Seq("-release", "8")

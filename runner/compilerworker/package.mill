@@ -1,10 +1,10 @@
 package build.runner.compilerworker
-// imports
-import mill._
+
+import mill.*
 import mill.contrib.buildinfo.BuildInfo
 import millbuild.*
 
-object `package` extends build.MillPublishScalaModule {
+object `package` extends MillPublishScalaModule {
   def moduleDeps = Seq(build.runner.compilerworker.api)
 
   def mvnDeps = Agg(Deps.scalaCompiler(scalaVersion()))

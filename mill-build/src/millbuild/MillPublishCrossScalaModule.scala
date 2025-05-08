@@ -1,0 +1,5 @@
+package millbuild
+
+import mill.scalalib.CrossScalaModule
+
+trait MillPublishCrossScalaModule extends MillPublishJavaModule with CrossScalaModule

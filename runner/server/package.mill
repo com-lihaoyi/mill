@@ -8,7 +8,7 @@ import millbuild.*
  * and tests that exercise is together with [[build.core.constants]], without
  * any Mill-related business logic
  */
-object `package` extends build.MillPublishScalaModule {
+object `package` extends MillPublishScalaModule {
   def moduleDeps = Seq(build.runner.launcher, build.core.api)
 
   def mvnDeps = Seq(

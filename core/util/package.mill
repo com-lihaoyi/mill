@@ -9,7 +9,7 @@ import millbuild.*
  * be part of the interface between the two classloader environments to ensure
  * isolation between them
  */
-object `package` extends build.MillStableScalaModule with BuildInfo {
+object `package` extends MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.core.api, build.core.constants, build.core.define)
 
   def mvnDeps = Agg(

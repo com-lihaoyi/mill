@@ -16,7 +16,7 @@ import mill.T
 import mill.define.Cross
 import millbuild.*
 
-object `package` extends build.MillStableScalaModule {
+object `package` extends MillStableScalaModule {
 
   def moduleDeps = Seq(build.core.util, build.libs.scalalib.api, build.libs.testrunner)
   def mvnDeps = {
@@ -41,11 +41,11 @@ object `package` extends build.MillStableScalaModule {
     super.testForkEnv() ++ Map("LC_ALL" -> locale)
   }
 
-  object backgroundwrapper extends build.MillPublishJavaModule with build.MillJavaModule {
+  object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
     def mvnDeps = Agg(Deps.sbtTestInterface)
   }
 
-  object api extends build.MillStableScalaModule with BuildInfo {
+  object api extends MillStableScalaModule with BuildInfo {
     def moduleDeps = Seq(build.core.define)
     def buildInfoPackageName = "mill.scalalib.api"
     def buildInfoObjectName = "Versions"
@@ -105,7 +105,7 @@ object `package` extends build.MillStableScalaModule {
     )
   }
 
-  object worker extends build.MillPublishScalaModule with BuildInfo {
+  object worker extends MillPublishScalaModule with BuildInfo {
     def moduleDeps = Seq(api, build.core.util)
     def mvnDeps = Seq(Deps.zinc, Deps.log4j2Core)
     def buildInfoPackageName = "mill.scalalib.worker"
@@ -115,17 +115,17 @@ object `package` extends build.MillStableScalaModule {
     )
   }
 
-  object `classgraph-worker` extends build.MillPublishScalaModule {
+  object `classgraph-worker` extends MillPublishScalaModule {
     def moduleDeps = Seq(api, build.core.util)
     def mvnDeps = Seq(Deps.classgraph)
   }
 
-  object `jarjarabrams-worker` extends build.MillPublishScalaModule {
+  object `jarjarabrams-worker` extends MillPublishScalaModule {
     def moduleDeps = Seq(api, build.core.util, build.libs.scalalib)
     def mvnDeps = Agg(Deps.jarjarabrams)
   }
 
-  object `spring-boot-worker` extends build.MillPublishScalaModule {
+  object `spring-boot-worker` extends MillPublishScalaModule {
     def moduleDeps = Seq(api)
     def compileMvnDeps = Seq(
       // we just bind against the API, will be loaded at Mill runtime by the module

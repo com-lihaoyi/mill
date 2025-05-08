@@ -7,7 +7,7 @@ import mill.scalalib.ScalaModule
 import mill.util.Jvm
 import millbuild.*
 
-object `package` extends build.MillPublishScalaModule {
+object `package` extends MillPublishScalaModule {
 
   def moduleDeps = Seq(build.libs.scalalib)
 
@@ -66,19 +66,19 @@ object `package` extends build.MillPublishScalaModule {
     PathRef(Task.dest)
   }
 
-  object buildgen extends build.MillPublishScalaModule {
+  object buildgen extends MillPublishScalaModule {
     def moduleDeps = Seq(build.libs.init, build.core.internal, build.core.util)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
 
     // I tried moving `Tree` into this module, but it doesn't compile with Scala 2.12.20.
     /*
     object tree extends Cross[TreeModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
-    trait TreeModule extends build.MillPublishCrossScalaModule {
+    trait TreeModule extends MillPublishCrossScalaModule {
       def mvnDeps = Agg(Deps.upickle)
     }
      */
   }
-  object gradle extends build.MillPublishScalaModule {
+  object gradle extends MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
     def mvnDeps = Agg(
       Deps.gradleApi,
@@ -86,7 +86,7 @@ object `package` extends build.MillPublishScalaModule {
     )
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
   }
-  object maven extends build.MillPublishScalaModule {
+  object maven extends MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
     def mvnDeps = Agg(
       Deps.mavenEmbedder,
@@ -99,7 +99,7 @@ object `package` extends build.MillPublishScalaModule {
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
   }
 
-  object sbt extends build.MillPublishScalaModule with BuildInfo {
+  object sbt extends MillPublishScalaModule with BuildInfo {
     def moduleDeps = Seq(buildgen, models(Deps.scalaVersion))
 
     def sbtPluginJarResources = Task {
@@ -119,7 +119,7 @@ object `package` extends build.MillPublishScalaModule {
     // An `sbt` plugin is built with Scala 2.12. See https://www.scala-sbt.org/1.x/docs/Plugins.html#Creating+an+auto+plugin.
     object models
         extends Cross[ModelsModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
-    trait ModelsModule extends build.MillPublishCrossScalaModule {
+    trait ModelsModule extends MillPublishCrossScalaModule {
       // def moduleDeps = Seq(buildgen.tree())
       def mvnDeps = Agg(Deps.upickle)
       def compileMvnDeps = Agg(Deps.sbt) // for definition references only
@@ -135,7 +135,7 @@ object `package` extends build.MillPublishScalaModule {
     }
 
     // no need to publish this
-    // `test` fails with `build.MillScalaModule`, and since it's an `sbt` plugin project it's most likely not needed.
+    // `test` fails with `MillScalaModule`, and since it's an `sbt` plugin project it's most likely not needed.
     object exportplugin extends ScalaModule {
       private val scalaVersionString = Deps.sbtScalaVersion212
       def scalaVersion = scalaVersionString

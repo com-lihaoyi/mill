@@ -30,7 +30,7 @@ object `package` extends mill.Module {
       }
     def scalaVersion = Deps.scalaVersion
     def moduleDeps = build.moduleInternal.modules.collect {
-      case m: build.MillStableScalaModule => m
+      case m: MillStableScalaModule => m
       case m: JavaModule if m eq build.libs.kotlinlib => m
     }
     def unidocSourceUrl = Task {

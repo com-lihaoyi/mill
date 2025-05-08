@@ -8,7 +8,7 @@ import millbuild.*
  * This module contains the data types necessary for defining a Mill build:
  * defining Tasks, Modules, helper code, and other related data structures.
  */
-object `package` extends build.MillStableScalaModule {
+object `package` extends MillStableScalaModule {
   def moduleDeps = Seq(build.core.api)
 
   def compileMvnDeps = Task {

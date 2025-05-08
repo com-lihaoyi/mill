@@ -8,7 +8,7 @@ import mill.T
 import mill.define.Cross
 import millbuild.*
 
-object `package` extends build.MillStableScalaModule with BuildInfo {
+object `package` extends MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.libs.scalalib, `worker-api`)
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(worker("1").localTestOverride())
@@ -39,12 +39,12 @@ object `package` extends build.MillStableScalaModule with BuildInfo {
     )
   }
 
-  object `worker-api` extends build.MillPublishScalaModule {
+  object `worker-api` extends MillPublishScalaModule {
     def mvnDeps = Agg(Deps.sbtTestInterface)
   }
 
   object worker extends Cross[WorkerModule]("1")
-  trait WorkerModule extends build.MillPublishScalaModule with Cross.Module[String] {
+  trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
     def moduleDeps = Seq(build.core.define)
     def scalajsWorkerVersion = crossValue
     def moduleDir: os.Path = super.moduleDir / scalajsWorkerVersion

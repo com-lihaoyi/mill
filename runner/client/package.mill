@@ -9,7 +9,7 @@ import millbuild.*
  * along with basic constants and helpers shared between the client, server,
  * and the rest of the Mill codebase.
  */
-object `package` extends build.MillPublishJavaModule with BuildInfo {
+object `package` extends MillPublishJavaModule with BuildInfo {
   def buildInfoPackageName = "mill.client"
   def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
 

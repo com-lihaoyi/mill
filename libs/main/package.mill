@@ -14,7 +14,7 @@ import millbuild.*
  * file, for use by build authors or plugin authors. All the various language `*lib` modules,
  * the available `core.*` modules, and builtin tasks defined on the top-level `build` object.
  */
-object `package` extends build.MillStableScalaModule {
+object `package` extends MillStableScalaModule {
 
   def moduleDeps = Seq(
     build.core.util,

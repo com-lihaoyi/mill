@@ -30,7 +30,7 @@ object `package` extends mill.Module {
     def localRunClasspath: T[Seq[PathRef]]
     def forkEnv: T[Map[String, String]]
     def testExclusive = false
-    trait ModeModule extends build.MillBaseTestsModule {
+    trait ModeModule extends MillBaseTestsModule {
       override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
         testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
       }
@@ -102,7 +102,7 @@ object `package` extends mill.Module {
       extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "bootstrap"))
   object migrating
       extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "migrating"))
-  trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
+  trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkEnv = super.forkEnv() ++ Seq(
       "MILL_PROJECT_ROOT" -> Task.workspace.toString,

@@ -1,4 +1,5 @@
 package build.runner.daemon
+
 import mill.*
 import mill.contrib.buildinfo.BuildInfo
 import millbuild.*
@@ -9,7 +10,7 @@ import millbuild.*
  *
  * Mostly tested by [[build.integration]] and [[build.example]] tests.
  */
-object `package` extends build.MillPublishScalaModule {
+object `package` extends MillPublishScalaModule {
 
   def transitiveLocalTestOverrides = Map(
     Task.traverse(build.dist.allPublishModules)(_.localTestOverride)()*

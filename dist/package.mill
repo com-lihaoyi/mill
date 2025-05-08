@@ -1,6 +1,5 @@
 package build.dist
 
-import build.MillJavaModule
 import mill.*
 import scalalib.*
 import publish.*
@@ -16,7 +15,7 @@ trait DistModule extends Module {
   // All modules that we want to aggregate as part of this `dev` assembly.
   // Excluding itself, and the `dist` module that uses it
   lazy val allPublishModules = build.moduleInternal.modules.collect {
-    case m: build.MillPublishJavaModule => m
+    case m: MillPublishJavaModule => m
   }
 
   def executableRaw: T[PathRef]
