@@ -114,6 +114,13 @@ object Evaluator {
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
   // in directly) we are forced to pass it in via a ThreadLocal
   private[mill] val currentEvaluator0 = new DynamicVariable[Evaluator](null)
+  private[mill] def withCurrentEvaluator[T](ev: Evaluator)(t: => T) = {
+    scala.util.Using.resource(new EvaluatorProxy(() => ev)){ev2 =>
+      currentEvaluator0.withValue(ev2){
+        t
+      }
+    }
+  }
 
   private[mill] def currentEvaluator = currentEvaluator0.value match {
     case null =>

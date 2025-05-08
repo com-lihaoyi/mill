@@ -355,7 +355,7 @@ private trait GroupExecution {
                 mill.define.SystemStreams.withStreams(streams) {
                   val exposedEvaluator =
                     if (!exclusive) null else getEvaluator().asInstanceOf[Evaluator]
-                  Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
+                  Evaluator.withCurrentEvaluator(exposedEvaluator) {
                     if (!exclusive) t
                     else {
                       logger.prompt.reportKey(Seq(counterMsg))
