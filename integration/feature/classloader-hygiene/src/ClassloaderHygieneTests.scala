@@ -28,7 +28,7 @@ object ClassloaderHygieneTests extends UtestIntegrationTestSuite {
         "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
         "mill.meta.ScalaCompilerWorker.reflectUnsafe cl" -> 1,
         "mill.scalalib.JvmWorkerModule#worker cl" -> 1,
-        "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1,
+        "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
       )
 
       for (i <- Range(0, 2)) {
@@ -41,7 +41,7 @@ object ClassloaderHygieneTests extends UtestIntegrationTestSuite {
           "mill.kotlinlib.KotlinModule#kotlinWorkerClassLoader" -> 1,
           "mill.meta.ScalaCompilerWorker.reflectUnsafe cl" -> 1,
           "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-          "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 2,
+          "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 2
         )
       }
 
@@ -54,7 +54,7 @@ object ClassloaderHygieneTests extends UtestIntegrationTestSuite {
           "mill.kotlinlib.KotlinModule#kotlinWorkerClassLoader" -> 1,
           "mill.meta.ScalaCompilerWorker.reflectUnsafe cl" -> 1,
           "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-          "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 2,
+          "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 2
         )
       }
 
@@ -76,7 +76,7 @@ object ClassloaderHygieneTests extends UtestIntegrationTestSuite {
         "mill.kotlinlib.KotlinModule#kotlinWorkerClassLoader" -> 1,
         "mill.meta.ScalaCompilerWorker.reflectUnsafe cl" -> 1,
         "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-        "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1,
+        "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
       )
 
       for (i <- Range(0, 2)) {
@@ -89,7 +89,7 @@ object ClassloaderHygieneTests extends UtestIntegrationTestSuite {
           "mill.kotlinlib.KotlinModule#kotlinWorkerClassLoader" -> 1,
           "mill.meta.ScalaCompilerWorker.reflectUnsafe cl" -> 1,
           "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-          "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1,
+          "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
         )
       }
     }

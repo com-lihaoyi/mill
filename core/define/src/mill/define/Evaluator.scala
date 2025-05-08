@@ -119,8 +119,8 @@ object Evaluator {
     // raw `Evaluator`, and `.close()` it after we're done to `null` out the contents.
     // This is so that if the `InheritableThreadLocal` gets captured by long-lived spawned
     // thread pools, we do not end up leaking the contents.
-    scala.util.Using.resource(new EvaluatorProxy(() => ev)){ev2 =>
-      currentEvaluator0.withValue(ev2){
+    scala.util.Using.resource(new EvaluatorProxy(() => ev)) { ev2 =>
+      currentEvaluator0.withValue(ev2) {
         t
       }
     }
