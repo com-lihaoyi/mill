@@ -2,7 +2,7 @@ package mill.androidlib
 
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import coursier.Repository
+import coursier.{Dependency, Repository}
 import mill.T
 import mill.define.{ModuleRef, PathRef, Target, Task}
 import mill.scalalib.*
@@ -122,6 +122,12 @@ trait AndroidModule extends JavaModule {
     super.resolutionParams().addVariantAttributes(
       "org.jetbrains.kotlin.platform.type" ->
         VariantMatcher.AnyOf(Seq(VariantMatcher.Equals("androidJvm"), VariantMatcher.Equals("jvm")))
+    )
+  }
+
+  override def mapDependencies: Task[Dependency => Dependency] = Task.Anon {
+    super.mapDependencies().andThen(
+      dep => dep.withEndorseStrictVersions(true)
     )
   }
 
