@@ -40,7 +40,7 @@ trait MillJavaModule extends JavaModule {
     upstream.toMap ++ current
   }
 
-  def testMvnDeps: T[Agg[Dep]] = Agg(Deps.TestDeps.utest)
+  def testMvnDeps: T[Seq[Dep]] = Seq(Deps.TestDeps.utest)
   def testForkEnv: T[Map[String, String]] = forkEnv()
   def testModuleDeps: Seq[JavaModule] =
     if (this == build.libs.main) Seq(build.libs.main, build.core.util)
