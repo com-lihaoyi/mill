@@ -277,30 +277,20 @@ private trait GroupExecution {
     val nonEvaluatedTargets = group.toIndexedSeq.filterNot(results.contains)
     val (multiLogger, fileLoggerOpt) = resolveLogger(paths.map(_.log), logger)
 
-    var usedDest = Option.empty[os.Path]
+    val destCreator = new GroupExecution.DestCreator(paths)
+
     for (task <- nonEvaluatedTargets) {
       newEvaluated.append(task)
       val targetInputValues = task.inputs
         .map { x => newResults.getOrElse(x, results(x)) }
         .collect { case ExecResult.Success((v, _)) => v }
 
-      def makeDest() = this.synchronized {
-        paths match {
-          case Some(dest) =>
-            if (usedDest.isEmpty) os.makeDir.all(dest.dest)
-            usedDest = Some(dest.dest)
-            dest.dest
-
-          case None => throw new Exception("No `dest` folder available here")
-        }
-      }
-
       val res = {
         if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
         else {
           val args = new mill.define.TaskCtx.Impl(
             args = targetInputValues.map(_.value).toIndexedSeq,
-            dest0 = () => makeDest(),
+            dest0 = () => destCreator.makeDest(),
             log = multiLogger,
             env = env,
             reporter = reporter,
@@ -311,65 +301,33 @@ private trait GroupExecution {
             jobs = effectiveThreadCount,
             offline = offline
           )
+
           // Tasks must be allowed to write to upstream worker's dest folders, because
           // the point of workers is to manualy manage long-lived state which includes
           // state on disk.
-          lazy val validWriteDests =
+          val validWriteDests =
             deps.collect { case n: Worker[?] =>
               ExecutionPaths.resolve(outPath, n.ctx.segments).dest
             } ++
               paths.map(_.dest)
 
-          lazy val validReadDests = validWriteDests ++ upstreamPathRefs.map(_.path)
+          val validReadDests = validWriteDests ++ upstreamPathRefs.map(_.path)
 
-          val executionChecker = new os.Checker {
-            def onRead(path: os.ReadablePath): Unit = path match {
-              case path: os.Path =>
-                if (!isCommand && !isInput) {
-                  if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
-                    sys.error(
-                      s"Reading from ${path.relativeTo(workspace)} not allowed during execution phase"
-                    )
-                  }
-                }
-              case _ =>
-            }
-
-            def onWrite(path: os.Path): Unit = {
-              if (!isCommand) {
-                if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
-                  sys.error(
-                    s"Writing to ${path.relativeTo(workspace)} not allowed during execution phase"
-                  )
-                }
-              }
-            }
-          }
-          def wrap[T](t: => T): T = {
-            val (streams, destFunc) =
-              if (exclusive) (exclusiveSystemStreams, () => workspace)
-              else (multiLogger.streams, () => makeDest())
-
-            os.dynamicPwdFunction.withValue(destFunc) {
-              os.checker.withValue(executionChecker) {
-                mill.define.SystemStreams.withStreams(streams) {
-                  val exposedEvaluator =
-                    if (!exclusive) null else getEvaluator().asInstanceOf[Evaluator]
-                  Evaluator.withCurrentEvaluator(exposedEvaluator) {
-                    if (!exclusive) t
-                    else {
-                      logger.prompt.reportKey(Seq(counterMsg))
-                      logger.prompt.withPromptPaused { t }
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          wrap {
+          GroupExecution.wrap(
+            workspace,
+            validWriteDests,
+            validReadDests,
+            isCommand,
+            isInput,
+            exclusive,
+            multiLogger,
+            logger,
+            exclusiveSystemStreams,
+            counterMsg,
+            destCreator,
+            getEvaluator().asInstanceOf[Evaluator]
+          ) {
             try {
-
               task.evaluate(args) match {
                 case Result.Success(v) => ExecResult.Success(Val(v))
                 case Result.Failure(err) => ExecResult.Failure(err)
@@ -555,6 +513,78 @@ private trait GroupExecution {
 
 private object GroupExecution {
 
+
+  class DestCreator(paths: Option[ExecutionPaths]) {
+    var usedDest = Option.empty[os.Path]
+
+    def makeDest() = this.synchronized {
+      paths match {
+        case Some(dest) =>
+          if (usedDest.isEmpty) os.makeDir.all(dest.dest)
+          usedDest = Some(dest.dest)
+          dest.dest
+
+        case None => throw new Exception("No `dest` folder available here")
+      }
+    }
+  }
+  def wrap[T](workspace: os.Path,
+              validWriteDests: Seq[os.Path],
+              validReadDests: Seq[os.Path],
+              isCommand: Boolean,
+              isInput: Boolean,
+              exclusive: Boolean,
+              multiLogger: Logger,
+              logger: Logger,
+              exclusiveSystemStreams: SystemStreams,
+              counterMsg: String,
+              destCreator: DestCreator,
+              evaluator: Evaluator)(t: => T): T = {
+    val executionChecker = new os.Checker {
+      def onRead(path: os.ReadablePath): Unit = path match {
+        case path: os.Path =>
+          if (!isCommand && !isInput) {
+            if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
+              sys.error(
+                s"Reading from ${path.relativeTo(workspace)} not allowed during execution phase"
+              )
+            }
+          }
+        case _ =>
+      }
+
+      def onWrite(path: os.Path): Unit = {
+        if (!isCommand) {
+          if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
+            sys.error(
+              s"Writing to ${path.relativeTo(workspace)} not allowed during execution phase"
+            )
+          }
+        }
+      }
+    }
+    val (streams, destFunc) =
+      if (exclusive) (exclusiveSystemStreams, () => workspace)
+      else (multiLogger.streams, () => destCreator.makeDest())
+
+    os.dynamicPwdFunction.withValue(destFunc) {
+      os.checker.withValue(executionChecker) {
+        mill.define.SystemStreams.withStreams(streams) {
+          val exposedEvaluator =
+            if (!exclusive) null else evaluator.asInstanceOf[Evaluator]
+          Evaluator.withCurrentEvaluator(exposedEvaluator) {
+            if (!exclusive) t
+            else {
+              logger.prompt.reportKey(Seq(counterMsg))
+              logger.prompt.withPromptPaused {
+                t
+              }
+            }
+          }
+        }
+      }
+    }
+  }
   case class Results(
       newResults: Map[Task[?], ExecResult[(Val, Int)]],
       newEvaluated: Seq[Task[?]],
