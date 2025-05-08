@@ -5,7 +5,7 @@ import coursier.core.Resolution
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
-import mill.define.Task
+import mill.define.{Task, TaskCtx}
 import mill.define.{PathRef}
 import mill.api.{Result}
 import mill.util.Jvm
@@ -50,6 +50,7 @@ trait CoursierModule extends mill.define.Module {
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
+      ctx = Some(Task.ctx()),
       resolutionParams = resolutionParams(),
       offline = Task.offline,
       checkGradleModules = checkGradleModules()
@@ -71,6 +72,7 @@ trait CoursierModule extends mill.define.Module {
       mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
+      ctx = Some(Task.ctx()),
       resolutionParams = resolutionParams(),
       offline = Task.offline,
       checkGradleModules = checkGradleModules()
@@ -205,6 +207,7 @@ object CoursierModule {
       checkGradleModules: Boolean,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      ctx: Option[TaskCtx] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
       ] = None,
