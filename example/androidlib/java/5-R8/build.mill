@@ -77,13 +77,9 @@ object app extends AndroidAppModule { // <2>
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"androidx.test.ext:junit:1.2.1".exclude(
-        ("org.jetbrains.kotlinx", "kotlinx-coroutines-core-jvm")
-      ),
+      mvn"androidx.test.ext:junit:1.2.1",
       mvn"androidx.test:runner:1.6.2",
-      mvn"androidx.test.espresso:espresso-core:3.5.1".exclude(
-        ("org.jetbrains.kotlinx", "kotlinx-coroutines-core-jvm")
-      ),
+      mvn"androidx.test.espresso:espresso-core:3.5.1",
       mvn"junit:junit:4.13.2"
     )
   }
