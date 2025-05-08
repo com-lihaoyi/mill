@@ -359,27 +359,29 @@ class MillBuildBootstrap(
 
 @internal
 object MillBuildBootstrap {
+  // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
+  // tend to capture the entire enclosing instance, causing memory leaks
   def makeEvaluator(
-                     projectRoot: os.Path,
-                     output: os.Path,
-                     keepGoing: Boolean,
-                     env: Map[String, String],
-                     logger: Logger,
-                     threadCount: Option[Int],
-                     allowPositionalCommandArgs: Boolean,
-                     systemExit: Int => Nothing,
-                     streams0: SystemStreams,
-                     selectiveExecution: Boolean,
-                     offline: Boolean,
-                     workerCache: Map[String, (Int, Val)],
-                     codeSignatures: Map[String, Int],
-                     rootModule: RootModuleApi,
-                     millClassloaderSigHash: Int,
-                     millClassloaderIdentityHash: Int,
-                     depth: Int,
-                     actualBuildFileName: Option[String] = None,
-                     headerData: String
-                   ): EvaluatorApi = {
+      projectRoot: os.Path,
+      output: os.Path,
+      keepGoing: Boolean,
+      env: Map[String, String],
+      logger: Logger,
+      threadCount: Option[Int],
+      allowPositionalCommandArgs: Boolean,
+      systemExit: Int => Nothing,
+      streams0: SystemStreams,
+      selectiveExecution: Boolean,
+      offline: Boolean,
+      workerCache: Map[String, (Int, Val)],
+      codeSignatures: Map[String, Int],
+      rootModule: RootModuleApi,
+      millClassloaderSigHash: Int,
+      millClassloaderIdentityHash: Int,
+      depth: Int,
+      actualBuildFileName: Option[String] = None,
+      headerData: String
+  ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
       else Seq(
@@ -421,7 +423,6 @@ object MillBuildBootstrap {
 
     evaluator
   }
-
 
   def classpath(classLoader: ClassLoader): Vector[os.Path] = {
 
