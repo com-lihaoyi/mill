@@ -3,14 +3,13 @@ package millbuild
 import build_.package_ as build
 import coursier.MavenRepository
 import coursier.VersionConstraint
-import mill.*
 import mill.Agg
 import mill.PathRef
 import mill.T
 import mill.Task
-import mill.scalalib.*
 import mill.scalalib.Dep
 import mill.scalalib.JavaModule
+
 import scala.util.Properties
 
 trait MillJavaModule extends JavaModule {

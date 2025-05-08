@@ -1,16 +1,18 @@
 package millbuild
 
-import mill.*
-import mill.scalalib.*
-
+import build_.package_ as build
 import coursier.MavenRepository
-import mill.scalalib.{Dep, JavaModule}
-import mill.{Agg, PathRef, T, Task}
-
+import mill.Agg
+import mill.PathRef
+import mill.T
+import mill.Task
+import mill.scalalib.Dep
+import mill.scalalib.JavaModule
 import mill.scalalib.PublishModule
-import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
-
-import build_.{package_ => build}
+import mill.scalalib.publish.Developer
+import mill.scalalib.publish.License
+import mill.scalalib.publish.PomSettings
+import mill.scalalib.publish.VersionControl
 
 trait MillPublishJavaModule extends MillJavaModule with PublishModule {
   def commonPomSettings(artifactName: String) = {
