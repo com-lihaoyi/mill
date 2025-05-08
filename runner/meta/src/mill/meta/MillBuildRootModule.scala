@@ -9,8 +9,7 @@ import mill.define.{PathRef, Discover, RootModule0, Target, Task}
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.util.BuildInfo
-import mill.compilerworker.api.ScalaCompilerWorkerApi
-import mill.compilerworker.api.MillScalaParser
+import mill.api.internal.MillScalaParser
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 
@@ -23,8 +22,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
  */
 @internal
 trait MillBuildRootModule()(implicit
-    rootModuleInfo: RootModule0.Info,
-    scalaCompilerResolver: ScalaCompilerWorker.Resolver
+    rootModuleInfo: RootModule0.Info
 ) extends ScalaModule {
   override def bspDisplayName0: String = rootModuleInfo
     .projectRoot
@@ -55,12 +53,8 @@ trait MillBuildRootModule()(implicit
   def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
     os.checker.withValue(os.Checker.Nop) {
-      MillBuildRootModule.parseBuildFiles(compilerWorker(), rootModuleInfo)
+      MillBuildRootModule.parseBuildFiles(MillScalaParser.current.value, rootModuleInfo)
     }
-  }
-
-  private[mill] def compilerWorker: Worker[ScalaCompilerWorkerApi] = Task.Worker {
-    scalaCompilerResolver.resolve(rootModuleInfo.compilerWorkerClasspath)
   }
 
   def cliImports: T[Seq[String]] = Task.Input {
@@ -117,10 +111,9 @@ trait MillBuildRootModule()(implicit
         parsed.seenScripts,
         wrapped,
         support,
-        rootModuleInfo.compilerWorkerClasspath,
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.output,
-        compilerWorker()
+        MillScalaParser.current.value
       )
       (Seq(PathRef(wrapped)), Seq(PathRef(support)))
     }
@@ -323,8 +316,7 @@ object MillBuildRootModule {
   type GeneratedScriptSourcesResult = (Seq[PathRef], Seq[PathRef])
 
   class BootstrapModule()(implicit
-      rootModuleInfo: RootModule0.Info,
-      scalaCompilerResolver: ScalaCompilerWorker.Resolver
+      rootModuleInfo: RootModule0.Info
   ) extends mill.main.MainRootModule() with MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]
   }
@@ -340,7 +332,6 @@ object MillBuildRootModule {
       millBuildRootModuleInfo: RootModule0.Info
   ): FileImportGraph = {
     FileImportGraph.parseBuildFiles(
-      parser,
       millBuildRootModuleInfo.topLevelProjectRoot,
       millBuildRootModuleInfo.projectRoot / os.up,
       millBuildRootModuleInfo.output

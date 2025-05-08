@@ -20,7 +20,8 @@ object `package` extends build.MillPublishScalaModule {
     build.Deps.mainargs,
     build.Deps.upickle,
     build.Deps.pprint,
-    build.Deps.fansi
+    build.Deps.fansi,
+    build.Deps.scalaCompiler(scalaVersion())
   )
   def moduleDeps = Seq(
     build.runner.idea,
@@ -29,7 +30,6 @@ object `package` extends build.MillPublishScalaModule {
     build.core.eval,
     build.runner.server,
     build.runner.launcher,
-    build.runner.compilerworker.api,
     build.runner.meta
   )
 }

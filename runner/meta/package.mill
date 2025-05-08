@@ -6,18 +6,12 @@ import mill.contrib.buildinfo.BuildInfo
 object `package` extends build.MillPublishScalaModule with BuildInfo {
   def moduleDeps = Seq(
     build.runner.codesig,
-    build.runner.compilerworker.api,
     build.libs.main
   )
 
   def buildInfoPackageName = "mill.meta"
 
   def buildInfoMembers = Seq(
-    BuildInfo.Value(
-      "bootstrapDeps",
-      build.runner.compilerworker.bootstrapDeps().mkString(";"),
-      "Depedendencies used to bootstrap the scala compiler worker."
-    ),
     BuildInfo.Value(
       "millRunnerMetaVersion",
       this.publishVersion(),
