@@ -1,7 +1,6 @@
 package mill.runner
 
 import mill.api.{SystemStreams, internal}
-import mill.main.client.DebugLog
 import mill.util.{Colors, Watchable}
 
 import java.io.InputStream
@@ -14,8 +13,6 @@ import scala.util.Using
  */
 @internal
 object Watching {
-  private final val enableDebugLog = false
-
   case class Result[T](watched: Seq[Watchable], error: Option[String], result: T)
 
   trait Evaluate[T] {
@@ -24,11 +21,13 @@ object Watching {
 
   /**
    * @param useNotify whether to use filesystem based watcher. If it is false uses polling.
+   * @param serverDir the directory for storing logs of the mill server
    */
   case class WatchArgs(
       setIdle: Boolean => Unit,
       colors: Colors,
-      useNotify: Boolean
+      useNotify: Boolean,
+      serverDir: os.Path
   )
 
   def watchLoop[T](
@@ -81,7 +80,8 @@ object Watching {
               streams.in,
               watchables,
               watchArgs.colors,
-              useNotify = watchArgs.useNotify
+              useNotify = watchArgs.useNotify,
+              serverDir = watchArgs.serverDir
             )
           }
         }
@@ -95,7 +95,8 @@ object Watching {
       stdin: InputStream,
       watched: Seq[Watchable],
       colors: Colors,
-      useNotify: Boolean
+      useNotify: Boolean,
+      serverDir: os.Path
   ): Boolean = {
     setIdle(true)
     val (watchedPollables, watchedPathsSeq) = watched.partitionMap {
@@ -121,16 +122,17 @@ object Watching {
       enterKeyPressed
     }
 
-    if (useNotify) {
+    if (useNotify) Using.resource(os.write.outputStream(serverDir / "fsNotifyWatchLog")) { watchLog =>
+      def writeToWatchLog(s: String): Unit = {
+        watchLog.write(s.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+        watchLog.write('\n')
+      }
+
       @volatile var pathChangesDetected = false
 
       // oslib watch only works with folders, so we have to watch the parent folders instead
 
-      if (enableDebugLog) DebugLog.println(
-        colors.info(
-          s"[watch:watched-paths:unfiltered] ${watchedPathsSet.toSeq.sorted.mkString("\n")}"
-        ).toString
-      )
+      writeToWatchLog(s"[watched-paths:unfiltered] ${watchedPathsSet.toSeq.sorted.mkString("\n")}")
 
       val workspaceRoot = mill.api.WorkspaceRoot.workspaceRoot
 
@@ -156,9 +158,7 @@ object Watching {
       val filterPaths = pathsUnderWorkspaceRoot.flatMap { path =>
         path.relativeTo(workspaceRoot).segments.inits.map(segments => workspaceRoot / segments)
       }
-      if (enableDebugLog) DebugLog.println(colors.info(
-        s"[watch:watched-paths:filtered] ${filterPaths.toSeq.sorted.mkString("\n")}"
-      ).toString())
+      writeToWatchLog(s"[watched-paths:filtered] ${filterPaths.toSeq.sorted.mkString("\n")}")
 
       Using.resource(os.watch.watch(
         // Just watch the root folder
@@ -166,9 +166,7 @@ object Watching {
         filter = path => {
           val shouldBeWatched =
             filterPaths.contains(path) || watchedPathsSet.exists(watchedPath => path.startsWith(watchedPath))
-          if (enableDebugLog) {
-            DebugLog.println(colors.info(s"[watch:filter] $path (shouldBeWatched=$shouldBeWatched)").toString)
-          }
+          writeToWatchLog(s"[filter] (shouldBeWatched=$shouldBeWatched) $path")
           shouldBeWatched
         },
         onEvent = changedPaths => {
@@ -176,18 +174,12 @@ object Watching {
           // same folder
           val hasWatchedPath =
             changedPaths.exists(p => watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath)))
-          if (enableDebugLog) DebugLog.println(colors.info(
-            s"[watch:changed-paths] hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
-          ).toString)
+          writeToWatchLog(s"[changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}")
           if (hasWatchedPath) {
             pathChangesDetected = true
           }
         },
-        logger =
-          if (enableDebugLog) (eventType, data) => {
-            DebugLog.println(colors.info(s"[watch] $eventType: ${pprint.apply(data)}").toString)
-          }
-          else (_, _) => {}
+        logger = (eventType, data) => writeToWatchLog(s"[watch:event] $eventType: ${pprint.apply(data).plainText}")
       )) { _ =>
         doWatch(notifiablesChanged = () => pathChangesDetected)
       }

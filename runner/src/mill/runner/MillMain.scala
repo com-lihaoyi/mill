@@ -232,7 +232,7 @@ object MillMain {
                     val (isSuccess, evalStateOpt) = Watching.watchLoop(
                       ringBell = config.ringBell.value,
                       watch = Option.when(config.watch.value)(Watching.WatchArgs(
-                        setIdle, colors, useNotify = config.watchViaFsNotify
+                        setIdle, colors, useNotify = config.watchViaFsNotify, serverDir = serverDir
                       )),
                       streams = streams,
                       evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
