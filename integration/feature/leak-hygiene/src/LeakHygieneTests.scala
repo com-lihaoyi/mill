@@ -59,6 +59,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         "proxyInputStreamThroughPumper"
       )
 
+      // Exercise clean compile all
       for (i <- Range(0, 2)) {
         tester.eval(("show", "clean"))
         tester.eval(("show", "__.compile"))
@@ -85,6 +86,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
       }
 
+      // Exercise no-op compile all
       for (i <- Range(0, 2)) {
         tester.eval(("show", "__.compile"))
         checkClassloaders(tester)(
@@ -110,12 +112,64 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
       }
 
+      // Exercise post-shutdown
+
+      tester.eval(("shutdown"))
+      checkClassloaders(tester)(
+        "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
+        "mill.meta.ScalaCompilerWorker.reflectUnsafe cl" -> 1,
+        "mill.scalalib.JvmWorkerModule#worker cl" -> 1
+      )
+      checkThreads(tester)(
+        "HandleRunThread",
+        "MillServerActionRunner",
+        "MillSocketTimeoutInterruptThread",
+        "Process ID Checker Thread",
+        "Tail",
+        "Tail",
+        "execution-contexts-threadpool-thread",
+        "main",
+        "prompt-logger-stream-pumper-thread",
+        "proxyInputStreamThroughPumper"
+      )
+
+
+      // Exercise clean compile all post-shutdown
       for (i <- Range(0, 2)) {
-        tester.eval(("shutdown"))
+        tester.eval(("show", "clean"))
+        tester.eval(("show", "__.compile"))
         checkClassloaders(tester)(
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
+          "mill.kotlinlib.KotlinModule#kotlinWorkerClassLoader" -> 1,
           "mill.meta.ScalaCompilerWorker.reflectUnsafe cl" -> 1,
-          "mill.scalalib.JvmWorkerModule#worker cl" -> 1
+          "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
+          "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
+        )
+        checkThreads(tester)(
+          "HandleRunThread",
+          "MillServerActionRunner",
+          "MillSocketTimeoutInterruptThread",
+          "Process ID Checker Thread",
+          "Tail",
+          "Tail",
+          "execution-contexts-threadpool-thread",
+          "main",
+          "prompt-logger-stream-pumper-thread",
+          "proxyInputStreamThroughPumper"
+        )
+      }
+
+      // Exercise modifying build.mill
+      for (i <- Range(0, 2)) {
+        tester.modifyFile(tester.workspacePath / "build.mill", "\n" + _)
+
+        tester.eval(("show", "__.compile"))
+        checkClassloaders(tester)(
+          "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
+          "mill.kotlinlib.KotlinModule#kotlinWorkerClassLoader" -> 1,
+          "mill.meta.ScalaCompilerWorker.reflectUnsafe cl" -> 1,
+          "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
+          "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
         )
         checkThreads(tester)(
           "HandleRunThread",
@@ -131,33 +185,13 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         )
 
       }
-
-      tester.eval(("show", "clean"))
-      tester.eval(("show", "__.compile"))
-      checkClassloaders(tester)(
-        "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-        "mill.kotlinlib.KotlinModule#kotlinWorkerClassLoader" -> 1,
-        "mill.meta.ScalaCompilerWorker.reflectUnsafe cl" -> 1,
-        "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-        "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
-      )
-      checkThreads(tester)(
-        "HandleRunThread",
-        "MillServerActionRunner",
-        "MillSocketTimeoutInterruptThread",
-        "Process ID Checker Thread",
-        "Tail",
-        "Tail",
-        "execution-contexts-threadpool-thread",
-        "main",
-        "prompt-logger-stream-pumper-thread",
-        "proxyInputStreamThroughPumper"
-      )
-
+      // Exercise modifying Foo.java, Foo.kt, Foo.scala
       for (i <- Range(0, 2)) {
-        tester.modifyFile(tester.workspacePath / "build.mill", "\n" + _)
+        tester.modifyFile(tester.workspacePath / "hello-java/src/Foo.java", "//hello\n" + _)
+        tester.modifyFile(tester.workspacePath / "hello-kotlin/src/Foo.kt", "//hello\n" + _)
+        tester.modifyFile(tester.workspacePath / "hello-scala/src/Foo.scala", "//hello\n" + _)
 
-        tester.eval(("show", "__.compile"))
+        val res = tester.eval(("show", "__.compile"))
         checkClassloaders(tester)(
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.kotlinlib.KotlinModule#kotlinWorkerClassLoader" -> 1,
