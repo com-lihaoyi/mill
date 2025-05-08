@@ -132,37 +132,44 @@ object Watching {
         ).toString
       )
 
-      /** A hardcoded list of folders to ignore that we know have no impact on the build. */
-      val ignoredFolders = Seq(
-        mill.api.WorkspaceRoot.workspaceRoot / "out",
-        mill.api.WorkspaceRoot.workspaceRoot / ".bloop",
-        mill.api.WorkspaceRoot.workspaceRoot / ".metals",
-        mill.api.WorkspaceRoot.workspaceRoot / ".idea",
-        mill.api.WorkspaceRoot.workspaceRoot / ".git",
-        mill.api.WorkspaceRoot.workspaceRoot / ".bsp"
-      )
-      if (enableDebugLog) DebugLog.println(
-        colors.info(s"[watch:ignored-paths] ${ignoredFolders.toSeq.sorted.mkString("\n")}").toString
-      )
+      val workspaceRoot = mill.api.WorkspaceRoot.workspaceRoot
 
-      val osLibWatchPaths = watchedPathsSet.iterator.map(p => p / "..").toSet
-      if (enableDebugLog) DebugLog.println(
-        colors.info(s"[watch:watched-paths] ${osLibWatchPaths.toSeq.sorted.mkString("\n")}").toString
-      )
+      /** Paths that are descendants of [[workspaceRoot]]. */
+      val pathsUnderWorkspaceRoot = watchedPathsSet.filter { path =>
+        val isUnderWorkspaceRoot = path.startsWith(workspaceRoot)
+        if (!isUnderWorkspaceRoot) {
+          streams.err.println(colors.error(
+            s"Watched path $path is outside workspace root $workspaceRoot, this is unsupported."
+          ).toString())
+        }
+
+        isUnderWorkspaceRoot
+      }
+
+      // If I have 'root/a/b/c'
+      //
+      // Then I want to watch:
+      //   root/a/b/c
+      //   root/a/b
+      //   root/a
+      //   root
+      val filterPaths = pathsUnderWorkspaceRoot.flatMap { path =>
+        path.relativeTo(workspaceRoot).segments.inits.map(segments => workspaceRoot / segments)
+      }
+      if (enableDebugLog) DebugLog.println(colors.info(
+        s"[watch:watched-paths:filtered] ${filterPaths.toSeq.sorted.mkString("\n")}"
+      ).toString())
 
       Using.resource(os.watch.watch(
-        osLibWatchPaths.toSeq,
+        // Just watch the root folder
+        Seq(workspaceRoot),
         filter = path => {
-          val shouldBeIgnored = ignoredFolders.exists(ignored => path.startsWith(ignored))
+          val shouldBeWatched =
+            filterPaths.contains(path) || watchedPathsSet.exists(watchedPath => path.startsWith(watchedPath))
           if (enableDebugLog) {
-            val ignoredFoldersStr = ignoredFolders.mkString("[\n  ", "\n  ", "\n]")
-            DebugLog.println(
-              colors.info(
-                s"[watch:filter] $path (ignored=$shouldBeIgnored), ignoredFolders=$ignoredFoldersStr"
-              ).toString
-            )
+            DebugLog.println(colors.info(s"[watch:filter] $path (shouldBeWatched=$shouldBeWatched)").toString)
           }
-          !shouldBeIgnored
+          shouldBeWatched
         },
         onEvent = changedPaths => {
           // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
@@ -170,7 +177,7 @@ object Watching {
           val hasWatchedPath =
             changedPaths.exists(p => watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath)))
           if (enableDebugLog) DebugLog.println(colors.info(
-            s"[watch:changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
+            s"[watch:changed-paths] hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
           ).toString)
           if (hasWatchedPath) {
             pathChangesDetected = true
