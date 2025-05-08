@@ -2,6 +2,7 @@ package build.core.api
 
 import mill.contrib.buildinfo.BuildInfo
 import mill._
+import millbuild.*
 
 /**
  * This module contains the core data types that are shared between Mill's
@@ -14,26 +15,26 @@ object `package` extends build.MillStableScalaModule with BuildInfo {
   def buildInfoPackageName = "mill.api"
   def buildInfoMembers = Seq(
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
-    BuildInfo.Value("millDocUrl", build.Settings.docUrl, "Mill documentation url."),
+    BuildInfo.Value("millDocUrl", Settings.docUrl, "Mill documentation url."),
     BuildInfo.Value(
       "millReportNewIssueUrl",
-      build.Settings.newIssueUrl,
+      Settings.newIssueUrl,
       "URL to create a new issue in Mills issue tracker."
     ),
     BuildInfo.Value(
       "semanticDBVersion",
-      build.Deps.semanticDBscala.version,
+      Deps.semanticDBscala.version,
       "SemanticDB version."
     ),
     BuildInfo.Value(
       "semanticDbJavaVersion",
-      build.Deps.semanticDbJava.version,
+      Deps.semanticDbJava.version,
       "Java SemanticDB plugin version."
     ),
-    BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion)
+    BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion)
   )
 
   def mvnDeps = Agg(
-    build.Deps.sbtTestInterface
+    Deps.sbtTestInterface
   )
 }

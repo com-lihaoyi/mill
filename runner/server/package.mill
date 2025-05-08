@@ -1,6 +1,7 @@
 package build.runner.server
 
 import mill._
+import millbuild.*
 
 /**
  * This module contains the core logic around the Mill background server,
@@ -11,11 +12,11 @@ object `package` extends build.MillPublishScalaModule {
   def moduleDeps = Seq(build.runner.launcher, build.core.api)
 
   def mvnDeps = Seq(
-    build.Deps.sourcecode,
-    build.Deps.osLib,
-    build.Deps.mainargs,
-    build.Deps.upickle,
-    build.Deps.pprint,
-    build.Deps.fansi
+    Deps.sourcecode,
+    Deps.osLib,
+    Deps.mainargs,
+    Deps.upickle,
+    Deps.pprint,
+    Deps.fansi
   )
 }

@@ -1,6 +1,7 @@
 package build.core.internal
 
 import mill._
+import millbuild.*
 
 /**
  * This package contains internal helpers and utilities used throughout
@@ -10,15 +11,15 @@ object `package` extends build.MillPublishScalaModule {
   def moduleDeps = Seq(build.core.api, build.core.util)
 
   def mvnDeps = Agg(
-    build.Deps.millModuledefs,
+    Deps.millModuledefs,
     // TODO: somewhere sourcecode is included transitively,
     // but we need the latest version to bring the macro improvements.
-    build.Deps.sourcecode,
-    build.Deps.osLib,
-    build.Deps.mainargs,
-    build.Deps.upickle,
-    build.Deps.pprint,
-    build.Deps.fansi,
-    build.Deps.snakeyamlEngine
+    Deps.sourcecode,
+    Deps.osLib,
+    Deps.mainargs,
+    Deps.upickle,
+    Deps.pprint,
+    Deps.fansi,
+    Deps.snakeyamlEngine
   )
 }

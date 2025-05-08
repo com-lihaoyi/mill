@@ -1,7 +1,8 @@
 package build.libs.graphviz
 import mill._
+import millbuild.*
 
 object `package` extends build.MillPublishScalaModule {
   def moduleDeps = Seq(build.libs.scalalib)
-  def mvnDeps = Agg(build.Deps.jgraphtCore) ++ build.Deps.graphvizJava ++ build.Deps.javet
+  def mvnDeps = Agg(Deps.jgraphtCore) ++ Deps.graphvizJava ++ Deps.javet
 }

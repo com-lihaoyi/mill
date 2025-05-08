@@ -1,4 +1,5 @@
 package build.dist
+
 import build.MillJavaModule
 import mill.*
 import scalalib.*
@@ -6,8 +7,10 @@ import publish.*
 import mill.define.ModuleRef
 import mill.util.Jvm
 //import de.tobiasroeser.mill.vcs.version.VcsVersion
+import millbuild.* 
 
 import scala.util.Using
+
 
 trait DistModule extends Module {
   // All modules that we want to aggregate as part of this `dev` assembly.
@@ -64,7 +67,7 @@ trait DistModule extends Module {
   def artifactName: T[String]
   def publishArtifacts = Task {
     PublishModule.PublishData(
-      meta = Artifact(build.Settings.pomOrg, artifactName(), build.millVersion()),
+      meta = Artifact(Settings.pomOrg, artifactName(), build.millVersion()),
       payload = Seq(executableRaw() -> s"${artifactName()}-${build.millVersion()}.jar")
     )
   }
@@ -75,7 +78,7 @@ object `package` extends MillJavaModule with DistModule {
   def moduleDeps = Seq(build.runner.launcher)
 
   def transitiveLocalTestOverrides = Map(
-    Task.traverse(allPublishModules)(_.localTestOverride)(): _*
+    Task.traverse(allPublishModules)(_.localTestOverride)()*
   )
 
   def localBinName = "mill-assembly.jar"
@@ -277,7 +280,7 @@ object `package` extends MillJavaModule with DistModule {
     def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 
     object JvmWorkerGraalvm extends JvmWorkerModule {
-      def jvmId = build.Settings.graalvmJvmId
+      def jvmId = Settings.graalvmJvmId
     }
   }
 }

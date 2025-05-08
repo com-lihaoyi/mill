@@ -1,6 +1,7 @@
 package build.core.exec
 
 import mill._
+import millbuild.*
 
 /**
  * This module contains code related to planning and execution of the Mill
@@ -8,5 +9,5 @@ import mill._
  */
 object `package` extends build.MillStableScalaModule {
   def moduleDeps = Seq(build.core.define, build.core.internal)
-  def mvnDeps = Seq(build.Deps.snakeyamlEngine)
+  def mvnDeps = Seq(Deps.snakeyamlEngine)
 }

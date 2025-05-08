@@ -1,6 +1,7 @@
 package build.testkit
-// imports
+
 import mill._
+import millbuild.*
 
 /**
  * Mill unit/integration/example-testing helpers. Both used internally
@@ -8,7 +9,7 @@ import mill._
  */
 object `package` extends build.MillPublishScalaModule {
   def moduleDeps = Seq(build.core.eval, build.core.util)
-  def mvnDeps = Agg(build.Deps.TestDeps.utest)
+  def mvnDeps = Agg(Deps.TestDeps.utest)
 
   private def sources0 = Task.Sources { Task.workspace / "mill-build/src-testkit" }
   def sources = super.sources() ++ sources0()
