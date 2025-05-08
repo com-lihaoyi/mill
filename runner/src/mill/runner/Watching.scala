@@ -99,7 +99,7 @@ object Watching {
       if (watchedValueCount == 0) "" else s" and $watchedValueCount other values"
 
     streams.err.println {
-      val viaFsNotify = if (useNotify) " (via fsnotify)" else ""
+      val viaFsNotify = if (watchArgs.useNotify) " (via fsnotify)" else ""
       watchArgs.colors.info(
         s"Watching for changes to ${watchedPathsSeq.size} paths$viaFsNotify$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
       ).toString
