@@ -59,7 +59,7 @@ public class MillProcessLauncher {
   static void launchMillServer(Path serverDir) throws Exception {
     List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand());
-    l.add("mill.daemon.MillServerMain");
+    l.add("mill.daemon.MillDaemonMain");
     l.add(serverDir.toFile().getCanonicalPath());
 
     ProcessBuilder builder = new ProcessBuilder()
