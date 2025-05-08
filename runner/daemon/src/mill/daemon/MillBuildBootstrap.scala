@@ -283,16 +283,12 @@ class MillBuildBootstrap(
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
-          val cl = new RunnerState.URLClassLoader(
-            runClasspath.map(os.Path(_).toNIO.toUri.toURL).toArray,
-            null
-          ) {
-            val sharedCl = classOf[MillBuildBootstrap].getClassLoader
-            val sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api")
-            override def findClass(name: String): Class[?] =
-              if (sharedPrefixes.exists(name.startsWith)) sharedCl.loadClass(name)
-              else super.findClass(name)
-          }
+          val cl = mill.util.Jvm.createClassLoader(
+            runClasspath.map(os.Path(_)),
+            null,
+            sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
+            sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api")
+          )
           cl
         } else {
           prevFrameOpt.get.classLoaderOpt.get

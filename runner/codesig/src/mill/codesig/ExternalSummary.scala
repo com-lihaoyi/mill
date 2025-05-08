@@ -27,8 +27,8 @@ object ExternalSummary {
       localSummary: LocalSummary,
       upstreamClasspath: Seq[os.Path]
   )(implicit st: SymbolTable): ExternalSummary = {
-    val upstreamClassloader = new URLClassLoader(
-      upstreamClasspath.map(_.toNIO.toUri.toURL).toArray,
+    val upstreamClassloader = mill.util.Jvm.createClassLoader(
+      upstreamClasspath,
       getClass.getClassLoader
     )
 
