@@ -39,5 +39,6 @@ jobs:
 
       - run: "echo temurin:11 > .mill-jvm-version"
 
-      - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts ${{ inputs.bridge_versions }}
+      - run: ./mill -i mill.scalalib.PublishModule/ --publishArtifacts bridge.__.publishArtifacts
+
 
