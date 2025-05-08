@@ -221,9 +221,15 @@ object Jvm {
       classPath: Iterable[os.Path],
       parent: ClassLoader = null,
       sharedLoader: ClassLoader = getClass.getClassLoader,
-      sharedPrefixes: Iterable[String] = Seq()
-  ): MillURLClassLoader =
-    new MillURLClassLoader(classPath, parent, sharedLoader, sharedPrefixes)
+      sharedPrefixes: Iterable[String] = Seq(),
+      label: String = null
+  )(implicit e: sourcecode.Enclosing): MillURLClassLoader = new MillURLClassLoader(
+    classPath.map(_.toNIO),
+    parent,
+    sharedLoader,
+    sharedPrefixes,
+    Option(label).getOrElse(e.value)
+  )
 
   /**
    * @param classPath URLs from which to load classes and resources

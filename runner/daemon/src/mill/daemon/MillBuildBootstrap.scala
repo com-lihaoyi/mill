@@ -176,6 +176,17 @@ class MillBuildBootstrap(
           case Result.Success(rootModule) =>
 
             Using.resource(makeEvaluator(
+              projectRoot,
+              output,
+              keepGoing,
+              env,
+              logger,
+              threadCount,
+              allowPositionalCommandArgs,
+              systemExit,
+              streams0,
+              selectiveExecution,
+              offline,
               prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
               nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
               rootModule,
@@ -323,19 +334,12 @@ class MillBuildBootstrap(
   ): RunnerState = {
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
-    val (evaled, evalWatched, moduleWatches) =
-      EvaluatorApi.allBootstrapEvaluators.withValue(
-        EvaluatorApi.AllBootstrapEvaluators(Seq(
-          evaluator
-        ) ++ nestedState.frames.flatMap(_.evaluator))
-      ) {
-        evaluateWithWatches(
-          rootModule,
-          evaluator,
-          targetsAndParams,
-          selectiveExecution
-        )
-      }
+    val (evaled, evalWatched, moduleWatches) = evaluateWithWatches(
+      rootModule,
+      evaluator,
+      targetsAndParams,
+      selectiveExecution
+    )
 
     val evalState = RunnerState.Frame(
       evaluator.workerCache.toMap,
@@ -351,7 +355,24 @@ class MillBuildBootstrap(
     nestedState.add(frame = evalState, errorOpt = evaled.toEither.left.toOption)
   }
 
+}
+
+@internal
+object MillBuildBootstrap {
+  // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
+  // tend to capture the entire enclosing instance, causing memory leaks
   def makeEvaluator(
+      projectRoot: os.Path,
+      output: os.Path,
+      keepGoing: Boolean,
+      env: Map[String, String],
+      logger: Logger,
+      threadCount: Option[Int],
+      allowPositionalCommandArgs: Boolean,
+      systemExit: Int => Nothing,
+      streams0: SystemStreams,
+      selectiveExecution: Boolean,
+      offline: Boolean,
       workerCache: Map[String, (Int, Val)],
       codeSignatures: Map[String, Int],
       rootModule: RootModuleApi,
@@ -402,11 +423,6 @@ class MillBuildBootstrap(
 
     evaluator
   }
-
-}
-
-@internal
-object MillBuildBootstrap {
 
   def classpath(classLoader: ClassLoader): Vector[os.Path] = {
 
