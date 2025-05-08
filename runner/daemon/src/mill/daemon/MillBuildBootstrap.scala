@@ -176,6 +176,17 @@ class MillBuildBootstrap(
           case Result.Success(rootModule) =>
 
             Using.resource(makeEvaluator(
+              projectRoot,
+              output,
+              keepGoing,
+              env,
+              logger,
+              threadCount,
+              allowPositionalCommandArgs,
+              systemExit,
+              streams0,
+              selectiveExecution,
+              offline,
               prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
               nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
               rootModule,
@@ -344,16 +355,31 @@ class MillBuildBootstrap(
     nestedState.add(frame = evalState, errorOpt = evaled.toEither.left.toOption)
   }
 
+}
+
+@internal
+object MillBuildBootstrap {
   def makeEvaluator(
-      workerCache: Map[String, (Int, Val)],
-      codeSignatures: Map[String, Int],
-      rootModule: RootModuleApi,
-      millClassloaderSigHash: Int,
-      millClassloaderIdentityHash: Int,
-      depth: Int,
-      actualBuildFileName: Option[String] = None,
-      headerData: String
-  ): EvaluatorApi = {
+                     projectRoot: os.Path,
+                     output: os.Path,
+                     keepGoing: Boolean,
+                     env: Map[String, String],
+                     logger: Logger,
+                     threadCount: Option[Int],
+                     allowPositionalCommandArgs: Boolean,
+                     systemExit: Int => Nothing,
+                     streams0: SystemStreams,
+                     selectiveExecution: Boolean,
+                     offline: Boolean,
+                     workerCache: Map[String, (Int, Val)],
+                     codeSignatures: Map[String, Int],
+                     rootModule: RootModuleApi,
+                     millClassloaderSigHash: Int,
+                     millClassloaderIdentityHash: Int,
+                     depth: Int,
+                     actualBuildFileName: Option[String] = None,
+                     headerData: String
+                   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
       else Seq(
@@ -396,10 +422,6 @@ class MillBuildBootstrap(
     evaluator
   }
 
-}
-
-@internal
-object MillBuildBootstrap {
 
   def classpath(classLoader: ClassLoader): Vector[os.Path] = {
 
