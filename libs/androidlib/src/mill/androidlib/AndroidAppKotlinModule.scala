@@ -2,6 +2,7 @@ package mill.androidlib
 
 import coursier.Dependency
 import coursier.core.Reconciliation
+import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import coursier.util.ModuleMatchers
 import mill.define.{Command, ModuleRef, PathRef, Task}
@@ -52,9 +53,6 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
 
     /* There are no testclasses for screenshot tests, just the engine running a diff over the images */
     override def discoveredTestClasses: T[Seq[String]] = Task { Seq.empty[String] }
-
-    override def mapDependencies: Task[Dependency => Dependency] =
-      Task.Anon(outer.mapDependencies())
 
     override def androidApplicationId: String = outer.androidApplicationId
 
@@ -139,12 +137,11 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
      * @return
      */
     override def resolutionParams: Task[ResolutionParams] = Task.Anon {
-      val params = super.resolutionParams()
-      relaxedDependencyReconciliation(params)
+      super.resolutionParams().addVariantAttributes(
+        "org.jetbrains.kotlin.platform.type" ->
+          VariantMatcher.AnyOf(Seq(VariantMatcher.Equals("jvm"), VariantMatcher.Equals("androidJvm")))
+      )
     }
-
-    private val relaxedDependencyReconciliation: ResolutionParams => ResolutionParams =
-      _.withReconciliation(Seq(ModuleMatchers.all -> Reconciliation.Relaxed))
 
     override def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
@@ -195,7 +192,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
         layoutlibPath = layoutLibRuntimePath().path.toString(),
         outputFolder = output.toString(),
         metaDataFolder = metadataFolder.toString(),
-        classPath = compileClasspath().map(_.path.toString()).toSeq,
+        classPath = compileClasspath().map(_.path.toString()),
         projectClassPath = Seq(compile().classes.path.toString()),
         screenshots = androidDiscoveredPreviews()._2,
         namespace = androidApplicationNamespace,
@@ -288,7 +285,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
 
     override def forkArgs: T[Seq[String]] = super.forkArgs() ++ testJvmArgs()
     override def runClasspath: T[Seq[PathRef]] =
-      super.runClasspath() ++ androidPreviewScreenshotTestEngineClasspath() ++ compileClasspath()
+      super.runClasspath() ++ androidPreviewScreenshotTestEngineClasspath()
 
     def androidPreviewScreenshotTestEngineClasspath: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
