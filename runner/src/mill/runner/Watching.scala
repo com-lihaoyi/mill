@@ -22,9 +22,13 @@ object Watching {
     def apply(enterKeyPressed: Boolean, previousState: Option[T]): Result[T]
   }
 
+  /**
+   * @param useNotify whether to use filesystem based watcher. If it is false uses polling.
+   */
   case class WatchArgs(
       setIdle: Boolean => Unit,
-      colors: Colors
+      colors: Colors,
+      useNotify: Boolean
   )
 
   def watchLoop[T](
@@ -71,8 +75,14 @@ object Watching {
           if (alreadyStale) {
             enterKeyPressed = false
           } else {
-            enterKeyPressed =
-              watchAndWait(streams, watchArgs.setIdle, streams.in, watchables, watchArgs.colors)
+            enterKeyPressed = watchAndWait(
+              streams,
+              watchArgs.setIdle,
+              streams.in,
+              watchables,
+              watchArgs.colors,
+              useNotify = watchArgs.useNotify
+            )
           }
         }
         throw new IllegalStateException("unreachable")
@@ -84,7 +94,8 @@ object Watching {
       setIdle: Boolean => Unit,
       stdin: InputStream,
       watched: Seq[Watchable],
-      colors: Colors
+      colors: Colors,
+      useNotify: Boolean
   ): Boolean = {
     setIdle(true)
     val (watchedPollables, watchedPathsSeq) = watched.partitionMap {
@@ -97,74 +108,85 @@ object Watching {
     val watchedValueStr =
       if (watchedValueCount == 0) "" else s" and $watchedValueCount other values"
 
-    streams.err.println(
+    streams.err.println {
+      val viaFsNotify = if (useNotify) " (via fsnotify)" else ""
       colors.info(
-        s"Watching for changes to ${watchedPathsSeq.size} paths$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
+        s"Watching for changes to ${watchedPathsSeq.size} paths$viaFsNotify$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
       ).toString
-    )
+    }
 
-    @volatile var pathChangesDetected = false
-
-    // oslib watch only works with folders, so we have to watch the parent folders instead
-
-    if (enableDebugLog) DebugLog.println(
-      colors.info(
-        s"[watch:watched-paths:unfiltered] ${watchedPathsSet.toSeq.sorted.mkString("\n")}"
-      ).toString
-    )
-
-    /** A hardcoded list of folders to ignore that we know have no impact on the build. */
-    val ignoredFolders = Seq(
-      mill.api.WorkspaceRoot.workspaceRoot / "out",
-      mill.api.WorkspaceRoot.workspaceRoot / ".bloop",
-      mill.api.WorkspaceRoot.workspaceRoot / ".metals",
-      mill.api.WorkspaceRoot.workspaceRoot / ".idea",
-      mill.api.WorkspaceRoot.workspaceRoot / ".git",
-      mill.api.WorkspaceRoot.workspaceRoot / ".bsp"
-    )
-    if (enableDebugLog) DebugLog.println(
-      colors.info(s"[watch:ignored-paths] ${ignoredFolders.toSeq.sorted.mkString("\n")}").toString
-    )
-
-    val osLibWatchPaths = watchedPathsSet.iterator.map(p => p / "..").toSet
-    if (enableDebugLog) DebugLog.println(
-      colors.info(s"[watch:watched-paths] ${osLibWatchPaths.toSeq.sorted.mkString("\n")}").toString
-    )
-
-    Using.resource(os.watch.watch(
-      osLibWatchPaths.toSeq,
-      filter = path => {
-        val shouldBeIgnored = ignoredFolders.exists(ignored => path.startsWith(ignored))
-        if (enableDebugLog) {
-          val ignoredFoldersStr = ignoredFolders.mkString("[\n  ", "\n  ", "\n]")
-          DebugLog.println(
-            colors.info(s"[watch:filter] $path (ignored=$shouldBeIgnored), ignoredFolders=$ignoredFoldersStr").toString
-          )
-        }
-        !shouldBeIgnored
-      },
-      onEvent = changedPaths => {
-        // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
-        // same folder
-        val hasWatchedPath =
-          changedPaths.exists(p => watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath)))
-        if (enableDebugLog) DebugLog.println(colors.info(
-          s"[watch:changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
-        ).toString)
-        if (hasWatchedPath) {
-          pathChangesDetected = true
-        }
-      },
-      logger =
-        if (enableDebugLog) (eventType, data) => {
-          DebugLog.println(colors.info(s"[watch] $eventType: ${pprint.apply(data)}").toString)
-        }
-        else (_, _) => {}
-    )) { _ =>
-      val enterKeyPressed =
-        statWatchWait(watchedPollables, stdin, notifiablesChanged = () => pathChangesDetected)
+    def doWatch(notifiablesChanged: () => Boolean) = {
+      val enterKeyPressed = statWatchWait(watchedPollables, stdin, notifiablesChanged)
       setIdle(false)
       enterKeyPressed
+    }
+
+    if (useNotify) {
+      @volatile var pathChangesDetected = false
+
+      // oslib watch only works with folders, so we have to watch the parent folders instead
+
+      if (enableDebugLog) DebugLog.println(
+        colors.info(
+          s"[watch:watched-paths:unfiltered] ${watchedPathsSet.toSeq.sorted.mkString("\n")}"
+        ).toString
+      )
+
+      /** A hardcoded list of folders to ignore that we know have no impact on the build. */
+      val ignoredFolders = Seq(
+        mill.api.WorkspaceRoot.workspaceRoot / "out",
+        mill.api.WorkspaceRoot.workspaceRoot / ".bloop",
+        mill.api.WorkspaceRoot.workspaceRoot / ".metals",
+        mill.api.WorkspaceRoot.workspaceRoot / ".idea",
+        mill.api.WorkspaceRoot.workspaceRoot / ".git",
+        mill.api.WorkspaceRoot.workspaceRoot / ".bsp"
+      )
+      if (enableDebugLog) DebugLog.println(
+        colors.info(s"[watch:ignored-paths] ${ignoredFolders.toSeq.sorted.mkString("\n")}").toString
+      )
+
+      val osLibWatchPaths = watchedPathsSet.iterator.map(p => p / "..").toSet
+      if (enableDebugLog) DebugLog.println(
+        colors.info(s"[watch:watched-paths] ${osLibWatchPaths.toSeq.sorted.mkString("\n")}").toString
+      )
+
+      Using.resource(os.watch.watch(
+        osLibWatchPaths.toSeq,
+        filter = path => {
+          val shouldBeIgnored = ignoredFolders.exists(ignored => path.startsWith(ignored))
+          if (enableDebugLog) {
+            val ignoredFoldersStr = ignoredFolders.mkString("[\n  ", "\n  ", "\n]")
+            DebugLog.println(
+              colors.info(
+                s"[watch:filter] $path (ignored=$shouldBeIgnored), ignoredFolders=$ignoredFoldersStr"
+              ).toString
+            )
+          }
+          !shouldBeIgnored
+        },
+        onEvent = changedPaths => {
+          // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
+          // same folder
+          val hasWatchedPath =
+            changedPaths.exists(p => watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath)))
+          if (enableDebugLog) DebugLog.println(colors.info(
+            s"[watch:changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
+          ).toString)
+          if (hasWatchedPath) {
+            pathChangesDetected = true
+          }
+        },
+        logger =
+          if (enableDebugLog) (eventType, data) => {
+            DebugLog.println(colors.info(s"[watch] $eventType: ${pprint.apply(data)}").toString)
+          }
+          else (_, _) => {}
+      )) { _ =>
+        doWatch(notifiablesChanged = () => pathChangesDetected)
+      }
+    }
+    else {
+      doWatch(notifiablesChanged = () => watchedPathsSeq.exists(p => !p.validate()))
     }
   }
 

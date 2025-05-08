@@ -16,6 +16,7 @@ private[mill] trait Watchable {
   /** The initial hashcode of a watched value. */
   def signature: Long
 
+  /** @return true if the watched value has not changed */
   def validate(): Boolean = poll() == signature
 
   def pretty: String
