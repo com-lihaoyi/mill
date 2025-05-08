@@ -34,7 +34,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
     BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion)
   )
 
-  def mvnDeps = Agg(
+  def mvnDeps = Seq(
     Deps.sbtTestInterface
   )
 }

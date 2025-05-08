@@ -8,7 +8,7 @@ trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
-  def mimaPreviousArtifacts: T[Agg[Dep]] = Task {
+  def mimaPreviousArtifacts: T[Seq[Dep]] = Task {
     Agg.from(
       Settings.mimaBaseVersions
         .filter(v => !skipPreviousVersions().contains(v))

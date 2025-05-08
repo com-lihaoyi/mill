@@ -114,7 +114,7 @@ object `package` extends MillJavaModule with DistModule {
     val script = Jvm.launcherUniversalScript(
       mainClass = mainClass().get,
       shellClassPath = classpath,
-      cmdClassPath = Agg(classpathJar.toString()),
+      cmdClassPath = Seq(classpathJar.toString()),
       jvmArgs = jvmArgs
     )
 

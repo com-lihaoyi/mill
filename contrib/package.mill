@@ -43,10 +43,10 @@ object `package` extends mill.Module {
 
     // pure Java implementation
     def artifactSuffix: T[String] = ""
-    def scalaLibraryMvnDeps: T[Agg[Dep]] = Task { Agg.empty[Dep] }
-    def mvnDeps = Agg(Deps.sbtTestInterface)
-    def compileMvnDeps = Agg(Deps.testng)
-    def runMvnDeps = Agg(Deps.testng)
+    def scalaLibraryMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
+    def mvnDeps = Seq(Deps.sbtTestInterface)
+    def compileMvnDeps = Seq(Deps.testng)
+    def runMvnDeps = Seq(Deps.testng)
     def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
     def docJar: T[PathRef] = super[JavaModule].docJar
   }
@@ -95,7 +95,7 @@ object `package` extends mill.Module {
 
       def scalaVersion = Deps.play(playBinary).scalaVersion
       def moduleDeps = Seq(playlib.api)
-      def mvnDeps = Agg(Deps.osLib, Deps.play(playBinary).routesCompiler)
+      def mvnDeps = Seq(Deps.osLib, Deps.play(playBinary).routesCompiler)
     }
   }
 
@@ -138,14 +138,14 @@ object `package` extends mill.Module {
         scoverage.api
       )
       def compileMvnDeps = Task {
-        super.mandatoryMvnDeps() ++ Agg(
+        super.mandatoryMvnDeps() ++ Seq(
           // compile-time only, need to provide the correct scoverage version at runtime
           Deps.scalacScoverage2Reporter,
           Deps.scalacScoverage2Domain,
           Deps.scalacScoverage2Serializer
         ) ++ Option.when(!JvmWorkerUtil.isScala3(scalaVersion()))(Deps.scalacScoverage2Plugin)
       }
-      def mandatoryMvnDeps = Agg.empty[Dep]
+      def mandatoryMvnDeps = Seq.empty[Dep]
     }
   }
 
@@ -173,7 +173,7 @@ object `package` extends mill.Module {
 
   object flyway extends ContribModule {
     def compileModuleDeps = Seq(build.libs.scalalib)
-    def mvnDeps = Agg(Deps.flywayCore)
+    def mvnDeps = Seq(Deps.flywayCore)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
 
@@ -184,7 +184,7 @@ object `package` extends mill.Module {
 
   // object bloop extends ContribModule with BuildInfo {
   //   def compileModuleDeps = Seq(build.libs.scalalib, build.libs.scalajslib, build.libs.scalanativelib)
-  //   def mvnDeps = Agg(Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13"))
+  //   def mvnDeps = Seq(Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13"))
   //   def testModuleDeps = super.testModuleDeps ++ Seq(
   //     build.libs.scalalib,
   //     build.libs.scalajslib,
@@ -198,12 +198,12 @@ object `package` extends mill.Module {
 
   object artifactory extends ContribModule {
     def compileModuleDeps = Seq(build.libs.scalalib)
-    def mvnDeps = Agg(Deps.requests)
+    def mvnDeps = Seq(Deps.requests)
   }
 
   object codeartifact extends ContribModule {
     def compileModuleDeps = Seq(build.libs.scalalib)
-    def mvnDeps = Agg(Deps.requests)
+    def mvnDeps = Seq(Deps.requests)
   }
 
   object versionfile extends ContribModule {
@@ -216,12 +216,12 @@ object `package` extends mill.Module {
 
   object bintray extends ContribModule {
     def compileModuleDeps = Seq(build.libs.scalalib)
-    def mvnDeps = Agg(Deps.requests)
+    def mvnDeps = Seq(Deps.requests)
   }
 
   object gitlab extends ContribModule {
     def compileModuleDeps = Seq(build.libs.scalalib)
-    def mvnDeps = Agg(Deps.requests, Deps.osLib)
+    def mvnDeps = Seq(Deps.requests, Deps.osLib)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
 

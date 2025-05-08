@@ -111,7 +111,7 @@ object `package` extends mill.Module {
     )
   }
   trait IdeIntegrationCrossModule extends IntegrationCrossModule {
-    def mvnDeps = super.mvnDeps() ++ Agg(
+    def mvnDeps = super.mvnDeps() ++ Seq(
       Deps.bsp4j
     )
   }

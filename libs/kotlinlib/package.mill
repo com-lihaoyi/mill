@@ -54,15 +54,15 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   object worker extends MillKotlinModule {
     def moduleDeps = Seq(build.libs.testrunner)
 
-    override def compileMvnDeps: T[Agg[Dep]] = Agg(
+    override def compileMvnDeps: T[Seq[Dep]] = Seq(
       Deps.osLib
     )
 
     object impl extends MillKotlinModule {
       override def compileModuleDeps = Seq(worker)
-      def mandatoryMvnDeps = Agg.empty[Dep]
-      override def compileMvnDeps: T[Agg[Dep]] =
-        super.mandatoryMvnDeps() ++ Agg(
+      def mandatoryMvnDeps = Seq.empty[Dep]
+      override def compileMvnDeps: T[Seq[Dep]] =
+        super.mandatoryMvnDeps() ++ Seq(
           Deps.osLib,
           Deps.kotlinCompiler
         )

@@ -21,7 +21,7 @@ object `package` extends MillStableScalaModule {
     build.core.define,
     build.libs.init
   )
-  def mvnDeps = Agg(
+  def mvnDeps = Seq(
     Deps.nativeTerminal,
     Deps.coursierInterface,
     Deps.logback,
@@ -37,8 +37,8 @@ object `package` extends MillStableScalaModule {
   )
 
   def compileMvnDeps = Task {
-    if (JvmWorkerUtil.isScala3(scalaVersion())) Agg.empty
-    else Agg(Deps.scalaReflect(scalaVersion()))
+    if (JvmWorkerUtil.isScala3(scalaVersion())) Seq.empty
+    else Seq(Deps.scalaReflect(scalaVersion()))
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)

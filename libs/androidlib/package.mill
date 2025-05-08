@@ -24,7 +24,7 @@ object `package` extends MillPublishScalaModule {
 
     override def moduleDeps = Seq(build.libs.androidlib)
 
-    override def mvnDeps = Agg(
+    override def mvnDeps = Seq(
       Deps.hiltGradlePlugin,
       Deps.androidTools
     )

@@ -117,7 +117,7 @@ object `package` extends mill.Module {
     PathRef(Task.dest)
   }
 
-  def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Agg[os.Path])(implicit
+  def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Seq[os.Path])(implicit
       ctx: mill.define.TaskCtx
   ) = {
 

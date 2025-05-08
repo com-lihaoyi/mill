@@ -137,10 +137,10 @@ trait BridgeModule extends MillPublishCrossScalaModule {
   def artifactName = "mill-scala-compiler-bridge"
   def pomSettings = commonPomSettings(artifactName())
   def crossFullScalaVersion = true
-  def mvnDeps = Agg(
+  def mvnDeps = Seq(
     mvn"org.scala-sbt:compiler-interface:${Deps.zinc.version}",
     mvn"org.scala-sbt:util-interface:${Deps.zinc.version}"
-  ) ++ Agg(
+  ) ++ Seq(
     if (JvmWorkerUtil.isScala3(crossScalaVersion))
       mvn"org.scala-lang::scala3-compiler:${crossScalaVersion}"
     else mvn"org.scala-lang:scala-compiler:${crossScalaVersion}"
@@ -151,13 +151,13 @@ trait BridgeModule extends MillPublishCrossScalaModule {
     Seq(PathRef(Task.dest))
   }
 
-  def compilerBridgeMvnDeps: T[Agg[Dep]] = Agg(
+  def compilerBridgeMvnDeps: T[Seq[Dep]] = Seq(
     (if (JvmWorkerUtil.isScala3(crossScalaVersion))
        mvn"org.scala-lang:scala3-sbt-bridge:${crossScalaVersion}"
      else mvn"org.scala-sbt::compiler-bridge:${Deps.zinc.version}").exclude("*" -> "*")
   )
 
-  def compilerBridgeSourceJars: T[Agg[PathRef]] = Task {
+  def compilerBridgeSourceJars: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       compilerBridgeMvnDeps().map(bindDependency()),
       sources = true
@@ -206,5 +206,5 @@ implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
 object dummy extends Cross[DependencyFetchDummy](dummyDeps)
 trait DependencyFetchDummy extends ScalaModule with Cross.Module[Dep] {
   def scalaVersion = Deps.scala2Version
-  def compileMvnDeps = Agg(crossValue)
+  def compileMvnDeps = Seq(crossValue)
 }

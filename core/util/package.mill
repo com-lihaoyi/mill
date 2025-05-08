@@ -12,7 +12,7 @@ import millbuild.*
 object `package` extends MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.core.api, build.core.constants, build.core.define)
 
-  def mvnDeps = Agg(
+  def mvnDeps = Seq(
     Deps.coursier,
     Deps.coursierJvm,
     Deps.jline,

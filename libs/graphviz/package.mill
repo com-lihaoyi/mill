@@ -4,5 +4,5 @@ import millbuild.*
 
 object `package` extends MillPublishScalaModule {
   def moduleDeps = Seq(build.libs.scalalib)
-  def mvnDeps = Agg(Deps.jgraphtCore) ++ Deps.graphvizJava ++ Deps.javet
+  def mvnDeps = Seq(Deps.jgraphtCore) ++ Deps.graphvizJava ++ Deps.javet
 }

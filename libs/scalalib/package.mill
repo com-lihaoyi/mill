@@ -20,16 +20,16 @@ object `package` extends MillStableScalaModule {
 
   def moduleDeps = Seq(build.core.util, build.libs.scalalib.api, build.libs.testrunner)
   def mvnDeps = {
-    Agg(Deps.scalaXml) ++ {
+    Seq(Deps.scalaXml) ++ {
       // despite compiling with Scala 3, we need to include scala-reflect
       // for the scala.reflect.internal.util.ScalaClassLoader
       // used in ScalaModule.scalacHelp,
       // (also transitively included by com.eed3si9n.jarjarabrams:jarjar-abrams-core)
       // perhaps the class can be copied here?
-      Agg(Deps.scalaReflect(scalaVersion())) ++ Agg(Deps.sonatypeCentralClient)
+      Seq(Deps.scalaReflect(scalaVersion())) ++ Seq(Deps.sonatypeCentralClient)
     }
   }
-  def testMvnDeps = super.testMvnDeps() ++ Agg(Deps.TestDeps.scalaCheck)
+  def testMvnDeps = super.testMvnDeps() ++ Seq(Deps.TestDeps.scalaCheck)
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(
       worker.localTestOverride(),
@@ -42,7 +42,7 @@ object `package` extends MillStableScalaModule {
   }
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
-    def mvnDeps = Agg(Deps.sbtTestInterface)
+    def mvnDeps = Seq(Deps.sbtTestInterface)
   }
 
   object api extends MillStableScalaModule with BuildInfo {
@@ -122,7 +122,7 @@ object `package` extends MillStableScalaModule {
 
   object `jarjarabrams-worker` extends MillPublishScalaModule {
     def moduleDeps = Seq(api, build.core.util, build.libs.scalalib)
-    def mvnDeps = Agg(Deps.jarjarabrams)
+    def mvnDeps = Seq(Deps.jarjarabrams)
   }
 
   object `spring-boot-worker` extends MillPublishScalaModule {

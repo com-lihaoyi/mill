@@ -74,13 +74,13 @@ object `package` extends MillPublishScalaModule {
     /*
     object tree extends Cross[TreeModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
     trait TreeModule extends MillPublishCrossScalaModule {
-      def mvnDeps = Agg(Deps.upickle)
+      def mvnDeps = Seq(Deps.upickle)
     }
      */
   }
   object gradle extends MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
-    def mvnDeps = Agg(
+    def mvnDeps = Seq(
       Deps.gradleApi,
       Deps.logback
     )
@@ -88,7 +88,7 @@ object `package` extends MillPublishScalaModule {
   }
   object maven extends MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
-    def mvnDeps = Agg(
+    def mvnDeps = Seq(
       Deps.mavenEmbedder,
       Deps.mavenResolverConnectorBasic,
       Deps.mavenResolverSupplier,
@@ -121,8 +121,8 @@ object `package` extends MillPublishScalaModule {
         extends Cross[ModelsModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
     trait ModelsModule extends MillPublishCrossScalaModule {
       // def moduleDeps = Seq(buildgen.tree())
-      def mvnDeps = Agg(Deps.upickle)
-      def compileMvnDeps = Agg(Deps.sbt) // for definition references only
+      def mvnDeps = Seq(Deps.upickle)
+      def compileMvnDeps = Seq(Deps.sbt) // for definition references only
 
       def docJar =
         if (crossScalaVersion == Deps.scalaVersion)
@@ -140,7 +140,7 @@ object `package` extends MillPublishScalaModule {
       private val scalaVersionString = Deps.sbtScalaVersion212
       def scalaVersion = scalaVersionString
       def moduleDeps = Seq(models(scalaVersionString))
-      def compileMvnDeps = Agg(Deps.sbt)
+      def compileMvnDeps = Seq(Deps.sbt)
       def assemblyRules = Seq(Rule.ExcludePattern("scala\\.*"))
     }
   }

@@ -40,7 +40,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
   }
 
   object `worker-api` extends MillPublishScalaModule {
-    def mvnDeps = Agg(Deps.sbtTestInterface)
+    def mvnDeps = Seq(Deps.sbtTestInterface)
   }
 
   object worker extends Cross[WorkerModule]("1")
@@ -50,9 +50,9 @@ object `package` extends MillStableScalaModule with BuildInfo {
     def moduleDir: os.Path = super.moduleDir / scalajsWorkerVersion
     def compileModuleDeps =
       Seq(build.libs.scalajslib.`worker-api`, build.core.constants, build.core.api)
-    def mandatoryMvnDeps = Agg.empty[Dep]
-    def mvnDeps = Agg(Deps.scalafmtDynamic)
-    def compileMvnDeps = super.mandatoryMvnDeps() ++ Agg(
+    def mandatoryMvnDeps = Seq.empty[Dep]
+    def mvnDeps = Seq(Deps.scalafmtDynamic)
+    def compileMvnDeps = super.mandatoryMvnDeps() ++ Seq(
       Deps.Scalajs_1.scalajsLinker,
       Deps.Scalajs_1.scalajsSbtTestAdapter,
       Deps.Scalajs_1.scalajsEnvNodejs,

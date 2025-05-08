@@ -11,6 +11,6 @@ object `package` extends MillPublishScalaModule {
   def moduleDeps = Seq(build.libs.scalalib.api, entrypoint, build.core.util)
 
   object entrypoint extends MillPublishJavaModule {
-    override def mvnDeps = Agg(Deps.sbtTestInterface)
+    override def mvnDeps = Seq(Deps.sbtTestInterface)
   }
 }

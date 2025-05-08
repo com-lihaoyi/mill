@@ -13,7 +13,7 @@ import millbuild.*
  * - https://github.com/com-lihaoyi/mill/pull/2417
  */
 object `package` extends MillPublishScalaModule {
-  override def mvnDeps = Agg(Deps.asmTree, Deps.osLib, Deps.pprint)
+  override def mvnDeps = Seq(Deps.asmTree, Deps.osLib, Deps.pprint)
   def moduleDeps = Seq(build.core.internal)
 
   override lazy val test: CodeSigTests = new CodeSigTests {}
@@ -50,7 +50,7 @@ object `package` extends MillPublishScalaModule {
       def scalaVersion = Deps.scalaVersion
       def mvnDeps = Task {
         if (!caseName.contains("realistic") && !caseName.contains("sourcecode")) super.mvnDeps()
-        else Agg(
+        else Seq(
           Deps.fastparse,
           Deps.scalatags,
           Deps.cask,

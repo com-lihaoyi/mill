@@ -11,7 +11,7 @@ object `package` extends MillStableScalaModule {
     super.transitiveLocalTestOverrides() ++ Seq(worker("0.5").localTestOverride())
 
   object `worker-api` extends MillPublishScalaModule {
-    def mvnDeps = Agg(Deps.sbtTestInterface)
+    def mvnDeps = Seq(Deps.sbtTestInterface)
   }
 
   object worker extends Cross[WorkerModule]("0.5")
@@ -22,7 +22,7 @@ object `package` extends MillStableScalaModule {
     def compileModuleDeps = Seq(`worker-api`)
     def compileMvnDeps = scalaNativeWorkerVersion match {
       case "0.5" =>
-        super.mandatoryMvnDeps() ++ Agg(
+        super.mandatoryMvnDeps() ++ Seq(
           Deps.osLib,
           Deps.Scalanative_0_5.scalanativeTools,
           Deps.Scalanative_0_5.scalanativeUtil,
@@ -30,6 +30,6 @@ object `package` extends MillStableScalaModule {
           Deps.Scalanative_0_5.scalanativeTestRunner
         )
     }
-    def mandatoryMvnDeps = Agg.empty[mill.scalalib.Dep]
+    def mandatoryMvnDeps = Seq.empty[mill.scalalib.Dep]
   }
 }

@@ -17,6 +17,6 @@ object `package` extends MillPublishJavaModule with BuildInfo {
   )
 
   object test extends JavaTests with TestModule.Junit4 {
-    def mvnDeps = Agg(Deps.junitInterface, Deps.commonsIo)
+    def mvnDeps = Seq(Deps.junitInterface, Deps.commonsIo)
   }
 }
