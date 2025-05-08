@@ -1,4 +1,4 @@
-package mill.compilerworker
+package mill.daemon
 
 import dotty.tools.dotc.CompilationUnit
 import dotty.tools.dotc.Driver
@@ -25,14 +25,12 @@ import dotty.tools.dotc.reporting.StoreReporter
 import dotty.tools.dotc.reporting.UniqueMessagePositions
 import dotty.tools.dotc.util.SourceFile
 import dotty.tools.dotc.util.Spans.Span
-import mill.compilerworker.api.ImportTree
-import mill.compilerworker.api.ObjectData
-import mill.compilerworker.api.ScalaCompilerWorkerApi
-import mill.compilerworker.api.Snip
-
 import dotty.tools.dotc.util.SourcePosition
 
-final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
+import mill.api.internal.{MillScalaParser}
+import mill.api.internal.MillScalaParser.{ObjectData, Snip}
+
+final class MillScalaParserImpl extends MillScalaParser { worker =>
 
   def splitScript(rawCode: String, fileName: String): Either[String, (Seq[String], Seq[String])] = {
     val source = SourceFile.virtual(fileName, rawCode)
@@ -303,60 +301,6 @@ final class ScalaCompilerWorkerImpl extends ScalaCompilerWorkerApi { worker =>
     }
 
     compilationUnit(trees)
-
-    buf.result()
-  }
-
-  private def importTrees(trees: List[untpd.Tree])(using Context): Seq[ImportTree] = {
-    val buf = Seq.newBuilder[ImportTree]
-
-    def prefixAsSeq(
-        pre: untpd.Tree,
-        acc: List[(String, Int)]
-    ): Option[(Int, Seq[(String, Int)])] = {
-      pre match {
-        case untpd.Ident(name) =>
-          // the innermost part of an import prefix is always an `Ident`
-          name.show match {
-            case millName @ s"$$$_" =>
-              Some(pre.sourcePos.start -> ((millName -> pre.sourcePos.end) :: acc))
-            case _ => None // first index wasn't a $foo import, so ignore
-          }
-        case untpd.Select(qual, name) =>
-          // i.e. `Select(qual, name)` === `qual.name`
-          prefixAsSeq(qual, (name.show -> pre.sourcePos.end) :: acc)
-      }
-    }
-
-    def importTree(tree: untpd.Import): Option[ImportTree] = {
-      val untpd.Import(prefix, sels) = tree
-      for
-        (start, prefix1) <- prefixAsSeq(prefix, Nil)
-      yield {
-        val sels1 = sels.map {
-          case ImportSelector(src, untpd.EmptyTree, untpd.EmptyTree) =>
-            (src.show, None)
-          case ImportSelector(src, rename, untpd.EmptyTree) =>
-            (src.show, Some(rename.show))
-          case ImportSelector(_, untpd.EmptyTree, tpe) =>
-            ("_", None) // (e.g. `import $file.foo.{given T}`)
-        }
-        ImportTree(prefix1, sels1, start, tree.sourcePos.end)
-      }
-    }
-
-    def loop(trees: List[untpd.Tree]): Unit = trees match {
-      case (head @ untpd.Import(_, _)) :: trees1 if validSpan(head.sourcePos) =>
-        for tree <- importTree(head) do {
-          buf += tree
-        }
-        loop(trees1)
-      case tree :: trees1 =>
-        loop(trees1)
-      case Nil => ()
-    }
-
-    loop(trees)
 
     buf.result()
   }

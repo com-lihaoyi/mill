@@ -3,7 +3,7 @@ package mill.meta
 import mill.api.internal.internal
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.*
-import mill.compilerworker.api.MillScalaParser
+import mill.api.internal.MillScalaParser
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.internal.Util.backtickWrap
@@ -40,7 +40,6 @@ object FileImportGraph {
    * instantiate the [[MillRootModule]]
    */
   def parseBuildFiles(
-      parser: MillScalaParser,
       topLevelProjectRoot: os.Path,
       projectRoot: os.Path,
       output: os.Path
@@ -53,7 +52,7 @@ object FileImportGraph {
 
         val content = if (useDummy) "" else os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
-        parser.splitScript(content, fileName) match {
+        MillScalaParser.current.value.splitScript(content, fileName) match {
           case Right(splitted) =>
             val (pkgs, stmts) = splitted
             val importSegments = pkgs.mkString(".")

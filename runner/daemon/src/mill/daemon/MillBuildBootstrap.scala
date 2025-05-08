@@ -8,8 +8,8 @@ import mill.define.internal.Watchable
 import mill.define.{PathRef, RootModule0, SelectMode, WorkspaceRoot}
 import mill.internal.PrefixLogger
 import mill.meta.{FileImportGraph, MillBuildRootModule}
-import mill.meta.{CliImports, ScalaCompilerWorker}
-import mill.compilerworker.api.MillScalaParser
+import mill.meta.{CliImports}
+import mill.api.internal.MillScalaParser
 import mill.util.BuildInfo
 
 import java.io.File
@@ -49,17 +49,12 @@ class MillBuildBootstrap(
     systemExit: Int => Nothing,
     streams0: SystemStreams,
     selectiveExecution: Boolean,
-    scalaCompilerWorker: ScalaCompilerWorker.ResolvedWorker,
     offline: Boolean
 ) { outer =>
   import MillBuildBootstrap.*
 
   val millBootClasspath: Seq[os.Path] = prepareMillBootClasspath(output)
   val millBootClasspathPathRefs: Seq[PathRef] = millBootClasspath.map(PathRef(_, quick = true))
-
-  def parserBridge: MillScalaParser = {
-    scalaCompilerWorker.worker
-  }
 
   def evaluate(): Watching.Result[RunnerState] = CliImports.withValue(imports) {
     val runnerState = evaluateRec(0)
@@ -115,7 +110,6 @@ class MillBuildBootstrap(
         }
       } else {
         val parsedScriptFiles = FileImportGraph.parseBuildFiles(
-          parserBridge,
           projectRoot,
           currentRoot / os.up,
           output
@@ -127,12 +121,10 @@ class MillBuildBootstrap(
             val bootstrapModule =
               new MillBuildRootModule.BootstrapModule()(
                 new RootModule0.Info(
-                  scalaCompilerWorker.classpath,
                   currentRoot,
                   output,
                   projectRoot
-                ),
-                scalaCompilerWorker.constResolver
+                )
               )
             RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
           }

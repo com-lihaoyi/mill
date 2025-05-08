@@ -1,7 +1,0 @@
-package build.runner.compilerworker.api // imports
-
-import mill.*
-import mill.contrib.buildinfo.BuildInfo
-import millbuild.*
-
-object `package` extends MillPublishScalaModule {}

@@ -6,7 +6,7 @@ import mill.constants.{CodeGenConstants as CGConst}
 import mill.api.Result
 import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
-import mill.compilerworker.api.MillScalaParser
+import mill.api.internal.MillScalaParser
 import scala.util.control.Breaks.*
 
 object CodeGen {
@@ -19,7 +19,6 @@ object CodeGen {
       allScriptCode: Map[os.Path, String],
       wrappedDest: os.Path,
       supportDest: os.Path,
-      compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       output: os.Path,
       parser: MillScalaParser
@@ -105,7 +104,6 @@ object CodeGen {
           scriptFolderPath = scriptFolderPath,
           segments = segments,
           millTopLevelProjectRoot = millTopLevelProjectRoot,
-          compilerWorkerClasspath = compilerWorkerClasspath,
           output = output
         )
         os.write(
@@ -167,15 +165,13 @@ object CodeGen {
       scriptFolderPath: os.Path,
       segments: Seq[String],
       millTopLevelProjectRoot: os.Path,
-      output: os.Path,
-      compilerWorkerClasspath: Seq[os.Path]
+      output: os.Path
   ): String = {
     val header = if (pkg.isBlank()) "" else s"package $pkg"
     val body =
       if (segments.nonEmpty) subfolderMiscInfo(scriptFolderPath, segments)
       else rootMiscInfo(
         scriptFolderPath,
-        compilerWorkerClasspath,
         millTopLevelProjectRoot,
         output
       )
@@ -322,15 +318,12 @@ object CodeGen {
 
   def rootMiscInfo(
       scriptFolderPath: os.Path,
-      compilerWorkerClasspath: Seq[os.Path],
       millTopLevelProjectRoot: os.Path,
       output: os.Path
   ): String = {
     s"""|@_root_.scala.annotation.nowarn
         |object MillMiscInfo 
         |    extends mill.define.RootModule0.Info(
-        |  compilerWorkerClasspath0 = ${compilerWorkerClasspath.map(p => literalize(p.toString))
-         .mkString("Vector(\n    ", ",\n    ", "\n  )")},
         |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
         |  output0 = ${literalize(output.toString)},
         |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}

@@ -8,7 +8,6 @@ import mill.constants.{OutFiles, ServerFiles, Util}
 import mill.{api, define}
 import mill.define.WorkspaceRoot
 import mill.internal.{Colors, MultiStream, PromptLogger}
-import mill.meta.ScalaCompilerWorker
 import mill.server.Server
 import mill.util.BuildInfo
 
@@ -78,8 +77,6 @@ object MillMain {
 
     System.exit(if (result) 0 else 1)
   }
-
-  lazy val maybeScalaCompilerWorker = ScalaCompilerWorker.bootstrapWorker()
 
   private def withStreams[T](
       bspMode: Boolean,
@@ -262,45 +259,41 @@ object MillMain {
 
                 val threadCount = Some(maybeThreadCount.toOption.get)
 
-                if (maybeScalaCompilerWorker.isInstanceOf[Result.Failure]) {
-                  val err = maybeScalaCompilerWorker.errorOpt.get
-                  streams.err.println(err)
-                  (false, stateCache)
-                } else {
-                  val scalaCompilerWorker = maybeScalaCompilerWorker.get
-
-                  val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
-                  Using.resource(new TailManager(serverDir)) { tailManager =>
-                    def runMillBootstrap(
-                        enterKeyPressed: Boolean,
-                        prevState: Option[RunnerState],
-                        targetsAndParams: Seq[String],
-                        streams: SystemStreams
-                    ) = Server.withOutLock(
-                      config.noBuildLock.value,
-                      config.noWaitForBuildLock.value,
-                      out,
-                      targetsAndParams,
+                val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
+                Using.resource(new TailManager(serverDir)) { tailManager =>
+                  def runMillBootstrap(
+                      enterKeyPressed: Boolean,
+                      prevState: Option[RunnerState],
+                      targetsAndParams: Seq[String],
+                      streams: SystemStreams
+                  ) = Server.withOutLock(
+                    config.noBuildLock.value,
+                    config.noWaitForBuildLock.value,
+                    out,
+                    targetsAndParams,
+                    streams,
+                    outLock
+                  ) {
+                    Using.resource(getLogger(
                       streams,
-                      outLock
-                    ) {
-                      Using.resource(getLogger(
-                        streams,
-                        config,
-                        enableTicker =
-                          if (bspMode) Some(false)
-                          else config.ticker
-                            .orElse(config.enableTicker)
-                            .orElse(Option.when(config.disableTicker.value)(false)),
-                        serverDir,
-                        colored = colored,
-                        colors = colors
-                      )) { logger =>
-                        // Enter key pressed, removing mill-selective-execution.json to
-                        // ensure all tasks re-run even though no inputs may have changed
-                        if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
-                        mill.define.SystemStreams.withStreams(logger.streams) {
-                          tailManager.withOutErr(logger.streams.out, logger.streams.err) {
+                      config,
+                      enableTicker =
+                        if (bspMode) Some(false)
+                        else config.ticker
+                          .orElse(config.enableTicker)
+                          .orElse(Option.when(config.disableTicker.value)(false)),
+                      serverDir,
+                      colored = colored,
+                      colors = colors
+                    )) { logger =>
+                      // Enter key pressed, removing mill-selective-execution.json to
+                      // ensure all tasks re-run even though no inputs may have changed
+                      if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
+                      mill.define.SystemStreams.withStreams(logger.streams) {
+                        tailManager.withOutErr(logger.streams.out, logger.streams.err) {
+                          mill.api.internal.MillScalaParser.current.withValue(
+                            new MillScalaParserImpl
+                          ) {
                             new MillBuildBootstrap(
                               projectRoot = WorkspaceRoot.workspaceRoot,
                               output = out,
@@ -317,61 +310,60 @@ object MillMain {
                               systemExit = systemExit,
                               streams0 = streams,
                               selectiveExecution = config.watch.value,
-                              scalaCompilerWorker = scalaCompilerWorker,
                               offline = config.offline.value
                             ).evaluate()
                           }
                         }
                       }
                     }
+                  }
 
-                    if (bspMode) {
+                  if (bspMode) {
 
-                      runBspSession(
-                        streams0,
-                        streams,
-                        prevRunnerState =>
-                          runMillBootstrap(
-                            false,
-                            prevRunnerState,
-                            Seq("version"),
-                            streams
-                          ).result,
-                        outLock
-                      )
+                    runBspSession(
+                      streams0,
+                      streams,
+                      prevRunnerState =>
+                        runMillBootstrap(
+                          false,
+                          prevRunnerState,
+                          Seq("version"),
+                          streams
+                        ).result,
+                      outLock
+                    )
 
-                      (true, RunnerState(None, Nil, None))
-                    } else if (
-                      config.leftoverArgs.value == Seq("mill.idea.GenIdea/idea") ||
-                      config.leftoverArgs.value == Seq("mill.idea.GenIdea/")
-                    ) {
-                      val runnerState = runMillBootstrap(false, None, Seq("version"), streams)
-                      new mill.idea.GenIdeaImpl(
-                        runnerState.result.frames.flatMap(_.evaluator)
-                      ).run()
-                      (true, RunnerState(None, Nil, None))
-                    } else {
-                      // When starting a --watch, clear the `mill-selective-execution.json`
-                      // file, so that the first run always selects everything and only
-                      // subsequent re-runs are selective depending on what changed.
-                      if (config.watch.value) os.remove(out / OutFiles.millSelectiveExecution)
-                      Watching.watchLoop(
-                        ringBell = config.ringBell.value,
-                        watch = config.watch.value,
-                        streams = streams,
-                        setIdle = setIdle,
-                        evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
-                          adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
-                          runMillBootstrap(
-                            enterKeyPressed,
-                            prevState,
-                            config.leftoverArgs.value,
-                            streams
-                          )
-                        },
-                        colors = colors
-                      )
-                    }
+                    (true, RunnerState(None, Nil, None))
+                  } else if (
+                    config.leftoverArgs.value == Seq("mill.idea.GenIdea/idea") ||
+                    config.leftoverArgs.value == Seq("mill.idea.GenIdea/")
+                  ) {
+                    val runnerState = runMillBootstrap(false, None, Seq("version"), streams)
+                    new mill.idea.GenIdeaImpl(
+                      runnerState.result.frames.flatMap(_.evaluator)
+                    ).run()
+                    (true, RunnerState(None, Nil, None))
+                  } else {
+                    // When starting a --watch, clear the `mill-selective-execution.json`
+                    // file, so that the first run always selects everything and only
+                    // subsequent re-runs are selective depending on what changed.
+                    if (config.watch.value) os.remove(out / OutFiles.millSelectiveExecution)
+                    Watching.watchLoop(
+                      ringBell = config.ringBell.value,
+                      watch = config.watch.value,
+                      streams = streams,
+                      setIdle = setIdle,
+                      evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
+                        adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
+                        runMillBootstrap(
+                          enterKeyPressed,
+                          prevState,
+                          config.leftoverArgs.value,
+                          streams
+                        )
+                      },
+                      colors = colors
+                    )
                   }
                 }
               }
