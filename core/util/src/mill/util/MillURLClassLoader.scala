@@ -1,5 +1,7 @@
 package mill.util
 
+import mill.util.MillURLClassLoader.openClassloaders
+
 import java.net.URLClassLoader
 class MillURLClassLoader(
     classPath: Iterable[os.Path],
@@ -28,6 +30,7 @@ class MillURLClassLoader(
 }
 
 object MillURLClassLoader {
+  def countOpenClassloaders = openClassloaders.synchronized {openClassloaders.values.sum }
   private[mill] val openClassloaders = collection.mutable.Map.empty[Iterable[os.Path], Int]
 
   private[mill] def addOpenClassloader(classPath: Iterable[os.Path]) =
