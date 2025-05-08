@@ -3,7 +3,8 @@ package mill.define
 import mill.api.*
 import mill.api.internal.*
 
-final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
+final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
+  private def delegate = delegate0()
   override def allowPositionalCommandArgs = delegate.allowPositionalCommandArgs
   override def selectiveExecution = delegate.selectiveExecution
   override def workspace = delegate.workspace
@@ -101,7 +102,7 @@ final class EvaluatorProxy(delegate: => Evaluator) extends Evaluator {
   ): mill.api.Result[Evaluator.Result[Any]] = {
     delegate.evaluate(scriptArgs, selectMode, selectiveExecution)
   }
-  def close = delegate.close()
+  def close = delegate0 = null
 
   def selective = delegate.selective
 }

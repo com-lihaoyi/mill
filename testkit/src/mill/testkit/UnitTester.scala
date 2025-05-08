@@ -58,8 +58,8 @@ class UnitTester(
     offline: Boolean
 )(implicit fullName: sourcecode.FullName) extends AutoCloseable {
   assert(
-    mill.util.MillURLClassLoader.openClassloaders.isEmpty,
-    s"Unit tester detected leaked classloaders on initialization: \n${mill.util.MillURLClassLoader.openClassloaders.mkString("\n")}"
+    mill.api.MillURLClassLoader.openClassloaders.isEmpty,
+    s"Unit tester detected leaked classloaders on initialization: \n${mill.api.MillURLClassLoader.openClassloaders.mkString("\n")}"
   )
   val outPath: os.Path = module.moduleDir / "out"
 
@@ -125,7 +125,7 @@ class UnitTester(
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
-    Evaluator.currentEvaluator0.withValue(evaluator) {
+    Evaluator.withCurrentEvaluator(evaluator) {
       Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
     } match {
       case Result.Failure(err) => Left(ExecResult.Failure(err))
@@ -206,8 +206,8 @@ class UnitTester(
     evaluator.close()
 
     assert(
-      mill.util.MillURLClassLoader.openClassloaders.isEmpty,
-      s"Unit tester detected leaked classloaders on close: \n${mill.util.MillURLClassLoader.openClassloaders.mkString("\n")}"
+      mill.api.MillURLClassLoader.openClassloaders.isEmpty,
+      s"Unit tester detected leaked classloaders on close: \n${mill.api.MillURLClassLoader.openClassloaders.mkString("\n")}"
     )
   }
 }

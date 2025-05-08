@@ -4,7 +4,7 @@ import mill.api.Val
 import mill.api.internal.{EvaluatorApi, internal}
 import mill.define.{PathRef, RootModule0}
 import mill.define.internal.Watchable
-import mill.util.MillURLClassLoader
+import mill.api.MillURLClassLoader
 import upickle.default.{ReadWriter, macroRW}
 
 /**
