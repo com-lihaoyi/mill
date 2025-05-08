@@ -44,15 +44,6 @@ def countClassLoaders() = Task.Command {
 
 def countThreads() = Task.Command {
   import collection.JavaConverters._
-  mill.constants.DebugLog.println(
-    "\n\n" +
-      Thread
-        .getAllStackTraces
-        .keySet
-        .asScala
-        .toSeq
-        .mkString("\n")
-  )
   Thread
     .getAllStackTraces
     .keySet
