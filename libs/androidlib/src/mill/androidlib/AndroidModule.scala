@@ -128,7 +128,10 @@ trait AndroidModule extends JavaModule {
   override def resolutionParams: Task[ResolutionParams] = Task.Anon {
     super.resolutionParams().addVariantAttributes(
       "org.jetbrains.kotlin.platform.type" ->
-        VariantMatcher.AnyOf(Seq(VariantMatcher.Equals("androidJvm"), VariantMatcher.Equals("jvm")))
+        VariantMatcher.AnyOf(Seq(
+          VariantMatcher.Equals("androidJvm"),
+          VariantMatcher.Equals("jvm")
+        ))
     )
   }
 
