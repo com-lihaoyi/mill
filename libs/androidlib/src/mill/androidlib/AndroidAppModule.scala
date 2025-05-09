@@ -8,7 +8,7 @@ import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.testrunner.TestResult
 import mill.util.Jvm
-import os.{RelPath, zip}
+import os.{Path, RelPath, zip}
 import upickle.default.*
 
 import scala.jdk.OptionConverters.RichOptional
@@ -1077,11 +1077,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def androidApplicationNamespace: String = outer.androidApplicationNamespace
 
-    override def moduleDir = outer.moduleDir
+    override def moduleDir: Path = outer.moduleDir
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
-
-    override def resources: T[Seq[PathRef]] = Task.Sources("src/test/res")
+    def androidResources: T[Seq[PathRef]] = Task.Sources()
 
     override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
       baseDirectory = Some((moduleDir / "src/test").toNIO),
@@ -1116,12 +1115,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/androidTest/java")
 
-    /** The resources in res directories of both main source and androidTest sources */
-    override def resources: T[Seq[PathRef]] = Task {
-      val libResFolders = androidUnpackArchives().flatMap(_.androidResources)
-      libResFolders ++ resources0()
-    }
-    def resources0 = Task.Sources("src/androidTest/res")
+    def androidResources = Task.Sources("src/androidTest/res")
 
     override def generatedSources: T[Seq[PathRef]] = Task.Sources()
 
