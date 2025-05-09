@@ -137,16 +137,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def androidLintArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
-  /**
-   * Combines module resources with those unpacked from AARs.
-   */
-  override def resources: T[Seq[PathRef]] = Task {
-    val libResFolders = androidUnpackArchives().flatMap(_.resources)
-    libResFolders :+ resFolder()
-  }
-
-  def resFolder = Task.Source(moduleDir / "src/main/res")
-
   @internal
   override def bspCompileClasspath = Task.Anon { (ev: EvaluatorApi) =>
     compileClasspath().map(
@@ -159,12 +149,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     baseDirectory = Some((moduleDir / "src/main").toNIO),
     tags = Seq("application")
   )
-
-  def androidTransitiveResources: Target[Seq[PathRef]] = Task {
-    Task.traverse(transitiveModuleCompileModuleDeps) { m =>
-      Task.Anon(m.resources())
-    }().flatten
-  }
 
   /**
    * Adds the Android SDK JAR file to the classpath during the compilation process.
@@ -243,7 +227,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidUnsignedApk: T[PathRef] = Task {
     val unsignedApk = Task.dest / "app.unsigned.apk"
 
-    os.copy(androidResources()._1.path / "res.apk", unsignedApk)
+    os.copy(androidCompiledResources()._1.path / "res.apk", unsignedApk)
     val dexFiles = os.walk(androidDex().path)
       .filter(_.ext == "dex")
       .map(os.zip.ZipSource.fromPath)
@@ -823,7 +807,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .flatMap(_.proguardRules)
       .map(p => os.read(p.path))
       .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
+      .appended(os.read(androidCompiledResources()._1.path / "main-dex-rules.pro"))
       .mkString("\n")
     os.write(proguardFileDebug, knownProguardRulesDebug)
 
@@ -835,7 +819,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .flatMap(_.proguardRules)
       .map(p => os.read(p.path))
       .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
+      .appended(os.read(androidCompiledResources()._1.path / "main-dex-rules.pro"))
       .mkString("\n")
     os.write(proguardFileRelease, knownProguardRulesRelease)
 
@@ -944,7 +928,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .flatMap(_.proguardRules)
       .map(p => os.read(p.path))
       .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
+      .appended(os.read(androidCompiledResources()._1.path / "main-dex-rules.pro"))
       .mkString("\n")
     os.write(proguardFile, knownProguardRules)
 
@@ -1134,7 +1118,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     /** The resources in res directories of both main source and androidTest sources */
     override def resources: T[Seq[PathRef]] = Task {
-      val libResFolders = androidUnpackArchives().flatMap(_.resources)
+      val libResFolders = androidUnpackArchives().flatMap(_.androidResources)
       libResFolders ++ resources0()
     }
     def resources0 = Task.Sources("src/androidTest/res")
@@ -1274,7 +1258,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
  * @param name dependency name
  * @param classesJar path to the classes.jar
  * @param proguardRules path to the proguard rules
- * @param resources path to the res folder
+ * @param androidResources path to the res folder
  * @param manifest path to the AndroidManifest.xml
  * @param lintJar path to the lint.jar file
  * @param metaInf path to the META-INF folder
@@ -1287,7 +1271,7 @@ case class UnpackedDep(
     name: String,
     classesJar: Option[PathRef],
     proguardRules: Option[PathRef],
-    resources: Option[PathRef],
+    androidResources: Option[PathRef],
     manifest: Option[PathRef],
     lintJar: Option[PathRef],
     metaInf: Option[PathRef],
