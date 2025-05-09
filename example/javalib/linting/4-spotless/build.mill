@@ -1,0 +1,37 @@
+// Mill supports formatting files using the
+// https://github.com/diffplug/spotless[Spotless] project.
+
+package build
+
+import mill.javalib.spotless.SpotlessModule
+
+object `package` extends SpotlessModule
+
+/** See Also: spotless-config.json */
+/** See Also: src/A.java */
+
+// You can use Spotless on a per-module basis by inheriting from
+// `SpotlessModule` and running the `spotless` command on that module.
+
+// TIP: Adding the `--check` flag will cause `spotless` to fail on format errors.
+// This is useful in CI validation jobs to ensure files are formatted before merging.
+
+/** Usage
+> ./mill spotless --check     # check fails initially
+checking format in 1 java files
+error: format errors in src/A.java
+error: format errors in 1 java files
+
+> ./mill spotless             # auto-fix format
+checking format in 1 java files
+formatting src/A.java
+formatted 1 java files
+*/
+
+// You can also use Spotless xref:fundamentals/modules.adoc#_external_modules[globally] to format files in all modules.
+/** Usage
+> ./mill mill.javalib.spotless/ --check   # format is incremental
+everything is already formatted
+*/
+
+// For the full configuration options, see xref:reference/spotless-configuration.adoc[].

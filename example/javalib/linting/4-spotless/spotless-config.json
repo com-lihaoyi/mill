@@ -1,0 +1,14 @@
+{
+  "formatters": [
+    {
+      "includes": [
+        "glob:**/*.java"
+      ],
+      "steps": [
+        {
+          "$type": "PalantirJavaFormat"
+        }
+      ]
+    }
+  ]
+}

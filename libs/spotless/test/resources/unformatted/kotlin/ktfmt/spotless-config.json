@@ -1,0 +1,14 @@
+{
+  "formatters": [
+    {
+      "includes": [
+        "glob:**/*.{kt,kts}"
+      ],
+      "steps": [
+        {
+          "$type": "Ktfmt"
+        }
+      ]
+    }
+  ]
+}
