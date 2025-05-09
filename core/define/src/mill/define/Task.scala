@@ -149,7 +149,7 @@ object Task extends TaskBase {
    * [[Worker]] is a [[NamedTask]] that lives entirely in-memory, defined using
    * `Task.Worker{...}`. The value returned by `Task.Worker{...}` is long-lived,
    * persisting as long as the Mill process is kept alive (e.g. via `--watch`,
-   * or via its default `MillServerMain` server process). This allows the user to
+   * or via its default `MillDaemonMain` server process). This allows the user to
    * perform in-memory caching that is even more aggressive than the disk-based
    * caching enabled by [[PersistentImpl]]: your [[Worker]] can cache running
    * sub-processes, JVM Classloaders with JITed code, and all sorts of things

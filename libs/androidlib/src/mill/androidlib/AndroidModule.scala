@@ -1,5 +1,7 @@
 package mill.androidlib
 
+import coursier.core.VariantSelector.VariantMatcher
+import coursier.params.ResolutionParams
 import coursier.Repository
 import mill.T
 import mill.define.{ModuleRef, PathRef, Target, Task}
@@ -113,6 +115,14 @@ trait AndroidModule extends JavaModule {
 
   override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
     super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
+  }
+
+  override def checkGradleModules: T[Boolean] = true
+  override def resolutionParams: Task[ResolutionParams] = Task.Anon {
+    super.resolutionParams().addVariantAttributes(
+      "org.jetbrains.kotlin.platform.type" ->
+        VariantMatcher.AnyOf(Seq(VariantMatcher.Equals("androidJvm"), VariantMatcher.Equals("jvm")))
+    )
   }
 
   /**

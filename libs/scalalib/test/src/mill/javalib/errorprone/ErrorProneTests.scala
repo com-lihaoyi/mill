@@ -27,23 +27,27 @@ object ErrorProneTests extends TestSuite {
   def tests = Tests {
     test("reference") {
       test("compile") {
-        val eval = UnitTester(noErrorProne, testModuleSourcesPath)
-        val res = eval(noErrorProne.compile)
-        assert(res.isRight)
+        UnitTester(noErrorProne, testModuleSourcesPath).scoped { eval =>
+
+          val res = eval(noErrorProne.compile)
+          assert(res.isRight)
+        }
       }
     }
     test("errorprone") {
       test("compileFail") {
-        val eval = UnitTester(errorProne, testModuleSourcesPath)
-        val res = eval(errorProne.compile)
-        assert(res.isLeft)
+        UnitTester(errorProne, testModuleSourcesPath).scoped { eval =>
+          val res = eval(errorProne.compile)
+          assert(res.isLeft)
+        }
       }
       test("compileWarn") {
-        val eval = UnitTester(errorProneCustom, testModuleSourcesPath, debugEnabled = true)
-        val Right(opts) = eval(errorProneCustom.mandatoryJavacOptions): @unchecked
-        assert(opts.value.exists(_.contains("-XepAllErrorsAsWarnings")))
-        val res = eval(errorProneCustom.compile)
-        assert(res.isRight)
+        UnitTester(errorProneCustom, testModuleSourcesPath, debugEnabled = true).scoped { eval =>
+          val Right(opts) = eval(errorProneCustom.mandatoryJavacOptions): @unchecked
+          assert(opts.value.exists(_.contains("-XepAllErrorsAsWarnings")))
+          val res = eval(errorProneCustom.compile)
+          assert(res.isRight)
+        }
       }
     }
   }

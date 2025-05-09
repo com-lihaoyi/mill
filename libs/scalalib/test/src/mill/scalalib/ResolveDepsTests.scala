@@ -1,6 +1,8 @@
 package mill.scalalib
 
+import coursier.core.VariantSelector.VariantMatcher
 import coursier.maven.MavenRepository
+import coursier.params.ResolutionParams
 import mill.api.Result.{Failure, Success}
 import mill.define.{PathRef}
 import mill.api.{Result}
@@ -16,7 +18,8 @@ object ResolveDepsTests extends TestSuite {
 
   def evalDeps(deps: Seq[Dep]): Result[Seq[PathRef]] = Lib.resolveDependencies(
     repos,
-    deps.map(Lib.depToBoundDep(_, scala212Version, ""))
+    deps.map(Lib.depToBoundDep(_, scala212Version, "")),
+    checkGradleModules = false
   )
 
   def assertRoundTrip(deps: Seq[Dep], simplified: Boolean) = {
@@ -54,6 +57,12 @@ object ResolveDepsTests extends TestSuite {
         super.repositoriesTask() :+ coursier.Repositories.google
       }
       def artifactTypes = super.artifactTypes() + coursier.core.Type("aar")
+
+      def resolutionParams = Task.Anon {
+        super.resolutionParams().addVariantAttributes(
+          "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm")
+        )
+      }
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -143,11 +152,11 @@ object ResolveDepsTests extends TestSuite {
     test("scopes") {
       UnitTester(TestCase, null).scoped { eval =>
         val compileCp = eval(TestCase.scope.compileClasspath)
-          .right.get.value.toSeq.map(_.path)
+          .fold(_.get, _.value).map(_.path)
         val runtimeCp = eval(TestCase.scope.upstreamAssemblyClasspath)
-          .right.get.value.toSeq.map(_.path)
+          .fold(_.get, _.value).map(_.path)
         val runCp = eval(TestCase.scope.runClasspath)
-          .right.get.value.toSeq.map(_.path)
+          .fold(_.get, _.value).map(_.path)
 
         val runtimeOnlyJars = Seq(
           "lifecycle-common-2.3.0.jar",

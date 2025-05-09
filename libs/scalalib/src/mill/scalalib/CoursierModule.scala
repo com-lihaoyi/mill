@@ -2,6 +2,7 @@ package mill.scalalib
 
 import coursier.cache.FileCache
 import coursier.core.Resolution
+import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
 import mill.define.Task
@@ -20,6 +21,11 @@ import scala.concurrent.duration.Duration
  * in which case you must provide repositories by overriding [[CoursierModule.repositoriesTask]].
  */
 trait CoursierModule extends mill.define.Module {
+
+  /**
+   * Whether to enable Gradle Module support when fetching dependencies
+   */
+  def checkGradleModules: T[Boolean] = false
 
   /**
    * Bind a dependency ([[Dep]]) to the actual module context (e.g. the scala version and the platform suffix)
@@ -45,7 +51,8 @@ trait CoursierModule extends mill.define.Module {
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
       resolutionParams = resolutionParams(),
-      offline = Task.offline
+      offline = Task.offline,
+      checkGradleModules = checkGradleModules()
     )
   }
 
@@ -65,7 +72,8 @@ trait CoursierModule extends mill.define.Module {
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
       resolutionParams = resolutionParams(),
-      offline = Task.offline
+      offline = Task.offline,
+      checkGradleModules = checkGradleModules()
     )
   }
 
@@ -181,7 +189,11 @@ trait CoursierModule extends mill.define.Module {
    * `ResolutionParams#defaultConfiguration` is used.
    */
   def resolutionParams: Task[ResolutionParams] = Task.Anon {
-    ResolutionParams()
+    ResolutionParams().addVariantAttributes(
+      "org.gradle.category" -> VariantMatcher.Library,
+      "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm"),
+      "org.gradle.dependency.bundling" -> VariantMatcher.Equals("external")
+    )
   }
 
 }
@@ -190,6 +202,7 @@ object CoursierModule {
   class Resolver(
       repositories: Seq[Repository],
       bind: Dep => BoundDep,
+      checkGradleModules: Boolean,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       coursierCacheCustomizer: Option[
@@ -215,6 +228,7 @@ object CoursierModule {
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
+        checkGradleModules = checkGradleModules,
         sources = sources,
         artifactTypes = artifactTypes,
         mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
@@ -239,11 +253,12 @@ object CoursierModule {
       Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
         deps = deps0,
+        checkGradleModules = checkGradleModules,
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = Some(ctx),
-        resolutionParams = ResolutionParams(),
+        resolutionParams = resolutionParams,
         boms = Nil
       ).get
     }
@@ -262,6 +277,7 @@ object CoursierModule {
       Jvm.getArtifacts(
         repositories,
         deps0.map(_.dep),
+        checkGradleModules = checkGradleModules,
         sources = sources,
         ctx = Some(ctx)
       ).get

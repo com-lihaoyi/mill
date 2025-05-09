@@ -23,7 +23,7 @@ rem this script downloads a binary file from Maven Central or Github Pages (this
 rem into a cache location (%USERPROFILE%\.mill\download).
 rem
 rem Mill Project URL: https://github.com/com-lihaoyi/mill
-rem Script Version: 0.13.0-M2-3-ba7090
+rem Script Version: 0.13.0-M2-63-e8edbd
 rem
 rem If you want to improve this script, please also contribute your changes back!
 rem This script was generated from: scripts/src/mill.bat
@@ -42,6 +42,9 @@ if [!GITHUB_RELEASE_CDN!]==[] (
     set "GITHUB_RELEASE_CDN="
 )
 
+if [!MILL_MAIN_CLI!]==[] (
+    set "MILL_MAIN_CLI=%~f0"
+)
 
 set "MILL_REPO_URL=https://github.com/com-lihaoyi/mill"
 
@@ -63,7 +66,7 @@ if [!MILL_VERSION!]==[] (
       set /p MILL_VERSION=<.config\mill-version
     ) else (
       if not "%MILL_BUILD_SCRIPT%"=="" (
-        for /f "tokens=1-2*" %%a in ('findstr /r "[/][/][|]  *mill-version:  *" %MILL_BUILD_SCRIPT%') do (
+        for /f "tokens=1-2*" %%a in ('findstr /C:"//| mill-version:" %MILL_BUILD_SCRIPT%') do (
           set "MILL_VERSION=%%c"
         )
       )
@@ -264,4 +267,5 @@ if not [!MILL_FIRST_ARG!]==[] (
   )
 )
 
-"%MILL%" %MILL_FIRST_ARG%  %MILL_PARAMS%
+rem -D mill.main.cli is for compatibility with Mill 0.10.9 - 0.13.0-M2
+"%MILL%" %MILL_FIRST_ARG% -D "mill.main.cli=%MILL_MAIN_CLI%" %MILL_PARAMS%

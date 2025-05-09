@@ -1,12 +1,12 @@
 package mill.javalib.spring.boot
 
 import java.net.{URL, URLClassLoader}
-
 import mill.*
 import mill.define.{Discover, ExternalModule}
 import mill.javalib.spring.boot.worker.SpringBootTools
 import mill.javalib.{CoursierModule, Dep, DepSyntax}
 import mill.scalalib.api.Versions
+import mill.api.MillURLClassLoader
 
 trait SpringBootToolsModule extends CoursierModule {
 
@@ -33,10 +33,8 @@ trait SpringBootToolsModule extends CoursierModule {
   }
 
   def springBootToolsClassLoader: Worker[ClassLoader] = Task.Worker {
-    new URLClassLoader(
-      springBootToolsClasspath()
-        .map(_.path.toIO.toURI().toURL())
-        .toArray[URL],
+    mill.util.Jvm.createClassLoader(
+      springBootToolsClasspath().map(_.path),
       getClass().getClassLoader()
     )
   }

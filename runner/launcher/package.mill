@@ -2,8 +2,9 @@ package build.runner.launcher
 
 import mill._
 import mill.contrib.buildinfo.BuildInfo
+import millbuild.*
 
-object `package` extends build.MillPublishScalaModule with BuildInfo {
+object `package` extends MillPublishScalaModule with BuildInfo {
   // Disable scalafix because it seems to misbehave and cause
   // spurious errors when there are mixed Java/Scala sources
   def fix(args: String*): Command[Unit] = Task.Command {}
@@ -12,14 +13,14 @@ object `package` extends build.MillPublishScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.runner.client)
 
-  def mvnDeps = Agg(
-    build.Deps.nativeTerminal,
-    build.Deps.coursier,
-    build.Deps.coursierInterface,
-    build.Deps.coursierJvm,
-    build.Deps.logback,
-    build.Deps.snakeyamlEngine,
-    build.Deps.osLib
+  def mvnDeps = Seq(
+    Deps.nativeTerminal,
+    Deps.coursier,
+    Deps.coursierInterface,
+    Deps.coursierJvm,
+    Deps.logback,
+    Deps.snakeyamlEngine,
+    Deps.osLib
   )
 
   def buildInfoObjectName = "Versions"
@@ -32,7 +33,7 @@ object `package` extends build.MillPublishScalaModule with BuildInfo {
         sys.error("Cannot get jline-native version from compile class path")
       }
     Seq(
-      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion),
+      BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion),
       BuildInfo.Value("jlineNativeVersion", jlineNativeVersion)
     )
   }

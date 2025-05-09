@@ -28,18 +28,20 @@ object HelloWorldTests extends TestSuite {
   def tests: Tests = Tests {
     test("run") {
       val baos = new ByteArrayOutputStream()
-      val eval = UnitTester(HelloWorldPython, resourcePath, outStream = new PrintStream(baos))
+      UnitTester(HelloWorldPython, resourcePath, outStream = new PrintStream(baos)).scoped { eval =>
 
-      val Right(result) = eval.apply(HelloWorldPython.qux.run(Args())): @unchecked
+        val Right(result) = eval.apply(HelloWorldPython.qux.run(Args())): @unchecked
 
-      assert(baos.toString().contains("Hello,  Qux!\n"))
+        assert(baos.toString().contains("Hello,  Qux!\n"))
+      }
     }
 
     test("test") {
-      val eval = UnitTester(HelloWorldPython, resourcePath)
+      UnitTester(HelloWorldPython, resourcePath).scoped { eval =>
 
-      val result = eval.apply(HelloWorldPython.qux.test.testForked())
-      assert(result.isRight)
+        val result = eval.apply(HelloWorldPython.qux.test.testForked())
+        assert(result.isRight)
+      }
     }
   }
 }

@@ -1,7 +1,5 @@
 package mill.contrib.flyway
 
-import java.net.URLClassLoader
-
 import mill.contrib.flyway.ConsoleLog.Level
 import org.flywaydb.core.Flyway
 import org.flywaydb.core.api.MigrationVersion
@@ -37,8 +35,11 @@ trait FlywayModule extends JavaModule {
       .filter(_.nonEmpty)
       .map(key -> _)
 
+  def flywayClassloader = Task.Worker {
+    mill.util.Jvm.createClassLoader(jdbcClasspath().map(_.path))
+  }
   def flywayInstance = Task.Worker {
-    val jdbcClassloader = new URLClassLoader(jdbcClasspath().map(_.path.toIO.toURI.toURL).toArray)
+    val jdbcClassloader = flywayClassloader()
 
     val configProps = Map(flyway.URL -> flywayUrl()) ++
       strToOptPair(flyway.USER, flywayUser()) ++

@@ -4,6 +4,7 @@ import mill.api.Val
 import mill.api.internal.{EvaluatorApi, internal}
 import mill.define.{PathRef, RootModule0}
 import mill.define.internal.Watchable
+import mill.api.MillURLClassLoader
 import upickle.default.{ReadWriter, macroRW}
 
 /**
@@ -41,14 +42,6 @@ case class RunnerState(
 }
 
 object RunnerState {
-  class URLClassLoader(urls: Array[java.net.URL], parent: ClassLoader)
-      extends java.net.URLClassLoader(urls, parent) {
-
-    // Random ID of the URLClassLoader to ensure it doesn't
-    // duplicate (unlike System.identityHashCode), allowing tests to compare
-    // hashcodes to verify whether the classloader has been re-created
-    val identity: Int = scala.util.Random.nextInt()
-  }
 
   def empty: RunnerState = RunnerState(None, Nil, None)
 
@@ -58,7 +51,7 @@ object RunnerState {
       evalWatched: Seq[Watchable],
       moduleWatched: Seq[Watchable],
       codeSignatures: Map[String, Int],
-      classLoaderOpt: Option[RunnerState.URLClassLoader],
+      classLoaderOpt: Option[MillURLClassLoader],
       runClasspath: Seq[PathRef],
       compileOutput: Option[PathRef],
       evaluator: Option[EvaluatorApi]

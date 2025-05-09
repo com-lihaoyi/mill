@@ -29,11 +29,13 @@ object HelloWorldTests extends TestSuite {
   def tests: Tests = Tests {
     test("run") {
       val baos = new ByteArrayOutputStream()
-      val eval = UnitTester(HelloWorldJavascript, resourcePath, outStream = new PrintStream(baos))
+      UnitTester(HelloWorldJavascript, resourcePath, outStream = new PrintStream(baos)).scoped {
+        eval =>
 
-      val Right(result) = eval.apply(HelloWorldJavascript.qux.run(Args("James"))): @unchecked
+          val Right(result) = eval.apply(HelloWorldJavascript.qux.run(Args("James"))): @unchecked
 
-      assert(baos.toString() == "Hello James Qux\n")
+          assert(baos.toString() == "Hello James Qux\n")
+      }
     }
   }
 }

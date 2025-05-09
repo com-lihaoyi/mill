@@ -29,7 +29,7 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
 
   def androidIsDebug = true
 
-  def mvnDeps: T[Agg[Dep]] = Agg(
+  def mvnDeps: T[Seq[Dep]] = Seq(
     mvn"androidx.core:core-ktx:1.15.0",
     mvn"androidx.appcompat:appcompat:1.7.0",
     mvn"androidx.annotation:annotation:1.9.1",
@@ -72,7 +72,7 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
     mvn"androidx.customview:customview-poolingcontainer:1.0.0"
   )
 
-  def kotlinSymbolProcessors: T[Agg[Dep]] = Agg(
+  def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
     mvn"androidx.room:room-compiler:2.6.1",
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
@@ -106,7 +106,7 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
   }
 
   object test extends AndroidAppKotlinTests with TestModule.Junit4 {
-    def mvnDeps = super.mvnDeps() ++ Agg(
+    def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"junit:junit:4.13.2"
     )
   }

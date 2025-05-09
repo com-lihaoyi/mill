@@ -5,7 +5,7 @@ import os.Path
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration.Duration
-import java.util.concurrent.{PriorityBlockingQueue, ThreadPoolExecutor, TimeUnit}
+import java.util.concurrent.{PriorityBlockingQueue, ThreadFactory, ThreadPoolExecutor, TimeUnit}
 import mill.api.Logger
 
 private object ExecutionContexts {
@@ -43,7 +43,8 @@ private object ExecutionContexts {
       // operations reversed, providing elements in a LIFO order. This ensures that
       // child `fork.async` tasks always take priority over parent tasks, avoiding
       // large numbers of blocked parent tasks from piling up
-      new PriorityBlockingQueue[Runnable]()
+      new PriorityBlockingQueue[Runnable](),
+      runnable => new Thread(runnable, "execution-contexts-threadpool-thread")
     )
 
     def updateThreadCount(delta: Int): Unit = synchronized {

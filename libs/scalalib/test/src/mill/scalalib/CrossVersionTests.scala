@@ -139,26 +139,27 @@ object CrossVersionTests extends TestSuite {
   )(implicit
       testPath: TestPath
   ) = {
-    val eval = init()
-    eval.apply(mod.mvnDepsTree(MvnDepsTreeArgs()))
+    init().scoped { eval =>
+      eval.apply(mod.mvnDepsTree(MvnDepsTreeArgs()))
 
-    expectedMvnDepsTree.foreach { tree =>
-      if (!scala.util.Properties.isWin) {
-        // Escape-sequence formatting isn't working under bare Windows
-        val expectedDepsTree = tree
-        val depsTree =
-          os.read(ExecutionPaths.resolve(
-            eval.outPath,
-            mod.mvnDepsTree(MvnDepsTreeArgs())
-          ).log)
-        assert(depsTree == expectedDepsTree)
+      expectedMvnDepsTree.foreach { tree =>
+        if (!scala.util.Properties.isWin) {
+          // Escape-sequence formatting isn't working under bare Windows
+          val expectedDepsTree = tree
+          val depsTree =
+            os.read(ExecutionPaths.resolve(
+              eval.outPath,
+              mod.mvnDepsTree(MvnDepsTreeArgs())
+            ).log)
+          assert(depsTree == expectedDepsTree)
+        }
       }
+
+      val Right(libs) = eval.apply(mod.compileClasspath): @unchecked
+
+      val libNames = libs.value.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
+      assert(libNames == expectedLibs.sorted)
     }
-
-    val Right(libs) = eval.apply(mod.compileClasspath): @unchecked
-
-    val libNames = libs.value.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
-    assert(libNames == expectedLibs.sorted)
   }
 
   def tests: Tests = Tests {

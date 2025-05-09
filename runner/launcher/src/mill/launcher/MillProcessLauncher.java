@@ -59,7 +59,7 @@ public class MillProcessLauncher {
   static void launchMillServer(Path serverDir) throws Exception {
     List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand());
-    l.add("mill.daemon.MillServerMain");
+    l.add("mill.daemon.MillDaemonMain");
     l.add(serverDir.toFile().getCanonicalPath());
 
     ProcessBuilder builder = new ProcessBuilder()
@@ -115,7 +115,7 @@ public class MillProcessLauncher {
               "yaml-config-" + key, mill.constants.Util.readYamlHeader(buildFile), () -> {
                 Object conf = mill.launcher.ConfigReader.readYaml(buildFile);
                 if (!(conf instanceof Map)) return new String[] {};
-                Map<String, List<String>> conf2 = (Map<String, List<String>>) conf;
+                Map<String, Object> conf2 = (Map<String, Object>) conf;
 
                 if (!conf2.containsKey(key)) return new String[] {};
                 if (conf2.get(key) instanceof List) {
@@ -216,7 +216,9 @@ public class MillProcessLauncher {
     }
 
     String serverTimeout = millServerTimeout();
-    if (serverTimeout != null) vmOptions.add("-D" + "mill.server_timeout" + "=" + serverTimeout);
+    if (serverTimeout != null) vmOptions.add("-Dmill.server_timeout=" + serverTimeout);
+    // https://github.com/com-lihaoyi/mill/issues/5083
+    vmOptions.add("-Dscalac.filebasedcache.defer.close.ms=0");
 
     // extra opts
     vmOptions.addAll(millJvmOpts());

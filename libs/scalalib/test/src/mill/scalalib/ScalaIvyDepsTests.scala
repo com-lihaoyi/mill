@@ -66,9 +66,9 @@ object ScalaMvnDepsTests extends TestSuite {
       // CoursierModule#{allRepositories,millResolver}.
       def mvnDeps = Task {
         if (repositoriesTask().contains(coursier.Repositories.google))
-          Agg(mvn"com.google.protobuf:protobuf-java:2.6.1")
+          Seq(mvn"com.google.protobuf:protobuf-java:2.6.1")
         else
-          Agg.empty
+          Seq.empty
       }
     }
 

@@ -18,16 +18,18 @@ object JUnit5Tests extends TestSuite {
 
   def tests = Tests {
     test("discovery") {
-      val eval = UnitTester(module, testModuleSourcesPath)
-      val res = eval(module.test.discoveredTestClasses)
-      assert(res.isRight)
-      assert(res.toOption.get.value == Seq("qux.QuxTests"))
+      UnitTester(module, testModuleSourcesPath).scoped { eval =>
+        val res = eval(module.test.discoveredTestClasses)
+        assert(res.isRight)
+        assert(res.toOption.get.value == Seq("qux.QuxTests"))
+      }
     }
     test("execution") {
-      val eval = UnitTester(module, testModuleSourcesPath)
-      val res = eval(module.test.testForked(""))
-      assert(res.isRight)
-      assert(res.toOption.get.value._2.forall(_.fullyQualifiedName == "qux.QuxTests"))
+      UnitTester(module, testModuleSourcesPath).scoped { eval =>
+        val res = eval(module.test.testForked(""))
+        assert(res.isRight)
+        assert(res.toOption.get.value._2.forall(_.fullyQualifiedName == "qux.QuxTests"))
+      }
     }
   }
 }
