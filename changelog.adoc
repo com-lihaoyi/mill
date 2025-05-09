@@ -12,24 +12,38 @@ endif::[]
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
-=== `main` development branch
+=== 1.0.0-RC1
 
-Mill's `main` branch is targeting the upcoming Mill 1.0.0 release. This is a major backwards
-incompatible release that aims to clean up years of technical debt, and build a strong
-technical foundation for the next few years of development. We
-expect it will take some work from projects on Mill 0.12.x or earlier to migrate to 1.0.0,
-and any Mill plugins will need to be re-published for Mill-1.0.0/Scala-3
+`1.0.0-RC1` is the first release candidate of the upcoming Mill 1.0.0 release. This is a major
+backwards incompatible release that aims to clean up years of technical debt, and build a strong
+technical foundation for the next few years of development. We expect it will take some work
+from projects on Mill 0.12.x or earlier to migrate to 1.0.0-RC1, any Mill plugins will need to be
+re-published for Mill-1.0.0-RC1, and there may be issues in the release candidate that we hope to
+surface and fix.
 
-* `build.mill` and `package.mill` files are now written in Scala 3.7 ({link-pr}/3369[#3369]).
+==== Major Breaking Changes
+
+* `build.mill` and `package.mill` files are now written in Scala 3.7.0 ({link-pr}/3369[#3369]).
   Any third-party libraries used must be Scala 3 compatible (most already are). You may now
   use Scala 3 language features such as https://docs.scala-lang.org/scala3/reference/other-new-features/indentation.html[Optional Braces]
   in your `.mill` files
 
-* `ivyDeps` has been renamed to `mvnDeps`, along with all related tasks and methods
-  e.g. `compileIvyDeps` is now `compileMvnDeps` ({link-pr}/4930[#4930]).
+```scala
+package build
+import mill.*, javalib.*
 
-* The `Agg()`/`Agg[T]` collection types have been removed and replaced by `Seq()`/`Seq[T]`
-  ({link-pr}/4525[#4525]).
+object foo extends JavaModule:
+  def mvnDeps = Seq(
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+  )
+
+  object test extends JavaTests with TestModule.Junit4:
+    def mvnDeps = Seq(
+      mvn"com.google.guava:guava:33.3.0-jre"
+    )
+```
+
 
 * Mill now supports a YAML front-matter syntax in `build.mill` files, defined by line comments
   starting with `//|` ({link-pr}/4969[#4969]). This replaces the `import $ivy...` syntax
@@ -48,10 +62,38 @@ package build
 ...
 ```
 
+* The YAML front-matter allows you to configure arbitrary tasks in the meta-build.
+  Above we show how to configure the `def repositories` and `def mvnDeps` tasks for the
+  meta-build, but other meta-build tasks can be configured as well: `scalaVersion`,
+  `scalacOptions`, etc.
+
+
+* `ivyDeps` has been renamed to `mvnDeps`, along with all related tasks and methods
+  e.g. `compileIvyDeps` is now `compileMvnDeps` ({link-pr}/4930[#4930]).
+
+
+* The `Agg()`/`Agg[T]` collection types have been removed and replaced by `Seq()`/`Seq[T]`
+  ({link-pr}/4525[#4525]).
+
+
+```diff
+-def ivyDeps = Agg(
++def mvnDeps = Seq(
+   mvn"org.scalameta::munit::0.7.29"
+)
+```
+
 * `import $file` has been removed and replaced by direct references to the
   definitions ({link-pr}/4462[#4462]), e.g. if you have a `package build.foo.bar`
   containing `def qux` you can refer to the definition via `build.foo.bar.qux`
   or `import build.foo.bar.qux` without needing the `import $file`
+
+
+```diff
+-import $file.foo.bar.Qux
++import build.foo.bar.Qux
+...Qux...
+```
 
 * `os.*` filesystem operations are now restricted by default: 
 
@@ -60,41 +102,62 @@ package build
 ** Code running during module/task resolution cannot write to disk, and can only perform
    reads wrapped in `interp.watchValue` blocks
 
-** These filesystem guardrails are best effort to guide users towards best practices, and are not 
-   intended to be a fully hermetic sandbox. You can disable them via `os.checker.withValue(os.Checker.Nop){ ... }`
+** These restrictions are best effort guardrails to guide users towards best practices, and
+   are not intended to be a fully-hermetic sandbox. You can disable them via
+   `os.checker.withValue(os.Checker.Nop){ ... }`
 
 * `build.mill` files are now compiled with a minimized classpath containing only
   the necessary APIs, without all of Mill's internal code on the classpath
   ({link-pr}/4879[#4879]).
 
-** The `.mill` file classpath has been consolidated under
+** The `build.mill` classpath has been consolidated under
    the `mill-libs` artifact ({link-pr}/4967[#4967]), which should be used when
    building plugins, rather than the `mill-dist` we were using before. All the "library"
    code Mill provides to integrate language toolchains now has `libs-` in the artifact name,
    e.g. `mill-libs-scalalib`, `mill-libs-kotlinlib`, etc.
 
-** `mill.resolve`, `mill.runner`, `mill.eval`, etc. are no longer on the classpath
+** `mill.resolve`, `mill.runner`, `mill.eval`, etc. are no longer on the classpath, along
+   with many third-party libraries. In general, a lot of Mill packages that were previously
+   on the classpath by happenstance have been removed, and only the core APIs you really
+   need remain exposed under `mill.api`, `mill.define`, `mill.util`, and the various
+   `mill.foolib` packages. You can re-include any missing third party libraries you need
+   via the `//| mvnDeps: ` YAML header
 
-** `mill.api`, `mill.define` and `mill.util` have been re-organized. `mill.api` now contains
-   `build.mill` code that has zero third-party dependencies, `mill.define` contains the code used
-   in `build.mill` that has dependencies, and `mill.util` contains code used in `build.mill`
-   that is also used in other parts of Mill. Many classes have been moved around, so if your
-   imports no longer compile you may need to try the other two packages to see where the
-   class ended up.
+** `mill.api`, `mill.define` and `mill.util` have been re-organized. Many classes have been
+   moved around, so if your imports no longer compile you may need to try the other two packages
+   to see where the class ended up.
+
+*** `mill.api` now contains `build.mill` code that has zero third-party dependencies
+*** `mill.define` contains the code used in `build.mill` that has dependencies
+*** `mill.util` contains code used in `build.mill` that is also used in other parts of Mill.
 
 * Root modules in `build.mill` and `package.mill` files no longer need an explicit `extends RootModule`
   superclass, as it is now taken care of by Mill automatically ({link-pr}/5008[#5008]) 
 
+```diff
+-object `package` extends RootModule with JavaModule {
+-object `package` extends JavaModule {
+   ...
+ }
+
 * `Jvm.*` methods to spawn subprocesses and classloaders have been consolidated from 20+ helpers
-  into 4 main functions ({link-pr}/4456[#4456])
+  into 4 main functions ({link-pr}/4456[#4456]): `Jvm.createClassLoader`, `Jvm.withClassLoader`,
+  `Jvm.spawnProcess`, and `Jvm.callProcess`. These provide all the configurability you need for
+  most callsites in a much more consistent fashion than the previous grab-bag of helpers.
 
 * `evaluator: Evaluator` Command parameters are now only available in commands marked
   `exclusive = true` ({link-pr}/3717[#3717])
 
 * `Task.Source`, `Task.Sources`, and `Task.Input` are no longer allowed to have upstream
   tasks ({link-pr}/4524[#4524]). You can generally replace cases like
-  `Task.Sources{ super.sources() ++ Seq(PathRef(...)) }` with
-  `def customSources =  Task.Sources()` and `def sources = Task { super.sources() ++ customSources() }`
+
+```diff
+- def sources = Task.Sources{ super.sources() ++ Seq(PathRef(...)) }
++ def customSources =  Task.Sources(...)
++ def sources = Task { super.sources() ++ customSources() }
+```
+
+==== Other Changes
 
 * Mill's bootstrap scripts now use the native launcher by the default, except for
   Windows-ARM which is not supported by the Graal tooling we used to build these native
@@ -103,7 +166,8 @@ package build
 
 * Mill's server-client model has been simplified, from having an elastic pool of JVM daemons
   each connected to a single client at a time, to a single shared JVM that handles potentially
-  multiple client simultaneously ({link-pr}/5066[#5066]). 
+  multiple client simultaneously ({link-pr}/5066[#5066]). This should result in reduced resource
+  usage when running Mill in multiple terminals.
 
 ** Note that Mill still only processes
    one command at a time, but it is possible to have multiple clients connected to the server
@@ -116,12 +180,37 @@ package build
 * Mill's native launcher is able to run on systems without a JVM installed, and will
   download an appropriate JVM distribution on demand if necessary ({link-pr}/4597[#4597])
 
-* `RootModule` and `Cross` can now be applied to the same module ({link-pr}/4593[#4593])
+* `Cross` can now be applied to root modules ({link-pr}/4593[#4593])
+
+```scala
+object `package` extends Cross[FooModule]("3.6.2", "2.13.16") {
+  ...
+}
+```
 
 * Mill now supports a `--offline` option to run in offline mode. 
   Custom tasks that need to download remote resources should respect that mode via
   the `Task.offline` API. ({link-pr}/4914[#4914])
-  
+
+* `def testParallelism = true` by default, letting Mill run multiple test classes
+  in parallel subprocesses even within the same module. Can be disabled by overriding
+  `def testParallelism = false` on the test module.
+
+* Lots of miscellaneous improvements:
+
+** BSP support and IDE integration ({link-pr}/4851[#4851],{link-pr}/4873[#4873],
+   {link-pr}/4876[#4876], {link-pr}/4881[#4881], {link-pr}/4873[#4873],
+   {link-pr}/4940[#4940], {link-pr}/4941[#4941])
+
+** Classloader and Thread leak prevention ({link-pr}/5079[#5079], {link-pr}/5082[#5082])
+
+** Android Support ({link-pr}/4485[#4485], {link-pr}/4540[#4540], {link-pr}/4583[#4583],
+   {link-pr}/4626[#4626], {link-pr}/4759[#4759], {link-pr}/4892[#4892], {link-pr}/4947[#4947],
+   {link-pr}/5013[#5013], {link-pr}/5053[#5053])
+
+** Kotlin Support ({link-pr}/4557[#4557], {link-pr}/4786[#4786], {link-pr}/4771[#4771],
+   {link-pr}/4779[#4779], {link-pr}/4797[#4797], {link-pr}/4963[#4963])
+
 [#0-12-10]
 === 0.12.10 - 2025-04-01
 :version: 0.12.10
