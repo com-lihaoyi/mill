@@ -1,0 +1,7 @@
+package build.libs.spotless
+
+import millbuild.*
+
+object `package` extends MillPublishScalaModule {
+  def mvnDeps = Seq(Deps.osLib, Deps.spotlessLibExtra, Deps.upickle)
+}
