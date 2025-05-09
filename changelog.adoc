@@ -17,9 +17,11 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 `1.0.0-RC1` is the first release candidate of the upcoming Mill 1.0.0 release. This is a major
 backwards incompatible release that aims to clean up years of technical debt, and build a strong
 technical foundation for the next few years of development. We expect it will take some work
-from projects on Mill 0.12.x or earlier to migrate to 1.0.0-RC1, any Mill plugins will need to be
-re-published for Mill-1.0.0-RC1, and there may be issues in the release candidate that we hope to
-surface and fix.
+from projects on Mill 0.12.x or earlier to migrate to 1.0.0-RC1, and there may be issues in
+the release candidate that we hope to surface and fix before 1.0.0 final is released.
+Any Mill plugins will need to be re-published for Mill 1.0.0-RC1 if you would like to try them
+out in your builds, and re-published again for Mill 1.0.0 final (which may have further changes
+and be incompatible with the RC1)
 
 ==== Major Breaking Changes
 
