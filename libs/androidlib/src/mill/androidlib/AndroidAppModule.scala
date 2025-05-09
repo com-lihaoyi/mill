@@ -225,6 +225,24 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .flatMap(ref => {
         val dest = Task.dest / ref.path.baseName
         os.unzip(ref.path, dest)
+
+        // Fix permissions of unzipped directories
+        // `os.walk.stream` doesn't work
+        def walkStream(p: os.Path): geny.Generator[os.Path] = {
+          if (!os.isDir(p)) geny.Generator()
+          else {
+            val streamed = os.list.stream(p)
+            streamed ++ streamed.flatMap(walkStream)
+          }
+        }
+
+        for (p <- walk_(dest) if os.isDir(p)) {
+          val newPerms =
+            os.perms(p) + PosixFilePermission.OWNER_READ + PosixFilePermission.OWNER_EXECUTE
+
+          os.perms.set(p, newPerms)
+        }
+
         val lookupPath = dest / "META-INF"
         if (os.exists(lookupPath)) {
           os.walk(lookupPath)
