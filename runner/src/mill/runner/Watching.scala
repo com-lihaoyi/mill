@@ -1,11 +1,12 @@
 package mill.runner
 
-import mill.api.internal
+import mill.api.{SystemStreams, internal}
 import mill.util.{Colors, Watchable}
-import mill.api.SystemStreams
 
 import java.io.InputStream
+import java.nio.channels.ClosedChannelException
 import scala.annotation.tailrec
+import scala.util.Using
 
 /**
  * Logic around the "watch and wait" functionality in Mill: re-run on change,
@@ -15,72 +16,201 @@ import scala.annotation.tailrec
 object Watching {
   case class Result[T](watched: Seq[Watchable], error: Option[String], result: T)
 
+  trait Evaluate[T] {
+    def apply(enterKeyPressed: Boolean, previousState: Option[T]): Result[T]
+  }
+
+  /**
+   * @param useNotify whether to use filesystem based watcher. If it is false uses polling.
+   * @param serverDir the directory for storing logs of the mill server
+   */
+  case class WatchArgs(
+      setIdle: Boolean => Unit,
+      colors: Colors,
+      useNotify: Boolean,
+      serverDir: os.Path
+  )
+
   def watchLoop[T](
       ringBell: Boolean,
-      watch: Boolean,
+      watch: Option[WatchArgs],
       streams: SystemStreams,
-      setIdle: Boolean => Unit,
-      evaluate: (Boolean, Option[T]) => Result[T],
-      colors: Colors
+      evaluate: Evaluate[T]
   ): (Boolean, T) = {
-    var prevState: Option[T] = None
-    var enterKeyPressed = false
-    while (true) {
-      val Result(watchables, errorOpt, result) = evaluate(enterKeyPressed, prevState)
-      prevState = Some(result)
+    def handleError(errorOpt: Option[String]): Unit = {
       errorOpt.foreach(streams.err.println)
-      if (ringBell) {
-        if (errorOpt.isEmpty) println("\u0007")
-        else {
-          println("\u0007")
-          Thread.sleep(250)
-          println("\u0007")
-        }
-      }
+      doRingBell(hasError = errorOpt.isDefined)
+    }
 
-      if (!watch) {
-        return (errorOpt.isEmpty, result)
-      }
+    def doRingBell(hasError: Boolean): Unit = {
+      if (!ringBell) return
 
-      val alreadyStale = watchables.exists(!_.validate())
-      enterKeyPressed = false
-      if (!alreadyStale) {
-        enterKeyPressed = Watching.watchAndWait(streams, setIdle, streams.in, watchables, colors)
+      println("\u0007")
+      if (hasError) {
+        // If we have an error ring the bell again
+        Thread.sleep(250)
+        println("\u0007")
       }
     }
-    ???
+
+    watch match {
+      case None =>
+        val Result(watchables, errorOpt, result) =
+          evaluate(enterKeyPressed = false, previousState = None)
+        handleError(errorOpt)
+        (errorOpt.isEmpty, result)
+
+      case Some(watchArgs) =>
+        var prevState: Option[T] = None
+        var enterKeyPressed = false
+
+        // Exits when the thread gets interruped.
+        while (true) {
+          val Result(watchables, errorOpt, result) = evaluate(enterKeyPressed, prevState)
+          prevState = Some(result)
+          handleError(errorOpt)
+
+          // Do not enter watch if already stale, re-evaluate instantly.
+          val alreadyStale = watchables.exists(w => !w.validate())
+          if (alreadyStale) {
+            enterKeyPressed = false
+          } else {
+            enterKeyPressed = watchAndWait(streams, streams.in, watchables, watchArgs)
+          }
+        }
+        throw new IllegalStateException("unreachable")
+    }
   }
 
   def watchAndWait(
       streams: SystemStreams,
-      setIdle: Boolean => Unit,
       stdin: InputStream,
       watched: Seq[Watchable],
-      colors: Colors
+      watchArgs: WatchArgs
   ): Boolean = {
-    setIdle(true)
-    val watchedPaths = watched.collect { case p: Watchable.Path => p.p.path }
-    val watchedValues = watched.size - watchedPaths.size
+    watchArgs.setIdle(true)
+    val (watchedPollables, watchedPathsSeq) = watched.partitionMap {
+      case w: Watchable.Value => Left(w)
+      case p: Watchable.Path => Right(p)
+    }
+    val watchedPathsSet = watchedPathsSeq.iterator.map(p => p.p.path).toSet
+    val watchedValueCount = watched.size - watchedPathsSeq.size
 
-    val watchedValueStr = if (watchedValues == 0) "" else s" and $watchedValues other values"
+    val watchedValueStr =
+      if (watchedValueCount == 0) "" else s" and $watchedValueCount other values"
 
-    streams.err.println(
-      colors.info(
-        s"Watching for changes to ${watchedPaths.size} paths$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
+    streams.err.println {
+      val viaFsNotify = if (watchArgs.useNotify) " (via fsnotify)" else ""
+      watchArgs.colors.info(
+        s"Watching for changes to ${watchedPathsSeq.size} paths$viaFsNotify$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
       ).toString
-    )
+    }
 
-    val enterKeyPressed = statWatchWait(watched, stdin)
-    setIdle(false)
-    enterKeyPressed
+    def doWatch(notifiablesChanged: () => Boolean) = {
+      val enterKeyPressed = statWatchWait(watchedPollables, stdin, notifiablesChanged)
+      watchArgs.setIdle(false)
+      enterKeyPressed
+    }
+
+    def doWatchPolling() =
+      doWatch(notifiablesChanged = () => watchedPathsSeq.exists(p => !p.validate()))
+
+    def doWatchFsNotify() = {
+      Using.resource(os.write.outputStream(watchArgs.serverDir / "fsNotifyWatchLog")) { watchLog =>
+        def writeToWatchLog(s: String): Unit = {
+          try {
+            watchLog.write(s.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            watchLog.write('\n')
+          } catch {
+            case _: ClosedChannelException => /* do nothing, the file is already closed */
+          }
+        }
+
+        @volatile var pathChangesDetected = false
+
+        // oslib watch only works with folders, so we have to watch the parent folders instead
+
+        writeToWatchLog(
+          s"[watched-paths:unfiltered] ${watchedPathsSet.toSeq.sorted.mkString("\n")}"
+        )
+
+        val workspaceRoot = mill.api.WorkspaceRoot.workspaceRoot
+
+        /** Paths that are descendants of [[workspaceRoot]]. */
+        val pathsUnderWorkspaceRoot = watchedPathsSet.filter { path =>
+          val isUnderWorkspaceRoot = path.startsWith(workspaceRoot)
+          if (!isUnderWorkspaceRoot) {
+            streams.err.println(watchArgs.colors.error(
+              s"Watched path $path is outside workspace root $workspaceRoot, this is unsupported."
+            ).toString())
+          }
+
+          isUnderWorkspaceRoot
+        }
+
+        // If I have 'root/a/b/c'
+        //
+        // Then I want to watch:
+        //   root/a/b/c
+        //   root/a/b
+        //   root/a
+        //   root
+        val filterPaths = pathsUnderWorkspaceRoot.flatMap { path =>
+          path.relativeTo(workspaceRoot).segments.inits.map(segments => workspaceRoot / segments)
+        }
+        writeToWatchLog(s"[watched-paths:filtered] ${filterPaths.toSeq.sorted.mkString("\n")}")
+
+        Using.resource(os.watch.watch(
+          // Just watch the root folder
+          Seq(workspaceRoot),
+          filter = path => {
+            val shouldBeWatched =
+              filterPaths.contains(path) || watchedPathsSet.exists(watchedPath =>
+                path.startsWith(watchedPath)
+              )
+            writeToWatchLog(s"[filter] (shouldBeWatched=$shouldBeWatched) $path")
+            shouldBeWatched
+          },
+          onEvent = changedPaths => {
+            // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
+            // same folder
+            val hasWatchedPath =
+              changedPaths.exists(p =>
+                watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath))
+              )
+            writeToWatchLog(
+              s"[changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
+            )
+            if (hasWatchedPath) {
+              pathChangesDetected = true
+            }
+          },
+          logger = (eventType, data) =>
+            writeToWatchLog(s"[watch:event] $eventType: ${pprint.apply(data).plainText}")
+        )) { _ =>
+          doWatch(notifiablesChanged = () => pathChangesDetected)
+        }
+      }
+    }
+
+    if (watchArgs.useNotify) doWatchFsNotify()
+    else doWatchPolling()
   }
 
-  // Returns `true` if enter key is pressed to re-run tasks explicitly
-  def statWatchWait(watched: Seq[Watchable], stdin: InputStream): Boolean = {
+  /**
+   * @param notifiablesChanged returns true if any of the notifiables have changed
+   *
+   * @return `true` if enter key is pressed to re-run tasks explicitly, false if changes in watched files occured.
+   */
+  def statWatchWait(
+      watched: Seq[Watchable],
+      stdin: InputStream,
+      notifiablesChanged: () => Boolean
+  ): Boolean = {
     val buffer = new Array[Byte](4 * 1024)
 
     @tailrec def statWatchWait0(): Boolean = {
-      if (watched.forall(_.validate())) {
+      if (!notifiablesChanged() && watched.forall(_.validate())) {
         if (lookForEnterKey()) {
           true
         } else {
@@ -94,11 +224,13 @@ object Watching {
       if (stdin.available() == 0) false
       else stdin.read(buffer) match {
         case 0 | -1 => false
-        case n =>
+        case bytesRead =>
           buffer.indexOf('\n') match {
             case -1 => lookForEnterKey()
-            case i =>
-              if (i >= n) lookForEnterKey()
+            case index =>
+              // If we found the newline further than the bytes read, that means it's not from this read and thus we
+              // should try reading again.
+              if (index >= bytesRead) lookForEnterKey()
               else true
           }
       }
@@ -106,5 +238,4 @@ object Watching {
 
     statWatchWait0()
   }
-
 }
