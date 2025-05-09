@@ -113,7 +113,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       androidSdkModule().aapt2Path().path,
       "compile",
       "--dir",
-      androidResources()._1.path,
+      androidCompiledResources()._1.path,
       "-o",
       compiledRes.toString
     ).call()
