@@ -1,4 +1,4 @@
-package build.scripts
+package build.dist.scripts
 
 import java.nio.file.attribute.PosixFilePermission
 import java.util.regex.Pattern
