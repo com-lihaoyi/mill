@@ -350,9 +350,13 @@ object MillMain {
                     if (config.watch.value) os.remove(out / OutFiles.millSelectiveExecution)
                     Watching.watchLoop(
                       ringBell = config.ringBell.value,
-                      watch = config.watch.value,
+                      watch = Option.when(config.watch.value)(Watching.WatchArgs(
+                        setIdle = setIdle,
+                        colors,
+                        useNotify = config.watchViaFsNotify,
+                        serverDir = serverDir
+                      )),
                       streams = streams,
-                      setIdle = setIdle,
                       evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
                         adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
                         runMillBootstrap(
@@ -361,8 +365,7 @@ object MillMain {
                           config.leftoverArgs.value,
                           streams
                         )
-                      },
-                      colors = colors
+                      }
                     )
                   }
                 }
