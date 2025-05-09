@@ -115,7 +115,7 @@ public class MillProcessLauncher {
               "yaml-config-" + key, mill.constants.Util.readYamlHeader(buildFile), () -> {
                 Object conf = mill.launcher.ConfigReader.readYaml(buildFile);
                 if (!(conf instanceof Map)) return new String[] {};
-                Map<String, List<String>> conf2 = (Map<String, List<String>>) conf;
+                Map<String, Object> conf2 = (Map<String, Object>) conf;
 
                 if (!conf2.containsKey(key)) return new String[] {};
                 if (conf2.get(key) instanceof List) {
