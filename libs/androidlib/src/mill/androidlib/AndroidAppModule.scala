@@ -237,6 +237,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         }
 
         for (p <- walkStream(dest) if os.isDir(p)) {
+          import java.nio.file.attribute.PosixFilePermission
           val newPerms =
             os.perms(p) + PosixFilePermission.OWNER_READ + PosixFilePermission.OWNER_EXECUTE
 
