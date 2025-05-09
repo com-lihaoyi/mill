@@ -151,7 +151,7 @@ trait AndroidModule extends JavaModule {
     super.localRunClasspath() :+ androidProcessedResources()
 
   /**
-   * Combines module resources with those unpacked from AARs.
+   * Android res folder
    */
   def androidResources: T[Seq[PathRef]] = Task.Sources {
     moduleDir / "src/main/res"
