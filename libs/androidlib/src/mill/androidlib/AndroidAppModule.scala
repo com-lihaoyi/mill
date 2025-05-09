@@ -236,7 +236,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
           }
         }
 
-        for (p <- walk_(dest) if os.isDir(p)) {
+        for (p <- walkStream(dest) if os.isDir(p)) {
           val newPerms =
             os.perms(p) + PosixFilePermission.OWNER_READ + PosixFilePermission.OWNER_EXECUTE
 
