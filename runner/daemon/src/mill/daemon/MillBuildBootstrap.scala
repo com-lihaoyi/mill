@@ -1,6 +1,6 @@
 package mill.daemon
 
-import mill.api.internal.{EvaluatorApi, RootModuleApi, internal}
+import mill.api.internal.{EvaluatorApi, RootModuleApi, internal, PathRefApi}
 import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.{millBuild, millRunnerState}
@@ -191,7 +191,7 @@ class MillBuildBootstrap(
                 .headOption
                 .map(_.runClasspath)
                 .getOrElse(millBootClasspathPathRefs)
-                .map(p => (p.path, p.sig))
+                .map(p => (os.Path(p.javaPath), p.sig))
                 .hashCode(),
               nestedState
                 .frames
@@ -260,15 +260,15 @@ class MillBuildBootstrap(
 
       case (
             Result.Success(Seq(Tuple3(
-              runClasspath: Seq[String],
-              compileClasses: String,
+              runClasspath: Seq[PathRefApi],
+              compileClasses: PathRefApi,
               codeSignatures: Map[String, Int]
             ))),
             evalWatches,
             moduleWatches
           ) =>
         val runClasspathChanged = !prevFrameOpt.exists(
-          _.runClasspath.map(_.sig).sum == runClasspath.map(f => PathRef(os.Path(f)).sig).sum
+          _.runClasspath.map(_.sig).sum == runClasspath.map(_.sig).sum
         )
 
         // handling module watching is a bit weird; we need to know whether
@@ -287,7 +287,7 @@ class MillBuildBootstrap(
           // one, to avoid memory leaks
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
           val cl = mill.util.Jvm.createClassLoader(
-            runClasspath.map(os.Path(_)),
+            runClasspath.map(p => os.Path(p.javaPath)),
             null,
             sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
             sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api")
@@ -303,8 +303,8 @@ class MillBuildBootstrap(
           moduleWatches,
           codeSignatures,
           Some(classLoader),
-          runClasspath.map(f => PathRef(os.Path(f))),
-          Some(PathRef(os.Path(compileClasses))),
+          runClasspath,
+          Some(compileClasses),
           Option(evaluator)
         )
 
