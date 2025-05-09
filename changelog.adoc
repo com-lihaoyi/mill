@@ -47,9 +47,9 @@ object foo extends JavaModule:
 ```
 
 
-* Mill now supports a YAML front-matter syntax in `build.mill` files, defined by line comments
-  starting with `//|` ({link-pr}/4969[#4969]). This replaces the `import $ivy...` syntax
-  and allows external configuration files like `.mill-version`,
+* Mill now supports a YAML front-matter syntax (YAML version 1.2) in your root `build.mill`
+  file, defined by line comments starting with `//|` ({link-pr}/4969[#4969]). This replaces
+  the `import $ivy...` syntax and allows external configuration files like `.mill-version`,
   `.mill-jvm-version`, etc. to be configured together e.g.
 
 ```
@@ -67,7 +67,7 @@ package build
 * The YAML front-matter allows you to configure arbitrary tasks in the meta-build.
   Above we show how to configure the `def repositories` and `def mvnDeps` tasks for the
   meta-build, but other meta-build tasks can be configured as well: `scalaVersion`,
-  `scalacOptions`, etc.
+  `scalacOptions`, etc. using the JSON version of the in-memory data structures.
 
 
 * `ivyDeps` has been renamed to `mvnDeps`, along with all related tasks and methods
@@ -99,14 +99,16 @@ package build
 
 * `os.*` filesystem operations are now restricted by default: 
 
-** Task implementations can only write to their own `.dest` folder, and only read from their own or upstream `.dest` folders
+** During the execution phase, Task implementations can only write
+   to their own `.dest` folder, and only read from their own or upstream `.dest` folders
 
-** Code running during module/task resolution cannot write to disk, and can only perform
-   reads wrapped in `interp.watchValue` blocks
+** During the Resolution phase, code running during module/task instantiation cannot
+   write to disk, and can only perform reads wrapped in `interp.watchValue` blocks
 
 ** These restrictions are best effort guardrails to guide users towards best practices, and
    are not intended to be a fully-hermetic sandbox. You can disable them via
-   `os.checker.withValue(os.Checker.Nop){ ... }`
+   `os.checker.withValue(os.Checker.Nop){ ... }` if you need to do something special and
+   are sure you know what you are doing.
 
 * `build.mill` files are now compiled with a minimized classpath containing only
   the necessary APIs, without all of Mill's internal code on the classpath
@@ -118,11 +120,14 @@ package build
    code Mill provides to integrate language toolchains now has `libs-` in the artifact name,
    e.g. `mill-libs-scalalib`, `mill-libs-kotlinlib`, etc.
 
-** `mill.resolve`, `mill.runner`, `mill.eval`, etc. are no longer on the classpath, along
-   with many third-party libraries. In general, a lot of Mill packages that were previously
+** `mill.resolve`, `mill.runner`, `mill.eval`, etc. are no longer on the classpath.
+   In general, a lot of Mill packages that were previously
    on the classpath by happenstance have been removed, and only the core APIs you really
    need remain exposed under `mill.api`, `mill.define`, `mill.util`, and the various
-   `mill.foolib` packages. You can re-include any missing third party libraries you need
+   `mill.foolib` packages.
+
+** Similarly, many third-party libraries that were on the Mill classpath by happenstance
+   have been removed. You can re-include any missing third party libraries you need
    via the `//| mvnDeps: ` YAML header
 
 ** `mill.api`, `mill.define` and `mill.util` have been re-organized. Many classes have been
@@ -134,13 +139,15 @@ package build
 *** `mill.util` contains code used in `build.mill` that is also used in other parts of Mill.
 
 * Root modules in `build.mill` and `package.mill` files no longer need an explicit `extends RootModule`
-  superclass, as it is now taken care of by Mill automatically ({link-pr}/5008[#5008]) 
+  superclass, as they can be identified unambiguously by the `object package` name, so
+  setting up the appropriate superclass is now taken care of by Mill automatically ({link-pr}/5008[#5008])
 
 ```diff
 -object `package` extends RootModule with JavaModule {
--object `package` extends JavaModule {
++object `package` extends JavaModule {
    ...
  }
+```
 
 * `Jvm.*` methods to spawn subprocesses and classloaders have been consolidated from 20+ helpers
   into 4 main functions ({link-pr}/4456[#4456]): `Jvm.createClassLoader`, `Jvm.withClassLoader`,
