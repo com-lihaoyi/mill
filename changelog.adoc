@@ -155,10 +155,15 @@ package build
   most callsites in a much more consistent fashion than the previous grab-bag of helpers.
 
 * `evaluator: Evaluator` Command parameters are now only available in commands marked
-  `exclusive = true` ({link-pr}/3717[#3717])
+  `exclusive = true` ({link-pr}/3717[#3717]). Furthermore, many previously-scattered
+  evaluation-related APIs have now been consolidated onto the `Evaluator` object:
+  `mill.main.RunScript` is now `Evaluator#evaluate`, `mill.resolve.Resolve.Foo` is now
+  `Evaluator#resolveFoo`, etc..
+
 
 * `Task.Source`, `Task.Sources`, and `Task.Input` are no longer allowed to have upstream
-  tasks ({link-pr}/4524[#4524]). You can generally replace cases like
+  tasks ({link-pr}/4524[#4524]). Most cases where a `Task.Sources` was receiving an upstream
+  task can be replaced by a separate `Task.Sources` and `Task{}`
 
 ```diff
 - def sources = Task.Sources{ super.sources() ++ Seq(PathRef(...)) }
@@ -171,7 +176,8 @@ package build
 * Mill's bootstrap scripts now use the native launcher by the default, except for
   Windows-ARM which is not supported by the Graal tooling we used to build these native
   image. To use the JVM-based launcher, you need to explicitly use a `-jvm` suffix in
-  your `.mill-version` file e.g. `1.0.0-jvm`
+  your `.mill-version` file e.g. `1.0.0-jvm`. We expect this should be mostly transparent
+  and have no visible impact to users.
 
 * Mill's server-client model has been simplified, from having an elastic pool of JVM daemons
   each connected to a single client at a time, to a single shared JVM that handles potentially
@@ -183,7 +189,7 @@ package build
    if e.g. one client is idle in `--watch` while the other client is running a command.
 
 ** This fixes some long-standing bugs, e.g. `mill shutdown` used to only shutdown the first
-   process in the Mill daemon pool and provided no way to shutdown the others, whereas now
+   process in the Mill daemon pool, whereas now
    there is only one process which should get terminated correctly
 
 * Mill's native launcher is able to run on systems without a JVM installed, and will
@@ -201,7 +207,7 @@ object `package` extends Cross[FooModule]("3.6.2", "2.13.16") {
   Custom tasks that need to download remote resources should respect that mode via
   the `Task.offline` API. ({link-pr}/4914[#4914])
 
-* `def testParallelism = true` by default, letting Mill run multiple test classes
+* `def testParallelism` is set to `true` by default, letting Mill run multiple test classes
   in parallel subprocesses even within the same module. Can be disabled by overriding
   `def testParallelism = false` on the test module.
 
