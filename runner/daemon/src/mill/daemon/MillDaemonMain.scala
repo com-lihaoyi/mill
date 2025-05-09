@@ -8,7 +8,7 @@ import sun.misc.{Signal, SignalHandler}
 
 import scala.util.Try
 
-object MillServerMain {
+object MillDaemonMain {
   def main(args0: Array[String]): Unit = mill.define.SystemStreams.withTopLevelSystemStreamProxy {
     // Disable SIGINT interrupt signal in the Mill server.
     //
@@ -27,14 +27,14 @@ object MillServerMain {
     val acceptTimeoutMillis =
       Try(System.getProperty("mill.server_timeout").toInt).getOrElse(30 * 60 * 1000) // 30 minutes
 
-    new MillServerMain(
+    new MillDaemonMain(
       serverDir = os.Path(args0(0)),
       acceptTimeoutMillis = acceptTimeoutMillis,
       Locks.files(args0(0))
     ).run()
   }
 }
-class MillServerMain(
+class MillDaemonMain(
     serverDir: os.Path,
     acceptTimeoutMillis: Int,
     locks: Locks
