@@ -1,32 +1,27 @@
 package mill.util
 
-import mill.api.*
-import os.ProcessOutput
-import java.io.*
-import java.net.URLClassLoader
-import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.Files
-
-import scala.util.Properties.isWin
-
-import os.CommandResult
-import java.util.jar.{JarEntry, JarOutputStream}
-
 import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
-import coursier.core.{BomDependency, Module}
+import coursier.core.{BomDependency, Module, VariantSelector}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
+import coursier.maven.MavenRepositoryLike
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
-import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
-import mill.api.Result
+import mill.api.*
 import mill.define.{PathRef, TaskCtx}
+
+import java.io.BufferedOutputStream
+import java.io.File
+import java.net.URLClassLoader
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.Files
+import java.util.jar.{JarEntry, JarOutputStream}
 import scala.collection.mutable
-import scala.util.Properties.isWin
 import scala.util.chaining.scalaUtilChainingOps
+import scala.util.Properties.isWin
 
 object Jvm {
 
@@ -70,14 +65,14 @@ object Jvm {
       propagateEnv: Boolean = true,
       cwd: os.Path = null,
       stdin: os.ProcessInput = os.Pipe,
-      stdout: ProcessOutput = os.Pipe,
-      stderr: ProcessOutput = os.Inherit,
+      stdout: os.ProcessOutput = os.Pipe,
+      stderr: os.ProcessOutput = os.Inherit,
       mergeErrIntoOut: Boolean = false,
       timeout: Long = -1,
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true,
       check: Boolean = true
-  )(implicit ctx: TaskCtx): CommandResult = {
+  )(implicit ctx: TaskCtx): os.CommandResult = {
     val cp = cpPassingJarPath match {
       case Some(passingJarPath) if classPath.nonEmpty =>
         createClasspathPassingJar(passingJarPath, classPath.toSeq)
@@ -155,8 +150,8 @@ object Jvm {
       propagateEnv: Boolean = true,
       cwd: os.Path = null,
       stdin: os.ProcessInput = os.Pipe,
-      stdout: ProcessOutput = os.Pipe,
-      stderr: ProcessOutput = os.Inherit,
+      stdout: os.ProcessOutput = os.Pipe,
+      stderr: os.ProcessOutput = os.Inherit,
       mergeErrIntoOut: Boolean = false,
       shutdownGracePeriod: Long = 100,
       destroyOnExit: Boolean = true
@@ -226,16 +221,15 @@ object Jvm {
       classPath: Iterable[os.Path],
       parent: ClassLoader = null,
       sharedLoader: ClassLoader = getClass.getClassLoader,
-      sharedPrefixes: Iterable[String] = Seq()
-  ): URLClassLoader =
-    new URLClassLoader(
-      classPath.iterator.map(_.toNIO.toUri.toURL).toArray,
-      refinePlatformParent(parent)
-    ) {
-      override def findClass(name: String): Class[?] =
-        if (sharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
-        else super.findClass(name)
-    }
+      sharedPrefixes: Iterable[String] = Seq(),
+      label: String = null
+  )(implicit e: sourcecode.Enclosing): MillURLClassLoader = new MillURLClassLoader(
+    classPath.map(_.toNIO),
+    parent,
+    sharedLoader,
+    sharedPrefixes,
+    Option(label).getOrElse(e.value)
+  )
 
   /**
    * @param classPath URLs from which to load classes and resources
@@ -248,11 +242,16 @@ object Jvm {
   def withClassLoader[T](
       classPath: Iterable[os.Path],
       parent: ClassLoader = null,
+      sharedLoader: ClassLoader = getClass.getClassLoader,
       sharedPrefixes: Seq[String] = Seq.empty
   )(f: ClassLoader => T): T = {
     val oldClassloader = Thread.currentThread().getContextClassLoader
-    val newClassloader =
-      createClassLoader(classPath = classPath, parent = parent, sharedPrefixes = sharedPrefixes)
+    val newClassloader = createClassLoader(
+      classPath = classPath,
+      parent = parent,
+      sharedLoader = sharedLoader,
+      sharedPrefixes = sharedPrefixes
+    )
     Thread.currentThread().setContextClassLoader(newClassloader)
     try {
       f(newClassloader)
@@ -442,46 +441,6 @@ object Jvm {
     PathRef(outputPath)
   }
 
-  /**
-   * Return `ClassLoader.getPlatformClassLoader` for java 9 and above, if parent class loader is null,
-   * otherwise return same parent class loader.
-   * More details: https://docs.oracle.com/javase/9/migrate/toc.htm#JSMIG-GUID-A868D0B9-026F-4D46-B979-901834343F9E
-   *
-   * `ClassLoader.getPlatformClassLoader` call is implemented via runtime reflection, cause otherwise
-   * mill could be compiled only with jdk 9 or above. We don't want to introduce this restriction now.
-   */
-  private def refinePlatformParent(parent: java.lang.ClassLoader): ClassLoader = {
-    if (parent != null) parent
-    else if (java9OrAbove) {
-      // Make sure when `parent == null`, we only delegate java.* classes
-      // to the parent getPlatformClassLoader. This is necessary because
-      // in Java 9+, somehow the getPlatformClassLoader ends up with all
-      // sorts of other non-java stuff on it's classpath, which is not what
-      // we want for an "isolated" classloader!
-      classOf[ClassLoader]
-        .getMethod("getPlatformClassLoader")
-        .invoke(null)
-        .asInstanceOf[ClassLoader]
-    } else {
-      // With Java 8 we want a clean classloader that still contains classes
-      // coming from com.sun.* etc.
-      // We get the application classloader parent which happens to be of
-      // type sun.misc.Launcher$ExtClassLoader
-      // We can't call the method directly since it would not compile on Java 9+
-      // So we load it via reflection to allow compilation in Java 9+ but only
-      // on Java 8
-      val launcherClass = getClass.getClassLoader().loadClass("sun.misc.Launcher")
-      val getLauncherMethod = launcherClass.getMethod("getLauncher")
-      val launcher = getLauncherMethod.invoke(null)
-      val getClassLoaderMethod = launcher.getClass().getMethod("getClassLoader")
-      val appClassLoader = getClassLoaderMethod.invoke(launcher).asInstanceOf[ClassLoader]
-      appClassLoader.getParent()
-    }
-  }
-
-  private val java9OrAbove: Boolean =
-    !System.getProperty("java.specification.version").startsWith("1.")
-
   private def coursierCache(
       ctx: Option[mill.define.TaskCtx],
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
@@ -505,6 +464,7 @@ object Jvm {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency] = Nil,
+      checkGradleModules: Boolean,
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
@@ -517,6 +477,7 @@ object Jvm {
       repositories,
       deps,
       force,
+      checkGradleModules,
       mapDependencies,
       customizer,
       ctx,
@@ -532,6 +493,10 @@ object Jvm {
         .withClassifiers(
           if (sources) Set(Classifier("sources"))
           else Set.empty
+        )
+        .withAttributes(
+          if (sources) Seq(VariantSelector.AttributesBased.sources)
+          else Nil
         )
         .withArtifactTypesOpt(artifactTypes)
         .eitherResult()
@@ -562,6 +527,7 @@ object Jvm {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
+      checkGradleModules: Boolean,
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
@@ -574,6 +540,7 @@ object Jvm {
       repositories,
       deps,
       force,
+      checkGradleModules,
       sources,
       mapDependencies,
       customizer,
@@ -582,9 +549,11 @@ object Jvm {
       artifactTypes,
       resolutionParams
     ).map { res =>
-      res.files
-        .map(os.Path(_))
-        .map(PathRef(_, quick = true))
+      os.checker.withValue(os.Checker.Nop) {
+        res.files
+          .map(os.Path(_))
+          .map(PathRef(_, quick = true))
+      }
     }
 
   def jvmIndex(
@@ -620,12 +589,30 @@ object Jvm {
       id: String,
       ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      jvmIndexVersion: String = mill.api.BuildInfo.coursierJvmIndexVersion
+      jvmIndexVersion: String = mill.api.BuildInfo.coursierJvmIndexVersion,
+      useShortPaths: Boolean = false
   ): Result[os.Path] = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    val shortPathDirOpt = Option.when(useShortPaths) {
+      if (isWin)
+        // On Windows, prefer to use System.getenv over sys.env (or ctx.env for
+        // now), as the former respects the case-insensitiveness of env vars on
+        // Windows, while the latter doesn't
+        os.Path(System.getenv("UserProfile")) / ".mill/cache/jvm"
+      else {
+        val cacheBase = ctx.map(_.env)
+          .getOrElse(sys.env)
+          .get("XDG_CACHE_HOME")
+          .map(os.Path(_))
+          .getOrElse(os.home / ".cache")
+        cacheBase / "mill/jvm"
+      }
+    }
     val jvmCache = JvmCache()
       .withArchiveCache(
-        ArchiveCache().withCache(coursierCache0)
+        ArchiveCache()
+          .withCache(coursierCache0)
+          .withShortPathDirectory(shortPathDirOpt.map(_.toIO))
       )
       .withIndex(jvmIndex0(ctx, coursierCacheCustomizer, jvmIndexVersion))
     val javaHome = JavaHome()
@@ -642,6 +629,7 @@ object Jvm {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
+      checkGradleModules: Boolean,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.define.TaskCtx] = None,
@@ -665,62 +653,86 @@ object Jvm {
     val resolutionParams0 = resolutionParams
       .addForceVersion(forceVersions.toSeq*)
 
-    val testOverridesRepo =
-      new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
+    val testOverridesClassloaders = System.getenv("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH") match {
+      case null => Nil
+      case cp =>
+        cp.split(';').map { s => createClassLoader(Array(os.Path(s))) }.toList
+    }
 
-    val resolve = Resolve()
-      .withCache(coursierCache0)
-      .withDependencies(rootDeps)
-      .withRepositories(testOverridesRepo +: repositories)
-      .withResolutionParams(resolutionParams0)
-      .withMapDependenciesOpt(mapDependencies)
-      .withBoms(boms.iterator.toSeq)
+    try {
+      val envTestOverridesRepo = testOverridesClassloaders.map(cl =>
+        new TestOverridesRepo(os.resource(cl) / "mill/local-test-overrides")
+      )
 
-    resolve.either() match {
-      case Left(error) =>
-        val cantDownloadErrors = error.errors.collect {
-          case cantDownload: CantDownloadModule => cantDownload
-        }
-        if (error.errors.length == cantDownloadErrors.length) {
-          val extraHeader =
-            if (offlineMode)
-              """
-                |*** Mill is in offline mode (--offline) ***
-                |It can not download new dependencies from remote repositories.
-                |You may need to run Mill without the `--offline` option at least once
-                |to download required remote dependencies.
-                |Run `mill __.prepareOffline` to fetch most remote resources at once.
-                |
-                |""".stripMargin
-            else ""
+      val resourceTestOverridesRepo =
+        new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
 
-          val header =
-            s"""|
-                |${extraHeader}Resolution failed for ${cantDownloadErrors.length} modules:
-                |--------------------------------------------
-                |""".stripMargin
+      val repositories0 =
+        if (checkGradleModules)
+          repositories.map {
+            case m: MavenRepositoryLike.WithModuleSupport =>
+              m.withCheckModule(true)
+            case other => other
+          }
+        else
+          repositories
 
-          val helpMessage =
-            s"""|
-                |--------------------------------------------
-                |
-                |For additional information on library dependencies, see the docs at
-                |${mill.api.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
+      val resolve = Resolve()
+        .withCache(coursierCache0)
+        .withDependencies(rootDeps)
+        .withRepositories(Seq(resourceTestOverridesRepo) ++ envTestOverridesRepo ++ repositories0)
+        .withResolutionParams(resolutionParams0)
+        .withMapDependenciesOpt(mapDependencies)
+        .withBoms(boms.iterator.toSeq)
 
-          val errLines = cantDownloadErrors
-            .map { err =>
-              s"  ${err.module.trim}:${err.versionConstraint.asString} \n\t" +
-                err.perRepositoryErrors.mkString("\n\t")
-            }
-            .mkString("\n")
-          val msg = header + errLines + "\n" + helpMessage + "\n"
-          Result.Failure(msg)
-        } else {
-          throw error
-        }
-      case Right(resolution0) =>
-        val resolution = customizer.fold(resolution0)(_.apply(resolution0))
-        Result.Success(resolution)
+      resolve.either() match {
+        case Left(error) =>
+          val cantDownloadErrors = error.errors.collect {
+            case cantDownload: CantDownloadModule => cantDownload
+          }
+          if (error.errors.length == cantDownloadErrors.length) {
+            val extraHeader =
+              if (offlineMode)
+                """
+                  |*** Mill is in offline mode (--offline) ***
+                  |It can not download new dependencies from remote repositories.
+                  |You may need to run Mill without the `--offline` option at least once
+                  |to download required remote dependencies.
+                  |Run `mill __.prepareOffline` to fetch most remote resources at once.
+                  |
+                  |""".stripMargin
+              else ""
+
+            val header =
+              s"""|
+                  |${extraHeader}Resolution failed for ${cantDownloadErrors.length} modules:
+                  |--------------------------------------------
+                  |""".stripMargin
+
+            val helpMessage =
+              s"""|
+                  |--------------------------------------------
+                  |
+                  |For additional information on library dependencies, see the docs at
+                  |${mill.api.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
+
+            val errLines = cantDownloadErrors
+              .map { err =>
+                s"  ${err.module.trim}:${err.versionConstraint.asString} \n\t" +
+                  err.perRepositoryErrors.mkString("\n\t")
+              }
+              .mkString("\n")
+            val msg = header + errLines + "\n" + helpMessage + "\n"
+            Result.Failure(msg)
+          } else {
+            throw error
+          }
+        case Right(resolution0) =>
+          val resolution = customizer.fold(resolution0)(_.apply(resolution0))
+          Result.Success(resolution)
+      }
+    } finally {
+      testOverridesClassloaders.foreach(_.close())
     }
   }
 

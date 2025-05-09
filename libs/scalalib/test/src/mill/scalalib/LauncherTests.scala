@@ -22,35 +22,36 @@ object LauncherTests extends TestSuite {
 
   def tests: Tests = Tests {
     def check(executableTask: mill.define.Target[PathRef], copyBat: Boolean = false) = {
-      val eval = UnitTester(HelloJava, resourcePath)
+      UnitTester(HelloJava, resourcePath).scoped { eval =>
 
-      val Right(result1) = eval.apply(executableTask): @unchecked
+        val Right(result1) = eval.apply(executableTask): @unchecked
 
-      val executable =
-        if (mill.constants.Util.isWindows && copyBat) {
-          val prev = result1.value.path
-          val next = prev / ".." / s"${prev.baseName}.bat"
-          os.copy(prev, next)
-          next
-        } else result1.value.path
+        val executable =
+          if (mill.constants.Util.isWindows && copyBat) {
+            val prev = result1.value.path
+            val next = prev / ".." / s"${prev.baseName}.bat"
+            os.copy(prev, next)
+            next
+          } else result1.value.path
 
-      val text = os.call(executable).out.text()
-      assert(text.contains("test.property null"))
-      assert(text.contains("java.home"))
-      assert(!text.contains(customJavaVersion))
+        val text = os.call(executable).out.text()
+        assert(text.contains("test.property null"))
+        assert(text.contains("java.home"))
+        assert(!text.contains(customJavaVersion))
 
-      val text2 = os
-        .call(executable, env = Map("JAVA_OPTS" -> "-Dtest.property=123"))
-        .out.text()
-      assert(text2.contains("test.property 123"))
-      assert(!text2.contains(customJavaVersion))
-      val Right(javaHome) = eval.apply(HelloJava.JvmWorkerJava.javaHome): @unchecked
+        val text2 = os
+          .call(executable, env = Map("JAVA_OPTS" -> "-Dtest.property=123"))
+          .out.text()
+        assert(text2.contains("test.property 123"))
+        assert(!text2.contains(customJavaVersion))
+        val Right(javaHome) = eval.apply(HelloJava.JvmWorkerJava.javaHome): @unchecked
 
-      val text3 = os
-        .call(executable, env = Map("JAVA_HOME" -> javaHome.value.get.path.toString))
-        .out.text()
-      assert(text3.contains("java.home"))
-      assert(text3.contains(customJavaVersion))
+        val text3 = os
+          .call(executable, env = Map("JAVA_HOME" -> javaHome.value.get.path.toString))
+          .out.text()
+        assert(text3.contains("java.home"))
+        assert(text3.contains(customJavaVersion))
+      }
     }
 
     test("launcher") - check(HelloJava.launcher)

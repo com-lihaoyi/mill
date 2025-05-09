@@ -21,14 +21,14 @@ digraph G {
   subgraph cluster_client {
       label = "mill client";
       "Socket"
-      "MillClientMain"
+      "MillLauncherMain"
   }
   "client-stdin" -> "Socket"
   "client-stderr" -> "Socket" [dir=back]
   "client-stdout" -> "Socket" [dir=back]
-  "client-args" -> "MillClientMain"
-  "client-exit" -> "MillClientMain" [dir=back]
-  "MillClientMain" -> "runArgs"
+  "client-args" -> "MillLauncherMain"
+  "client-exit" -> "MillLauncherMain" [dir=back]
+  "MillLauncherMain" -> "runArgs"
   subgraph cluster_out {
     label = "out/";
 
@@ -53,7 +53,7 @@ digraph G {
   subgraph cluster_server {
     label = "mill server";
     "PromptLogger"
-    "MillServerMain"
+    "MillDaemonMain"
     "Evaluator"
     "ServerSocket"
 
@@ -78,11 +78,11 @@ digraph G {
   }
 
 
-  "runArgs" -> "MillServerMain"
-  "MillServerMain" -> "Evaluator" [dir=both]
+  "runArgs" -> "MillDaemonMain"
+  "MillDaemonMain" -> "Evaluator" [dir=both]
   "ServerSocket" -> "PromptLogger" [dir=back]
-  "exitCode" -> "MillServerMain" [dir=back]
-  "MillClientMain" -> "exitCode" [dir=back]
+  "exitCode" -> "MillDaemonMain" [dir=back]
+  "MillLauncherMain" -> "exitCode" [dir=back]
   "Socket" -> "socketPort"  [dir=both]
   "socketPort" -> "ServerSocket"  [dir=both]
 

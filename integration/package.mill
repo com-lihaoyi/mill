@@ -13,8 +13,9 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
 import mill.testrunner.TestResult
+import millbuild.*
 
-object `package` extends RootModule {
+object `package` extends mill.Module {
   // We compile the test code once and then offer multiple modes to
   // test it in the `test` CrossModule. We pass `test`'s sources to `lib` to
   // and pass `lib`'s compile output back to `test`.
@@ -22,20 +23,20 @@ object `package` extends RootModule {
   trait IntegrationTestModule extends Cross.Module[String] {
     def moduleDir = super.moduleDir / crossValue
 
-    def moduleDeps = Seq(build.libs.main.test, build.testkit, build.runner)
+    def moduleDeps = Seq(build.libs.main.test, build.testkit, build.runner.daemon)
 
     def resources: T[Seq[PathRef]]
     def runClasspath: T[Seq[PathRef]]
     def localRunClasspath: T[Seq[PathRef]]
     def forkEnv: T[Map[String, String]]
     def testExclusive = false
-    trait ModeModule extends build.MillBaseTestsModule {
+    trait ModeModule extends MillBaseTestsModule {
       override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
         testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
       }
 
       def mode: String = moduleSegments.parts.last
-      def scalaVersion = build.Deps.scalaVersion
+      def scalaVersion = Deps.scalaVersion
 
       def forkEnv =
         super.forkEnv() ++
@@ -101,17 +102,17 @@ object `package` extends RootModule {
       extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "bootstrap"))
   object migrating
       extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "migrating"))
-  trait IntegrationCrossModule extends build.MillScalaModule with IntegrationTestModule {
+  trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkEnv = super.forkEnv() ++ Seq(
       "MILL_PROJECT_ROOT" -> Task.workspace.toString,
-      "TEST_SCALA_2_13_VERSION" -> build.Deps.testScala213Version,
-      "TEST_KOTLIN_VERSION" -> build.Deps.kotlinCompiler.version
+      "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
+      "TEST_KOTLIN_VERSION" -> Deps.kotlinCompiler.version
     )
   }
   trait IdeIntegrationCrossModule extends IntegrationCrossModule {
-    def mvnDeps = super.mvnDeps() ++ Agg(
-      build.Deps.bsp4j
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      Deps.bsp4j
     )
   }
 

@@ -2,21 +2,22 @@ package build.core.util
 import mill._
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib._
+import millbuild.*
 
 /**
  * Utility code that is used in both `mill-runner` and `build.mill`, but cannot
  * be part of the interface between the two classloader environments to ensure
  * isolation between them
  */
-object `package` extends RootModule with build.MillStableScalaModule with BuildInfo {
+object `package` extends MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.core.api, build.core.constants, build.core.define)
 
-  def mvnDeps = Agg(
-    build.Deps.coursier,
-    build.Deps.coursierJvm,
-    build.Deps.jline,
-    build.Deps.mainargs,
-    build.Deps.requests
+  def mvnDeps = Seq(
+    Deps.coursier,
+    Deps.coursierJvm,
+    Deps.jline,
+    Deps.mainargs,
+    Deps.requests
   )
 
   def buildInfoPackageName = "mill.util"
@@ -28,23 +29,16 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
   def buildInfoMembers = Seq(
     BuildInfo.Value(
       "workerScalaVersion212",
-      build.Deps.workerScalaVersion212,
+      Deps.workerScalaVersion212,
       "Scala 2.12 version used by some workers."
     ),
     BuildInfo.Value(
       "workerScalaVersion213",
-      build.Deps.scala2Version,
+      Deps.scala2Version,
       "Scala 2.13 version used by some workers."
     ),
     BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
-    BuildInfo.Value(
-      "millDistModule", {
-        val selfDep = build.dist.publishSelfDependency()
-        s"${selfDep.group}:${selfDep.id}"
-      },
-      "Coordinates of the module pulling the whole of Mill"
-    ),
     BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version."),
     BuildInfo.Value(
       "millAllDistDependencies", {
@@ -75,7 +69,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     ),
     BuildInfo.Value(
       "millScalacPluginDeps",
-      build.Deps.millModuledefsString,
+      Deps.millModuledefsString,
       "Scalac compiler plugin dependencies to compile the build script."
     )
   )

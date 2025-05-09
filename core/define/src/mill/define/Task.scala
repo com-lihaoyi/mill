@@ -1,13 +1,13 @@
 package mill.define
 
-import mill.define.PathRef
-import mill.api.internal.{TaskApi, NamedTaskApi}
-import mill.api.{Logger, Result}
-import mill.api.internal.{CompileProblemReporter, TestReporter}
+import mill.api.Logger
+import mill.api.Result
+import mill.api.internal.CompileProblemReporter
+import mill.api.internal.{NamedTaskApi, TaskApi, TestReporter}
 import mill.define.internal.Applicative.Applyable
-import mill.define.internal.Cacher
-import upickle.default.{ReadWriter as RW, Writer as W}
-import mill.define.internal.{Applicative, NamedParameterOnlyDummy}
+import mill.define.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
+import upickle.default.ReadWriter
+import upickle.default.Writer
 
 import scala.language.implicitConversions
 import scala.quoted.*
@@ -109,8 +109,8 @@ object Task extends TaskBase {
    * used for detecting changes to source files.
    */
   inline def Input[T](inline value: Result[T])(implicit
-      inline w: upickle.default.Writer[T],
-      inline ctx: mill.define.ModuleCtx
+      inline w: Writer[T],
+      inline ctx: ModuleCtx
   ): Target[T] =
     ${ TaskMacros.inputImpl[T]('value)('w, 'ctx) }
 
@@ -122,8 +122,8 @@ object Task extends TaskBase {
    * arguments, as long as an implicit [[mainargs.TokensReader]] is available.
    */
   inline def Command[T](inline t: Result[T])(implicit
-      inline w: W[T],
-      inline ctx: mill.define.ModuleCtx
+      inline w: Writer[T],
+      inline ctx: ModuleCtx
   ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }) }
 
   /**
@@ -140,8 +140,8 @@ object Task extends TaskBase {
   ): CommandFactory = new CommandFactory(exclusive)
   class CommandFactory private[mill] (val exclusive: Boolean) {
     inline def apply[T](inline t: Result[T])(implicit
-        inline w: W[T],
-        inline ctx: mill.define.ModuleCtx
+        inline w: Writer[T],
+        inline ctx: ModuleCtx
     ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }) }
   }
 
@@ -149,7 +149,7 @@ object Task extends TaskBase {
    * [[Worker]] is a [[NamedTask]] that lives entirely in-memory, defined using
    * `Task.Worker{...}`. The value returned by `Task.Worker{...}` is long-lived,
    * persisting as long as the Mill process is kept alive (e.g. via `--watch`,
-   * or via its default `MillServerMain` server process). This allows the user to
+   * or via its default `MillDaemonMain` server process). This allows the user to
    * perform in-memory caching that is even more aggressive than the disk-based
    * caching enabled by [[PersistentImpl]]: your [[Worker]] can cache running
    * sub-processes, JVM Classloaders with JITed code, and all sorts of things
@@ -172,7 +172,7 @@ object Task extends TaskBase {
     ${ TaskMacros.anonTaskImpl[T]('t) }
 
   inline def apply[T](inline t: Result[T])(implicit
-      inline rw: RW[T],
+      inline rw: ReadWriter[T],
       inline ctx: mill.define.ModuleCtx
   ): Target[T] =
     ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
@@ -196,8 +196,8 @@ object Task extends TaskBase {
   ): ApplyFactory = new ApplyFactory(persistent)
   class ApplyFactory private[mill] (val persistent: Boolean) {
     inline def apply[T](inline t: Result[T])(implicit
-        inline rw: RW[T],
-        inline ctx: mill.define.ModuleCtx
+        inline rw: ReadWriter[T],
+        inline ctx: ModuleCtx
     ): Target[T] = ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
@@ -271,14 +271,14 @@ object Target extends TaskBase {
    * return value to disk, only re-computing if upstream [[Task]]s change
    */
   implicit inline def apply[T](inline t: T)(implicit
-      inline rw: RW[T],
-      inline ctx: mill.define.ModuleCtx
+      inline rw: ReadWriter[T],
+      inline ctx: ModuleCtx
   ): Target[T] =
     ${ TaskMacros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
   implicit inline def apply[T](inline t: Result[T])(implicit
-      inline rw: RW[T],
-      inline ctx: mill.define.ModuleCtx
+      inline rw: ReadWriter[T],
+      inline ctx: ModuleCtx
   ): Target[T] =
     ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
@@ -383,27 +383,27 @@ class TargetImpl[+T](
     val inputs: Seq[Task[Any]],
     val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
     val ctx0: mill.define.ModuleCtx,
-    val readWriter: RW[?],
+    val readWriter: ReadWriter[?],
     val isPrivate: Option[Boolean],
     override val persistent: Boolean
 ) extends Target[T] {
   override def asTarget: Option[Target[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
-  override def readWriterOpt: Some[RW[?]] = Some(readWriter)
+  override def readWriterOpt: Some[ReadWriter[?]] = Some(readWriter)
 }
 
 class Command[+T](
     val inputs: Seq[Task[Any]],
     val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
     val ctx0: mill.define.ModuleCtx,
-    val writer: W[?],
+    val writer: Writer[?],
     val isPrivate: Option[Boolean],
     val exclusive: Boolean
 ) extends NamedTask[T] {
 
   override def asCommand: Some[Command[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
-  override def writerOpt: Some[W[?]] = Some(writer)
+  override def writerOpt: Some[Writer[?]] = Some(writer)
 }
 
 class Worker[+T](
@@ -425,7 +425,7 @@ class InputImpl[T](
   val inputs = Nil
   override def sideHash: Int = util.Random.nextInt()
   // FIXME: deprecated return type: Change to Option
-  override def writerOpt: Some[W[?]] = Some(writer)
+  override def writerOpt: Some[Writer[?]] = Some(writer)
 }
 
 class SourcesImpl(
@@ -483,7 +483,7 @@ private object TaskMacros {
   def targetResultImpl[T: Type](using
       Quotes
   )(t: Expr[Result[T]])(
-      rw: Expr[RW[T]],
+      rw: Expr[ReadWriter[T]],
       ctx: Expr[mill.define.ModuleCtx],
       persistent: Expr[Boolean]
   ): Expr[Target[T]] = {
@@ -543,7 +543,7 @@ private object TaskMacros {
   def commandImpl[T: Type](using
       Quotes
   )(t: Expr[Result[T]])(
-      w: Expr[W[T]],
+      w: Expr[Writer[T]],
       ctx: Expr[mill.define.ModuleCtx],
       exclusive: Expr[Boolean]
   ): Expr[Command[T]] = {

@@ -5,7 +5,7 @@ import mill._
 import mill.define.{PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.javalib.JavaModule
-import mill.kotlinlib.DepSyntax
+import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.util.Tasks
 import mill.util.Jvm
 
@@ -32,16 +32,17 @@ trait KtlintModule extends JavaModule {
    */
   def ktlintClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Seq(mvn"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
+      Seq(mvn"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}"),
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
   }
+
+  def ktlintConfig0 = Task.Source(Task.workspace / ".editorconfig")
 
   /**
    * Ktlint configuration file.
    */
-  def ktlintConfig: T[Option[PathRef]] = Task {
-    Some(PathRef(Task.workspace / ".editorconfig"))
-  }
+  def ktlintConfig: T[Option[PathRef]] = Task { Some(ktlintConfig0()) }
 
   /**
    * Ktlint version.

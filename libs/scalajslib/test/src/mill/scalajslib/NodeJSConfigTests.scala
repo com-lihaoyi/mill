@@ -3,7 +3,7 @@ package mill.scalajslib
 import mill._
 import mill.define.Discover
 import mill.define.ExecutionPaths
-import mill.scalalib.{DepSyntax, ScalaModule, TestModule}
+import mill.scalalib.{ScalaModule, TestModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest._
@@ -57,19 +57,17 @@ object NodeJSConfigTests extends TestSuite {
 
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-js-world"
 
-  val helloWorldEvaluator = UnitTester(HelloJSWorld, millSourcePath)
-
-  val mainObject = helloWorldEvaluator.outPath / "src/Main.scala"
-
   def tests: Tests = Tests {
     def checkLog(command: define.Command[?], nodeArgs: List[String], notNodeArgs: List[String]) = {
-      helloWorldEvaluator(command)
-      val paths = ExecutionPaths.resolve(helloWorldEvaluator.outPath, command)
-      val log = os.read(paths.log)
-      assert(
-        nodeArgs.forall(log.contains),
-        notNodeArgs.forall(!log.contains(_))
-      )
+      UnitTester(HelloJSWorld, millSourcePath).scoped { helloWorldEvaluator =>
+        helloWorldEvaluator(command)
+        val paths = ExecutionPaths.resolve(helloWorldEvaluator.outPath, command)
+        val log = os.read(paths.log)
+        assert(
+          nodeArgs.forall(log.contains),
+          notNodeArgs.forall(!log.contains(_))
+        )
+      }
     }
 
     test("test") - {

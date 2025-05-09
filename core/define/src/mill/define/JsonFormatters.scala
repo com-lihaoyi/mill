@@ -1,19 +1,10 @@
 package mill.define
 
-import mill.define.JsonFormatters
 import os.Path
 import upickle.default.ReadWriter as RW
 
 import scala.reflect.ClassTag
 import scala.util.matching.Regex
-
-object JsonFormatters extends JsonFormatters {
-  private object PathTokensReader0 extends mainargs.TokensReader.Simple[os.Path] {
-    def shortName = "path"
-    def read(strs: Seq[String]): Either[String, Path] =
-      Right(os.Path(strs.last, WorkspaceRoot.workspaceRoot))
-  }
-}
 
 /**
  * Defines various default JSON formatters used in mill.
@@ -36,6 +27,9 @@ trait JsonFormatters {
       _.toString,
       os.Path(_)
     )
+
+  implicit val relPathRW: RW[os.RelPath] = upickle.default.readwriter[String]
+    .bimap[os.RelPath](_.toString, os.RelPath(_))
 
   implicit val regexReadWrite: RW[Regex] = upickle.default.readwriter[String]
     .bimap[Regex](
@@ -79,4 +73,12 @@ trait JsonFormatters {
           .newInstance(s)
           .asInstanceOf[T]
     )
+}
+
+object JsonFormatters extends JsonFormatters {
+  private object PathTokensReader0 extends mainargs.TokensReader.Simple[os.Path] {
+    def shortName = "path"
+    def read(strs: Seq[String]): Either[String, Path] =
+      Right(os.Path(strs.last, WorkspaceRoot.workspaceRoot))
+  }
 }

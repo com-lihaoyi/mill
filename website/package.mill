@@ -1,13 +1,15 @@
 package build.website
+
 import org.jsoup._
 import mill.util.{Jvm, Version}
 import mill._
 import scalalib._
 //import de.tobiasroeser.mill.vcs.version.VcsVersion
 import scala.jdk.CollectionConverters._
+import millbuild.*
 
 /** Generates the mill documentation with Antora. */
-object `package` extends RootModule {
+object `package` extends mill.Module {
   // This module isn't really a ScalaModule, but we use it to generate
   // consolidated documentation using the Scaladoc tool.
   object site extends UnidocModule {
@@ -26,14 +28,14 @@ object `package` extends RootModule {
         // package object in the Mill scaladoc.
         !ref.path.lastOpt.exists(_.startsWith("dependency_2.13-"))
       }
-    def scalaVersion = build.Deps.scalaVersion
+    def scalaVersion = Deps.scalaVersion
     def moduleDeps = build.moduleInternal.modules.collect {
-      case m: build.MillStableScalaModule => m
+      case m: MillStableScalaModule => m
       case m: JavaModule if m eq build.libs.kotlinlib => m
     }
     def unidocSourceUrl = Task {
       val sha = "main" // VcsVersion.vcsState().currentRevision
-      Some(s"${build.Settings.projectUrl}/blob/$sha")
+      Some(s"${Settings.projectUrl}/blob/$sha")
     }
   }
 
@@ -115,7 +117,7 @@ object `package` extends RootModule {
     PathRef(Task.dest)
   }
 
-  def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Agg[os.Path])(implicit
+  def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Seq[os.Path])(implicit
       ctx: mill.define.TaskCtx
   ) = {
 
@@ -226,7 +228,7 @@ object `package` extends RootModule {
 
     val newLines = Seq(
       s"    mill-download-url: $millDownloadUrl",
-      s"    mill-example-url: ${build.Settings.projectUrl}/blob/$millVersion"
+      s"    mill-example-url: ${Settings.projectUrl}/blob/$millVersion"
     )
 
     os.write.over(dest / "antora.yml", (lines ++ newLines).mkString("\n"))
@@ -250,16 +252,16 @@ object `package` extends RootModule {
     }
     s"""site:
        |  title: The Mill Build Tool
-       |  url: ${if (authorMode) s"${Task.dest}/site" else build.Settings.docUrl}
+       |  url: ${if (authorMode) s"${Task.dest}/site" else Settings.docUrl}
        |  start_page: mill::index.adoc
        |  keys:
        |    google_analytics: 'G-1C582ZJR85'
        |
        |content:
        |  sources:
-       |    - url: ${if (authorMode) Task.workspace else build.Settings.projectUrl}
+       |    - url: ${if (authorMode) Task.workspace else Settings.projectUrl}
        |      branches: []
-       |      tags: ${build.Settings.legacyDocTags.filter(_ => !authorMode).map(
+       |      tags: ${Settings.legacyDocTags.filter(_ => !authorMode).map(
         "'" + _ + "'"
       ).mkString("[", ",", "]")}
        |      edit_url: false
@@ -280,11 +282,11 @@ object `package` extends RootModule {
        |
        |asciidoc:
        |  attributes:
-       |    mill-github-url: ${build.Settings.projectUrl}
-       |    mill-doc-url: ${if (authorMode) s"file://${Task.dest}/site" else build.Settings.docUrl}
+       |    mill-github-url: ${Settings.projectUrl}
+       |    mill-doc-url: ${if (authorMode) s"file://${Task.dest}/site" else Settings.docUrl}
        |    utest-github-url: https://github.com/com-lihaoyi/utest
        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
-       |    mill-scip-version: ${build.Deps.DocDeps.millScip.version}
+       |    mill-scip-version: ${Deps.DocDeps.millScip.version}
        |antora:
        |  extensions:
        |  - require: '@antora/lunr-extension'
@@ -299,11 +301,11 @@ object `package` extends RootModule {
 
   def oldDocSources: T[Seq[PathRef]] = Task {
     val versionLabels =
-      build.Settings.docTags.map { v =>
+      Settings.docTags.map { v =>
         (v, v.split('.').dropRight(1).mkString(".") + ".x")
       }.dropRight(1) ++
         // Set the latest stable branch as the "master" docs that people default to
-        Seq((build.Settings.docTags.last, "master"))
+        Seq((Settings.docTags.last, "master"))
 
     for ((millVersion, antoraVersion) <- versionLabels) yield {
       val checkout = Task.dest / millVersion
@@ -322,7 +324,7 @@ object `package` extends RootModule {
       )
 
       val millDownloadUrl =
-        if (useOldDownloadUrl) s"${build.Settings.projectUrl}/releases/download/$millVersion"
+        if (useOldDownloadUrl) s"${Settings.projectUrl}/releases/download/$millVersion"
         else s"${build.millDownloadPrefix()}/$millVersion"
 
       sanitizeAntoraYml(outputFolder, antoraVersion, millVersion, millVersion, millDownloadUrl)

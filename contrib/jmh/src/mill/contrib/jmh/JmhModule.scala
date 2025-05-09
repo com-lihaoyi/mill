@@ -8,9 +8,10 @@ import mill.util.Jvm
  *
  * Example configuration:
  * {{{
+ * //| mvnDeps: ["com.lihaoyi::mill-contrib-jmh:$MILL_VERSION"]
+ *
  * import mill._, scalalib._
  *
- * import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
  * import contrib.jmh.JmhModule
  *
  * object foo extends ScalaModule with JmhModule {
@@ -41,7 +42,7 @@ trait JmhModule extends JavaModule {
       Jvm.callProcess(
         mainClass = "org.openjdk.jmh.Main",
         classPath = (runClasspath() ++ generatorDeps()).map(_.path) ++
-          Seq(compileGeneratedSources().path, resources),
+          Seq(compileGeneratedSources().path, resources.path),
         mainArgs = args,
         cwd = Task.ctx().dest,
         javaHome = jvmWorker().javaHome().map(_.path),
@@ -57,7 +58,7 @@ trait JmhModule extends JavaModule {
     Task {
       val dest = Task.ctx().dest
       val (sourcesDir, _) = generateBenchmarkSources()
-      val sources = os.walk(sourcesDir).filter(os.isFile)
+      val sources = os.walk(sourcesDir.path).filter(os.isFile)
 
       os.proc(
         Jvm.jdkTool("javac"),
@@ -100,7 +101,7 @@ trait JmhModule extends JavaModule {
         stdout = os.Inherit
       )
 
-      (sourcesDir, resourcesDir)
+      (PathRef(sourcesDir), PathRef(resourcesDir))
     }
 
   def generatorDeps = Task {

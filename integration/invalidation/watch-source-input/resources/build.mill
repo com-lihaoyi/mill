@@ -43,8 +43,9 @@ def writeCompletionMarker(name: String) = {
 }
 
 writeCompletionMarker("initialized")
-
-if (os.read(moduleDir / "watchValue.txt").contains("exit")) {
-  Thread.sleep(1000)
-  System.exit(0)
+os.checker.withValue(os.Checker.Nop) {
+  if (os.read(moduleDir / "watchValue.txt").contains("exit")) {
+    Thread.sleep(1000)
+    System.exit(0)
+  }
 }

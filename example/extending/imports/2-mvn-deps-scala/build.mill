@@ -1,9 +1,10 @@
+//| mvnDeps: ["com.lihaoyi::scalatags:0.13.1"]
+
 // `//| mvnDeps:` can also be used with Scala libraries. The following example
 // replaces `org.thymeleaf:thymeleaf:3.1.1.RELEASE` above with `com.lihaoyi::scalatags:0.12.0`,
 // a HTML generation library that does the string concatenation/construction internally
 // and also escapes the input strings on your behalf:
 
-//| mvnDeps: ["com.lihaoyi::scalatags:0.13.1"]
 import mill._, scalalib._
 import scalatags.Text.all._
 

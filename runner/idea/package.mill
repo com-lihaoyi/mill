@@ -1,0 +1,8 @@
+package build.runner.idea
+
+import mill.*
+import millbuild.*
+
+object `package` extends MillPublishScalaModule {
+  def moduleDeps = Seq(build.core.util)
+}

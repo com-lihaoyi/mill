@@ -5,12 +5,12 @@ import mill.bsp.BuildInfo
 import mill.api.internal.{BspServerHandle, BspServerResult, EvaluatorApi}
 import mill.bsp.Constants
 import mill.api.{Result, SystemStreams}
+import mill.client.lock.Lock
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
-import java.io.{PrintStream, PrintWriter}
+import java.io.PrintWriter
 import java.util.concurrent.Executors
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, CancellationException, ExecutionContext, Promise}
+import scala.concurrent.{CancellationException, ExecutionContext}
 
 object BspWorkerImpl {
 
@@ -18,14 +18,15 @@ object BspWorkerImpl {
       topLevelBuildRoot: os.Path,
       streams: SystemStreams,
       logDir: os.Path,
-      canReload: Boolean
+      canReload: Boolean,
+      outLock: Lock
   ): mill.api.Result[BspServerHandle] = {
 
     try {
       val executor = Executors.newCachedThreadPool()
       implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(executor)
-      lazy val millServer: MillBuildServer with MillJvmBuildServer with MillJavaBuildServer
-        with MillScalaBuildServer =
+      lazy val millServer
+          : MillBuildServer & MillJvmBuildServer & MillJavaBuildServer & MillScalaBuildServer =
         new MillBuildServer(
           topLevelProjectRoot = topLevelBuildRoot,
           bspVersion = Constants.bspProtocolVersion,
@@ -34,7 +35,8 @@ object BspWorkerImpl {
           logStream = streams.err,
           canReload = canReload,
           debugMessages = Option(System.getenv("MILL_BSP_DEBUG")).contains("true"),
-          onShutdown = () => listening.cancel(true)
+          onShutdown = () => listening.cancel(true),
+          outLock = outLock
         ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
 
       lazy val launcher = new Launcher.Builder[BuildClient]()

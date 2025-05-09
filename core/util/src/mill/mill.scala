@@ -8,7 +8,9 @@ package object mill extends mill.define.JsonFormatters with mill.util.TokenReade
   type Module = define.Module
   type Cross[T <: Cross.Module[?]] = define.Cross[T]
   val Cross = define.Cross
+  @deprecated("Use Seq[T] instead", "Mill 0.13.0-M1")
   type Agg[T] = Seq[T]
+  @deprecated("Use Seq instead", "Mill 0.13.0-M1")
   val Agg = Seq
 
   type Args = define.Args

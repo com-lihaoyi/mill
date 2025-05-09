@@ -1,14 +1,12 @@
 package mill.eval
 
 import mill.api.*
-import mill.api.internal.{ExecutionResultsApi, TestReporter, CompileProblemReporter}
-import mill.define.PathRef
+import mill.api.internal.{CompileProblemReporter, ExecutionResultsApi, TestReporter}
 import mill.constants.OutFiles
-import mill.define.*
+import mill.constants.OutFiles.*
+import mill.define.{PathRef, *}
+import mill.define.internal.{ResolveChecker, TopoSorted, Watchable}
 import mill.exec.{Execution, PlanImpl}
-import mill.define.internal.{ResolveChecker, Watchable}
-import OutFiles.*
-import mill.define.internal.TopoSorted
 import mill.resolve.Resolve
 
 /**
@@ -54,7 +52,7 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Segments]] = {
-    os.checker.withValue(ResolveChecker) {
+    os.checker.withValue(ResolveChecker(workspace)) {
       Resolve.Segments.resolve(
         rootModule,
         scriptArgs,
@@ -75,8 +73,8 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[NamedTask[?]]] = {
-    os.checker.withValue(ResolveChecker) {
-      Evaluator.currentEvaluator0.withValue(this) {
+    os.checker.withValue(ResolveChecker(workspace)) {
+      Evaluator.withCurrentEvaluator(this) {
         Resolve.Tasks.resolve(
           rootModule,
           scriptArgs,
@@ -93,8 +91,8 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Either[Module, NamedTask[?]]]] = {
-    os.checker.withValue(ResolveChecker) {
-      Evaluator.currentEvaluator0.withValue(this) {
+    os.checker.withValue(ResolveChecker(workspace)) {
+      Evaluator.withCurrentEvaluator(this) {
         Resolve.Inspect.resolve(
           rootModule,
           scriptArgs,
@@ -144,21 +142,37 @@ final class EvaluatorImpl private[mill] (
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
     val selectedTasksOrErr =
-      if (selectiveExecutionEnabled && os.exists(outPath / OutFiles.millSelectiveExecution)) {
+      if (!selectiveExecutionEnabled) (targets, Map.empty, None)
+      else {
         val (named, unnamed) =
           targets.partitionMap { case n: NamedTask[?] => Left(n); case t => Right(t) }
-        val changedTasks = this.selective.computeChangedTasks0(named)
+        val newComputedMetadata = SelectiveExecutionImpl.Metadata.compute(this, named)
 
-        val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+        val selectiveExecutionStoredData = for {
+          _ <- Option.when(os.exists(outPath / OutFiles.millSelectiveExecution))(())
+          changedTasks <- this.selective.computeChangedTasks0(named, newComputedMetadata)
+        } yield changedTasks
 
-        (
-          unnamed ++ named.filter(t => t.isExclusiveCommand || selectedSet(t.ctx.segments.render)),
-          changedTasks.results
-        )
-      } else (targets, Map.empty)
+        selectiveExecutionStoredData match {
+          case None =>
+            // Ran when previous selective execution metadata is not available, which happens the first time you run
+            // selective execution.
+            (targets, Map.empty, Some(newComputedMetadata.metadata))
+          case Some(changedTasks) =>
+            val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
+
+            (
+              unnamed ++ named.filter(t =>
+                t.isExclusiveCommand || selectedSet(t.ctx.segments.render)
+              ),
+              newComputedMetadata.results,
+              Some(newComputedMetadata.metadata)
+            )
+        }
+      }
 
     selectedTasksOrErr match {
-      case (selectedTasks, selectiveResults) =>
+      case (selectedTasks, selectiveResults, maybeNewMetadata) =>
         val evaluated: ExecutionResults =
           execution.executeTasks(
             selectedTasks,
@@ -199,15 +213,8 @@ final class EvaluatorImpl private[mill] (
           .flatten
           .toSeq
 
-        val allInputHashes = evaluated.transitiveResults
-          .iterator
-          .collect {
-            case (t: InputImpl[_], ExecResult.Success(Val(value))) =>
-              (t.ctx.segments.render, value.##)
-          }
-          .toMap
-
-        if (selectiveExecutionEnabled) {
+        maybeNewMetadata.foreach { newMetadata =>
+          val allInputHashes = newMetadata.inputHashes
           this.selective.saveMetadata(
             SelectiveExecution.Metadata(allInputHashes, codeSignatures)
           )
@@ -242,8 +249,8 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val resolved = os.checker.withValue(ResolveChecker) {
-      Evaluator.currentEvaluator0.withValue(this) {
+    val resolved = os.checker.withValue(ResolveChecker(workspace)) {
+      Evaluator.withCurrentEvaluator(this) {
         Resolve.Tasks.resolve(
           rootModule,
           scriptArgs,

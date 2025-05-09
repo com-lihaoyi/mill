@@ -665,7 +665,7 @@ tool, but running on the JVM comes with additional advantages:
 
 * *You can use any JVM library*. e.g. The `os.read.lines` or `os.write` functions are
   from https://github.com/com-lihaoyi/os-lib[OS-Lib], but you can
-  xref:mill:ROOT:extending/import-mvn-plugins.adoc[download any library] you want from
+  download any library you want from
   Java's Maven Central repository and use it in your build with full functionality and IDE support.
   The JVM ecosystem is deep and broad, and you can find libraries to do almost anything
   imaginable available for free. Mill lets you make full use of this to customize

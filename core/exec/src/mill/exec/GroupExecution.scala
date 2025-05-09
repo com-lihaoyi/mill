@@ -11,7 +11,6 @@ import java.lang.reflect.Method
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
-import mill.api.{SystemStreams => _, _}
 import mill.api.internal.{EvaluatorApi, BaseModuleApi, CompileProblemReporter, TestReporter}
 
 /**
@@ -40,7 +39,9 @@ private trait GroupExecution {
     // recursively convert java data structure to ujson.Value
     val envWithPwd = env ++ Seq(
       "PWD" -> workspace.toString,
-      "PWD_URI" -> workspace.toNIO.toUri.toString
+      "PWD_URI" -> workspace.toNIO.toUri.toString,
+      "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
+      "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
     )
     def rec(x: Any): ujson.Value = {
       import collection.JavaConverters._
@@ -87,7 +88,8 @@ private trait GroupExecution {
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       executionContext: mill.define.TaskCtx.Fork.Api,
       exclusive: Boolean,
-      offline: Boolean
+      offline: Boolean,
+      upstreamPathRefs: Seq[PathRef]
   ): GroupExecution.Results = {
     logger.withPromptLine {
       val externalInputsHash = MurmurHash3.orderedHash(
@@ -122,16 +124,19 @@ private trait GroupExecution {
           labelled.ctx.segments.value match {
             case Seq(Segment.Label(single)) if parsedHeaderData.contains(single) =>
               val jsonData = parsedHeaderData(single)
-              val resultData = upickle.default.read[Any](jsonData)(
-                using labelled.readWriterOpt.get.asInstanceOf[upickle.default.Reader[Any]]
-              )
+              val (resultData, serializedPaths) = PathRef.withSerializedPaths {
+                upickle.default.read[Any](jsonData)(
+                  using labelled.readWriterOpt.get.asInstanceOf[upickle.default.Reader[Any]]
+                )
+              }
               GroupExecution.Results(
                 Map(labelled -> ExecResult.Success(Val(resultData), resultData.##)),
                 Nil,
                 cached = true,
                 inputsHash,
                 -1,
-                false
+                false,
+                serializedPaths
               )
             case _ =>
               val out = if (!labelled.ctx.external) outPath else externalOutPath
@@ -142,13 +147,13 @@ private trait GroupExecution {
               val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled, cached.isEmpty)
 
               val cachedValueAndHash =
-                upToDateWorker.map((_, inputsHash))
+                upToDateWorker.map(w => (w -> Nil, inputsHash))
                   .orElse(cached.flatMap { case (inputHash, valOpt, valueHash) =>
                     valOpt.map((_, valueHash))
                   })
 
               cachedValueAndHash match {
-                case Some((v, hashCode)) =>
+                case Some(((v, serializedPaths), hashCode)) =>
                   val res = ExecResult.Success((v, hashCode))
                   val newResults: Map[Task[?], ExecResult[(Val, Int)]] =
                     Map(labelled -> res)
@@ -159,7 +164,8 @@ private trait GroupExecution {
                     cached = true,
                     inputsHash,
                     -1,
-                    valueHashChanged = false
+                    valueHashChanged = false,
+                    serializedPaths
                   )
 
                 case _ =>
@@ -180,15 +186,18 @@ private trait GroupExecution {
                       executionContext = executionContext,
                       exclusive = exclusive,
                       isCommand = labelled.isInstanceOf[Command[?]],
+                      isInput = labelled.isInstanceOf[InputImpl[?]],
                       deps = deps,
-                      offline = offline
+                      offline = offline,
+                      upstreamPathRefs = upstreamPathRefs
                     )
 
-                  val valueHash = newResults(labelled) match {
+                  val (valueHash, serializedPaths) = newResults(labelled) match {
                     case ExecResult.Success((v, _)) =>
                       val valueHash = getValueHash(v, terminal, inputsHash)
-                      handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-                      valueHash
+                      val serializedPaths =
+                        handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
+                      (valueHash, serializedPaths)
 
                     case _ =>
                       // Wipe out any cached meta.json file that exists, so
@@ -196,7 +205,7 @@ private trait GroupExecution {
                       // assume it's associated with the possibly-borked state of the
                       // destPath after an evaluation failure.
                       os.remove.all(paths.meta)
-                      0
+                      (0, Nil)
                   }
 
                   GroupExecution.Results(
@@ -205,7 +214,8 @@ private trait GroupExecution {
                     cached = if (labelled.isInstanceOf[InputImpl[?]]) null else false,
                     inputsHash,
                     cached.map(_._1).getOrElse(-1),
-                    !cached.map(_._3).contains(valueHash)
+                    !cached.map(_._3).contains(valueHash),
+                    serializedPaths
                   )
               }
           }
@@ -223,8 +233,10 @@ private trait GroupExecution {
             executionContext = executionContext,
             exclusive = exclusive,
             isCommand = task.isInstanceOf[Command[?]],
+            isInput = task.isInstanceOf[InputImpl[?]],
             deps = deps,
-            offline = offline
+            offline = offline,
+            upstreamPathRefs = upstreamPathRefs
           )
           GroupExecution.Results(
             newResults,
@@ -232,7 +244,8 @@ private trait GroupExecution {
             null,
             inputsHash,
             -1,
-            valueHashChanged = false
+            valueHashChanged = false,
+            serializedPaths = Nil
           )
 
       }
@@ -252,8 +265,10 @@ private trait GroupExecution {
       executionContext: mill.define.TaskCtx.Fork.Api,
       exclusive: Boolean,
       isCommand: Boolean,
+      isInput: Boolean,
       deps: Seq[Task[?]],
-      offline: Boolean
+      offline: Boolean,
+      upstreamPathRefs: Seq[PathRef]
   ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
 
     val newEvaluated = mutable.Buffer.empty[Task[?]]
@@ -262,30 +277,20 @@ private trait GroupExecution {
     val nonEvaluatedTargets = group.toIndexedSeq.filterNot(results.contains)
     val (multiLogger, fileLoggerOpt) = resolveLogger(paths.map(_.log), logger)
 
-    var usedDest = Option.empty[os.Path]
+    val destCreator = new GroupExecution.DestCreator(paths)
+
     for (task <- nonEvaluatedTargets) {
       newEvaluated.append(task)
       val targetInputValues = task.inputs
         .map { x => newResults.getOrElse(x, results(x)) }
         .collect { case ExecResult.Success((v, _)) => v }
 
-      def makeDest() = this.synchronized {
-        paths match {
-          case Some(dest) =>
-            if (usedDest.isEmpty) os.makeDir.all(dest.dest)
-            usedDest = Some(dest.dest)
-            dest.dest
-
-          case None => throw new Exception("No `dest` folder available here")
-        }
-      }
-
       val res = {
         if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
         else {
           val args = new mill.define.TaskCtx.Impl(
             args = targetInputValues.map(_.value).toIndexedSeq,
-            dest0 = () => makeDest(),
+            dest0 = () => destCreator.makeDest(),
             log = multiLogger,
             env = env,
             reporter = reporter,
@@ -296,50 +301,33 @@ private trait GroupExecution {
             jobs = effectiveThreadCount,
             offline = offline
           )
+
           // Tasks must be allowed to write to upstream worker's dest folders, because
           // the point of workers is to manualy manage long-lived state which includes
           // state on disk.
-          val validDests =
+          val validWriteDests =
             deps.collect { case n: Worker[?] =>
               ExecutionPaths.resolve(outPath, n.ctx.segments).dest
             } ++
               paths.map(_.dest)
 
-          val executionChecker = new os.Checker {
-            def onRead(path: os.ReadablePath): Unit = ()
-            def onWrite(path: os.Path): Unit = {
-              if (!isCommand) {
-                if (path.startsWith(workspace) && !validDests.exists(path.startsWith(_))) {
-                  sys.error(s"Writing to $path not allowed during execution phase")
-                }
-              }
-            }
-          }
-          def wrap[T](t: => T): T = {
-            val (streams, destFunc) =
-              if (exclusive) (exclusiveSystemStreams, () => workspace)
-              else (multiLogger.streams, () => makeDest())
+          val validReadDests = validWriteDests ++ upstreamPathRefs.map(_.path)
 
-            os.dynamicPwdFunction.withValue(destFunc) {
-              os.checker.withValue(executionChecker) {
-                mill.define.SystemStreams.withStreams(streams) {
-                  val exposedEvaluator =
-                    if (!exclusive) null else getEvaluator().asInstanceOf[Evaluator]
-                  Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
-                    if (!exclusive) t
-                    else {
-                      logger.prompt.reportKey(Seq(counterMsg))
-                      logger.prompt.withPromptPaused { t }
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          wrap {
+          GroupExecution.wrap(
+            workspace,
+            validWriteDests,
+            validReadDests,
+            isCommand,
+            isInput,
+            exclusive,
+            multiLogger,
+            logger,
+            exclusiveSystemStreams,
+            counterMsg,
+            destCreator,
+            getEvaluator().asInstanceOf[Evaluator]
+          ) {
             try {
-
               task.evaluate(args) match {
                 case Result.Success(v) => ExecResult.Success(Val(v))
                 case Result.Failure(err) => ExecResult.Failure(err)
@@ -393,36 +381,41 @@ private trait GroupExecution {
       metaPath: os.Path,
       inputsHash: Int,
       labelled: NamedTask[?]
-  ): Unit = {
+  ): Seq[PathRef] = {
     for (w <- labelled.asWorker)
       workerCache.synchronized {
         workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v))
       }
 
-    val terminalResult = labelled
-      .writerOpt
-      .map { w =>
-        upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
-      }
-      .orElse {
-        labelled.asWorker.map { w =>
-          ujson.Obj(
-            "worker" -> ujson.Str(labelled.toString),
-            "toString" -> ujson.Str(v.value.toString),
-            "inputsHash" -> ujson.Num(inputsHash)
-          )
-        }
-      }
+    def normalJson(w: upickle.default.Writer[_]) = PathRef.withSerializedPaths {
+      upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
+    }
+    lazy val workerJson = labelled.asWorker.map { w =>
+      ujson.Obj(
+        "worker" -> ujson.Str(labelled.toString),
+        "toString" -> ujson.Str(v.value.toString),
+        "inputsHash" -> ujson.Num(inputsHash)
+      ) -> Nil
+    }
 
-    for (json <- terminalResult) {
-      os.write.over(
-        metaPath,
-        upickle.default.stream(
-          mill.define.Cached(json, hashCode, inputsHash),
-          indent = 4
-        ),
-        createFolders = true
-      )
+    val terminalResult: Option[(ujson.Value, Seq[PathRef])] = labelled
+      .writerOpt
+      .map(normalJson)
+      .orElse(workerJson)
+
+    terminalResult match {
+      case Some((json, serializedPaths)) =>
+        os.write.over(
+          metaPath,
+          upickle.default.stream(
+            mill.define.Cached(json, hashCode, inputsHash),
+            indent = 4
+          ),
+          createFolders = true
+        )
+        serializedPaths
+      case _ =>
+        Nil
     }
   }
 
@@ -447,7 +440,7 @@ private trait GroupExecution {
       inputsHash: Int,
       labelled: NamedTask[?],
       paths: ExecutionPaths
-  ): Option[(Int, Option[Val], Int)] = {
+  ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
     for {
       cached <-
         try Some(upickle.default.read[Cached](paths.meta.toIO))
@@ -459,8 +452,8 @@ private trait GroupExecution {
       for {
         _ <- Option.when(cached.inputsHash == inputsHash)(())
         reader <- labelled.readWriterOpt
-        parsed <-
-          try Some(upickle.default.read(cached.value)(using reader))
+        (parsed, serializedPaths) <-
+          try Some(PathRef.withSerializedPaths(upickle.default.read(cached.value)(using reader)))
           catch {
             case e: PathRef.PathRefValidationException =>
               logger.debug(
@@ -469,7 +462,7 @@ private trait GroupExecution {
               None
             case NonFatal(_) => None
           }
-      } yield Val(parsed),
+      } yield (Val(parsed), serializedPaths),
       cached.valueHash
     )
   }
@@ -520,12 +513,92 @@ private trait GroupExecution {
 
 private object GroupExecution {
 
+  class DestCreator(paths: Option[ExecutionPaths]) {
+    var usedDest = Option.empty[os.Path]
+
+    def makeDest() = this.synchronized {
+      paths match {
+        case Some(dest) =>
+          if (usedDest.isEmpty) os.makeDir.all(dest.dest)
+          usedDest = Some(dest.dest)
+          dest.dest
+
+        case None => throw new Exception("No `dest` folder available here")
+      }
+    }
+  }
+  def wrap[T](
+      workspace: os.Path,
+      validWriteDests: Seq[os.Path],
+      validReadDests: Seq[os.Path],
+      isCommand: Boolean,
+      isInput: Boolean,
+      exclusive: Boolean,
+      multiLogger: Logger,
+      logger: Logger,
+      exclusiveSystemStreams: SystemStreams,
+      counterMsg: String,
+      destCreator: DestCreator,
+      evaluator: Evaluator
+  )(t: => T): T = {
+    val executionChecker = new os.Checker {
+      def onRead(path: os.ReadablePath): Unit = path match {
+        case path: os.Path =>
+          if (!isCommand && !isInput) {
+            if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
+              sys.error(
+                s"Reading from ${path.relativeTo(workspace)} not allowed during execution phase"
+              )
+            }
+          }
+        case _ =>
+      }
+
+      def onWrite(path: os.Path): Unit = {
+        if (!isCommand) {
+          if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
+            sys.error(
+              s"Writing to ${path.relativeTo(workspace)} not allowed during execution phase"
+            )
+          }
+        }
+      }
+    }
+    val (streams, destFunc) =
+      if (exclusive) (exclusiveSystemStreams, () => workspace)
+      else (multiLogger.streams, () => destCreator.makeDest())
+
+    os.dynamicPwdFunction.withValue(destFunc) {
+      os.checker.withValue(executionChecker) {
+        mill.define.SystemStreams.withStreams(streams) {
+          val exposedEvaluator =
+            if (exclusive) evaluator.asInstanceOf[Evaluator]
+            else new EvaluatorProxy(() =>
+              sys.error(
+                "No evaluator available here; Evaluator is only available in exclusive commands"
+              )
+            )
+
+          Evaluator.withCurrentEvaluator(exposedEvaluator) {
+            if (!exclusive) t
+            else {
+              logger.prompt.reportKey(Seq(counterMsg))
+              logger.prompt.withPromptPaused {
+                t
+              }
+            }
+          }
+        }
+      }
+    }
+  }
   case class Results(
       newResults: Map[Task[?], ExecResult[(Val, Int)]],
       newEvaluated: Seq[Task[?]],
       cached: java.lang.Boolean,
       inputsHash: Int,
       previousInputsHash: Int,
-      valueHashChanged: Boolean
+      valueHashChanged: Boolean,
+      serializedPaths: Seq[PathRef]
   )
 }

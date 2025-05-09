@@ -3,11 +3,15 @@
 
 
 
-This page will discuss common topics around packaging and publishing your Java projects for others to use
+This page will discuss common topics around packaging and publishing your Java projects for others to use.
 
-== Building Executable Assemblies
+== Building Executable Assemblies with `AssemblyModule`
 
 include::partial$example/javalib/publishing/1-assembly-config.adoc[]
+
+== Building Executable Assemblies with `RepackageModule`
+
+include::partial$example/javalib/publishing/9-repackage-config.adoc[]
 
 == Building Native Image Binaries with Graal VM
 
@@ -34,6 +38,10 @@ include::partial$example/javalib/publishing/6-jpackage.adoc[]
 == Publishing Locally
 
 include::partial$example/javalib/publishing/2-publish-module.adoc[]
+
+== Publishing to Sonatype Maven Central
+
+include::partial$example/javalib/publishing/9-publish-module-sonatype.adoc[]
 
 == Checking API compatibility
 

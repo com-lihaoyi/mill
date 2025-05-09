@@ -2,8 +2,8 @@ package mill.scalalib.worker
 
 import mill.util.CachedFactory
 import mill.api._
-import mill.api.internal._
 import mill.api.internal.internal
+import mill.api.internal.CompileProblemReporter
 import mill.define.PathRef
 import mill.constants.CodeGenConstants
 import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerApi, JvmWorkerUtil}
@@ -299,49 +299,51 @@ class JvmWorkerImpl(
       null
     )
 
-    val (sources, resources) =
-      os.walk(sourceFolder).filter(os.isFile)
-        .partition(a => a.ext == "scala" || a.ext == "java")
+    try {
+      val (sources, resources) =
+        os.walk(sourceFolder).filter(os.isFile)
+          .partition(a => a.ext == "scala" || a.ext == "java")
 
-    resources.foreach { res =>
-      val dest = compileDest / res.relativeTo(sourceFolder)
-      os.move(res, dest, replaceExisting = true, createFolders = true)
-    }
+      resources.foreach { res =>
+        val dest = compileDest / res.relativeTo(sourceFolder)
+        os.move(res, dest, replaceExisting = true, createFolders = true)
+      }
 
-    val argsArray = Array[String](
-      "-d",
-      compileDest.toString,
-      "-classpath",
-      (compilerClasspath.iterator ++ compilerBridgeClasspath).map(_.path).mkString(
-        File.pathSeparator
-      )
-    ) ++ sources.map(_.toString)
+      val argsArray = Array[String](
+        "-d",
+        compileDest.toString,
+        "-classpath",
+        (compilerClasspath.iterator ++ compilerBridgeClasspath).map(_.path).mkString(
+          File.pathSeparator
+        )
+      ) ++ sources.map(_.toString)
 
-    val allScala = sources.forall(_.ext == "scala")
-    val allJava = sources.forall(_.ext == "java")
-    if (allJava) {
-      val javacExe: String =
-        sys.props
-          .get("java.home")
-          .map(h =>
-            if (isWin) new File(h, "bin\\javac.exe")
-            else new File(h, "bin/javac")
-          )
-          .filter(f => f.exists())
-          .fold("javac")(_.getAbsolutePath())
-      import scala.sys.process._
-      (Seq(javacExe) ++ argsArray).!
-    } else if (allScala) {
-      val compilerMain = classloader.loadClass(
-        if (JvmWorkerUtil.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
-        else "scala.tools.nsc.Main"
-      )
-      compilerMain
-        .getMethod("process", classOf[Array[String]])
-        .invoke(null, argsArray ++ Array("-nowarn"))
-    } else {
-      throw new IllegalArgumentException("Currently not implemented case.")
-    }
+      val allScala = sources.forall(_.ext == "scala")
+      val allJava = sources.forall(_.ext == "java")
+      if (allJava) {
+        val javacExe: String =
+          sys.props
+            .get("java.home")
+            .map(h =>
+              if (isWin) new File(h, "bin\\javac.exe")
+              else new File(h, "bin/javac")
+            )
+            .filter(f => f.exists())
+            .fold("javac")(_.getAbsolutePath())
+        import scala.sys.process._
+        (Seq(javacExe) ++ argsArray).!
+      } else if (allScala) {
+        val compilerMain = classloader.loadClass(
+          if (JvmWorkerUtil.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
+          else "scala.tools.nsc.Main"
+        )
+        compilerMain
+          .getMethod("process", classOf[Array[String]])
+          .invoke(null, argsArray ++ Array("-nowarn"))
+      } else {
+        throw new IllegalArgumentException("Currently not implemented case.")
+      }
+    } finally classloader.close()
   }
 
   /**
@@ -659,6 +661,8 @@ class JvmWorkerImpl(
       .map(_._2._1)
       .collect { case v: AutoCloseable => v }
 
+    // pprint.log(classloaderCache.map(_._2._1))
+    // pprint.log(urlClassLoaders.map(_.getURLs))
     urlClassLoaders.foreach(_.close())
 
     classloaderCache.clear()

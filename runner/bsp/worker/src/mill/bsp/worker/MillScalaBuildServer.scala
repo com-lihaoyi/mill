@@ -15,11 +15,9 @@ import ch.epfl.scala.bsp4j.{
 }
 import mill.api.internal.{TaskApi, JavaModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
-import sbt.testing.Fingerprint
 
 import java.util.concurrent.CompletableFuture
 import scala.jdk.CollectionConverters._
-import scala.util.chaining.scalaUtilChainingOps
 
 private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
 

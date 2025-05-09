@@ -5,6 +5,27 @@ import mill.constants.OutFiles
 import mill.define.{Command, Evaluator, Task}
 import mill.define.SelectMode
 
+/**
+ * Mill Module to support selective test execution in large projects.
+ *
+ * Read more about it at: https://mill-build.org/mill/large/selective-execution.html
+ *
+ * Here are the essential commands:
+ *
+ * - `mill selective.prepare <selector>`:
+ *   run on the codebase before the code change,
+ *   stores a snapshot of task inputs and implementations
+ *
+ * - `mill selective.run <selector>`:
+ *   run on the codebase after the code change,
+ *   runs tasks in the given `<selector>` which are affected by the code changes
+ *   that have happened since `selective.prepare` was run
+ *
+ * - `mill selective.resolve <selector>`:
+ *   a dry-run version of `selective.run`,
+ *   prints out the tasks in `<selector>`` that are affected by the code changes
+ *   and would have run, without actually running them.
+ */
 trait SelectiveExecutionModule extends mill.define.Module {
 
   /**
@@ -18,9 +39,9 @@ trait SelectiveExecutionModule extends mill.define.Module {
         if (tasks.isEmpty) Seq("__") else tasks,
         SelectMode.Multi
       ).map { resolvedTasks =>
-        val (metadata, _) = evaluator.selective.computeMetadata(resolvedTasks)
+        val computed = evaluator.selective.computeMetadata(resolvedTasks)
 
-        evaluator.selective.saveMetadata(metadata)
+        evaluator.selective.saveMetadata(computed.metadata)
       }
     }
 

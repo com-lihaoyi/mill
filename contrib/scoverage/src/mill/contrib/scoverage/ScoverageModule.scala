@@ -22,17 +22,16 @@ import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
  * `ScoverageTests` trait that belongs to your instance of `ScoverageModule`.
  *
  * {{{
- * // You have to replace VERSION
- * import $ivy.`com.lihaoyi::mill-contrib-buildinfo:VERSION`
+ * //| mvnDeps: ["com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION"]
+ *
  * import mill.contrib.scoverage.ScoverageModule
  *
  * Object foo extends ScoverageModule  {
  *   def scalaVersion = "2.13.15"
  *   def scoverageVersion = "2.1.1"
  *
- *   object test extends ScoverageTests {
- *     def mvnDeps = Seq(mvn"org.scalatest::scalatest:3.2.19")
- *     def testFrameworks = Seq("org.scalatest.tools.Framework")
+ *   object test extends ScoverageTests with TestModule.ScalaTest {
+ *     def scalaTestVersion = "3.2.19"
  *   }
  * }
  * }}}

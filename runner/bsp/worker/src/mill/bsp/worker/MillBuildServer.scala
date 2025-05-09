@@ -3,17 +3,17 @@ package mill.bsp.worker
 import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
-import mill.api.internal.{JvmBuildTarget, ScalaBuildTarget, *}
 import mill.api.*
-import mill.bsp.{Constants}
-import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
+import mill.api.internal.{JvmBuildTarget, ScalaBuildTarget, *}
 import mill.api.Segment.Label
-import mill.given
-import mill.constants.OutFiles
+import mill.bsp.Constants
+import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.client.lock.Lock
-import scala.util.Using
+import mill.server.Server
+
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.locks.ReentrantLock
 import scala.collection.mutable
 import scala.concurrent.Promise
 import scala.jdk.CollectionConverters.*
@@ -21,7 +21,7 @@ import scala.reflect.ClassTag
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
-import mill.server.Server
+
 private class MillBuildServer(
     topLevelProjectRoot: os.Path,
     bspVersion: String,
@@ -30,7 +30,8 @@ private class MillBuildServer(
     logStream: PrintStream,
     canReload: Boolean,
     debugMessages: Boolean,
-    onShutdown: () => Unit
+    onShutdown: () => Unit,
+    outLock: Lock
 )(implicit ec: scala.concurrent.ExecutionContext) extends BuildServer {
 
   import MillBuildServer._
@@ -726,7 +727,8 @@ private class MillBuildServer(
         case n: NamedTaskApi[_] => n.label
         case t => t.toString
       },
-      streams = logger0.streams
+      streams = logger0.streams,
+      outLock = outLock
     ) {
       evaluator.executeApi(
         goals,

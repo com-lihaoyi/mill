@@ -1,20 +1,15 @@
 package mill.exec
 
-import mill.api.ExecResult.Aborted
-
 import mill.api._
 import mill.api.internal._
+import mill.constants.OutFiles.{millChromeProfile, millProfile}
 import mill.define._
 import mill.internal.PrefixLogger
-import mill.define.MultiBiMap
 
-import mill.api._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import scala.collection.mutable
 import scala.concurrent._
-import mill.api.internal.{BaseModuleApi, EvaluatorApi}
-import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
@@ -171,7 +166,7 @@ private[mill] case class Execution(
             .toMap
 
           futures(terminal) = Future.successful(
-            Some(GroupExecution.Results(taskResults, group.toSeq, false, -1, -1, false))
+            Some(GroupExecution.Results(taskResults, group.toSeq, false, -1, -1, false, Nil))
           )
         } else {
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
@@ -190,6 +185,11 @@ private[mill] case class Execution(
                   .iterator
                   .flatMap(_.iterator.flatMap(_.newResults))
                   .toMap
+
+                val upstreamPathRefs = upstreamValues
+                  .iterator
+                  .flatMap(_.iterator.flatMap(_.serializedPaths))
+                  .toSeq
 
                 val startTime = System.nanoTime() / 1000
 
@@ -224,7 +224,8 @@ private[mill] case class Execution(
                   allTransitiveClassMethods,
                   forkExecutionContext,
                   exclusive,
-                  offline
+                  offline,
+                  upstreamPathRefs
                 )
 
                 // Count new failures - if there are upstream failures, tasks should be skipped, not failed

@@ -70,9 +70,7 @@ trait DetektModule extends KotlinModule {
   /**
    * Detekt configuration file. Defaults to `detekt-config.yml`.
    */
-  def detektConfig: T[PathRef] = Task {
-    PathRef(Task.workspace / "detekt-config.yml")
-  }
+  def detektConfig: T[PathRef] = Task.Source(Task.workspace / "detekt-config.yml")
 
   /**
    * Detekt version.

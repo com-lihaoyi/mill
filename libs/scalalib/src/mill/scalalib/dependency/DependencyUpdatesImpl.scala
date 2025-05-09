@@ -1,6 +1,5 @@
 package mill.scalalib.dependency
 
-import mill.define.TaskCtx.Log
 import mill.define.*
 import mill.scalalib.dependency.updates.{
   DependencyUpdates,
@@ -64,7 +63,7 @@ object DependencyUpdatesImpl {
           .map { u =>
             val dep = u._1 // formatDependencyUpdate(u._1)
             val modules = u._2.map(_._2).mkString("\n  ", "\n  ", "")
-            s"${dep} in ${modules}"
+            s"${dep} in${modules}"
           }
           .toSeq
 

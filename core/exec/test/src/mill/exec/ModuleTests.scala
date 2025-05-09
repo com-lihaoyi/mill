@@ -31,36 +31,38 @@ object ModuleTests extends TestSuite {
   }
   val tests = Tests {
     test("externalModuleCalls") {
-      val check = UnitTester(Build, null)
-      val result = check.apply("mill.exec.TestExternalModule/x")
-      assert(result == Right(Result(Vector(13), 0)))
+      UnitTester(Build, null).scoped { check =>
+        val result = check.apply("mill.exec.TestExternalModule/x")
+        assert(result == Right(Result(Vector(13), 0)))
 
-      val result1 = check.apply("mill.exec/x") // short alias
-      assert(result1 == Right(Result(Vector(13), 0)))
+        val result1 = check.apply("mill.exec/x") // short alias
+        assert(result1 == Right(Result(Vector(13), 0)))
 
-      val result2 = check.apply("mill.exec.TestExternalModule/")
-      assert(result2 == Right(Result(Vector(13), 0)))
+        val result2 = check.apply("mill.exec.TestExternalModule/")
+        assert(result2 == Right(Result(Vector(13), 0)))
 
-      val result3 = check.apply("mill.exec.TestExternalModule/myCommand", "-i", "10")
-      assert(result3 == Right(Result(Vector(11), 1)))
+        val result3 = check.apply("mill.exec.TestExternalModule/myCommand", "-i", "10")
+        assert(result3 == Right(Result(Vector(11), 1)))
 
-      val result4 = check.apply("mill.exec.TestExternalModule/inner.overridden")
-      assert(result4 == Right(Result(Vector(20), 0)))
+        val result4 = check.apply("mill.exec.TestExternalModule/inner.overridden")
+        assert(result4 == Right(Result(Vector(20), 0)))
+      }
     }
     test("externalModuleTargetsAreNamespacedByModulePackagePath") {
-      val check = UnitTester(Build, null)
-      os.remove.all(check.outPath)
-      val zresult = check.apply(Build.z)
-      assert(
-        zresult == Right(Result(30, 1)),
-        os.read(check.execution.outPath / "z.json").contains("30"),
-        os.read(
-          check.outPath / "mill/exec/TestExternalModule/x.json"
-        ).contains("13"),
-        os.read(
-          check.outPath / "mill/exec/TestExternalModule/inner/y.json"
-        ).contains("17")
-      )
+      UnitTester(Build, null).scoped { check =>
+        os.remove.all(check.outPath)
+        val zresult = check.apply(Build.z)
+        assert(
+          zresult == Right(Result(30, 1)),
+          os.read(check.execution.outPath / "z.json").contains("30"),
+          os.read(
+            check.outPath / "mill/exec/TestExternalModule/x.json"
+          ).contains("13"),
+          os.read(
+            check.outPath / "mill/exec/TestExternalModule/inner/y.json"
+          ).contains("17")
+        )
+      }
     }
     test("externalModuleMustBeGlobalStatic") {
 

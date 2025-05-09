@@ -1,8 +1,7 @@
 package mill.scalalib
 
 import mainargs.Flag
-import mill.define.{Command, PathRef, Target, Task}
-import upickle.default.ReadWriter
+import mill.define.{Command, PathRef, Task}
 
 trait OfflineSupportModule extends mill.define.Module {
 

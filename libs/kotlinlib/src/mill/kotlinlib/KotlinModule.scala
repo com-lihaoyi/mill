@@ -6,6 +6,8 @@
 package mill
 package kotlinlib
 
+import coursier.core.VariantSelector.VariantMatcher
+import coursier.params.ResolutionParams
 import mill.api.Result
 import mill.define.{Command, ModuleRef, PathRef, Task}
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
@@ -76,7 +78,12 @@ trait KotlinModule extends JavaModule { outer =>
 
   protected def jvmWorkerRef: ModuleRef[JvmWorkerModule] = jvmWorker
 
-  protected def kotlinWorkerRef: ModuleRef[KotlinWorkerModule] = ModuleRef(KotlinWorkerModule)
+  override def checkGradleModules: T[Boolean] = true
+  override def resolutionParams: Task[ResolutionParams] = Task.Anon {
+    super.resolutionParams().addVariantAttributes(
+      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm")
+    )
+  }
 
   /**
    * The Java classpath resembling the Kotlin compiler.
@@ -86,7 +93,10 @@ trait KotlinModule extends JavaModule { outer =>
     val deps = kotlinCompilerMvnDeps() ++ Seq(
       Dep.millProjectModule("mill-libs-kotlinlib-worker-impl")
     )
-    defaultResolver().classpath(deps)
+    defaultResolver().classpath(
+      deps,
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
+    )
   }
 
   /**
@@ -144,13 +154,10 @@ trait KotlinModule extends JavaModule { outer =>
     val jars = defaultResolver().classpath(
       kotlincPluginMvnDeps()
         // Don't resolve transitive jars
-        .map(d => d.exclude("*" -> "*"))
+        .map(d => d.exclude("*" -> "*")),
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
     jars.toSeq
-  }
-
-  def kotlinWorkerTask: Task[KotlinWorker] = Task.Anon {
-    kotlinWorkerRef().kotlinWorkerManager().get(kotlinCompilerClasspath())
   }
 
   /**
@@ -245,7 +252,8 @@ trait KotlinModule extends JavaModule { outer =>
     defaultResolver().classpath(
       Seq(
         mvn"org.jetbrains.dokka:dokka-cli:${dokkaVersion()}"
-      )
+      ),
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
   }
 
@@ -256,7 +264,8 @@ trait KotlinModule extends JavaModule { outer =>
         mvn"org.jetbrains.dokka:analysis-kotlin-descriptors:${dokkaVersion()}",
         Dep.parse(Versions.kotlinxHtmlJvmDep),
         Dep.parse(Versions.freemarkerDep)
-      )
+      ),
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
   }
 
@@ -325,7 +334,10 @@ trait KotlinModule extends JavaModule { outer =>
           (kotlinSourceFiles ++ javaSourceFiles).map(_.toString())
         ).flatten
 
-        val workerResult = kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
+        val workerResult =
+          KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath().map(_.path)) {
+            _._2.compile(KotlinWorkerTarget.Jvm, compilerArgs)
+          }
 
         val analysisFile = dest / "kotlin.analysis.dummy"
         os.write(target = analysisFile, data = "", createFolders = true)
@@ -436,6 +448,17 @@ trait KotlinModule extends JavaModule { outer =>
     }
     override def kotlinUseEmbeddableCompiler: Task[Boolean] =
       Task.Anon { outer.kotlinUseEmbeddableCompiler() }
+  }
+
+}
+
+object KotlinModule {
+
+  private[mill] def addJvmVariantAttributes: ResolutionParams => ResolutionParams = { params =>
+    params.addVariantAttributes(
+      "org.jetbrains.kotlin.platform.type" -> VariantMatcher.Equals("jvm"),
+      "org.gradle.jvm.environment" -> VariantMatcher.Equals("standard-jvm")
+    )
   }
 
 }

@@ -225,7 +225,6 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
     }
   }
 
-  override def close(): Unit = {}
 }
 
 @internal

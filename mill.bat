@@ -6,6 +6,7 @@ rem This script determines the Mill version to use by trying these sources
 rem   - env-variable `MILL_VERSION`
 rem   - local file `.mill-version`
 rem   - local file `.config/mill-version`
+rem   - `mill-version` from YAML fronmatter of current buildfile
 rem   - if accessible, find the latest stable version available on Maven Central (https://repo1.maven.org/maven2)
 rem   - env-variable `DEFAULT_MILL_VERSION`
 rem
@@ -22,7 +23,7 @@ rem this script downloads a binary file from Maven Central or Github Pages (this
 rem into a cache location (%USERPROFILE%\.mill\download).
 rem
 rem Mill Project URL: https://github.com/com-lihaoyi/mill
-rem Script Version: 0.13.0-M1-13-935205
+rem Script Version: 0.13.0-M2-63-e8edbd
 rem
 rem If you want to improve this script, please also contribute your changes back!
 rem This script was generated from: scripts/src/mill.bat
@@ -266,4 +267,5 @@ if not [!MILL_FIRST_ARG!]==[] (
   )
 )
 
+rem -D mill.main.cli is for compatibility with Mill 0.10.9 - 0.13.0-M2
 "%MILL%" %MILL_FIRST_ARG% -D "mill.main.cli=%MILL_MAIN_CLI%" %MILL_PARAMS%
