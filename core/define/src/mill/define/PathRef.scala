@@ -1,6 +1,7 @@
 package mill.define
 
 import mill.api.DummyOutputStream
+import mill.api.internal.PathRefApi
 import upickle.default.ReadWriter as RW
 
 import java.nio.file as jnio
@@ -20,7 +21,8 @@ case class PathRef private[mill] (
     quick: Boolean,
     sig: Int,
     revalidate: PathRef.Revalidate
-) {
+) extends PathRefApi {
+  def javaPath = path.toNIO
 
   def recomputeSig(): Int = PathRef.apply(path, quick).sig
   def validate(): Boolean = recomputeSig() == sig

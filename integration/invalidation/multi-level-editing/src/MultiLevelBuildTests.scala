@@ -67,7 +67,6 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
     for ((expectedWatched0, (frame, path)) <- expected0.zip(loadFrames(tester, expected0.length))) {
       val frameWatched = frame
         .evalWatched
-        .map(_.path)
         .filter(_.startsWith(tester.workspacePath))
         .filter(!_.segments.contains("mill-launcher"))
         .sorted

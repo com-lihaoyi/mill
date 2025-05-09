@@ -1,7 +1,8 @@
 package mill.daemon
 
 import mill.api.Val
-import mill.api.internal.{EvaluatorApi, internal}
+import mill.define.JsonFormatters._
+import mill.api.internal.{EvaluatorApi, internal, PathRefApi}
 import mill.define.{PathRef, RootModule0}
 import mill.define.internal.Watchable
 import mill.api.MillURLClassLoader
@@ -52,8 +53,8 @@ object RunnerState {
       moduleWatched: Seq[Watchable],
       codeSignatures: Map[String, Int],
       classLoaderOpt: Option[MillURLClassLoader],
-      runClasspath: Seq[PathRef],
-      compileOutput: Option[PathRef],
+      runClasspath: Seq[PathRefApi],
+      compileOutput: Option[PathRefApi],
       evaluator: Option[EvaluatorApi]
   ) {
 
@@ -63,13 +64,13 @@ object RunnerState {
           (k, Frame.WorkerInfo(System.identityHashCode(v), i))
         },
         evalWatched.collect { case Watchable.Path(p, quick, sig) =>
-          new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once)
+          os.Path(p)
         },
         moduleWatched.collect { case Watchable.Path(p, quick, sig) =>
-          new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once)
+          os.Path(p)
         },
         classLoaderOpt.map(_.identity),
-        runClasspath,
+        runClasspath.map(p => os.Path(p.javaPath) -> p.sig),
         runClasspath.hashCode()
       )
     }
@@ -88,10 +89,10 @@ object RunnerState {
      */
     case class Logged(
         workerCache: Map[String, WorkerInfo],
-        evalWatched: Seq[PathRef],
-        moduleWatched: Seq[PathRef],
+        evalWatched: Seq[os.Path],
+        moduleWatched: Seq[os.Path],
         classLoaderIdentity: Option[Int],
-        runClasspath: Seq[PathRef],
+        runClasspath: Seq[(os.Path, Int)],
         runClasspathHash: Int
     )
     implicit val loggedRw: ReadWriter[Logged] = macroRW
