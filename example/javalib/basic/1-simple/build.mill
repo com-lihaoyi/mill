@@ -1,17 +1,19 @@
 //// SNIPPET:BUILD
 package build
-import mill.*, javalib.*
+import mill._, javalib._
 
-object foo extends JavaModule:
+object foo extends JavaModule {
   def mvnDeps = Seq(
     mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
-  object test extends JavaTests with TestModule.Junit4:
+  object test extends JavaTests with TestModule.Junit4 {
     def mvnDeps = Seq(
       mvn"com.google.guava:guava:33.3.0-jre"
     )
+  }
+}
 
 // This is a basic Mill build for a single `JavaModule`, with two
 // third-party dependencies and a test suite using the JUnit framework.
