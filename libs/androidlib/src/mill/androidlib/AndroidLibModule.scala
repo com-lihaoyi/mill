@@ -5,7 +5,6 @@ import mill.define.{PathRef, Task}
 import mill.scalalib.*
 import mill.scalalib.publish.{PackagingType, PublishInfo}
 import mill.util.Jvm
-import os.RelPath
 import upickle.default.*
 import scala.xml.*
 
@@ -113,7 +112,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       androidSdkModule().aapt2Path().path,
       "compile",
       "--dir",
-      androidCompiledResources()._1.path,
+      androidResources(),
       "-o",
       compiledRes.toString
     ).call()
@@ -166,8 +165,6 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
   trait AndroidLibTests extends JavaTests {
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
-
-    override def resources: T[Seq[PathRef]] = Task.Sources("src/test/res")
 
   }
 }
