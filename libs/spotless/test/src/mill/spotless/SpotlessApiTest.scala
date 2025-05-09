@@ -77,11 +77,14 @@ object SpotlessApiTest extends TestSuite {
     }
   }
 
-  private val provision = (mavenCoordinates: Seq[String]) =>
+  private val provision = (_: Boolean, mavenCoordinates: Seq[String]) => {
+    val dependencies = DependencyParser.dependencies(mavenCoordinates, "")
+      .either
+      .fold(errs => throw Exception(errs.mkString(", ")), identity)
     Jvm.getArtifacts(
       Resolve.defaultRepositories,
-      DependencyParser.dependencies(mavenCoordinates, "")
-        .either
-        .fold(errs => throw Exception(errs.mkString(", ")), identity)
+      dependencies,
+      checkGradleModules = false
     ).get.files
+  }
 }
