@@ -1,5 +1,5 @@
 //| mill-version: 0.13.0-M2-59-17fa7b
-//| mill-jvm-version: "zulu:17.0.14
+//| mill-jvm-version: "zulu:17.0.14"
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C"]
 
