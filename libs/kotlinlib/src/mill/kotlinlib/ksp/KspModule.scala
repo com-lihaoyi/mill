@@ -1,10 +1,9 @@
 package mill.kotlinlib.ksp
 
 import mill.*
-import mill.define.PathRef
 import mill.api.Result
-import mill.define.Task
-import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
+import mill.define.{PathRef, Task}
+import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 
 import java.io.File
