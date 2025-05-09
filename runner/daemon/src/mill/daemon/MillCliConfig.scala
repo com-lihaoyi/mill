@@ -99,7 +99,7 @@ case class MillCliConfig(
     watch: Flag = Flag(),
     @arg(
       name = "watch-via-fs-notify",
-      doc = "Use filesystem based file watching instead of polling based one (defaults to true).",
+      doc = "Use filesystem based file watching instead of polling based one (defaults to true)."
     )
     watchViaFsNotify: Boolean = true,
     @arg(
