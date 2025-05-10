@@ -171,6 +171,11 @@ package build
 + def sources = Task { super.sources() ++ customSources() }
 ```
 
+* Mill's plugin infrastructure has changed with the release of Mill 1.0.0, and any plugins will 
+  need to be updated. See the latest documentation for 
+  https://mill-build.org/mill/main-branch/extending/writing-plugins.html[Writing Mill Plugins]
+  for how plugins are currently defined and published.
+
 ==== Other Changes
 
 * Mill's bootstrap scripts now use the native launcher by the default, except for
