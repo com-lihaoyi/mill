@@ -14,6 +14,11 @@ and are xref:comparisons/why-mill.adoc#_extending_mill[easier to extend with cus
 * Mill has better IDE support than other build tools, with
 xref:comparisons/why-mill.adoc#_ide_support[superior autocomplete and navigation in IntelliJ]
 
+Although the Java compiler is very fast and the Java language is easy to learn,
+JVM build tools have a reputation for being sluggish and confusing. Mill tries to
+offer a better alternative, letting your build system take full advantage of the
+Java platform's performance and usability.
+
 Mill's unique insight is xref:comparisons/why-mill.adoc#_object_oriented_builds[Object-Oriented
 Builds]. While most build tools invent their own concepts to manage the complexity of your
 build pipelines, Mill re-uses concepts you already know: methods, classes, and overrides. This
@@ -41,11 +46,6 @@ Or see the language-specific introductory documentation linked below:
 |===
 
 === Why Mill?
-
-Although the Java compiler is very fast and the Java language is easy to learn,
-JVM build tools have a reputation for being sluggish and confusing. Mill tries to
-offer a better alternative, letting your build system take full advantage of the
-Java platform's performance and usability:
 
 * *Performance*: Mill automatically xref:depth/execution-model.adoc#_caching_in_mill[caches]
 and xref:depth/parallelism.adoc[parallelizes build tasks] and https://mill-build.org/blog/11-jvm-test-parallelism.html[tests]
