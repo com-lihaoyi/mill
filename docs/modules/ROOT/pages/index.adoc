@@ -14,14 +14,10 @@ and are xref:comparisons/why-mill.adoc#_extending_mill[easier to extend with cus
 * Mill has better IDE support than other build tools, with
 xref:comparisons/why-mill.adoc#_ide_support[superior autocomplete and navigation in IntelliJ]
 
-Mill's unique insight is the idea of
-xref:comparisons/why-mill.adoc#_object_oriented_builds[Object-Oriented Builds]. While
-most build tools invent their own concepts to manage the complexity of your build pipelines,
-Mill re-uses concepts you already know from object-oriented programming: methods, classes,
-and overrides. This makes the
-Mill feel immediately familiar to any Java programmer, and powers the
-xref:comparisons/why-mill.adoc#_extensibility[ease-of-extensibility] and
-xref:comparisons/why-mill.adoc#_ide_support[better IDE support] mentioned above.
+Mill's unique insight is xref:comparisons/why-mill.adoc#_object_oriented_builds[Object-Oriented
+Builds]. While most build tools invent their own concepts to manage the complexity of your
+build pipelines, Mill re-uses concepts you already know: methods, classes, and overrides. This
+makes the semantics of Mill builds feel familiar even for first time users.
 
 
 To get started using Mill for the first time, or migrating and existing JVM
