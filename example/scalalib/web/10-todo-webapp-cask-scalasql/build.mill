@@ -1,0 +1,50 @@
+package build
+
+import mill._, scalalib._
+
+object `package` extends RootModule with ScalaModule {
+  def scalaVersion = "2.13.8"
+
+  override def ivyDeps = Agg(
+    ivy"com.lihaoyi::cask:0.9.1",
+    ivy"com.lihaoyi::scalatags:0.13.1",
+    ivy"com.lihaoyi::upickle:3.1.0",
+    ivy"com.lihaoyi::scalasql:0.1.19",
+    ivy"com.h2database:h2:2.2.224"
+  )
+
+  object test extends TestModule
+
+  object integration extends IntegrationTestModule
+
+  /** Common test setup */
+  trait TestBase extends ScalaModule {
+    def scalaVersion = `package`.scalaVersion
+    override def repositories = super.repositories ++ Seq(
+      coursier.MavenRepository("https://oss.sonatype.org/content/repositories/snapshots")
+    )
+    override def moduleDeps = Seq(`package`)
+  }
+
+  /** Unit tests using H2 */
+  trait TestModule extends TestBase with ScalaTests {
+    def testFramework = "utest.runner.Framework"
+
+    override def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"com.lihaoyi::utest:0.8.5",
+      ivy"com.lihaoyi::requests:0.6.9"
+    )
+  }
+
+  /** Integration tests using PostgreSQL Testcontainers */
+  trait IntegrationTestModule extends TestBase with ScalaTests {
+    def testFramework = "utest.runner.Framework"
+
+    override def ivyDeps = super.ivyDeps() ++ Agg(
+      ivy"com.lihaoyi::utest:0.8.5",
+      ivy"com.dimafeng::testcontainers-scala-postgresql:0.43.0",
+      ivy"com.dimafeng::testcontainers-scala-scalatest:0.43.0",
+      ivy"org.testcontainers:postgresql:1.19.1"
+    )
+  }
+}
