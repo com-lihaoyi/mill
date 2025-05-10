@@ -1,6 +1,6 @@
 = Why Use Mill?
 
-Mill provides 3 major advantages over other build tools. The comparison pages
+Mill provides 3 major advantages over other JVM build tools. The comparison pages
 for the respective build tool go into more detail (for xref:comparisons/maven.adoc[Maven],
 xref:comparisons/gradle.adoc[Gradle], and xref:comparisons/sbt.adoc[`sbt`]), but at a high level
 these advantages are:
@@ -422,6 +422,167 @@ one click away in IntelliJ or VSCode. This isn't a new experience for Java devel
 is what you would be used to day-to-day in your application code! But Mill brings that same
 polished experience to your build system - traditionally something that has been opaque
 and hard to understand - and does so in a way that no other build tool does.
+
+== Object-Oriented Builds
+
+All build tools are complex, because the requirements of building any size-able real-world
+project are complex. Every build tool needs the user define templated, customizable
+graph-computations when setting up their build pipelines.
+
+- “Computations” as you need to specify the build steps to be run
+- “Graph” as the tool needs to order and parallelize steps in your build
+- “Templated” as different modules in a build are often very similar
+- “Customizable” as there are always some modules special in some way
+
+For example, even a simple three-module Java build pipeline may look like this,
+with many tasks doing different things, multiple modules with similar task layouts,
+but with subtle customizations each module to wire them up:
+
+[graphviz]
+....
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  bgcolor=transparent
+  newrank=true;
+  subgraph cluster_0 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "foo.bar";
+
+    "foo.bar.sources" -> "foo.bar.compile" -> "foo.bar.classPath" -> "foo.bar.assembly"
+    "foo.bar.mainClass" -> "foo.bar.assembly"
+  }
+  subgraph cluster_1 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "foo";
+
+    "foo.bar.classPath" -> "foo.compile"   [constraint=false];
+    "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
+    "foo.mainClass" -> "foo.assembly"
+  }
+  subgraph cluster_2 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "qux";
+
+    "qux.mainClass" -> "qux.assembly"
+    "foo.bar.classPath" -> "foo.classPath"
+    "foo.classPath" -> "qux.compile" [constraint=false];
+    "foo.classPath" -> "qux.classPath"
+    "qux.sources" -> "qux.compile" -> "qux.classPath" -> "qux.assembly"
+  }
+}
+....
+
+Most build tools provide ad-hoc config formats (Maven's XML) or programmatic builder
+APIs (e.g. Gradle's Groovy/Kotlin) to satisfy this need, but these ad-hoc formats
+inevitably end up being unfamiliar and confusing to users. Some build tools hide
+this behind plugins, but end-users
+still need to deal with these concepts when they are configuring or debugging their plugins.
+Fundamentally, defining an API for templated, customizable
+graph-computations is non-trivial, so is not surprising the APIs and to do so can get complicated.
+
+Mill has the same requirement of defining templated, customizable graph-computations, but
+rather than inventing a bespoke programming model to do so, Mill builds upon what everyone
+already knows: Object-Oriented Programming. It turns out that the object-oriented
+Java programmer knows provides all the key building
+blocks necessary to define templated, customizable graph-computation:
+
+- _Methods_ provide a way of defining discrete blocks of computation that perform
+  some necessary action in your build
+
+- The _Method Call Graph_ provides the build graph, and which methods call other methods
+  defines which build steps require the output of other build steps
+
+- _Classes_ provide the templating, where you can define a set of methods calling each
+  other, and instantiate it more than once in different parts of your build
+
+- _Overrides_ provide customization: where a particular instance or sub-class needs a
+  different implementation of a build step, or even an entire portion of the build graph,
+  you can override one-or-more methods to customize the method call graph to your liking
+
+Thus, when you see a Mill build configured as such, with an `object` extending a `class`:
+
+[source,scala]
+----
+package build
+import mill._, javalib._
+
+object foo extends JavaModule {
+}
+----
+
+This is not some special syntax, but is literally defining an object named `foo`
+inheriting from the class `JavaModule`. Like any other inheritance, this picks up
+the methods and method call graph of `JavaModule` (slightly simplified below)
+
+[graphviz]
+....
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  bgcolor=transparent
+  newrank=true;
+  subgraph cluster_0 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "foo";
+
+    "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
+    "foo.resources" -> "foo.assembly"
+  }
+}
+....
+
+And when you add additional tasks by defining methods using `def`, or `override` tasks
+and call `super`:
+
+[source,scala]
+----
+package build
+import mill._, javalib._
+
+object foo extends JavaModule {
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f => os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resources using lineCount of sources */
+  override def resources = Task {
+    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+}
+----
+
+You as a Java programmer already know how these changes affect the build graph, by splicing
+in the new method `foo.lineCount`, replacing `foo.resources` with a new method body, and
+calling `foo.super.resources`:
+
+[graphviz]
+....
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  bgcolor=transparent
+  newrank=true;
+  subgraph cluster_0 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "foo";
+
+    "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
+    "foo.super.resources" -> "foo.resources" -> "foo.assembly"  [color = darkgreen, penwidth=3]
+    "foo.lineCount"  [color = darkgreen, penwidth=3]
+    "foo.sources" -> "foo.lineCount" -> "foo.resources" [color = darkgreen, penwidth=3]
+    "foo.resources" [color = darkgreen, penwidth=3]
+  }
+}
+....
+
 
 
 == Conclusion

@@ -5,14 +5,24 @@ https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.sh
 
 Mill is a JVM build tool that supports Java, Scala, and Kotlin:
 
-* Mill builds the same Java project xref:comparisons/maven.adoc[3-6x faster than Maven]
-xref:comparisons/gradle.adoc[or Gradle] due to aggressive caching & parallelism
-
-* Mill has better IDE support than other build tools, with
-superior autocomplete and navigation in IntelliJ
+* Mill builds the same Java project xref:comparisons/why-mill.adoc#_performance[3-6x
+ faster than Maven or Gradle] due to aggressive caching & parallelism
 
 * Mill builds require fewer plugins for common workflows,
-and are easier to extend with custom tasks
+and are xref:comparisons/why-mill.adoc#_extensibility[easier to extend with custom tasks]
+
+* Mill has better IDE support than other build tools, with
+xref:comparisons/why-mill.adoc#_ide_support[superior autocomplete and navigation in IntelliJ]
+
+Core to Mill is the idea of
+xref:comparisons/why-mill.adoc#_object_oriented_builds[Object-Oriented Builds]. All build
+tools have some way for you to define the build graph, and it always ends up being unfamiliar
+and confusing to application programmers. Mill instead solves this using standard concepts
+from object-oriented programming: methods, objects, classes, and overrides. This makes the
+Mill's programming model immediately familiar to any Java programmer, and powers th
+xref:comparisons/why-mill.adoc#_extensibility[ease-of-extensibility] and
+xref:comparisons/why-mill.adoc#_ide_support[better IDE support] mentioned above.
+
 
 To get started using Mill for the first time, or migrating and existing JVM
 codebase (built using Maven, Gradle, or SBT) to Mill, see:
