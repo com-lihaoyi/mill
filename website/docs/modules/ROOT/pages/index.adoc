@@ -8,18 +8,18 @@ Mill is a JVM build tool that supports Java, Scala, and Kotlin:
 * Mill builds the same Java project xref:comparisons/why-mill.adoc#_performance[3-6x
  faster than Maven or Gradle] due to aggressive caching & parallelism
 
-* Mill builds require fewer plugins for common workflows,
-and are xref:comparisons/why-mill.adoc#_extensibility[easier to extend with custom tasks]
+* Mill builds require xref:comparisons/why-mill.adoc#_builtins[fewer plugins for common workflows],
+and are xref:comparisons/why-mill.adoc#_extending_mill[easier to extend with custom tasks]
 
 * Mill has better IDE support than other build tools, with
 xref:comparisons/why-mill.adoc#_ide_support[superior autocomplete and navigation in IntelliJ]
 
-Core to Mill is the idea of
-xref:comparisons/why-mill.adoc#_object_oriented_builds[Object-Oriented Builds]. All build
-tools have some way for you to define the build graph, and it always ends up being unfamiliar
-and confusing to application programmers. Mill instead solves this using standard concepts
-from object-oriented programming: methods, objects, classes, and overrides. This makes the
-Mill's programming model immediately familiar to any Java programmer, and powers th
+Mill's unique insight is the idea of
+xref:comparisons/why-mill.adoc#_object_oriented_builds[Object-Oriented Builds]. While
+most build tools invent their own concepts to manage the complexity of your build pipelines,
+Mill re-uses concepts you already know from object-oriented programming: methods, classes,
+and overrides. This makes the
+Mill feel immediately familiar to any Java programmer, and powers the
 xref:comparisons/why-mill.adoc#_extensibility[ease-of-extensibility] and
 xref:comparisons/why-mill.adoc#_ide_support[better IDE support] mentioned above.
 
@@ -88,7 +88,6 @@ and with minimal overhead.
 For a quick introduction of why you may care about Mill, see:
 
 * xref:comparisons/why-mill.adoc[]
-* xref:comparisons/unique.adoc[]
 
 Or if you prefer a video introduction:
 
@@ -107,7 +106,8 @@ Mill can be used for applications built on top of common JVM frameworks like
 Spring Boot (both xref:javalib/web-examples.adoc#_spring_boot_todomvc_app[in Java]
 and xref:kotlinlib/web-examples.adoc#_spring_boot_todomvc_app[in Kotlin]),
 xref:javalib/web-examples.adoc#_micronaut_todomvc_app[Micronaut],
-or xref:kotlinlib/web-examples.adoc#_ktor_todomvc_app[Ktor].
+xref:kotlinlib/web-examples.adoc#_ktor_todomvc_app[Ktor], or
+xref:scalalib/web-examples.adoc#_todomvc_http4s_web_app[Http4S].
 
 Mill borrows ideas from other tools like https://maven.apache.org/[Maven],
 https://gradle.org/[Gradle], https://bazel.build/[Bazel], but tries to learn from the
