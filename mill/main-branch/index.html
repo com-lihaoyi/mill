@@ -343,10 +343,6 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
 </ul>
   </li>
 
@@ -670,19 +666,38 @@
 <div class="ulist">
 <ul>
 <li>
-<p>Mill builds the same Java project <a href="comparisons/maven.html" class="xref page">3-6x faster than Maven</a>
-<a href="comparisons/gradle.html" class="xref page">or Gradle</a> due to aggressive caching &amp; parallelism</p>
+<p>Mill builds the same Java project <a href="comparisons/why-mill.html#_performance" class="xref page">3-6x
+faster than Maven or Gradle</a> due to aggressive caching &amp; parallelism</p>
+</li>
+<li>
+<p>Mill builds require <a href="comparisons/why-mill.html#_builtins" class="xref page">fewer plugins for common workflows</a>,
+and are <a href="comparisons/why-mill.html#_extending_mill" class="xref page">easier to extend with custom tasks</a></p>
 </li>
 <li>
 <p>Mill has better IDE support than other build tools, with
-superior autocomplete and navigation in IntelliJ</p>
-</li>
-<li>
-<p>Mill builds require fewer plugins for common workflows,
-and are easier to extend with custom tasks</p>
+<a href="comparisons/why-mill.html#_ide_support" class="xref page">superior autocomplete and navigation in IntelliJ</a></p>
 </li>
 </ul>
 </div>
+<div class="paragraph">
+<p>Although the Java compiler is very fast and the Java language is easy to learn,
+JVM build tools have a reputation for being sluggish and confusing. Mill tries to
+offer a better alternative, letting your build system take full advantage of the
+Java platform’s performance and usability.</p>
+</div>
+<div class="paragraph">
+<p>Mill’s unique insight is <a href="comparisons/why-mill.html#_object_oriented_builds" class="xref page">Object-Oriented
+Builds</a>. While most build tools invent their own concepts to manage the complexity of your
+build pipelines, Mill re-uses concepts you already know: methods, classes, and overrides. This
+makes the semantics of Mill builds feel familiar even to non-build-tool experts.</p>
+</div>
+<div class="paragraph">
+<p>For more discussion on the motivation behind the project, see <a href="comparisons/why-mill.html" class="xref page">Why Use Mill?</a></p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_getting_started"><a class="anchor" href="#_getting_started"></a>Getting Started</h3>
 <div class="paragraph">
 <p>To get started using Mill for the first time, or migrating and existing JVM
 codebase (built using Maven, Gradle, or SBT) to Mill, see:</p>
@@ -735,15 +750,8 @@ codebase (built using Maven, Gradle, or SBT) to Mill, see:</p>
 </tbody>
 </table>
 </div>
-</div>
 <div class="sect2">
 <h3 id="_why_mill"><a class="anchor" href="#_why_mill"></a>Why Mill?</h3>
-<div class="paragraph">
-<p>Although the Java compiler is very fast and the Java language is easy to learn,
-JVM build tools have a reputation for being sluggish and confusing. Mill tries to
-offer a better alternative, letting your build system take full advantage of the
-Java platform’s performance and usability:</p>
-</div>
 <div class="ulist">
 <ul>
 <li>
@@ -791,20 +799,7 @@ and with minimal overhead.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>For a quick introduction of why you may care about Mill, see:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="comparisons/why-mill.html" class="xref page">Why Use Mill?</a></p>
-</li>
-<li>
-<p><a href="comparisons/unique.html" class="xref page">What Makes Mill Unique</a></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Or if you prefer a video introduction:</p>
+<p>If you prefer a video introduction to Mill, see:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -829,7 +824,8 @@ Mill can be used for applications built on top of common JVM frameworks like
 Spring Boot (both <a href="javalib/web-examples.html#_spring_boot_todomvc_app" class="xref page">in Java</a>
 and <a href="kotlinlib/web-examples.html#_spring_boot_todomvc_app" class="xref page">in Kotlin</a>),
 <a href="javalib/web-examples.html#_micronaut_todomvc_app" class="xref page">Micronaut</a>,
-or <a href="kotlinlib/web-examples.html#_ktor_todomvc_app" class="xref page">Ktor</a>.</p>
+<a href="kotlinlib/web-examples.html#_ktor_todomvc_app" class="xref page">Ktor</a>, or
+<a href="scalalib/web-examples.html#_todomvc_http4s_web_app" class="xref page">Http4S</a>.</p>
 </div>
 <div class="paragraph">
 <p>Mill borrows ideas from other tools like <a href="https://maven.apache.org/">Maven</a>,
@@ -857,6 +853,158 @@ build tools, check out these pages:</p>
 </tr>
 </tbody>
 </table>
+</div>
+<div class="sect2">
+<h3 id="_feature_tool_framework_support"><a class="anchor" href="#_feature_tool_framework_support"></a>Feature, Tool, &amp; Framework Support</h3>
+<div class="paragraph">
+<p>Mill supports most common JVM development workflows and tools built in, so you can
+get very far before you need to reach for third-party plugins or write custom code
+to extend your build pipelines. The table
+below links to the relevant part of the documentation and examples for each tool:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;" />
+<col style="width: 50%;" />
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><strong>Languages</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/intro.html" class="xref page">Java</a>, <a href="kotlinlib/intro.html" class="xref page">Kotlin</a>, <a href="scalalib/intro.html" class="xref page">Scala</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Dependency Management</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/dependencies.html#_adding_ivy_dependencies" class="xref page">Adding Dependencies</a></p>
+</li>
+<li>
+<p><a href="fundamentals/library-deps.html#_dependency_management" class="xref page">Dependency Version Management and BOMs</a></p>
+</li>
+<li>
+<p><a href="javalib/dependencies.html#_unmanaged_jars" class="xref page">Unmanaged Dependencies</a></p>
+</li>
+<li>
+<p><a href="fundamentals/configuring-jvm-versions.html" class="xref page">JVM Version Management</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Testing</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/testing.html#_defining_unit_test_suites" class="xref page">JUnit4, JUnit5, TestNG, ScalaTest, Specs2, Munit</a></p>
+</li>
+<li>
+<p><a href="javalib/testing.html#_defining_integration_test_suites" class="xref page">Integration Testing</a></p>
+</li>
+<li>
+<p><a href="javalib/testing.html#_test_parallelism" class="xref page">Test Parallelism</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Linting</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/linting.html#_linting_with_errorprone" class="xref page">ErrorProne</a>, <a href="javalib/linting.html#_linting_with_checkstyle" class="xref page">Checkstyle</a>, <a href="javalib/linting.html#_autoformatting_with_palantir_java_format" class="xref page">Palantir Java Format</a>, <a href="javalib/linting.html#_code_coverage_with_jacoco" class="xref page">Jacoco</a>, <a href="javalib/publishing.html#_checking_api_compatibility" class="xref page">RevApi</a></p>
+</li>
+<li>
+<p><a href="kotlinlib/linting.html#_linting_with_detekt" class="xref page">Detekt</a>, <a href="kotlinlib/linting.html#_linting_with_ktlint" class="xref page">KtLint</a>, <a href="kotlinlib/linting.html#_autoformatting_with_ktfmt" class="xref page">KtFmt</a>, <a href="kotlinlib/linting.html#_code_coverage_with_kover" class="xref page">Kover</a></p>
+</li>
+<li>
+<p><a href="scalalib/linting.html#_linting_and_autofixing_with_scalafix" class="xref page">Scalafix</a>, <a href="scalalib/linting.html#_autoformatting_with_scalafmt" class="xref page">Scalafmt</a>, <a href="scalalib/linting.html#_code_coverage_with_scoverage" class="xref page">Scoverage</a>, <a href="scalalib/linting.html#_binary_compatibility_enforcement" class="xref page">Mima</a></p>
+</li>
+</ul>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><strong>Packaging</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/publishing.html#_building_executable_assemblies" class="xref page">Executable Assemblies</a></p>
+</li>
+<li>
+<p><a href="javalib/publishing.html#_building_native_image_binaries_with_graal_vm" class="xref page">Graal Native Image</a>, <a href="javalib/publishing.html#_java_app_and_bundles_using_jlink" class="xref page">JLink</a>, <a href="javalib/publishing.html#_java_installers_using_jpackage" class="xref page">JPackage</a></p>
+</li>
+<li>
+<p><a href="contrib/docker.html" class="xref page">Docker</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Publishing</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/publishing.html#_publishing_to_sonatype_maven_central" class="xref page">Maven Central</a>, <a href="contrib/artifactory.html" class="xref page">Artifactory</a>, <a href="contrib/bintray.html" class="xref page">Bintray</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Web Frameworks</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/web-examples.html#_spring_boot_todomvc_app" class="xref page">Spring Boot</a>, <a href="javalib/web-examples.html#_micronaut_todomvc_app" class="xref page">Micronaut</a></p>
+</li>
+<li>
+<p><a href="kotlinlib/web-examples.html#_ktor_todomvc_app" class="xref page">Ktor</a>, <a href="kotlinlib/web-examples.html#_ktor_webapp_kotlinjs_client" class="xref page">Kotlin.js</a></p>
+</li>
+<li>
+<p><a href="scalalib/web-examples.html#_todomvc_http4s_web_app" class="xref page">Http4s</a>, <a href="scalalib/web-examples.html#_scala_js_webserver_integration" class="xref page">Scala.js</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Others</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/module-config.html#_annotation_processors" class="xref page">Java Annotation Processors</a>, <a href="kotlinlib/module-config.html#_kotlin_compiler_plugins" class="xref page">Kotlin Compiler Plugins</a>, <a href="scalalib/module-config.html#_scala_compiler_plugins" class="xref page">Scala Compiler Plugins</a></p>
+</li>
+<li>
+<p><a href="javalib/module-config.html#_native_c_code_with_jni" class="xref page">JNI</a></p>
+</li>
+<li>
+<p><a href="scalalib/spark.html" class="xref page">Apache Spark</a>, <a href="scalalib/native-examples.html" class="xref page">Scala-Native</a></p>
+</li>
+<li>
+<p><a href="large/selective-execution.html" class="xref page">Selective Test Execution</a>, <a href="large/multi-language-builds.html" class="xref page">Multi-Language Builds</a></p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>When the time comes that you do need something not in its builtin feature set, Mill
+also has a rich ecosystem of third party plugins for less common use cases:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="extending/thirdparty-plugins.html" class="xref page">Third-Party Plugins</a></p>
+</li>
+</ul>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_contributing_and_community"><a class="anchor" href="#_contributing_and_community"></a>Contributing and Community</h3>
