@@ -22,9 +22,9 @@ makes the semantics of Mill builds feel familiar even for first time users.
 To get started using Mill for the first time, or migrating and existing JVM
 codebase (built using Maven, Gradle, or SBT) to Mill, see:
 
-[cols="1a,1a"]
+[cols="1a,1a,1a"]
 |===
-| * xref:cli/installation-ide.adoc[] | * xref:migrating/migrating.adoc[]
+| * xref:comparisons/why-mill.adoc[] | * xref:cli/installation-ide.adoc[] | * xref:migrating/migrating.adoc[]
 |===
 
 Or see the language-specific introductory documentation linked below:
@@ -80,11 +80,7 @@ xref:large/multi-language-builds.adoc[multiple languages].
 Even projects with hundreds or thousands of sub-modules can be handled performantly
 and with minimal overhead.
 
-For a quick introduction of why you may care about Mill, see:
-
-* xref:comparisons/why-mill.adoc[]
-
-Or if you prefer a video introduction:
+If you prefer a video introduction to Mill, see:
 
 * https://www.youtube.com/watch?v=Dry6wMRN6MI[Video: Better Java Builds with the Mill Build Tool],
   Japan Java User Group Fall Conference Oct 2024
