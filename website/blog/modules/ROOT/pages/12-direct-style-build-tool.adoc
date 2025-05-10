@@ -362,9 +362,7 @@ for a widely-used general purpose programming language is much more solid.
 
 As another example, if you need a production-quality templating engine to use in your build
 system, you have a buffet of options. The common Java
-xref:mill::extending/import-mvn-plugins.adoc#_importing_java_libraries[Thymeleaf] templating engine is
-available with a single import, as is the popular
-xref:mill::extending/import-mvn-plugins.adoc#_importing_scala_libraries[Scalatags] templating engine.
+Thymeleaf templating engine is available with a single import, as is the popular Scalatags templating engine.
 Rather than being limited to what the build tool has built-in or what third-party plugins
 someone on the internet has published, you have at your fingertips any library in the huge JVM
 ecosystem, and can use them in exactly the same way you would in any Java/Scala/Kotlin application.
@@ -484,7 +482,7 @@ functionality, but at 10% the complexity:
 
 Mill provides many of the same things Bazel does: automatic xref:mill::depth/evaluation-model.adoc[caching],
 parallelization, xref:mill::depth/sandboxing.adoc[sandboxing],
-xref:mill::extending/import-mvn-plugins.adoc[extensibility]. Mill
+extensibility. Mill
 can already work with a wide variety of programming languages,
 from JVM languages like xref:mill::javalib/intro.adoc[Java]/xref:mill::scalalib/intro.adoc[Scala]/xref:mill::kotlinlib/intro.adoc[Kotlin]
 to xref:mill::extending/example-typescript-support.adoc[Typescript] and
