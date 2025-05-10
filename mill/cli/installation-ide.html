@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Installation &amp; IDE Setup :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/cli/installation-ide.html">
-    <link rel="prev" href="../comparisons/unique.html">
+    <link rel="prev" href="../comparisons/sbt.html">
     <link rel="next" href="flags.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../_/css/site.css">
@@ -339,10 +339,6 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
 </ul>
   </li>
 
@@ -613,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.10</span>
+    <span class="version">0.12.11</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -623,7 +619,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.10</a>
+          <a href="../index.html">0.12.11</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -682,26 +678,46 @@ globally.</p>
 bootstrap script, included. You can also download the boostrap script manually:</p>
 </div>
 <div class="listingblock">
+<div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Mac/Linux
-curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.10/mill -o mill
-chmod +x mill
-echo 0.12.10 &gt; .mill-version
-
-# Windows
-curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.10/mill.bat -o mill.bat
-echo 0.12.10 &gt; .mill-version</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/mill -o mill
+&gt; chmod +x mill
+&gt; echo 0.12.11 &gt; .mill-version</code></pre>
 </div>
+</div>
+<div class="listingblock">
+<div class="title">Windows</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/mill.bat -o mill.bat
+&gt; echo 0.12.11&gt; .mill-version</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p><strong>Don&#8217;t use PowerShell 5.1 to install Mill!</strong>
+<br>
+PowerShell 5.1 is known to produce <code>UTF-16LE</code> encoded <code>.mill-version</code> files, which can&#8217;t be read by Mill.
+You should update to Powershell 7 or newer.</p>
+</div>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>Downloading a <code>mill</code> bootstrap script to the root of your project repository helps make it easier for
+<p>Downloading a <code>mill</code> bootstrap script to the root of your project repository makes it easier for
 new contributors to build your project, as they don&#8217;t have to install Mill before they can start.
 Anyone who wants to work with the project can simply use the <code>./mill</code> script directly.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill --version
-./mill __.compile # double underscore</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill --version
+&gt; ./mill __.compile # double underscore</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -730,7 +746,7 @@ Mill version:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">echo 0.12.10-native &gt; .mill-version</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">echo 0.12.11-native &gt; .mill-version</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -874,7 +890,7 @@ run this command to generate the BSP configuration files:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill mill.bsp.BSP/install</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill mill.bsp/install</code></pre>
 </div>
 </div>
 <div class="sect3">
@@ -890,7 +906,7 @@ which are currently not specifically configured over BSP.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill mill.idea.GenIdea/</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill mill.idea/</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -916,7 +932,7 @@ which are currently not specifically configured over BSP.</p>
 <div class="paragraph">
 <p>After the files are generated, you can open the folder in IntelliJ to load the project
 into your IDE. If you make changes to your Mill <code>build.mill</code>, you can update the project config
-those updates by running <code>./mill mill.idea.GenIdea/</code> again.</p>
+those updates by running <code>./mill mill.idea/</code> again.</p>
 </div>
 </div>
 </div>
@@ -1206,7 +1222,7 @@ a <a href="#_bootstrap_scripts">bootstrap script</a> instead.
 <h3 id="_windows"><a class="anchor" href="#_windows"></a>Windows</h3>
 <div class="paragraph">
 <p>To get started, download Mill from
-<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.10/0.12.10-assembly">Github releases</a>, and save it as <code>mill.bat</code>.</p>
+<a href="https://github.com/com-lihaoyi/mill/releases/download/0.12.11/0.12.11-assembly">Github releases</a>, and save it as <code>mill.bat</code>.</p>
 </div>
 <div class="paragraph">
 <p>If you&#8217;re using <a href="https://scoop.sh">Scoop</a> you can install Mill via</p>
@@ -1264,7 +1280,7 @@ docker run -it nightscape/scala-mill</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sh -c "curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.10/0.12.10 &gt; ~/.local/bin/mill &amp;&amp; chmod +x ~/.local/bin/mill"</code></pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">sh -c "curl -L https://github.com/com-lihaoyi/mill/releases/download/0.12.11/0.12.11 &gt; ~/.local/bin/mill &amp;&amp; chmod +x ~/.local/bin/mill"</code></pre>
 </div>
 </div>
 </div>
@@ -1297,7 +1313,7 @@ asdf global mill latest
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../comparisons/unique.html">What Makes Mill Unique</a></span>
+  <span class="prev"><a href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a></span>
   <span class="next"><a href="flags.html">Mill Command-Line Flags</a></span>
 </nav>
 </article>

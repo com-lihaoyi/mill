@@ -339,10 +339,6 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
 </ul>
   </li>
 
@@ -613,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.10</span>
+    <span class="version">0.12.11</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -623,7 +619,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.10</a>
+          <a href="../index.html">0.12.11</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -661,7 +657,7 @@
 <h2 id="_common_configuration_overrides"><a class="anchor" href="#_common_configuration_overrides"></a>Common Configuration Overrides</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.10/example-javascriptlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/module/1-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/example-javascriptlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/javascriptlib/module/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -670,13 +666,11 @@ import mill.javascriptlib._
 
 object foo extends TypeScriptModule {
 
-  def customSource = Task {
-    Seq(PathRef(millSourcePath / "custom-src/foo2.ts"))
-  }
+  def customSource = Task.Sources("custom-src/foo2.ts")
 
-  def allSources = super.allSources() ++ customSource()
+  def sources = Task { super.sources() ++ customSource() }
 
-  def resources = super.resources() ++ Seq(PathRef(millSourcePath / "custom-resources"))
+  def resources = super.resources() ++ Seq(PathRef(moduleDir / "custom-resources"))
 
   def generatedSources = Task {
     for (name &lt;- Seq("A", "B", "C")) os.write(
@@ -694,7 +688,7 @@ object foo extends TypeScriptModule {
 
   def mainFileName = s"foo2.ts"
 
-  def mainFilePath = compile()._2.path / "custom-src" / mainFileName()
+  def mainFilePath = compile().path / "custom-src" / mainFileName()
 
 }</code></pre>
 </div>
@@ -703,13 +697,13 @@ object foo extends TypeScriptModule {
 <p>This example demonstrates usage of common configs</p>
 </div>
 <div class="paragraph">
-<p>Note the use of <code>millSourcePath</code>, <code>Task.dest</code>, and <code>PathRef</code> when preforming
+<p>Note the use of <code>moduleDir</code>, <code>Task.dest</code>, and <code>PathRef</code> when preforming
 various filesystem operations:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><code>millSourcePath</code>: Base path of the module. For the root module, it&#8217;s the repo root.
+<p><code>moduleDir</code>: Base path of the module. For the root module, it&#8217;s the repo root.
 For inner modules, it&#8217;s the module path (e.g., <code>foo/bar/qux</code> for <code>foo.bar.qux</code>). Can be overridden if needed.</p>
 </li>
 <li>
@@ -754,7 +748,7 @@ MyOtherResource: My Other Resource Contents</code></pre>
 <h2 id="_custom_tasks"><a class="anchor" href="#_custom_tasks"></a>Custom Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.10/example-javascriptlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/module/2-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/example-javascriptlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/javascriptlib/module/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -763,8 +757,12 @@ import mill._, javascriptlib._
 object foo extends TypeScriptModule {
 
   /** Total number of lines in module source files */
-  def lineCount = Task {
-    allSources().map(f =&gt; os.read.lines(f.path).size).sum
+  def lineCount: T[Int] = Task {
+    sources()
+      .flatMap(pathRef =&gt; os.walk(pathRef.path))
+      .filter(_.ext == "ts")
+      .map(os.read.lines(_).size)
+      .sum
   }
 
   def generatedSources = Task {
@@ -911,14 +909,16 @@ Line count: 9</code></pre>
 <h2 id="_overriding_tasks"><a class="anchor" href="#_overriding_tasks"></a>Overriding Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.10/example-javascriptlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/module/3-override-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/example-javascriptlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/javascriptlib/module/3-override-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill._
 import mill.javascriptlib._
 
-object foo extends TypeScriptModule {
+object `package` extends RootModule with TypeScriptModule {
+  def moduleName = "foo"
+
   def sources = Task {
     val srcPath = Task.dest / "src"
     val filePath = srcPath / "foo.ts"
@@ -933,7 +933,7 @@ object foo extends TypeScriptModule {
       """.stripMargin
     )
 
-    PathRef(Task.dest)
+    Seq(PathRef(Task.dest))
   }
 
   def compile = Task {
@@ -973,7 +973,7 @@ override <code>sources</code> and use <code>super</code> to include the original
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run "added tags"
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run "added tags"
 Compiling...
 Hello World!
 Running... added tags</code></pre>
@@ -985,7 +985,7 @@ Running... added tags</code></pre>
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.10/example-javascriptlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/example-javascriptlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/javascriptlib/module/4-compilation-execution-flags">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1027,7 +1027,7 @@ Hello World!</code></pre>
 <h2 id="_filesystem_resources"><a class="anchor" href="#_filesystem_resources"></a>Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.10/example-javascriptlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/module/5-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/example-javascriptlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/javascriptlib/module/5-resources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1096,25 +1096,25 @@ provide the folder path as an environment variable that the test can make use of
 <p>Example application code demonstrating the techniques above can be seen below:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/module/5-resources/foo/resources/file.txt">browse</a>)</div>
+<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/javascriptlib/module/5-resources/foo/resources/file.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Hello World Resource File</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/module/5-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
+<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/javascriptlib/module/5-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File A</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/module/5-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
+<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/javascriptlib/module/5-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File B</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/module/5-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
+<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/javascriptlib/module/5-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Other Hello World File</code></pre>
 </div>
@@ -1140,7 +1140,7 @@ the sandbox and make the tests run in the project root.</p>
 <h2 id="_bundling_configuration"><a class="anchor" href="#_bundling_configuration"></a>Bundling Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.10/example-javascriptlib-module-6-executable-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/module/6-executable-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/example-javascriptlib-module-6-executable-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/javascriptlib/module/6-executable-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 

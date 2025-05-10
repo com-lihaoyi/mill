@@ -339,10 +339,6 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
 </ul>
   </li>
 
@@ -613,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.10</span>
+    <span class="version">0.12.11</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -623,7 +619,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.10</a>
+          <a href="../index.html">0.12.11</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -668,24 +664,25 @@
 <h2 id="_simple_publish"><a class="anchor" href="#_simple_publish"></a>Simple publish</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.10/example-javascriptlib-publishing-1-publish.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/publishing/1-publish">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/example-javascriptlib-publishing-1-publish.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/javascriptlib/publishing/1-publish">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill._, javascriptlib._
+import ujson._
 
 object foo extends PublishModule {
-  def publishMeta = Task {
-    PublishMeta(
-      name = "mill-simple",
-      version = "1.0.0",
-      description = "A simple Node.js command-line tool",
-      files = Seq("README.md"),
-      bin = Map(
-        "greet" -&gt; "src/foo.js"
-      )
+  def pubBundledOut = "dist"
+  def packageJson = PackageJson(
+    name = "mill-simple",
+    version = "1.0.0",
+    description = "A simple Node.js command-line tool",
+    files = Seq("README.md"),
+    bin = ujson.Obj(
+      "greet" -&gt; s"${pubBundledOut()}/src/foo.js"
     )
-  }
+  )
+
 }</code></pre>
 </div>
 </div>
@@ -731,7 +728,16 @@ change the regsitry to publish to a private registry.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; npm i -g mill-simple # install the executable file globally
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run "James Bond"
+Hello James Bond!
+
+&gt; mill show foo.bundle
+Build succeeded!
+
+&gt; node out/foo/bundle.dest/dist/src/foo.js "James Bond"
+Hello James Bond!
+
+&gt; npm i -g mill-simple # install the executable file globally
 ...
 
 &gt; greet "James Bond"
@@ -744,11 +750,12 @@ Hello James Bond!</code></pre>
 <h2 id="_realistic_publish"><a class="anchor" href="#_realistic_publish"></a>Realistic publish</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.10/example-javascriptlib-publishing-2-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/javascriptlib/publishing/2-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/example-javascriptlib-publishing-2-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/javascriptlib/publishing/2-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill._, javascriptlib._
+import ujson._
 
 object foo extends TypeScriptModule {
   object bar extends TypeScriptModule {
@@ -772,19 +779,21 @@ object qux extends PublishModule {
     Seq(PathRef(Task.dest))
   }
 
-  def exports = Map(
+  def pubBundledOut = "dist"
+
+  def pubExports = Map(
     "./qux/generate_user" -&gt; "src/generate_user.js",
     "./foo" -&gt; "foo/src/foo.js",
     "./foo/bar" -&gt; "foo/bar/src/bar.js"
   )
 
-  def publishMeta = PublishMeta(
+  def packageJson = PackageJson(
     name = "mill-realistic",
     version = "1.0.3",
     description = "A simple Node.js command-line tool",
     files = Seq("README.md"),
-    bin = Map(
-      "qux" -&gt; "src/qux.js"
+    bin = ujson.Obj(
+      "qux" -&gt; s"${pubBundledOut()}/src/qux.js"
     )
   )
 
@@ -833,7 +842,22 @@ The package.json generated for this lib publish:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill qux.test
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill qux.run James Bond prof
+{ prof: 'Professor' }
+prof
+Professor
+Hello James Bond Professor
+
+&gt; mill show qux.bundle
+Build succeeded!
+
+&gt; node out/qux/bundle.dest/dist/src/qux.js James Bond prof
+{ prof: 'Professor' }
+prof
+Professor
+Hello James Bond Professor
+
+&gt; mill qux.test
 PASS .../qux.test.ts
 ...
 

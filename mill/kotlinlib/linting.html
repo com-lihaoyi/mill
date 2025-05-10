@@ -339,10 +339,6 @@
   <li class="nav-item" data-depth="2">
     <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
   </li>
-
-  <li class="nav-item is-active" data-depth="2">
-    <a class="nav-link" href="../comparisons/unique.html">What Makes Mill Unique</a>
-  </li>
 </ul>
   </li>
 
@@ -613,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.10</span>
+    <span class="version">0.12.11</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -623,7 +619,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.10</a>
+          <a href="../index.html">0.12.11</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -669,7 +665,7 @@ codebases using the Mill build tool</p>
 <h2 id="_linting_with_detekt"><a class="anchor" href="#_linting_with_detekt"></a>Linting with Detekt</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.10/example-kotlinlib-linting-1-detekt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/kotlinlib/linting/1-detekt">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/example-kotlinlib-linting-1-detekt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/kotlinlib/linting/1-detekt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -688,7 +684,7 @@ static code analyzer for linting a <code>KotlinModule</code>, by mixing in the t
 <code>DetektModule</code> and calling the <code>detekt</code> task:</p>
 </div>
 <div class="listingblock">
-<div class="title">src/example/Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/kotlinlib/linting/1-detekt/src/example/Foo.kt">browse</a>)</div>
+<div class="title">src/example/Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/kotlinlib/linting/1-detekt/src/example/Foo.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package example
 
@@ -726,7 +722,7 @@ error: ...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]
 <h2 id="_linting_with_ktlint"><a class="anchor" href="#_linting_with_ktlint"></a>Linting with KtLint</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.10/example-kotlinlib-linting-2-ktlint.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/kotlinlib/linting/2-ktlint">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/example-kotlinlib-linting-2-ktlint.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/kotlinlib/linting/2-ktlint">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -760,7 +756,7 @@ error: ...src/example/FooWrong.kt:6:28: Missing newline before ")" (standard:par
 
 &gt; ./mill ktlint # after fixing the violations, ktlint no longer errors
 
-&gt; ./mill mill.kotlinlib.ktlint.KtlintModule/ # alternatively, use external module to check/format</code></pre>
+&gt; ./mill mill.kotlinlib.ktlint/ # alternatively, use external module to check/format</code></pre>
 </div>
 </div>
 </div>
@@ -769,7 +765,7 @@ error: ...src/example/FooWrong.kt:6:28: Missing newline before ")" (standard:par
 <h2 id="_autoformatting_with_ktfmt"><a class="anchor" href="#_autoformatting_with_ktfmt"></a>Autoformatting with KtFmt</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.10/example-kotlinlib-linting-3-ktfmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/kotlinlib/linting/3-ktfmt">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/example-kotlinlib-linting-3-ktfmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/kotlinlib/linting/3-ktfmt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -799,7 +795,7 @@ Done formatting ...src/example/FooWrong.kt
 
 &gt; ./mill ktfmt # after fixing the violations, ktfmt no longer prints any file
 
-&gt; ./mill mill.kotlinlib.ktfmt.KtfmtModule/ __.sources   # alternatively, use external module to check/format</code></pre>
+&gt; ./mill mill.kotlinlib.ktfmt/ __.sources   # alternatively, use external module to check/format</code></pre>
 </div>
 </div>
 </div>
@@ -808,7 +804,7 @@ Done formatting ...src/example/FooWrong.kt
 <h2 id="_code_coverage_with_kover"><a class="anchor" href="#_code_coverage_with_kover"></a>Code Coverage with Kover</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.10/example-kotlinlib-linting-4-kover.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.10/example/kotlinlib/linting/4-kover">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/example-kotlinlib-linting-4-kover.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.11/example/kotlinlib/linting/4-kover">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -854,7 +850,7 @@ must first run the test.
 <code>./mill test</code> then <code>./mill show kover.htmlReport</code> and get your
 coverage in HTML format.
 Also reports for all modules can be collected in a single place by
-running <code>./mill show mill.kotlinlib.kover.Kover/htmlReportAll</code>.</p>
+running <code>./mill show mill.kotlinlib.kover/htmlReportAll</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -877,7 +873,7 @@ kover.xmlReport
 ...
 ...Kover HTML Report: Overall Coverage Summary...
 
-&gt; ./mill show mill.kotlinlib.kover.Kover/htmlReportAll # collect reports from all modules
+&gt; ./mill show mill.kotlinlib.kover/htmlReportAll # collect reports from all modules
 ...
 ...out/mill/kotlinlib/kover/Kover/htmlReportAll.dest/kover-report...
 
