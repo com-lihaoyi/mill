@@ -13,6 +13,21 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#0-12-11]
+=== 0.12.11 - 2025-05-10
+:version: 0.12.11
+:milestone-name: 0.12.11
+:milestone: 114
+:prev-version: 0.12.10
+
+* fix: Use root qualifier in Discover macro ({link-pr}/5055[#5055])
+* Fix selective execution when multiple changes are made to one module under `--watch` ({link-pr}/5032[#5032])
+* Add ability to define `package` `ExternalModule`s that can be calle via just `pkg.path/` rather than `pkg.path.ObjectName/` ({link-pr}/4920[#4920])
+* Backport `javascriptlib` and `pythonlib` improvements from `main` branch ({link-pr}/4893[#4893])
+* Fix wildcard and type selector query bugs ({link-pr}/4862[#4862])
+* Lots of Mill `main` branch compatibility changes, adding the new name and deprecating the old one
+  ({link-pr}/4838[#4838], {link-pr}/4840[#4840], {link-pr}/4843[#4843], {link-pr}/5005[#5005])
+
 [#0-12-10]
 === 0.12.10 - 2025-04-01
 :version: 0.12.10
