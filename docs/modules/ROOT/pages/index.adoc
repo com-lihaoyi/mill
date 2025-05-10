@@ -17,14 +17,18 @@ xref:comparisons/why-mill.adoc#_ide_support[superior autocomplete and navigation
 Mill's unique insight is xref:comparisons/why-mill.adoc#_object_oriented_builds[Object-Oriented
 Builds]. While most build tools invent their own concepts to manage the complexity of your
 build pipelines, Mill re-uses concepts you already know: methods, classes, and overrides. This
-makes the semantics of Mill builds feel familiar even for first time users.
+makes the semantics of Mill builds feel familiar even to non-build-tool experts.
+
+For more discussion on the motivation behind the project, see xref:comparisons/why-mill.adoc[Why Use Mill?]
+
+=== Getting Started
 
 To get started using Mill for the first time, or migrating and existing JVM
 codebase (built using Maven, Gradle, or SBT) to Mill, see:
 
-[cols="1a,1a,1a"]
+[cols="1a,1a"]
 |===
-| * xref:comparisons/why-mill.adoc[] | * xref:cli/installation-ide.adoc[] | * xref:migrating/migrating.adoc[]
+| * xref:cli/installation-ide.adoc[] | * xref:migrating/migrating.adoc[]
 |===
 
 Or see the language-specific introductory documentation linked below:
@@ -112,6 +116,20 @@ build tools, check out these pages:
 | xref:comparisons/gradle.adoc[image:index/gradle.svg[gradle,32] Mill vs Gradle]
 | xref:comparisons/sbt.adoc[image:index/sbt.png[sbt,32] Mill vs `sbt`]
 |===
+
+=== Feature, Tool, & Framework Support
+
+Mill supports most common JVM development workflows and tools built in, so you can
+get very far before you need to reach for third-party plugins or write custom code
+to extend your build pipelines. The table
+below links to the relevant part of the documentation and examples for each tool:
+
+include::partial$Feature_Support.adoc[]
+
+When the time comes that you do need something not in its builtin feature set, Mill
+also has a rich ecosystem of third party plugins for less common use cases:
+
+- xref::extending/thirdparty-plugins.adoc[]
 
 === Contributing and Community
 
