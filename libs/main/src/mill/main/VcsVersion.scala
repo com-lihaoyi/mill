@@ -142,7 +142,7 @@ trait VcsVersion extends mill.Module {
           try {
             Option(
               os.proc("git", "describe", "--abbrev=0", "--tags")
-                .call(stderr = os.Pipe)
+                .call(cwd = vcsBasePath, stderr = os.Pipe)
                 .out
                 .text()
                 .trim()
@@ -167,7 +167,7 @@ trait VcsVersion extends mill.Module {
                     case _ => Seq()
                   },
                   "--count"
-                ).call(stderr = os.Pipe)
+                ).call(cwd = vcsBasePath, stderr = os.Pipe)
                   .out
                   .trim()
                   .toInt
@@ -176,7 +176,10 @@ trait VcsVersion extends mill.Module {
           }
 
         val dirtyHashCode: Option[String] =
-          Option(os.proc("git", "diff").call(stderr = os.Pipe).out.text().trim()).flatMap {
+          Option(os.proc(
+            "git",
+            "diff"
+          ).call(cwd = vcsBasePath, stderr = os.Pipe).out.text().trim()).flatMap {
             case "" => None
             case s => Some(Integer.toHexString(s.hashCode))
           }
