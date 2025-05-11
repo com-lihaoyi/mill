@@ -657,8 +657,8 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc"><span class="image"><img src="https://index.scala-lang.org/com-lihaoyi/mill/mill-libs-main/latest.svg" alt="Mill" /></span></a>
-<a href="https://central.sonatype.com/artifact/com.lihaoyi/mill-dist"><span class="image"><img src="https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable&amp;versionPrefix=0.12." alt="Maven Central Version" /></span></a></p>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc"><span class="image"><img src="https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=stable-version&amp;versionPrefix=0.13.0-M2&amp;versionSuffix=0.13.0-M2" alt="d" /></span></a>
+<a href="https://central.sonatype.com/artifact/com.lihaoyi/mill-dist"><span class="image"><img src="https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=unstable-version&amp;versionPrefix=0.12." alt="Maven Central Version" /></span></a></p>
 </div>
 <div class="paragraph">
 <p>Mill is a JVM build tool that supports Java, Scala, and Kotlin:</p>
@@ -686,12 +686,6 @@ offer a better alternative, letting your build system take full advantage of the
 Java platform’s performance and usability.</p>
 </div>
 <div class="paragraph">
-<p>Mill’s unique insight is <a href="comparisons/why-mill.html#_object_oriented_builds" class="xref page">Object-Oriented
-Builds</a>. While most build tools invent their own concepts to manage the complexity of your
-build pipelines, Mill re-uses concepts you already know: methods, classes, and overrides. This
-makes the semantics of Mill builds feel familiar even to non-build-tool experts.</p>
-</div>
-<div class="paragraph">
 <p>For more discussion on the motivation behind the project, see <a href="comparisons/why-mill.html" class="xref page">Why Use Mill?</a></p>
 </div>
 </div>
@@ -699,7 +693,7 @@ makes the semantics of Mill builds feel familiar even to non-build-tool experts.
 <div class="sect2">
 <h3 id="_getting_started"><a class="anchor" href="#_getting_started"></a>Getting Started</h3>
 <div class="paragraph">
-<p>To get started using Mill for the first time, or migrating and existing JVM
+<p>To get started using Mill for the first time, or migrating an existing JVM
 codebase (built using Maven, Gradle, or SBT) to Mill, see:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -751,7 +745,7 @@ codebase (built using Maven, Gradle, or SBT) to Mill, see:</p>
 </table>
 </div>
 <div class="sect2">
-<h3 id="_why_mill"><a class="anchor" href="#_why_mill"></a>Why Mill?</h3>
+<h3 id="_mill_features"><a class="anchor" href="#_mill_features"></a>Mill Features</h3>
 <div class="ulist">
 <ul>
 <li>
@@ -775,7 +769,7 @@ fiddling with tooling and plugins.</p>
 <p><strong>Maintainability</strong>: Mill’s config and <a href="javalib/intro.html#_custom_build_logic" class="xref page">custom logic</a>
 is written in <a href="depth/why-scala.html" class="xref page">concise type-checked JVM code</a>,
 with an immutable <a href="depth/design-principles.html" class="xref page">module tree and task graph</a>. This
-catches config issues early, and helps both humans and IDEs
+catches configuration issues early, and helps both humans and IDEs
 (<a href="cli/installation-ide.html#_intellij" class="xref page">IntelliJ</a> or
 <a href="cli/installation-ide.html#_vscode" class="xref page">VSCode</a>)
 understand your Mill build better than any other build system</p>
@@ -854,7 +848,7 @@ build tools, check out these pages:</p>
 </table>
 </div>
 <div class="sect2">
-<h3 id="_feature_tool_framework_support"><a class="anchor" href="#_feature_tool_framework_support"></a>Feature, Tool, &amp; Framework Support</h3>
+<h3 id="_tool_framework_support"><a class="anchor" href="#_tool_framework_support"></a>Tool &amp; Framework Support</h3>
 <div class="paragraph">
 <p>Mill supports most common JVM development workflows and tools built in, so you can
 get very far before you need to reach for third-party plugins or write custom code
