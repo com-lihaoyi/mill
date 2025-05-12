@@ -218,13 +218,13 @@ object `package` extends MillJavaModule with DistModule {
     }
   }
 
-  def publishArtifacts = Task {
-    super.publishArtifacts().copy(payload =
-      super.publishArtifacts().payload ++
-        exampleZips().map(z => (z, z.path.last)) ++
-        Seq((bootstrapLauncher(), "mill"), (bootstrapLauncherBat(), "mill.bat"))
-    )
-  }
+//  def publishArtifacts = Task {
+//    super.publishArtifacts().copy(payload =
+//      super.publishArtifacts().payload ++
+//        exampleZips().map(z => (z, z.path.last)) ++
+//        Seq((bootstrapLauncher(), "mill"), (bootstrapLauncherBat(), "mill.bat"))
+//    )
+//  }
 
   def artifactName = "mill-" + super.artifactName()
 
