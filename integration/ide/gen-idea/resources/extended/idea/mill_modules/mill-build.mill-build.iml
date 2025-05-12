@@ -118,6 +118,6 @@
         <orderEntry type="library" name="windows-jni-utils-0.3.3.jar" level="project"/>
         <orderEntry type="library" name="xbean-reflect-3.7.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="xz-1.9.jar" level="project"/>
-        <orderEntry type="library" name="zstd-jni-1.5.7-2.jar" level="project"/>
+        <orderEntry type="library" name="zstd-jni-1.5.7-3.jar" level="project"/>
     </component>
 </module>
