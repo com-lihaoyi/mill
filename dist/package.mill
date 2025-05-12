@@ -63,10 +63,10 @@ trait DistModule extends Module {
   }
 
   def artifactName: T[String]
-  def artifact = Task{ Artifact(Settings.pomOrg, artifactName(), build.millVersion()) }
-  def pomSettings = Task{ MillPublishJavaModule.commonPomSettings(artifactName()) }
+  def artifact = Task { Artifact(Settings.pomOrg, artifactName(), build.millVersion()) }
+  def pomSettings = Task { MillPublishJavaModule.commonPomSettings(artifactName()) }
 
-  def artifactFileNamePrefix = Task{ s"${artifactName()}-${build.millVersion()}" }
+  def artifactFileNamePrefix = Task { s"${artifactName()}-${build.millVersion()}" }
   def pom: T[PathRef] = Task {
     val pom = Pom(
       artifact = artifact(),
