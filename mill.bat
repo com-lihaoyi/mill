@@ -23,10 +23,10 @@ rem this script downloads a binary file from Maven Central or Github Pages (this
 rem into a cache location (%USERPROFILE%\.mill\download).
 rem
 rem Mill Project URL: https://github.com/com-lihaoyi/mill
-rem Script Version: 0.13.0-M2-63-e8edbd
+rem Script Version: debug-badge-21-6ec959-DIRTY9d9881ba
 rem
 rem If you want to improve this script, please also contribute your changes back!
-rem This script was generated from: scripts/src/mill.bat
+rem This script was generated from: dist/scripts/src/mill.bat
 rem
 rem Licensed under the Apache License, Version 2.0
 
@@ -137,6 +137,7 @@ set MILL=%MILL_DOWNLOAD_PATH%\!FULL_MILL_VERSION!!MILL_EXT!
 
 if not exist "%MILL%" (
     set VERSION_PREFIX=%MILL_VERSION:~0,4%
+    set SHORT_VERSION_PREFIX=%MILL_VERSION:~0,2%
     rem Since 0.5.0
     set DOWNLOAD_SUFFIX=-assembly
     rem Since 0.11.0
@@ -185,6 +186,11 @@ if not exist "%MILL%" (
         set DOWNLOAD_FROM_MAVEN=0
     )
     set VERSION_PREFIX=
+    set DOWNLOAD_EXT="exe"
+    if [!SHORT_VERSION_PREFIX!]==[0.] (
+        set DOWNLOAD_EXT="jar"
+    )
+    set SHORT_VERSION_PREFIX=
 
     for /F "delims=- tokens=1" %%A in ("!MILL_VERSION!") do set MILL_VERSION_BASE=%%A
     for /F "delims=- tokens=2" %%A in ("!MILL_VERSION!") do set MILL_VERSION_MILESTONE=%%A
@@ -199,7 +205,7 @@ if not exist "%MILL%" (
     set DOWNLOAD_FILE=%MILL%.tmp
 
     if [!DOWNLOAD_FROM_MAVEN!]==[1] (
-        set DOWNLOAD_URL=https://repo1.maven.org/maven2/com/lihaoyi/mill-dist!ARTIFACT_SUFFIX!/!MILL_VERSION!/mill-dist!ARTIFACT_SUFFIX!-!MILL_VERSION!.exe
+        set DOWNLOAD_URL=https://repo1.maven.org/maven2/com/lihaoyi/mill-dist!ARTIFACT_SUFFIX!/!MILL_VERSION!/mill-dist!ARTIFACT_SUFFIX!-!MILL_VERSION!.!DOWNLOAD_EXT!
     ) else (
         set DOWNLOAD_URL=!GITHUB_RELEASE_CDN!%MILL_REPO_URL%/releases/download/!MILL_VERSION_TAG!/!MILL_VERSION!!DOWNLOAD_SUFFIX!
     )
