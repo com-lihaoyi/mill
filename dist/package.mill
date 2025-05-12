@@ -63,10 +63,29 @@ trait DistModule extends Module {
   }
 
   def artifactName: T[String]
+
   def publishArtifacts = Task {
+    val artifact = Artifact(Settings.pomOrg, artifactName(), build.millVersion())
+    os.write(
+      Task.dest / "pom.xml",
+      mill.scalalib.publish.Pom(
+        artifact = artifact,
+        dependencies = Nil,
+        name = artifactName(),
+        pomSettings = MillPublishJavaModule.commonPomSettings(artifactName()),
+        properties = Map(),
+        packagingType = "jar",
+        parentProject = None,
+        bomDependencies = Nil,
+        dependencyManagement = Nil
+      )
+    )
     PublishModule.PublishData(
-      meta = Artifact(Settings.pomOrg, artifactName(), build.millVersion()),
-      payload = Seq(executableRaw() -> s"${artifactName()}-${build.millVersion()}.jar")
+      meta = artifact,
+      payload = Seq(
+        executableRaw() -> s"${artifactName()}-${build.millVersion()}.jar",
+        PathRef(Task.dest / "pom.xml") -> "pom.xml"
+      )
     )
   }
 }
