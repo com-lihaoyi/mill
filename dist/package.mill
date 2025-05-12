@@ -66,6 +66,7 @@ trait DistModule extends Module {
   def artifact = Task{ Artifact(Settings.pomOrg, artifactName(), build.millVersion()) }
   def pomSettings = Task{ MillPublishJavaModule.commonPomSettings(artifactName()) }
 
+  def artifactFileNamePrefix = Task{ s"${artifactName()}-${build.millVersion()}" }
   def pom: T[PathRef] = Task {
     val pom = Pom(
       artifact = artifact(),
@@ -78,7 +79,7 @@ trait DistModule extends Module {
       bomDependencies = Nil,
       dependencyManagement = Nil
     )
-    val pomPath = Task.dest / s"${artifactName()}-${build.millVersion()}.pom"
+    val pomPath = Task.dest / s"${artifactFileNamePrefix()}.pom"
     os.write.over(pomPath, pom)
     PathRef(pomPath)
   }
@@ -87,8 +88,8 @@ trait DistModule extends Module {
     PublishModule.PublishData(
       meta = artifact(),
       payload = Seq(
-        executableRaw() -> s"${artifactName()}-${build.millVersion()}.exe",
-        pom() -> s"${artifactName()}-${build.millVersion()}.pom"
+        executableRaw() -> s"${artifactFileNamePrefix()}.exe",
+        pom() -> s"${artifactFileNamePrefix()}.pom"
       )
     )
   }
@@ -248,8 +249,11 @@ object `package` extends MillJavaModule with DistModule {
   def publishArtifacts = Task {
     super.publishArtifacts().copy(payload =
       super.publishArtifacts().payload ++
-        exampleZips().map(z => (z, z.path.last)) ++
-        Seq((bootstrapLauncher(), "mill"), (bootstrapLauncherBat(), "mill.bat"))
+        exampleZips().map(z => (z, s"${artifactFileNamePrefix()}-${z.path.last}")) ++
+        Seq(
+          (bootstrapLauncher(), s"${artifactFileNamePrefix()}-mill.sh"),
+          (bootstrapLauncherBat(), s"${artifactFileNamePrefix()}-mill.bat")
+        )
     )
   }
 
