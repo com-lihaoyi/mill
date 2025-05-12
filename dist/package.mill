@@ -64,9 +64,14 @@ trait DistModule extends millbuild.MillPublishJavaModule {
 
   def artifactName: T[String]
 
-//  override def extraPublish = Seq(
-//    PublishInfo(executableRaw(), classifier = Some("launcher"), ivyConfig = "compile")
-//  )
+  override def extraPublish = Seq(
+    PublishInfo(
+      file = executableRaw(),
+      classifier = Some("launcher"),
+      ext = "exe",
+      ivyConfig = "compile"
+    )
+  )
 }
 
 object `package` extends MillJavaModule with DistModule {
