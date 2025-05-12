@@ -64,7 +64,7 @@ trait DistModule extends millbuild.MillPublishJavaModule {
 
   def artifactName: T[String]
 
-//  def jar = executableRaw()
+  def jar = executableRaw()
 }
 
 object `package` extends MillJavaModule with DistModule {
