@@ -4,7 +4,7 @@ import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCreden
 import mill._
 import scalalib._
 import define.{ExternalModule, Task}
-import mill.util.Tasks
+import mill.main.Tasks
 import mill.define.TaskModule
 import mill.api.{Result, experimental}
 import mill.scalalib.SonatypeCentralPublishModule.{
@@ -75,7 +75,7 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
   def defaultCommandName(): String = "publishAll"
 
   def publishAll(
-      publishArtifacts: mill.util.Tasks[PublishModule.PublishData] =
+      publishArtifacts: Tasks[PublishModule.PublishData] =
         Tasks.resolveMainDefault("__.publishArtifacts"),
       username: String = defaultCredentials,
       password: String = defaultCredentials,
