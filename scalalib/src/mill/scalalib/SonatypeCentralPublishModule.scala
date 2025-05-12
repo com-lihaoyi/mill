@@ -1,11 +1,13 @@
-package mill.contrib.sonatypecentral
+package mill.scalalib
 
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import mill._
 import scalalib._
 import define.{ExternalModule, Task}
-import mill.api.Result
-import mill.contrib.sonatypecentral.SonatypeCentralPublishModule.{
+import mill.main.Tasks
+import mill.define.TaskModule
+import mill.api.{Result, experimental}
+import mill.scalalib.SonatypeCentralPublishModule.{
   defaultAwaitTimeout,
   defaultConnectTimeout,
   defaultCredentials,
@@ -19,6 +21,7 @@ import mill.scalalib.publish.SonatypeHelpers.{
   USERNAME_ENV_VARIABLE_NAME
 }
 
+@experimental
 trait SonatypeCentralPublishModule extends PublishModule {
   def sonatypeCentralGpgArgs: T[String] = Task {
     PublishModule.defaultGpgArgsForPassphrase(Task.env.get("MILL_PGP_PASSPHRASE")).mkString(",")
@@ -60,7 +63,7 @@ trait SonatypeCentralPublishModule extends PublishModule {
     }
 }
 
-object SonatypeCentralPublishModule extends ExternalModule {
+object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
 
   val defaultCredentials: String = ""
   val defaultReadTimeout: Int = 60000
@@ -68,8 +71,12 @@ object SonatypeCentralPublishModule extends ExternalModule {
   val defaultAwaitTimeout: Int = 120 * 1000
   val defaultShouldRelease: Boolean = true
 
+  // Set the default command to "publishAll"
+  def defaultCommandName(): String = "publishAll"
+
   def publishAll(
-      publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
+      publishArtifacts: Tasks[PublishModule.PublishData] =
+        Tasks.resolveMainDefault("__.publishArtifacts"),
       username: String = defaultCredentials,
       password: String = defaultCredentials,
       shouldRelease: Boolean = defaultShouldRelease,
