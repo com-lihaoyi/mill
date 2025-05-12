@@ -127,6 +127,7 @@ object CoursierClient {
     launcher.toNIO
   }
 
+  /** Files refered to by this launcher */
   def launcherEntries(launcher: java.nio.file.Path): Array[java.nio.file.Path] =
     Using.resource(new ZipFile(launcher.toFile)) { zf =>
       Iterator.from(0)
