@@ -107,6 +107,11 @@ trait AndroidModule extends JavaModule {
     Seq("--auto-add-overlay")
   }
 
+  /**
+   * Gets all the android resources (typically in res/ directory)
+   * from the [[transitiveModuleCompileModuleDeps]]
+   * @return
+   */
   def androidTransitiveResources: T[Seq[PathRef]] = Task {
     T.traverse(transitiveModuleCompileModuleDeps) {
       case m: AndroidModule =>
@@ -116,6 +121,11 @@ trait AndroidModule extends JavaModule {
     }().flatten
   }
 
+  /**
+   * Gets all the android resources (typically in res/ directory)
+   * from the library dependencies using [[androidUnpackArchives]]
+   * @return
+   */
   def androidLibraryResources: T[Seq[PathRef]] = Task {
     androidUnpackArchives().flatMap(_.androidResources.toSeq)
   }
@@ -135,12 +145,16 @@ trait AndroidModule extends JavaModule {
     )
   }
 
+  /**
+   * The original compiled classpath (containing a mix of jars and aars).
+   * @return
+   */
   def androidOriginalCompileClasspath: T[Seq[PathRef]] = Task {
     super.compileClasspath()
   }
 
   /**
-   * Replaces AAR files in classpath with their extracted JARs.
+   * Replaces AAR files in [[androidOriginalCompileClasspath]] with their extracted JARs.
    */
   override def compileClasspath: T[Seq[PathRef]] = Task {
     // TODO process metadata shipped with Android libs. It can have some rules with Target SDK, for example.
@@ -150,6 +164,11 @@ trait AndroidModule extends JavaModule {
     ).distinct.map(PathRef(_))
   }
 
+  /**
+   * Adds the android resources as an `R.jar` from [[androidProcessedResources]]
+   * to the [[localRunClasspath]]
+   * @return
+   */
   override def localRunClasspath: T[Seq[PathRef]] =
     super.localRunClasspath() :+ androidProcessedResources()
 
@@ -160,6 +179,11 @@ trait AndroidModule extends JavaModule {
     moduleDir / "src/main/res"
   }
 
+  /**
+   * Constructs the run classpath by extracting JARs from AAR files where
+   * applicable using [[androidResolvedRunMvnDeps]]
+   * @return
+   */
   override def runClasspath: T[Seq[PathRef]] = Task {
     (super.runClasspath().filter(_.path.ext != "aar") ++ androidResolvedRunMvnDeps()).map(
       _.path
@@ -203,7 +227,6 @@ trait AndroidModule extends JavaModule {
       .filter(_.ext == "aar")
       .distinct
 
-    // TODO do it in some shared location, otherwise each module is doing the same, having its own copy for nothing
     extractAarFiles(aarFiles, transformDest)
   }
 
