@@ -75,7 +75,7 @@ trait DistModule extends millbuild.MillPublishJavaModule {
 
   def publishArtifacts = Task {
     super.publishArtifacts().copy(payload =
-      super.publishArtifacts().payload.filter(_._2 == "pom.xml")
+      super.publishArtifacts().payload.filter(!_._2.endsWith(".jar"))
     )
   }
 }
