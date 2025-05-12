@@ -72,6 +72,12 @@ trait DistModule extends millbuild.MillPublishJavaModule {
       ivyConfig = "compile"
     )
   )
+
+  def publishArtifacts = Task {
+    super.publishArtifacts().copy(payload =
+      super.publishArtifacts().payload.filter(_._2 == "pom.xml")
+    )
+  }
 }
 
 object `package` extends MillJavaModule with DistModule {
