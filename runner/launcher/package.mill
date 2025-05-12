@@ -17,6 +17,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     Deps.nativeTerminal,
     Deps.coursier,
     Deps.coursierInterface,
+    Deps.coursierLauncher,
     Deps.coursierJvm,
     Deps.logback,
     Deps.snakeyamlEngine,

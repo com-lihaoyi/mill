@@ -137,12 +137,24 @@ class JvmWorkerImpl(
           cl
         case _ =>
           // the Scala compiler must load the `xsbti.*` classes from the same loader as `JvmWorkerImpl`
-          val cl = mill.util.Jvm.createClassLoader(
-            combinedCompilerJars.map(os.Path(_)).toSeq,
-            parent = null,
-            sharedLoader = getClass.getClassLoader,
-            sharedPrefixes = Seq("xsbti")
-          )
+          val hasLayeredClassLoader =
+            classOf[xsbti.api.DependencyContext].getClassLoader != getClass.getClassLoader
+          // When started with layered class loaders, likely by CoursierClient,
+          // rely on that to get a clean base class loader to load the worker.
+          // Else, likely when run from integration tests in local mode, fallback
+          // on the shared class loader hack.
+          val cl =
+            if (hasLayeredClassLoader)
+              mill.util.Jvm.createClassLoader(
+                combinedCompilerJars.map(os.Path(_)).toSeq,
+                parent = classOf[xsbti.api.DependencyContext].getClassLoader
+              )
+            else
+              mill.util.Jvm.createClassLoader(
+                combinedCompilerJars.map(os.Path(_)).toSeq,
+                sharedLoader = getClass.getClassLoader,
+                sharedPrefixes = Seq("xsbti")
+              )
           classloaderCache.update(compilersSig, (cl, 1))
           cl
       }

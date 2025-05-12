@@ -297,7 +297,10 @@ object `package` extends MillJavaModule with DistModule {
     def nativeImageOptions = Seq(
       "--no-fallback",
       "--enable-url-protocols=https",
-      "-Os"
+      "-Os",
+      // these two are necessary to use coursier bootstrap generation
+      "-H:IncludeResources=bootstrap.*\\.jar",
+      "-H:IncludeResources=coursier/launcher/.*\\.bat"
       // Enable JVisualVM support
       // https://www.graalvm.org/latest/tools/visualvm/#using-visualvm-with-graalvm-native-executables
       // "--enable-monitoring=jvmstat,heapdump"

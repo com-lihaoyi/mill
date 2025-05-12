@@ -7,6 +7,7 @@ import coursier.{
   Artifacts,
   Classifier,
   Dependency,
+  Fetch,
   Organization,
   ModuleName,
   VersionConstraint,
@@ -20,19 +21,22 @@ import coursier.core.{BomDependency, Module}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
+import coursier.launcher.{BootstrapGenerator, ClassLoaderContent, ClassPathEntry, Parameters}
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.util.Task
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.util.Using
 import coursier.core.{ArtifactSource, Extension, Info, Module, Project, Publication}
 import coursier.util.{Artifact, EitherT, Monad}
 import coursier.{Classifier, Dependency, Repository, Type}
 
 import java.util.concurrent.ConcurrentHashMap
+import java.util.zip.ZipFile
 object CoursierClient {
-  def resolveMillDaemon() = {
+  def millDaemonLauncher(isServer: Boolean): java.nio.file.Path = {
     val repositories = Await.result(Resolve().finalRepositories.future(), Duration.Inf)
     val coursierCache0 = FileCache[Task]()
       .withLogger(coursier.cache.loggers.RefreshLogger.create())
@@ -53,29 +57,95 @@ object CoursierClient {
         val resourceTestOverridesRepo =
           new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
 
-        val resolve = Resolve()
+        Fetch()
           .withCache(coursierCache0)
           .withDependencies(Seq(Dependency(
             Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), Map()),
             VersionConstraint(mill.client.BuildInfo.millVersion)
           )))
           .withRepositories(Seq(resourceTestOverridesRepo) ++ envTestOverridesRepo ++ repositories)
-
-        resolve.either() match {
-          case Left(err) => sys.error(err.toString)
-          case Right(v) =>
-            Artifacts(coursierCache0)
-              .withResolution(v)
-              .eitherResult()
-              .right.get
-        }
+          .eitherResult()
+          .right.get
 
       } finally {
         testOverridesClassloaders.foreach(_.close())
       }
 
-    artifactsResultOrError.artifacts.map(_._2.toString).toArray
+    val cp = artifactsResultOrError.artifacts.map(_._2).map(os.Path(_))
+    val compilerInterfaceDeps = artifactsResultOrError.resolution.minDependencies
+      .iterator
+      .filter { dep =>
+        dep.module.organization.value == "org.scala-sbt" && (
+          dep.module.name.value == "compiler-interface" ||
+            dep.module.name.value == "test-interface"
+        )
+      }
+      .toSeq
+    val coreApiDeps = artifactsResultOrError.resolution.minDependencies
+      .iterator
+      .filter { dep =>
+        dep.module.organization.value == "com.lihaoyi" &&
+        dep.module.name.value == "mill-core-api_3"
+      }
+      .toSeq
+
+    def artifactsFor(deps: Seq[Dependency]) = {
+      val subRes =
+        artifactsResultOrError.resolution.subset0(deps).right.get
+      Artifacts()
+        .withResolution(subRes)
+        .eitherResult()
+        .right.get
+        .artifacts
+        .map(_._2)
+        .map(os.Path(_))
+    }
+    val interfaceArtifacts = artifactsFor(compilerInterfaceDeps)
+    val coreApiArtifacts = artifactsFor(compilerInterfaceDeps ++ coreApiDeps)
+
+    val params = Parameters.Bootstrap(
+      Seq(
+        // putting compiler-interface and test-interface in a first loader
+        // (used to interface with scalac instances and test frameworks)
+        ClassLoaderContent(interfaceArtifacts.map(f =>
+          ClassPathEntry.Url(f.toNIO.toUri.toASCIIString)
+        )),
+        // putting core-api right above (used to load builds)
+        ClassLoaderContent(coreApiArtifacts.map(f =>
+          ClassPathEntry.Url(f.toNIO.toUri.toASCIIString)
+        )),
+        // lastly, the remaning JARs
+        ClassLoaderContent(cp.map(f =>
+          ClassPathEntry.Url(f.toNIO.toUri.toASCIIString)
+        ))
+      ),
+      mainClass = if (isServer) "mill.daemon.MillDaemonMain" else "mill.daemon.MillMain"
+    )
+    val launcher = os.temp(Array.emptyByteArray, prefix = "mill-", suffix = ".jar")
+    BootstrapGenerator.generate(params, launcher.toNIO)
+
+    launcher.toNIO
   }
+
+  def launcherEntries(launcher: java.nio.file.Path): Array[java.nio.file.Path] =
+    Using.resource(new ZipFile(launcher.toFile)) { zf =>
+      Iterator.from(0)
+        .map(n => if (n == 0) "" else s"-$n")
+        .map(suffix => s"coursier/bootstrap/launcher/bootstrap-jar-urls$suffix")
+        .map(name => zf.getEntry(name))
+        .takeWhile(_ != null)
+        .map { entry =>
+          Using.resource(zf.getInputStream(entry)) { is =>
+            new String(is.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8)
+          }
+        }
+        .flatMap(_.linesIterator)
+        .filter(_.nonEmpty)
+        .map(new java.net.URI(_))
+        .filter(_.getScheme == "file")
+        .map(java.nio.file.Paths.get(_))
+        .toArray
+    }
 
   def resolveJavaHome(id: String): java.io.File = {
     val coursierCache0 = FileCache[Task]()

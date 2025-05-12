@@ -27,8 +27,7 @@ public class MillProcessLauncher {
     final Path processDir = Paths.get(".").resolve(out).resolve(millNoDaemon).resolve(sig);
 
     final List<String> l = new ArrayList<>();
-    l.addAll(millLaunchJvmCommand());
-    l.add("mill.daemon.MillMain");
+    l.addAll(millLaunchJvmCommand(false));
     l.add(processDir.toAbsolutePath().toString());
     l.addAll(millOpts());
     l.addAll(Arrays.asList(args));
@@ -58,8 +57,7 @@ public class MillProcessLauncher {
 
   static void launchMillServer(Path daemonDir) throws Exception {
     List<String> l = new ArrayList<>();
-    l.addAll(millLaunchJvmCommand());
-    l.add("mill.daemon.MillDaemonMain");
+    l.addAll(millLaunchJvmCommand(true));
     l.add(daemonDir.toFile().getCanonicalPath());
 
     ProcessBuilder builder = new ProcessBuilder()
@@ -204,7 +202,7 @@ public class MillProcessLauncher {
     }
   }
 
-  static List<String> millLaunchJvmCommand() throws Exception {
+  static List<String> millLaunchJvmCommand(boolean isServer) throws Exception {
     final List<String> vmOptions = new ArrayList<>();
 
     // Java executable
@@ -227,15 +225,19 @@ public class MillProcessLauncher {
     vmOptions.addAll(millJvmOpts());
 
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
-    vmOptions.add("-cp");
-    String[] runnerClasspath = cachedComputedValue0(
-        "resolve-runner", BuildInfo.millVersion, () -> CoursierClient.resolveMillDaemon(), arr -> {
-          for (String s : arr) {
-            if (!Files.exists(Paths.get(s))) return false;
+    vmOptions.add("-jar");
+    Path runnerClasspath = cachedLauncher(
+        (isServer ? "resolve-server" : "resolve-runner"),
+        BuildInfo.millVersion,
+        () -> CoursierClient.millDaemonLauncher(isServer),
+        launcher -> {
+          for (Path s : CoursierClient.launcherEntries(launcher)) {
+            if (!Files.exists(s)) return false;
           }
           return true;
-        });
-    vmOptions.add(String.join(File.pathSeparator, runnerClasspath));
+        },
+        true);
+    vmOptions.add(runnerClasspath.toString());
 
     return vmOptions;
   }
@@ -272,6 +274,30 @@ public class MillProcessLauncher {
             (Escaping.literalize(key) + "\n" + String.join("\n", literalized)).getBytes());
       }
       return value;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  static Path cachedLauncher(
+      String name,
+      String key,
+      Supplier<Path> block,
+      Function<Path, Boolean> validate,
+      boolean cleanUp) {
+    try {
+      Path cacheFile = Paths.get(".").resolve(out).resolve("mill-" + name).toAbsolutePath();
+      if (Files.exists(cacheFile))
+        if (validate.apply(cacheFile)) return cacheFile;
+        else Files.delete(cacheFile);
+
+      Path value = block.get();
+      Files.createDirectories(cacheFile.getParent());
+      Files.copy(value, cacheFile);
+
+      if (cleanUp) Files.delete(value);
+
+      return cacheFile;
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

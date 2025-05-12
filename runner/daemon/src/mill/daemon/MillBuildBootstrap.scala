@@ -281,12 +281,24 @@ class MillBuildBootstrap(
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
-          val cl = mill.util.Jvm.createClassLoader(
-            runClasspath.map(p => os.Path(p.javaPath)),
-            null,
-            sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
-            sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api")
-          )
+          val hasLayeredClassLoader =
+            classOf[mill.api.internal.RootModuleApi].getClassLoader != getClass.getClassLoader
+          // When started with layered class loaders, likely by CoursierClient,
+          // rely on that to get a clean base class loader to load the build.
+          // Else, likely when run from integration tests in local mode, fallback
+          // on the shared class loader hack.
+          val cl =
+            if (hasLayeredClassLoader)
+              mill.util.Jvm.createClassLoader(
+                runClasspath.map(p => os.Path(p.javaPath)),
+                classOf[mill.api.internal.RootModuleApi].getClassLoader
+              )
+            else
+              mill.util.Jvm.createClassLoader(
+                runClasspath.map(p => os.Path(p.javaPath)),
+                sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
+                sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api")
+              )
           cl
         } else {
           prevFrameOpt.get.classLoaderOpt.get
