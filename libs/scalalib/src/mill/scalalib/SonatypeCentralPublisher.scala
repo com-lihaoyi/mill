@@ -53,6 +53,7 @@ class SonatypeCentralPublisher(
         groupReleases.foreach { case (artifact, data) =>
           val fileNameWithoutExtension = s"${artifact.group}-${artifact.id}-${artifact.version}"
           val zipFile = streamToFile(fileNameWithoutExtension, wd) { outputStream =>
+            log.info(s"bundle $fileNameWithoutExtension with ${data.map(_._1).mkString(",")}")
             zipFilesToJar(data, outputStream)
           }
 
