@@ -529,22 +529,6 @@ trait AndroidModule extends JavaModule {
     androidSdkModule().androidLibsClasspaths()
   }
 
-  /**
-   * Specifies the path to the main-dex rules file, which contains ProGuard rules
-   * for determining which classes should be included in the primary DEX file.
-   */
-  def mainDexRules: T[Option[PathRef]] = Task {
-    Some(PathRef(androidCompiledResources()._1.path / "main-dex-rules.pro"))
-  }
-
-  /**
-   * Returns the path to the main-dex list file, which explicitly lists the classes
-   * to be included in the primary DEX file. Currently, this is not defined.
-   */
-  def mainDexList: T[Option[PathRef]] = Task {
-    None
-  }
-
   /** Optional baseline profile for ART rewriting */
   def baselineProfile: T[Option[PathRef]] = Task {
     None

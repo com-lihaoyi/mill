@@ -830,14 +830,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     )
   }
 
-  /**
-   * Provides the output path for the generated main-dex list file, which is used
-   * during the DEX generation process.
-   */
-  def mainDexListOutput: T[Option[PathRef]] = Task {
-    Some(androidModuleGeneratedDexVariants().mainDexListOutput)
-  }
-
   /** ProGuard/R8 rules configuration files for release target (user-provided and generated) */
   def androidProguardReleaseConfigs: T[Seq[PathRef]] = Task {
     val proguardFilesFromReleaseSettings = androidReleaseSettings().proguardFiles
@@ -1032,14 +1024,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
       "--dex"
     )
 
-    // Multi-dex arguments (if any are provided)
-    val multiDexArgs =
-      mainDexRules().toSeq.flatMap(r => Seq("--main-dex-rules", r.path.toString)) ++
-        mainDexList().toSeq.flatMap(l => Seq("--main-dex-list", l.path.toString)) ++
-        mainDexListOutput().toSeq.flatMap(l => Seq("--main-dex-list-output", l.path.toString))
-
-    r8ArgsBuilder ++= multiDexArgs
-
     // Baseline profile rewriting arguments, if a baseline profile is provided.
     val baselineArgs = baselineProfile().map { bp =>
       Seq("--art-profile", bp.path.toString, baselineOutOpt.toString)
@@ -1221,7 +1205,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
     override def androidPackagedDeps: T[Seq[PathRef]] = Task {
-      resolvedRunMvnDeps()
+      androidResolvedRunMvnDeps()
     }
 
     /**
