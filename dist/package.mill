@@ -10,7 +10,7 @@ import millbuild.*
 
 import scala.util.Using
 
-trait DistModule extends millbuild.MillPublishJavaModule {
+trait DistModule extends Module {
   // All modules that we want to aggregate as part of this `dev` assembly.
   // Excluding itself, and the `dist` module that uses it
   lazy val allPublishModules = build.moduleInternal.modules.collect {
@@ -63,19 +63,33 @@ trait DistModule extends millbuild.MillPublishJavaModule {
   }
 
   def artifactName: T[String]
+  def artifact = Task{ Artifact(Settings.pomOrg, artifactName(), build.millVersion()) }
+  def pomSettings = Task{ MillPublishJavaModule.commonPomSettings(artifactName()) }
 
-  override def extraPublish = Seq(
-    PublishInfo(
-      file = executableRaw(),
-      classifier = Some("launcher"),
-      ext = "exe",
-      ivyConfig = "compile"
+  def pom: T[PathRef] = Task {
+    val pom = Pom(
+      artifact = artifact(),
+      dependencies = Nil,
+      name = artifactName(),
+      pomSettings = pomSettings(),
+      properties = Map(),
+      packagingType = "jar",
+      parentProject = None,
+      bomDependencies = Nil,
+      dependencyManagement = Nil
     )
-  )
+    val pomPath = Task.dest / s"${artifactName()}-${build.millVersion()}.pom"
+    os.write.over(pomPath, pom)
+    PathRef(pomPath)
+  }
 
   def publishArtifacts = Task {
-    super.publishArtifacts().copy(payload =
-      super.publishArtifacts().payload.filter(!_._2.endsWith(".jar"))
+    PublishModule.PublishData(
+      meta = artifact(),
+      payload = Seq(
+        executableRaw() -> s"${artifactName()}-${build.millVersion()}.exe",
+        pom() -> s"${artifactName()}-${build.millVersion()}.pom"
+      )
     )
   }
 }
@@ -231,13 +245,13 @@ object `package` extends MillJavaModule with DistModule {
     }
   }
 
-//  def publishArtifacts = Task {
-//    super.publishArtifacts().copy(payload =
-//      super.publishArtifacts().payload ++
-//        exampleZips().map(z => (z, z.path.last)) ++
-//        Seq((bootstrapLauncher(), "mill"), (bootstrapLauncherBat(), "mill.bat"))
-//    )
-//  }
+  def publishArtifacts = Task {
+    super.publishArtifacts().copy(payload =
+      super.publishArtifacts().payload ++
+        exampleZips().map(z => (z, z.path.last)) ++
+        Seq((bootstrapLauncher(), "mill"), (bootstrapLauncherBat(), "mill.bat"))
+    )
+  }
 
   def artifactName = "mill-" + super.artifactName()
 
