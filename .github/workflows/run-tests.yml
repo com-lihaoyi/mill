@@ -23,6 +23,13 @@ jobs:
 
       - run:  ./mill "integration.invalidation[watch-source-input].packaged.server.testForked" mill.integration.WatchSourceTests.sources.show
 
+      - uses: actions/upload-artifact@v4
+        if: always() # always run even if the previous step fails
+        with:
+          path: out/**/fsNotifyWatchLog
+          name: debug-watch-log-artifact
+          include-hidden-files: true
+
   debug-concurrent:
     runs-on: ubuntu-latest
 #    runs-on: windows-latest
@@ -36,6 +43,13 @@ jobs:
 
 
       - run:  ./mill "integration.invalidation[watch-source-input].packaged.server.testForked"
+
+      - uses: actions/upload-artifact@v4
+        if: always() # always run even if the previous step fails
+        with:
+          path: out/**/fsNotifyWatchLog
+          name: debug-concurrent-watch-log-artifact
+          include-hidden-files: true
 
   debug-very-concurrent:
     runs-on: ubuntu-latest
@@ -51,6 +65,13 @@ jobs:
 
       - run:  ./mill "integration.invalidation[__].packaged.server.testForked"
 
+      - uses: actions/upload-artifact@v4
+        if: always() # always run even if the previous step fails
+        with:
+          path: out/**/fsNotifyWatchLog
+          name: debug-very-concurrent-watch-log-artifact
+          include-hidden-files: true
+
   debug2:
     runs-on: ubuntu-latest
 #    runs-on: windows-latest
@@ -62,8 +83,15 @@ jobs:
 
       - uses: sbt/setup-sbt@v1
 
-
       - run:  ./mill -i "integration.invalidation[watch-source-input].packaged.fork.testForked" mill.integration.WatchSourceTests.sources.noshow
+
+      - uses: actions/upload-artifact@v4
+        if: always() # always run even if the previous step fails
+        with:
+          path: out/**/fsNotifyWatchLog
+          name: debug2-watch-log-artifact
+          include-hidden-files: true
+
 
   debug2-concurrent:
     runs-on: ubuntu-latest
@@ -79,6 +107,13 @@ jobs:
 
       - run:  ./mill -i "integration.invalidation[watch-source-input].packaged.fork.testForked"
 
+      - uses: actions/upload-artifact@v4
+        if: always() # always run even if the previous step fails
+        with:
+          path: out/**/fsNotifyWatchLog
+          name: debug2-concurrent-watch-log-artifact
+          include-hidden-files: true
+
   debug2-very-concurrent:
     runs-on: ubuntu-latest
 #    runs-on: windows-latest
@@ -93,6 +128,12 @@ jobs:
 
       - run:  ./mill -i "integration.invalidation[__].packaged.fork.testForked"
 
+      - uses: actions/upload-artifact@v4
+        if: always() # always run even if the previous step fails
+        with:
+          path: out/**/fsNotifyWatchLog
+          name: debug2-very-concurrent-watch-log-artifact
+          include-hidden-files: true
 
 #
 #
