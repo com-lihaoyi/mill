@@ -206,7 +206,10 @@ object Deps {
 
   val sbt = mvn"org.scala-sbt:sbt:1.10.10"
   val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:2.9"
-  val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.1.1"
+  val jgit = mvn"org.eclipse.jgit:org.eclipse.jgit:7.1.1.202505221757-r"
+  val spotlessVersion = "3.1.1"
+  val spotlessLib = mvn"com.diffplug.spotless:spotless-lib:$spotlessVersion"
+  val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:$spotlessVersion"
 
   object RuntimeDeps {
     val dokkaVersion = "2.0.0"

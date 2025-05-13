@@ -1,12 +1,13 @@
 import a.*
-
+import a.b
+import a.b.c.*
 import kotlinx.android.synthetic.main.layout_name.*
 
-import a.b.c.*
-import a.b
-
 fun main() {
-    fun name() { a(); return b }
+    fun name() {
+        a()
+        return b
+    }
     println(";")
-    println();
+    println()
 }

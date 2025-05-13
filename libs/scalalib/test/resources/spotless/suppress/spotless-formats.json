@@ -1,0 +1,22 @@
+[
+  {
+    "includes": [
+      "glob:**/Diktat.kt"
+    ],
+    "steps": [
+      {
+        "$type": "Diktat"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/KtLint.kt"
+    ],
+    "steps": [
+      {
+        "$type": "KtLint"
+      }
+    ]
+  }
+]

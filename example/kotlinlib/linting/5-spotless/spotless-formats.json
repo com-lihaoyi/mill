@@ -1,0 +1,26 @@
+[
+  {
+    "includes": [
+      "glob:**.{kt,kts}"
+    ],
+    "steps": [
+      {
+        "$type": "Ktfmt"
+      },
+      {
+        "$type": "LicenseHeader",
+        "delimiter": "(package |@file|import )"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**.java"
+    ],
+    "steps": [
+      {
+        "$type": "PalantirJavaFormat"
+      }
+    ]
+  }
+]

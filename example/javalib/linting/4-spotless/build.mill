@@ -1,37 +1,53 @@
-// Mill supports formatting files using the
-// https://github.com/diffplug/spotless[Spotless] project.
+// If your project has polyglot sources, you may want to give Mill's
+// https://github.com/diffplug/spotless[Spotless] plugin a try.
+// It enables formatting all files with a single command
+// as opposed to using a different plugin/command for each programming language.
+
+// We define a module that extends `SpotlessModule` and specify the format steps to be applied in a JSON file.
 
 package build
 
-import mill.javalib.spotless.SpotlessModule
+import mill.Task
+import mill.javalib.JavaModule
+import mill.scalalib.spotless.SpotlessModule
 
-object `package` extends SpotlessModule
+object `package` extends JavaModule with SpotlessModule {
 
-/** See Also: spotless-config.json */
+  def spotlessTargets = Task { sources() ++ resources() }
+}
+
 /** See Also: src/A.java */
+/** See Also: resources/app.properties */
+/** See Also: spotless-formats.json */
+/** See Also: LICENSE */
 
-// You can use Spotless on a per-module basis by inheriting from
-// `SpotlessModule` and running the `spotless` command on that module.
+// NOTE: The `LICENSE` file is referenced by the default value for `header.file` field in `LicenseHeader` step.
 
-// TIP: Adding the `--check` flag will cause `spotless` to fail on format errors.
-// This is useful in CI validation jobs to ensure files are formatted before merging.
+// Next we run the inherited `spotless` command to check/fix formatting for different file types.
 
 /** Usage
 > ./mill spotless --check     # check fails initially
 checking format in 1 java files
-error: format errors in src/A.java
-error: format errors in 1 java files
+format errors in src/A.java
+checking format in 1 properties files
+format errors in resources/app.properties
+format errors in 2 files
+error: ...format check failed for 2 files
 
 > ./mill spotless             # auto-fix format
 checking format in 1 java files
 formatting src/A.java
-formatted 1 java files
+checking format in 1 properties files
+formatting resources/app.properties
+formatted 2 files
 */
 
-// You can also use Spotless xref:fundamentals/modules.adoc#_external_modules[globally] to format files in all modules.
+// You can also run `spotless` xref:fundamentals/modules.adoc#_external_modules[globally]
+// if you prefer not to have to extend the `SpotlessModule`.
+
 /** Usage
-> ./mill mill.javalib.spotless/ --check   # format is incremental
+> ./mill mill.scalalib.spotless/ --check   # fast incremental format
 everything is already formatted
 */
 
-// For the full configuration options, see xref:reference/spotless-configuration.adoc[].
+// NOTE: The cache for incremental format is invalidated automatically when the `spotless-formats.json`, or a referenced file like `LICENSE`, is changed.
