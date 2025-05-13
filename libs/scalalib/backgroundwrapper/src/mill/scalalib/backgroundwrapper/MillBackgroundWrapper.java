@@ -5,7 +5,6 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 @SuppressWarnings("BusyWait")
 public class MillBackgroundWrapper {
@@ -17,19 +16,24 @@ public class MillBackgroundWrapper {
     var realMain = args[3];
     var realArgs = java.util.Arrays.copyOfRange(args, 4, args.length);
 
-    // The following code should handle this scenario, when we have 2 processes contending for the lock.
+    // The following code should handle this scenario, when we have 2 processes contending for the
+    // lock.
     //
-    // This can happen if a new MillBackgroundWrapper is launched while the previous one is still running due to rapid
+    // This can happen if a new MillBackgroundWrapper is launched while the previous one is still
+    // running due to rapid
     // changes in the source code.
     //
     // Process 1 starts, writes newest_pid=1, claims lock, writes currently_running_pid = 1
     // Process 2 starts, writes newest_pid=2, tries to claim lock but is blocked
-    // Process 3 starts at the same time as process 2, writes newest_pid=3, tries to claim lock but is blocked
+    // Process 3 starts at the same time as process 2, writes newest_pid=3, tries to claim lock but
+    // is blocked
     //
     // Process 1 reads newest_pid=3, terminates, releases lock
-    // Process 2 claims lock, reads currently_running_pid = 1, waits for process 1 to die, writes currently_running_pid = 2
+    // Process 2 claims lock, reads currently_running_pid = 1, waits for process 1 to die, writes
+    // currently_running_pid = 2
     // Process 2 reads newest_pid=3, terminates, releases lock
-    // Process 3 claims lock, reads currently_running_pid = 2, waits for process 2 to die, writes currently_running_pid = 3, then starts
+    // Process 3 claims lock, reads currently_running_pid = 2, waits for process 2 to die, writes
+    // currently_running_pid = 3, then starts
     // Process 3 reads newest_pid=3, continues running
 
     // Indicate to the previous process that we want to take over.
@@ -44,7 +48,8 @@ public class MillBackgroundWrapper {
     FileChannel chan = raf.getChannel();
     if (chan.tryLock() == null) {
       System.err.println("Waiting for runBackground lock to be available");
-      //noinspection ResultOfMethodCallIgnored - this is intentional, lock is released when process dies.
+      //noinspection ResultOfMethodCallIgnored - this is intentional, lock is released when process
+      // dies.
       chan.lock();
     }
 
@@ -89,7 +94,8 @@ public class MillBackgroundWrapper {
     }
   }
 
-  private static void checkIfWeStillNeedToBeRunning(long startTime, Path newestProcessIdPath, String myPidStr) {
+  private static void checkIfWeStillNeedToBeRunning(
+      long startTime, Path newestProcessIdPath, String myPidStr) {
     long delta = (System.currentTimeMillis() - startTime) / 1000;
     try {
       Thread.sleep(50);

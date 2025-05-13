@@ -350,9 +350,9 @@ object RunModule {
   }
 
   case class BackgroundPaths(
-    newestPidPath: os.Path,
-    currentlyRunningPidPath: os.Path,
-    lockPath: os.Path
+      newestPidPath: os.Path,
+      currentlyRunningPidPath: os.Path,
+      lockPath: os.Path
   ) {
     def toArgs: Seq[String] =
       Seq(newestPidPath.toString, currentlyRunningPidPath.toString, lockPath.toString)
@@ -362,7 +362,7 @@ object RunModule {
       BackgroundPaths(
         newestPidPath = (dest / ".mill-background-process-newest-pid"),
         currentlyRunningPidPath = (dest / ".mill-background-process-currently-running-pid"),
-        lockPath = (dest / ".mill-background-process-lock"),
+        lockPath = (dest / ".mill-background-process-lock")
       )
     }
   }
