@@ -135,94 +135,101 @@ if !errorlevel! equ 0 (
 
 set MILL=%MILL_DOWNLOAD_PATH%\!FULL_MILL_VERSION!!MILL_EXT!
 
+set VERSION_PREFIX=%MILL_VERSION:~0,4%
+set SHORT_VERSION_PREFIX=%MILL_VERSION:~0,2%
+rem Since 0.5.0
+set DOWNLOAD_SUFFIX=-assembly
+rem Since 0.11.0
+set DOWNLOAD_FROM_MAVEN=1
+if [!VERSION_PREFIX!]==[0.0.] (
+    set DOWNLOAD_SUFFIX=
+    set DOWNLOAD_FROM_MAVEN=0
+)
+if [!VERSION_PREFIX!]==[0.1.] (
+    set DOWNLOAD_SUFFIX=
+    set DOWNLOAD_FROM_MAVEN=0
+)
+if [!VERSION_PREFIX!]==[0.2.] (
+    set DOWNLOAD_SUFFIX=
+    set DOWNLOAD_FROM_MAVEN=0
+)
+if [!VERSION_PREFIX!]==[0.3.] (
+    set DOWNLOAD_SUFFIX=
+    set DOWNLOAD_FROM_MAVEN=0
+)
+if [!VERSION_PREFIX!]==[0.4.] (
+    set DOWNLOAD_SUFFIX=
+    set DOWNLOAD_FROM_MAVEN=0
+)
+if [!VERSION_PREFIX!]==[0.5.] (
+    set DOWNLOAD_FROM_MAVEN=0
+)
+if [!VERSION_PREFIX!]==[0.6.] (
+    set DOWNLOAD_FROM_MAVEN=0
+)
+if [!VERSION_PREFIX!]==[0.7.] (
+    set DOWNLOAD_FROM_MAVEN=0
+)
+if [!VERSION_PREFIX!]==[0.8.] (
+    set DOWNLOAD_FROM_MAVEN=0
+)
+if [!VERSION_PREFIX!]==[0.9.] (
+    set DOWNLOAD_FROM_MAVEN=0
+)
+set VERSION_PREFIX=%MILL_VERSION:~0,5%
+if [!VERSION_PREFIX!]==[0.10.] (
+    set DOWNLOAD_FROM_MAVEN=0
+)
+set VERSION_PREFIX=%MILL_VERSION:~0,8%
+if [!VERSION_PREFIX!]==[0.11.0-M] (
+    set DOWNLOAD_FROM_MAVEN=0
+)
+
+set VERSION_PREFIX=%MILL_VERSION:~0,5%
+set DOWNLOAD_EXT="exe"
+if [!SHORT_VERSION_PREFIX!]==[0.] ( set DOWNLOAD_EXT="jar" )
+if [!VERSION_PREFIX!]==[0.12.] ( set DOWNLOAD_EXT="exe" )
+if [!MILL_VERSION!]==[0.12.0] ( set DOWNLOAD_EXT="jar" )
+if [!MILL_VERSION!]==[0.12.1] ( set DOWNLOAD_EXT="jar" )
+if [!MILL_VERSION!]==[0.12.2] ( set DOWNLOAD_EXT="jar" )
+if [!MILL_VERSION!]==[0.12.3] ( set DOWNLOAD_EXT="jar" )
+if [!MILL_VERSION!]==[0.12.4] ( set DOWNLOAD_EXT="jar" )
+if [!MILL_VERSION!]==[0.12.5] ( set DOWNLOAD_EXT="jar" )
+if [!MILL_VERSION!]==[0.12.6] ( set DOWNLOAD_EXT="jar" )
+if [!MILL_VERSION!]==[0.12.7] ( set DOWNLOAD_EXT="jar" )
+if [!MILL_VERSION!]==[0.12.8] ( set DOWNLOAD_EXT="jar")
+if [!MILL_VERSION!]==[0.12.9] ( set DOWNLOAD_EXT="jar" )
+if [!MILL_VERSION!]==[0.12.10] ( set DOWNLOAD_EXT="jar" )
+if [!MILL_VERSION!]==[0.12.11] ( set DOWNLOAD_EXT="jar" )
+
+set VERSION_PREFIX=
+set SHORT_VERSION_PREFIX=
+
+for /F "delims=- tokens=1" %%A in ("!MILL_VERSION!") do set MILL_VERSION_BASE=%%A
+for /F "delims=- tokens=2" %%A in ("!MILL_VERSION!") do set MILL_VERSION_MILESTONE=%%A
+set VERSION_MILESTONE_START=!MILL_VERSION_MILESTONE:~0,1!
+if [!VERSION_MILESTONE_START!]==[M] (
+    set MILL_VERSION_TAG="!MILL_VERSION_BASE!-!MILL_VERSION_MILESTONE!"
+) else (
+    set MILL_VERSION_TAG=!MILL_VERSION_BASE!
+)
+
+if [!DOWNLOAD_FROM_MAVEN!]==[1] (
+    set DOWNLOAD_URL={{{ mill-maven-url }}}/com/lihaoyi/mill-dist!ARTIFACT_SUFFIX!/!MILL_VERSION!/mill-dist!ARTIFACT_SUFFIX!-!MILL_VERSION!.!DOWNLOAD_EXT!
+) else (
+    set DOWNLOAD_URL=!GITHUB_RELEASE_CDN!%MILL_REPO_URL%/releases/download/!MILL_VERSION_TAG!/!MILL_VERSION!!DOWNLOAD_SUFFIX!
+)
+
+if defined MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT(
+    echo %MILL%
+    echo %DOWNLOAD_URL%
+    exit /b 0
+)
+
 if not exist "%MILL%" (
-    set VERSION_PREFIX=%MILL_VERSION:~0,4%
-    set SHORT_VERSION_PREFIX=%MILL_VERSION:~0,2%
-    rem Since 0.5.0
-    set DOWNLOAD_SUFFIX=-assembly
-    rem Since 0.11.0
-    set DOWNLOAD_FROM_MAVEN=1
-    if [!VERSION_PREFIX!]==[0.0.] (
-        set DOWNLOAD_SUFFIX=
-        set DOWNLOAD_FROM_MAVEN=0
-    )
-    if [!VERSION_PREFIX!]==[0.1.] (
-        set DOWNLOAD_SUFFIX=
-        set DOWNLOAD_FROM_MAVEN=0
-    )
-    if [!VERSION_PREFIX!]==[0.2.] (
-        set DOWNLOAD_SUFFIX=
-        set DOWNLOAD_FROM_MAVEN=0
-    )
-    if [!VERSION_PREFIX!]==[0.3.] (
-        set DOWNLOAD_SUFFIX=
-        set DOWNLOAD_FROM_MAVEN=0
-   )
-    if [!VERSION_PREFIX!]==[0.4.] (
-        set DOWNLOAD_SUFFIX=
-        set DOWNLOAD_FROM_MAVEN=0
-    )
-    if [!VERSION_PREFIX!]==[0.5.] (
-        set DOWNLOAD_FROM_MAVEN=0
-    )
-    if [!VERSION_PREFIX!]==[0.6.] (
-        set DOWNLOAD_FROM_MAVEN=0
-    )
-    if [!VERSION_PREFIX!]==[0.7.] (
-        set DOWNLOAD_FROM_MAVEN=0
-    )
-    if [!VERSION_PREFIX!]==[0.8.] (
-        set DOWNLOAD_FROM_MAVEN=0
-    )
-    if [!VERSION_PREFIX!]==[0.9.] (
-        set DOWNLOAD_FROM_MAVEN=0
-    )
-    set VERSION_PREFIX=%MILL_VERSION:~0,5%
-    if [!VERSION_PREFIX!]==[0.10.] (
-        set DOWNLOAD_FROM_MAVEN=0
-    )
-    set VERSION_PREFIX=%MILL_VERSION:~0,8%
-    if [!VERSION_PREFIX!]==[0.11.0-M] (
-        set DOWNLOAD_FROM_MAVEN=0
-    )
-
-    set VERSION_PREFIX=%MILL_VERSION:~0,5%
-    set DOWNLOAD_EXT="exe"
-    if [!SHORT_VERSION_PREFIX!]==[0.] ( set DOWNLOAD_EXT="jar" )
-    if [!VERSION_PREFIX!]==[0.12.] ( set DOWNLOAD_EXT="exe" )
-    if [!MILL_VERSION!]==[0.12.0] ( set DOWNLOAD_EXT="jar" )
-    if [!MILL_VERSION!]==[0.12.1] ( set DOWNLOAD_EXT="jar" )
-    if [!MILL_VERSION!]==[0.12.2] ( set DOWNLOAD_EXT="jar" )
-    if [!MILL_VERSION!]==[0.12.3] ( set DOWNLOAD_EXT="jar" )
-    if [!MILL_VERSION!]==[0.12.4] ( set DOWNLOAD_EXT="jar" )
-    if [!MILL_VERSION!]==[0.12.5] ( set DOWNLOAD_EXT="jar" )
-    if [!MILL_VERSION!]==[0.12.6] ( set DOWNLOAD_EXT="jar" )
-    if [!MILL_VERSION!]==[0.12.7] ( set DOWNLOAD_EXT="jar" )
-    if [!MILL_VERSION!]==[0.12.8] ( set DOWNLOAD_EXT="jar")
-    if [!MILL_VERSION!]==[0.12.9] ( set DOWNLOAD_EXT="jar" )
-    if [!MILL_VERSION!]==[0.12.10] ( set DOWNLOAD_EXT="jar" )
-    if [!MILL_VERSION!]==[0.12.11] ( set DOWNLOAD_EXT="jar" )
-
-    set VERSION_PREFIX=
-    set SHORT_VERSION_PREFIX=
-
-    for /F "delims=- tokens=1" %%A in ("!MILL_VERSION!") do set MILL_VERSION_BASE=%%A
-    for /F "delims=- tokens=2" %%A in ("!MILL_VERSION!") do set MILL_VERSION_MILESTONE=%%A
-    set VERSION_MILESTONE_START=!MILL_VERSION_MILESTONE:~0,1!
-    if [!VERSION_MILESTONE_START!]==[M] (
-        set MILL_VERSION_TAG="!MILL_VERSION_BASE!-!MILL_VERSION_MILESTONE!"
-    ) else (
-        set MILL_VERSION_TAG=!MILL_VERSION_BASE!
-    )
 
     rem there seems to be no way to generate a unique temporary file path (on native Windows)
     set DOWNLOAD_FILE=%MILL%.tmp
-
-    if [!DOWNLOAD_FROM_MAVEN!]==[1] (
-        set DOWNLOAD_URL={{{ mill-maven-url }}}/com/lihaoyi/mill-dist!ARTIFACT_SUFFIX!/!MILL_VERSION!/mill-dist!ARTIFACT_SUFFIX!-!MILL_VERSION!.!DOWNLOAD_EXT!
-    ) else (
-        set DOWNLOAD_URL=!GITHUB_RELEASE_CDN!%MILL_REPO_URL%/releases/download/!MILL_VERSION_TAG!/!MILL_VERSION!!DOWNLOAD_SUFFIX!
-    )
 
     echo Downloading mill !MILL_VERSION! from !DOWNLOAD_URL! ... 1>&2
 

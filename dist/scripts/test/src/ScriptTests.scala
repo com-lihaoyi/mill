@@ -275,7 +275,7 @@ object ScriptTests extends TestSuite {
         )
       )
 
-      val lines = for ((version, expectedDownloadUrl, expectedDownloadDest) <- versions) yield {
+      val lines = for ((version, expectedDownloadUrl, expectedDownloadDest) <- versions) {
         val res = os.call(
           os.Path(sys.env("MILL_TEST_SH_SCRIPT")),
           env = Map(
@@ -290,7 +290,18 @@ object ScriptTests extends TestSuite {
       }
     }
     test("bat") {
-      println(os.read(os.Path(sys.env("MILL_TEST_BAT_SCRIPT"))))
+      val lines = for ((version, expectedDownloadUrl, expectedDownloadDest) <- versions) yield {
+        val res = os.call(
+          os.Path(sys.env("MILL_TEST_BAT_SCRIPT")),
+          env = Map(
+            "MILL_VERSION" -> version,
+            "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"
+          )
+        )
+        val Seq(downloadUrl, downloadDest) = res.out.lines()
+        (version, downloadUrl, downloadDest)
+      }
+      pprint.log(lines)
     }
   }
 
