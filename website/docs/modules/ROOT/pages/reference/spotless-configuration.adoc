@@ -46,6 +46,8 @@ NOTE: Lints must be https://github.com/diffplug/spotless/tree/main/plugin-gradle
 
 NOTE: Field `$type` is required.
 
+NOTE: For fields like `configFile` and `headerFile` are defined as relative paths that get resolved against `SpotlessModule.spotlessConfigRoots`.
+
 === https://github.com/diffplug/spotless/tree/main/plugin-gradle#java[Java]
 
 ==== https://github.com/diffplug/spotless/tree/main/plugin-gradle#palantir-java-format[PalantirJavaFormat]

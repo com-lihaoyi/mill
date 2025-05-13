@@ -38,14 +38,9 @@ trait SpotlessModule extends JavaModule {
 
   /**
    * Folders to resolve relative paths in [[spotlessConfig]] against.
-   * Defaults to folders from [[moduleDir]] to [[Task.workspace]],
-   * which allows for overriding referenced files like `.scalafmt.conf` in nested modules.
+   * Defaults to [[Task.workspace]].
    */
-  def spotlessConfigRoots: Task[Seq[PathRef]] = Task.Sources(
-    moduleDir.relativeTo(Task.workspace).segments
-      .foldLeft(Seq(moduleDir))((roots, up) => roots :+ (roots.last / up))
-      .map(Result.Success(_))*
-  )
+  def spotlessConfigRoots: Task[Seq[PathRef]] = Task.Sources(Task.workspace)
 
   /**
    * Source files/folders to format using Spotless. Defaults to [[sources]].
