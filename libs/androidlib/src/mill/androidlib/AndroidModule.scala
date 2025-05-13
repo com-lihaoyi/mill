@@ -1,11 +1,8 @@
 package mill.androidlib
 
-import coursier.core.{Module, ModuleName, Organization}
+import coursier.Repository
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import coursier.params.rule.RuleResolution
-import coursier.util.ModuleMatcher
-import coursier.{Dependency, ModuleName, Repository, VersionConstraint}
 import mill.T
 import mill.define.{ModuleRef, PathRef, Target, Task}
 import mill.scalalib.*
@@ -145,11 +142,7 @@ trait AndroidModule extends JavaModule {
           VariantMatcher.Equals("androidJvm"),
           VariantMatcher.Equals("jvm")
         ))
-    ).withRules(Seq(
-      coursier.params.rule.SameVersion(
-        Set(ModuleMatcher(Module(Organization("androix.*"), ModuleName("*"), Map.empty)))
-      ) -> RuleResolution.TryResolve
-    ))
+    )
   }
 
   /**
