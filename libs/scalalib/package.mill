@@ -35,7 +35,9 @@ object `package` extends MillStableScalaModule {
     super.transitiveLocalTestOverrides() ++ Seq(
       worker.localTestOverride(),
       `classgraph-worker`.localTestOverride(),
-      `jarjarabrams-worker`.localTestOverride()
+      `jarjarabrams-worker`.localTestOverride(),
+      `spotless-worker`.localTestOverride(),
+      `git-worker`.localTestOverride()
     )
   def testForkEnv = {
     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
@@ -134,4 +136,14 @@ object `package` extends MillStableScalaModule {
     )
   }
 
+  object `spotless-worker` extends MillPublishScalaModule {
+    def moduleDeps = Seq(build.libs.scalalib)
+    def mvnDeps = Seq(Deps.spotlessLib)
+    def runMvnDeps = Seq(Deps.spotlessLibExtra)
+  }
+
+  object `git-worker` extends MillPublishScalaModule {
+    def moduleDeps = Seq(build.libs.scalalib.api)
+    def mvnDeps = Seq(Deps.jgit)
+  }
 }
