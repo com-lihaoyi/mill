@@ -62,8 +62,7 @@ object Watching {
 
     watch match {
       case None =>
-        val Result(watchables, errorOpt, result) =
-          evaluate(enterKeyPressed = false, previousState = None)
+        val Result(watchables, errorOpt, result) = evaluate(enterKeyPressed = false, previousState = None)
         handleError(errorOpt)
         (errorOpt.isEmpty, result)
 
@@ -77,19 +76,13 @@ object Watching {
           prevState = Some(result)
           handleError(errorOpt)
 
-          // Do not enter watch if already stale, re-evaluate instantly.
-          val alreadyStale = watchables.exists(w => !validateAnyWatchable(w))
-          if (alreadyStale) {
-            enterKeyPressed = false
-          } else {
-            enterKeyPressed = watchAndWait(streams, streams.in, watchables, watchArgs)
-          }
+          enterKeyPressed = watchAndWait(streams, streams.in, watchables, watchArgs)
         }
         throw new IllegalStateException("unreachable")
     }
   }
 
-  def watchAndWait(
+  private def watchAndWait(
       streams: SystemStreams,
       stdin: InputStream,
       watched: Seq[Watchable],
@@ -195,7 +188,14 @@ object Watching {
           logger = (eventType, data) =>
             writeToWatchLog(s"[watch:event] $eventType: ${pprint.apply(data).plainText}")
         )) { _ =>
-          doWatch(notifiablesChanged = () => pathChangesDetected)
+          // If already stale, re-evaluate instantly.
+          //
+          // We need to do this to prevent any changes from slipping through the gap between the last evaluation and
+          // starting the watch.
+          val alreadyStale = watched.exists(w => !validateAnyWatchable(w))
+
+          if (alreadyStale) false
+          else doWatch(notifiablesChanged = () => pathChangesDetected)
         }
       }
     }
