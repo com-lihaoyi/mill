@@ -349,9 +349,9 @@ object RunModule {
   }
 
   case class BackgroundPaths(
-    newestPidPath: os.Path,
-    currentlyRunningPidPath: os.Path,
-    lockPath: os.Path
+      newestPidPath: os.Path,
+      currentlyRunningPidPath: os.Path,
+      lockPath: os.Path
   ) {
     def toArgs: Seq[String] =
       Seq(newestPidPath.toString, currentlyRunningPidPath.toString, lockPath.toString)
