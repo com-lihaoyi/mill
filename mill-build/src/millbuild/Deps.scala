@@ -117,7 +117,7 @@ object Deps {
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.18.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.24.3"
-  val osLib = mvn"com.lihaoyi::os-lib:0.11.5-M2"
+  val osLib = mvn"com.lihaoyi::os-lib:0.11.5-M8"
   val pprint = mvn"com.lihaoyi::pprint:0.9.0"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.6"
   val millModuledefsVersion = "0.11.4"

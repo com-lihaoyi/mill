@@ -23,10 +23,10 @@
 # into a cache location (~/.cache/mill/download).
 #
 # Mill Project URL: https://github.com/com-lihaoyi/mill
-# Script Version: 0.13.0-M2-63-e8edbd
+# Script Version: debug-badge-21-6ec959-DIRTY9d9881ba
 #
 # If you want to improve this script, please also contribute your changes back!
-# This script was generated from: scripts/src/mill.sh
+# This script was generated from: dist/scripts/src/mill.sh
 #
 # Licensed under the Apache License, Version 2.0
 
@@ -271,11 +271,19 @@ if [ ! -s "${MILL}" ] ; then
         DOWNLOAD_FROM_MAVEN=1
         ;;
     esac
+    case $MILL_VERSION in
+      0.* )
+        DOWNLOAD_EXT="jar"
+        ;;
+      *)
+        DOWNLOAD_EXT="exe"
+        ;;
+    esac
 
     DOWNLOAD_FILE=$(mktemp mill.XXXXXX)
 
     if [ "$DOWNLOAD_FROM_MAVEN" = "1" ] ; then
-      DOWNLOAD_URL="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.jar"
+      DOWNLOAD_URL="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${DOWNLOAD_EXT}"
     else
       MILL_VERSION_TAG=$(echo "$MILL_VERSION" | sed -E 's/([^-]+)(-M[0-9]+)?(-.*)?/\1\2/')
       DOWNLOAD_URL="${GITHUB_RELEASE_CDN}${MILL_REPO_URL}/releases/download/${MILL_VERSION_TAG}/${MILL_VERSION}${DOWNLOAD_SUFFIX}"

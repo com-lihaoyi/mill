@@ -115,14 +115,16 @@ public class MillProcessLauncher {
               "yaml-config-" + key, mill.constants.Util.readYamlHeader(buildFile), () -> {
                 Object conf = mill.launcher.ConfigReader.readYaml(buildFile);
                 if (!(conf instanceof Map)) return new String[] {};
-                Map<String, List<String>> conf2 = (Map<String, List<String>>) conf;
+                Map<String, Object> conf2 = (Map<String, Object>) conf;
 
                 if (!conf2.containsKey(key)) return new String[] {};
                 if (conf2.get(key) instanceof List) {
-                  return (String[]) ((List) conf2.get(key))
-                      .stream()
-                          .map(x -> mill.constants.Util.interpolateEnvVars(x.toString(), env))
-                          .toArray(String[]::new);
+                  List<String> list = (List<String>) conf2.get(key);
+                  String[] arr = new String[list.size()];
+                  for (int i = 0; i < arr.length; i++) {
+                    arr[i] = mill.constants.Util.interpolateEnvVars(list.get(i), env);
+                  }
+                  return arr;
                 } else {
                   return new String[] {
                     mill.constants.Util.interpolateEnvVars(conf2.get(key).toString(), env)
@@ -226,10 +228,12 @@ public class MillProcessLauncher {
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
     String[] runnerClasspath = cachedComputedValue0(
-        "resolve-runner",
-        BuildInfo.millVersion,
-        () -> CoursierClient.resolveMillDaemon(),
-        arr -> Arrays.stream(arr).allMatch(s -> Files.exists(Paths.get(s))));
+        "resolve-runner", BuildInfo.millVersion, () -> CoursierClient.resolveMillDaemon(), arr -> {
+          for (String s : arr) {
+            if (!Files.exists(Paths.get(s))) return false;
+          }
+          return true;
+        });
     vmOptions.add(String.join(File.pathSeparator, runnerClasspath));
 
     return vmOptions;

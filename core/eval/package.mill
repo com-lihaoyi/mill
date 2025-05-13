@@ -9,6 +9,6 @@ import millbuild.*
  * without any of the user-land logic or helpers necessary to build actual
  * codebases.
  */
-object `package` extends MillStableScalaModule {
+object `package` extends MillPublishScalaModule {
   def moduleDeps = Seq(build.core.define, build.core.exec, build.core.resolve)
 }

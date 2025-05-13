@@ -121,8 +121,8 @@ trait MillBuildRootModule()(implicit
 
   def millBuildRootModuleResult = Task {
     Tuple3(
-      runClasspath().map(_.path.toNIO.toString),
-      compile().classes.path.toNIO.toString,
+      runClasspath(),
+      compile().classes,
       codeSignatures()
     )
   }

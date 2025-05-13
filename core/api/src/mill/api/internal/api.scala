@@ -174,3 +174,9 @@ object IdeaConfigFile {
   ): IdeaConfigFile =
     IdeaConfigFile(subPath, if (component == "") None else Option(component), config)
 }
+
+trait PathRefApi {
+  private[mill] def javaPath: java.nio.file.Path
+  def quick: Boolean
+  def sig: Int
+}
