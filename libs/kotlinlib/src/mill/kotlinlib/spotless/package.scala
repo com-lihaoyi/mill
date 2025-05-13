@@ -1,4 +1,4 @@
-package mill.javalib
+package mill.kotlinlib
 
 import mill.define.ExternalModule
 

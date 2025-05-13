@@ -1,0 +1,22 @@
+[
+  {
+    "includes": [
+      "glob:**.java"
+    ],
+    "steps": [
+      {
+        "$type": "PalantirJavaFormat"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**.properties"
+    ],
+    "steps": [
+      {
+        "$type": "TrimTrailingWhitespace"
+      }
+    ]
+  }
+]

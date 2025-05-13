@@ -1,0 +1,25 @@
+[
+  {
+    "includes": [
+      "glob:**.kt"
+    ],
+    "steps": [
+      {
+        "$type": "Ktfmt"
+      },
+      {
+        "$type": "KtLint"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**.java"
+    ],
+    "steps": [
+      {
+        "$type": "PalantirJavaFormat"
+      }
+    ]
+  }
+]

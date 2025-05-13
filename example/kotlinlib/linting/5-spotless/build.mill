@@ -1,46 +1,48 @@
-// Mill supports formatting files using the
-// https://github.com/diffplug/spotless[Spotless] project.
+// If your project has polyglot sources, you may want to give Mill's
+// https://github.com/diffplug/spotless[Spotless] plugin a try.
+// It allows for formatting all files with a single command
+// as opposed to using a formatter plugin/command for each programming language.
+
+// We define a module that extends `SpotlessModule` and specify the formatter steps to be applied in a JSON file.
 
 package build
 
-import mill.javalib.spotless.SpotlessModule
+import mill.Task
+import mill.kotlinlib.KotlinModule
+import mill.kotlinlib.spotless.SpotlessModule
 
-object `package` extends SpotlessModule
+object `package` extends KotlinModule with SpotlessModule {
+  def kotlinVersion = "2.1.20"
+  def spotlessSources = Task { sources() }
+}
 
-/** See Also: spotless-config.json */
+/** See Also: spotless-formats.json */
 /** See Also: src/A.kt */
 /** See Also: src/B.java */
 
-// The example defines a module with polyglot sources
-// that uses Spotless on a per-module basis by inheriting from `SpotlessModule`.
-// Running the `spotless` command on the module formats both Kotlin and Java sources
-// with the respective formatters defined in the configuration file.
-
-// TIP: Adding the `--check` flag will cause `spotless` to fail on format errors.
-// This is useful in CI validation jobs to ensure files are formatted before merging.
+// Next we run the inherited `spotless` command to check/fix formatting for different file types.
 
 /** Usage
 > ./mill spotless --check     # check fails initially
 checking format in 1 kt files
-error: format errors in src/A.kt
-error: format errors in 1 kt files
+format errors in src/A.kt
+format errors in 1 kt files
 checking format in 1 java files
-error: format errors in src/B.java
-error: format errors in 1 java files
+format errors in src/B.java
+format errors in 1 java files
+error: spotless format check failed for 2 files
 
 > ./mill spotless             # auto-fix format
-checking format in 1 kt files
 formatting src/A.kt
 formatted 1 kt files
-checking format in 1 java files
 formatting src/B.java
 formatted 1 java files
 */
 
-// You can also use Spotless xref:fundamentals/modules.adoc#_external_modules[globally] to format files in all modules.
+// You can also run `spotless` xref:fundamentals/modules.adoc#_external_modules[globally]
+// without having to extend the `SpotlessModule`.
+
 /** Usage
-> ./mill mill.javalib.spotless/ --check   # format is incremental
+> ./mill mill.kotlinlib.spotless/ --check   # format is incremental
 everything is already formatted
 */
-
-// For the full configuration options, see xref:reference/spotless-configuration.adoc[].
