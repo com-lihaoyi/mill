@@ -203,6 +203,8 @@ object ScriptTests extends TestSuite {
           "https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.6/mill-dist-0.12.6.jar",
           s"$home/.cache/mill/download/0.12.6"
         ),
+        // Make sure the `nativeSuffix` the bash script appends to the URL matches the
+        // `nativeSuffix` computed by Mill's own `dist/package.mill` when uploading the artifacts
         (
           "0.12.6-native",
           s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist-native-$nativeSuffix/0.12.6/mill-dist-native-$nativeSuffix-0.12.6.jar",
