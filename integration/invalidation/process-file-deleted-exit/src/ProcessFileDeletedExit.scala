@@ -45,9 +45,9 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
         os.walk(processRoot).exists(_.last == "processId")
       }
 
-      if (tester.clientServerMode){
+      if (tester.clientServerMode) {
         os.remove(processRoot / "processId")
-      } else{
+      } else {
         os.list(processRoot).map { p =>
           os.remove(p / "processId")
         }

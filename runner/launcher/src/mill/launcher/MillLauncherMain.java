@@ -7,7 +7,6 @@ import java.util.Collections;
 import mill.client.*;
 import mill.client.lock.Locks;
 import mill.constants.OutFiles;
-import mill.constants.Util;
 
 /**
  * This is a Java implementation to speed up repetitive starts.
