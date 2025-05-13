@@ -272,6 +272,12 @@ if [ ! -s "${MILL}" ] ; then
         ;;
     esac
     case $MILL_VERSION in
+      0.12.0 | 0.12.1 | 0.12.2 | 0.12.3 | 0.12.4 | 0.12.5 | 0.12.6 | 0.12.7 | 0.12.8 | 0.12.9 | 0.12.10 | 0.12.11 )
+        DOWNLOAD_EXT="jar"
+        ;;
+      0.12.* )
+        DOWNLOAD_EXT="exe"
+        ;;
       0.* )
         DOWNLOAD_EXT="jar"
         ;;
