@@ -60,9 +60,10 @@ public class MillLauncherMain {
             };
 
         Path serverDir0 = Paths.get(OutFiles.out, OutFiles.millServer);
-        int exitCode = launcher.run(serverDir0).exitCode;
+        String javaHome = MillProcessLauncher.javaHome();
+        int exitCode = launcher.run(serverDir0, javaHome).exitCode;
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
-          exitCode = launcher.run(serverDir0).exitCode;
+          exitCode = launcher.run(serverDir0, javaHome).exitCode;
         }
         System.exit(exitCode);
       } catch (Exception e) {

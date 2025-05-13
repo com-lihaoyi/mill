@@ -85,7 +85,7 @@ def externalPwdTask = Task { println(externalPwd.toString) }
 
 /** Usage
 > ./mill externalPwdTask
-.../out/mill-server/.../sandbox
+.../out/mill-server/sandbox
 */
 
 // === Limitations of Mill's Sandboxing
