@@ -442,7 +442,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
     "info.releaseNotesURL" -> Settings.changelogUrl
   )
   def pomSettings = commonPomSettings(artifactName())
-  def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
+  def javacOptions = Seq("-source", "11", "-target", "11", "-encoding", "UTF-8")
 }
 
 /**
