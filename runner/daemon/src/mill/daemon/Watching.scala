@@ -76,7 +76,13 @@ object Watching {
           prevState = Some(result)
           handleError(errorOpt)
 
-          enterKeyPressed = watchAndWait(streams, streams.in, watchables, watchArgs)
+          try {
+            watchArgs.setIdle(true)
+            enterKeyPressed = watchAndWait(streams, streams.in, watchables, watchArgs)
+          }
+          finally {
+            watchArgs.setIdle(false)
+          }
         }
         throw new IllegalStateException("unreachable")
     }
@@ -88,7 +94,6 @@ object Watching {
       watched: Seq[Watchable],
       watchArgs: WatchArgs
   ): Boolean = {
-    watchArgs.setIdle(true)
     val (watchedPollables, watchedPathsSeq) = watched.partitionMap {
       case w: Watchable.Pollable => Left(w)
       case p: Watchable.Path => Right(p)
@@ -108,7 +113,6 @@ object Watching {
 
     def doWatch(notifiablesChanged: () => Boolean) = {
       val enterKeyPressed = statWatchWait(watchedPollables, stdin, notifiablesChanged)
-      watchArgs.setIdle(false)
       enterKeyPressed
     }
 
