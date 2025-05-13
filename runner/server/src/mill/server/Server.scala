@@ -185,7 +185,7 @@ abstract class Server[T](
         streams = new mill.api.SystemStreams(
           new PrintStream(mill.api.DummyOutputStream),
           new PrintStream(mill.api.DummyOutputStream),
-          mill.api.DummyInputStream,
+          mill.api.DummyInputStream
         ),
         outLock = outLock
       ) {
