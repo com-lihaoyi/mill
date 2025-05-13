@@ -1,4 +1,4 @@
-= Sonatype Central (Plugin Moved to Scalalib)
+= Sonatype Central
 :page-aliases: Plugin_Sonatype_Central.adoc
 
 This plugin allows users to publish open-source packages to Maven Central via the Sonatype Central portal.
