@@ -44,7 +44,9 @@ trait WatchTests extends UtestIntegrationTestSuite {
     val expectedShows0 = mutable.Buffer.empty[String]
     val res = f(expectedOut, expectedErr, expectedShows0)
     val (shows, out) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
-    val err = res.err.linesIterator.toVector.filter(s => s.startsWith("Setting up ") || s.startsWith("Running "))
+    val err = res.err.linesIterator.toVector.filter(s =>
+      s.startsWith("Setting up ") || s.startsWith("Running ")
+    )
 
     assert(out == expectedOut)
 

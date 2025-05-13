@@ -80,8 +80,7 @@ object Watching {
           try {
             watchArgs.setIdle(true)
             enterKeyPressed = watchAndWait(streams, streams.in, watchables, watchArgs)
-          }
-          finally {
+          } finally {
             watchArgs.setIdle(false)
           }
         }
