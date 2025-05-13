@@ -83,6 +83,7 @@ object WatchSourceTests extends WatchTests {
           "Running qux foo contents initial-foo1 initial-foo2 Running qux bar contents initial-bar"
         )
 
+        Thread.sleep(1000) // Wait for the watching to begin
         os.write.over(workspacePath / "foo1.txt", "edited-foo1")
         awaitCompletionMarker(tester, "quxRan1")
         expectedErr.append(
@@ -92,7 +93,8 @@ object WatchSourceTests extends WatchTests {
         expectedShows.append(
           "Running qux foo contents edited-foo1 initial-foo2 Running qux bar contents initial-bar"
         )
-
+        
+        Thread.sleep(1000) // Wait for the watching to begin
         os.write.over(workspacePath / "foo2.txt", "edited-foo2")
         awaitCompletionMarker(tester, "quxRan2")
         expectedErr.append(
@@ -103,6 +105,7 @@ object WatchSourceTests extends WatchTests {
           "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents initial-bar"
         )
 
+        Thread.sleep(1000) // Wait for the watching to begin
         os.write.over(workspacePath / "bar.txt", "edited-bar")
         awaitCompletionMarker(tester, "quxRan3")
         expectedErr.append(
@@ -113,6 +116,7 @@ object WatchSourceTests extends WatchTests {
           "Running qux foo contents edited-foo1 edited-foo2 Running qux bar contents edited-bar"
         )
 
+        Thread.sleep(1000) // Wait for the watching to begin
         os.write.append(workspacePath / "build.mill", "\ndef unrelated = true")
         awaitCompletionMarker(tester, "initialized1")
         expectedOut.append(
@@ -124,6 +128,7 @@ object WatchSourceTests extends WatchTests {
         )
 
         if (show) expectedOut.append("{}")
+        Thread.sleep(1000) // Wait for the watching to begin
         os.write.over(workspacePath / "watchValue.txt", "exit")
         awaitCompletionMarker(tester, "initialized2")
         expectedOut.append("Setting up build.mill")
