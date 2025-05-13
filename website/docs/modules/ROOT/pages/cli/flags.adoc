@@ -134,6 +134,13 @@ forcefully terminating the previous process even though it may be still alive:
 > mill -w foo.runBackground
 ----
 
+Note that even if you interrupt mill watch via CTRL+C, the server spawned by runBackground still runs in the background.
+To actually stop the background server use:
+
+[source,console]
+----
+> mill clean foo.runBackground
+----
 
 === `--jobs`/`-j`
 

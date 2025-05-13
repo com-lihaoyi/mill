@@ -37,6 +37,25 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
       os.write(stop, "")
       eventually { probeLockAvailable(lock) }
     }
+    
+    test("sequential") - integrationTest { tester =>
+      import tester._
+      val lock1 = os.temp()
+      val lock2 = os.temp()
+      val stop = os.temp()
+      os.remove(stop)
+      eval(("foo.runBackground", lock1, stop))
+      eventually { !probeLockAvailable(lock1) }
+      eval(("foo.runBackground", lock2, stop))
+      eventually { !probeLockAvailable(lock2) }
+      Predef.assert(probeLockAvailable(lock1), "first process should be exited after second process is running")
+      
+      if (tester.clientServerMode) eval("shutdown")
+      continually { !probeLockAvailable(lock2) }
+      os.write(stop, "")
+      eventually { probeLockAvailable(lock2) }
+    }
+    
     test("clean") - integrationTest { tester =>
       import tester._
       val lock = os.temp()
