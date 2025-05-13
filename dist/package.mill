@@ -15,7 +15,6 @@ trait InstallModule extends build.MillPublishJavaModule {
   }
   def moduleDeps = Seq(build.runner, build.idea, build.main.init)
 
-  def jar = executableRaw()
   def executableRaw: T[PathRef]
 
   def executable = Task {
@@ -59,6 +58,45 @@ trait InstallModule extends build.MillPublishJavaModule {
       s"Published ${build.dist.allPublishModules.size} modules and installed ${targetFile}"
     )
     targetFile
+  }
+
+  def artifact = Task {
+    Artifact(build.Settings.pomOrg, artifactName(), build.millVersion())
+  }
+
+  def pomSettings = Task {
+    build.MillPublishJavaModule.commonPomSettings(artifactName())
+  }
+
+  def artifactFileNamePrefix = Task {
+    s"${artifactName()}-${build.millVersion()}"
+  }
+
+  def pom: T[PathRef] = Task {
+    val pom = Pom(
+      artifact = artifact(),
+      dependencies = Nil,
+      name = artifactName(),
+      pomSettings = pomSettings(),
+      properties = Map(),
+      packagingType = "jar",
+      parentProject = None,
+      bomDependencies = Nil,
+      dependencyManagement = Nil
+    )
+    val pomPath = Task.dest / s"${artifactFileNamePrefix()}.pom"
+    os.write.over(pomPath, pom)
+    PathRef(pomPath)
+  }
+
+  def publishArtifacts = Task {
+    PublishModule.PublishData(
+      meta = artifact(),
+      payload = Seq(
+        executableRaw() -> s"${artifactFileNamePrefix()}.exe",
+        pom() -> s"${artifactFileNamePrefix()}.pom"
+      )
+    )
   }
 }
 
@@ -233,20 +271,20 @@ object `package` extends RootModule with InstallModule {
     prepareBootstrapLauncher(millBootstrapBat().path, Task.dest, build.millVersion(), "mill.bat")
   }
 
-  def examplePathsWithArtifactName: Task[Seq[(os.Path, String)]] = Task.Anon {
+  def examplePathsWithArtifactName: Task[Seq[(PathRef, String)]] = Task.Anon {
     for {
       exampleMod <- build.example.exampleModules
       path = exampleMod.millSourcePath
     } yield {
       val example = path.subRelativeTo(Task.workspace)
       val artifactName = example.segments.mkString("-")
-      (path, artifactName)
+      (PathRef(path), artifactName)
     }
   }
 
   def exampleZips: T[Seq[PathRef]] = Task {
     examplePathsWithArtifactName().map { case (examplePath, exampleStr) =>
-      os.copy(examplePath, Task.dest / exampleStr, createFolders = true)
+      os.copy(examplePath.path, Task.dest / exampleStr, createFolders = true)
       os.write(Task.dest / exampleStr / ".mill-version", build.millLastTag())
       os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
       os.copy(bootstrapLauncherBat().path, Task.dest / exampleStr / "mill.bat")
@@ -257,12 +295,14 @@ object `package` extends RootModule with InstallModule {
   }
 
   def publishArtifacts = Task {
-    super.publishArtifacts()
-      .copy(payload =
-        super.publishArtifacts().payload ++
-          exampleZips().map(z => (z, z.path.last)) ++
-          Seq((bootstrapLauncher(), "mill"), (bootstrapLauncherBat(), "mill.bat"))
-      )
+    super.publishArtifacts().copy(payload =
+      super.publishArtifacts().payload ++
+        exampleZips().map(z => (z, s"${artifactFileNamePrefix()}-${z.path.last}")) ++
+        Seq(
+          (bootstrapLauncher(), s"${artifactFileNamePrefix()}-mill.sh"),
+          (bootstrapLauncherBat(), s"${artifactFileNamePrefix()}-mill.bat")
+        )
+    )
   }
 
   def uploadToGithub(authKey: String) = Task.Command {

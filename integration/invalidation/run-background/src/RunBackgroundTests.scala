@@ -71,6 +71,7 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
       eval(("foo.runBackground", lock, stop))
       eventually {
         !probeLockAvailable(lock)
+
       }
 
       eval(("clean", "foo.runBackground"))
