@@ -62,7 +62,8 @@ object Watching {
 
     watch match {
       case None =>
-        val Result(watchables, errorOpt, result) = evaluate(enterKeyPressed = false, previousState = None)
+        val Result(watchables, errorOpt, result) =
+          evaluate(enterKeyPressed = false, previousState = None)
         handleError(errorOpt)
         (errorOpt.isEmpty, result)
 
