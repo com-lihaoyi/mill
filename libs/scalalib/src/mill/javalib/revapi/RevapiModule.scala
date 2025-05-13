@@ -72,7 +72,7 @@ trait RevapiModule extends PublishModule {
 
   /** API archive and supplement files (dependencies) to compare against */
   def revapiOldFiles: T[Seq[PathRef]] = Task {
-    val Artifact(group, id, version) = publishSelfDependency()
+    val Artifact(group, id, version) = artifactMetadata()
     defaultResolver().classpath(
       Seq(mvn"$group:$id:$version"),
       artifactTypes = Some(revapiArtifactTypes())
