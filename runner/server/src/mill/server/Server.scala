@@ -28,11 +28,16 @@ abstract class Server[T](
     testLogEvenWhenServerIdWrong: Boolean = false
 ) {
 
+  def outLock: mill.client.lock.Lock
+  def out: os.Path
+
   @volatile var running = true
   def exitServer(): Unit = running = false
   var stateCache = stateCache0
   def stateCache0: T
 
+  var lastMillVersion = Option.empty[String]
+  var lastJavaVersion = Option.empty[String]
   val processId: String = Server.computeProcessId()
   def serverLog0(s: String): Unit = {
     if (os.exists(serverDir) || testLogEvenWhenServerIdWrong) {
@@ -162,6 +167,7 @@ abstract class Server[T](
 
       val interactive = socketIn.read() != 0
       val clientMillVersion = ClientUtil.readString(socketIn)
+      val clientJavaVersion = ClientUtil.readString(socketIn)
       val args = ClientUtil.parseArgs(socketIn)
       val env = ClientUtil.parseMap(socketIn)
       serverLog("args " + upickle.default.write(args))
@@ -173,18 +179,40 @@ abstract class Server[T](
       // that relies on that method
       val proxiedSocketInput = proxyInputStreamThroughPumper(socketIn)
 
-      val serverMillVersion = BuildInfo.millVersion
-      if (clientMillVersion != serverMillVersion) {
-        stderr.println(
-          s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server"
-        )
-        os.write(
-          serverDir / ServerFiles.exitCode,
-          ClientUtil.ExitServerCodeWhenVersionMismatch().toString.getBytes()
-        )
-        System.exit(ClientUtil.ExitServerCodeWhenVersionMismatch())
+      val millVersionChanged = lastMillVersion.exists(_ != clientMillVersion)
+      val javaVersionChanged = lastJavaVersion.exists(_ != clientJavaVersion)
+      if (millVersionChanged || javaVersionChanged) {
+        Server.withOutLock(
+          noBuildLock = false,
+          noWaitForBuildLock = false,
+          out = out,
+          targetsAndParams = Seq("checking server mill version and java version"),
+          streams = new mill.api.SystemStreams(
+            new PrintStream(mill.api.DummyOutputStream),
+            new PrintStream(mill.api.DummyOutputStream),
+            mill.api.DummyInputStream
+          ),
+          outLock = outLock
+        ) {
+          if (millVersionChanged) {
+            stderr.println(
+              s"Mill version changed ($lastMillVersion -> $clientMillVersion), re-starting server"
+            )
+          }
+          if (javaVersionChanged) {
+            stderr.println(
+              s"Java version changed ($lastJavaVersion -> $clientJavaVersion), re-starting server"
+            )
+          }
+          os.write(
+            serverDir / ServerFiles.exitCode,
+            ClientUtil.ExitServerCodeWhenVersionMismatch().toString.getBytes()
+          )
+          System.exit(ClientUtil.ExitServerCodeWhenVersionMismatch())
+        }
       }
-
+      lastMillVersion = Some(clientMillVersion)
+      lastJavaVersion = Some(clientJavaVersion)
       @volatile var done = false
       @volatile var idle = false
       val t = new Thread(

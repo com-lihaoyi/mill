@@ -82,7 +82,7 @@ public abstract class ServerLauncher {
     this.forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay;
   }
 
-  public Result run(Path serverDir) throws Exception {
+  public Result run(Path serverDir, String javaHome) throws Exception {
 
     Files.createDirectories(serverDir);
 
@@ -91,7 +91,7 @@ public abstract class ServerLauncher {
     Socket ioSocket = launchConnectToServer(serverDir);
 
     try {
-      Thread outPumperThread = startStreamPumpers(ioSocket);
+      Thread outPumperThread = startStreamPumpers(ioSocket, javaHome);
       forceTestFailure(serverDir);
       outPumperThread.join();
     } finally {
@@ -137,11 +137,12 @@ public abstract class ServerLauncher {
     }
   }
 
-  Thread startStreamPumpers(Socket ioSocket) throws Exception {
+  Thread startStreamPumpers(Socket ioSocket, String javaHome) throws Exception {
     InputStream outErr = ioSocket.getInputStream();
     OutputStream in = ioSocket.getOutputStream();
     in.write(Util.hasConsole() ? 1 : 0);
     ClientUtil.writeString(in, BuildInfo.millVersion);
+    ClientUtil.writeString(in, javaHome);
     ClientUtil.writeArgs(args, in);
     ClientUtil.writeMap(env, in);
     ProxyStream.Pumper outPumper = new ProxyStream.Pumper(outErr, stdout, stderr);

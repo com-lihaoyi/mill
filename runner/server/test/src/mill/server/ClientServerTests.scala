@@ -24,6 +24,11 @@ object ClientServerTests extends TestSuite {
       testLogEvenWhenServerIdWrong: Boolean
   ) extends Server[Option[Int]](serverDir, 1000, locks, testLogEvenWhenServerIdWrong)
       with Runnable {
+
+    override def outLock = mill.client.lock.Lock.memory()
+
+    override def out = os.temp.dir()
+
     override def exitServer() = {
       serverLog("exiting server")
       super.exitServer()
@@ -106,7 +111,7 @@ object ClientServerTests extends TestSuite {
             testLogEvenWhenServerIdWrong
           )).start()
         }
-      }.run((outDir / "server-0").relativeTo(os.pwd).toNIO)
+      }.run((outDir / "server-0").relativeTo(os.pwd).toNIO, "")
 
       ClientResult(
         result.exitCode,
