@@ -4,6 +4,7 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.regex.Pattern
 
 import mill.*
+import mill.scalalib.*
 import mill.api.Result
 import millbuild.*
 
@@ -74,6 +75,16 @@ object `package` extends mill.Module { scripts =>
     def finalName = "mill.bat"
   }
 
+  object test extends ScalaModule with TestModule.Utest {
+    def scalaVersion = millbuild.Deps.scalaVersion
+    def mvnDeps = Seq(millbuild.Deps.osLib, millbuild.Deps.pprint)
+    def utestVersion = millbuild.Deps.TestDeps.utest.version
+    def forkEnv = Map(
+      "MILL_TEST_SH_SCRIPT" -> millSh.compile0().path.toString,
+      "MILL_TEST_BAT_SCRIPT" -> millBat.compile0().path.toString,
+      "MILL_NATIVE_SUFFIX" -> build.dist.native.nativeSuffix()
+    )
+  }
   def scriptsModules: Seq[BootstrapScriptModule] = Seq(millSh, millBat)
 
   def installInRepo: T[Seq[PathRef]] = Task {

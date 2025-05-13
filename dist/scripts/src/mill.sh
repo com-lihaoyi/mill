@@ -248,54 +248,58 @@ EOF
 }
 try_to_use_system_mill
 
-# If not already downloaded, download it
-if [ ! -s "${MILL}" ] ; then
+# support old non-XDG download dir
+MILL_OLD_DOWNLOAD_PATH="${HOME}/.mill/download"
+OLD_MILL="${MILL_OLD_DOWNLOAD_PATH}/${MILL_VERSION}"
+if [ -x "${OLD_MILL}" ] ; then
+  MILL="${OLD_MILL}"
+else
+  case $MILL_VERSION in
+    0.0.* | 0.1.* | 0.2.* | 0.3.* | 0.4.* )
+      DOWNLOAD_SUFFIX=""
+      DOWNLOAD_FROM_MAVEN=0
+      ;;
+    0.5.* | 0.6.* | 0.7.* | 0.8.* | 0.9.* | 0.10.* | 0.11.0-M* )
+      DOWNLOAD_SUFFIX="-assembly"
+      DOWNLOAD_FROM_MAVEN=0
+      ;;
+    *)
+      DOWNLOAD_SUFFIX="-assembly"
+      DOWNLOAD_FROM_MAVEN=1
+      ;;
+  esac
+  case $MILL_VERSION in
+    0.12.0 | 0.12.1 | 0.12.2 | 0.12.3 | 0.12.4 | 0.12.5 | 0.12.6 | 0.12.7 | 0.12.8 | 0.12.9 | 0.12.10 | 0.12.11 )
+      DOWNLOAD_EXT="jar"
+      ;;
+    0.12.* )
+      DOWNLOAD_EXT="exe"
+      ;;
+    0.* )
+      DOWNLOAD_EXT="jar"
+      ;;
+    *)
+      DOWNLOAD_EXT="exe"
+      ;;
+  esac
 
-  # support old non-XDG download dir
-  MILL_OLD_DOWNLOAD_PATH="${HOME}/.mill/download"
-  OLD_MILL="${MILL_OLD_DOWNLOAD_PATH}/${MILL_VERSION}"
-  if [ -x "${OLD_MILL}" ] ; then
-    MILL="${OLD_MILL}"
+  DOWNLOAD_FILE=$(mktemp mill.XXXXXX)
+
+  if [ "$DOWNLOAD_FROM_MAVEN" = "1" ] ; then
+    DOWNLOAD_URL="{{{ mill-maven-url }}}/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${DOWNLOAD_EXT}"
   else
-    case $MILL_VERSION in
-      0.0.* | 0.1.* | 0.2.* | 0.3.* | 0.4.* )
-        DOWNLOAD_SUFFIX=""
-        DOWNLOAD_FROM_MAVEN=0
-        ;;
-      0.5.* | 0.6.* | 0.7.* | 0.8.* | 0.9.* | 0.10.* | 0.11.0-M* )
-        DOWNLOAD_SUFFIX="-assembly"
-        DOWNLOAD_FROM_MAVEN=0
-        ;;
-      *)
-        DOWNLOAD_SUFFIX="-assembly"
-        DOWNLOAD_FROM_MAVEN=1
-        ;;
-    esac
-    case $MILL_VERSION in
-      0.12.0 | 0.12.1 | 0.12.2 | 0.12.3 | 0.12.4 | 0.12.5 | 0.12.6 | 0.12.7 | 0.12.8 | 0.12.9 | 0.12.10 | 0.12.11 )
-        DOWNLOAD_EXT="jar"
-        ;;
-      0.12.* )
-        DOWNLOAD_EXT="exe"
-        ;;
-      0.* )
-        DOWNLOAD_EXT="jar"
-        ;;
-      *)
-        DOWNLOAD_EXT="exe"
-        ;;
-    esac
+    MILL_VERSION_TAG=$(echo "$MILL_VERSION" | sed -E 's/([^-]+)(-M[0-9]+)?(-.*)?/\1\2/')
+    DOWNLOAD_URL="${GITHUB_RELEASE_CDN}${MILL_REPO_URL}/releases/download/${MILL_VERSION_TAG}/${MILL_VERSION}${DOWNLOAD_SUFFIX}"
+    unset MILL_VERSION_TAG
+  fi
 
-    DOWNLOAD_FILE=$(mktemp mill.XXXXXX)
-
-    if [ "$DOWNLOAD_FROM_MAVEN" = "1" ] ; then
-      DOWNLOAD_URL="{{{ mill-maven-url }}}/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${DOWNLOAD_EXT}"
-    else
-      MILL_VERSION_TAG=$(echo "$MILL_VERSION" | sed -E 's/([^-]+)(-M[0-9]+)?(-.*)?/\1\2/')
-      DOWNLOAD_URL="${GITHUB_RELEASE_CDN}${MILL_REPO_URL}/releases/download/${MILL_VERSION_TAG}/${MILL_VERSION}${DOWNLOAD_SUFFIX}"
-      unset MILL_VERSION_TAG
-    fi
-
+  if [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
+    echo $DOWNLOAD_URL
+    echo $MILL
+    exit 0
+  fi
+  # If not already downloaded, download it
+  if [ ! -s "${MILL}" ] ; then
     # TODO: handle command not found
     echo "Downloading mill ${MILL_VERSION} from ${DOWNLOAD_URL} ..." 1>&2
     ${CURL_CMD} -f -L -o "${DOWNLOAD_FILE}" "${DOWNLOAD_URL}"
