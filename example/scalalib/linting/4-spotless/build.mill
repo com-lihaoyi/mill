@@ -1,46 +1,51 @@
-// Mill supports formatting files using the
-// https://github.com/diffplug/spotless[Spotless] project.
+// If your project has polyglot sources, you may want to give Mill's
+// https://github.com/diffplug/spotless[Spotless] plugin a try.
+// It allows for formatting all files with a single command
+// as opposed to using a different plugin/command for each programming language.
+
+// We define a module that extends `SpotlessModule` and specify the formatter steps to be applied in a JSON file.
 
 package build
 
-import mill.javalib.spotless.SpotlessModule
+import mill.Task
+import mill.scalalib.ScalaModule
+import mill.scalalib.spotless.SpotlessModule
 
-object `package` extends SpotlessModule
+object `package` extends ScalaModule with SpotlessModule {
+  def scalaVersion = "2.13.16"
+  def spotlessTargets = Task { sources() }
+}
 
-/** See Also: spotless-config.json */
 /** See Also: src/A.scala */
 /** See Also: src/B.java */
+/** See Also: spotless-formats.json */
+/** See Also: .scalafmt.conf */
 
-// The example defines a module with polyglot sources
-// that uses Spotless on a per-module basis by inheriting from `SpotlessModule`.
-// Running the `spotless` command on the module formats both Scala and Java sources
-// with the respective formatters defined in the configuration file.
+// NOTE: The `.scalafmt.conf` file is referenced by the default value for `configFile` field in `ScalaFmt` step.
 
-// TIP: Adding the `--check` flag will cause `spotless` to fail on format errors.
-// This is useful in CI validation jobs to ensure files are formatted before merging.
+// Next we run the inherited `spotless` command to check/fix formatting for different file types.
 
 /** Usage
 > ./mill spotless --check     # check fails initially
 checking format in 1 scala files
-error: format errors in src/A.scala
-error: format errors in 1 scala files
+format errors in src/A.scala
 checking format in 1 java files
-error: format errors in src/B.java
-error: format errors in 1 java files
+format errors in src/B.java
+format errors in 2 files
+error: ...format check failed for 2 files
 
 > ./mill spotless             # auto-fix format
-checking format in 1 scala files
 formatting src/A.scala
-formatted 1 scala files
-checking format in 1 java files
 formatting src/B.java
-formatted 1 java files
+formatted 2 files
 */
 
-// You can also use Spotless xref:fundamentals/modules.adoc#_external_modules[globally] to format files in all modules.
+// You can also run `spotless` xref:fundamentals/modules.adoc#_external_modules[globally]
+// without having to extend the `SpotlessModule`.
+
 /** Usage
-> ./mill mill.javalib.spotless/ --check   # format is incremental
+> ./mill mill.scalalib.spotless/ --check  # fast incremental format
 everything is already formatted
 */
 
-// For the full configuration options, see xref:reference/spotless-configuration.adoc[].
+// NOTE: The cache for incremental format is invalidated automatically when the `spotless-formats.json`, or a referenced file like `.scalafmt.conf`, is changed.

@@ -1,0 +1,12 @@
+[
+  {
+    "includes": [
+      "glob:**/LicenseHeader"
+    ],
+    "steps": [
+      {
+        "$type": "LicenseHeader"
+      }
+    ]
+  }
+]
