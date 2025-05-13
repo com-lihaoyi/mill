@@ -28,6 +28,9 @@ abstract class Server[T](
     testLogEvenWhenServerIdWrong: Boolean = false
 ) {
 
+  def outLock: mill.client.lock.Lock
+  def out: os.Path
+
   @volatile var running = true
   def exitServer(): Unit = running = false
   var stateCache = stateCache0
@@ -174,17 +177,29 @@ abstract class Server[T](
       val proxiedSocketInput = proxyInputStreamThroughPumper(socketIn)
 
       val serverMillVersion = BuildInfo.millVersion
-      if (clientMillVersion != serverMillVersion) {
-        stderr.println(
-          s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server"
-        )
-        os.write(
-          serverDir / ServerFiles.exitCode,
-          ClientUtil.ExitServerCodeWhenVersionMismatch().toString.getBytes()
-        )
-        System.exit(ClientUtil.ExitServerCodeWhenVersionMismatch())
+      Server.withOutLock(
+        noBuildLock = false,
+        noWaitForBuildLock = false,
+        out = out,
+        targetsAndParams = Seq("checking server version"),
+        streams = new mill.api.SystemStreams(
+          new PrintStream(mill.api.DummyOutputStream),
+          new PrintStream(mill.api.DummyOutputStream),
+          mill.api.DummyInputStream,
+        ),
+        outLock = outLock
+      ) {
+        if (clientMillVersion != serverMillVersion) {
+          stderr.println(
+            s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server"
+          )
+          os.write(
+            serverDir / ServerFiles.exitCode,
+            ClientUtil.ExitServerCodeWhenVersionMismatch().toString.getBytes()
+          )
+          System.exit(ClientUtil.ExitServerCodeWhenVersionMismatch())
+        }
       }
-
       @volatile var done = false
       @volatile var idle = false
       val t = new Thread(
