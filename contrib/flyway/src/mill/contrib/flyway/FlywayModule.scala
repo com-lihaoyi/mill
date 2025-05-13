@@ -36,7 +36,7 @@ trait FlywayModule extends JavaModule {
       .map(key -> _)
 
   def flywayClassloader = Task.Worker {
-    mill.util.Jvm.createClassLoader(jdbcClasspath().map(_.path))
+    mill.util.Jvm.createIsolatedClassLoader(jdbcClasspath().map(_.path))
   }
   def flywayInstance = Task.Worker {
     val jdbcClassloader = flywayClassloader()

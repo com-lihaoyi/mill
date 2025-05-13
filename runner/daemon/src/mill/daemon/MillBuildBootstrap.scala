@@ -296,6 +296,7 @@ class MillBuildBootstrap(
             else
               mill.util.Jvm.createClassLoader(
                 runClasspath.map(p => os.Path(p.javaPath)),
+                parent = null,
                 sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
                 sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api")
               )

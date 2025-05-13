@@ -219,7 +219,7 @@ object Jvm {
    */
   def createClassLoader(
       classPath: Iterable[os.Path],
-      parent: ClassLoader = null,
+      parent: ClassLoader = Thread.currentThread().getContextClassLoader,
       sharedLoader: ClassLoader = getClass.getClassLoader,
       sharedPrefixes: Iterable[String] = Seq(),
       label: String = null
@@ -228,6 +228,25 @@ object Jvm {
     parent,
     sharedLoader,
     sharedPrefixes,
+    Option(label).getOrElse(e.value)
+  )
+
+  /**
+   * Creates a `java.net.URLClassLoader` with specified class path
+   *
+   * Only basic JVM classes are shared with this loader.
+   *
+   * @param classPath URLs from which to load classes and resources
+   * @return new classloader
+   */
+  def createIsolatedClassLoader(
+      classPath: Iterable[os.Path],
+      label: String = null
+  )(implicit e: sourcecode.Enclosing): MillURLClassLoader = new MillURLClassLoader(
+    classPath.map(_.toNIO),
+    parent = null,
+    sharedLoader = null,
+    sharedPrefixes = Nil,
     Option(label).getOrElse(e.value)
   )
 
@@ -241,7 +260,7 @@ object Jvm {
    */
   def withClassLoader[T](
       classPath: Iterable[os.Path],
-      parent: ClassLoader = null,
+      parent: ClassLoader = Thread.currentThread().getContextClassLoader,
       sharedLoader: ClassLoader = getClass.getClassLoader,
       sharedPrefixes: Seq[String] = Seq.empty
   )(f: ClassLoader => T): T = {
@@ -252,6 +271,26 @@ object Jvm {
       sharedLoader = sharedLoader,
       sharedPrefixes = sharedPrefixes
     )
+    Thread.currentThread().setContextClassLoader(newClassloader)
+    try {
+      f(newClassloader)
+    } finally {
+      Thread.currentThread().setContextClassLoader(oldClassloader)
+      newClassloader.close()
+    }
+  }
+
+  /**
+   * @param classPath URLs from which to load classes and resources
+   * @param f function that will be called with newly created classloader
+   * @tparam T the return type of this function
+   * @return return value of the function `f`
+   */
+  def withIsolatedClassLoader[T](
+      classPath: Iterable[os.Path]
+  )(f: ClassLoader => T): T = {
+    val oldClassloader = Thread.currentThread().getContextClassLoader
+    val newClassloader = createIsolatedClassLoader(classPath)
     Thread.currentThread().setContextClassLoader(newClassloader)
     try {
       f(newClassloader)
@@ -656,7 +695,7 @@ object Jvm {
     val testOverridesClassloaders = System.getenv("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH") match {
       case null => Nil
       case cp =>
-        cp.split(';').map { s => createClassLoader(Array(os.Path(s))) }.toList
+        cp.split(';').map { s => createIsolatedClassLoader(Array(os.Path(s))) }.toList
     }
 
     try {

@@ -19,7 +19,7 @@ object ScalafmtWorkerModule extends ExternalModule with JavaModule {
   }
 
   def scalafmtClassLoader: Worker[java.net.URLClassLoader] = Task.Worker {
-    mill.util.Jvm.createClassLoader(scalafmtClasspath().map(_.path))
+    mill.util.Jvm.createIsolatedClassLoader(scalafmtClasspath().map(_.path))
   }
 
   def worker: Worker[ScalafmtWorker] = Task.Worker { new ScalafmtWorker(scalafmtClassLoader()) }

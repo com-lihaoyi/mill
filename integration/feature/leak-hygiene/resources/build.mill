@@ -55,6 +55,6 @@ def countThreads() = Task.Command {
 
 def leakThreadClassloader() = Task.Command {
   new Thread(() => Thread.sleep(9999999), "leaked thread").start()
-  mill.util.Jvm.createClassLoader(Nil, label = "leaked classloader")
+  mill.util.Jvm.createIsolatedClassLoader(Nil, label = "leaked classloader")
   ()
 }
