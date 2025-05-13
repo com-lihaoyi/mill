@@ -79,11 +79,6 @@ trait PublishModule extends JavaModule { outer =>
    */
   def versionScheme: T[Option[VersionScheme]] = Task { None }
 
-  @deprecated("Use artifactMetadata instead", since = "0.12.12")
-  def publishSelfDependency: T[Artifact] = Task {
-    artifactMetadata()
-  }
-
   def publishMvnDeps
       : Task[(Map[coursier.core.Module, String], DependencyManagement.Map) => Seq[Dependency]] =
     Task.Anon {
