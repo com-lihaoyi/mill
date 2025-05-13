@@ -31,10 +31,16 @@ trait SpotlessModule extends JavaModule {
   }
 
   /**
-   * Path to Spotless configuration file. Defaults to `spotless-config.json` under [[Task.workspace]].
-   * References to relative paths in the configuration are resolved against [[spotlessConfigRoots]].
+   * Path to Spotless configuration file.
+   * Defaults to the first `spotless-config.json` file that exists under [[spotlessConfigRoots]].
    */
-  def spotlessConfig: Task[PathRef] = Task.Source(Task.workspace / "spotless-config.json")
+  def spotlessConfig: Task[PathRef] = Task {
+    val name = "spotless-config.json"
+    spotlessConfigRoots().iterator
+      .collectFirst:
+        case ref if os.exists(ref.path) => PathRef(ref.path / name)
+      .getOrElse(Task.fail(s"$name not found"))
+  }
 
   /**
    * Folders to resolve relative paths in [[spotlessConfig]] against.
@@ -43,7 +49,8 @@ trait SpotlessModule extends JavaModule {
   def spotlessConfigRoots: Task[Seq[PathRef]] = Task.Sources(Task.workspace)
 
   /**
-   * Source files/folders to format using Spotless. Defaults to [[sources]].
+   * Source files/folders to format using Spotless.
+   * Defaults to [[sources]].
    */
   def spotlessSources: Task[Seq[PathRef]] = Task {
     sources()
