@@ -47,7 +47,8 @@ public class MillBackgroundWrapper {
     FileChannel chan = raf.getChannel();
     if (chan.tryLock() == null) {
       System.err.println("Waiting for runBackground lock to be available");
-      //noinspection ResultOfMethodCallIgnored - this is intentional, lock is released when process dies.
+      //noinspection ResultOfMethodCallIgnored - this is intentional, lock is released when process
+      // dies.
       chan.lock();
     }
 
@@ -93,7 +94,7 @@ public class MillBackgroundWrapper {
   }
 
   private static void checkIfWeStillNeedToBeRunning(
-    long startTime, Path newestProcessIdPath, String myPidStr) {
+      long startTime, Path newestProcessIdPath, String myPidStr) {
     long delta = (System.currentTimeMillis() - startTime) / 1000;
     try {
       Thread.sleep(50);
