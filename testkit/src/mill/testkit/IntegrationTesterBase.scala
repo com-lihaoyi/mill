@@ -70,9 +70,9 @@ trait IntegrationTesterBase {
   def removeProcessIdFile(): Unit = {
     val outDir = os.Path(out, workspacePath)
     if (os.exists(outDir)) {
-      val serverPath0 = outDir / (if (clientServerMode) millServer else millNoServer)
+      val serverPath = outDir / (if (clientServerMode) millServer else millNoServer)
 
-      for (serverPath <- os.list.stream(serverPath0)) os.remove(serverPath / processId)
+      os.remove(serverPath / processId)
 
       Thread.sleep(500) // give a moment for the server to notice the file is gone and exit
     }
