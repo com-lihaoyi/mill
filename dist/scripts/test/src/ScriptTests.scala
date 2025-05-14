@@ -276,27 +276,28 @@ object ScriptTests extends TestSuite {
       )
     )
     test("sh") {
-      val cmd =
-        if (scala.util.Properties.isWin) Seq("sh", sys.env("MILL_TEST_SH_SCRIPT"))
-        else Seq(sys.env("MILL_TEST_SH_SCRIPT"))
+      if (!scala.util.Properties.isWin) {
 
-      val lines = for ((version, expectedDownloadUrl, expectedDownloadDest) <- versions) {
-        val res = os.call(
-          cmd = cmd,
-          env = Map(
-            "MILL_VERSION" -> version,
-            "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"
+        val lines = for ((version, expectedDownloadUrl, expectedDownloadDest) <- versions) {
+          val res = os.call(
+            cmd = sys.env("MILL_TEST_SH_SCRIPT"),
+            env = Map(
+              "MILL_VERSION" -> version,
+              "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"
+            )
           )
-        )
-        val Seq(downloadUrl, downloadDest) = res.out.lines()
+          val Seq(downloadUrl, downloadDest) = res.out.lines()
 
-        assert(downloadUrl == expectedDownloadUrl)
-        assert(downloadDest == downloadDest)
+          assert(downloadUrl == expectedDownloadUrl)
+          assert(downloadDest == downloadDest)
+        }
       }
     }
     test("bat") {
       if (scala.util.Properties.isWin) {
+        println("Testing bat launcher")
         val lines = for ((version, expectedDownloadUrl, expectedDownloadDest) <- versions) yield {
+          println("Testing bat launcher for " + version)
           val res = os.call(
             Seq("cmd", sys.env("MILL_TEST_BAT_SCRIPT")),
             env = Map(
