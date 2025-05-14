@@ -207,7 +207,7 @@ trait RunModule extends WithJvmWorker {
       destDir = taskDest,
       // A hack, because we can't access `Task.out` here, nor change the method signature. But this is deprecated and
       // should not be used by anyone.
-      outDir = taskDest,
+      outDir = taskDest
     )
     backgroundPaths.ensureStateDirExists()
 
@@ -373,6 +373,11 @@ object RunModule {
     def logPath: os.Path = stateDir / "log"
 
     def toArgs: Seq[String] =
-      Seq(newestPidPath.toString, currentlyRunningPidPath.toString, lockPath.toString, logPath.toString)
+      Seq(
+        newestPidPath.toString,
+        currentlyRunningPidPath.toString,
+        lockPath.toString,
+        logPath.toString
+      )
   }
 }

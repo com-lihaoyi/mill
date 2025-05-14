@@ -176,7 +176,8 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    * @see [[mainScript]]
    */
   def runBackground(args: mill.define.Args) = Task.Command {
-    val backgroundPaths = mill.scalalib.RunModule.BackgroundPaths(outDir = Task.out, destDir = Task.dest)
+    val backgroundPaths =
+      mill.scalalib.RunModule.BackgroundPaths(outDir = Task.out, destDir = Task.dest)
     backgroundPaths.ensureStateDirExists()
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 

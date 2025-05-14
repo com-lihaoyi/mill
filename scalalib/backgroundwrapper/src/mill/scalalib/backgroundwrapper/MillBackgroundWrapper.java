@@ -48,7 +48,11 @@ public class MillBackgroundWrapper {
     var myPid = ProcessHandle.current().pid();
     var myPidStr = "" + myPid;
     log(logPath, myPid, "Starting. Writing my PID to " + newestProcessIdPath);
-    Files.writeString(newestProcessIdPath, myPidStr, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    Files.writeString(
+        newestProcessIdPath,
+        myPidStr,
+        StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING);
 
     // Take a lock on `procLockfile` to ensure that only one
     // `runBackground` process  is running at any point in time.
@@ -74,30 +78,44 @@ public class MillBackgroundWrapper {
       var startTimeNanos = System.nanoTime();
       log(logPath, myPid, "Waiting for old process to terminate");
       waitForPreviousProcessToTerminate(oldPid);
-      log(logPath, myPid, "Old process terminated in " + (System.nanoTime() - startTimeNanos) / NS_IN_S + "s");
+      log(
+          logPath,
+          myPid,
+          "Old process terminated in " + (System.nanoTime() - startTimeNanos) / NS_IN_S + "s");
     });
 
     log(logPath, myPid, "Writing my PID to " + currentlyRunningProccesIdPath);
-    Files.writeString(currentlyRunningProccesIdPath, myPidStr, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    Files.writeString(
+        currentlyRunningProccesIdPath,
+        myPidStr,
+        StandardOpenOption.CREATE,
+        StandardOpenOption.TRUNCATE_EXISTING);
 
     // Start the thread to watch for updates on the process marker file,
     // so we can exit if it is deleted or replaced
     var startTimeNanos = System.nanoTime(); // use nanoTime as it is monotonic
     checkIfWeStillNeedToBeRunning(logPath, startTimeNanos, newestProcessIdPath, myPid);
     var watcher = new Thread(() -> {
-      while (true) checkIfWeStillNeedToBeRunning(logPath, startTimeNanos, newestProcessIdPath, myPid);
+      while (true)
+        checkIfWeStillNeedToBeRunning(logPath, startTimeNanos, newestProcessIdPath, myPid);
     });
     watcher.setDaemon(true);
     watcher.start();
 
     // Actually start the Java main method we wanted to run in the background
     if (!realMain.equals("<subprocess>")) {
-      log(logPath, myPid, "Running main method " + realMain + " with args " + Arrays.toString(realArgs));
+      log(
+          logPath,
+          myPid,
+          "Running main method " + realMain + " with args " + Arrays.toString(realArgs));
       Class.forName(realMain).getMethod("main", String[].class).invoke(null, (Object) realArgs);
     } else {
       log(logPath, myPid, "Running subprocess with args " + Arrays.toString(realArgs));
       Process subprocess = new ProcessBuilder().command(realArgs).inheritIO().start();
-      log(logPath, myPid, "Subprocess started with PID " + subprocess.pid() + ", waiting for it to exit");
+      log(
+          logPath,
+          myPid,
+          "Subprocess started with PID " + subprocess.pid() + ", waiting for it to exit");
 
       Runtime.getRuntime().addShutdownHook(new Thread(() -> {
         log(logPath, myPid, "Shutdown hook called, terminating subprocess");
@@ -127,19 +145,21 @@ public class MillBackgroundWrapper {
   }
 
   private static void checkIfWeStillNeedToBeRunning(
-    Path logPath, long startTimeNanos, Path newestProcessIdPath, long myPid
-  ) {
+      Path logPath, long startTimeNanos, Path newestProcessIdPath, long myPid) {
     var delta = (System.nanoTime() - startTimeNanos) / NS_IN_S;
     var myPidStr = "" + myPid;
     try {
       Thread.sleep(50);
       var token = Files.readString(newestProcessIdPath);
       if (!myPidStr.equals(token)) {
-        log(logPath, myPid, "New process started, exiting. Token file (" + newestProcessIdPath + ") contents: \"" + token + "\"");
+        log(
+            logPath,
+            myPid,
+            "New process started, exiting. Token file (" + newestProcessIdPath + ") contents: \""
+                + token + "\"");
         System.err.println(
-          "[mill:runBackground] Background process has been replaced with a new process (PID: " + token +
-            "), exiting after " + delta + "s"
-        );
+            "[mill:runBackground] Background process has been replaced with a new process (PID: "
+                + token + "), exiting after " + delta + "s");
         System.exit(0);
       }
     } catch (Exception e) {
@@ -175,8 +195,11 @@ public class MillBackgroundWrapper {
   static void log(Path logFile, long myPid, String message) {
     var timestamp = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.now());
     try {
-      Files.writeString(logFile, "[" + timestamp + "] " + myPid + ": " + message + "\n",
-        StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+      Files.writeString(
+          logFile,
+          "[" + timestamp + "] " + myPid + ": " + message + "\n",
+          StandardOpenOption.CREATE,
+          StandardOpenOption.APPEND);
     } catch (IOException e) {
       // do nothing
     }
