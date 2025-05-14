@@ -79,10 +79,6 @@ trait PublishModule extends JavaModule { outer =>
    */
   def versionScheme: T[Option[VersionScheme]] = Task { None }
 
-  def publishSelfDependency: T[Artifact] = Task {
-    Artifact(pomSettings().organization, artifactId(), publishVersion())
-  }
-
   def publishMvnDeps
       : Task[(Map[coursier.core.Module, String], DependencyManagement.Map) => Seq[Dependency]] =
     Task.Anon {
@@ -119,13 +115,13 @@ trait PublishModule extends JavaModule { outer =>
           .filter(!ivyPomDeps.contains(_))
 
         val modulePomDeps = Task.sequence(moduleDepsChecked.collect {
-          case m: PublishModule => m.publishSelfDependency
+          case m: PublishModule => m.artifactMetadata
         })()
         val compileModulePomDeps = Task.sequence(compileModuleDepsChecked.collect {
-          case m: PublishModule => m.publishSelfDependency
+          case m: PublishModule => m.artifactMetadata
         })()
         val runModulePomDeps = Task.sequence(runModuleDepsChecked.collect {
-          case m: PublishModule => m.publishSelfDependency
+          case m: PublishModule => m.artifactMetadata
         })()
 
         ivyPomDeps ++
@@ -150,13 +146,13 @@ trait PublishModule extends JavaModule { outer =>
       .filter(!ivyPomDeps.contains(_))
 
     val modulePomDeps = Task.sequence(moduleDepsChecked.collect {
-      case m: PublishModule => m.publishSelfDependency
+      case m: PublishModule => m.artifactMetadata
     })()
     val compileModulePomDeps = Task.sequence(compileModuleDepsChecked.collect {
-      case m: PublishModule => m.publishSelfDependency
+      case m: PublishModule => m.artifactMetadata
     })()
     val runModulePomDeps = Task.sequence(runModuleDepsChecked.collect {
-      case m: PublishModule => m.publishSelfDependency
+      case m: PublishModule => m.artifactMetadata
     })()
 
     ivyPomDeps ++

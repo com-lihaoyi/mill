@@ -97,7 +97,7 @@ object `package` extends MillStableScalaModule {
       BuildInfo.Value("springBuildToolsVersion", Deps.springBootTools.version),
       BuildInfo.Value(
         "millSpringBootWorkerDep", {
-          val dep = `spring-boot-worker`.publishSelfDependency()
+          val dep = `spring-boot-worker`.artifactMetadata()
           s"${dep.group}:${dep.id}:${dep.version}"
         },
         "The dependency containing the worker implementation to be loaded at runtime."
