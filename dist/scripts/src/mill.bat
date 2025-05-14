@@ -76,9 +76,9 @@ if [!MILL_VERSION!]==[] (
   )
 )
 
-if [!MILL_VERSION!]==[] ( set MILL_VERSION=%DEFAULT_MILL_VERSION% )
+if [!MILL_VERSION!]==[] set MILL_VERSION=%DEFAULT_MILL_VERSION%
 
-if [!MILL_DOWNLOAD_PATH!]==[] ( set MILL_DOWNLOAD_PATH=%USERPROFILE%\.mill\download )
+if [!MILL_DOWNLOAD_PATH!]==[] set MILL_DOWNLOAD_PATH=%USERPROFILE%\.mill\download
 
 rem without bat file extension, cmd doesn't seem to be able to run it
 
@@ -173,34 +173,34 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
         set MILL_DOWNLOAD_SUFFIX=
         set MILL_DOWNLOAD_FROM_MAVEN=0
     )
-    if [!MILL_VERSION_PREFIX!]==[0.5.] ( set MILL_DOWNLOAD_FROM_MAVEN=0 )
-    if [!MILL_VERSION_PREFIX!]==[0.6.] ( set MILL_DOWNLOAD_FROM_MAVEN=0 )
-    if [!MILL_VERSION_PREFIX!]==[0.7.] ( set MILL_DOWNLOAD_FROM_MAVEN=0 )
-    if [!MILL_VERSION_PREFIX!]==[0.8.] ( set MILL_DOWNLOAD_FROM_MAVEN=0 )
-    if [!MILL_VERSION_PREFIX!]==[0.9.] ( set MILL_DOWNLOAD_FROM_MAVEN=0 )
+    if [!MILL_VERSION_PREFIX!]==[0.5.] set MILL_DOWNLOAD_FROM_MAVEN=0
+    if [!MILL_VERSION_PREFIX!]==[0.6.] set MILL_DOWNLOAD_FROM_MAVEN=0
+    if [!MILL_VERSION_PREFIX!]==[0.7.] set MILL_DOWNLOAD_FROM_MAVEN=0
+    if [!MILL_VERSION_PREFIX!]==[0.8.] set MILL_DOWNLOAD_FROM_MAVEN=0
+    if [!MILL_VERSION_PREFIX!]==[0.9.] set MILL_DOWNLOAD_FROM_MAVEN=0
 
     set MILL_VERSION_PREFIX=%MILL_VERSION:~0,5%
-    if [!MILL_VERSION_PREFIX!]==[0.10.] ( set MILL_DOWNLOAD_FROM_MAVEN=0 )
+    if [!MILL_VERSION_PREFIX!]==[0.10.] set MILL_DOWNLOAD_FROM_MAVEN=0
 
     set MILL_VERSION_PREFIX=%MILL_VERSION:~0,8%
-    if [!MILL_VERSION_PREFIX!]==[0.11.0-M] ( set MILL_DOWNLOAD_FROM_MAVEN=0 )
+    if [!MILL_VERSION_PREFIX!]==[0.11.0-M] set MILL_DOWNLOAD_FROM_MAVEN=0
 
     set MILL_VERSION_PREFIX=%MILL_VERSION:~0,5%
     set DOWNLOAD_EXT=exe
-    if [!MILL_SHORT_VERSION_PREFIX!]==[0.] ( set DOWNLOAD_EXT=jar )
-    if [!MILL_VERSION_PREFIX!]==[0.12.] ( set DOWNLOAD_EXT=exe )
-    if [!MILL_VERSION!]==[0.12.0] ( set DOWNLOAD_EXT=jar )
-    if [!MILL_VERSION!]==[0.12.1] ( set DOWNLOAD_EXT=jar )
-    if [!MILL_VERSION!]==[0.12.2] ( set DOWNLOAD_EXT=jar )
-    if [!MILL_VERSION!]==[0.12.3] ( set DOWNLOAD_EXT=jar )
-    if [!MILL_VERSION!]==[0.12.4] ( set DOWNLOAD_EXT=jar )
-    if [!MILL_VERSION!]==[0.12.5] ( set DOWNLOAD_EXT=jar )
-    if [!MILL_VERSION!]==[0.12.6] ( set DOWNLOAD_EXT=jar )
-    if [!MILL_VERSION!]==[0.12.7] ( set DOWNLOAD_EXT=jar )
-    if [!MILL_VERSION!]==[0.12.8] ( set DOWNLOAD_EXT=jar)
-    if [!MILL_VERSION!]==[0.12.9] ( set DOWNLOAD_EXT=jar )
-    if [!MILL_VERSION!]==[0.12.10] ( set DOWNLOAD_EXT=jar )
-    if [!MILL_VERSION!]==[0.12.11] ( set DOWNLOAD_EXT=jar )
+    if [!MILL_SHORT_VERSION_PREFIX!]==[0.] set DOWNLOAD_EXT=jar
+    if [!MILL_VERSION_PREFIX!]==[0.12.] set DOWNLOAD_EXT=exe
+    if [!MILL_VERSION!]==[0.12.0] set DOWNLOAD_EXT=jar
+    if [!MILL_VERSION!]==[0.12.1] set DOWNLOAD_EXT=jar
+    if [!MILL_VERSION!]==[0.12.2] set DOWNLOAD_EXT=jar
+    if [!MILL_VERSION!]==[0.12.3] set DOWNLOAD_EXT=jar
+    if [!MILL_VERSION!]==[0.12.4] set DOWNLOAD_EXT=jar
+    if [!MILL_VERSION!]==[0.12.5] set DOWNLOAD_EXT=jar
+    if [!MILL_VERSION!]==[0.12.6] set DOWNLOAD_EXT=jar
+    if [!MILL_VERSION!]==[0.12.7] set DOWNLOAD_EXT=jar
+    if [!MILL_VERSION!]==[0.12.8] set DOWNLOAD_EXT=jar
+    if [!MILL_VERSION!]==[0.12.9] set DOWNLOAD_EXT=jar
+    if [!MILL_VERSION!]==[0.12.10] set DOWNLOAD_EXT=jar
+    if [!MILL_VERSION!]==[0.12.11] set DOWNLOAD_EXT=jar
 
     set MILL_VERSION_PREFIX=
     set MILL_SHORT_VERSION_PREFIX=
@@ -275,7 +275,7 @@ if [%~1%]==[--bsp] (
             if [%~1%]==[--repl] (
               set MILL_FIRST_ARG=%1%
             ) else (
-              if [%~1%]==[--help] ( set MILL_FIRST_ARG=%1% )
+              if [%~1%]==[--help] set MILL_FIRST_ARG=%1%
             )
         )
     )
