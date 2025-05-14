@@ -142,7 +142,7 @@ set MILL_RESOLVE_DOWNLOAD=
 
 if not exist "%MILL%" (
   set MILL_RESOLVE_DOWNLOAD=true
-)else (
+) else (
     if defined MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT ( set MILL_RESOLVE_DOWNLOAD=true )
   )
 )
