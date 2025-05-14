@@ -276,8 +276,9 @@ object `package` extends MillJavaModule with DistModule {
       }
     }
 
+    def nativeSuffix = Task { s"${artifactOsSuffix()}-${artifactCpuSuffix()}" }
     def artifactName = Task {
-      s"${build.dist.artifactName()}-native-${artifactOsSuffix()}-${artifactCpuSuffix()}"
+      s"${build.dist.artifactName()}-native-${nativeSuffix()}"
     }
 
     // Use assembly jar as the upstream ivy classpath rather than using runClasspath
