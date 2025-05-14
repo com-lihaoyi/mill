@@ -143,9 +143,13 @@ set MILL_RESOLVE_DOWNLOAD=
 if not exist "%MILL%" (
   set MILL_RESOLVE_DOWNLOAD=true
 ) else (
-    if defined MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT ( set MILL_RESOLVE_DOWNLOAD=true )
-  )
+    if defined MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT (
+        set MILL_RESOLVE_DOWNLOAD=true
+    ) else (
+        rem no-op
+    )
 )
+
 
 if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
     set MILL_VERSION_PREFIX=%MILL_VERSION:~0,4%
