@@ -2190,7 +2190,6 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/scalalib/PublishModule.html#publishM2LocalRepoPath-0","e":false,"i":"","n":"publishM2LocalRepoPath","t":"publishM2LocalRepoPath: Task[Path]","d":"mill.scalalib.PublishModule","k":"def","x":""},
 {"l":"mill/scalalib/PublishModule.html#publishMvnDeps-0","e":false,"i":"","n":"publishMvnDeps","t":"publishMvnDeps: Task[(Map[Module, String], Map) => Seq[Dependency]]","d":"mill.scalalib.PublishModule","k":"def","x":""},
 {"l":"mill/scalalib/PublishModule.html#publishProperties-0","e":false,"i":"","n":"publishProperties","t":"publishProperties: Target[Map[String, String]]","d":"mill.scalalib.PublishModule","k":"def","x":""},
-{"l":"mill/scalalib/PublishModule.html#publishSelfDependency-0","e":false,"i":"","n":"publishSelfDependency","t":"publishSelfDependency: Target[Artifact]","d":"mill.scalalib.PublishModule","k":"def","x":""},
 {"l":"mill/scalalib/PublishModule.html#publishVersion-0","e":false,"i":"","n":"publishVersion","t":"publishVersion: Target[String]","d":"mill.scalalib.PublishModule","k":"def","x":""},
 {"l":"mill/scalalib/PublishModule.html#publishXmlBomDeps-0","e":false,"i":"","n":"publishXmlBomDeps","t":"publishXmlBomDeps: Task[Seq[Dependency]]","d":"mill.scalalib.PublishModule","k":"def","x":""},
 {"l":"mill/scalalib/PublishModule.html#publishXmlDepMgmt-0","e":false,"i":"","n":"publishXmlDepMgmt","t":"publishXmlDepMgmt: Task[Seq[Dependency]]","d":"mill.scalalib.PublishModule","k":"def","x":""},
