@@ -256,8 +256,9 @@ set MILL_REPO_URL=
 
 rem Need to preserve the first position of those listed options
 set MILL_FIRST_ARG=
-if [%~1%]==[--bsp] ( set MILL_FIRST_ARG=%1% )
-else (
+if [%~1%]==[--bsp] (
+    set MILL_FIRST_ARG=%1%
+) else (
     if [%~1%]==[-i] (
       set MILL_FIRST_ARG=%1%
     ) else (
@@ -271,7 +272,6 @@ else (
               set MILL_FIRST_ARG=%1%
             ) else (
               if [%~1%]==[--help] ( set MILL_FIRST_ARG=%1% )
-
             )
         )
     )
