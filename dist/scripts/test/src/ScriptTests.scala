@@ -295,7 +295,7 @@ object ScriptTests extends TestSuite {
     }
     test("bat") {
       if (scala.util.Properties.isWin) {
-        println("Testing bat launcher")
+        println("Testing bat launcher: " + sys.env("MILL_TEST_BAT_SCRIPT"))
         val lines = for ((version, expectedDownloadUrl, expectedDownloadDest) <- versions) yield {
           println("Testing bat launcher for " + version)
           val res = os.call(
