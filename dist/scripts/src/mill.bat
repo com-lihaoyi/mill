@@ -44,11 +44,11 @@ set "MILL_REPO_URL={{{ mill-repo-url }}}"
 
 SET MILL_BUILD_SCRIPT=
 
-IF EXIST "build.mill" ( SET MILL_BUILD_SCRIPT=build.mill )
-ELSE (
-    IF EXIST "build.mill.scala" ( SET MILL_BUILD_SCRIPT=build.mill.scala )
-    ELSE (
-        IF EXIST "build.sc" ( SET MILL_BUILD_SCRIPT=build.sc )
+if exist "build.mill" ( set MILL_BUILD_SCRIPT=build.mill )
+else (
+    if exist "build.mill.scala" ( set MILL_BUILD_SCRIPT=build.mill.scala )
+    else (
+        if exist "build.sc" ( set MILL_BUILD_SCRIPT=build.sc )
     )
 )
 
@@ -124,11 +124,12 @@ if !errorlevel! equ 0 (
 
 set MILL=%MILL_DOWNLOAD_PATH%\!FULL_MILL_VERSION!!MILL_EXT!
 
-SET MILL_RESOLVE_DOWNLOAD=
+set MILL_RESOLVE_DOWNLOAD=
 
 if not exist "%MILL%" ( SET MILL_RESOLVE_DOWNLOAD=true )
 else (
-  )if defined MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT ( SET MILL_RESOLVE_DOWNLOAD=true )
+    if defined MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT ( SET MILL_RESOLVE_DOWNLOAD=true )
+  )
 )
 
 if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
