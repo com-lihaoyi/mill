@@ -44,24 +44,34 @@ set "MILL_REPO_URL={{{ mill-repo-url }}}"
 
 SET MILL_BUILD_SCRIPT=
 
-if exist "build.mill" ( set MILL_BUILD_SCRIPT=build.mill )
-else (
-    if exist "build.mill.scala" ( set MILL_BUILD_SCRIPT=build.mill.scala )
-    else (
-        if exist "build.sc" ( set MILL_BUILD_SCRIPT=build.sc )
+if exist "build.mill" (
+  set MILL_BUILD_SCRIPT=build.mill
+) else (
+    if exist "build.mill.scala" (
+      set MILL_BUILD_SCRIPT=build.mill.scala
+    ) else (
+        if exist "build.sc" (
+          set MILL_BUILD_SCRIPT=build.sc
+        ) else (
+            rem no-op
+        )
     )
 )
 
 
 if [!MILL_VERSION!]==[] (
-  if exist .mill-version ( set /p MILL_VERSION=<.mill-version )
-  else (
-    if exist .config\mill-version ( set /p MILL_VERSION=<.config\mill-version )
-    else (
+  if exist .mill-version (
+    set /p MILL_VERSION=<.mill-version
+  ) else (
+    if exist .config\mill-version (
+      set /p MILL_VERSION=<.config\mill-version
+    ) else (
       if not "%MILL_BUILD_SCRIPT%"=="" (
         for /f "tokens=1-2*" %%a in ('findstr /C:"//| mill-version:" %MILL_BUILD_SCRIPT%') do (
           set "MILL_VERSION=%%c"
         )
+      ) else (
+        rem no-op
       )
     )
   )
@@ -248,15 +258,20 @@ rem Need to preserve the first position of those listed options
 set MILL_FIRST_ARG=
 if [%~1%]==[--bsp] ( set MILL_FIRST_ARG=%1% )
 else (
-    if [%~1%]==[-i] ( set MILL_FIRST_ARG=%1% )
-    else (
-        if [%~1%]==[--interactive] ( set MILL_FIRST_ARG=%1% )
-        else ( if [%~1%]==[--no-server] ( set MILL_FIRST_ARG=%1% )
-            else (
-                if [%~1%]==[--repl] ( set MILL_FIRST_ARG=%1% )
-                else (
-                    if [%~1%]==[--help] ( set MILL_FIRST_ARG=%1% )
-                )
+    if [%~1%]==[-i] (
+      set MILL_FIRST_ARG=%1%
+    ) else (
+        if [%~1%]==[--interactive] (
+          set MILL_FIRST_ARG=%1%
+        ) else (
+          if [%~1%]==[--no-server] (
+            set MILL_FIRST_ARG=%1%
+          ) else (
+            if [%~1%]==[--repl] (
+              set MILL_FIRST_ARG=%1%
+            ) else (
+              if [%~1%]==[--help] ( set MILL_FIRST_ARG=%1% )
+
             )
         )
     )
