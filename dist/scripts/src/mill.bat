@@ -1,5 +1,4 @@
-@echo off
-
+echo "mill.bat HELLO WORLD"
 rem This is a wrapper script, that automatically selects or downloads Mill from Maven Central or GitHub release pages.
 rem
 rem This script determines the Mill version to use by trying these sources
@@ -220,12 +219,14 @@ if [!DOWNLOAD_FROM_MAVEN!]==[1] (
     set DOWNLOAD_URL=!GITHUB_RELEASE_CDN!%MILL_REPO_URL%/releases/download/!MILL_VERSION_TAG!/!MILL_VERSION!!DOWNLOAD_SUFFIX!
 )
 
-if defined MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT(
+echo "mill.bat if defined MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT"
+if defined MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT (
     echo %MILL%
     echo %DOWNLOAD_URL%
     exit /b 0
 )
 
+echo "mill.bat if not exist MILL"
 if not exist "%MILL%" (
 
     rem there seems to be no way to generate a unique temporary file path (on native Windows)
