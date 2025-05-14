@@ -58,7 +58,6 @@ if exist "build.mill" (
     )
 )
 
-echo mill version before !MILL_VERSION!
 if [!MILL_VERSION!]==[] (
   if exist .mill-version (
     set /p MILL_VERSION=<.mill-version
@@ -77,11 +76,7 @@ if [!MILL_VERSION!]==[] (
   )
 )
 
-echo mill version after !MILL_VERSION!
-
 if [!MILL_VERSION!]==[] ( set MILL_VERSION=%DEFAULT_MILL_VERSION% )
-
-echo mill version after2 !MILL_VERSION!
 
 if [!MILL_DOWNLOAD_PATH!]==[] ( set MILL_DOWNLOAD_PATH=%USERPROFILE%\.mill\download )
 
@@ -218,7 +213,6 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
     ) else (
         set MILL_VERSION_TAG=!MILL_VERSION_BASE!
     )
-    echo mill version after3 !MILL_VERSION!
     if [!MILL_DOWNLOAD_FROM_MAVEN!]==[1] (
         set MILL_DOWNLOAD_URL={{{ mill-maven-url }}}/com/lihaoyi/mill-dist!ARTIFACT_SUFFIX!/!MILL_VERSION!/mill-dist!ARTIFACT_SUFFIX!-!MILL_VERSION!.!DOWNLOAD_EXT!
     ) else (
