@@ -276,11 +276,13 @@ object ScriptTests extends TestSuite {
       )
     )
     test("sh") {
-
+      val cmd =
+        if (scala.util.Properties.isWin) Seq("sh", sys.env("MILL_TEST_SH_SCRIPT"))
+        else Seq(sys.env("MILL_TEST_SH_SCRIPT"))
 
       val lines = for ((version, expectedDownloadUrl, expectedDownloadDest) <- versions) {
         val res = os.call(
-          os.Path(sys.env("MILL_TEST_SH_SCRIPT")),
+          cmd = cmd,
           env = Map(
             "MILL_VERSION" -> version,
             "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"
@@ -296,7 +298,7 @@ object ScriptTests extends TestSuite {
       if (scala.util.Properties.isWin) {
         val lines = for ((version, expectedDownloadUrl, expectedDownloadDest) <- versions) yield {
           val res = os.call(
-            os.Path(sys.env("MILL_TEST_BAT_SCRIPT")),
+            Seq("cmd", sys.env("MILL_TEST_BAT_SCRIPT")),
             env = Map(
               "MILL_VERSION" -> version,
               "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"
