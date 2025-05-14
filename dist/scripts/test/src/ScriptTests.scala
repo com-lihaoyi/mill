@@ -256,7 +256,7 @@ object ScriptTests extends TestSuite {
         ),
         (
           "0.12.12-native",
-          s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist-native-$nativeSuffix/0.12.12/mill-dist-native-$nativeSuffix-0.12.11.exe",
+          s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist-native-$nativeSuffix/0.12.12/mill-dist-native-$nativeSuffix-0.12.12.exe",
           s"$home/.cache/mill/download/0.12.12-native-$nativeSuffix"
         ),
         // Since Mill 1.0.0, the native binary is the default, with the `-jvm` suffix used to
@@ -293,18 +293,20 @@ object ScriptTests extends TestSuite {
       }
     }
     test("bat") {
-      val lines = for ((version, expectedDownloadUrl, expectedDownloadDest) <- versions) yield {
-        val res = os.call(
-          os.Path(sys.env("MILL_TEST_BAT_SCRIPT")),
-          env = Map(
-            "MILL_VERSION" -> version,
-            "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"
+      if (scala.util.Properties.isWin) {
+        val lines = for ((version, expectedDownloadUrl, expectedDownloadDest) <- versions) yield {
+          val res = os.call(
+            os.Path(sys.env("MILL_TEST_BAT_SCRIPT")),
+            env = Map(
+              "MILL_VERSION" -> version,
+              "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"
+            )
           )
-        )
-        val Seq(downloadUrl, downloadDest) = res.out.lines()
-        (version, downloadUrl, downloadDest)
+          val Seq(downloadUrl, downloadDest) = res.out.lines()
+          (version, downloadUrl, downloadDest)
+        }
+        pprint.log(lines)
       }
-      pprint.log(lines)
     }
   }
 
