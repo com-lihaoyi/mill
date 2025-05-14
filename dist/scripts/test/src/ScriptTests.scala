@@ -18,6 +18,8 @@ object ScriptTests extends TestSuite {
         "0.10.0",
         "https://github.com/com-lihaoyi/mill/releases/download/0.10.0/0.10.0-assembly",
         s"$home/.cache/mill/download/0.10.0",
+        // Windows needs the executable to be downloaded with a `.bat` extension
+        // so the prepended bat script can execute correctly when the file is run
         s"$home\\.mill\\download\\0.10.0.bat"
       ),
       VersionPaths(
@@ -252,6 +254,7 @@ object ScriptTests extends TestSuite {
         "0.12.6-native",
         s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist-native-$nativeSuffix/0.12.6/mill-dist-native-$nativeSuffix-0.12.6.jar",
         s"$home/.cache/mill/download/0.12.6-native-$nativeSuffix",
+        // Graal native executables on windows need a `.exe` extension to run properly
         s"$home\\.mill\\download\\0.12.6-native.exe"
       ),
       VersionPaths(
