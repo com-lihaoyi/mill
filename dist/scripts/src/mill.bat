@@ -135,8 +135,12 @@ if !errorlevel! equ 0 (
 
 set MILL=%MILL_DOWNLOAD_PATH%\!FULL_MILL_VERSION!!MILL_EXT!
 
+SET RESOLVE_DOWNLOAD=
 
-if not exist "%MILL%" (
+if not exist "%MILL%" ( SET RESOLVE_DOWNLOAD=true )
+else if defined MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT ( SET RESOLVE_DOWNLOAD=true )
+
+if [!RESOLVE_DOWNLOAD!]==[true] (
     set VERSION_PREFIX=%MILL_VERSION:~0,4%
     set SHORT_VERSION_PREFIX=%MILL_VERSION:~0,2%
     rem Since 0.5.0
