@@ -261,24 +261,27 @@ set MILL_REPO_URL=
 rem Need to preserve the first position of those listed options
 set MILL_FIRST_ARG=
 if [%~1%]==[--bsp] (
-    set MILL_FIRST_ARG=%1%
+  set MILL_FIRST_ARG=%1%
 ) else (
-    if [%~1%]==[-i] (
+  if [%~1%]==[-i] (
+    set MILL_FIRST_ARG=%1%
+  ) else (
+    if [%~1%]==[--interactive] (
       set MILL_FIRST_ARG=%1%
     ) else (
-        if [%~1%]==[--interactive] (
+      if [%~1%]==[--no-server] (
+        set MILL_FIRST_ARG=%1%
+      ) else (
+        if [%~1%]==[--repl] (
           set MILL_FIRST_ARG=%1%
         ) else (
-          if [%~1%]==[--no-server] (
+          if [%~1%]==[--help] (
             set MILL_FIRST_ARG=%1%
-          ) else (
-            if [%~1%]==[--repl] (
-              set MILL_FIRST_ARG=%1%
-            ) else (
-              if [%~1%]==[--help] set MILL_FIRST_ARG=%1%
-            )
+          )
         )
+      )
     )
+  )
 )
 set "MILL_PARAMS=%*%"
 
