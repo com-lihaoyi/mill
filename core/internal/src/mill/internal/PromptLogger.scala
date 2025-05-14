@@ -97,11 +97,18 @@ private[mill] class PromptLogger(
 
   if (enableTicker && autoUpdate) promptUpdaterThread.start()
 
-  def info(s: String): Unit = streams.err.println(s)
+  private def prefix(logKey: Seq[String]) =
+    if (!enableTicker || logKey.isEmpty) ""
+    else logKey.mkString("[", "-", "] ")
 
-  def warn(s: String): Unit = streams.err.println(s)
+  def info(logKey: Seq[String], s: String): Unit =
+    streams.err.println("" + prompt.infoColor(prefix(logKey)) + s)
 
-  def error(s: String): Unit = streams.err.println(s)
+  def warn(logKey: Seq[String], s: String): Unit =
+    streams.err.println("" + prompt.infoColor(prefix(logKey)) + s)
+
+  def error(logKey: Seq[String], s: String): Unit =
+    streams.err.println("" + prompt.infoColor(prefix(logKey)) + s)
 
   object prompt extends Logger.Prompt {
     override def setPromptHeaderPrefix(s: String): Unit = PromptLogger.this.synchronized {
@@ -131,7 +138,7 @@ private[mill] class PromptLogger(
       }
       for ((keySuffix, message) <- res) {
         if (prompt.enableTicker) {
-          streams.err.println(
+          unprefixedStreams.err.println(
             infoColor(s"[${key.mkString("-")}$keySuffix]${spaceNonEmpty(message)}")
           )
           streamManager.awaitPumperEmpty()
@@ -165,7 +172,8 @@ private[mill] class PromptLogger(
   private val seenIdentifiers = collection.mutable.Map.empty[Seq[String], (String, String)]
   private val reportedIdentifiers = collection.mutable.Set.empty[Seq[String]]
 
-  def debug(s: String): Unit = if (debugEnabled) streams.err.println(s)
+  def debug(logKey: Seq[String], s: String): Unit =
+    if (debugEnabled) unprefixedStreams.err.println(s)
 
   override def close(): Unit = {
     synchronized {

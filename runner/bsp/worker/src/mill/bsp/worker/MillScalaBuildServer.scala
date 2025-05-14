@@ -22,7 +22,8 @@ import scala.jdk.CollectionConverters._
 private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildServer =>
 
   override def buildTargetScalacOptions(p: ScalacOptionsParams)
-      : CompletableFuture[ScalacOptionsResult] =
+      : CompletableFuture[ScalacOptionsResult] = {
+    val logger = createLogger()
     handlerTasks(
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
@@ -31,7 +32,9 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             sessionInfo.enableJvmCompileClasspathProvider,
             sessionInfo.clientWantsSemanticDb
           )
-      }
+      },
+      requestDescription = "scalac opt",
+      logger = logger
     ) {
       // We ignore all non-JavaModule
       case (
@@ -51,12 +54,16 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
     } { values =>
       new ScalacOptionsResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
+  }
 
   override def buildTargetScalaMainClasses(p: ScalaMainClassesParams)
-      : CompletableFuture[ScalaMainClassesResult] =
+      : CompletableFuture[ScalaMainClassesResult] = {
+    val logger = createLogger()
     handlerTasks(
       targetIds = _ => p.getTargets.asScala.toSeq,
-      tasks = { case m: JavaModuleApi => m.bspBuildTargetScalaMainClasses }
+      tasks = { case m: JavaModuleApi => m.bspBuildTargetScalaMainClasses },
+      requestDescription = "main classes",
+      logger = logger
     ) {
       case (ev, state, id, m: JavaModuleApi, (classes, forkArgs, forkEnv)) =>
         // We find all main classes, although we could also find only the configured one
@@ -74,14 +81,18 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
     } {
       new ScalaMainClassesResult(_)
     }
+  }
 
   override def buildTargetScalaTestClasses(p: ScalaTestClassesParams)
-      : CompletableFuture[ScalaTestClassesResult] =
+      : CompletableFuture[ScalaTestClassesResult] = {
+    val logger = createLogger()
     handlerTasks(
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: TestModuleApi => m.bspBuildTargetScalaTestClasses
-      }
+      },
+      requestDescription = "test classes",
+      logger = logger
     ) {
       case (ev, state, id, m: TestModuleApi, (frameworkName, classes)) =>
         val item = new ScalaTestClassesItem(id, classes.asJava)
@@ -94,5 +105,6 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
     } {
       new ScalaTestClassesResult(_)
     }
+  }
 
 }

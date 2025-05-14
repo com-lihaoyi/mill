@@ -1,0 +1,25 @@
+[bsp] Trying to load BSP server...
+[bsp] BSP server started
+[1-buildInitialize] Entered buildInitialize
+[1-buildInitialize] buildInitialize took * msec
+[2-workspaceBuildTargets] Entered workspaceBuildTargets
+[bsp-build.mill-61] [info] compiling * Scala sources to * ...
+[bsp-build.mill-61] [info] done compiling
+[2-workspaceBuildTargets] Evaluating 5 tasks
+[2-workspaceBuildTargets] Done
+[2-workspaceBuildTargets] Evaluating 1 task
+[2-workspaceBuildTargets] Done
+[2-workspaceBuildTargets] workspaceBuildTargets took * msec
+[3-loggingTest] Entered loggingTest
+[3-loggingTest] Evaluating 1 task
+[3-loggingTest-1] bspLoggingTest from System.out
+[3-loggingTest-1] bspLoggingTest from System.err
+[3-loggingTest-1] bspLoggingTest from Console.out
+[3-loggingTest-1] bspLoggingTest from Console.err
+[3-loggingTest-1] bspLoggingTest from Task.log.info
+[3-loggingTest] Done
+[3-loggingTest] loggingTest took * msec
+[4-buildShutdown] Entered buildShutdown
+[5-onBuildExit] Entered onBuildExit
+[bsp] BSP session returned with mill.api.internal.BspServerResult$Shutdown$@*
+[bsp] Exiting BSP runner loop. Stopping BSP server. Last result: Success(mill.api.internal.BspServerResult$Shutdown$@*)

@@ -7,11 +7,15 @@ import mill.integration.BspServerTestUtil._
 import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
+import java.io.ByteArrayOutputStream
+
 import scala.jdk.CollectionConverters._
 
 object BspServerTests extends UtestIntegrationTestSuite {
   def snapshotsPath: os.Path =
     super.workspaceSourcePath / "snapshots"
+  def logsPath: os.Path =
+    super.workspaceSourcePath / "logs"
   override protected def workspaceSourcePath: os.Path =
     super.workspaceSourcePath / "project"
 
@@ -192,6 +196,39 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
       }
+    }
+
+    test("logging") - integrationTest { tester =>
+      import tester._
+      eval(
+        "--bsp-install",
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
+      )
+
+      val stderr = new ByteArrayOutputStream
+      withBspServer(
+        workspacePath,
+        millTestSuiteEnv,
+        bspLog = Some((bytes, len) => stderr.write(bytes, 0, len))
+      ) { (buildServer, _) =>
+        buildServer.workspaceBuildTargets().get()
+        buildServer.loggingTest().get()
+      }
+
+      val logs = stderr.toString
+        .linesWithSeparators
+        .filter(_.startsWith("["))
+        .mkString
+
+      compareLogWithSnapshot(
+        logs,
+        snapshotsPath / "logging",
+        // ignoring compilation warnings that might go away in the future
+        ignoreLine = _.startsWith("[bsp-build.mill-61] [warn] ")
+      )
     }
   }
 }

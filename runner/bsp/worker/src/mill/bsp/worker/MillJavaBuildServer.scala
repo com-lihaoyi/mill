@@ -15,12 +15,15 @@ import scala.jdk.CollectionConverters._
 private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
 
   override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
-      : CompletableFuture[JavacOptionsResult] =
+      : CompletableFuture[JavacOptionsResult] = {
+    val logger = createLogger()
     handlerTasks(
       targetIds = _ => javacOptionsParams.getTargets.asScala,
       tasks = { case m: JavaModuleApi =>
         m.bspBuildTargetJavacOptions(sessionInfo.clientWantsSemanticDb)
-      }
+      },
+      requestDescription = "buildTargetJavacOptions",
+      logger = logger
     ) {
       // We ignore all non-JavaModule
       case (ev, state, id, m: JavaModuleApi, f) =>
@@ -36,4 +39,5 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
     } {
       new JavacOptionsResult(_)
     }
+  }
 }
