@@ -213,6 +213,7 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
     ) else (
         set MILL_VERSION_TAG=!MILL_VERSION_BASE!
     )
+    echo mill version !MILL_VERSION!
     echo mill version base !MILL_VERSION_BASE!
     echo mill version milestone !MILL_VERSION_MILESTONE!
     echo mill version tag !MILL_VERSION_TAG!
