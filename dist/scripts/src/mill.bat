@@ -206,6 +206,7 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
     set MILL_SHORT_VERSION_PREFIX=
 
     for /F "delims=- tokens=1" %%A in ("!MILL_VERSION!") do set MILL_VERSION_BASE=%%A
+    MILL_VERSION_MILESTONE=
     for /F "delims=- tokens=2" %%A in ("!MILL_VERSION!") do set MILL_VERSION_MILESTONE=%%A
     set MILL_VERSION_MILESTONE_START=!MILL_VERSION_MILESTONE:~0,1!
     if [!MILL_VERSION_MILESTONE_START!]==[M] (
