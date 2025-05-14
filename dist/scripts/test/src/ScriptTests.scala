@@ -333,7 +333,7 @@ object ScriptTests extends TestSuite {
         "1.0.0-M1-jvm",
         "https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-M1/mill-dist-1.0.0-M1.exe",
         s"$home/.cache/mill/download/1.0.0-M1",
-        s"$home\\.mill\\download\\1.0.0-jvm.bat"
+        s"$home\\.mill\\download\\1.0.0-M1-jvm.bat"
       )
     )
     test {
