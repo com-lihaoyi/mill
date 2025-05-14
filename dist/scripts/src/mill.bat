@@ -186,21 +186,21 @@ if [!VERSION_PREFIX!]==[0.11.0-M] (
 )
 
 set VERSION_PREFIX=%MILL_VERSION:~0,5%
-set DOWNLOAD_EXT="exe"
-if [!SHORT_VERSION_PREFIX!]==[0.] ( set DOWNLOAD_EXT="jar" )
-if [!VERSION_PREFIX!]==[0.12.] ( set DOWNLOAD_EXT="exe" )
-if [!MILL_VERSION!]==[0.12.0] ( set DOWNLOAD_EXT="jar" )
-if [!MILL_VERSION!]==[0.12.1] ( set DOWNLOAD_EXT="jar" )
-if [!MILL_VERSION!]==[0.12.2] ( set DOWNLOAD_EXT="jar" )
-if [!MILL_VERSION!]==[0.12.3] ( set DOWNLOAD_EXT="jar" )
-if [!MILL_VERSION!]==[0.12.4] ( set DOWNLOAD_EXT="jar" )
-if [!MILL_VERSION!]==[0.12.5] ( set DOWNLOAD_EXT="jar" )
-if [!MILL_VERSION!]==[0.12.6] ( set DOWNLOAD_EXT="jar" )
-if [!MILL_VERSION!]==[0.12.7] ( set DOWNLOAD_EXT="jar" )
-if [!MILL_VERSION!]==[0.12.8] ( set DOWNLOAD_EXT="jar")
-if [!MILL_VERSION!]==[0.12.9] ( set DOWNLOAD_EXT="jar" )
-if [!MILL_VERSION!]==[0.12.10] ( set DOWNLOAD_EXT="jar" )
-if [!MILL_VERSION!]==[0.12.11] ( set DOWNLOAD_EXT="jar" )
+set DOWNLOAD_EXT=exe
+if [!SHORT_VERSION_PREFIX!]==[0.] ( set DOWNLOAD_EXT=jar )
+if [!VERSION_PREFIX!]==[0.12.] ( set DOWNLOAD_EXT=exe )
+if [!MILL_VERSION!]==[0.12.0] ( set DOWNLOAD_EXT=jar )
+if [!MILL_VERSION!]==[0.12.1] ( set DOWNLOAD_EXT=jar )
+if [!MILL_VERSION!]==[0.12.2] ( set DOWNLOAD_EXT=jar )
+if [!MILL_VERSION!]==[0.12.3] ( set DOWNLOAD_EXT=jar )
+if [!MILL_VERSION!]==[0.12.4] ( set DOWNLOAD_EXT=jar )
+if [!MILL_VERSION!]==[0.12.5] ( set DOWNLOAD_EXT=jar )
+if [!MILL_VERSION!]==[0.12.6] ( set DOWNLOAD_EXT=jar )
+if [!MILL_VERSION!]==[0.12.7] ( set DOWNLOAD_EXT=jar )
+if [!MILL_VERSION!]==[0.12.8] ( set DOWNLOAD_EXT=jar)
+if [!MILL_VERSION!]==[0.12.9] ( set DOWNLOAD_EXT=jar )
+if [!MILL_VERSION!]==[0.12.10] ( set DOWNLOAD_EXT=jar )
+if [!MILL_VERSION!]==[0.12.11] ( set DOWNLOAD_EXT=jar )
 
 set VERSION_PREFIX=
 set SHORT_VERSION_PREFIX=
@@ -209,7 +209,7 @@ for /F "delims=- tokens=1" %%A in ("!MILL_VERSION!") do set MILL_VERSION_BASE=%%
 for /F "delims=- tokens=2" %%A in ("!MILL_VERSION!") do set MILL_VERSION_MILESTONE=%%A
 set VERSION_MILESTONE_START=!MILL_VERSION_MILESTONE:~0,1!
 if [!VERSION_MILESTONE_START!]==[M] (
-    set MILL_VERSION_TAG="!MILL_VERSION_BASE!-!MILL_VERSION_MILESTONE!"
+    set MILL_VERSION_TAG=!MILL_VERSION_BASE!-!MILL_VERSION_MILESTONE!
 ) else (
     set MILL_VERSION_TAG=!MILL_VERSION_BASE!
 )
