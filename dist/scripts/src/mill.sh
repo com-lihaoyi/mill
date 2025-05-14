@@ -248,12 +248,8 @@ EOF
 }
 try_to_use_system_mill
 
-# support old non-XDG download dir
-MILL_OLD_DOWNLOAD_PATH="${HOME}/.mill/download"
-OLD_MILL="${MILL_OLD_DOWNLOAD_PATH}/${MILL_VERSION}"
-if [ -x "${OLD_MILL}" ] ; then
-  MILL="${OLD_MILL}"
-else
+# If not already downloaded, download it
+if [ ! -s "${MILL}" ] || [ "$MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" = "1" ] ; then
   case $MILL_VERSION in
     0.0.* | 0.1.* | 0.2.* | 0.3.* | 0.4.* )
       DOWNLOAD_SUFFIX=""
@@ -284,7 +280,6 @@ else
   esac
 
   DOWNLOAD_FILE=$(mktemp mill.XXXXXX)
-
   if [ "$DOWNLOAD_FROM_MAVEN" = "1" ] ; then
     DOWNLOAD_URL="{{{ mill-maven-url }}}/com/lihaoyi/mill-dist${ARTIFACT_SUFFIX}/${MILL_VERSION}/mill-dist${ARTIFACT_SUFFIX}-${MILL_VERSION}.${DOWNLOAD_EXT}"
   else
@@ -298,18 +293,15 @@ else
     echo $MILL
     exit 0
   fi
-  # If not already downloaded, download it
-  if [ ! -s "${MILL}" ] ; then
-    # TODO: handle command not found
-    echo "Downloading mill ${MILL_VERSION} from ${DOWNLOAD_URL} ..." 1>&2
-    ${CURL_CMD} -f -L -o "${DOWNLOAD_FILE}" "${DOWNLOAD_URL}"
-    chmod +x "${DOWNLOAD_FILE}"
-    mkdir -p "${MILL_DOWNLOAD_PATH}"
-    mv "${DOWNLOAD_FILE}" "${MILL}"
+  # TODO: handle command not found
+  echo "Downloading mill ${MILL_VERSION} from ${DOWNLOAD_URL} ..." 1>&2
+  ${CURL_CMD} -f -L -o "${DOWNLOAD_FILE}" "${DOWNLOAD_URL}"
+  chmod +x "${DOWNLOAD_FILE}"
+  mkdir -p "${MILL_DOWNLOAD_PATH}"
+  mv "${DOWNLOAD_FILE}" "${MILL}"
 
-    unset DOWNLOAD_FILE
-    unset DOWNLOAD_SUFFIX
-  fi
+  unset DOWNLOAD_FILE
+  unset DOWNLOAD_SUFFIX
 fi
 
 if [ -z "$MILL_MAIN_CLI" ] ; then

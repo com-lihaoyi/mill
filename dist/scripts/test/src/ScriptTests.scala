@@ -12,6 +12,7 @@ object ScriptTests extends TestSuite {
         macLinuxDownloadPath: String,
         windowsDownloadPath: String
     )
+
     val versions = List[VersionPaths](
       // Older versions of Mill have their executable downloaded from Github releases
       VersionPaths(
@@ -335,37 +336,27 @@ object ScriptTests extends TestSuite {
         s"$home\\.mill\\download\\1.0.0-jvm.bat"
       )
     )
-    test("sh") {
-      if (!scala.util.Properties.isWin) {
+    test {
 
-        val lines = for (versionPaths <- versions) {
-          val res = os.call(
-            cmd = sys.env("MILL_TEST_SH_SCRIPT"),
-            env = Map(
-              "MILL_VERSION" -> versionPaths.version,
-              "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"
-            )
+      val cmd: os.Shellable =
+        if (!scala.util.Properties.isWin) sys.env("MILL_TEST_SH_SCRIPT")
+        else Seq("cmd.exe", "/c", sys.env("MILL_TEST_BAT_SCRIPT"))
+
+      val lines = for (versionPaths <- versions) {
+        val res = os.call(
+          cmd = cmd,
+          env = Map(
+            "MILL_VERSION" -> versionPaths.version,
+            "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"
           )
-          val Seq(downloadUrl, downloadDest) = res.out.lines()
-          assert(downloadUrl == versionPaths.downloadUrl)
-          assert(downloadDest == versionPaths.macLinuxDownloadPath)
-        }
-      }
-    }
-    test("bat") {
-      if (scala.util.Properties.isWin) {
-        for (versionPaths <- versions) {
-          val res = os.call(
-            Seq("cmd.exe", "/c", sys.env("MILL_TEST_BAT_SCRIPT")),
-            env = Map(
-              "MILL_VERSION" -> versionPaths.version,
-              "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"
-            )
-          )
-          val Seq(downloadUrl, downloadDest) = res.out.lines()
-          assert(downloadUrl == versionPaths.downloadUrl)
-          assert(downloadDest == versionPaths.windowsDownloadPath)
-        }
+        )
+
+        val Seq(downloadUrl, downloadDest) = res.out.lines()
+        println("downloadUrl: " + downloadUrl)
+        println("downloadDest: " + downloadDest)
+        assert(downloadUrl == versionPaths.downloadUrl)
+        if (!scala.util.Properties.isWin) assert(downloadDest == versionPaths.macLinuxDownloadPath)
+        else assert(downloadDest == versionPaths.windowsDownloadPath)
       }
     }
   }
