@@ -81,6 +81,8 @@ echo mill version after !MILL_VERSION!
 
 if [!MILL_VERSION!]==[] ( set MILL_VERSION=%DEFAULT_MILL_VERSION% )
 
+echo mill version after2 !MILL_VERSION!
+
 if [!MILL_DOWNLOAD_PATH!]==[] ( set MILL_DOWNLOAD_PATH=%USERPROFILE%\.mill\download )
 
 rem without bat file extension, cmd doesn't seem to be able to run it
