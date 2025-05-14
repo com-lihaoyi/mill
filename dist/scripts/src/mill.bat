@@ -36,7 +36,7 @@ setlocal enabledelayedexpansion
 
 if [!DEFAULT_MILL_VERSION!]==[] ( set "DEFAULT_MILL_VERSION={{{ mill-best-version }}}" )
 
-if [!GITHUB_RELEASE_CDN!]==[] ( set "GITHUB_RELEASE_CDN=" )
+if [!MILL_GITHUB_RELEASE_CDN!]==[] ( set "MILL_GITHUB_RELEASE_CDN=" )
 
 if [!MILL_MAIN_CLI!]==[] ( set "MILL_MAIN_CLI=%~f0" )
 
@@ -110,20 +110,20 @@ if !errorlevel! equ 0 (
         set "MILL_VERSION=%MILL_VERSION:-jvm=%"
     ) else (
         set "SKIP_VERSION=false"
-        set "PREFIX=%MILL_VERSION:~0,4%"
-        if "!PREFIX!"=="0.1." set "SKIP_VERSION=true"
-        if "!PREFIX!"=="0.2." set "SKIP_VERSION=true"
-        if "!PREFIX!"=="0.3." set "SKIP_VERSION=true"
-        if "!PREFIX!"=="0.4." set "SKIP_VERSION=true"
-        if "!PREFIX!"=="0.5." set "SKIP_VERSION=true"
-        if "!PREFIX!"=="0.6." set "SKIP_VERSION=true"
-        if "!PREFIX!"=="0.7." set "SKIP_VERSION=true"
-        if "!PREFIX!"=="0.8." set "SKIP_VERSION=true"
-        if "!PREFIX!"=="0.9." set "SKIP_VERSION=true"
-        set "PREFIX=%MILL_VERSION:~0,5%"
-        if "!PREFIX!"=="0.10." set "SKIP_VERSION=true"
-        if "!PREFIX!"=="0.11." set "SKIP_VERSION=true"
-        if "!PREFIX!"=="0.12." set "SKIP_VERSION=true"
+        set "MILL_PREFIX=%MILL_VERSION:~0,4%"
+        if "!MILL_PREFIX!"=="0.1." set "SKIP_VERSION=true"
+        if "!MILL_PREFIX!"=="0.2." set "SKIP_VERSION=true"
+        if "!MILL_PREFIX!"=="0.3." set "SKIP_VERSION=true"
+        if "!MILL_PREFIX!"=="0.4." set "SKIP_VERSION=true"
+        if "!MILL_PREFIX!"=="0.5." set "SKIP_VERSION=true"
+        if "!MILL_PREFIX!"=="0.6." set "SKIP_VERSION=true"
+        if "!MILL_PREFIX!"=="0.7." set "SKIP_VERSION=true"
+        if "!MILL_PREFIX!"=="0.8." set "SKIP_VERSION=true"
+        if "!MILL_PREFIX!"=="0.9." set "SKIP_VERSION=true"
+        set "MILL_PREFIX=%MILL_VERSION:~0,5%"
+        if "!MILL_PREFIX!"=="0.10." set "SKIP_VERSION=true"
+        if "!MILL_PREFIX!"=="0.11." set "SKIP_VERSION=true"
+        if "!MILL_PREFIX!"=="0.12." set "SKIP_VERSION=true"
 
         if "!SKIP_VERSION!"=="false" (
             IF /I NOT "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
@@ -148,48 +148,48 @@ if not exist "%MILL%" (
 )
 
 if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
-    set VERSION_PREFIX=%MILL_VERSION:~0,4%
-    set SHORT_VERSION_PREFIX=%MILL_VERSION:~0,2%
+    set MILL_VERSION_PREFIX=%MILL_VERSION:~0,4%
+    set MILL_SHORT_VERSION_PREFIX=%MILL_VERSION:~0,2%
     rem Since 0.5.0
-    set DOWNLOAD_SUFFIX=-assembly
+    set MILL_DOWNLOAD_SUFFIX=-assembly
     rem Since 0.11.0
-    set DOWNLOAD_FROM_MAVEN=1
-    if [!VERSION_PREFIX!]==[0.0.] (
-        set DOWNLOAD_SUFFIX=
-        set DOWNLOAD_FROM_MAVEN=0
+    set MILL_DOWNLOAD_FROM_MAVEN=1
+    if [!MILL_VERSION_PREFIX!]==[0.0.] (
+        set MILL_DOWNLOAD_SUFFIX=
+        set MILL_DOWNLOAD_FROM_MAVEN=0
     )
-    if [!VERSION_PREFIX!]==[0.1.] (
-        set DOWNLOAD_SUFFIX=
-        set DOWNLOAD_FROM_MAVEN=0
+    if [!MILL_VERSION_PREFIX!]==[0.1.] (
+        set MILL_DOWNLOAD_SUFFIX=
+        set MILL_DOWNLOAD_FROM_MAVEN=0
     )
-    if [!VERSION_PREFIX!]==[0.2.] (
-        set DOWNLOAD_SUFFIX=
-        set DOWNLOAD_FROM_MAVEN=0
+    if [!MILL_VERSION_PREFIX!]==[0.2.] (
+        set MILL_DOWNLOAD_SUFFIX=
+        set MILL_DOWNLOAD_FROM_MAVEN=0
     )
-    if [!VERSION_PREFIX!]==[0.3.] (
-        set DOWNLOAD_SUFFIX=
-        set DOWNLOAD_FROM_MAVEN=0
+    if [!MILL_VERSION_PREFIX!]==[0.3.] (
+        set MILL_DOWNLOAD_SUFFIX=
+        set MILL_DOWNLOAD_FROM_MAVEN=0
     )
-    if [!VERSION_PREFIX!]==[0.4.] (
-        set DOWNLOAD_SUFFIX=
-        set DOWNLOAD_FROM_MAVEN=0
+    if [!MILL_VERSION_PREFIX!]==[0.4.] (
+        set MILL_DOWNLOAD_SUFFIX=
+        set MILL_DOWNLOAD_FROM_MAVEN=0
     )
-    if [!VERSION_PREFIX!]==[0.5.] ( set DOWNLOAD_FROM_MAVEN=0 )
-    if [!VERSION_PREFIX!]==[0.6.] ( set DOWNLOAD_FROM_MAVEN=0 )
-    if [!VERSION_PREFIX!]==[0.7.] ( set DOWNLOAD_FROM_MAVEN=0 )
-    if [!VERSION_PREFIX!]==[0.8.] ( set DOWNLOAD_FROM_MAVEN=0 )
-    if [!VERSION_PREFIX!]==[0.9.] ( set DOWNLOAD_FROM_MAVEN=0 )
+    if [!MILL_VERSION_PREFIX!]==[0.5.] ( set MILL_DOWNLOAD_FROM_MAVEN=0 )
+    if [!MILL_VERSION_PREFIX!]==[0.6.] ( set MILL_DOWNLOAD_FROM_MAVEN=0 )
+    if [!MILL_VERSION_PREFIX!]==[0.7.] ( set MILL_DOWNLOAD_FROM_MAVEN=0 )
+    if [!MILL_VERSION_PREFIX!]==[0.8.] ( set MILL_DOWNLOAD_FROM_MAVEN=0 )
+    if [!MILL_VERSION_PREFIX!]==[0.9.] ( set MILL_DOWNLOAD_FROM_MAVEN=0 )
 
-    set VERSION_PREFIX=%MILL_VERSION:~0,5%
-    if [!VERSION_PREFIX!]==[0.10.] ( set DOWNLOAD_FROM_MAVEN=0 )
+    set MILL_VERSION_PREFIX=%MILL_VERSION:~0,5%
+    if [!MILL_VERSION_PREFIX!]==[0.10.] ( set MILL_DOWNLOAD_FROM_MAVEN=0 )
 
-    set VERSION_PREFIX=%MILL_VERSION:~0,8%
-    if [!VERSION_PREFIX!]==[0.11.0-M] ( set DOWNLOAD_FROM_MAVEN=0 )
+    set MILL_VERSION_PREFIX=%MILL_VERSION:~0,8%
+    if [!MILL_VERSION_PREFIX!]==[0.11.0-M] ( set MILL_DOWNLOAD_FROM_MAVEN=0 )
 
-    set VERSION_PREFIX=%MILL_VERSION:~0,5%
+    set MILL_VERSION_PREFIX=%MILL_VERSION:~0,5%
     set DOWNLOAD_EXT=exe
-    if [!SHORT_VERSION_PREFIX!]==[0.] ( set DOWNLOAD_EXT=jar )
-    if [!VERSION_PREFIX!]==[0.12.] ( set DOWNLOAD_EXT=exe )
+    if [!MILL_SHORT_VERSION_PREFIX!]==[0.] ( set DOWNLOAD_EXT=jar )
+    if [!MILL_VERSION_PREFIX!]==[0.12.] ( set DOWNLOAD_EXT=exe )
     if [!MILL_VERSION!]==[0.12.0] ( set DOWNLOAD_EXT=jar )
     if [!MILL_VERSION!]==[0.12.1] ( set DOWNLOAD_EXT=jar )
     if [!MILL_VERSION!]==[0.12.2] ( set DOWNLOAD_EXT=jar )
@@ -203,56 +203,56 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
     if [!MILL_VERSION!]==[0.12.10] ( set DOWNLOAD_EXT=jar )
     if [!MILL_VERSION!]==[0.12.11] ( set DOWNLOAD_EXT=jar )
 
-    set VERSION_PREFIX=
-    set SHORT_VERSION_PREFIX=
+    set MILL_VERSION_PREFIX=
+    set MILL_SHORT_VERSION_PREFIX=
 
     for /F "delims=- tokens=1" %%A in ("!MILL_VERSION!") do set MILL_VERSION_BASE=%%A
     for /F "delims=- tokens=2" %%A in ("!MILL_VERSION!") do set MILL_VERSION_MILESTONE=%%A
-    set VERSION_MILESTONE_START=!MILL_VERSION_MILESTONE:~0,1!
-    if [!VERSION_MILESTONE_START!]==[M] (
+    set MILL_VERSION_MILESTONE_START=!MILL_VERSION_MILESTONE:~0,1!
+    if [!MILL_VERSION_MILESTONE_START!]==[M] (
         set MILL_VERSION_TAG=!MILL_VERSION_BASE!-!MILL_VERSION_MILESTONE!
     ) else (
         set MILL_VERSION_TAG=!MILL_VERSION_BASE!
     )
     echo mill version after3 !MILL_VERSION!
-    if [!DOWNLOAD_FROM_MAVEN!]==[1] (
-        set DOWNLOAD_URL={{{ mill-maven-url }}}/com/lihaoyi/mill-dist!ARTIFACT_SUFFIX!/!MILL_VERSION!/mill-dist!ARTIFACT_SUFFIX!-!MILL_VERSION!.!DOWNLOAD_EXT!
+    if [!MILL_DOWNLOAD_FROM_MAVEN!]==[1] (
+        set MILL_DOWNLOAD_URL={{{ mill-maven-url }}}/com/lihaoyi/mill-dist!ARTIFACT_SUFFIX!/!MILL_VERSION!/mill-dist!ARTIFACT_SUFFIX!-!MILL_VERSION!.!DOWNLOAD_EXT!
     ) else (
-        set DOWNLOAD_URL=!GITHUB_RELEASE_CDN!%MILL_REPO_URL%/releases/download/!MILL_VERSION_TAG!/!MILL_VERSION!!DOWNLOAD_SUFFIX!
+        set MILL_DOWNLOAD_URL=!MILL_GITHUB_RELEASE_CDN!%MILL_REPO_URL%/releases/download/!MILL_VERSION_TAG!/!MILL_VERSION!!MILL_DOWNLOAD_SUFFIX!
     )
 
     if defined MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT (
-        echo %DOWNLOAD_URL%
+        echo %MILL_DOWNLOAD_URL%
         echo %MILL%
         exit /b 0
     )
 
     rem there seems to be no way to generate a unique temporary file path (on native Windows)
-    set DOWNLOAD_FILE=%MILL%.tmp
+    set MILL_DOWNLOAD_FILE=%MILL%.tmp
 
-    echo Downloading mill !MILL_VERSION! from !DOWNLOAD_URL! ... 1>&2
+    echo Downloading mill !MILL_VERSION! from !MILL_DOWNLOAD_URL! ... 1>&2
 
     if not exist "%MILL_DOWNLOAD_PATH%" mkdir "%MILL_DOWNLOAD_PATH%"
     rem curl is bundled with recent Windows 10
     rem but I don't think we can expect all the users to have it in 2019
     where /Q curl
     if !ERRORLEVEL! EQU 0 (
-        curl -f -L "!DOWNLOAD_URL!" -o "!DOWNLOAD_FILE!"
+        curl -f -L "!MILL_DOWNLOAD_URL!" -o "!MILL_DOWNLOAD_FILE!"
     ) else (
         rem bitsadmin seems to be available on Windows 7
         rem without /dynamic, github returns 403
         rem bitsadmin is sometimes needlessly slow but it looks better with /priority foreground
-        bitsadmin /transfer millDownloadJob /dynamic /priority foreground "!DOWNLOAD_URL!" "!DOWNLOAD_FILE!"
+        bitsadmin /transfer millDownloadJob /dynamic /priority foreground "!MILL_DOWNLOAD_URL!" "!MILL_DOWNLOAD_FILE!"
     )
-    if not exist "!DOWNLOAD_FILE!" (
+    if not exist "!MILL_DOWNLOAD_FILE!" (
         echo Could not download mill !MILL_VERSION! 1>&2
         exit /b 1
     )
 
-    move /y "!DOWNLOAD_FILE!" "%MILL%"
+    move /y "!MILL_DOWNLOAD_FILE!" "%MILL%"
 
-    set DOWNLOAD_FILE=
-    set DOWNLOAD_SUFFIX=
+    set MILL_DOWNLOAD_FILE=
+    set MILL_DOWNLOAD_SUFFIX=
 )
 
 set MILL_DOWNLOAD_PATH=
