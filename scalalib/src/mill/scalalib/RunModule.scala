@@ -162,9 +162,11 @@ trait RunModule extends WithJvmWorker {
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      val dest = Task.dest
+      val backgroundPaths = RunModule.BackgroundPaths(outDir = Task.out, destDir = Task.dest)
+      backgroundPaths.ensureStateDirExists()
+
       runner().run(
-        args = RunModule.BackgroundPaths(dest).toArgs ++ Seq(
+        args = backgroundPaths.toArgs ++ Seq(
           mainClass()
         ) ++ args().value,
         mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
@@ -201,7 +203,14 @@ trait RunModule extends WithJvmWorker {
       runUseArgsFile: Boolean,
       backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]]
   )(args: String*): Ctx => Result[Unit] = ctx => {
-    val backgroundPaths = RunModule.BackgroundPaths(taskDest)
+    val backgroundPaths = RunModule.BackgroundPaths(
+      destDir = taskDest,
+      // A hack, because we can't access `Task.out` here, nor change the method signature. But this is deprecated and
+      // should not be used by anyone.
+      outDir = taskDest,
+    )
+    backgroundPaths.ensureStateDirExists()
+
     try Result.Success(
         Jvm.runSubprocessWithBackgroundOutputs(
           "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
@@ -348,21 +357,22 @@ object RunModule {
     }
   }
 
-  case class BackgroundPaths(
-      newestPidPath: os.Path,
-      currentlyRunningPidPath: os.Path,
-      lockPath: os.Path
-  ) {
-    def toArgs: Seq[String] =
-      Seq(newestPidPath.toString, currentlyRunningPidPath.toString, lockPath.toString)
-  }
-  object BackgroundPaths {
-    def apply(dest: os.Path): BackgroundPaths = {
-      BackgroundPaths(
-        newestPidPath = (dest / ".mill-background-process-newest-pid"),
-        currentlyRunningPidPath = (dest / ".mill-background-process-currently-running-pid"),
-        lockPath = (dest / ".mill-background-process-lock")
-      )
+  case class BackgroundPaths(outDir: os.Path, destDir: os.Path) {
+    val stateDir: os.Path = {
+      val relative = destDir.relativeTo(outDir)
+      outDir / "mill-run-background-state" / relative
     }
+
+    def ensureStateDirExists(): Unit = {
+      os.makeDir.all(stateDir)
+    }
+
+    def newestPidPath: os.Path = stateDir / "newest-pid"
+    def currentlyRunningPidPath: os.Path = stateDir / "currently-running-pid"
+    def lockPath: os.Path = stateDir / "lock"
+    def logPath: os.Path = stateDir / "log"
+
+    def toArgs: Seq[String] =
+      Seq(newestPidPath.toString, currentlyRunningPidPath.toString, lockPath.toString, logPath.toString)
   }
 }
