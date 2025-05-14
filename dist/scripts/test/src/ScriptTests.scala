@@ -298,7 +298,7 @@ object ScriptTests extends TestSuite {
         "0.12.11-jvm",
         "https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.11/mill-dist-0.12.11.jar",
         s"$home/.cache/mill/download/0.12.11",
-        s"$home\\.mill\\download\\0.12.11.bat"
+        s"$home\\.mill\\download\\0.12.11-jvm.bat"
       ),
       // Since 0.12.12, publishing was moved from OSSRH to Sonatype Central, which was stricter
       // about what was allowed to be uploaded under a `.jar` suffix and so our assembly jar
