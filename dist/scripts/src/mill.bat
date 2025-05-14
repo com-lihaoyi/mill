@@ -1,4 +1,5 @@
-echo "mill.bat HELLO WORLD"
+@echo off
+
 rem This is a wrapper script, that automatically selects or downloads Mill from Maven Central or GitHub release pages.
 rem
 rem This script determines the Mill version to use by trying these sources
