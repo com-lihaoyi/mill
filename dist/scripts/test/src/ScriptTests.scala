@@ -299,7 +299,7 @@ object ScriptTests extends TestSuite {
         val lines = for ((version, expectedDownloadUrl, expectedDownloadDest) <- versions) yield {
           println("Testing bat launcher for " + version)
           val res = os.call(
-            Seq("cmd", sys.env("MILL_TEST_BAT_SCRIPT")),
+            Seq("cmd.exe", "/c", sys.env("MILL_TEST_BAT_SCRIPT")),
             env = Map(
               "MILL_VERSION" -> version,
               "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"
