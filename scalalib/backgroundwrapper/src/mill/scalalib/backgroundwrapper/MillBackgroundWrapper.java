@@ -77,11 +77,16 @@ public class MillBackgroundWrapper {
     oldProcessPid.ifPresent((oldPid) -> {
       var startTimeNanos = System.nanoTime();
       log(logPath, myPid, "Waiting for old process to terminate");
-      waitForPreviousProcessToTerminate(oldPid);
-      log(
+      var processExisted = waitForPreviousProcessToTerminate(oldPid);
+      if (processExisted) {
+        log(
           logPath,
           myPid,
           "Old process terminated in " + (System.nanoTime() - startTimeNanos) / NS_IN_S + "s");
+      }
+      else {
+        log(logPath, myPid, "Old process was already terminated.");
+      }
     });
 
     log(logPath, myPid, "Writing my PID to " + currentlyRunningProccesIdPath);
@@ -178,15 +183,17 @@ public class MillBackgroundWrapper {
     }
   }
 
-  static void waitForPreviousProcessToTerminate(long pid) {
+  /** Returns true if the process with the given PID has terminated, false if the process did not exist. */
+  static boolean waitForPreviousProcessToTerminate(long pid) {
     var maybeOldProcess = ProcessHandle.of(pid);
-    if (maybeOldProcess.isEmpty()) return;
+    if (maybeOldProcess.isEmpty()) return false;
     var oldProcess = maybeOldProcess.get();
 
     try {
       while (oldProcess.isAlive()) {
         Thread.sleep(50);
       }
+      return true;
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }

@@ -368,7 +368,10 @@ object RunModule {
     }
 
     def newestPidPath: os.Path = stateDir / "newest-pid"
-    def currentlyRunningPidPath: os.Path = stateDir / "currently-running-pid"
+
+    /** This goes into [[destDir]] so that `./mill clean foo.runBackground` would properly stop the background process. */
+    def currentlyRunningPidPath: os.Path = destDir / "currently-running-pid"
+
     def lockPath: os.Path = stateDir / "lock"
     def logPath: os.Path = stateDir / "log"
 
