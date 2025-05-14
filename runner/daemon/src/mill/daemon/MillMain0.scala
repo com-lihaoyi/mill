@@ -6,7 +6,7 @@ import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
 import mill.constants.{DaemonFiles, OutFiles, Util}
 import mill.define.BuildCtx
-import mill.internal.{Colors, MultiStream, PromptLogger}
+import mill.internal.{Colors, MultiStream, PrefixLogger, PromptLogger, SimpleLogger}
 import mill.server.Server
 import mill.util.BuildInfo
 import mill.{api, define}
@@ -313,11 +313,9 @@ object MillMain0 {
                           Using.resource(getLogger(
                             streams,
                             config,
-                            enableTicker =
-                              if (bspMode) Some(false)
-                              else config.ticker
-                                .orElse(config.enableTicker)
-                                .orElse(Option.when(config.disableTicker.value)(false)),
+                            enableTicker = config.ticker
+                              .orElse(config.enableTicker)
+                              .orElse(Option.when(config.disableTicker.value)(false)),
                             daemonDir,
                             colored = colored,
                             colors = colors
@@ -328,30 +326,24 @@ object MillMain0 {
                     }
 
                     if (bspMode) {
-
-                      Using.resource(getLogger(
+                      val bspLogger = getBspLogger(streams, config)
+                      runBspSession(
+                        streams0,
                         streams,
-                        config,
-                        enableTicker = Some(false),
-                        daemonDir,
-                        colored = colored,
-                        colors = colors
-                      )) { logger =>
-                        runBspSession(
-                          streams0,
-                          streams,
-                          prevRunnerState =>
-                            runMillBootstrap(
-                              false,
-                              prevRunnerState,
-                              Seq("version"),
-                              streams,
-                              "BSP:initialize",
-                              loggerOpt = Some(logger)
-                            ).result,
-                          outLock
-                        )
-                      }
+                        prevRunnerState => {
+                          val initCommandLogger = new PrefixLogger(bspLogger, Seq("init"))
+                          runMillBootstrap(
+                            false,
+                            prevRunnerState,
+                            Seq("version"),
+                            initCommandLogger.streams,
+                            "BSP:initialize",
+                            loggerOpt = Some(initCommandLogger)
+                          ).result
+                        },
+                        outLock,
+                        bspLogger
+                      )
 
                       (true, RunnerState(None, Nil, None))
                     } else if (
@@ -419,9 +411,10 @@ object MillMain0 {
       bspStreams: SystemStreams,
       logStreams: SystemStreams,
       runMillBootstrap: Option[RunnerState] => RunnerState,
-      outLock: Lock
+      outLock: Lock,
+      bspLogger: Logger
   ): Result[BspServerResult] = {
-    logStreams.err.println("Trying to load BSP server...")
+    bspLogger.info("Trying to load BSP server...")
 
     val wsRoot = BuildCtx.workspaceRoot
     val logDir = wsRoot / OutFiles.out / "mill-bsp"
@@ -432,11 +425,12 @@ object MillMain0 {
         bspStreams,
         logDir,
         true,
-        outLock
+        outLock,
+        bspLogger
       )
     }
 
-    logStreams.err.println("BSP server started")
+    bspLogger.info("BSP server started")
 
     val runSessionRes = bspServerHandleRes.flatMap { bspServerHandle =>
       try {
@@ -451,7 +445,7 @@ object MillMain0 {
           prevRunnerState = Some(runnerState)
           repeatForBsp = runSessionRes == BspServerResult.ReloadWorkspace
           bspRes = Some(runSessionRes)
-          logStreams.err.println(s"BSP session returned with $runSessionRes")
+          bspLogger.info(s"BSP session returned with $runSessionRes")
         }
 
         // should make the lsp4j-managed BSP server exit
@@ -461,7 +455,7 @@ object MillMain0 {
       } finally bspServerHandle.close()
     }
 
-    logStreams.err.println(
+    bspLogger.info(
       s"Exiting BSP runner loop. Stopping BSP server. Last result: $runSessionRes"
     )
     runSessionRes
@@ -509,6 +503,19 @@ object MillMain0 {
       currentTimeMillis = () => System.currentTimeMillis()
     )
   }
+
+  def getBspLogger(
+      streams: SystemStreams,
+      config: MillCliConfig
+  ): Logger =
+    new PrefixLogger(
+      new SimpleLogger(
+        streams,
+        Seq("bsp"),
+        debugEnabled = config.debugLog.value
+      ),
+      Nil
+    )
 
   /**
    * Determine, whether we need a `build.mill` or not.
