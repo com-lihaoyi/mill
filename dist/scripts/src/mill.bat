@@ -218,8 +218,8 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
     )
 
     if defined MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT (
-        echo %MILL%
         echo %DOWNLOAD_URL%
+        echo %MILL%
         exit /b 0
     )
 
