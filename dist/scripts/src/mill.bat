@@ -214,7 +214,7 @@ if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
     ) else (
         set MILL_VERSION_TAG=!MILL_VERSION_BASE!
     )
-
+    echo mill version after3 !MILL_VERSION!
     if [!DOWNLOAD_FROM_MAVEN!]==[1] (
         set DOWNLOAD_URL={{{ mill-maven-url }}}/com/lihaoyi/mill-dist!ARTIFACT_SUFFIX!/!MILL_VERSION!/mill-dist!ARTIFACT_SUFFIX!-!MILL_VERSION!.!DOWNLOAD_EXT!
     ) else (
