@@ -34,53 +34,33 @@ rem setlocal seems to be unavailable on Windows 95/98/ME
 rem but I don't think we need to support them in 2019
 setlocal enabledelayedexpansion
 
-if [!DEFAULT_MILL_VERSION!]==[] (
-    set "DEFAULT_MILL_VERSION={{{ mill-best-version }}}"
-)
+if [!DEFAULT_MILL_VERSION!]==[] ( set "DEFAULT_MILL_VERSION={{{ mill-best-version }}}" )
 
-if [!GITHUB_RELEASE_CDN!]==[] (
-    set "GITHUB_RELEASE_CDN="
-)
+if [!GITHUB_RELEASE_CDN!]==[] ( set "GITHUB_RELEASE_CDN=" )
 
-if [!MILL_MAIN_CLI!]==[] (
-    set "MILL_MAIN_CLI=%~f0"
-)
+if [!MILL_MAIN_CLI!]==[] ( set "MILL_MAIN_CLI=%~f0" )
 
 set "MILL_REPO_URL={{{ mill-repo-url }}}"
 
 SET MILL_BUILD_SCRIPT=
 
-IF EXIST "build.mill" (
-    SET MILL_BUILD_SCRIPT=build.mill
-) ELSE IF EXIST "build.mill.scala" (
-    SET MILL_BUILD_SCRIPT=build.mill.scala
-) ELSE IF EXIST "build.sc" (
-    SET MILL_BUILD_SCRIPT=build.sc
-)
+IF EXIST "build.mill" ( SET MILL_BUILD_SCRIPT=build.mill )
+ELSE IF EXIST "build.mill.scala" ( SET MILL_BUILD_SCRIPT=build.mill.scala )
+ELSE IF EXIST "build.sc" ( SET MILL_BUILD_SCRIPT=build.sc )
 
 if [!MILL_VERSION!]==[] (
-  if exist .mill-version (
-      set /p MILL_VERSION=<.mill-version
-  ) else (
-    if exist .config\mill-version (
-      set /p MILL_VERSION=<.config\mill-version
-    ) else (
-      if not "%MILL_BUILD_SCRIPT%"=="" (
-        for /f "tokens=1-2*" %%a in ('findstr /C:"//| mill-version:" %MILL_BUILD_SCRIPT%') do (
-          set "MILL_VERSION=%%c"
-        )
-      )
+  if exist .mill-version ( set /p MILL_VERSION=<.mill-version )
+  else if exist .config\mill-version ( set /p MILL_VERSION=<.config\mill-version )
+  else if not "%MILL_BUILD_SCRIPT%"=="" (
+    for /f "tokens=1-2*" %%a in ('findstr /C:"//| mill-version:" %MILL_BUILD_SCRIPT%') do (
+      set "MILL_VERSION=%%c"
     )
   )
 )
 
-if [!MILL_VERSION!]==[] (
-    set MILL_VERSION=%DEFAULT_MILL_VERSION%
-)
+if [!MILL_VERSION!]==[] ( set MILL_VERSION=%DEFAULT_MILL_VERSION% )
 
-if [!MILL_DOWNLOAD_PATH!]==[] (
-    set MILL_DOWNLOAD_PATH=%USERPROFILE%\.mill\download
-)
+if [!MILL_DOWNLOAD_PATH!]==[] ( set MILL_DOWNLOAD_PATH=%USERPROFILE%\.mill\download )
 
 rem without bat file extension, cmd doesn't seem to be able to run it
 
@@ -135,12 +115,12 @@ if !errorlevel! equ 0 (
 
 set MILL=%MILL_DOWNLOAD_PATH%\!FULL_MILL_VERSION!!MILL_EXT!
 
-SET RESOLVE_DOWNLOAD=
+SET MILL_RESOLVE_DOWNLOAD=
 
-if not exist "%MILL%" ( SET RESOLVE_DOWNLOAD=true )
-else if defined MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT ( SET RESOLVE_DOWNLOAD=true )
+if not exist "%MILL%" ( SET MILL_RESOLVE_DOWNLOAD=true )
+else if defined MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT ( SET MILL_RESOLVE_DOWNLOAD=true )
 
-if [!RESOLVE_DOWNLOAD!]==[true] (
+if [!MILL_RESOLVE_DOWNLOAD!]==[true] (
     set VERSION_PREFIX=%MILL_VERSION:~0,4%
     set SHORT_VERSION_PREFIX=%MILL_VERSION:~0,2%
     rem Since 0.5.0
@@ -254,29 +234,12 @@ set MILL_REPO_URL=
 
 rem Need to preserve the first position of those listed options
 set MILL_FIRST_ARG=
-if [%~1%]==[--bsp] (
-  set MILL_FIRST_ARG=%1%
-) else (
-  if [%~1%]==[-i] (
-    set MILL_FIRST_ARG=%1%
-  ) else (
-    if [%~1%]==[--interactive] (
-      set MILL_FIRST_ARG=%1%
-    ) else (
-      if [%~1%]==[--no-server] (
-        set MILL_FIRST_ARG=%1%
-      ) else (
-        if [%~1%]==[--repl] (
-          set MILL_FIRST_ARG=%1%
-        ) else (
-          if [%~1%]==[--help] (
-            set MILL_FIRST_ARG=%1%
-          )
-        )
-      )
-    )
-  )
-)
+if [%~1%]==[--bsp] ( set MILL_FIRST_ARG=%1% )
+else if [%~1%]==[-i] ( set MILL_FIRST_ARG=%1% )
+else if [%~1%]==[--interactive] ( set MILL_FIRST_ARG=%1% )
+else if [%~1%]==[--no-server] ( set MILL_FIRST_ARG=%1% )
+else if [%~1%]==[--repl] ( set MILL_FIRST_ARG=%1% )
+else if [%~1%]==[--help] ( set MILL_FIRST_ARG=%1% )
 
 set "MILL_PARAMS=%*%"
 
