@@ -4,7 +4,8 @@ import utest._
 
 object ScriptTests extends TestSuite {
   def tests = Tests {
-
+    val home = os.home
+    val nativeSuffix = sys.env("MILL_NATIVE_SUFFIX")
     val versions = List(
       // Older versions of Mill have their executable downloaded from Github releases
       (
@@ -275,8 +276,7 @@ object ScriptTests extends TestSuite {
       )
     )
     test("sh") {
-      val home = os.home
-      val nativeSuffix = sys.env("MILL_NATIVE_SUFFIX")
+
 
       val lines = for ((version, expectedDownloadUrl, expectedDownloadDest) <- versions) {
         val res = os.call(
