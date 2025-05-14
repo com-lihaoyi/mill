@@ -58,7 +58,7 @@ if exist "build.mill" (
     )
 )
 
-
+echo mill version before !MILL_VERSION!
 if [!MILL_VERSION!]==[] (
   if exist .mill-version (
     set /p MILL_VERSION=<.mill-version
@@ -76,6 +76,8 @@ if [!MILL_VERSION!]==[] (
     )
   )
 )
+
+echo mill version after !MILL_VERSION!
 
 if [!MILL_VERSION!]==[] ( set MILL_VERSION=%DEFAULT_MILL_VERSION% )
 
