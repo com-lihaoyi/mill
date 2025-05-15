@@ -1,11 +1,19 @@
 = Mill as a Direct Style Build Tool
 
+// tag::header[]
+:author: Li Haoyi
+:revdate: 10 May 2025
+
+_{author}, {revdate}_
+
 {mill-doc-url}[Mill] is a JVM build tool that targets Java/Scala/Kotlin and has
 potential to serve the large-monorepo codebases that Bazel currently serves. Mill has good
 traction among its users, benchmarks that demonstrate 3-6x faster builds than its competitors,
 and a unique "direct-style" design that make it easy to use and extend. This page discusses
-some of the most interesting design decisions in Mill, and how it sets Mill apart from
+one of the most interesting design decisions in Mill, and how it sets Mill apart from
 other build tools on the market.
+
+// end::header[]
 
 == What is a Build Tool?
 
