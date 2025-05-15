@@ -337,7 +337,7 @@ private[mill] object PromptLogger {
       // Close the write side of the pipe first but do not close the read side, so
       // the `pumperThread` can continue reading remaining text in the pipe buffer
       // before terminating on its own
-      ProxyStream.sendEnd(pipe.output)
+      ProxyStream.sendEnd(pipe.output, 0)
       pipe.output.close()
       pumperThread.join()
     }

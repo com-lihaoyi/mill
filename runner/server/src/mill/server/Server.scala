@@ -181,6 +181,9 @@ abstract class Server[T](
 
       val millVersionChanged = lastMillVersion.exists(_ != clientMillVersion)
       val javaVersionChanged = lastJavaVersion.exists(_ != clientJavaVersion)
+      def writeExitCode(code: Int) = {
+        ProxyStream.sendEnd(currentOutErr, code)
+      }
       if (millVersionChanged || javaVersionChanged) {
         Server.withOutLock(
           noBuildLock = false,
@@ -204,10 +207,8 @@ abstract class Server[T](
               s"Java version changed ($lastJavaVersion -> $clientJavaVersion), re-starting server"
             )
           }
-          os.write(
-            serverDir / ServerFiles.exitCode,
-            ClientUtil.ExitServerCodeWhenVersionMismatch().toString.getBytes()
-          )
+
+          writeExitCode(ClientUtil.ExitServerCodeWhenVersionMismatch())
           System.exit(ClientUtil.ExitServerCodeWhenVersionMismatch())
         }
       }
@@ -228,15 +229,15 @@ abstract class Server[T](
               Map(),
               initialSystemProperties,
               systemExit = exitCode => {
-                os.write.over(serverDir / ServerFiles.exitCode, exitCode.toString)
+                writeExitCode(exitCode)
                 sys.exit(exitCode)
               }
             )
 
             stateCache = newStateCache
-            val exitCode = if (result) "0" else "1"
+            val exitCode = if (result) 0 else 1
             serverLog("exitCode " + exitCode)
-            os.write.over(serverDir / ServerFiles.exitCode, exitCode)
+            writeExitCode(exitCode)
           } finally {
             done = true
             idle = true
@@ -271,7 +272,7 @@ abstract class Server[T](
       System.err.flush()
 
     } finally {
-      if (!clientDisappeared) ProxyStream.sendEnd(currentOutErr) // Send a termination
+      if (!clientDisappeared) ProxyStream.sendEnd(currentOutErr, 0) // Send a termination
     }
   }
 

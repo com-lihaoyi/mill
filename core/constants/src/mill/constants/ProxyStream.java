@@ -37,9 +37,10 @@ public class ProxyStream {
   public static final int END = 0;
   public static final int HEARTBEAT = 127;
 
-  public static void sendEnd(OutputStream out) throws IOException {
+  public static void sendEnd(OutputStream out, int exitCode) throws IOException {
     synchronized (out) {
       out.write(ProxyStream.END);
+      out.write(exitCode);
       out.flush();
     }
   }
@@ -113,7 +114,7 @@ public class ProxyStream {
     private final OutputStream destOut;
     private final OutputStream destErr;
     private final Object synchronizer;
-
+    volatile public int exitCode = 0;
     public Pumper(
         InputStream src, OutputStream destOut, OutputStream destErr, Object synchronizer) {
       this.src = src;
@@ -144,7 +145,11 @@ public class ProxyStream {
           // that only header values > 0 represent actual data to read:
           // - sign((byte)header) represents which stream the data should be sent to
           // - abs((byte)header) represents the length of the data to read and send
-          if (header == -1 || header == END) break;
+          if (header == -1) break;
+          else if (header == END){
+              exitCode = src.read();
+              break;
+          }
           else if (header == HEARTBEAT) continue;
           else {
             int stream = (byte) header > 0 ? 1 : -1;

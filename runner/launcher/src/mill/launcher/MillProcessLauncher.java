@@ -364,7 +364,6 @@ public class MillProcessLauncher {
   public static void prepareMillRunFolder(Path serverDir) throws Exception {
     // Clear out run-related files from the server folder to make sure we
     // never hit issues where we are reading the files from a previous run
-    Files.deleteIfExists(serverDir.resolve(ServerFiles.exitCode));
     Files.deleteIfExists(serverDir.resolve(ServerFiles.terminfo));
 
     Path sandbox = serverDir.resolve(ServerFiles.sandbox);
