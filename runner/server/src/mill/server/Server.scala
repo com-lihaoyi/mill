@@ -15,6 +15,8 @@ import scala.util.Try
 import scala.util.Using
 import mill.constants.OutFiles
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 /**
  * Models a long-lived server that receives requests from a client and calls a [[main0]]
  * method to run the commands in-process. Provides the command args, env variables,
@@ -144,10 +146,9 @@ abstract class Server[T](
 
   def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit = {
     val currentOutErr = clientSocket.getOutputStream
-    @volatile var writtenExitCode = false
+    val writtenExitCode = AtomicBoolean()
     def writeExitCode(code: Int) = {
-      if (!writtenExitCode) ProxyStream.sendEnd(currentOutErr, code)
-      writtenExitCode = true
+      if (!writtenExitCode.getAndSet(true)) ProxyStream.sendEnd(currentOutErr, code)
     }
 
     var clientDisappeared = false
@@ -274,9 +275,7 @@ abstract class Server[T](
       System.out.flush()
       System.err.flush()
 
-    } finally {
-      if (!clientDisappeared) writeExitCode(0)  // Send a termination
-    }
+    } finally writeExitCode(1) // Send a termination if it has not already happened
   }
 
   def main0(
