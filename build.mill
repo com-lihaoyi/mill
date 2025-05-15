@@ -448,6 +448,7 @@ object MillPublishJavaModule {
   }
 
 }
+
 /**
  * Some custom scala settings and test convenience
  */
