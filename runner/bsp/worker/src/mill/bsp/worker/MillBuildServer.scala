@@ -717,16 +717,13 @@ private class MillBuildServer(
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = null
-  ): ExecutionResultsApi = {
+  )(implicit name: sourcecode.Name): ExecutionResultsApi = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
     Server.withOutLock(
       noBuildLock = false,
       noWaitForBuildLock = false,
       out = os.Path(evaluator.outPathJava),
-      targetsAndParams = goals.map {
-        case n: NamedTaskApi[_] => n.label
-        case t => t.toString
-      },
+      millActiveCommandMessage = "IDE-BSP:" + name.value,
       streams = logger0.streams,
       outLock = outLock
     ) {

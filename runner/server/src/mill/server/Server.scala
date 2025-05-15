@@ -186,7 +186,7 @@ abstract class Server[T](
           noBuildLock = false,
           noWaitForBuildLock = false,
           out = out,
-          targetsAndParams = Seq("checking server mill version and java version"),
+          millActiveCommandMessage = "checking server mill version and java version",
           streams = new mill.api.SystemStreams(
             new PrintStream(mill.api.DummyOutputStream),
             new PrintStream(mill.api.DummyOutputStream),
@@ -346,7 +346,7 @@ object Server {
       noBuildLock: Boolean,
       noWaitForBuildLock: Boolean,
       out: os.Path,
-      targetsAndParams: Seq[String],
+      millActiveCommandMessage: String,
       streams: SystemStreams,
       outLock: Lock
   )(t: => T): T = {
@@ -369,7 +369,7 @@ object Server {
           outLock.lock()
         }
       } { _ =>
-        os.write.over(out / OutFiles.millActiveCommand, targetsAndParams.mkString(" "))
+        os.write.over(out / OutFiles.millActiveCommand, millActiveCommandMessage)
         try t
         finally os.remove.all(out / OutFiles.millActiveCommand)
       }
