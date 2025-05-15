@@ -265,12 +265,13 @@ object MillMain {
                       enterKeyPressed: Boolean,
                       prevState: Option[RunnerState],
                       targetsAndParams: Seq[String],
-                      streams: SystemStreams
+                      streams: SystemStreams,
+                      millActiveCommandMessage: String
                   ) = Server.withOutLock(
                     config.noBuildLock.value,
                     config.noWaitForBuildLock.value,
                     out,
-                    targetsAndParams,
+                    millActiveCommandMessage,
                     streams,
                     outLock
                   ) {
@@ -327,8 +328,8 @@ object MillMain {
                         runMillBootstrap(
                           false,
                           prevRunnerState,
-                          Seq("version"),
-                          streams
+                          "BSP:initialize",
+                          streams,
                         ).result,
                       outLock
                     )
@@ -338,7 +339,7 @@ object MillMain {
                     config.leftoverArgs.value == Seq("mill.idea.GenIdea/idea") ||
                     config.leftoverArgs.value == Seq("mill.idea.GenIdea/")
                   ) {
-                    val runnerState = runMillBootstrap(false, None, Seq("version"), streams)
+                    val runnerState = runMillBootstrap(false, None, "BSP:initialize", streams)
                     new mill.idea.GenIdeaImpl(
                       runnerState.result.frames.flatMap(_.evaluator)
                     ).run()
@@ -359,7 +360,8 @@ object MillMain {
                           enterKeyPressed,
                           prevState,
                           config.leftoverArgs.value,
-                          streams
+                          streams,
+                          config.leftoverArgs.value.mkString(" ")
                         )
                       },
                       colors = colors

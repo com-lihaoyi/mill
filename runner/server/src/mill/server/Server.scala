@@ -346,7 +346,7 @@ object Server {
       noBuildLock: Boolean,
       noWaitForBuildLock: Boolean,
       out: os.Path,
-      targetsAndParams: Seq[String],
+      millActiveCommandMessage: String,
       streams: SystemStreams,
       outLock: Lock
   )(t: => T): T = {
@@ -369,7 +369,7 @@ object Server {
           outLock.lock()
         }
       } { _ =>
-        os.write.over(out / OutFiles.millActiveCommand, targetsAndParams.mkString(" "))
+        os.write.over(out / OutFiles.millActiveCommand, millActiveCommandMessage)
         try t
         finally os.remove.all(out / OutFiles.millActiveCommand)
       }
