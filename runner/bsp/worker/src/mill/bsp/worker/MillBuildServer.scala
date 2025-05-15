@@ -723,7 +723,7 @@ private class MillBuildServer(
       noBuildLock = false,
       noWaitForBuildLock = false,
       out = os.Path(evaluator.outPathJava),
-      targetsAndParams = Seq("BSP:" + name.value),
+      millActiveCommandMessage = "BSP:" + name.value,
       streams = logger0.streams,
       outLock = outLock
     ) {
