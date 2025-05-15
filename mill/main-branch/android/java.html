@@ -752,15 +752,9 @@ import mill._, androidlib._, scalalib._</code></pre>
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn&quot;androidx.test.ext:junit:1.2.1&quot;.exclude((
-        &quot;org.jetbrains.kotlinx&quot;,
-        &quot;kotlinx-coroutines-core-jvm&quot;
-      )),
+      mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
       mvn&quot;androidx.test:runner:1.6.2&quot;,
-      mvn&quot;androidx.test.espresso:espresso-core:3.5.1&quot;.exclude((
-        &quot;org.jetbrains.kotlinx&quot;,
-        &quot;kotlinx-coroutines-core-jvm&quot;
-      )),
+      mvn&quot;androidx.test.espresso:espresso-core:3.5.1&quot;,
       mvn&quot;junit:junit:4.13.2&quot;
     )
   }
@@ -1139,13 +1133,9 @@ object app extends AndroidAppModule { <i class="conum" data-value="2"></i><b>(2)
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn&quot;androidx.test.ext:junit:1.2.1&quot;.exclude(
-        (&quot;org.jetbrains.kotlinx&quot;, &quot;kotlinx-coroutines-core-jvm&quot;)
-      ),
+      mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
       mvn&quot;androidx.test:runner:1.6.2&quot;,
-      mvn&quot;androidx.test.espresso:espresso-core:3.5.1&quot;.exclude(
-        (&quot;org.jetbrains.kotlinx&quot;, &quot;kotlinx-coroutines-core-jvm&quot;)
-      ),
+      mvn&quot;androidx.test.espresso:espresso-core:3.5.1&quot;,
       mvn&quot;junit:junit:4.13.2&quot;
     )
   }
@@ -1266,13 +1256,9 @@ object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i>
      * resolution resolves conflicts between androidJvm and jvm platform types
      */
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn&quot;androidx.test.ext:junit:1.2.1&quot;.exclude(
-        (&quot;org.jetbrains.kotlinx&quot;, &quot;kotlinx-coroutines-core-jvm&quot;)
-      ),
+      mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
       mvn&quot;androidx.test:runner:1.6.2&quot;,
-      mvn&quot;androidx.test.espresso:espresso-core:3.5.1&quot;.exclude(
-        (&quot;org.jetbrains.kotlinx&quot;, &quot;kotlinx-coroutines-core-jvm&quot;)
-      ),
+      mvn&quot;androidx.test.espresso:espresso-core:3.5.1&quot;,
       mvn&quot;junit:junit:4.13.2&quot;
     )
   }
