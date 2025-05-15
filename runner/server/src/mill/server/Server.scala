@@ -143,8 +143,13 @@ abstract class Server[T](
   }
 
   def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit = {
-
     val currentOutErr = clientSocket.getOutputStream
+    @volatile var writtenExitCode = false
+    def writeExitCode(code: Int) = {
+      if (!writtenExitCode) ProxyStream.sendEnd(currentOutErr, code)
+      writtenExitCode = true
+    }
+
     var clientDisappeared = false
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
     // detect client-side connection closing, so instead we send a no-op heartbeat
@@ -181,9 +186,7 @@ abstract class Server[T](
 
       val millVersionChanged = lastMillVersion.exists(_ != clientMillVersion)
       val javaVersionChanged = lastJavaVersion.exists(_ != clientJavaVersion)
-      def writeExitCode(code: Int) = {
-        ProxyStream.sendEnd(currentOutErr, code)
-      }
+
       if (millVersionChanged || javaVersionChanged) {
         Server.withOutLock(
           noBuildLock = false,
@@ -272,7 +275,7 @@ abstract class Server[T](
       System.err.flush()
 
     } finally {
-      if (!clientDisappeared) ProxyStream.sendEnd(currentOutErr, 0) // Send a termination
+      if (!clientDisappeared) writeExitCode(0)  // Send a termination
     }
   }
 

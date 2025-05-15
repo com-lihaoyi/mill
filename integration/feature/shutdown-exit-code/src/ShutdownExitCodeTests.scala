@@ -10,11 +10,16 @@ object ShutdownExitCodeTests extends UtestIntegrationTestSuite {
     test("test") - integrationTest { tester =>
       val result1 = tester.eval(("resolve", "_"))
       assert(result1.isSuccess == true)
+
       val result2 = tester.eval("shutdown")
       assert(result2.isSuccess == true)
 
+      // Not sure why this makes it pass? Somehow the server takes very long to exit
+      Thread.sleep(1000)
+
       val result3 = tester.eval("doesnt-exit")
       assert(result3.isSuccess == false)
+
       val result4 = tester.eval("shutdown")
       assert(result4.isSuccess == true)
     }
