@@ -114,7 +114,8 @@ public class ProxyStream {
     private final OutputStream destOut;
     private final OutputStream destErr;
     private final Object synchronizer;
-    volatile public int exitCode = 0;
+    public volatile int exitCode = 0;
+
     public Pumper(
         InputStream src, OutputStream destOut, OutputStream destErr, Object synchronizer) {
       this.src = src;
@@ -146,11 +147,10 @@ public class ProxyStream {
           // - sign((byte)header) represents which stream the data should be sent to
           // - abs((byte)header) represents the length of the data to read and send
           if (header == -1) break;
-          else if (header == END){
-              exitCode = src.read();
-              break;
-          }
-          else if (header == HEARTBEAT) continue;
+          else if (header == END) {
+            exitCode = src.read();
+            break;
+          } else if (header == HEARTBEAT) continue;
           else {
             int stream = (byte) header > 0 ? 1 : -1;
             int quantity0 = (byte) header;

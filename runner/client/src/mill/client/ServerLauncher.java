@@ -1,6 +1,5 @@
 package mill.client;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -136,16 +135,18 @@ public abstract class ServerLauncher {
       throw new Exception("Force failure for testing: " + serverDir);
     }
   }
-  class PumperThread extends Thread {
-      ProxyStream.Pumper runnable;
-      public PumperThread(ProxyStream.Pumper runnable, String name) {
-          super(runnable, name);
-          this.runnable = runnable;
-      }
 
-      public int exitCode() {
-          return runnable.exitCode;
-      }
+  class PumperThread extends Thread {
+    ProxyStream.Pumper runnable;
+
+    public PumperThread(ProxyStream.Pumper runnable, String name) {
+      super(runnable, name);
+      this.runnable = runnable;
+    }
+
+    public int exitCode() {
+      return runnable.exitCode;
+    }
   }
 
   PumperThread startStreamPumpers(Socket ioSocket, String javaHome) throws Exception {
