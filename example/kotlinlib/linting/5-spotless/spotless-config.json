@@ -1,0 +1,24 @@
+{
+  "formatters": [
+    {
+      "includes": [
+        "glob:**/*.kt"
+      ],
+      "steps": [
+        {
+          "$type": "Ktfmt"
+        }
+      ]
+    },
+    {
+      "includes": [
+        "glob:**/*.java"
+      ],
+      "steps": [
+        {
+          "$type": "PalantirJavaFormat"
+        }
+      ]
+    }
+  ]
+}
