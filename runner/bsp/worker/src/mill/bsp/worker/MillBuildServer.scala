@@ -717,7 +717,7 @@ private class MillBuildServer(
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = null
-  )(name: sourcecode.Name): ExecutionResultsApi = {
+  )(implicit name: sourcecode.Name): ExecutionResultsApi = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
     Server.withOutLock(
       noBuildLock = false,
