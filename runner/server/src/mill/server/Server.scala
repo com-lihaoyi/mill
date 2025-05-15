@@ -186,7 +186,7 @@ abstract class Server[T](
           noBuildLock = false,
           noWaitForBuildLock = false,
           out = out,
-          targetsAndParams = Seq("checking server mill version and java version"),
+          targetsAndParams = "checking server mill version and java version",
           streams = new mill.api.SystemStreams(
             new PrintStream(mill.api.DummyOutputStream),
             new PrintStream(mill.api.DummyOutputStream),
