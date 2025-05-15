@@ -275,7 +275,12 @@ abstract class Server[T](
       System.out.flush()
       System.err.flush()
 
-    } finally writeExitCode(1) // Send a termination if it has not already happened
+    } finally {
+      try writeExitCode(1) // Send a termination if it has not already happened
+      catch {
+        case e: Throwable => /*donothing*/
+      }
+    }
   }
 
   def main0(
