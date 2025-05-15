@@ -328,8 +328,9 @@ object MillMain {
                         runMillBootstrap(
                           false,
                           prevRunnerState,
-                          "BSP:initialize",
+                          Seq("version"),
                           streams,
+                          "BSP:initialize"
                         ).result,
                       outLock
                     )
@@ -339,7 +340,7 @@ object MillMain {
                     config.leftoverArgs.value == Seq("mill.idea.GenIdea/idea") ||
                     config.leftoverArgs.value == Seq("mill.idea.GenIdea/")
                   ) {
-                    val runnerState = runMillBootstrap(false, None, "BSP:initialize", streams)
+                    val runnerState = runMillBootstrap(false, None, Seq("version"), streams, "BSP:initialize")
                     new mill.idea.GenIdeaImpl(
                       runnerState.result.frames.flatMap(_.evaluator)
                     ).run()
