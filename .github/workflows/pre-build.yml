@@ -2,7 +2,7 @@ on:
   workflow_call:
     inputs:
       compileargs:
-        default: '__.compile + __.docJar'
+        default: '__.compile + bsp.worker.docJar'
         type: string
       java-version:
         default: '11'
