@@ -148,13 +148,13 @@ object SystemStreams {
     val current = new DynamicVariable(original)
 
     object Out extends PrintStream(new ProxyOutputStream {
-      val current = ThreadLocalStreams.current //
-      def delegate() = current.value.out
-    })
+          val current = ThreadLocalStreams.current //
+          def delegate() = current.value.out
+        })
     object Err extends PrintStream(new ProxyOutputStream {
-      val current = ThreadLocalStreams.current
-      def delegate() = current.value.err
-    })
+          val current = ThreadLocalStreams.current
+          def delegate() = current.value.err
+        })
     object In extends ProxyInputStream { def delegate() = current.value.in }
 
     abstract class ProxyOutputStream extends OutputStream {
