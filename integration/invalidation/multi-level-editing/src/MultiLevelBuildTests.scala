@@ -106,9 +106,9 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
 
     // Before checking classloaders, make sure we check to ensure server spawns and
     // restarts behave as expected:
-    if (clientServerMode) {
+    if (daemonMode) {
       // Only one server should be running at any point in time
-      val serverFolder = tester.workspacePath / "out/mill-server"
+      val serverFolder = tester.workspacePath / "out/mill-daemon"
 
       // client-server mode should never restart in these tests and preserve the same process,
       val currentServerId = os.read(serverFolder / "processId")
@@ -128,7 +128,7 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
       }
 
     val expectedChanged =
-      if (clientServerMode) expectedChanged0
+      if (daemonMode) expectedChanged0
       else expectedChanged0.map {
         case java.lang.Boolean.FALSE => true
         case n => n
@@ -297,7 +297,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
         // remain null, because none of the meta-builds can evaluate. Only once
         // all of them parse successfully do we get a new set of classloaders for
         // every level of the meta-build
-        if (tester.clientServerMode) checkChangedClassloaders(tester, null, null, false, false)
+        if (tester.daemonMode) checkChangedClassloaders(tester, null, null, false, false)
         else checkChangedClassloaders(tester, null, null, true, true)
 
         fixParseError(workspacePath / "build.mill")
@@ -309,7 +309,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
           "mill-build/build.mill"
         )
         // checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester), Nil)
-        if (tester.clientServerMode) checkChangedClassloaders(tester, null, null, null, false)
+        if (tester.daemonMode) checkChangedClassloaders(tester, null, null, null, false)
         else checkChangedClassloaders(tester, null, null, null, true)
 
         fixParseError(workspacePath / "mill-build/build.mill")
@@ -337,7 +337,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
         causeParseError(workspacePath / "build.mill")
         evalCheckErr(tester, "\n1 tasks failed", "\ngeneratedScriptSources", "build.mill")
         // checkWatchedFiles(tester, Nil, buildPaths(tester), Nil, Nil)
-        if (tester.clientServerMode) checkChangedClassloaders(tester, null, null, true, false)
+        if (tester.daemonMode) checkChangedClassloaders(tester, null, null, true, false)
         else checkChangedClassloaders(tester, null, null, true, true)
 
         fixParseError(workspacePath / "build.mill")
@@ -349,7 +349,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
           buildPaths2(tester),
           buildPaths3(tester)
         )
-        if (tester.clientServerMode) checkChangedClassloaders(tester, null, true, false, false)
+        if (tester.daemonMode) checkChangedClassloaders(tester, null, true, false, false)
         else checkChangedClassloaders(tester, null, false, false, false)
       }
     }

@@ -6,8 +6,8 @@ import mainargs.arg
 import mill.define.JsonFormatters.pathReadWrite
 import mill.api.Result
 import mill.api.internal.RunModuleApi
+import mill.constants.DaemonFiles
 import mill.define.{ModuleCtx, PathRef, TaskCtx}
-import mill.constants.ServerFiles
 import mill.define.{Command, ModuleRef, Task}
 import mill.util.Jvm
 import mill.{Args, T}
@@ -320,8 +320,8 @@ object RunModule {
             // and shown to any connected Mill client even if the current command has completed
             val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
             (
-              os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
-              os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr)
+              os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stdout),
+              os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stderr)
             )
           } else {
             (dest / "stdout.log": os.ProcessOutput, dest / "stderr.log": os.ProcessOutput)

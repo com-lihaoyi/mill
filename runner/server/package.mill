@@ -4,7 +4,7 @@ import mill._
 import millbuild.*
 
 /**
- * This module contains the core logic around the Mill background server,
+ * This module contains the core logic around the Mill background daemon,
  * and tests that exercise is together with [[build.core.constants]], without
  * any Mill-related business logic
  */

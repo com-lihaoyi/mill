@@ -49,7 +49,7 @@ trait WatchTests extends UtestIntegrationTestSuite {
       .filter(!_.contains("Watching for changes"))
       .filter(!_.contains("[info] compiling"))
       .filter(!_.contains("[info] done compiling"))
-      .filter(!_.contains("mill-server/ exitCode file not found"))
+      .filter(!_.contains("mill-daemon/ exitCode file not found"))
 
     assert(out == expectedOut)
 

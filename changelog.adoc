@@ -150,7 +150,7 @@ to Coursier rather than implementing it in Mill {link-pr}/4145[#4145]
 
 * Honor the `NO_COLOR` env variable {link-pr}/4246[#4246]
 
-* Fix race condition that occasionally caused Mill's background server to exit and
+* Fix race condition that occasionally caused Mill's background daemon to exit and
 restart unnecessarily {link-pr}/4254[#4254]
 
 * Improvements to Mill's https://mill-build.org/mill/android/java.html[experimental

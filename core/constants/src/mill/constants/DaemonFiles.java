@@ -1,26 +1,26 @@
 package mill.constants;
 
 /**
- * Central place containing all the files that live inside the `out/mill-server-*` folder
+ * Central place containing all the files that live inside the `out/mill-daemon-*` folder
  * and documentation about what they do
  */
-public class ServerFiles {
+public class DaemonFiles {
   public static final String processId = "processId";
   public static final String sandbox = "sandbox";
 
   /**
-   * Ensures only a single client is manipulating each mill-server folder at
+   * Ensures only a single launcher is manipulating each mill-daemon folder at
    * a time, either spawning the server or submitting a command. Also used by
    * the server to detect when a client disconnects, so it can terminate execution
    */
-  public static final String clientLock = "clientLock";
+  public static final String launcherLock = "launcherLock";
 
   /**
-   * Lock file ensuring a single server is running in a particular mill-server
+   * Lock file ensuring a single server is running in a particular mill-daemon
    * folder. If multiple servers are spawned in the same folder, only one takes
    * the lock and the others fail to do so and terminate immediately.
    */
-  public static final String serverLock = "serverLock";
+  public static final String daemonLock = "daemonLock";
 
   /**
    * The port used to connect between server and client
@@ -28,7 +28,7 @@ public class ServerFiles {
   public static final String socketPort = "socketPort";
 
   /**
-   * The pipe by which the client snd server exchange IO
+   * The pipe by which the launcher snd daemon exchange IO
    *
    * Use uniquely-named pipes based on the fully qualified path of the project folder
    * because on Windows the un-qualified name of the pipe must be globally unique

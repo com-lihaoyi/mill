@@ -14,12 +14,12 @@ trait IntegrationTestSuite {
 
   /**
    * If `true`, run Mill subprocesss normally as a client to a long-lived
-   * background server. If `false`, run the Mill subprocess with `--no-server`
+   * background daemon. If `false`, run the Mill subprocess with `--no-server`
    * so it exits after every command. Both are useful depending on what you
    * are trying to test, and generally Mill builds are expected to behave the
    * same in both modes (except for performance differences due to in-memory caching)
    */
-  protected def clientServerMode: Boolean
+  protected def daemonMode: Boolean
 
   /**
    * Path to the Mill executable to use to run integration tests with
@@ -48,7 +48,7 @@ trait IntegrationTestSuite {
       timeoutMillis = 10.minutes.toMillis
     ) {
       val tester = new IntegrationTester(
-        clientServerMode,
+        daemonMode,
         workspaceSourcePath,
         millExecutable,
         debugLog,

@@ -4,7 +4,7 @@ import mill.api.internal.{BspServerResult, internal}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.Lock
-import mill.constants.{OutFiles, ServerFiles, Util}
+import mill.constants.{OutFiles, DaemonFiles, Util}
 import mill.{api, define}
 import mill.define.WorkspaceRoot
 import mill.internal.{Colors, MultiStream, PromptLogger}
@@ -49,7 +49,7 @@ object MillMain {
     val processId = Server.computeProcessId()
     val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
     Server.watchProcessIdFile(
-      out / OutFiles.millNoServer / processId / ServerFiles.processId,
+      out / OutFiles.millNoDaemon / processId / DaemonFiles.processId,
       processId,
       running = () => true,
       exit = msg => {
@@ -58,7 +58,7 @@ object MillMain {
       }
     )
 
-    val serverDir = os.Path(args.head)
+    val daemonDir = os.Path(args.head)
     val (result, _) =
       try main0(
           args = args.tail,
@@ -70,7 +70,7 @@ object MillMain {
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap,
           systemExit = i => sys.exit(i),
-          serverDir = serverDir,
+          daemonDir = daemonDir,
           outLock = Lock.file((out / OutFiles.millOutLock).toString)
         )
       catch handleMillException(initialSystemStreams.err, ())
@@ -122,12 +122,12 @@ object MillMain {
       userSpecifiedProperties0: Map[String, String],
       initialSystemProperties: Map[String, String],
       systemExit: Int => Nothing,
-      serverDir: os.Path,
+      daemonDir: os.Path,
       outLock: Lock
   ): (Boolean, RunnerState) =
     mill.api.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
       os.SubProcess.env.withValue(env) {
-        val parserResult = MillCliConfigParser.parse(args)
+        val parserResult = MillCliConfig.parse(args)
         // Detect when we're running in BSP mode as early as possible,
         // and ensure we don't log to the default stdout or use the default
         // stdin, meant to be used for BSP JSONRPC communication, where those
@@ -143,7 +143,7 @@ object MillMain {
               (false, RunnerState.empty)
 
             case Result.Success(config) if config.help.value =>
-              streams.out.println(MillCliConfigParser.longUsageText)
+              streams.out.println(MillCliConfig.longUsageText)
               (true, RunnerState.empty)
 
             case Result.Success(config) if config.showVersion.value =>
@@ -165,23 +165,16 @@ object MillMain {
               (true, RunnerState.empty)
 
             case Result.Success(config)
-                if (
-                  config.interactive.value || config.noServer.value || config.bsp.value
-                ) && streams.in.getClass == classOf[PipedInputStream] =>
+                if config.noDaemonEnabled > 0 && streams.in.getClass == classOf[PipedInputStream] =>
               // because we have stdin as dummy, we assume we were already started in server process
               streams.err.println(
-                "-i/--interactive/--no-server/--bsp must be passed in as the first argument"
+                "-i/--interactive/--no-daemon/--bsp must be passed in as the first argument"
               )
               (false, RunnerState.empty)
 
-            case Result.Success(config)
-                if Seq(
-                  config.interactive.value,
-                  config.noServer.value,
-                  config.bsp.value
-                ).count(identity) > 1 =>
+            case Result.Success(config) if config.noDaemonEnabled > 1 =>
               streams.err.println(
-                "Only one of -i/--interactive, --no-server or --bsp may be given"
+                "Only one of -i/--interactive, --no-daemon or --bsp may be given"
               )
               (false, RunnerState.empty)
 
@@ -245,7 +238,7 @@ object MillMain {
                   BSP.install(bspInstallModeJobCountOpt.get, config.debugLog.value, streams.err)
                   (true, stateCache)
                 } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
-                  println(MillCliConfigParser.shortUsageText)
+                  println(MillCliConfig.shortUsageText)
 
                   (true, stateCache)
 
@@ -260,7 +253,7 @@ object MillMain {
                   val threadCount = Some(maybeThreadCount.toOption.get)
 
                   val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
-                  Using.resource(new TailManager(serverDir)) { tailManager =>
+                  Using.resource(new TailManager(daemonDir)) { tailManager =>
                     def runMillBootstrap(
                         enterKeyPressed: Boolean,
                         prevState: Option[RunnerState],
@@ -283,7 +276,7 @@ object MillMain {
                           else config.ticker
                             .orElse(config.enableTicker)
                             .orElse(Option.when(config.disableTicker.value)(false)),
-                        serverDir,
+                        daemonDir,
                         colored = colored,
                         colors = colors
                       )) { logger =>
@@ -469,7 +462,7 @@ object MillMain {
       streams: SystemStreams,
       config: MillCliConfig,
       enableTicker: Option[Boolean],
-      serverDir: os.Path,
+      daemonDir: os.Path,
       colored: Boolean,
       colors: Colors
   ): Logger & AutoCloseable = {
@@ -482,7 +475,7 @@ object MillMain {
       systemStreams0 = streams,
       debugEnabled = config.debugLog.value,
       titleText = config.leftoverArgs.value.mkString(" "),
-      terminfoPath = serverDir / ServerFiles.terminfo,
+      terminfoPath = daemonDir / DaemonFiles.terminfo,
       currentTimeMillis = () => System.currentTimeMillis()
     )
   }

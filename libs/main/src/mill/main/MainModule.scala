@@ -255,7 +255,7 @@ trait MainModule extends BaseModule with MainModuleApi {
     }
 
   /**
-   * Shuts down mill's background server
+   * Shuts down mill's background daemon
    */
   def shutdown(): Command[Unit] = Task.Command(exclusive = true) {
     Target.log.info("Shutting down Mill server...")

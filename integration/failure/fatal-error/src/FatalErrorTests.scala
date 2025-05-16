@@ -14,7 +14,7 @@ object FatalErrorTests extends UtestIntegrationTestSuite {
 
       // Only run this test in client-server mode, since workers are not shutdown
       // with `close()` in no-server mode so the error does not trigger
-      if (clientServerMode) {
+      if (daemonMode) {
         // This worker invalidates re-evaluates every time due to being dependent on
         // an upstream `Task.Input`. Make sure that a fatal error in the `close()`
         // call does not hang the Mill process
