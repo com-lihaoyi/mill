@@ -9,7 +9,7 @@ import mill.constants.InputPumper
 import mill.constants.ProxyStream
 
 import java.io.*
-import java.net.{InetAddress, Socket}
+import java.net.{InetAddress, Socket, ServerSocket}
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 import scala.util.Using
@@ -54,7 +54,7 @@ abstract class Server[T](
     val initialSystemProperties = sys.props.toMap
 
     try {
-      Server.tryLockBlock(locks.serverLock) {
+      Server.tryLockBlock(locks.serverLock) { locked =>
         serverLog("server file locked")
         Server.watchProcessIdFile(
           serverDir / ServerFiles.processId,
@@ -76,7 +76,21 @@ abstract class Server[T](
                 serverLog("handling run")
                 new Thread(
                   () =>
-                    try handleRun(sock, initialSystemProperties)
+                    try handleRun(
+                        systemExit = exitCode => {
+                          // Explicitly close serverSocket before exiting otherwise it can keep the
+                          // server alive 500-1000ms before letting it exit properly
+                          serverSocket.close()
+                          // Explicitly release process lock to indicate this serverwill not be
+                          // taking any more requests, and a new server should be spawned if necessary.
+                          // Otherwise launchers may continue trying to connect to the server and
+                          // failing since the socket is closed.
+                          locked.release()
+                          sys.exit(exitCode)
+                        },
+                        sock,
+                        initialSystemProperties
+                      )
                     catch {
                       case e: Throwable =>
                         serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
@@ -144,12 +158,15 @@ abstract class Server[T](
     }
   }
 
-  def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit = {
+  def handleRun(
+      systemExit: Int => Nothing,
+      clientSocket: Socket,
+      initialSystemProperties: Map[String, String]
+  ): Unit = {
     val currentOutErr = clientSocket.getOutputStream
     val writtenExitCode = AtomicBoolean()
     def writeExitCode(code: Int) = {
       if (!writtenExitCode.getAndSet(true)) {
-        mill.constants.DebugLog.println("writeExitCode " + code)
         ProxyStream.sendEnd(currentOutErr, code)
       }
     }
@@ -216,7 +233,7 @@ abstract class Server[T](
           }
 
           writeExitCode(ClientUtil.ExitServerCodeWhenVersionMismatch())
-          System.exit(ClientUtil.ExitServerCodeWhenVersionMismatch())
+          systemExit(ClientUtil.ExitServerCodeWhenVersionMismatch())
         }
       }
       lastMillVersion = Some(clientMillVersion)
@@ -237,8 +254,7 @@ abstract class Server[T](
               initialSystemProperties,
               systemExit = exitCode => {
                 writeExitCode(exitCode)
-                mill.constants.DebugLog.println("sys.exit " + exitCode)
-                sys.exit(exitCode)
+                systemExit(exitCode)
               }
             )
 
@@ -341,12 +357,12 @@ object Server {
     processIdThread.start()
   }
 
-  def tryLockBlock[T](lock: Lock)(t: => T): Option[T] = {
+  def tryLockBlock[T](lock: Lock)(block: mill.client.lock.TryLocked => T): Option[T] = {
     lock.tryLock() match {
       case null => None
       case l =>
         if (l.isLocked) {
-          try Some(t)
+          try Some(block(l))
           finally l.release()
         } else {
           None

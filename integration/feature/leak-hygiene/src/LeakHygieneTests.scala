@@ -112,7 +112,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         // Exercise post-shutdown
 
         tester.eval(("shutdown"))
-        Thread.sleep(1000)
         checkClassloaders(tester)(
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.scalalib.JvmWorkerModule#worker cl" -> 1

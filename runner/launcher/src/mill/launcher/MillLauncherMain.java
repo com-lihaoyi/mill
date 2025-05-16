@@ -62,7 +62,6 @@ public class MillLauncherMain {
         String javaHome = MillProcessLauncher.javaHome();
         int exitCode = launcher.run(serverDir0, javaHome).exitCode;
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
-          Thread.sleep(1000);
           exitCode = launcher.run(serverDir0, javaHome).exitCode;
         }
         System.exit(exitCode);
