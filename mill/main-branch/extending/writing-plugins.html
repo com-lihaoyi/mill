@@ -967,11 +967,9 @@ object IntegrationTests extends TestSuite {
     println(&quot;initializing myplugin.IntegrationTest.tests&quot;)
 
     test(&quot;integration&quot;) {
-//      pprint.log(sys.env(&quot;MILL_EXECUTABLE_PATH&quot;))
-//      pprint.log(sys.env(&quot;MILL_LOCAL_TEST_OVERRIDE_CLASSPATH&quot;))
       val resourceFolder = os.Path(sys.env(&quot;MILL_TEST_RESOURCE_DIR&quot;))
       val tester = new IntegrationTester(
-        clientServerMode = true,
+        daemonMode = true,
         workspaceSourcePath = resourceFolder / &quot;integration-test-project&quot;,
         millExecutable = os.Path(sys.env(&quot;MILL_EXECUTABLE_PATH&quot;))
       )
@@ -1065,11 +1063,9 @@ object ExampleTests extends TestSuite {
 
   def tests: Tests = Tests {
     test(&quot;example&quot;) {
-//      pprint.log(sys.env(&quot;MILL_EXECUTABLE_PATH&quot;))
-//      pprint.log(sys.env(&quot;MILL_LOCAL_TEST_OVERRIDE_CLASSPATH&quot;))
       val resourceFolder = os.Path(sys.env(&quot;MILL_TEST_RESOURCE_DIR&quot;))
       ExampleTester.run(
-        clientServerMode = true,
+        daemonMode = true,
         workspaceSourcePath = resourceFolder / &quot;example-test-project&quot;,
         millExecutable = os.Path(sys.env(&quot;MILL_EXECUTABLE_PATH&quot;))
       )

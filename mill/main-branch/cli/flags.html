@@ -747,7 +747,7 @@ options:
   -k --keep-going      Continue build, even after build failures.
   --meta-level &lt;int&gt;   Select a meta-level to run the given tasks. Level 0 is the main project in
                        `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc.
-  --no-server          Run without a background server. Must be the first argument.
+  --no-server          Run without a background daemon. Must be the first argument.
   --offline            Try to work offline. This tells modules that support it to work offline and
                        avoid any access to the internet. This is on a best effort basis. There are
                        currently no guarantees that modules don't attempt to fetch remote sources.
@@ -775,7 +775,7 @@ Please see the documentation at https://mill-build.org for more details</code></
 <code>ScalaModule#console</code>, <code>ScalaModule#repl</code>, and so on.</p>
 </div>
 <div class="paragraph">
-<p>By default, Mill runs tasks in a long-lived background server. While this is good for
+<p>By default, Mill runs tasks in a long-lived background daemon. While this is good for
 performance (as it avoids paying the server startup time each command), it is incompatible
 with tasks like <code>.repl</code> which require a direct <code>stdin</code>/<code>stdout</code> forwarding connection to
 the user’s terminal. <code>--interactive</code>/<code>-i</code> instead runs tasks in a short-lived background

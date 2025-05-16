@@ -663,7 +663,7 @@
 <div class="paragraph">
 <p>The <code>out/</code> folder contains all the generated files &amp; metadata for your build.
 It holds some files needed to manage Mill’s longer running server instances
-(<code>out/mill-server/*</code>) as well as a directory and file structure resembling the
+(<code>out/mill-daemon/*</code>) as well as a directory and file structure resembling the
 project’s module structure.</p>
 </div>
 <div class="paragraph">
@@ -698,7 +698,7 @@ out/mill-dependency-tree.json
 out/mill-out-lock
 out/mill-invalidation-tree.json
 out/mill-chrome-profile.json
-out/mill-server/...</code></pre>
+out/mill-daemon/...</code></pre>
 </div>
 </div>
 </div>
@@ -797,7 +797,7 @@ out/mill-dependency-tree.json
 out/mill-invalidation-tree.json
 out/mill-profile.json
 out/mill-build
-out/mill-server</code></pre>
+out/mill-daemon</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -988,7 +988,7 @@ related for compiling your <code>build.mill</code> rather than compiling your pr
 </div>
 </div>
 <div class="sect2">
-<h3 id="_mill_server_mill_no_server"><a class="anchor" href="#_mill_server_mill_no_server"></a><code>mill-server/</code>, <code>mill-no-server/</code></h3>
+<h3 id="_mill_daemon_mill_no_deamon"><a class="anchor" href="#_mill_daemon_mill_no_deamon"></a><code>mill-daemon/</code>, <code>mill-no-deamon/</code></h3>
 <div class="paragraph">
 <p>Each Mill process needs to keep some temporary files in one of these directories.
 Deleting it will also terminate the associated server instance, if it is still running.</p>

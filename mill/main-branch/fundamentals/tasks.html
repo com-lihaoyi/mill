@@ -2166,14 +2166,14 @@ parallel while the fast mutation of the <code>cache</code> is single-threaded.
 <div class="paragraph">
 <p>Workers live as long as the Mill process. By default, consecutive <code>mill</code>
 commands in the same folder will re-use the same Mill process and workers,
-unless <code>--no-server</code> is passed which will terminate the Mill process and
+unless <code>--no-daemon</code> is passed which will terminate the Mill process and
 workers after every command. Commands run repeatedly using <code>--watch</code> will
 also preserve the workers between them.</p>
 </div>
 <div class="paragraph">
 <p>Workers can also make use of their <code>Task.dest</code> folder as a cache that persist
 when the worker shuts down, as a second layer of caching. The example usage
-below demonstrates how using the <code>--no-server</code> flag will make the worker
+below demonstrates how using the <code>--no-daemon</code> flag will make the worker
 read from its disk cache, where it would have normally read from its
 in-memory cache</p>
 </div>
@@ -2192,11 +2192,11 @@ Compressing: world.txt
 
 &gt; sed -i.bak 's/Hello/HELLO/g' data/hello.txt
 
-&gt; ./mill compressedData # not --no-server, we read the data from memory
+&gt; ./mill compressedData # not --no-daemon, we read the data from memory
 Compressing: hello.txt
 Cached from memory: world.txt
 
-&gt; ./mill compressedData # --no-server, we read the data from disk
+&gt; ./mill compressedData # --no-daemon, we read the data from disk
 Compressing: hello.txt
 Cached from disk: world.txt</code></pre>
 </div>
