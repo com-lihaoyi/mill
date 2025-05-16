@@ -165,14 +165,14 @@ object MillMain {
               (true, RunnerState.empty)
 
             case Result.Success(config)
-                if config.noDaemonEnabled && streams.in.getClass == classOf[PipedInputStream] =>
+                if config.noDaemonEnabled > 0 && streams.in.getClass == classOf[PipedInputStream] =>
               // because we have stdin as dummy, we assume we were already started in server process
               streams.err.println(
                 "-i/--interactive/--no-daemon/--bsp must be passed in as the first argument"
               )
               (false, RunnerState.empty)
 
-            case Result.Success(config) if config.noDaemonEnabled =>
+            case Result.Success(config) if config.noDaemonEnabled > 1 =>
               streams.err.println(
                 "Only one of -i/--interactive, --no-daemon or --bsp may be given"
               )

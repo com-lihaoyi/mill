@@ -17,9 +17,10 @@ public class MillLauncherMain {
     boolean runNoServer = false;
     if (args.length > 0) {
       String firstArg = args[0];
-      runNoServer = Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")
-              .contains(firstArg)
-          || firstArg.startsWith("-i");
+      runNoServer =
+          Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")
+                  .contains(firstArg)
+              || firstArg.startsWith("-i");
     }
     if (!runNoServer) {
       // WSL2 has the directory /run/WSL/ and WSL1 not.

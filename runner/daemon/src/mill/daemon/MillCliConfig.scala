@@ -164,7 +164,8 @@ case class MillCliConfig(
     )
     offline: Flag = Flag()
 ) {
-  def noDaemonEnabled = interactive.value || noServer.value || noDaemon.value || bsp.value
+  def noDaemonEnabled =
+    Seq(interactive.value, noServer.value, noDaemon.value, bsp.value).count(identity)
 }
 
 import mainargs.ParserForClass
