@@ -114,7 +114,7 @@ public class ProxyStream {
     private final OutputStream destOut;
     private final OutputStream destErr;
     private final Object synchronizer;
-    public volatile int exitCode = 0;
+    public volatile int exitCode = 255;
 
     public Pumper(
         InputStream src, OutputStream destOut, OutputStream destErr, Object synchronizer) {

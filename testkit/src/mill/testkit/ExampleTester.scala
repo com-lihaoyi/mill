@@ -141,7 +141,7 @@ class ExampleTester(
     validateEval(
       expectedSnippets,
       IntegrationTester.EvalResult(
-        res.exitCode == 0,
+        res.exitCode,
         fansi.Str(res.out.text(), errorMode = fansi.ErrorMode.Strip).plainText,
         fansi.Str(res.err.text(), errorMode = fansi.ErrorMode.Strip).plainText
       ),

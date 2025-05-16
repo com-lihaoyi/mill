@@ -148,7 +148,10 @@ abstract class Server[T](
     val currentOutErr = clientSocket.getOutputStream
     val writtenExitCode = AtomicBoolean()
     def writeExitCode(code: Int) = {
-      if (!writtenExitCode.getAndSet(true)) ProxyStream.sendEnd(currentOutErr, code)
+      if (!writtenExitCode.getAndSet(true)) {
+        mill.constants.DebugLog.println("writeExitCode " + code)
+        ProxyStream.sendEnd(currentOutErr, code)
+      }
     }
 
     var clientDisappeared = false
@@ -234,6 +237,7 @@ abstract class Server[T](
               initialSystemProperties,
               systemExit = exitCode => {
                 writeExitCode(exitCode)
+                mill.constants.DebugLog.println("sys.exit " + exitCode)
                 sys.exit(exitCode)
               }
             )

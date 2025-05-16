@@ -95,6 +95,7 @@ public abstract class ServerLauncher {
       forceTestFailure(serverDir);
       outPumperThread.join();
       result.exitCode = outPumperThread.exitCode();
+      mill.constants.DebugLog.println("result.exitCode " + result.exitCode);
       result.serverDir = serverDir;
     } finally {
       ioSocket.close();

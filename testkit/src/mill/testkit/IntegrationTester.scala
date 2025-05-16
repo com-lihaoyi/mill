@@ -37,7 +37,9 @@ object IntegrationTester {
    * A very simplified version of `os.CommandResult` meant for easily
    * performing assertions against.
    */
-  case class EvalResult(isSuccess: Boolean, out: String, err: String)
+  case class EvalResult(exitCode: Int, out: String, err: String) {
+    def isSuccess = exitCode == 0
+  }
 
   trait Impl extends AutoCloseable with IntegrationTesterBase {
 
@@ -88,7 +90,7 @@ object IntegrationTester {
       )
 
       IntegrationTester.EvalResult(
-        res0.exitCode == 0,
+        res0.exitCode,
         fansi.Str(res0.out.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim,
         fansi.Str(res0.err.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim
       )
