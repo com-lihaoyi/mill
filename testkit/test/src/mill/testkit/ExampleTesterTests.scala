@@ -5,9 +5,9 @@ import utest._
 object ExampleTesterTests extends TestSuite {
 
   def tests: Tests = Tests {
-    test("fork") {
+    test("nodaemon") {
       val workspacePath = ExampleTester.run(
-        clientServerMode = false,
+        daemonMode = false,
         workspaceSourcePath =
           os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "example-test-example-project",
         millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))
@@ -20,7 +20,7 @@ object ExampleTesterTests extends TestSuite {
 
     test("daemon") {
       val workspacePath = ExampleTester.run(
-        clientServerMode = true,
+        daemonMode = true,
         workspaceSourcePath =
           os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "example-test-example-project",
         millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))

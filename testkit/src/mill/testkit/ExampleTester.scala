@@ -47,14 +47,14 @@ import utest.*
  */
 object ExampleTester {
   def run(
-      clientServerMode: Boolean,
-      workspaceSourcePath: os.Path,
-      millExecutable: os.Path,
-      bashExecutable: String = defaultBashExecutable(),
-      workspacePath: os.Path = os.pwd
+           daemonMode: Boolean,
+           workspaceSourcePath: os.Path,
+           millExecutable: os.Path,
+           bashExecutable: String = defaultBashExecutable(),
+           workspacePath: os.Path = os.pwd
   ): os.Path = {
     val tester = new ExampleTester(
-      clientServerMode,
+      daemonMode,
       workspaceSourcePath,
       millExecutable,
       bashExecutable,

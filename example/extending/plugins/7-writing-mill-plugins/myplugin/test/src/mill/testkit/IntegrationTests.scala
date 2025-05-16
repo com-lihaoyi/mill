@@ -13,7 +13,7 @@ object IntegrationTests extends TestSuite {
 //      pprint.log(sys.env("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH"))
       val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
       val tester = new IntegrationTester(
-        clientServerMode = true,
+        daemonMode = true,
         workspaceSourcePath = resourceFolder / "integration-test-project",
         millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))
       )

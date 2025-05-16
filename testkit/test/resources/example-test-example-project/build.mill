@@ -19,8 +19,8 @@ def testTask = Task { os.read(testSource().path).toUpperCase() }
 > cat out/testTask.json
 ..."HELLO WORLD SOURCE FILE!!!"...
 
-> ls out/mill-daemon # not --no-server, make sure `mill-daemon` is generated
+> ls out/mill-daemon # not --no-daemon, make sure `mill-daemon` is generated
 
-> ls out/mill-no-deamon # --no-server, make sure `mill-no-deamon` is generated
+> ls out/mill-no-deamon # --no-daemon, make sure `mill-no-deamon` is generated
 
 */
