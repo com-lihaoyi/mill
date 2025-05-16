@@ -271,7 +271,7 @@ abstract class Server[T](
       t.start()
 
       // We cannot simply use Lock#await here, because the filesystem doesn't
-      // realize the clientLock/serverLock are held by different threads in the
+      // realize the launcherLock/daemonLock are held by different threads in the
       // two processes and gives a spurious deadlock error
       while (!done && checkClientAlive()) Thread.sleep(1)
 

@@ -2,7 +2,7 @@ package mill.testkit
 
 abstract class UtestIntegrationTestSuite extends utest.TestSuite with IntegrationTestSuite {
   protected def workspaceSourcePath: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
-  protected def clientServerMode: Boolean = sys.env("MILL_INTEGRATION_SERVER_MODE").toBoolean
+  protected def daemonMode: Boolean = sys.env("MILL_INTEGRATION_DAEMON_MODE").toBoolean
 
   /** Whether the Mill JARs are published locally alongside this Mill launcher */
   protected def isPackagedLauncher: Boolean =

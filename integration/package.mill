@@ -42,7 +42,7 @@ object `package` extends mill.Module {
         super.forkEnv() ++
           IntegrationTestModule.this.forkEnv() ++
           Map(
-            "MILL_INTEGRATION_SERVER_MODE" -> (mode == "local" || mode == "server").toString,
+            "MILL_INTEGRATION_DAEMON_MODE" -> (mode == "daemon").toString,
             "MILL_INTEGRATION_IS_PACKAGED_LAUNCHER" -> millIntegrationIsPackagedLauncher().toString,
             "MILL_LAUNCHER" -> build.dist.bootstrapLauncher().path.toString,
             "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
@@ -85,7 +85,7 @@ object `package` extends mill.Module {
         def millIntegrationIsPackagedLauncher =
           IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher
       }
-      object server extends ModeModule {
+      object daemon extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
         def millIntegrationIsPackagedLauncher =
           IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher

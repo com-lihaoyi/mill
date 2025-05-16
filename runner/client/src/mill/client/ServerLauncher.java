@@ -21,17 +21,17 @@ import mill.constants.Util;
  * The protocol is as follows:
  *
  * - Client:
- *   - Take clientLock
- *   - If serverLock is not yet taken, it means server is not running, so spawn a server
+ *   - Take launcherLock
+ *   - If daemonLock is not yet taken, it means server is not running, so spawn a server
  *   - Wait for server socket to be available for connection
  * - Server:
- *   - Take serverLock.
+ *   - Take daemonLock.
  *     - If already taken, it means another server was running
  *       (e.g. spawned by a different client) so exit immediately
  * - Server: loop:
  *   - Listen for incoming client requests on serverSocket
  *   - Execute client request
- *   - If clientLock is released during execution, terminate server (otherwise
+ *   - If launcherLock is released during execution, terminate server (otherwise
  *     we have no safe way of terminating the in-process request, so the server
  *     may continue running for arbitrarily long with no client attached)
  *   - Send `ProxyStream.END` packet and call `clientSocket.close()`

@@ -106,7 +106,7 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
 
     // Before checking classloaders, make sure we check to ensure server spawns and
     // restarts behave as expected:
-    if (clientServerMode) {
+    if (daemonMode) {
       // Only one server should be running at any point in time
       val serverFolder = tester.workspacePath / "out/mill-daemon"
 
@@ -128,7 +128,7 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
       }
 
     val expectedChanged =
-      if (clientServerMode) expectedChanged0
+      if (daemonMode) expectedChanged0
       else expectedChanged0.map {
         case java.lang.Boolean.FALSE => true
         case n => n

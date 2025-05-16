@@ -7,15 +7,15 @@ public final class Locks implements AutoCloseable {
   public final Lock launcherLock;
   public final Lock daemonLock;
 
-  public Locks(Lock clientLock, Lock serverLock) {
-    this.launcherLock = clientLock;
-    this.daemonLock = serverLock;
+  public Locks(Lock launcherLock, Lock daemonLock) {
+    this.launcherLock = launcherLock;
+    this.daemonLock = daemonLock;
   }
 
   public static Locks files(String daemonDir) throws Exception {
     return new Locks(
-        new FileLock(daemonDir + "/" + DaemonFiles.clientLock),
-        new FileLock(daemonDir + "/" + DaemonFiles.serverLock));
+        new FileLock(daemonDir + "/" + DaemonFiles.launcherLock),
+        new FileLock(daemonDir + "/" + DaemonFiles.daemonLock));
   }
 
   public static Locks memory() {
