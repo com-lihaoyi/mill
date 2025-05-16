@@ -70,6 +70,18 @@ abstract class Server[T](
           os.write.over(serverDir / ServerFiles.socketPort, serverSocket.getLocalPort.toString)
           serverLog("listening on port " + serverSocket.getLocalPort)
 
+          def systemExit(exitCode: Int) = {
+            // Explicitly close serverSocket before exiting otherwise it can keep the
+            // server alive 500-1000ms before letting it exit properly
+            serverSocket.close()
+            // Explicitly release process lock to indicate this serverwill not be
+            // taking any more requests, and a new server should be spawned if necessary.
+            // Otherwise launchers may continue trying to connect to the server and
+            // failing since the socket is closed.
+            locked.release()
+            sys.exit(exitCode)
+          }
+
           while (
             running && {
               interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
@@ -78,21 +90,7 @@ abstract class Server[T](
                   serverLog("handling run")
                   new Thread(
                     () =>
-                      try handleRun(
-                          systemExit = exitCode => {
-                            // Explicitly close serverSocket before exiting otherwise it can keep the
-                            // server alive 500-1000ms before letting it exit properly
-                            serverSocket.close()
-                            // Explicitly release process lock to indicate this serverwill not be
-                            // taking any more requests, and a new server should be spawned if necessary.
-                            // Otherwise launchers may continue trying to connect to the server and
-                            // failing since the socket is closed.
-                            locked.release()
-                            sys.exit(exitCode)
-                          },
-                          sock,
-                          initialSystemProperties
-                        )
+                      try handleRun(systemExit, sock, initialSystemProperties)
                       catch {
                         case e: Throwable =>
                           serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
