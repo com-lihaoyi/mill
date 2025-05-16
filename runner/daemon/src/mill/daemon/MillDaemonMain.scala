@@ -3,7 +3,7 @@ package mill.daemon
 import mill.api.SystemStreams
 import mill.client.ClientUtil
 import mill.client.lock.{DoubleLock, Lock, Locks}
-import mill.constants.{OutFiles, ServerFiles}
+import mill.constants.{OutFiles, DaemonFiles}
 import sun.misc.{Signal, SignalHandler}
 
 import scala.util.Try
@@ -28,18 +28,18 @@ object MillDaemonMain {
       Try(System.getProperty("mill.server_timeout").toInt).getOrElse(30 * 60 * 1000) // 30 minutes
 
     new MillDaemonMain(
-      serverDir = os.Path(args0(0)),
+      daemonDir = os.Path(args0(0)),
       acceptTimeoutMillis = acceptTimeoutMillis,
       Locks.files(args0(0))
     ).run()
   }
 }
 class MillDaemonMain(
-    serverDir: os.Path,
+    daemonDir: os.Path,
     acceptTimeoutMillis: Int,
     locks: Locks
 ) extends mill.server.Server[RunnerState](
-      serverDir,
+      daemonDir,
       acceptTimeoutMillis,
       locks
     ) {
@@ -77,7 +77,7 @@ class MillDaemonMain(
         userSpecifiedProperties0 = userSpecifiedProperties,
         initialSystemProperties = initialSystemProperties,
         systemExit = systemExit,
-        serverDir = serverDir,
+        daemonDir = daemonDir,
         outLock = outLock
       )
     catch MillMain.handleMillException(streams.err, stateCache)

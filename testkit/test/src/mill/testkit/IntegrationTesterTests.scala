@@ -26,7 +26,7 @@ trait IntegrationTesterTests extends TestSuite with IntegrationTestSuite {
         ) // no need to re-compile `build.mill`
         assert(tester.out("testTask").value[String] == "HELLO WORLD SOURCE FILE!!!")
 
-        val suffix = if (clientServerMode) "mill-server" else "mill-no-server"
+        val suffix = if (clientServerMode) "mill-daemon" else "mill-no-deamon"
         assert(os.exists(tester.workspacePath / "out" / suffix))
 
         // Make sure processId file(s) is present while the test is running

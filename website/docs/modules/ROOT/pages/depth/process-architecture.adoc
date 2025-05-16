@@ -34,7 +34,7 @@ digraph G {
 
 
     subgraph cluster_mill_server_folder {
-      label = "mill-server/";
+      label = "mill-daemon/";
       "socketPort" [penwidth=0]
       "exitCode" [penwidth=0]
       "runArgs" [penwidth=0]
@@ -155,7 +155,7 @@ xref:depth/evaluation-model.adoc[].
 
 The `out/` directory is where most of Mill's state lives on disk, both build-task state
 such as the `foo/compile.json` metadata cache for `foo.compile`, or the `foo/compile.dest`
-which stores any generated files or binaries. It also contains `mill-server/` folder which
+which stores any generated files or binaries. It also contains `mill-daemon/` folder which
 is used to pass data back and forth between the client and server: the `runArgs`, `exitCode`,
 etc.
 

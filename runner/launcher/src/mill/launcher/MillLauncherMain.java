@@ -49,20 +49,20 @@ public class MillLauncherMain {
                 optsArgs.toArray(new String[0]),
                 null,
                 -1) {
-              public void initServer(Path serverDir, Locks locks) throws Exception {
-                MillProcessLauncher.launchMillServer(serverDir);
+              public void initServer(Path daemonDir, Locks locks) throws Exception {
+                MillProcessLauncher.launchMillServer(daemonDir);
               }
 
-              public void prepareServerDir(Path serverDir) throws Exception {
-                MillProcessLauncher.prepareMillRunFolder(serverDir);
+              public void preparedaemonDir(Path daemonDir) throws Exception {
+                MillProcessLauncher.prepareMillRunFolder(daemonDir);
               }
             };
 
-        Path serverDir0 = Paths.get(OutFiles.out, OutFiles.millServer);
+        Path daemonDir0 = Paths.get(OutFiles.out, OutFiles.millDaemon);
         String javaHome = MillProcessLauncher.javaHome();
-        int exitCode = launcher.run(serverDir0, javaHome).exitCode;
+        int exitCode = launcher.run(daemonDir0, javaHome).exitCode;
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
-          exitCode = launcher.run(serverDir0, javaHome).exitCode;
+          exitCode = launcher.run(daemonDir0, javaHome).exitCode;
         }
         System.exit(exitCode);
       } catch (Exception e) {

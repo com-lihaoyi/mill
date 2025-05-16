@@ -4,8 +4,7 @@ import mill.api.SystemStreams
 import mill.constants.ProxyStream.Output
 import mill.client.lock.{DoubleLock, Lock, Locks}
 import mill.client.*
-import mill.constants.ServerFiles
-import mill.constants.InputPumper
+import mill.constants.{DaemonFiles, InputPumper}
 import mill.constants.ProxyStream
 
 import java.io.*
@@ -24,7 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * client command
  */
 abstract class Server[T](
-    serverDir: os.Path,
+    daemonDir: os.Path,
     acceptTimeoutMillis: Int,
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
@@ -42,22 +41,22 @@ abstract class Server[T](
   var lastJavaVersion = Option.empty[String]
   val processId: String = Server.computeProcessId()
   def serverLog0(s: String): Unit = {
-    if (os.exists(serverDir) || testLogEvenWhenServerIdWrong) {
-      os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
+    if (os.exists(daemonDir) || testLogEvenWhenServerIdWrong) {
+      os.write.append(daemonDir / DaemonFiles.serverLog, s"$s\n", createFolders = true)
     }
   }
 
   def serverLog(s: String): Unit = serverLog0(s"$processId $s")
 
   def run(): Unit = {
-    serverLog("running server in " + serverDir)
+    serverLog("running server in " + daemonDir)
     val initialSystemProperties = sys.props.toMap
 
     try {
-      Server.tryLockBlock(locks.serverLock) { locked =>
+      Server.tryLockBlock(locks.daemonLock) { locked =>
         serverLog("server file locked")
         Server.watchProcessIdFile(
-          serverDir / ServerFiles.processId,
+          daemonDir / DaemonFiles.processId,
           processId,
           running = () => running,
           exit = msg => {
@@ -67,7 +66,7 @@ abstract class Server[T](
         )
         val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
         try {
-          os.write.over(serverDir / ServerFiles.socketPort, serverSocket.getLocalPort.toString)
+          os.write.over(daemonDir / DaemonFiles.socketPort, serverSocket.getLocalPort.toString)
           serverLog("listening on port " + serverSocket.getLocalPort)
 
           def systemExit(exitCode: Int) = {

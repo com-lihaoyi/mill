@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 import utest.asserts.{RetryMax, RetryInterval}
 
 /**
- * Make sure removing the `mill-server` or `mill-no-server` directory
+ * Make sure removing the `mill-daemon` or `mill-no-deamon` directory
  * kills any running process
  */
 object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
@@ -19,8 +19,8 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
     integrationTest { tester =>
       import tester._
 
-      assert(!os.exists(workspacePath / "out/mill-server"))
-      assert(!os.exists(workspacePath / "out/mill-no-server"))
+      assert(!os.exists(workspacePath / "out/mill-daemon"))
+      assert(!os.exists(workspacePath / "out/mill-no-deamon"))
 
       @volatile var watchTerminated = false
       Future {
@@ -32,14 +32,14 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
         watchTerminated = true
       }
 
-      if (tester.clientServerMode) eventually { os.exists(workspacePath / "out/mill-server") }
-      else eventually { os.exists(workspacePath / "out/mill-no-server") }
+      if (tester.clientServerMode) eventually { os.exists(workspacePath / "out/mill-daemon") }
+      else eventually { os.exists(workspacePath / "out/mill-no-deamon") }
 
       assert(watchTerminated == false)
 
       val processRoot =
-        if (tester.clientServerMode) workspacePath / "out/mill-server"
-        else workspacePath / "out/mill-no-server"
+        if (tester.clientServerMode) workspacePath / "out/mill-daemon"
+        else workspacePath / "out/mill-no-deamon"
 
       eventually {
         os.walk(processRoot).exists(_.last == "processId")

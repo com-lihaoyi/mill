@@ -1,8 +1,9 @@
 package mill.testkit
-import mill.constants.ServerFiles
+
+import mill.constants.DaemonFiles
 object TestkitTestUtils {
   def getProcessIdFiles(workspacePath: os.Path) = {
     os.walk(workspacePath / "out")
-      .filter(_.last == ServerFiles.processId)
+      .filter(_.last == DaemonFiles.processId)
   }
 }
