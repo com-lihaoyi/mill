@@ -114,8 +114,8 @@ You can reproduce any of the tests manually using `dist.run`, e.g.
 
 === Sub-Process Tests *with* Packaging/Publishing
 
-`example.\\__.daemon`, `integration.__.daemon`, `example.\\__.fork` and
-`integration.__.fork` cover the same test cases as the `.local.daemon` tests described above, but
+`example.\\__.daemon`, `integration.__.daemon`, `example.\\__.nodaemon` and
+`integration.__.nodaemon` cover the same test cases as the `.local.daemon` tests described above, but
 they perform packaging of the Mill core modules into an assembly jar, and publish the
 remaining modules to `~/.ivy2/local`.
 This results in a more realistic test environment, but at the cost of taking tens-of-seconds
@@ -151,7 +151,7 @@ The second label specifies how the Mill process is managed during the test:
 1. `.daemon` test run the test cases with the default configuration, so consecutive commands
 run in the same long-lived background daemon process
 
-2. `.fork` test run the test cases with `--no-daemon`, meaning each command runs in a newly
+2. `.nodaemon` test run the test cases with `--no-daemon`, meaning each command runs in a newly
 spawned Mill process
 
 In general you should spend most of your time working with the `.local.daemon` version of the

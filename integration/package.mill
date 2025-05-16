@@ -80,7 +80,7 @@ object `package` extends mill.Module {
     trait IntegrationLauncherModule extends Module {
       def millIntegrationLauncher: T[PathRef]
       def millIntegrationIsPackagedLauncher: Task[Boolean]
-      object fork extends ModeModule {
+      object nodaemon extends ModeModule {
         def millIntegrationLauncher = IntegrationLauncherModule.this.millIntegrationLauncher
         def millIntegrationIsPackagedLauncher =
           IntegrationLauncherModule.this.millIntegrationIsPackagedLauncher

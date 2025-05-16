@@ -230,7 +230,7 @@ jobs:
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
-            millargs: "'integration.invalidation.__.packaged.fork'"
+            millargs: "'integration.invalidation.__.packaged.nodaemon'"
             install-android-sdk: false
             install-sbt: false
 
@@ -264,15 +264,15 @@ jobs:
             install-sbt: false
 
           - java-version: 11
-            millargs: '"example.scalalib.{basic,publishing}.__.local.fork"'
+            millargs: '"example.scalalib.{basic,publishing}.__.local.nodaemon"'
             install-sbt: false
 
           - java-version: 11
-            millargs: '"example.migrating.{scalalib,javalib}.__.local.fork"'
+            millargs: '"example.migrating.{scalalib,javalib}.__.local.nodaemon"'
             install-sbt: true
 
           - java-version: 17
-            millargs: "'integration.{feature,failure}.__.packaged.fork'"
+            millargs: "'integration.{feature,failure}.__.packaged.nodaemon'"
             install-sbt: false
 
           - java-version: 11 # Run this with Mill native launcher as a smoketest
