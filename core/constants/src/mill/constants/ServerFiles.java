@@ -49,12 +49,6 @@ public class ServerFiles {
   public static final String serverLog = "server.log";
 
   /**
-   * File the server writes to pass the exit code of a completed run back to the
-   * client
-   */
-  public static final String exitCode = "exitCode";
-
-  /**
    * Where the server's stdout is piped to
    */
   public static final String stdout = "stdout";

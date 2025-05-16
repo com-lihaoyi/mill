@@ -1,6 +1,5 @@
 package mill.client;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -90,17 +89,17 @@ public abstract class ServerLauncher {
 
     Socket ioSocket = launchConnectToServer(serverDir);
 
+    Result result = new Result();
     try {
-      Thread outPumperThread = startStreamPumpers(ioSocket, javaHome);
+      PumperThread outPumperThread = startStreamPumpers(ioSocket, javaHome);
       forceTestFailure(serverDir);
       outPumperThread.join();
+      result.exitCode = outPumperThread.exitCode();
+      result.serverDir = serverDir;
     } finally {
       ioSocket.close();
     }
 
-    Result result = new Result();
-    result.exitCode = readExitCode(serverDir);
-    result.serverDir = serverDir;
     return result;
   }
 
@@ -137,7 +136,20 @@ public abstract class ServerLauncher {
     }
   }
 
-  Thread startStreamPumpers(Socket ioSocket, String javaHome) throws Exception {
+  class PumperThread extends Thread {
+    ProxyStream.Pumper runnable;
+
+    public PumperThread(ProxyStream.Pumper runnable, String name) {
+      super(runnable, name);
+      this.runnable = runnable;
+    }
+
+    public int exitCode() {
+      return runnable.exitCode;
+    }
+  }
+
+  PumperThread startStreamPumpers(Socket ioSocket, String javaHome) throws Exception {
     InputStream outErr = ioSocket.getInputStream();
     OutputStream in = ioSocket.getOutputStream();
     in.write(Util.hasConsole() ? 1 : 0);
@@ -147,22 +159,12 @@ public abstract class ServerLauncher {
     ClientUtil.writeMap(env, in);
     ProxyStream.Pumper outPumper = new ProxyStream.Pumper(outErr, stdout, stderr);
     InputPumper inPump = new InputPumper(() -> stdin, () -> in, true);
-    Thread outPumperThread = new Thread(outPumper, "outPump");
+    PumperThread outPumperThread = new PumperThread(outPumper, "outPump");
     outPumperThread.setDaemon(true);
     Thread inThread = new Thread(inPump, "inPump");
     inThread.setDaemon(true);
     outPumperThread.start();
     inThread.start();
     return outPumperThread;
-  }
-
-  int readExitCode(Path serverDir) throws IOException {
-    Path exitCodeFile = serverDir.resolve(ServerFiles.exitCode);
-    if (Files.exists(exitCodeFile)) {
-      return Integer.parseInt(Files.readAllLines(exitCodeFile).get(0));
-    } else {
-      System.err.println("mill-server/ exitCode file not found");
-      return 1;
-    }
   }
 }
