@@ -17,7 +17,7 @@ public class MillLauncherMain {
     boolean runNoServer = false;
     if (args.length > 0) {
       String firstArg = args[0];
-      runNoServer = Arrays.asList("--interactive", "--no-server", "--repl", "--bsp", "--help")
+      runNoServer = Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")
               .contains(firstArg)
           || firstArg.startsWith("-i");
     }

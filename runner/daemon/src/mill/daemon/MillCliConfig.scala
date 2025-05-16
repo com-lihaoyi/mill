@@ -21,11 +21,11 @@ case class MillCliConfig(
     repl: Flag = Flag(),
     @arg(
       hidden = true,
-      doc = """Run without a background server. Must be the first argument."""
+      doc = """Run without a background daemon. Must be the first argument."""
     )
     noServer: Flag = Flag(),
     @arg(
-      doc = """Run without a background server. Must be the first argument."""
+      doc = """Run without a background daemon. Must be the first argument."""
     )
     noDaemon: Flag = Flag(),
     @arg(doc = """Enable BSP server mode.""")
@@ -164,7 +164,7 @@ case class MillCliConfig(
     )
     offline: Flag = Flag()
 ) {
-  def noDaemonEnabled = interactive.value || noServer.value || noDaemon.value || bsp.value 
+  def noDaemonEnabled = interactive.value || noServer.value || noDaemon.value || bsp.value
 }
 
 import mainargs.ParserForClass

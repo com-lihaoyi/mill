@@ -32,20 +32,20 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
         watchTerminated = true
       }
 
-      if (tester.clientServerMode) eventually { os.exists(workspacePath / "out/mill-daemon") }
+      if (tester.daemonMode) eventually { os.exists(workspacePath / "out/mill-daemon") }
       else eventually { os.exists(workspacePath / "out/mill-no-deamon") }
 
       assert(watchTerminated == false)
 
       val processRoot =
-        if (tester.clientServerMode) workspacePath / "out/mill-daemon"
+        if (tester.daemonMode) workspacePath / "out/mill-daemon"
         else workspacePath / "out/mill-no-deamon"
 
       eventually {
         os.walk(processRoot).exists(_.last == "processId")
       }
 
-      if (tester.clientServerMode) {
+      if (tester.daemonMode) {
         os.remove(processRoot / "processId")
       } else {
         os.list(processRoot).map { p =>

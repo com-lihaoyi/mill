@@ -71,7 +71,7 @@ object ExampleTester {
 }
 
 class ExampleTester(
-    val clientServerMode: Boolean,
+    val daemonMode: Boolean,
     val workspaceSourcePath: os.Path,
     millExecutable: os.Path,
     bashExecutable: String = ExampleTester.defaultBashExecutable(),
@@ -91,15 +91,15 @@ class ExampleTester(
     val incorrectPlatform =
       (comment.exists(_.startsWith("windows")) && !isWindows) ||
         (comment.exists(_.startsWith("mac/linux")) && isWindows) ||
-        (comment.exists(_.startsWith("--no-server")) && clientServerMode) ||
-        (comment.exists(_.startsWith("not --no-server")) && !clientServerMode)
+        (comment.exists(_.startsWith("--no-daemon")) && daemonMode) ||
+        (comment.exists(_.startsWith("not --no-daemon")) && !daemonMode)
 
     if (!incorrectPlatform) {
       processCommand(expectedSnippets, commandHead.trim)
     }
   }
   private val millExt = if (isWindows) ".bat" else ""
-  private val clientServerFlag = if (clientServerMode) "" else "--no-server"
+  private val daemonFlag = if (daemonMode) "" else "--no-daemon"
 
   def processCommand(
       expectedSnippets: Vector[String],
@@ -107,8 +107,8 @@ class ExampleTester(
       check: Boolean = true
   ): Unit = {
     val commandStr = commandStr0 match {
-      case s"mill $rest" => s"./mill$millExt $clientServerFlag --disable-ticker $rest"
-      case s"./mill $rest" => s"./mill$millExt $clientServerFlag --disable-ticker $rest"
+      case s"mill $rest" => s"./mill$millExt $daemonFlag --disable-ticker $rest"
+      case s"./mill $rest" => s"./mill$millExt $daemonFlag --disable-ticker $rest"
       case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
       case s => s
     }
@@ -225,7 +225,7 @@ class ExampleTester(
           ex.printStackTrace(System.err)
       }
     } finally {
-      if (clientServerMode) processCommand(Vector(), "./mill shutdown", check = false)
+      if (daemonMode) processCommand(Vector(), "./mill shutdown", check = false)
       removeProcessIdFile()
     }
   }

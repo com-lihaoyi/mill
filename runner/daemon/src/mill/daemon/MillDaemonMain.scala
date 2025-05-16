@@ -14,7 +14,7 @@ object MillDaemonMain {
     //
     // This gets passed through from the client to server whenever the user
     // hits `Ctrl-C`, which by default kills the server, which defeats the purpose
-    // of running a background server. Furthermore, the background server already
+    // of running a background daemon. Furthermore, the background daemon already
     // can detect when the Mill client goes away, which is necessary to handle
     // the case when a Mill client that did *not* spawn the server gets `CTRL-C`ed
     Signal.handle(

@@ -18,7 +18,7 @@ object ExampleTesterTests extends TestSuite {
       assert(TestkitTestUtils.getProcessIdFiles(workspacePath).isEmpty)
     }
 
-    test("server") {
+    test("daemon") {
       val workspacePath = ExampleTester.run(
         clientServerMode = true,
         workspaceSourcePath =

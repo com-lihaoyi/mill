@@ -16,7 +16,7 @@ import mill.constants.Util;
 
 /**
  * Client side code that interacts with `Server.scala` in order to launch a generic
- * long-lived background server.
+ * long-lived background daemon.
  *
  * The protocol is as follows:
  *

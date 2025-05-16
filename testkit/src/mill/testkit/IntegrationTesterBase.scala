@@ -5,7 +5,7 @@ import mill.util.Retry
 
 trait IntegrationTesterBase {
   def workspaceSourcePath: os.Path
-  def clientServerMode: Boolean
+  def daemonMode: Boolean
 
   def propagateJavaHome: Boolean
 
@@ -70,7 +70,7 @@ trait IntegrationTesterBase {
   def removeProcessIdFile(): Unit = {
     val outDir = os.Path(out, workspacePath)
     if (os.exists(outDir)) {
-      if (clientServerMode) {
+      if (daemonMode) {
         val serverPath = outDir / millDaemon
         os.remove(serverPath / processId)
       } else {
