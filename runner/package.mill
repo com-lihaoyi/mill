@@ -13,7 +13,8 @@ object `package` extends RootModule with build.MillPublishScalaModule {
       build.Deps.windowsAnsi,
       build.Deps.coursier,
       build.Deps.coursierJvm,
-      build.Deps.logback
+      build.Deps.logback,
+      build.Deps.osLibWatch
     )
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(

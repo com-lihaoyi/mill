@@ -10,9 +10,16 @@ import mill.api.internal
  */
 @internal
 private[mill] trait Watchable {
+
+  /** @return the hashcode of a watched value. */
   def poll(): Long
+
+  /** The initial hashcode of a watched value. */
   def signature: Long
+
+  /** @return true if the watched value has not changed */
   def validate(): Boolean = poll() == signature
+
   def pretty: String
 }
 @internal
