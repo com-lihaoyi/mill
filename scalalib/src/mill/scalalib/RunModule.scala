@@ -162,13 +162,11 @@ trait RunModule extends WithJvmWorker {
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(Task.dest)
+      val backgroundPaths = RunModule.BackgroundPaths(outDir = Task.out, destDir = Task.dest)
+      backgroundPaths.ensureStateDirExists()
+
       runner().run(
-        args = Seq(
-          procUuidPath.toString,
-          procLockfile.toString,
-          procUuid,
-          runBackgroundRestartDelayMillis().toString,
+        args = backgroundPaths.toArgs ++ Seq(
           mainClass()
         ) ++ args().value,
         mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
@@ -189,6 +187,8 @@ trait RunModule extends WithJvmWorker {
    */
   // TODO: make this a task, to be more dynamic
   def runBackgroundLogToConsole: Boolean = true
+
+  @deprecated("Binary compat shim, no longer used.`", "Mill 0.12.11")
   def runBackgroundRestartDelayMillis: T[Int] = 500
 
   @deprecated("Binary compat shim, use `.runner().run(..., background=true)`", "Mill 0.12.0")
@@ -203,18 +203,21 @@ trait RunModule extends WithJvmWorker {
       runUseArgsFile: Boolean,
       backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]]
   )(args: String*): Ctx => Result[Unit] = ctx => {
-    val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(taskDest)
+    val backgroundPaths = RunModule.BackgroundPaths(
+      destDir = taskDest,
+      // A hack, because we can't access `Task.out` here, nor change the method signature. But this is deprecated and
+      // should not be used by anyone.
+      outDir = taskDest
+    )
+    backgroundPaths.ensureStateDirExists()
+
     try Result.Success(
         Jvm.runSubprocessWithBackgroundOutputs(
           "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
           (runClasspath ++ zwBackgroundWrapperClasspath).map(_.path),
           forkArgs,
           forkEnv,
-          Seq(
-            procUuidPath.toString,
-            procLockfile.toString,
-            procUuid,
-            500.toString,
+          backgroundPaths.toArgs ++ Seq(
             finalMainClass
           ) ++ args,
           workingDir = forkWorkingDir,
@@ -250,13 +253,6 @@ trait RunModule extends WithJvmWorker {
 }
 
 object RunModule {
-
-  private[mill] def backgroundSetup(dest: os.Path): (Path, Path, String) = {
-    val procUuid = java.util.UUID.randomUUID().toString
-    val procUuidPath = dest / ".mill-background-process-uuid"
-    val procLockfile = dest / ".mill-background-process-lock"
-    (procUuidPath, procLockfile, procUuid)
-  }
 
   private[mill] def getMainMethod(mainClassName: String, cl: ClassLoader) = {
     val mainClass = cl.loadClass(mainClassName)
@@ -361,4 +357,30 @@ object RunModule {
     }
   }
 
+  case class BackgroundPaths(outDir: os.Path, destDir: os.Path) {
+    val stateDir: os.Path = {
+      val relative = destDir.relativeTo(outDir)
+      outDir / "mill-run-background-state" / relative
+    }
+
+    def ensureStateDirExists(): Unit = {
+      os.makeDir.all(stateDir)
+    }
+
+    def newestPidPath: os.Path = stateDir / "newest-pid"
+
+    /** This goes into [[destDir]] so that `./mill clean foo.runBackground` would properly stop the background process. */
+    def currentlyRunningPidPath: os.Path = destDir / "currently-running-pid"
+
+    def lockPath: os.Path = stateDir / "lock"
+    def logPath: os.Path = stateDir / "log"
+
+    def toArgs: Seq[String] =
+      Seq(
+        newestPidPath.toString,
+        currentlyRunningPidPath.toString,
+        lockPath.toString,
+        logPath.toString
+      )
+  }
 }
