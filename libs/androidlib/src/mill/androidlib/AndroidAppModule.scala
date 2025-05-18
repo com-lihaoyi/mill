@@ -838,7 +838,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       pf => androidProguardPath / pf
     }
     val userProguardFiles = proguardFilesFromReleaseSettings.localFiles
-    os.checker.withValue(os.Checker.Nop) {
+    mill.define.BuildCtx.withFilesystemCheckerDisabled {
       (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(_))
     }
   }

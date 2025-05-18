@@ -22,33 +22,6 @@ abstract class MainRootModule()(implicit
  * [[show]], [[inspect]], [[plan]], etc.
  */
 trait MainModule extends BaseModule with MainModuleApi {
-  protected[mill] val watchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
-  protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
-  object interp {
-    def watchValue[T](v0: => T)(implicit fn: sourcecode.FileName, ln: sourcecode.Line): T = {
-      os.checker.withValue(os.Checker.Nop) {
-        val v = v0
-        val watchable = Watchable.Value(
-          () => v0.hashCode,
-          v.hashCode(),
-          fn.value + ":" + ln.value
-        )
-        watchedValues.append(watchable)
-        v
-      }
-    }
-
-    def watch(p: os.Path): os.Path = {
-      val watchable = Watchable.Path(p.toNIO, false, PathRef(p).sig)
-      watchedValues.append(watchable)
-      p
-    }
-
-    def watch0(w: Watchable): Unit = watchedValues.append(w)
-
-    def evalWatch0(w: Watchable): Unit = evalWatchedValues.append(w)
-
-  }
 
   /**
    * Show the mill version.
@@ -144,7 +117,7 @@ trait MainModule extends BaseModule with MainModuleApi {
    */
   def show(evaluator: Evaluator, targets: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
-      MainModule.show0(evaluator, targets, Target.log, interp.evalWatch0) { res =>
+      MainModule.show0(evaluator, targets, Target.log, mill.define.BuildCtx.evalWatch0) { res =>
         res.flatMap(_._2) match {
           case Seq((k, singleValue)) => singleValue
           case multiple => ujson.Obj.from(multiple)
@@ -158,7 +131,7 @@ trait MainModule extends BaseModule with MainModuleApi {
    */
   def showNamed(evaluator: Evaluator, targets: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
-      MainModule.show0(evaluator, targets, Target.log, interp.evalWatch0) { res =>
+      MainModule.show0(evaluator, targets, Target.log, mill.define.BuildCtx.evalWatch0) { res =>
         ujson.Obj.from(res.flatMap(_._2))
       }
     }
