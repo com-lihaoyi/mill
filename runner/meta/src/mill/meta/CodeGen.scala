@@ -109,7 +109,7 @@ object CodeGen {
 
         os.write(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
 
-        if (scriptFolderPath == projectRoot){
+        if (scriptFolderPath == projectRoot) {
           val buildFileImplCode = generateBuildFileImpl(pkg)
           os.write(supportDestDir / "BuildFileImpl.scala", buildFileImplCode, createFolders = true)
         }

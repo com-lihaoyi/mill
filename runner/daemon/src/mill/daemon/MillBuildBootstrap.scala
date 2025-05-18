@@ -246,7 +246,7 @@ class MillBuildBootstrap(
       case (Result.Failure(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
           evaluator.workerCache.toMap,
-          buildFileApi.evalWatchedValues.toSeq,
+          evalWatches,
           moduleWatches,
           Map.empty,
           None,
@@ -331,7 +331,6 @@ class MillBuildBootstrap(
       targetsAndParams,
       selectiveExecution
     )
-
     val evalState = RunnerState.Frame(
       evaluator.workerCache.toMap,
       evalWatched,
