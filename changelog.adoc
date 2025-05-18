@@ -13,10 +13,10 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
-[#0-12-12]
-=== 0.12.12 - 2025-05-18
-:version: 0.12.12
-:milestone-name: 0.12.12
+[#0-12-13]
+=== 0.12.13 - 2025-05-18
+:version: 0.12.13
+:milestone-name: 0.12.13
 :milestone: 115
 :prev-version: 0.12.11
 
