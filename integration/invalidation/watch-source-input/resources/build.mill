@@ -34,7 +34,7 @@ def lol = Task {
 
 def writeCompletionMarker(name: String) = {
 
-  mill.define.withFilesystemCheckerDisabled {
+  mill.define.BuildCtx.withFilesystemCheckerDisabled {
     Range(0, 10)
       .map(i => BuildCtx.workspaceRoot / "out" / s"$name$i")
       .find(!os.exists(_))
@@ -43,7 +43,7 @@ def writeCompletionMarker(name: String) = {
 }
 
 writeCompletionMarker("initialized")
-mill.define.withFilesystemCheckerDisabled {
+mill.define.BuildCtx.withFilesystemCheckerDisabled {
   if (os.read(moduleDir / "watchValue.txt").contains("exit")) {
     Thread.sleep(1000)
     System.exit(0)

@@ -549,7 +549,7 @@ object Jvm {
       artifactTypes,
       resolutionParams
     ).map { res =>
-      mill.define.withFilesystemCheckerDisabled {
+      mill.define.BuildCtx.withFilesystemCheckerDisabled {
         res.files
           .map(os.Path(_))
           .map(PathRef(_, quick = true))

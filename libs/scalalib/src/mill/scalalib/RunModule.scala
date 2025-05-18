@@ -312,7 +312,7 @@ object RunModule {
       }
       val env = Option(forkEnv).getOrElse(forkEnv0)
 
-      mill.define.withFilesystemCheckerDisabled {
+      mill.define.BuildCtx.withFilesystemCheckerDisabled {
         if (background) {
           val (stdout, stderr) = if (runBackgroundLogToConsole) {
             // Hack to forward the background subprocess output to the Mill server process

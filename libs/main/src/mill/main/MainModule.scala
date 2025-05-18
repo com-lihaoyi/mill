@@ -116,7 +116,7 @@ trait MainModule extends BaseModule with MainModuleApi {
    */
   def show(evaluator: Evaluator, targets: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
-      MainModule.show0(evaluator, targets, Target.log, interp.evalWatch0) { res =>
+      MainModule.show0(evaluator, targets, Target.log, mill.define.BuildCtx.evalWatch0) { res =>
         res.flatMap(_._2) match {
           case Seq((k, singleValue)) => singleValue
           case multiple => ujson.Obj.from(multiple)
@@ -130,7 +130,7 @@ trait MainModule extends BaseModule with MainModuleApi {
    */
   def showNamed(evaluator: Evaluator, targets: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
-      MainModule.show0(evaluator, targets, Target.log, interp.evalWatch0) { res =>
+      MainModule.show0(evaluator, targets, Target.log, mill.define.BuildCtx.evalWatch0) { res =>
         ujson.Obj.from(res.flatMap(_._2))
       }
     }
