@@ -823,7 +823,7 @@ and limits filesystem operations to the <code>Task.dest</code> folder, this is n
 </div>
 <div class="paragraph">
 <p>One thing to note is for code that runs during <strong>Resolution</strong>: any reading of
-external mutable state needs to be wrapped in an <code>interp.watchValue{…​}</code>
+external mutable state needs to be wrapped in an <code>mill.define.BuildCtx.watchValue{…​}</code>
 wrapper. This ensures that Mill knows where these external reads are, so that
 it can check if their value changed and if so re-instantiate <code>RootModule</code> with
 the new value.</p>

@@ -678,9 +678,9 @@ when preparing the resources for test suite execution</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">os.checker.withValue(os.Checker.Nop) {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">mill.define.BuildCtx.withFilesystemCheckerDisabled {
   os.copy.over(
-    interp.watch(mill.define.WorkspaceRoot.workspaceRoot / &quot;acyclic&quot;),
+    mill.define.BuildCtx.watch(mill.define.BuildCtx.workspaceRoot / &quot;acyclic&quot;),
     os.pwd / &quot;acyclic&quot;,
     createFolders = true
   )
