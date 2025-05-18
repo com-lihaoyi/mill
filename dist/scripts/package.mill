@@ -85,7 +85,7 @@ object `package` extends mill.Module { scripts =>
   }
   def scriptsModules: Seq[BootstrapScriptModule] = Seq(millSh, millBat)
 
-  def installInRepo() = Task.Command {
+  def installInRepo(): Command[Unit] = Task.Command {
     Task.traverse(scriptsModules)(m =>
       Task.Anon {
         val script = m.compile0().path
