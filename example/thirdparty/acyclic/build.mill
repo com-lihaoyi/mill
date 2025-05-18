@@ -6,7 +6,7 @@ import mill._, scalalib._, publish._
 // when preparing the resources for test suite execution
 mill.define.BuildCtx.withFilesystemCheckerDisabled {
   os.copy.over(
-    mill.define.BuildCtx.watch(mill.define.WorkspaceRoot.workspaceRoot / "acyclic"),
+    mill.define.BuildCtx.watch(mill.define.BuildCtx.workspaceRoot / "acyclic"),
     os.pwd / "acyclic",
     createFolders = true
   )
