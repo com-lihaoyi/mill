@@ -87,7 +87,7 @@ class SonatypeCentralPublisher(
       publishingType: PublishingType
   ): Unit = {
     try {
-      mill.api.Retry(
+      mill.util.Retry(
         count = 5,
         backoffMillis = 1000,
         filter = (_, ex) => ex.getMessage.contains("Read end dead")
