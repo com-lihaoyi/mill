@@ -29,7 +29,7 @@ index 3950422474a..1ed233d24f7 100644
    override lazy val test: CodeSigTests = new CodeSigTests {}
    trait CodeSigTests extends MillScalaTests {
 -    val caseKeys = build.interp.watchValue(
-+    val caseKeys = mill.define.BuildCtx.interp.watchValue(
++    val caseKeys = mill.define.BuildCtx.watchValue(
        os.walk(moduleDir / "cases", maxDepth = 3)
          .map(_.subRelativeTo(moduleDir / "cases").segments)
          .collect { case Seq(a, b, c) => s"$a-$b-$c" }
