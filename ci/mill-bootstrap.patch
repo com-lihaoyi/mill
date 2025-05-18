@@ -1,0 +1,35 @@
+diff --git a/build.mill b/build.mill
+index 4465e163a55..6b8da38aae7 100644
+--- a/build.mill
++++ b/build.mill
+@@ -124,7 +124,7 @@ val bridgeScalaVersions = Seq(
+ // on the fly anyway. For publishing, we publish everything or a specific version
+ // if given.
+ val compilerBridgeScalaVersions =
+-  interp.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
++  mill.define.BuildCtx.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
+     case None | Some("") | Some("none") => Seq.empty[String]
+     case Some("all") => (essentialBridgeScalaVersions ++ bridgeScalaVersions).distinct
+     case Some("essential") => essentialBridgeScalaVersions
+@@ -181,7 +181,7 @@ def formatDep(dep: Dep) = {
+   s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
+ }
+ 
+-def listIn(path: os.Path) = interp.watchValue(os.list(path).map(_.last))
++def listIn(path: os.Path) = mill.define.BuildCtx.watchValue(os.list(path).map(_.last))
+ 
+ val dummyDeps: Seq[Dep] = Seq(
+   Deps.DocDeps.millScip,
+diff --git a/runner/codesig/package.mill b/runner/codesig/package.mill
+index 3950422474a..1ed233d24f7 100644
+--- a/runner/codesig/package.mill
++++ b/runner/codesig/package.mill
+@@ -18,7 +18,7 @@ object `package` extends MillPublishScalaModule {
+ 
+   override lazy val test: CodeSigTests = new CodeSigTests {}
+   trait CodeSigTests extends MillScalaTests {
+-    val caseKeys = build.interp.watchValue(
++    val caseKeys = mill.define.BuildCtx.interp.watchValue(
+       os.walk(moduleDir / "cases", maxDepth = 3)
+         .map(_.subRelativeTo(moduleDir / "cases").segments)
+         .collect { case Seq(a, b, c) => s"$a-$b-$c" }
