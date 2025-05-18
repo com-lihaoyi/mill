@@ -19,6 +19,18 @@ object Scala3SyntaxTests extends UtestIntegrationTestSuite {
       val res2 = eval("someTopLevelCommand")
       assert(res2.isSuccess)
       assert(res2.out == "Hello, world! Box[Int] 42")
+      val res3 = eval(("show", "namedTupleTask"))
+      assert(res3.isSuccess)
+      assert(
+        res3.out ==
+        """{
+          |  "hello": "world",
+          |  "i": [
+          |    "am",
+          |    "cow"
+          |  ]
+          |}""".stripMargin
+      )
     }
   }
 }
