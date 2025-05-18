@@ -22,6 +22,7 @@ abstract class MainRootModule()(implicit
  * [[show]], [[inspect]], [[plan]], etc.
  */
 trait MainModule extends BaseModule with MainModuleApi {
+
   /**
    * Show the mill version.
    */

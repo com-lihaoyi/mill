@@ -114,7 +114,7 @@ object CodeGen {
 
         val wrapperObjectGetter = generateWrapperObjectGetter(pkg)
         os.write(
-          supportDestDir / "wrapper_object_getter.scala",
+          supportDestDir / "BuildFileImpl.scala",
           wrapperObjectGetter,
           createFolders = true
         )
@@ -187,13 +187,7 @@ object CodeGen {
     s"""|$generatedFileHeader
         |package $pkg
         |
-        |object wrapper_object_getter {
-        |  def value = _root_.os.checker.withValue(
-        |    _root_.mill.define.internal.ResolveChecker(
-        |       _root_.mill.define.WorkspaceRoot.workspaceRoot
-        |    )
-        |  ){ ${CGConst.wrapperObjectName} }
-        |}
+        |object BuildFileImpl extends mill.define.internal.BuildFileCls(${CGConst.wrapperObjectName})
         |""".stripMargin
   }
 
