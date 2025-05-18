@@ -20,6 +20,15 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 :milestone: 115
 :prev-version: 0.12.11
 
+* NOTE: Mill 0.12.12 requires an updated bootstrap script in order to work, due to changes in Sonatype
+  Central that forced a change in the download URLs for new releases going forward. To update your 
+  bootstrap script, you can use
+
+```
+curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.12/mill-dist-0.12.12-mill.sh -o mill
+chmod +x mill
+```
+
 * Backport `mill.scalalib.SonatypeCentralPublishModule/` from `main` ({link-pr}/5107[#5107]). With
 the https://central.sonatype.org/news/20250326_ossrh_sunset/[Sunset of `oss.sonatype.org`],
 all Mill projects still on `oss.sonatype.org` will need to migrate their sonatype namespaces
