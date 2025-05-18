@@ -13,19 +13,19 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
-[#0-12-12]
-=== 0.12.12 - 2025-05-18
-:version: 0.12.12
-:milestone-name: 0.12.12
+[#0-12-13]
+=== 0.12.13 - 2025-05-18
+:version: 0.12.13
+:milestone-name: 0.12.13
 :milestone: 115
 :prev-version: 0.12.11
 
-* NOTE: Mill 0.12.12 requires an updated bootstrap script in order to work, due to changes in Sonatype
+* NOTE: Mill 0.12.13 requires an updated bootstrap script in order to work, due to changes in Sonatype
   Central that forced a change in the download URLs for new releases going forward. To update your 
   bootstrap script, you can use
 
 ```
-curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.12/mill-dist-0.12.12-mill.sh -o mill
+curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.13/mill-dist-0.12.13-mill.sh -o mill
 chmod +x mill
 ```
 
@@ -39,7 +39,7 @@ are shown below:
 steps, you must complete them, otherwise your project will be in an un-publishable state.
 Please read through all steps and ensure you have time to complete them all before you begin*
 
-** (Optional) Upgrade to Mill `0.12.12`, which contains the latest `mill.scalalib.SonatypePublishModule/`
+** (Optional) Upgrade to Mill `0.12.13`, which contains the latest `mill.scalalib.SonatypePublishModule/`
 command. This is optional because you can use it in earlier versions of Mill (>=0.12.6) as
 a `mill.contrib` moule, but upgrading is better as it ensures the command you use will be
 forwards compatible to future versions of Mill.
