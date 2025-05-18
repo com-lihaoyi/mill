@@ -13,7 +13,7 @@ abstract class ExternalModule(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
-) extends BaseModule(WorkspaceRoot.workspaceRoot, external0 = true)(
+) extends BaseModule(Project.workspaceRoot, external0 = true)(
       millModuleEnclosing0,
       millModuleLine0,
       millFile0

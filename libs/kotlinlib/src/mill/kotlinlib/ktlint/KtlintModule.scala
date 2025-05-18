@@ -123,7 +123,7 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       .filter(f => os.exists(f) && (f.ext == "kt" || f.ext == "kts"))
       .map(_.toString())
 
-    val exitCode = os.checker.withValue(os.Checker.Nop) {
+    val exitCode = mill.define.withFilesystemCheckerDisabled {
       Jvm.callProcess(
         mainClass = "com.pinterest.ktlint.Main",
         classPath = classPath.map(_.path).toVector,

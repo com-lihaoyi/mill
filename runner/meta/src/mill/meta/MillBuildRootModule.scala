@@ -36,7 +36,7 @@ trait MillBuildRootModule()(implicit
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
-  val scriptSourcesPaths = os.checker.withValue(os.Checker.Nop) {
+  val scriptSourcesPaths = mill.define.withFilesystemCheckerDisabled {
     FileImportGraph
       .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
       .sorted
@@ -52,7 +52,7 @@ trait MillBuildRootModule()(implicit
 
   def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
-    os.checker.withValue(os.Checker.Nop) {
+    mill.define.withFilesystemCheckerDisabled {
       MillBuildRootModule.parseBuildFiles(MillScalaParser.current.value, rootModuleInfo)
     }
   }

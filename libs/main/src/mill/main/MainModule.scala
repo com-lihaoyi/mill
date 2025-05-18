@@ -26,7 +26,7 @@ trait MainModule extends BaseModule with MainModuleApi {
   protected[mill] val evalWatchedValues: mutable.Buffer[Watchable] = mutable.Buffer.empty[Watchable]
   object interp {
     def watchValue[T](v0: => T)(implicit fn: sourcecode.FileName, ln: sourcecode.Line): T = {
-      os.checker.withValue(os.Checker.Nop) {
+      mill.define.withFilesystemCheckerDisabled {
         val v = v0
         val watchable = Watchable.Value(
           () => v0.hashCode,

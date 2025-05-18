@@ -157,7 +157,7 @@ private final class TestModuleUtil(
 
     os.makeDir.all(sandbox)
 
-    os.checker.withValue(os.Checker.Nop) {
+    mill.define.withFilesystemCheckerDisabled {
       Jvm.callProcess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),

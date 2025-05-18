@@ -1,6 +1,6 @@
-import mill.define.WorkspaceRoot.workspaceRoot
+import mill.define.Project.workspaceRoot
 import mill.testkit.UtestIntegrationTestSuite
-import utest.{assert, *}
+import utest.*
 
 object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
 

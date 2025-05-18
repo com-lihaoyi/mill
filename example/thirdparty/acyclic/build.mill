@@ -4,7 +4,7 @@ import mill._, scalalib._, publish._
 // acyclic test suite assumes files are on disk at specific paths relative to `os.pwd`.
 // To avoid changing the test code, we instead copy the necessary files into the `os.pwd`
 // when preparing the resources for test suite execution
-os.checker.withValue(os.Checker.Nop) {
+mill.define.withFilesystemCheckerDisabled {
   os.copy.over(
     interp.watch(mill.define.WorkspaceRoot.workspaceRoot / "acyclic"),
     os.pwd / "acyclic",

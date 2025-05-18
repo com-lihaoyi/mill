@@ -152,7 +152,7 @@ trait TypeScriptModule extends Module { outer =>
     if (!os.exists(T.dest)) os.makeDir.all(T.dest)
 
     // Copy everything except "build.mill" and the "/out" directory from Task.workspace
-    os.checker.withValue(os.Checker.Nop) {
+    mill.define.withFilesystemCheckerDisabled {
       os.walk(moduleDir, skip = _.last == "out")
         .filter(_.last != "build.mill")
         .filter(_.last != "mill")
@@ -212,7 +212,7 @@ trait TypeScriptModule extends Module { outer =>
     targets.foreach { target =>
       val destination = T.dest / target
       os.makeDir.all(destination / os.up)
-      os.checker.withValue(os.Checker.Nop) {
+      mill.define.withFilesystemCheckerDisabled {
         os.copy(
           Task.workspace / target,
           destination,

@@ -549,7 +549,7 @@ object Jvm {
       artifactTypes,
       resolutionParams
     ).map { res =>
-      os.checker.withValue(os.Checker.Nop) {
+      mill.define.withFilesystemCheckerDisabled {
         res.files
           .map(os.Path(_))
           .map(PathRef(_, quick = true))
