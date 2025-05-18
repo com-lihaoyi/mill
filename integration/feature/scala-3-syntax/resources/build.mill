@@ -40,8 +40,8 @@ object `package` extends mill.Module:
     end today
   end DayModule
 
-  def namedTupleTask = Task{
-    (hello="world", i=Seq("am", "cow"))
+  def namedTupleTask = Task {
+    (hello = "world", i = Seq("am", "cow"))
   }
 
 end `package`
