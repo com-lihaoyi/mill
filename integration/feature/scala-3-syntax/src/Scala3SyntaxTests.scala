@@ -22,14 +22,8 @@ object Scala3SyntaxTests extends UtestIntegrationTestSuite {
       val res3 = eval(("show", "namedTupleTask"))
       assert(res3.isSuccess)
       assert(
-        res3.out ==
-        """{
-          |  "hello": "world",
-          |  "i": [
-          |    "am",
-          |    "cow"
-          |  ]
-          |}""".stripMargin
+        ujson.read(res3.out) ==
+          ujson.read("""{"hello": "world", "i": ["am", "cow"]}""")
       )
     }
   }
