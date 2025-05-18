@@ -1,7 +1,7 @@
 package mill.bsp
 
 import mill.util.BuildInfo
-import mill.define.Project
+import mill.define.BuildCtx
 
 import java.io.PrintStream
 
@@ -23,7 +23,7 @@ private[mill] object BSP {
    */
   def install(jobs: Int, withDebug: Boolean, errStream: PrintStream): Unit = {
     // we create a json connection file
-    val bspFile = Project.workspaceRoot / Constants.bspDir / s"${Constants.serverName}.json"
+    val bspFile = BuildCtx.workspaceRoot / Constants.bspDir / s"${Constants.serverName}.json"
     if (os.exists(bspFile)) errStream.println(s"Overwriting BSP connection file: ${bspFile}")
     else errStream.println(s"Creating BSP connection file: ${bspFile}")
     if (withDebug) errStream.println(

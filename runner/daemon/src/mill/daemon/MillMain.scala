@@ -6,7 +6,7 @@ import mill.bsp.BSP
 import mill.client.lock.Lock
 import mill.constants.{OutFiles, DaemonFiles, Util}
 import mill.{api, define}
-import mill.define.Project
+import mill.define.BuildCtx
 import mill.internal.{Colors, MultiStream, PromptLogger}
 import mill.server.Server
 import mill.util.BuildInfo
@@ -47,7 +47,7 @@ object MillMain {
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
 
     val processId = Server.computeProcessId()
-    val out = os.Path(OutFiles.out, Project.workspaceRoot)
+    val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
     Server.watchProcessIdFile(
       out / OutFiles.millNoDaemon / processId / DaemonFiles.processId,
       processId,
@@ -86,11 +86,11 @@ object MillMain {
       // In BSP mode, don't let anything other than the BSP server write to stdout and read from stdin
 
       val outFileStream = os.write.outputStream(
-        Project.workspaceRoot / OutFiles.out / "mill-bsp/out.log",
+        BuildCtx.workspaceRoot / OutFiles.out / "mill-bsp/out.log",
         createFolders = true
       )
       val errFileStream = os.write.outputStream(
-        Project.workspaceRoot / OutFiles.out / "mill-bsp/err.log",
+        BuildCtx.workspaceRoot / OutFiles.out / "mill-bsp/err.log",
         createFolders = true
       )
 
@@ -190,7 +190,7 @@ object MillMain {
                 if (colored) mill.internal.Colors.Default else mill.internal.Colors.BlackWhite
 
               if (!config.silent.value) {
-                checkMillVersionFromFile(Project.workspaceRoot, streams.err)
+                checkMillVersionFromFile(BuildCtx.workspaceRoot, streams.err)
               }
 
               val maybeThreadCount =
@@ -252,7 +252,7 @@ object MillMain {
 
                   val threadCount = Some(maybeThreadCount.toOption.get)
 
-                  val out = os.Path(OutFiles.out, Project.workspaceRoot)
+                  val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
                   Using.resource(new TailManager(daemonDir)) { tailManager =>
                     def runMillBootstrap(
                         enterKeyPressed: Boolean,
@@ -287,7 +287,7 @@ object MillMain {
                           tailManager.withOutErr(logger.streams.out, logger.streams.err) {
 
                             new MillBuildBootstrap(
-                              projectRoot = Project.workspaceRoot,
+                              projectRoot = BuildCtx.workspaceRoot,
                               output = out,
                               keepGoing = config.keepGoing.value,
                               imports = config.imports,
@@ -393,12 +393,12 @@ object MillMain {
   ): Result[BspServerResult] = {
     logStreams.err.println("Trying to load BSP server...")
 
-    val wsRoot = Project.workspaceRoot
+    val wsRoot = BuildCtx.workspaceRoot
     val logDir = wsRoot / OutFiles.out / "mill-bsp"
     val bspServerHandleRes = {
       os.makeDir.all(logDir)
       mill.bsp.worker.BspWorkerImpl.startBspServer(
-        define.Project.workspaceRoot,
+        define.BuildCtx.workspaceRoot,
         bspStreams,
         logDir,
         true,

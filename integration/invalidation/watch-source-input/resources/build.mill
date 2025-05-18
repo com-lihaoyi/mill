@@ -1,6 +1,6 @@
 package build
 import mill.*
-import mill.define.Project
+import mill.define.BuildCtx
 
 println("Setting up build.mill")
 
@@ -36,7 +36,7 @@ def writeCompletionMarker(name: String) = {
 
   mill.define.withFilesystemCheckerDisabled {
     Range(0, 10)
-      .map(i => Project.workspaceRoot / "out" / s"$name$i")
+      .map(i => BuildCtx.workspaceRoot / "out" / s"$name$i")
       .find(!os.exists(_))
       .foreach(os.write(_, ""))
   }

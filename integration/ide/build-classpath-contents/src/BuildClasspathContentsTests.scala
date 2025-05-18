@@ -1,4 +1,4 @@
-import mill.define.Project.workspaceRoot
+import mill.define.BuildCtx.workspaceRoot
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 

@@ -5,7 +5,7 @@ import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.{millBuild, millRunnerState}
 import mill.define.internal.Watchable
-import mill.define.{PathRef, RootModule0, SelectMode, Project}
+import mill.define.{PathRef, RootModule0, SelectMode, BuildCtx}
 import mill.internal.PrefixLogger
 import mill.meta.{FileImportGraph, MillBuildRootModule}
 import mill.meta.CliImports
@@ -447,7 +447,7 @@ object MillBuildBootstrap {
     } else {
       if (seenClassLoaders.contains(ClassLoader.getSystemClassLoader)) {
         for (p <- System.getProperty("java.class.path").split(File.pathSeparatorChar)) {
-          val f = os.Path(p, Project.workspaceRoot)
+          val f = os.Path(p, BuildCtx.workspaceRoot)
           if (os.exists(f)) files.append(f)
         }
       }
