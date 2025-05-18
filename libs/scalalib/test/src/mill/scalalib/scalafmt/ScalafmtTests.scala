@@ -5,7 +5,7 @@ import mill.define.Discover
 import mill.util.Tasks
 import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 
 object ScalafmtTests extends TestSuite {
@@ -16,7 +16,7 @@ object ScalafmtTests extends TestSuite {
     def buildSources: T[Seq[PathRef]]
   }
 
-  object ScalafmtTestModule extends TestBaseModule {
+  object ScalafmtTestModule extends TestRootModule {
     object core extends ScalaModule with ScalafmtModule with BuildSrcModule {
       def scalaVersion: T[String] = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
 

@@ -2,12 +2,12 @@ package mill.playlib
 
 import mill.define.Discover
 import mill.Task
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
 import mill.util.TokenReaders._
 object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
 
-  object playsingle extends TestBaseModule with PlayModule {
+  object playsingle extends TestRootModule with PlayModule {
     override val moduleDir = os.temp() // workaround problem in `SingleModule`
     override def playVersion = Task { testPlay28 }
     override def scalaVersion = Task { sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???) }

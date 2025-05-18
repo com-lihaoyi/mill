@@ -3,13 +3,13 @@ package mill.javalib.junit5
 import mill.define.Discover
 import mill.scalalib.JavaModule
 import mill.scalalib.TestModule
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.util.TokenReaders._
 
 object JUnit5Tests extends TestSuite {
 
-  object module extends TestBaseModule with JavaModule {
+  object module extends TestRootModule with JavaModule {
     object test extends JavaTests with TestModule.Junit5
     lazy val millDiscover = Discover[this.type]
   }

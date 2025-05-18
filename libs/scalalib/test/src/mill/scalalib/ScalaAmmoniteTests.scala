@@ -2,12 +2,12 @@ package mill.scalalib
 
 import mill.*
 import mill.define.Discover
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
 object ScalaAmmoniteTests extends TestSuite {
 
-  object AmmoniteReplMainClass extends TestBaseModule {
+  object AmmoniteReplMainClass extends TestRootModule {
     object oldAmmonite extends ScalaModule {
       override def scalaVersion = T("2.13.5")
       override def ammoniteVersion = T("2.4.1")

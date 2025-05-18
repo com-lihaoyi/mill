@@ -3,7 +3,7 @@ package kotlinlib
 package js
 
 import mill.define.Discover
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, assert, test}
 
 object KotlinJsCompileTests extends TestSuite {
@@ -12,7 +12,7 @@ object KotlinJsCompileTests extends TestSuite {
 
   private val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "kotlin-js"
 
-  object module extends TestBaseModule {
+  object module extends TestRootModule {
 
     object bar extends KotlinJsModule {
       def kotlinVersion = KotlinJsCompileTests.kotlinVersion

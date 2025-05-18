@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.api.ExecResult
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
@@ -10,7 +10,7 @@ import mill.define.Discover
 import mill.util.TokenReaders._
 object ScalaColorOutputTests extends TestSuite {
 
-  object HelloWorldColorOutput extends TestBaseModule {
+  object HelloWorldColorOutput extends TestRootModule {
     object core extends ScalaModule {
       def scalaVersion = scala213Version
 

@@ -1,6 +1,6 @@
 package mill.pythonlib
 
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.*
 import mill.client.lock.Lock
@@ -8,7 +8,7 @@ import mill.define.Discover
 
 object RunBackgroundTests extends TestSuite {
 
-  object HelloWorldPython extends TestBaseModule {
+  object HelloWorldPython extends TestRootModule {
     object foo extends PythonModule {
       override def mainScript = Task.Source("src/foo.py")
     }

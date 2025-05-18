@@ -2,14 +2,14 @@ package mill.javascriptlib
 
 import mill.*
 import mill.define.Discover
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
 object HelloWorldTests extends TestSuite {
 
-  object HelloWorldJavascript extends TestBaseModule {
+  object HelloWorldJavascript extends TestRootModule {
     object foo extends TypeScriptModule {
       object bar extends TypeScriptModule {}
 

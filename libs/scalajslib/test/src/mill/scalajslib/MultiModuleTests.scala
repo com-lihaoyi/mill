@@ -4,12 +4,12 @@ import mill._
 import mill.define.Discover
 import mill.define.ExecutionPaths
 import mill.scalalib._
-import mill.testkit.{UnitTester, TestBaseModule}
+import mill.testkit.{UnitTester, TestRootModule}
 import utest._
 object MultiModuleTests extends TestSuite {
   val sourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "multi-module"
 
-  object MultiModule extends TestBaseModule {
+  object MultiModule extends TestRootModule {
     trait BaseModule extends ScalaJSModule {
       def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
       def scalaJSVersion = sys.props.getOrElse("TEST_SCALAJS_VERSION", ???)

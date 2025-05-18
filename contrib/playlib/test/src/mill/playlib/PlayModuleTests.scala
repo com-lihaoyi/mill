@@ -2,13 +2,13 @@ package mill
 package playlib
 
 import mill.scalalib.api.JvmWorkerUtil
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
 import mill.define.Discover
 
 object PlayModuleTests extends TestSuite with PlayTestSuite {
 
-  object playmulti extends TestBaseModule {
+  object playmulti extends TestRootModule {
     object core extends Cross[CoreCrossModule](matrix)
     trait CoreCrossModule extends PlayModule with Cross.Module2[String, String] {
       val (crossScalaVersion, crossPlayVersion) = (crossValue, crossValue2)

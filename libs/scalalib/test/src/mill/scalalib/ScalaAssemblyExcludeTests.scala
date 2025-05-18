@@ -9,7 +9,7 @@ import scala.util.Using
 import HelloWorldTests._
 object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {
-    def checkExclude[M <: mill.testkit.TestBaseModule](
+    def checkExclude[M <: mill.testkit.TestRootModule](
         module: M,
         target: Target[PathRef],
         resourcePath: os.Path = resourcePath
@@ -40,7 +40,7 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
       resourcePath = helloWorldMultiResourcePath
     )
 
-    def checkRelocate[M <: mill.testkit.TestBaseModule](
+    def checkRelocate[M <: mill.testkit.TestRootModule](
         module: M,
         target: Target[PathRef],
         resourcePath: os.Path = resourcePath

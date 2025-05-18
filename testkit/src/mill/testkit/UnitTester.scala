@@ -13,7 +13,7 @@ import java.io.{InputStream, PrintStream}
 object UnitTester {
   case class Result[T](value: T, evalCount: Int)
   def apply(
-      module: mill.testkit.TestBaseModule,
+      module: mill.testkit.TestRootModule,
       sourceRoot: os.Path,
       failFast: Boolean = false,
       threads: Option[Int] = Some(1),
@@ -45,7 +45,7 @@ object UnitTester {
  * @param threads explicitly used nr. of parallel threads
  */
 class UnitTester(
-    module: mill.testkit.TestBaseModule,
+    module: mill.testkit.TestRootModule,
     sourceRoot: os.Path,
     failFast: Boolean,
     threads: Option[Int],

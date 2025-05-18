@@ -1,14 +1,14 @@
 package mill.scalalib
 
 import mill.*
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 import HelloWorldTests.*
 import mill.define.Discover
 
 object ScalaCrossVersionTests extends TestSuite {
 
-  object CrossModuleDeps extends TestBaseModule {
+  object CrossModuleDeps extends TestRootModule {
     object stable extends Cross[Stable](scala212Version, scala32Version)
     trait Stable extends CrossScalaModule
 

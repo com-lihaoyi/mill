@@ -2,7 +2,7 @@ package mill.exec
 
 import mill.define.{Discover, TargetImpl, Task}
 import mill.Module
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 
 import utest.*
 
@@ -12,13 +12,13 @@ object OverrideTests extends TestSuite {
     def cmd(i: Int) = Task.Command { Seq("base" + i) }
   }
 
-  object canOverrideSuper extends TestBaseModule with BaseModule {
+  object canOverrideSuper extends TestRootModule with BaseModule {
     override def foo = Task { super.foo() ++ Seq("object") }
     override def cmd(i: Int) = Task.Command { super.cmd(i)() ++ Seq("object" + i) }
     lazy val millDiscover = Discover[this.type]
   }
 
-  object StackableOverrides extends TestBaseModule {
+  object StackableOverrides extends TestRootModule {
     trait X extends Module {
       def f = Task { 1 }
     }
@@ -33,7 +33,7 @@ object OverrideTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object StackableOverrides2 extends TestBaseModule {
+  object StackableOverrides2 extends TestRootModule {
     object A extends Module {
       trait X extends Module {
         def f = Task { 1 }
@@ -51,7 +51,7 @@ object OverrideTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object StackableOverrides3 extends TestBaseModule {
+  object StackableOverrides3 extends TestRootModule {
     object A extends Module {
       trait X extends Module {
         def f = Task { 1 }
@@ -67,7 +67,7 @@ object OverrideTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object OptionalOverride extends TestBaseModule {
+  object OptionalOverride extends TestRootModule {
     trait X extends Module {
       def f = Task { 1 }
     }
@@ -78,7 +78,7 @@ object OverrideTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object PrivateTasksInMixedTraits extends TestBaseModule {
+  object PrivateTasksInMixedTraits extends TestRootModule {
     trait M1 extends Module {
       private def foo = Task { "foo-m1" }
       def bar = Task { foo() }
