@@ -198,11 +198,7 @@ class MillBuildBootstrap(
               headerData = headerDataOpt.getOrElse("")
             )) { evaluator =>
               if (depth == requestedDepth) {
-                processFinalTargets(
-                  nestedState,
-                  buildFileApi,
-                  evaluator
-                )
+                processFinalTargets(nestedState, buildFileApi, evaluator)
               } else if (depth <= requestedDepth) nestedState
               else {
                 processRunClasspath(
@@ -323,6 +319,7 @@ class MillBuildBootstrap(
       buildFileApi: BuildFileApi,
       evaluator: EvaluatorApi
   ): RunnerState = {
+
     assert(nestedState.frames.forall(_.evaluator.isDefined))
 
     val (evaled, evalWatched, moduleWatches) = evaluateWithWatches(

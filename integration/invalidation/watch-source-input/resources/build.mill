@@ -19,7 +19,7 @@ def qux = Task {
   fooMsg + " " + barMsg
 }
 
-interp.watchValue(PathRef(moduleDir / "watchValue.txt"))
+mill.define.BuildCtx.watchValue(PathRef(moduleDir / "watchValue.txt"))
 
 def baz = Task.Input(PathRef(moduleDir / "baz.txt"))
 
