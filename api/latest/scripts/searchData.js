@@ -2514,7 +2514,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/util/OsgiVersion.html#","e":false,"i":"","n":"OsgiVersion","t":"OsgiVersion(val underlying: Version) extends AnyVal","d":"mill.util","k":"class","x":""},
 {"l":"mill/util/OsgiVersion.html#isNewerThan-8c2","e":false,"i":"","n":"isNewerThan","t":"isNewerThan(other: OsgiVersion): Boolean","d":"mill.util.OsgiVersion","k":"def","x":""},
 {"l":"mill/util/OsgiVersion.html#underlying-0","e":false,"i":"","n":"underlying","t":"underlying: Version","d":"mill.util.OsgiVersion","k":"val","x":""},
-{"l":"mill/util/Retry.html#","e":false,"i":"","n":"Retry","t":"Retry(logger: String => Unit, count: Int, backoffMillis: Long, backoffMultiplier: Double, timeoutMillis: Long, filter: (Int, Throwable) => Boolean)","d":"mill.util","k":"class","x":""},
+{"l":"mill/util/Retry.html#","e":false,"i":"","n":"Retry","t":"Retry(count: Int, backoffMillis: Long, backoffMultiplier: Double, timeoutMillis: Long, filter: (Int, Throwable) => Boolean, logger: String => Unit)","d":"mill.util","k":"class","x":""},
 {"l":"mill/util/Retry.html#apply-fffff7d2","e":false,"i":"","n":"apply","t":"apply[T](t: => T): T","d":"mill.util.Retry","k":"def","x":""},
 {"l":"mill/util/Retry.html#indexed-5d3","e":false,"i":"","n":"indexed","t":"indexed[T](t: Int => T): T","d":"mill.util.Retry","k":"def","x":""},
 {"l":"mill/util/Retry$.html#","e":false,"i":"","n":"Retry","t":"Retry","d":"mill.util","k":"object","x":""},
