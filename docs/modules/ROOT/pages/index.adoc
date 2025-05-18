@@ -19,13 +19,13 @@ JVM build tools have a reputation for being sluggish and confusing. Mill tries t
 offer a better alternative, letting your build system take full advantage of the
 Java platform's performance and usability.
 
-For more discussion on the motivation behind the project, see xref:comparisons/why-mill.adoc[Why Use Mill?]
-
 If you prefer a video introduction to Mill, see:
 
 * https://www.youtube.com/watch?v=3NllMpXMBT8[Video: Better Java Builds with the Mill Build Tool],
 GeeCon Krakow 16 May 2025
 * https://www.youtube.com/watch?v=fyf2AWUyq24[Video: Solving Scala's Build Problem with the Mill Build Tool], SF Scala Meetup 22 April 2025
+
+For more discussion on the motivation behind the project, see xref:comparisons/why-mill.adoc[Why Use Mill?]
 
 === Getting Started
 
