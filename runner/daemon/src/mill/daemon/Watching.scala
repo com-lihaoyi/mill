@@ -94,8 +94,8 @@ object Watching {
       watched: Seq[Watchable],
       watchArgs: WatchArgs
   ): Boolean = {
-    val (watchedPollables, watchedPathsSeq) = watched.partitionMap {
-      case w: Watchable.Pollable => Left(w)
+    val (watchedValues, watchedPathsSeq) = watched.partitionMap {
+      case v: Watchable.Value => Left(v)
       case p: Watchable.Path => Right(p)
     }
     val watchedPathsSet = watchedPathsSeq.iterator.map(p => os.Path(p.p)).toSet
@@ -112,12 +112,12 @@ object Watching {
     }
 
     def doWatch(notifiablesChanged: () => Boolean) = {
-      val enterKeyPressed = statWatchWait(watchedPollables, stdin, notifiablesChanged)
+      val enterKeyPressed = statWatchWait(watchedValues, stdin, notifiablesChanged)
       enterKeyPressed
     }
 
     def doWatchPolling() =
-      doWatch(notifiablesChanged = () => watchedPathsSeq.exists(p => !validateAnyWatchable(p)))
+      doWatch(notifiablesChanged = () => watchedPathsSeq.exists(p => !haveNotChanged(p)))
 
     def doWatchFsNotify() = {
       Using.resource(os.write.outputStream(watchArgs.serverDir / "fsNotifyWatchLog")) { watchLog =>
@@ -159,6 +159,12 @@ object Watching {
         //   root/a/b
         //   root/a
         //   root
+        //
+        // We're only setting one `os.watch.watch` on the root, and this makes it sound like
+        // we're setting multiple. What we're actually doing is choosing the paths we need to watch recursively in
+        // Linux since inotify is non-recursive by default, since changes in any enclosing folder could result in the
+        // watched file or folder disappearing (e.g. if the enclosing folder was renamed) and we want to pick up such
+        // changes.
         val filterPaths = pathsUnderWorkspaceRoot.flatMap { path =>
           path.relativeTo(workspaceRoot).segments.inits.map(segments => workspaceRoot / segments)
         }
@@ -196,7 +202,7 @@ object Watching {
           //
           // We need to do this to prevent any changes from slipping through the gap between the last evaluation and
           // starting the watch.
-          val alreadyStale = watched.exists(w => !validateAnyWatchable(w))
+          val alreadyStale = watched.exists(w => !haveNotChanged(w))
 
           if (alreadyStale) false
           else doWatch(notifiablesChanged = () => pathChangesDetected)
@@ -214,14 +220,14 @@ object Watching {
    * @return `true` if enter key is pressed to re-run tasks explicitly, false if changes in watched files occured.
    */
   def statWatchWait(
-      watched: Seq[Watchable.Pollable],
+      watchedValues: Seq[Watchable.Value],
       stdin: InputStream,
       notifiablesChanged: () => Boolean
   ): Boolean = {
     val buffer = new Array[Byte](4 * 1024)
 
     @tailrec def statWatchWait0(): Boolean = {
-      if (!notifiablesChanged() && watched.forall(w => validate(w))) {
+      if (!notifiablesChanged() && watchedValues.forall(haveNotChanged)) {
         if (lookForEnterKey()) {
           true
         } else {
@@ -251,14 +257,7 @@ object Watching {
   }
 
   /** @return true if the watchable did not change. */
-  inline def validate(w: Watchable.Pollable): Boolean = validateAnyWatchable(w)
-
-  /**
-   * As [[validate]] but accepts any [[Watchable]] for the cases when we do not want to use a notification system.
-   *
-   * Normally you should use [[validate]] so that types would guide your implementation.
-   */
-  def validateAnyWatchable(w: Watchable): Boolean = poll(w) == signature(w)
+  def haveNotChanged(w: Watchable): Boolean = poll(w) == signature(w)
 
   def poll(w: Watchable): Long = w match {
     case Watchable.Path(p, quick, sig) =>
