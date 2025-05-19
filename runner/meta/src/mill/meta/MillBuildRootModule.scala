@@ -10,6 +10,7 @@ import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.util.BuildInfo
 import mill.api.internal.MillScalaParser
+import upickle.implicits.namedTuples.default.given
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 
@@ -96,10 +97,11 @@ trait MillBuildRootModule()(implicit
   /**
    * Additional script files, we generate, since not all Mill source
    * files (e.g. `.sc` and `.mill`) can be fed to the compiler as-is.
-   * The wrapped files aren't supposed to appear under [[generatedSources]] and [[allSources]],
+   *
+   * The `wrapped` files aren't supposed to appear under [[generatedSources]] and [[allSources]],
    * since they are derived from [[sources]] and would confuse any further tooling like IDEs.
    */
-  def generatedScriptSources: T[MillBuildRootModule.GeneratedScriptSourcesResult] = Task {
+  def generatedScriptSources: Target[(wrapped: Seq[PathRef], support: Seq[PathRef])] = Task {
     val wrapped = Task.dest / "wrapped"
     val support = Task.dest / "support"
 
@@ -115,7 +117,7 @@ trait MillBuildRootModule()(implicit
         rootModuleInfo.output,
         MillScalaParser.current.value
       )
-      (Seq(PathRef(wrapped)), Seq(PathRef(support)))
+      (wrapped = Seq(PathRef(wrapped)), support = Seq(PathRef(support)))
     }
   }
 
@@ -312,8 +314,6 @@ trait MillBuildRootModule()(implicit
 }
 
 object MillBuildRootModule {
-
-  type GeneratedScriptSourcesResult = (wrapped: Seq[PathRef], support: Seq[PathRef])
 
   class BootstrapModule()(implicit
       rootModuleInfo: RootModule0.Info
