@@ -3,7 +3,7 @@ package mill.daemon
 import mill.api.internal.{BspServerResult, internal}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
-import mill.client.lock.Lock
+import mill.client.lock.{DoubleLock, Lock}
 import mill.constants.{DaemonFiles, OutFiles, Util}
 import mill.define.BuildCtx
 import mill.internal.{Colors, MultiStream, PromptLogger}
@@ -58,6 +58,11 @@ object MillMain {
       }
     )
 
+    val outLock = new DoubleLock(
+      outMemoryLock,
+      Lock.file((out / OutFiles.millOutLock).toString)
+    )
+
     val daemonDir = os.Path(args.head)
     val (result, _) =
       try main0(
@@ -71,12 +76,14 @@ object MillMain {
           initialSystemProperties = sys.props.toMap,
           systemExit = i => sys.exit(i),
           daemonDir = daemonDir,
-          outLock = Lock.file((out / OutFiles.millOutLock).toString)
+          outLock = outLock
         )
       catch handleMillException(initialSystemStreams.err, ())
 
     System.exit(if (result) 0 else 1)
   }
+
+  val outMemoryLock = Lock.memory()
 
   private def withStreams[T](
       bspMode: Boolean,

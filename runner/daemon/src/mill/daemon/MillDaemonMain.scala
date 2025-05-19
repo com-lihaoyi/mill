@@ -52,7 +52,7 @@ class MillDaemonMain(
   val out = os.Path(OutFiles.out, mill.define.BuildCtx.workspaceRoot)
 
   val outLock = new DoubleLock(
-    Lock.memory(),
+    MillMain.outMemoryLock,
     Lock.file((out / OutFiles.millOutLock).toString)
   )
 
