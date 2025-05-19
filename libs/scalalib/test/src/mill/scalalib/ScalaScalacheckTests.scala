@@ -27,7 +27,7 @@ object ScalaScalacheckTests extends TestSuite {
       val Right(result) = eval.apply(HelloScalacheck.foo.test.testForked()): @unchecked
       assert(
         result.evalCount > 0,
-        result.value._2.map(_.selector) == Seq(
+        result.value.results.map(_.selector) == Seq(
           "String.startsWith",
           "String.endsWith",
           "String.substring",

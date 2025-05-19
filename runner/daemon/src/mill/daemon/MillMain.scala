@@ -3,13 +3,13 @@ package mill.daemon
 import mill.api.internal.{BspServerResult, internal}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
-import mill.client.lock.Lock
-import mill.constants.{OutFiles, DaemonFiles, Util}
-import mill.{api, define}
+import mill.client.lock.{DoubleLock, Lock}
+import mill.constants.{DaemonFiles, OutFiles, Util}
 import mill.define.BuildCtx
 import mill.internal.{Colors, MultiStream, PromptLogger}
 import mill.server.Server
 import mill.util.BuildInfo
+import mill.{api, define}
 
 import java.io.{InputStream, PipedInputStream, PrintStream}
 import java.lang.reflect.InvocationTargetException
@@ -17,8 +17,8 @@ import java.util.Locale
 import java.util.concurrent.locks.ReentrantLock
 import scala.collection.immutable
 import scala.jdk.CollectionConverters.*
-import scala.util.{Properties, Using}
 import scala.util.control.NonFatal
+import scala.util.{Properties, Using}
 
 @internal
 object MillMain {
@@ -58,6 +58,11 @@ object MillMain {
       }
     )
 
+    val outLock = new DoubleLock(
+      outMemoryLock,
+      Lock.file((out / OutFiles.millOutLock).toString)
+    )
+
     val daemonDir = os.Path(args.head)
     val (result, _) =
       try main0(
@@ -71,12 +76,14 @@ object MillMain {
           initialSystemProperties = sys.props.toMap,
           systemExit = i => sys.exit(i),
           daemonDir = daemonDir,
-          outLock = Lock.file((out / OutFiles.millOutLock).toString)
+          outLock = outLock
         )
       catch handleMillException(initialSystemStreams.err, ())
 
     System.exit(if (result) 0 else 1)
   }
+
+  val outMemoryLock = Lock.memory()
 
   private def withStreams[T](
       bspMode: Boolean,
@@ -344,9 +351,13 @@ object MillMain {
                       if (config.watch.value) os.remove(out / OutFiles.millSelectiveExecution)
                       Watching.watchLoop(
                         ringBell = config.ringBell.value,
-                        watch = config.watch.value,
+                        watch = Option.when(config.watch.value)(Watching.WatchArgs(
+                          setIdle = setIdle,
+                          colors,
+                          useNotify = config.watchViaFsNotify,
+                          daemonDir = daemonDir
+                        )),
                         streams = streams,
-                        setIdle = setIdle,
                         evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
                           adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
                           runMillBootstrap(
@@ -356,8 +367,7 @@ object MillMain {
                             streams,
                             config.leftoverArgs.value.mkString(" ")
                           )
-                        },
-                        colors = colors
+                        }
                       )
                     }
                   }

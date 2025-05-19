@@ -12,22 +12,44 @@ public class DoubleLock extends Lock {
 
   @Override
   public Locked lock() throws Exception {
-    return new DoubleLocked(lock1.lock(), lock2.lock());
+    Locked l1 = null;
+    Locked l2 = null;
+    Locked result = null;
+    try {
+      l1 = lock1.lock();
+      l2 = lock2.lock();
+      result = new DoubleLocked(l1, l2);
+    } finally {
+      if (result == null) {
+        if (l2 != null) l2.release();
+        if (l1 != null) l1.release();
+      }
+    }
+
+    return result;
   }
 
   @Override
   public TryLocked tryLock() throws Exception {
-    TryLocked l1 = lock1.tryLock();
-    TryLocked l2 = lock2.tryLock();
-    if (l1.isLocked() && l2.isLocked()) {
-      return new DoubleTryLocked(l1, l2);
-    } else {
-      // Unlock the locks in the opposite order in which we originally took them
-      l2.release();
-      l1.release();
-
-      return new DoubleTryLocked(null, null);
+    TryLocked l1 = null;
+    TryLocked l2 = null;
+    TryLocked result = null;
+    try {
+      l1 = lock1.tryLock();
+      if (l1.isLocked()) {
+        l2 = lock2.tryLock();
+        if (l2.isLocked()) result = new DoubleTryLocked(l1, l2);
+      }
+    } finally {
+      if (result == null) {
+        if (l2 != null) l2.release();
+        if (l1 != null) l1.release();
+      }
     }
+
+    if (result == null) result = new DoubleTryLocked(null, null);
+
+    return result;
   }
 
   @Override

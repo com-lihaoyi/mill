@@ -17,6 +17,7 @@ import mill.testrunner.TestArgs
 import mill.testrunner.TestResult
 import mill.testrunner.TestRunner
 import mill.util.Jvm
+import upickle.implicits.namedTuples.default.given
 
 trait TestModule
     extends TestModule.JavaModuleBase
@@ -83,7 +84,7 @@ trait TestModule
    * results to the console.
    * @see [[testCached]]
    */
-  def testForked(args: String*): Command[(String, Seq[TestResult])] = Task.Command {
+  def testForked(args: String*): Command[(msg: String, results: Seq[TestResult])] = Task.Command {
     testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
   }
 
@@ -105,7 +106,7 @@ trait TestModule
    *
    * @see [[testForked()]]
    */
-  def testCached: T[(String, Seq[TestResult])] = Task {
+  def testCached: T[(msg: String, results: Seq[TestResult])] = Task {
     testTask(testCachedArgs, Task.Anon { Seq.empty[String] })()
   }
 
@@ -137,7 +138,7 @@ trait TestModule
    * (includes package name) 1. end with "foo", 2. exactly "foobar", 3. start
    * with "bar", with "arguments" as arguments passing to test framework.
    */
-  def testOnly(args: String*): Command[(String, Seq[TestResult])] = {
+  def testOnly(args: String*): Command[(msg: String, results: Seq[TestResult])] = {
     val (selector, testArgs) = args.indexOf("--") match {
       case -1 => (args, Seq.empty)
       case pos =>
@@ -215,7 +216,7 @@ trait TestModule
   protected def testTask(
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
-  ): Task[(String, Seq[TestResult])] =
+  ): Task[(msg: String, results: Seq[TestResult])] =
     Task.Anon {
       val testModuleUtil = new TestModuleUtil(
         testUseArgsFile(),
@@ -244,7 +245,7 @@ trait TestModule
    * Discovers and runs the module's tests in-process in an isolated classloader,
    * reporting the results to the console
    */
-  def testLocal(args: String*): Command[(String, Seq[TestResult])] = Task.Command {
+  def testLocal(args: String*): Command[(msg: String, results: Seq[TestResult])] = Task.Command {
     val (doneMsg, results) = TestRunner.runTestFramework(
       Framework.framework(testFramework()),
       runClasspath().map(_.path),
@@ -263,7 +264,10 @@ trait TestModule
     )
   }
 
-  private[mill] def bspBuildTargetScalaTestClasses = Task.Anon {
+  private[mill] def bspBuildTargetScalaTestClasses: Task[(
+      frameworkName: String,
+      classes: Seq[String]
+  )] = Task.Anon {
     val (frameworkName, classFingerprint) =
       mill.util.Jvm.withClassLoader(
         classPath = runClasspath().map(_.path),
@@ -274,7 +278,7 @@ trait TestModule
           .discoverTests(classLoader, framework, testClasspath().map(_.path))
       }
     val classes = classFingerprint.map(classF => classF._1.getName.stripSuffix("$"))
-    (frameworkName, classes)
+    (frameworkName = frameworkName, classes = classes)
   }
 }
 
@@ -570,7 +574,8 @@ object TestModule {
       doneMsg: String,
       results: Seq[TestResult],
       ctx: Option[TaskCtx.Env]
-  ): Result[(String, Seq[TestResult])] = TestModuleUtil.handleResults(doneMsg, results, ctx)
+  ): Result[(msg: String, results: Seq[TestResult])] =
+    TestModuleUtil.handleResults(doneMsg, results, ctx)
 
   def handleResults(
       doneMsg: String,
@@ -578,7 +583,7 @@ object TestModule {
       ctx: TaskCtx.Env & TaskCtx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
-  ): Result[(String, Seq[TestResult])] =
+  ): Result[(msg: String, results: Seq[TestResult])] =
     TestModuleUtil.handleResults(doneMsg, results, ctx, testReportXml, props)
 
   trait JavaModuleBase extends BspModule {

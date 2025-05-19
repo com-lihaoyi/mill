@@ -299,39 +299,68 @@ object `package` extends mill.Module {
        |""".stripMargin
   }
 
-  def oldDocSources: T[Seq[PathRef]] = Task {
-    val versionLabels =
-      Settings.docTags.map { v =>
-        (v, v.split('.').dropRight(1).mkString(".") + ".x")
-      }.dropRight(1) ++
-        // Set the latest stable branch as the "master" docs that people default to
-        Seq((Settings.docTags.last, "master"))
+  val versionLabels =
+    Settings.docTags.map { v =>
+      (v, v, v, v.split('.').dropRight(1).mkString(".") + ".x", false)
+    }.dropRight(1) ++
+      // Set the latest stable branch as the "master" docs that people default to
+      Seq(
+        (Settings.docTags.last, Settings.docTags.last, Settings.docTags.last, "master", false),
+        ("dev", "dev", "dev", "dev", true)
+      )
 
-    for ((millVersion, antoraVersion) <- versionLabels) yield {
+  def oldDocSources = Task {
+    Task.traverse(oldDocs.items.map(_.module))(_.value.oldDocSource)()
+  }
+
+  object oldDocs extends Cross[OldDocModule](versionLabels)
+  trait OldDocModule extends Cross.Module5[String, String, String, String, Boolean] {
+
+    def oldDocSource: T[PathRef] = Task {
+      val millVersion =
+        if (crossValue == "dev") build.latestUnstableVersion()
+        else crossValue
+
+      val gitVersion =
+        if (crossValue2 == "dev") build.latestUnstableVersion().split('-').last
+        else crossValue2
+
+      val displayVersion =
+        if (crossValue3 == "dev") "dev-" + build.latestUnstableVersion()
+        else crossValue3
+
+      val antoraVersion = if (crossValue4 == "dev") displayVersion else crossValue4
+
+      val newWebsiteTask: Boolean = crossValue5
+
       val checkout = Task.dest / millVersion
       os.proc("git", "clone", Task.workspace / ".git", checkout).call(stdout = os.Inherit)
-      os.proc("git", "checkout", millVersion).call(cwd = checkout, stdout = os.Inherit)
-      val outputFolder = checkout / "out/docs/source.dest"
-      os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
+      os.proc("git", "checkout", gitVersion).call(cwd = checkout, stdout = os.Inherit)
+      val outputFolder = if (newWebsiteTask) {
+        os.proc("./mill", "-i", "website.source").call(cwd = checkout, stdout = os.Inherit)
+        checkout / "out/website/source.dest"
+      } else {
+        os.proc("./mill", "-i", "docs.source").call(cwd = checkout, stdout = os.Inherit)
+        checkout / "out/docs/source.dest"
+      }
+
       expandDiagramsInDirectoryAdocFile(
         outputFolder,
         mill.main.VisualizeModule.toolsClasspath().map(_.path)
       )
 
-      val useOldDownloadUrl = Version.OsgiOrdering.lt(
-        Version.parse(millVersion),
-        Version.parse("0.12.6")
-      )
+      val useOldDownloadUrl =
+        if (antoraVersion.startsWith("dev-")) false
+        else Version.OsgiOrdering.lt(Version.parse(millVersion), Version.parse("0.12.6"))
 
       val millDownloadUrl =
         if (useOldDownloadUrl) s"${Settings.projectUrl}/releases/download/$millVersion"
         else s"${build.millDownloadPrefix()}/$millVersion"
 
-      sanitizeAntoraYml(outputFolder, antoraVersion, millVersion, millVersion, millDownloadUrl)
+      sanitizeAntoraYml(outputFolder, antoraVersion, displayVersion, millVersion, millDownloadUrl)
       PathRef(outputFolder)
     }
   }
-
   def githubPages: T[PathRef] = Task {
     generatePages(authorMode = false).apply().apply(oldDocSources().map(_.path))
   }

@@ -7,6 +7,7 @@ import mill.kotlinlib.{Dep, DepSyntax}
 import mill.scalalib.TestModule.Junit5
 import mill.scalalib.{JavaModule, TestModule}
 import mill.T
+import upickle.implicits.namedTuples.default.given
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -190,7 +191,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
           outer.compile().classes.path.toString(),
           androidProcessedResources().path.toString
         ),
-        screenshots = androidDiscoveredPreviews()._2,
+        screenshots = androidDiscoveredPreviews().screenshotConfigs,
         namespace = androidApplicationNamespace,
         resourceApkPath = resourceApkPath().path.toString(),
         resultsFilePath = resultsFilePath.toString()
@@ -202,7 +203,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     }
 
     private def resourceApkPath: Task[PathRef] = Task {
-      PathRef(outer.androidCompiledResources()._1.path / "res.apk")
+      outer.androidCompiledResources().resApkFile
     }
 
     // TODO previews must be source controlled to be used as a base
@@ -253,7 +254,10 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     def androidScreenshotTestMethods: Seq[(String, Seq[String])]
 
     /* TODO enhance with hash (sha-1) and auto-detection/generation of methodFQN */
-    def androidDiscoveredPreviews: T[(PathRef, Seq[ComposeRenderer.Screenshot])] = Task {
+    def androidDiscoveredPreviews: T[(
+        previewsDiscoveredJsonFile: PathRef,
+        screenshotConfigs: Seq[ComposeRenderer.Screenshot]
+    )] = Task {
 
       val androidDiscoveredPreviewsPath = Task.dest / "previews_discovered.json"
 
@@ -271,7 +275,10 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
         upickle.default.write(Map("screenshots" -> screenshotConfigurations))
       )
 
-      PathRef(androidDiscoveredPreviewsPath) -> screenshotConfigurations
+      (
+        previewsDiscoveredJsonFile = PathRef(androidDiscoveredPreviewsPath),
+        screenshotConfigs = screenshotConfigurations
+      )
     }
 
     private def diffImageDirPath: Task[PathRef] = Task {
@@ -303,7 +310,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
      */
     private def testJvmArgs: T[Seq[String]] = Task {
       val params = Map(
-        "previews-discovered" -> androidDiscoveredPreviews()._1.path.toString(),
+        "previews-discovered" -> androidDiscoveredPreviews().previewsDiscoveredJsonFile.path.toString(),
         "referenceImageDirPath" -> screenshotResults().path.toString(),
         "diffImageDirPath" -> diffImageDirPath().path.toString,
         "renderResultsFilePath" -> androidScreenshotGeneratedResults().path.toString,

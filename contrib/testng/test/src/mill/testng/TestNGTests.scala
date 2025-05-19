@@ -53,18 +53,18 @@ object TestNGTests extends TestSuite {
       eval =>
         val Right(result) = eval.apply(demo.test.testForked()): @unchecked
         val tres = result.value
-        assert(tres._2.size == 8)
+        assert(tres.results.size == 8)
     }
     test("noGrouping") - UnitTester(demo, resourcePath).scoped {
       eval =>
         val Right(result) = eval.apply(demo.testng.testForked()): @unchecked
-        val tres = result.value._2
+        val tres = result.value.results
         assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
     }
     test("testForkGrouping") - UnitTester(demo, resourcePath).scoped {
       eval =>
         val Right(result) = eval.apply(demo.testngGrouping.testForked()): @unchecked
-        val tres = result.value._2
+        val tres = result.value.results
         assert(tres.map(_.fullyQualifiedName).toSet == Set("foo.HelloTests", "foo.WorldTests"))
     }
   }

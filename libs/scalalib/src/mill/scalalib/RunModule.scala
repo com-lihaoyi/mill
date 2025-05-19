@@ -117,7 +117,7 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    */
   def runMainBackground(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
     val task = runBackgroundTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
-    Task.Command { task() }
+    Task.Command(persistent = true) { task() }
   }
 
   /**
@@ -162,13 +162,9 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(Task.dest)
+      val dest = Task.dest
       runner().run(
-        args = Seq(
-          procUuidPath.toString,
-          procLockfile.toString,
-          procUuid,
-          runBackgroundRestartDelayMillis().toString,
+        args = RunModule.BackgroundPaths(dest).toArgs ++ Seq(
           mainClass()
         ) ++ args().value,
         mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
@@ -192,7 +188,7 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    */
   def runBackground(args: String*): Command[Unit] = {
     val task = runBackgroundTask(finalMainClass, Task.Anon { Args(args) })
-    Task.Command { task() }
+    Task.Command(persistent = true) { task() }
   }
 
   /**
@@ -205,7 +201,6 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    */
   // TODO: make this a task, to be more dynamic
   def runBackgroundLogToConsole: Boolean = true
-  def runBackgroundRestartDelayMillis: T[Int] = 500
 
   private[mill] def launcher0 = Task.Anon {
     val launchClasspath =
@@ -245,13 +240,6 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
 }
 
 object RunModule {
-
-  private[mill] def backgroundSetup(dest: os.Path): (Path, Path, String) = {
-    val procUuid = java.util.UUID.randomUUID().toString
-    val procUuidPath = dest / ".mill-background-process-uuid"
-    val procLockfile = dest / ".mill-background-process-lock"
-    (procUuidPath, procLockfile, procUuid)
-  }
 
   private[mill] def getMainMethod(mainClassName: String, cl: ClassLoader) = {
     val mainClass = cl.loadClass(mainClassName)
@@ -361,4 +349,19 @@ object RunModule {
     }
   }
 
+  /** @param destDir The `Task.dest`. Needs to be persistent for it to work properly. */
+  private[mill] class BackgroundPaths(val destDir: os.Path) {
+    def newestPidPath: os.Path = destDir / "newest-pid"
+    def currentlyRunningPidPath: os.Path = destDir / "currently-running-pid"
+    def lockPath: os.Path = destDir / "lock"
+    def logPath: os.Path = destDir / "log"
+
+    def toArgs: Seq[String] =
+      Seq(
+        newestPidPath.toString,
+        currentlyRunningPidPath.toString,
+        lockPath.toString,
+        logPath.toString
+      )
+  }
 }
