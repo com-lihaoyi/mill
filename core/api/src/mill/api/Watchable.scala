@@ -8,6 +8,7 @@ package mill.api
  */
 private[mill] sealed trait Watchable
 private[mill] object Watchable {
+
   /**
    * Watched path, can be watched via polling or via a notification system.
    *
