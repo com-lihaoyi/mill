@@ -12,7 +12,7 @@ class DoubleLocked implements Locked {
 
   @Override
   public void release() throws Exception {
-    this.lock1.release();
     this.lock2.release();
+    this.lock1.release();
   }
 }
