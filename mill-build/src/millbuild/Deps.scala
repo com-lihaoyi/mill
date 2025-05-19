@@ -85,7 +85,7 @@ object Deps {
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.179"
-  val coursierVersion = "2.1.25-M11"
+  val coursierVersion = "2.1.25-M13"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierInterface = mvn"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm =
@@ -151,7 +151,8 @@ object Deps {
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.3-M5"
   val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.4.5"
-  val upickle = mvn"com.lihaoyi::upickle:4.1.0"
+  val upickle = mvn"com.lihaoyi::upickle:4.2.1"
+  val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.2.1"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
@@ -179,7 +180,7 @@ object Deps {
     mvn"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
   val mavenResolverTransportWagon =
     mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
-  val coursierJvmIndexVersion = "0.0.4-84-f852c6"
+  val coursierJvmIndexVersion = "0.0.4-111-eb6e08"
   val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"

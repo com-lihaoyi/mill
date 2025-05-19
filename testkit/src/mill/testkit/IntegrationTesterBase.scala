@@ -1,11 +1,11 @@
 package mill.testkit
-import mill.constants.OutFiles.{millServer, millNoServer, out}
-import mill.constants.ServerFiles.processId
+import mill.constants.OutFiles.{millDaemon, millNoDaemon, out}
+import mill.constants.DaemonFiles.processId
 import mill.util.Retry
 
 trait IntegrationTesterBase {
   def workspaceSourcePath: os.Path
-  def clientServerMode: Boolean
+  def daemonMode: Boolean
 
   def propagateJavaHome: Boolean
 
@@ -42,7 +42,7 @@ trait IntegrationTesterBase {
   def initWorkspace(): Unit = {
     println(s"Copying integration test sources from $workspaceSourcePath to $workspacePath")
     os.makeDir.all(workspacePath)
-    Retry(Retry.printStreamLogger(System.err)) {
+    Retry(logger = Retry.printStreamLogger(System.err)) {
       val tmp = os.temp.dir()
       val outDir = os.Path(out, workspacePath)
       if (os.exists(outDir)) os.move.into(outDir, tmp)
@@ -70,11 +70,11 @@ trait IntegrationTesterBase {
   def removeProcessIdFile(): Unit = {
     val outDir = os.Path(out, workspacePath)
     if (os.exists(outDir)) {
-      if (clientServerMode) {
-        val serverPath = outDir / millServer
+      if (daemonMode) {
+        val serverPath = outDir / millDaemon
         os.remove(serverPath / processId)
       } else {
-        val serverPath0 = outDir / millNoServer
+        val serverPath0 = outDir / millNoDaemon
 
         for (serverPath <- os.list.stream(serverPath0)) os.remove(serverPath / processId)
 

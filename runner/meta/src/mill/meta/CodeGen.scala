@@ -106,18 +106,13 @@ object CodeGen {
           millTopLevelProjectRoot = millTopLevelProjectRoot,
           output = output
         )
-        os.write(
-          supportDestDir / "MillMiscInfo.scala",
-          miscInfo,
-          createFolders = true
-        )
 
-        val wrapperObjectGetter = generateWrapperObjectGetter(pkg)
-        os.write(
-          supportDestDir / "wrapper_object_getter.scala",
-          wrapperObjectGetter,
-          createFolders = true
-        )
+        os.write(supportDestDir / "MillMiscInfo.scala", miscInfo, createFolders = true)
+
+        if (scriptFolderPath == projectRoot) {
+          val buildFileImplCode = generateBuildFileImpl(pkg)
+          os.write(supportDestDir / "BuildFileImpl.scala", buildFileImplCode, createFolders = true)
+        }
       }
 
       val parts =
@@ -183,17 +178,11 @@ object CodeGen {
         |""".stripMargin
   }
 
-  def generateWrapperObjectGetter(pkg: String) = {
+  def generateBuildFileImpl(pkg: String) = {
     s"""|$generatedFileHeader
         |package $pkg
         |
-        |object wrapper_object_getter {
-        |  def value = _root_.os.checker.withValue(
-        |    _root_.mill.define.internal.ResolveChecker(
-        |       _root_.mill.define.WorkspaceRoot.workspaceRoot
-        |    )
-        |  ){ ${CGConst.wrapperObjectName} }
-        |}
+        |object BuildFileImpl extends mill.define.internal.BuildFileCls(${CGConst.wrapperObjectName})
         |""".stripMargin
   }
 

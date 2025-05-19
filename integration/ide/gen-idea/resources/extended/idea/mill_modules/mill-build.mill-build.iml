@@ -16,21 +16,21 @@
         <orderEntry type="library" name="aircompressor-0.27.jar" level="project"/>
         <orderEntry type="library" name="asm-9.8.jar" level="project"/>
         <orderEntry type="library" name="asm-tree-9.8.jar" level="project"/>
-        <orderEntry type="library" name="cache-util-2.1.25-M11.jar" level="project"/>
+        <orderEntry type="library" name="cache-util-2.1.25-M13.jar" level="project"/>
         <orderEntry type="library" name="commons-codec-1.17.0.jar" level="project"/>
         <orderEntry type="library" name="commons-compress-1.26.2.jar" level="project"/>
         <orderEntry type="library" name="commons-io-2.18.0.jar" level="project"/>
         <orderEntry type="library" name="commons-lang3-3.14.0.jar" level="project"/>
         <orderEntry type="library" name="concurrent-reference-hash-map-1.1.0.jar" level="project"/>
         <orderEntry type="library" name="config_2.13-1.1.3.jar" level="project"/>
-        <orderEntry type="library" name="coursier-cache_2.13-2.1.25-M11.jar" level="project"/>
-        <orderEntry type="library" name="coursier-core_2.13-2.1.25-M11.jar" level="project"/>
-        <orderEntry type="library" name="coursier-env_2.13-2.1.25-M11.jar" level="project"/>
-        <orderEntry type="library" name="coursier-exec-2.1.25-M11.jar" level="project"/>
-        <orderEntry type="library" name="coursier-jvm_2.13-2.1.25-M11.jar" level="project"/>
-        <orderEntry type="library" name="coursier-proxy-setup-2.1.25-M11.jar" level="project"/>
-        <orderEntry type="library" name="coursier-util_2.13-2.1.25-M11.jar" level="project"/>
-        <orderEntry type="library" name="coursier_2.13-2.1.25-M11.jar" level="project"/>
+        <orderEntry type="library" name="coursier-cache_2.13-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier-core_2.13-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier-env_2.13-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier-exec-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier-jvm_2.13-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier-proxy-setup-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier-util_2.13-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier_2.13-2.1.25-M13.jar" level="project"/>
         <orderEntry type="library" name="dependency_2.13-0.3.2.jar" level="project"/>
         <orderEntry type="library" name="fansi_3-0.5.0.jar" level="project"/>
         <orderEntry type="library" name="fastparse_3-3.1.1.jar" level="project"/>
@@ -108,16 +108,17 @@
         <orderEntry type="library" name="specification-level_2.13-1.1.3.jar" level="project"/>
         <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>
         <orderEntry type="library" name="tika-core-3.1.0.jar" level="project"/>
-        <orderEntry type="library" name="ujson_3-4.1.0.jar" level="project"/>
-        <orderEntry type="library" name="upack_3-4.1.0.jar" level="project"/>
-        <orderEntry type="library" name="upickle-core_3-4.1.0.jar" level="project"/>
-        <orderEntry type="library" name="upickle-implicits_3-4.1.0.jar" level="project"/>
-        <orderEntry type="library" name="upickle_3-4.1.0.jar" level="project"/>
+        <orderEntry type="library" name="ujson_3-4.2.1.jar" level="project"/>
+        <orderEntry type="library" name="upack_3-4.2.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle-core_3-4.2.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle-implicits-named-tuples_3-4.2.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle-implicits_3-4.2.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle_3-4.2.1.jar" level="project"/>
         <orderEntry type="library" name="versions_2.13-0.5.1.jar" level="project"/>
         <orderEntry type="library" name="windows-ansi-0.0.6.jar" level="project"/>
         <orderEntry type="library" name="windows-jni-utils-0.3.3.jar" level="project"/>
         <orderEntry type="library" name="xbean-reflect-3.7.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="xz-1.9.jar" level="project"/>
-        <orderEntry type="library" name="zstd-jni-1.5.7-2.jar" level="project"/>
+        <orderEntry type="library" name="zstd-jni-1.5.7-3.jar" level="project"/>
     </component>
 </module>

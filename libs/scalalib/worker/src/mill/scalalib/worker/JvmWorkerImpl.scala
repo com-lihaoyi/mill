@@ -233,7 +233,7 @@ class JvmWorkerImpl(
     ) { (compilers: Compilers) =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
       // https://github.com/com-lihaoyi/mill/issues/4556
-      mill.util.Retry(mill.util.Retry.ctxLogger, count = 2) {
+      mill.util.Retry(count = 2) {
         if (JvmWorkerUtil.isDotty(scalaVersion) || JvmWorkerUtil.isScala3Milestone(scalaVersion)) {
           // dotty 0.x and scala 3 milestones use the dotty-doc tool
           val dottydocClass =

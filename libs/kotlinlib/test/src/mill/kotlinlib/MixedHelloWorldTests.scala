@@ -4,7 +4,7 @@ package kotlinlib
 import mill.api.ExecResult
 import mill.define.Discover
 import mill.scalalib.TestModule
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
 object MixedHelloWorldTests extends TestSuite {
@@ -15,7 +15,7 @@ object MixedHelloWorldTests extends TestSuite {
     Seq("1.0.0", "1.9.24", "2.0.20")
   }
 
-  object MixedHelloWorldKotlin extends TestBaseModule {
+  object MixedHelloWorldKotlin extends TestRootModule {
     trait MainCross extends KotlinModule with Cross.Module[String] {
       def kotlinVersion = crossValue
 

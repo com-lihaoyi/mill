@@ -1,13 +1,13 @@
 package mill.scalalib
 
 import mill.*
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import HelloWorldTests.*
 import mill.define.Discover
 object ScalaScalacheckTests extends TestSuite {
 
-  object HelloScalacheck extends TestBaseModule {
+  object HelloScalacheck extends TestRootModule {
     object foo extends ScalaModule {
       def scalaVersion = scala212Version
       object test extends ScalaTests {

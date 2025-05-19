@@ -1,12 +1,12 @@
 package mill.daemon
 
 import mill.client.FileToStreamTailer
-import mill.constants.ServerFiles
+import mill.constants.DaemonFiles
 import mill.define.SystemStreams.ThreadLocalStreams
 
 import java.io.{OutputStream, PrintStream}
 
-class TailManager(serverDir: os.Path) extends AutoCloseable {
+class TailManager(daemonDir: os.Path) extends AutoCloseable {
   val tailerRefreshIntervalMillis = 2
 
   // We need to explicitly manage tailerOut/tailerErr ourselves, rather than relying
@@ -15,14 +15,14 @@ class TailManager(serverDir: os.Path) extends AutoCloseable {
   @volatile var tailerOut: OutputStream = System.out
   @volatile var tailerErr: OutputStream = System.err
   val stdoutTailer = new FileToStreamTailer(
-    (serverDir / ServerFiles.stdout).toIO,
+    (daemonDir / DaemonFiles.stdout).toIO,
     new PrintStream(new ThreadLocalStreams.ProxyOutputStream {
       def delegate(): OutputStream = tailerOut
     }),
     tailerRefreshIntervalMillis
   )
   val stderrTailer = new FileToStreamTailer(
-    (serverDir / ServerFiles.stderr).toIO,
+    (daemonDir / DaemonFiles.stderr).toIO,
     new PrintStream(new ThreadLocalStreams.ProxyOutputStream {
       def delegate(): OutputStream = tailerErr
     }),

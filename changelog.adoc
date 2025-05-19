@@ -12,6 +12,74 @@ endif::[]
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
+
+[#0-12-13]
+=== 0.12.13 - 2025-05-18
+:version: 0.12.13
+:milestone-name: 0.12.13
+:milestone: 115
+:prev-version: 0.12.11
+
+* NOTE: Mill 0.12.13 requires an updated bootstrap script in order to work, due to changes in Sonatype
+  Central that forced a change in the download URLs for new releases going forward. To update your 
+  bootstrap script, you can use
+
+```
+curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.13/mill-dist-0.12.13-mill.sh -o mill
+chmod +x mill
+```
+
+* Backport `mill.scalalib.SonatypeCentralPublishModule/` from `main` ({link-pr}/5107[#5107]). With
+the https://central.sonatype.org/news/20250326_ossrh_sunset/[Sunset of `oss.sonatype.org`],
+all Mill projects still on `oss.sonatype.org` will need to migrate their sonatype namespaces
+(e.g. `com.lihaoyi`) to `central.sonatype.org` to continue publishing. Instructions for this migration
+are shown below:
+
+** *WARNING: this migration is one-way and cannot be paused or rolled back. If you begin these
+steps, you must complete them, otherwise your project will be in an un-publishable state.
+Please read through all steps and ensure you have time to complete them all before you begin*
+
+** (Optional) Upgrade to Mill `0.12.13`, which contains the latest `mill.scalalib.SonatypePublishModule/`
+command. This is optional because you can use it in earlier versions of Mill (>=0.12.6) as
+a `mill.contrib` moule, but upgrading is better as it ensures the command you use will be
+forwards compatible to future versions of Mill.
+
+** Log into the new `central.sonatype.org` web UI (it uses your existing `oss.sonatype.org` username and password)
+and migrate your namespace from `oss.sonatype.org` via
+the instructions here https://central.sonatype.org/faq/what-is-different-between-central-portal-and-legacy-ossrh/.
+You will then no longer see your namespace on the `oss.sonatype.org` website and it will now be visible
+in the `central.sonatype.org` website
+
+** Generate a new user token from the `central.sonatype.org` web UI, and replace the
+old `oss.sonatype.org` tokens everywhere in your publishing infrastructure (e.g. local
+scripts, Github Actions secrets, etc.)
+
+** Replace all usage of `./mill mill.scalalib.PublishModule/` with `./mill mill.scalalib.SonatypeCentralPublishModule/`
+everywhere it is use (local scripts, Github Actions config, etc.). You should now be able to
+publish to `central.sonatype.org`, see in-progress and completed published artifacts in the
+`central.sonatype.org` website.
+
+*** If you chose not to upgrade Mill to `0.12.12`, instead of `./mill mill.scalalib.SonatypeCentralPublishModule/`
+you will need to use `./mill --import "ivy:com.lihaoyi::mill-contrib-sonatypecentral:" mill.contrib.sonatypecentral.SonatypeCentralPublishModule/publishAll --publishArtifacts __.publishArtifacts`,
+and will need to switch to `./mill mill.scalalib.SonatypeCentralPublishModule/` anyway when later
+upgrading to Mill 1.0.0 and above.
+
+** Note that `central.sonatype.org` is significantly stricter than `oss.sonatype.org` in validating
+published artifacts (details below). This should not affect 99% of projects out there which uses
+the default configuration, but may affect you if you use Maven Central to publish other non-jar
+artifacts (executables, zip files, etc), and cause confusing errors visible in the
+`central.sonatype.org` web portal. Below is a list of the incompatibilities that I am aware of.
+
+*** `central.sonatype.org` now requires a `pom.xml` to be present with every artifact
+
+*** `central.sonatype.org` now requires all files associated with an artifact to follow the
+`<artifact-name>-<artifact-version>` name prefix convention, whereas previously any name
+was accepted
+
+*** `central.sonatype.org` does not allow non-standard `jar` files (e.g. graal native binaries,
+prepended assembly jars to be published with the `.jar` suffix, and they must instead be
+published with some other suffix via `def extraPublish`
+
 [#0-12-11]
 === 0.12.11 - 2025-05-10
 :version: 0.12.11
@@ -69,7 +137,7 @@ see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 * Improve performances of Bloop/install ({link-pr}/4600[#4600]) ({link-pr}/4628[#4628])
 * Pass Mill source JARs to Bloop ({link-pr}/4608[#4608])
 * Optimize BSP initialization stuff ({link-pr}/4698[#4698])
-* Make source path configurable in TestBaseModule ({link-pr}/4703[#4703])
+* Make source path configurable in TestRootModule ({link-pr}/4703[#4703])
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
@@ -150,7 +218,7 @@ to Coursier rather than implementing it in Mill {link-pr}/4145[#4145]
 
 * Honor the `NO_COLOR` env variable {link-pr}/4246[#4246]
 
-* Fix race condition that occasionally caused Mill's background server to exit and
+* Fix race condition that occasionally caused Mill's background daemon to exit and
 restart unnecessarily {link-pr}/4254[#4254]
 
 * Improvements to Mill's https://mill-build.org/mill/android/java.html[experimental

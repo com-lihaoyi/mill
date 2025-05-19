@@ -5,7 +5,7 @@ import mill.define.Discover
 import mill.define.ExecutionPaths
 import mill.scalalib.{ScalaModule, TestModule}
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest._
 import mill.scalajslib.api._
 
@@ -29,7 +29,7 @@ object NodeJSConfigTests extends TestSuite {
     override def mainClass = Some("Main")
   }
 
-  object HelloJSWorld extends TestBaseModule {
+  object HelloJSWorld extends TestRootModule {
     val matrix = for {
       scala <- Seq(scalaVersion)
       nodeArgs <- Seq(nodeArgsEmpty, nodeArgs2G)

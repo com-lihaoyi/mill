@@ -3,11 +3,11 @@ package mill.scalalib
 import mill.*
 import mill.define.Discover
 import mill.util.Jvm
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 
 trait AssemblyTestUtils {
 
-  object TestCase extends TestBaseModule {
+  object TestCase extends TestRootModule {
     trait Setup extends ScalaModule {
       def scalaVersion = "2.13.11"
 

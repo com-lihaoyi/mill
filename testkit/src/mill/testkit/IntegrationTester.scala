@@ -13,7 +13,7 @@ import ujson.Value
  * [[modifyFile]] or any of the OS-Lib `os.*` APIs on the [[workspacePath]] to modify
  * project files in the course of the test.
  *
- * @param clientServerMode Whether to run Mill in client-server mode. If `false`, Mill
+ * @param daemonMode Whether to run Mill in client-server mode. If `false`, Mill
  *                         is run with `--no-server`
  * @param workspaceSourcePath The folder in which the `build.mill` and project files being
  *                            tested comes from. These are copied into a temporary folder
@@ -21,7 +21,7 @@ import ujson.Value
  * @param millExecutable What Mill executable to use.
  */
 class IntegrationTester(
-    val clientServerMode: Boolean,
+    val daemonMode: Boolean,
     val workspaceSourcePath: os.Path,
     val millExecutable: os.Path,
     override val debugLog: Boolean = false,
@@ -37,14 +37,16 @@ object IntegrationTester {
    * A very simplified version of `os.CommandResult` meant for easily
    * performing assertions against.
    */
-  case class EvalResult(isSuccess: Boolean, out: String, err: String)
+  case class EvalResult(exitCode: Int, out: String, err: String) {
+    def isSuccess = exitCode == 0
+  }
 
   trait Impl extends AutoCloseable with IntegrationTesterBase {
 
     def millExecutable: os.Path
     def workspaceSourcePath: os.Path
 
-    val clientServerMode: Boolean
+    val daemonMode: Boolean
 
     def debugLog = false
 
@@ -67,7 +69,7 @@ object IntegrationTester {
         propagateEnv: Boolean = true,
         timeoutGracePeriod: Long = 100
     ): IntegrationTester.EvalResult = {
-      val serverArgs = Option.when(!clientServerMode)("--no-server")
+      val serverArgs = Option.when(!daemonMode)("--no-daemon")
 
       val debugArgs = Option.when(debugLog)("--debug")
 
@@ -88,7 +90,7 @@ object IntegrationTester {
       )
 
       IntegrationTester.EvalResult(
-        res0.exitCode == 0,
+        res0.exitCode,
         fansi.Str(res0.out.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim,
         fansi.Str(res0.err.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim
       )

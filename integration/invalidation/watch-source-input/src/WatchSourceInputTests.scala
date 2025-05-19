@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * 1. `Task.Source`
  * 2. `Task.Sources`
  * 3. `Task.Input`
- * 4. `interp.watchValue`
+ * 4. `mill.define.BuildCtx.watchValue`
  * 5. Implicitly watched files, like `build.mill`
  */
 trait WatchTests extends UtestIntegrationTestSuite {
@@ -49,7 +49,7 @@ trait WatchTests extends UtestIntegrationTestSuite {
       .filter(!_.contains("Watching for changes"))
       .filter(!_.contains("[info] compiling"))
       .filter(!_.contains("[info] done compiling"))
-      .filter(!_.contains("mill-server/ exitCode file not found"))
+      .filter(!_.contains("mill-daemon/ exitCode file not found"))
 
     assert(out == expectedOut)
 

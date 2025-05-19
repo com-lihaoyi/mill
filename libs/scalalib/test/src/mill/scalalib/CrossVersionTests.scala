@@ -4,13 +4,13 @@ import mill.define.Discover
 import mill.define.ExecutionPaths
 import mill.util.TokenReaders.*
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 import utest.framework.TestPath
 
 object CrossVersionTests extends TestSuite {
 
-  object TestCases extends TestBaseModule {
+  object TestCases extends TestRootModule {
 
     object StandaloneScala213 extends ScalaModule {
       val tree =

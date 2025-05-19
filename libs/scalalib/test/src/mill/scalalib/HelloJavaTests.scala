@@ -3,13 +3,13 @@ package scalalib
 
 import mill.api.ExecResult
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 import mill.define.Discover
 
 object HelloJavaTests extends TestSuite {
 
-  object HelloJava extends TestBaseModule {
+  object HelloJava extends TestRootModule {
     object core extends JavaModule {
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4

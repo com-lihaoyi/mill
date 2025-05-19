@@ -78,14 +78,14 @@ def osProcTask = Task {
 //
 // Lastly, there is the possibily of calling `os.pwd` outside of a task. When outside of
 // a task there is no `.dest/` folder associated, so instead Mill will redirect `os.pwd`
-// towards an empty `sandbox/` folder in `out/mill-server/...`:
+// towards an empty `sandbox/` folder in `out/mill-daemon/...`:
 
 val externalPwd = os.pwd
 def externalPwdTask = Task { println(externalPwd.toString) }
 
 /** Usage
 > ./mill externalPwdTask
-.../out/mill-server/sandbox
+.../out/mill-daemon/sandbox
 */
 
 // === Limitations of Mill's Sandboxing

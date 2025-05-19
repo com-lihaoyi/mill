@@ -3,7 +3,7 @@ package mill.init
 import mill.api.Val
 import mill.define.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest._
 
 import java.io.{ByteArrayOutputStream, OutputStream, PrintStream}
@@ -13,7 +13,7 @@ import scala.util.Properties
 
 object InitModuleTests extends TestSuite {
 
-  object initmodule extends TestBaseModule with InitModule {
+  object initmodule extends TestRootModule with InitModule {
     lazy val millDiscover = Discover[this.type]
   }
 

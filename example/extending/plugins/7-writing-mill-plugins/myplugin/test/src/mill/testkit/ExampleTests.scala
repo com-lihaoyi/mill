@@ -6,11 +6,9 @@ object ExampleTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("example") {
-//      pprint.log(sys.env("MILL_EXECUTABLE_PATH"))
-//      pprint.log(sys.env("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH"))
       val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))
       ExampleTester.run(
-        clientServerMode = true,
+        daemonMode = true,
         workspaceSourcePath = resourceFolder / "example-test-project",
         millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))
       )

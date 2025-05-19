@@ -32,7 +32,7 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
       os.remove(stop)
       eval(("foo.runBackground", lock, stop))
       eventually { !probeLockAvailable(lock) }
-      if (tester.clientServerMode) eval("shutdown")
+      if (tester.daemonMode) eval("shutdown")
       continually { !probeLockAvailable(lock) }
       os.write(stop, "")
       eventually { probeLockAvailable(lock) }
