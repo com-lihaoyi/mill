@@ -827,9 +827,9 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 
 &gt; ./mill show app.it
 ...
-[
-  &quot;&quot;,
-  [
+{
+  &quot;msg&quot;: &quot;&quot;,
+  &quot;results&quot;: [
     {
       &quot;fullyQualifiedName&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
       &quot;selector&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
@@ -837,7 +837,7 @@ all necessary steps (resource generation, APK creation, and signing) are execute
       &quot;status&quot;: &quot;Success&quot;
     }
   ]
-]
+}
 ...
 
 &gt; cat out/app/it/testForked.dest/test-report.xml
@@ -1172,9 +1172,9 @@ object app extends AndroidAppModule { <i class="conum" data-value="2"></i><b>(2)
 
 &gt; ./mill show app.it
 ...
-[
-  &quot;&quot;,
-  [
+{
+  &quot;msg&quot;: &quot;&quot;,
+  &quot;results&quot;: [
     {
       &quot;fullyQualifiedName&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
       &quot;selector&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.useAppContext&quot;,
@@ -1182,7 +1182,7 @@ object app extends AndroidAppModule { <i class="conum" data-value="2"></i><b>(2)
       &quot;status&quot;: &quot;Success&quot;
     }
   ]
-]
+}
 
 
 &gt; ./mill show app.stopAndroidEmulator
@@ -1296,9 +1296,9 @@ object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i>
 
 &gt; ./mill show app.it
 ...
-[
-  &quot;&quot;,
-  [
+{
+  &quot;msg&quot;: &quot;&quot;,
+  &quot;results&quot;: [
     {
       &quot;fullyQualifiedName&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp&quot;,
       &quot;selector&quot;: &quot;com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp&quot;,
@@ -1306,7 +1306,7 @@ object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i>
       &quot;status&quot;: &quot;Success&quot;
     }
   ]
-]
+}
 ...
 
 &gt; ./mill show app.stopAndroidEmulator
