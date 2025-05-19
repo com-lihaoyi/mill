@@ -120,9 +120,9 @@ object app extends AndroidAppModule {
 
 > ./mill show app.it
 ...
-[
-  "",
-  [
+{
+  "msg": "",
+  "results": [
     {
       "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
       "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
@@ -130,7 +130,7 @@ object app extends AndroidAppModule {
       "status": "Success"
     }
   ]
-]
+}
 ...
 
 > cat out/app/it/testForked.dest/test-report.xml
