@@ -305,7 +305,10 @@ object `package` extends mill.Module {
         (v, v.split('.').dropRight(1).mkString(".") + ".x")
       }.dropRight(1) ++
         // Set the latest stable branch as the "master" docs that people default to
-        Seq((Settings.docTags.last, "master"))
+        Seq(
+          (build.latestUnstableVersion().split('-').last, "dev-" + build.latestUnstableVersion()),
+          (Settings.docTags.last, "master")
+        )
 
     for ((millVersion, antoraVersion) <- versionLabels) yield {
       val checkout = Task.dest / millVersion

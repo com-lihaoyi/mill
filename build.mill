@@ -45,10 +45,14 @@ def millVersion: T[String] = Task {
   } else "SNAPSHOT"
 }
 
-def millLastTagTruth: T[String] = Task {
-  VcsVersion.calcVcsState(Task.log).lastTag.getOrElse(
-    sys.error("No (last) git tag found. Your git history seems incomplete!")
-  )
+def latestUnstableVersion = Task.Input {
+  val mavenMetadataXml = requests
+    .get("https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/maven-metadata.xml")
+    .text()
+
+  val xml = scala.xml.XML.loadString(mavenMetadataXml)
+
+  (xml \\ "version").map(_.text).last
 }
 
 def millLastTag: T[String] = Task {
