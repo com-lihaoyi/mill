@@ -55,7 +55,8 @@ object Watching {
 
     watch match {
       case None =>
-        val Result(watchables, errorOpt, result) = evaluate(enterKeyPressed = false, previousState = None)
+        val Result(watchables, errorOpt, result) =
+          evaluate(enterKeyPressed = false, previousState = None)
         handleError(errorOpt)
         (errorOpt.isEmpty, result)
 
@@ -72,8 +73,7 @@ object Watching {
           try {
             watchArgs.setIdle(true)
             enterKeyPressed = watchAndWait(streams, streams.in, watchables, watchArgs)
-          }
-          finally {
+          } finally {
             watchArgs.setIdle(false)
           }
         }
