@@ -46,7 +46,7 @@ class GenIdeaImpl(
       .getOrElse(("JDK_1_8", "1.8 (1)"))
 
     println("Analyzing modules ...")
-    val layout: Seq[(subPath : SubPath, xml : Node)] =
+    val layout: Seq[(subPath: SubPath, xml: Node)] =
       xmlFileLayout(evaluators, jdkInfo)
 
     println("Cleaning obsolete IDEA project files ...")

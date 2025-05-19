@@ -10,8 +10,8 @@ import os.zip.ZipSource
  */
 @mill.api.experimental
 trait AndroidAppBundle extends AndroidAppModule with JavaModule {
-  
-    /**
+
+  /**
    * Adds `--proto-format` option to AAPT commands.
    */
   override def androidAaptOptions: T[Seq[String]] = Task {
