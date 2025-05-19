@@ -17,7 +17,7 @@ import mill.scalanativelib.worker.{
 import mill.T
 import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
-import upickle.implicits.namedTuples.default.given 
+import upickle.implicits.namedTuples.default.given
 
 trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   def scalaNativeVersion: T[String]
