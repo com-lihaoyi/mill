@@ -103,9 +103,9 @@ object app extends AndroidAppModule { // <2>
 
 > ./mill show app.it
 ...
-[
-  "",
-  [
+{
+  "msg": "",
+  "results": [
     {
       "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
       "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
@@ -113,7 +113,7 @@ object app extends AndroidAppModule { // <2>
       "status": "Success"
     }
   ]
-]
+}
 
 
 > ./mill show app.stopAndroidEmulator

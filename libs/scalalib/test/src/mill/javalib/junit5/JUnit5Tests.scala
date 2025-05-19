@@ -28,7 +28,7 @@ object JUnit5Tests extends TestSuite {
       UnitTester(module, testModuleSourcesPath).scoped { eval =>
         val res = eval(module.test.testForked(""))
         assert(res.isRight)
-        assert(res.toOption.get.value._2.forall(_.fullyQualifiedName == "qux.QuxTests"))
+        assert(res.toOption.get.value.results.forall(_.fullyQualifiedName == "qux.QuxTests"))
       }
     }
   }
