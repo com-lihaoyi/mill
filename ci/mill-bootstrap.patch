@@ -20,6 +20,18 @@ index 4465e163a55..6b8da38aae7 100644
  
  val dummyDeps: Seq[Dep] = Seq(
    Deps.DocDeps.millScip,
+diff --git a/integration/package.mill b/integration/package.mill
+index a5183fc0a5a..4cb6f6689cd 100644
+--- a/integration/package.mill
++++ b/integration/package.mill
+@@ -14,6 +14,7 @@ import mill.T
+ import mill.define.Cross
+ import mill.testrunner.TestResult
+ import millbuild.*
++import upickle.implicits.namedTuples.default.given
+ 
+ object `package` extends mill.Module {
+   // We compile the test code once and then offer multiple modes to
 diff --git a/runner/codesig/package.mill b/runner/codesig/package.mill
 index 3950422474a..1ed233d24f7 100644
 --- a/runner/codesig/package.mill
