@@ -153,9 +153,7 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
 
   def runLocalTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      Jvm.withClassLoader(
-        classPath = runClasspath().map(_.path).toVector
-      ) { classloader =>
+      Jvm.withIsolatedClassLoader(runClasspath().map(_.path).toVector) { classloader =>
         RunModule.getMainMethod(mainClass(), classloader).invoke(null, args().value.toArray)
       }
     }

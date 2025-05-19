@@ -24,7 +24,7 @@ private[playlib] class RouteCompilerWorker {
     ctx.log.debug("Loading classes from\n" + toolsClassPath.mkString("\n"))
     mill.util.Jvm.withClassLoader(
       toolsClassPath,
-      null,
+      parent = null,
       sharedLoader = getClass().getClassLoader(),
       sharedPrefixes = Seq("mill.playlib.api.")
     ) { cl =>

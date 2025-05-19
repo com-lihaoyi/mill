@@ -52,6 +52,7 @@ object MillURLClassLoader {
     openClassloaders.synchronized {
       // println(s"removeOpenClassLoader ${classPath.hashCode}\n  " + new Exception().getStackTrace.mkString("\n  "))
       openClassloaders.updateWith(label) {
+        case None => None
         case Some(1) => None
         case Some(n) => Some(n - 1)
       }

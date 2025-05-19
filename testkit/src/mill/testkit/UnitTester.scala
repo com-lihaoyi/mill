@@ -195,19 +195,27 @@ class UnitTester(
   }
 
   def scoped[T](tester: UnitTester => T): T = {
-    try tester(this)
-    finally close()
+    val t =
+      try tester(this)
+      finally done(runCheck = false)
+    // run done() a second time, checking for class loader leaks this time
+    done()
+    t
   }
 
-  def close(): Unit = {
+  def done(runCheck: Boolean = true): Unit = {
     for (case (_, Val(obsolete: AutoCloseable)) <- evaluator.workerCache.values) {
       obsolete.close()
     }
     evaluator.close()
 
-    assert(
-      mill.api.MillURLClassLoader.openClassloaders.isEmpty,
-      s"Unit tester detected leaked classloaders on close: \n${mill.api.MillURLClassLoader.openClassloaders.mkString("\n")}"
-    )
+    if (runCheck)
+      assert(
+        mill.api.MillURLClassLoader.openClassloaders.isEmpty,
+        s"Unit tester detected leaked classloaders on close: \n${mill.api.MillURLClassLoader.openClassloaders.mkString("\n")}"
+      )
   }
+
+  def close(): Unit =
+    done()
 }

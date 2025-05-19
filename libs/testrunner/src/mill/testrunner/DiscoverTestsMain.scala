@@ -12,9 +12,12 @@ import os.Path
     main0(runCp, testCp, framework).foreach(println)
   }
   def main0(runCp: Seq[os.Path], testCp: Seq[os.Path], framework: String): Seq[String] = {
+    val hasTwoClassLoaders =
+      classOf[sbt.testing.Framework].getClassLoader != getClass.getClassLoader
     mill.util.Jvm.withClassLoader(
       classPath = runCp,
-      sharedPrefixes = Seq("sbt.testing.")
+      parent = if (hasTwoClassLoaders) classOf[sbt.testing.Framework].getClassLoader else null,
+      sharedPrefixes = if (hasTwoClassLoaders) Nil else Seq("sbt.testing.")
     ) { classLoader =>
       TestRunnerUtils
         .discoverTests(classLoader, Framework.framework(framework)(classLoader), testCp)

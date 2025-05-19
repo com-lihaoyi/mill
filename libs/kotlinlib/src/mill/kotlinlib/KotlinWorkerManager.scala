@@ -15,7 +15,7 @@ class KotlinWorkerFactory()(implicit ctx: TaskCtx)
     extends CachedFactory[Seq[os.Path], (URLClassLoader, KotlinWorker)] {
 
   def setup(key: Seq[os.Path]) = {
-    val cl = mill.util.Jvm.createClassLoader(key, getClass.getClassLoader)
+    val cl = mill.util.Jvm.createClassLoader(key)
     val worker =
       try KotlinWorkerManager.get(cl)
       catch { case e => e.printStackTrace(); ??? }

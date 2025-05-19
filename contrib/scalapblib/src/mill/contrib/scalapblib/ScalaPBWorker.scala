@@ -18,7 +18,7 @@ class ScalaPBWorker {
           otherArgs: Seq[String]
       ): Unit = {
         val pbcClasspath = scalaPBClasspath.map(_.path).toVector
-        mill.util.Jvm.withClassLoader(pbcClasspath, null) { cl =>
+        mill.util.Jvm.withIsolatedClassLoader(pbcClasspath) { cl =>
           val scalaPBCompilerClass = cl.loadClass("scalapb.ScalaPBC")
           val mainMethod = scalaPBCompilerClass.getMethod("main", classOf[Array[java.lang.String]])
           val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"

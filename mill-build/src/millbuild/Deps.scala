@@ -90,6 +90,8 @@ object Deps {
   val coursierInterface = mvn"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierLauncher =
+    mvn"io.get-coursier::coursier-launcher:$coursierVersion".withDottyCompat(scalaVersion)
 
   val cask = mvn"com.lihaoyi::cask:0.9.4"
   val castor = mvn"com.lihaoyi::castor:0.3.0"

@@ -27,10 +27,7 @@ object ExternalSummary {
       localSummary: LocalSummary,
       upstreamClasspath: Seq[os.Path]
   )(implicit st: SymbolTable): ExternalSummary = {
-    val upstreamClassloader = mill.util.Jvm.createClassLoader(
-      upstreamClasspath,
-      getClass.getClassLoader
-    )
+    val upstreamClassloader = mill.util.Jvm.createClassLoader(upstreamClasspath)
 
     val allDirectAncestors = localSummary.mapValuesOnly(_.directAncestors).flatten
 

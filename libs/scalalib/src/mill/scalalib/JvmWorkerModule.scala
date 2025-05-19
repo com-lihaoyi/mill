@@ -81,10 +81,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   def worker: Worker[JvmWorkerApi] = Task.Worker {
     val jobs = Task.ctx().jobs
 
-    val cl = mill.util.Jvm.createClassLoader(
-      classpath().map(_.path).toSeq,
-      getClass.getClassLoader
-    )
+    val cl = mill.util.Jvm.createClassLoader(classpath().map(_.path).toSeq)
 
     val cls = cl.loadClass("mill.scalalib.worker.JvmWorkerImpl")
     val instance = cls.getConstructor(

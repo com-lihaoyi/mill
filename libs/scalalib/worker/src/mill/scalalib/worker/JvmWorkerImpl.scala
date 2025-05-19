@@ -137,12 +137,25 @@ class JvmWorkerImpl(
           cl
         case _ =>
           // the Scala compiler must load the `xsbti.*` classes from the same loader as `JvmWorkerImpl`
-          val cl = mill.util.Jvm.createClassLoader(
-            combinedCompilerJars.map(os.Path(_)).toSeq,
-            parent = null,
-            sharedLoader = getClass.getClassLoader,
-            sharedPrefixes = Seq("xsbti")
-          )
+          val hasLayeredClassLoader =
+            classOf[xsbti.api.DependencyContext].getClassLoader != getClass.getClassLoader
+          // When started with layered class loaders, likely by CoursierClient,
+          // rely on that to get a clean base class loader to load the worker.
+          // Else, likely when run from integration tests in local mode, fallback
+          // on the shared class loader hack.
+          val cl =
+            if (hasLayeredClassLoader)
+              mill.util.Jvm.createClassLoader(
+                combinedCompilerJars.map(os.Path(_)).toSeq,
+                parent = classOf[xsbti.api.DependencyContext].getClassLoader
+              )
+            else
+              mill.util.Jvm.createClassLoader(
+                combinedCompilerJars.map(os.Path(_)).toSeq,
+                parent = null,
+                sharedLoader = getClass.getClassLoader,
+                sharedPrefixes = Seq("xsbti")
+              )
           classloaderCache.update(compilersSig, (cl, 1))
           cl
       }
@@ -294,9 +307,8 @@ class JvmWorkerImpl(
     os.makeDir.all(compileDest)
 
     val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
-    val classloader = mill.util.Jvm.createClassLoader(
-      compilerClasspath.map(_.path).toSeq,
-      null
+    val classloader = mill.util.Jvm.createIsolatedClassLoader(
+      compilerClasspath.map(_.path).toSeq
     )
 
     try {
@@ -337,9 +349,11 @@ class JvmWorkerImpl(
           if (JvmWorkerUtil.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
           else "scala.tools.nsc.Main"
         )
-        compilerMain
-          .getMethod("process", classOf[Array[String]])
-          .invoke(null, argsArray ++ Array("-nowarn"))
+        mill.api.ClassLoader.withContextClassLoader(classloader) {
+          compilerMain
+            .getMethod("process", classOf[Array[String]])
+            .invoke(null, argsArray ++ Array("-nowarn"))
+        }
       } else {
         throw new IllegalArgumentException("Currently not implemented case.")
       }

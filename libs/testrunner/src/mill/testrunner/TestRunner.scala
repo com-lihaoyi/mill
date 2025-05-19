@@ -14,9 +14,12 @@ import mill.util.Jvm
       testReporter: TestReporter,
       classFilter: Class[?] => Boolean = _ => true
   )(implicit ctx: TaskCtx.Log): (String, Seq[mill.testrunner.TestResult]) = {
+    val hasTwoClassLoaders =
+      classOf[sbt.testing.Framework].getClassLoader != getClass.getClassLoader
     Jvm.withClassLoader(
       classPath = entireClasspath.toVector,
-      sharedPrefixes = Seq("sbt.testing.")
+      parent = if (hasTwoClassLoaders) classOf[sbt.testing.Framework].getClassLoader else null,
+      sharedPrefixes = if (hasTwoClassLoaders) Nil else Seq("sbt.testing.")
     ) { classLoader =>
       TestRunnerUtils.runTestFramework0(
         frameworkInstances,

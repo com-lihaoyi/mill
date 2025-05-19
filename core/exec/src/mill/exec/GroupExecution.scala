@@ -325,7 +325,8 @@ private trait GroupExecution {
             exclusiveSystemStreams,
             counterMsg,
             destCreator,
-            getEvaluator().asInstanceOf[Evaluator]
+            getEvaluator().asInstanceOf[Evaluator],
+            rootModule.getClass.getClassLoader
           ) {
             try {
               task.evaluate(args) match {
@@ -539,7 +540,8 @@ private object GroupExecution {
       exclusiveSystemStreams: SystemStreams,
       counterMsg: String,
       destCreator: DestCreator,
-      evaluator: Evaluator
+      evaluator: Evaluator,
+      classLoader: ClassLoader
   )(t: => T): T = {
     val executionChecker = new os.Checker {
       def onRead(path: os.ReadablePath): Unit = path match {
@@ -571,20 +573,22 @@ private object GroupExecution {
     os.dynamicPwdFunction.withValue(destFunc) {
       os.checker.withValue(executionChecker) {
         mill.define.SystemStreams.withStreams(streams) {
-          val exposedEvaluator =
-            if (exclusive) evaluator.asInstanceOf[Evaluator]
-            else new EvaluatorProxy(() =>
-              sys.error(
-                "No evaluator available here; Evaluator is only available in exclusive commands"
+          mill.api.ClassLoader.withContextClassLoader(classLoader) {
+            val exposedEvaluator =
+              if (exclusive) evaluator.asInstanceOf[Evaluator]
+              else new EvaluatorProxy(() =>
+                sys.error(
+                  "No evaluator available here; Evaluator is only available in exclusive commands"
+                )
               )
-            )
 
-          Evaluator.withCurrentEvaluator(exposedEvaluator) {
-            if (!exclusive) t
-            else {
-              logger.prompt.reportKey(Seq(counterMsg))
-              logger.prompt.withPromptPaused {
-                t
+            Evaluator.withCurrentEvaluator(exposedEvaluator) {
+              if (!exclusive) t
+              else {
+                logger.prompt.reportKey(Seq(counterMsg))
+                logger.prompt.withPromptPaused {
+                  t
+                }
               }
             }
           }

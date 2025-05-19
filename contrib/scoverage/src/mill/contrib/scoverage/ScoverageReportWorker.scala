@@ -35,10 +35,7 @@ class ScoverageReportWorker {
       )(implicit
           ctx: TaskCtx
       ): Unit = {
-        mill.util.Jvm.withClassLoader(
-          classpath.map(_.path).toVector,
-          getClass.getClassLoader
-        ) { cl =>
+        mill.util.Jvm.withClassLoader(classpath.map(_.path).toVector) { cl =>
 
           val worker =
             cl

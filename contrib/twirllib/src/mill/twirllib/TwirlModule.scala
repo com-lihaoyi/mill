@@ -80,7 +80,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
   }
 
   def twirlClassLoader = Task.Worker {
-    mill.util.Jvm.createClassLoader(
+    mill.util.Jvm.createIsolatedClassLoader(
       twirlClasspath().map(_.path)
     )
   }

@@ -33,10 +33,7 @@ trait SpringBootToolsModule extends CoursierModule {
   }
 
   def springBootToolsClassLoader: Worker[ClassLoader] = Task.Worker {
-    mill.util.Jvm.createClassLoader(
-      springBootToolsClasspath().map(_.path),
-      getClass().getClassLoader()
-    )
+    mill.util.Jvm.createClassLoader(springBootToolsClasspath().map(_.path))
   }
 
   def springBootToolsWorker: Worker[SpringBootTools] = Task.Worker {

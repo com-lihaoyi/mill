@@ -11,10 +11,7 @@ import java.net.URLClassLoader
 private[scalanativelib] class ScalaNativeWorker(jobs: Int)
     extends CachedFactory[Seq[mill.PathRef], (URLClassLoader, workerApi.ScalaNativeWorkerApi)] {
   override def setup(key: Seq[PathRef]) = {
-    val cl = mill.util.Jvm.createClassLoader(
-      key.map(_.path).toVector,
-      getClass.getClassLoader
-    )
+    val cl = mill.util.Jvm.createClassLoader(key.map(_.path).toVector)
     val bridge = cl
       .loadClass("mill.scalanativelib.worker.ScalaNativeWorkerImpl")
       .getDeclaredConstructor()
