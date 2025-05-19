@@ -106,7 +106,7 @@ object TestRunnerTestUtils {
         }
         // Regardless of whether tests are grouped or not, the same
         // number of test results appear at the end
-        assert(testOnly._2.size == size)
+        assert(testOnly.results.size == size)
       }
     }
   }

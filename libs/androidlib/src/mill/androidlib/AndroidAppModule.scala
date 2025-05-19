@@ -1168,7 +1168,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def testTask(
         args: Task[Seq[String]],
         globSelectors: Task[Seq[String]]
-    ): Task[(String, Seq[TestResult])] = Task.Anon {
+    ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
       val device = androidTestInstall().apply()
 
       val instrumentOutput = os.proc(

@@ -57,8 +57,8 @@ object MultiModuleTests extends TestSuite {
 
         assert(
           result.evalCount > 0,
-          result.value._2.size == 3,
-          result.value._2.forall(_.status == "Success")
+          result.value.results.size == 3,
+          result.value.results.forall(_.status == "Success")
         )
       }
     }

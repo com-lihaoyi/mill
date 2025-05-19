@@ -50,7 +50,7 @@ private final class TestModuleUtil(
     EnvVars.MILL_WORKSPACE_ROOT -> Task.workspace.toString
   )
 
-  def runTests(): Result[(String, Seq[TestResult])] = {
+  def runTests(): Result[(msg: String, results: Seq[TestResult])] = {
     val globFilter = TestRunnerUtils.globFilter(selectors)
 
     def doesNotMatchError = new Result.Exception(
@@ -524,12 +524,12 @@ private[scalalib] object TestModuleUtil {
       doneMsg: String,
       results: Seq[TestResult],
       ctx: Option[TaskCtx.Env]
-  ): Result[(String, Seq[TestResult])] = {
+  ): Result[(msg: String, results: Seq[TestResult])] = {
 
     val badTests: Seq[TestResult] =
       results.filter(x => Set("Error", "Failure").contains(x.status))
     if (badTests.isEmpty) {
-      Result.Success((doneMsg, results))
+      Result.Success((msg = doneMsg, results = results))
     } else {
       val reportCount =
         if (ctx.fold(false)(_.env.contains("CI"))) badTests.length
@@ -553,7 +553,7 @@ private[scalalib] object TestModuleUtil {
       ctx: TaskCtx.Env & TaskCtx.Dest,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
-  ): Result[(String, Seq[TestResult])] = {
+  ): Result[(msg: String, results: Seq[TestResult])] = {
     for {
       fileName <- testReportXml
       path = ctx.dest / fileName

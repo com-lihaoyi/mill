@@ -172,16 +172,16 @@ object HelloJavaTests extends TestSuite {
         val Right(result2) = eval.apply(HelloJava.app.test.testForked()): @unchecked
 
         assert(
-          result2.value._2(0).fullyQualifiedName == "hello.MyAppTests.appTest",
-          result2.value._2(0).status == "Success",
-          result2.value._2(1).fullyQualifiedName == "hello.MyAppTests.coreTest",
-          result2.value._2(1).status == "Success"
+          result2.value.results(0).fullyQualifiedName == "hello.MyAppTests.appTest",
+          result2.value.results(0).status == "Success",
+          result2.value.results(1).fullyQualifiedName == "hello.MyAppTests.coreTest",
+          result2.value.results(1).status == "Success"
         )
 
         val Right(result3) = eval.apply(HelloJava.app.testJunit5.testForked()): @unchecked
 
         val testResults =
-          result3.value._2.map(t => (t.fullyQualifiedName, t.selector, t.status)).sorted
+          result3.value.results.map(t => (t.fullyQualifiedName, t.selector, t.status)).sorted
         val expected = Seq(
           ("hello.Junit5TestsA", "coreTest()", "Success"),
           ("hello.Junit5TestsA", "palindromes(String):1", "Success"),
