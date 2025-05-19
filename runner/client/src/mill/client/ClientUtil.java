@@ -65,6 +65,7 @@ public class ClientUtil {
   public static String readString(InputStream inputStream) throws IOException {
     // Result is between 0 and 255, hence the loop.
     final int length = readInt(inputStream);
+    if (length == -1) return null;
     final byte[] arr = new byte[length];
     int total = 0;
     while (total < length) {
@@ -78,9 +79,13 @@ public class ClientUtil {
   }
 
   public static void writeString(OutputStream outputStream, String string) throws IOException {
-    final byte[] bytes = string.getBytes(utf8);
-    writeInt(outputStream, bytes.length);
-    outputStream.write(bytes);
+    if (string == null) {
+      writeInt(outputStream, -1);
+    } else {
+      final byte[] bytes = string.getBytes(utf8);
+      writeInt(outputStream, bytes.length);
+      outputStream.write(bytes);
+    }
   }
 
   public static void writeInt(OutputStream out, int i) throws IOException {
