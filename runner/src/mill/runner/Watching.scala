@@ -152,6 +152,12 @@ object Watching {
         //   root/a/b
         //   root/a
         //   root
+        //
+        // We're only setting one `os.watch.watch` on the root, and this makes it sound like
+        // we're setting multiple. What we're actually doing is choosing the paths we need to watch recursively in
+        // Linux since inotify is non-recursive by default, since changes in any enclosing folder could result in the
+        // watched file or folder disappearing (e.g. if the enclosing folder was renamed) and we want to pick up such
+        // changes.
         val filterPaths = pathsUnderWorkspaceRoot.flatMap { path =>
           path.relativeTo(workspaceRoot).segments.inits.map(segments => workspaceRoot / segments)
         }

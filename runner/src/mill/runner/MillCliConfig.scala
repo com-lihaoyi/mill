@@ -96,7 +96,7 @@ case class MillCliConfig(
     )
     watch: Flag = Flag(),
     @arg(
-      name = "watch-via-fs-notify",
+      name = "notify-watch",
       doc =
         "Use filesystem based file watching instead of polling based one (experimental, defaults to false)."
     )
