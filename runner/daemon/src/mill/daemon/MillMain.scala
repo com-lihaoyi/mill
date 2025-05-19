@@ -4,12 +4,12 @@ import mill.api.internal.{BspServerResult, internal}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.Lock
-import mill.constants.{OutFiles, DaemonFiles, Util}
-import mill.{api, define}
+import mill.constants.{DaemonFiles, OutFiles, Util}
 import mill.define.BuildCtx
 import mill.internal.{Colors, MultiStream, PromptLogger}
 import mill.server.Server
 import mill.util.BuildInfo
+import mill.{api, define}
 
 import java.io.{InputStream, PipedInputStream, PrintStream}
 import java.lang.reflect.InvocationTargetException
@@ -17,8 +17,8 @@ import java.util.Locale
 import java.util.concurrent.locks.ReentrantLock
 import scala.collection.immutable
 import scala.jdk.CollectionConverters.*
-import scala.util.{Properties, Using}
 import scala.util.control.NonFatal
+import scala.util.{Properties, Using}
 
 @internal
 object MillMain {
@@ -344,9 +344,13 @@ object MillMain {
                       if (config.watch.value) os.remove(out / OutFiles.millSelectiveExecution)
                       Watching.watchLoop(
                         ringBell = config.ringBell.value,
-                        watch = config.watch.value,
+                        watch = Option.when(config.watch.value)(Watching.WatchArgs(
+                          setIdle = setIdle,
+                          colors,
+                          useNotify = config.watchViaFsNotify,
+                          daemonDir = daemonDir
+                        )),
                         streams = streams,
-                        setIdle = setIdle,
                         evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
                           adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
                           runMillBootstrap(
@@ -356,8 +360,7 @@ object MillMain {
                             streams,
                             config.leftoverArgs.value.mkString(" ")
                           )
-                        },
-                        colors = colors
+                        }
                       )
                     }
                   }

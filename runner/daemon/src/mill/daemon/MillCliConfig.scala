@@ -103,6 +103,11 @@ case class MillCliConfig(
     )
     watch: Flag = Flag(),
     @arg(
+      name = "notify-watch",
+      doc = "Use filesystem based file watching instead of polling based one (defaults to true)."
+    )
+    watchViaFsNotify: Boolean = true,
+    @arg(
       short = 's',
       doc =
         """Make ivy logs during script import resolution go silent instead of printing"""
