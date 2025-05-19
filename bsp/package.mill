@@ -10,7 +10,7 @@ object `package` extends RootModule with build.MillPublishScalaModule with Build
   def buildInfoPackageName = "mill.bsp"
 
   def buildInfoMembers = Task {
-    val workerDep = worker.publishSelfDependency()
+    val workerDep = worker.artifactMetadata()
     Seq(
       BuildInfo.Value(
         "bsp4jVersion",
