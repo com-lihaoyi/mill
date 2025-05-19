@@ -80,11 +80,10 @@ public class MillBackgroundWrapper {
       var processExisted = waitForPreviousProcessToTerminate(oldPid);
       if (processExisted) {
         log(
-          logPath,
-          myPid,
-          "Old process terminated in " + (System.nanoTime() - startTimeNanos) / NS_IN_S + "s");
-      }
-      else {
+            logPath,
+            myPid,
+            "Old process terminated in " + (System.nanoTime() - startTimeNanos) / NS_IN_S + "s");
+      } else {
         log(logPath, myPid, "Old process was already terminated.");
       }
     });
