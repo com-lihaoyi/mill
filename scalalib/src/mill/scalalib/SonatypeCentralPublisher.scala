@@ -1,4 +1,4 @@
-package mill.contrib.sonatypecentral
+package mill.scalalib
 
 import com.lumidion.sonatype.central.client.core.{
   DeploymentName,
@@ -106,7 +106,6 @@ class SonatypeCentralPublisher(
           ex
         )
       }
-
     }
 
     log.info(s"Successfully published ${deploymentName.unapply} to Sonatype Central")

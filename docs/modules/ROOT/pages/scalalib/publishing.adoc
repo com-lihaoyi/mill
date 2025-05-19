@@ -24,6 +24,10 @@ include::partial$example/scalalib/publishing/8-native-image-libs.adoc[]
 
 include::partial$example/scalalib/publishing/2-publish-module.adoc[]
 
+== Publlishing to Sonatype Maven Central
+
+include::partial$example/scalalib/publishing/3-publish-module-sonatype.adoc[]
+
 include::partial$Publishing_Footer.adoc[]
 
 == `jlink` and `jpackage`
