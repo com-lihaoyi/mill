@@ -122,6 +122,12 @@ object Task extends TaskBase {
       cls: EnclosingClass
   ): Command[T] = macro Target.Internal.commandImpl[T]
 
+  /** Binary compatibility forwarder. */
+  def Command(
+    t: NamedParameterOnlyDummy,
+    exclusive: Boolean,
+  ): CommandFactory = new CommandFactory(exclusive = exclusive, persistent = false)
+
   /**
    * @param exclusive Exclusive commands run serially at the end of an evaluation,
    *                  without any other tasks running parallel, and without the
@@ -129,12 +135,19 @@ object Task extends TaskBase {
    *                  These are normally used for "top level" commands which are
    *                  run directly to perform some action or display some output
    *                  to the user.
+   * @param persistent Persistent comands do not erase the `Task.dest` folder
+   *                   between runs.
    */
   def Command(
       t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
-      exclusive: Boolean = false
-  ): CommandFactory = new CommandFactory(exclusive)
-  class CommandFactory private[mill] (val exclusive: Boolean) extends TaskBase.TraverseCtxHolder {
+      exclusive: Boolean = false,
+      persistent: Boolean = false
+  ): CommandFactory = new CommandFactory(exclusive = exclusive, persistent = persistent)
+  class CommandFactory private[mill] (val exclusive: Boolean, val persistent: Boolean)
+      extends TaskBase.TraverseCtxHolder {
+    /** Binary compatibility forwarder */
+    private[mill] def this(exclusive: Boolean) = this(exclusive, persistent = false)
+
     def apply[T](t: Result[T])(implicit
         w: W[T],
         ctx: mill.define.Ctx,
@@ -662,7 +675,8 @@ object Target extends TaskBase {
           w.splice,
           cls.splice.value,
           taskIsPrivate.splice,
-          exclusive = c.prefix.splice.asInstanceOf[Task.CommandFactory].exclusive
+          exclusive = c.prefix.splice.asInstanceOf[Task.CommandFactory].exclusive,
+          persistent = c.prefix.splice.asInstanceOf[Task.CommandFactory].persistent
         )
       )
     }
@@ -871,15 +885,30 @@ class Command[+T](
     val writer: W[_],
     val cls: Class[_],
     val isPrivate: Option[Boolean],
-    val exclusive: Boolean
+    val exclusive: Boolean,
+    val persistent: Boolean
 ) extends NamedTask[T] {
+  override def flushDest = !persistent
+
+  /** Binary compatibility forwarder. */
   def this(
       t: Task[T],
       ctx0: mill.define.Ctx,
       writer: W[_],
       cls: Class[_],
       isPrivate: Option[Boolean]
-  ) = this(t, ctx0, writer, cls, isPrivate, false)
+  ) = this(t, ctx0, writer, cls, isPrivate, exclusive = false, persistent = false)
+
+  /** Binary compatibility forwarder. */
+  def this(
+      t: Task[T],
+      ctx0: mill.define.Ctx,
+      writer: W[_],
+      cls: Class[_],
+      isPrivate: Option[Boolean],
+      exclusive: Boolean
+  ) = this(t, ctx0, writer, cls, isPrivate, exclusive = exclusive, persistent = false)
+
   override def asCommand: Some[Command[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
   override def writerOpt: Some[W[_]] = Some(writer)

@@ -1,18 +1,17 @@
 package mill.scalalib
 
-import java.lang.reflect.Modifier
-
 import mainargs.arg
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, ModuleRef, Task}
+import mill.main.client.ServerFiles
+import mill.scalalib.classgraph.ClassgraphWorkerModule
 import mill.util.Jvm
 import mill.{Agg, Args, T}
-import mill.main.client.ServerFiles
 import os.{Path, ProcessOutput}
-import scala.util.control.NonFatal
 
-import mill.scalalib.classgraph.ClassgraphWorkerModule
+import java.lang.reflect.Modifier
+import scala.util.control.NonFatal
 
 trait RunModule extends WithJvmWorker {
 
@@ -115,7 +114,7 @@ trait RunModule extends WithJvmWorker {
    */
   def runMainBackground(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
     val task = runBackgroundTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
-    Task.Command { task() }
+    Task.Command(persistent = true) { task() }
   }
 
   /**
@@ -162,8 +161,7 @@ trait RunModule extends WithJvmWorker {
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      val backgroundPaths = RunModule.BackgroundPaths(outDir = Task.out, destDir = Task.dest)
-      backgroundPaths.ensureStateDirExists()
+      val backgroundPaths = new RunModule.BackgroundPaths(destDir = Task.dest)
 
       runner().run(
         args = backgroundPaths.toArgs ++ Seq(
@@ -203,13 +201,7 @@ trait RunModule extends WithJvmWorker {
       runUseArgsFile: Boolean,
       backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]]
   )(args: String*): Ctx => Result[Unit] = ctx => {
-    val backgroundPaths = RunModule.BackgroundPaths(
-      destDir = taskDest,
-      // A hack, because we can't access `Task.out` here, nor change the method signature. But this is deprecated and
-      // should not be used by anyone.
-      outDir = taskDest
-    )
-    backgroundPaths.ensureStateDirExists()
+    val backgroundPaths = new RunModule.BackgroundPaths(destDir = taskDest)
 
     try Result.Success(
         Jvm.runSubprocessWithBackgroundOutputs(
@@ -357,23 +349,12 @@ object RunModule {
     }
   }
 
-  case class BackgroundPaths(outDir: os.Path, destDir: os.Path) {
-    val stateDir: os.Path = {
-      val relative = destDir.relativeTo(outDir)
-      outDir / "mill-run-background-state" / relative
-    }
-
-    def ensureStateDirExists(): Unit = {
-      os.makeDir.all(stateDir)
-    }
-
-    def newestPidPath: os.Path = stateDir / "newest-pid"
-
-    /** This goes into [[destDir]] so that `./mill clean foo.runBackground` would properly stop the background process. */
+  /** @param destDir The `Task.dest`. Needs to be persistent for it to work properly. */
+  private[mill] class BackgroundPaths(val destDir: os.Path) {
+    def newestPidPath: os.Path = destDir / "newest-pid"
     def currentlyRunningPidPath: os.Path = destDir / "currently-running-pid"
-
-    def lockPath: os.Path = stateDir / "lock"
-    def logPath: os.Path = stateDir / "log"
+    def lockPath: os.Path = destDir / "lock"
+    def logPath: os.Path = destDir / "log"
 
     def toArgs: Seq[String] =
       Seq(
