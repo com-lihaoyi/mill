@@ -1,14 +1,14 @@
 package mill.scalalib
 
 import mill.define.{Discover, PathRef}
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.util.TokenReaders.*
 
 object LauncherTests extends TestSuite {
 
   val customJavaVersion = "19.0.2"
-  object HelloJava extends TestBaseModule with JavaModule {
+  object HelloJava extends TestRootModule with JavaModule {
     object JvmWorkerJava extends JvmWorkerModule {
       def jvmId = s"temurin:$customJavaVersion"
     }

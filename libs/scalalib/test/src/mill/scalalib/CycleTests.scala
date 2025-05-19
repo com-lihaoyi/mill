@@ -3,13 +3,13 @@ package mill.scalalib
 import mill.api.BuildScriptException
 import mill.define.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, intercept, test}
 import mill.util.TokenReaders._
 
 object CycleTests extends TestSuite {
 
-  object CycleBase extends TestBaseModule {
+  object CycleBase extends TestRootModule {
     // See issue: https://github.com/com-lihaoyi/mill/issues/2341
     object a extends ScalaModule {
       override def moduleDeps = Seq(a)

@@ -3,7 +3,7 @@ package mill.testkit
 /**
  * A wrapper of [[mill.define.BaseModule]] meant for easy instantiation in test suites.
  */
-abstract class TestBaseModule(
+abstract class TestRootModule(
     baseModuleSourcePath: os.Path
 )(implicit
     millModuleEnclosing0: sourcecode.Enclosing,

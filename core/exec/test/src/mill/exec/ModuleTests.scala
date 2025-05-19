@@ -2,7 +2,7 @@ package mill.exec
 
 import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import mill.Task
 import mill.define.Discover
 import mill.define.ExternalModule
@@ -25,7 +25,7 @@ object TestExternalModule extends mill.define.ExternalModule with mill.define.Ta
 }
 
 object ModuleTests extends TestSuite {
-  object Build extends TestBaseModule {
+  object Build extends TestRootModule {
     def z = Task { TestExternalModule.x() + TestExternalModule.inner.y() }
     lazy val millDiscover = Discover[this.type]
   }

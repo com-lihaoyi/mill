@@ -5,13 +5,13 @@ import mill.define.Discover
 import mill.define.ExecutionPaths
 import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import os.Path
 import utest.*
 
 object JmhModuleTest extends TestSuite {
 
-  object jmh extends TestBaseModule with ScalaModule with JmhModule {
+  object jmh extends TestRootModule with ScalaModule with JmhModule {
 
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
     override def jmhCoreVersion = "1.35"

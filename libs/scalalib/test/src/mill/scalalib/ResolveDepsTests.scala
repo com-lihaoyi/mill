@@ -8,7 +8,7 @@ import mill.define.{PathRef}
 import mill.api.{Result}
 
 import mill.define.{Discover, Task}
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.util.TokenReaders._
 object ResolveDepsTests extends TestSuite {
@@ -35,7 +35,7 @@ object ResolveDepsTests extends TestSuite {
     }
   }
 
-  object TestCase extends TestBaseModule {
+  object TestCase extends TestRootModule {
     object pomStuff extends JavaModule {
       def mvnDeps = Seq(
         // Dependency whose packaging is "pom", as it's meant to be used

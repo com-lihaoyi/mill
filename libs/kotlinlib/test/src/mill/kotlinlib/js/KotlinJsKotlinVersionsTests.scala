@@ -2,7 +2,7 @@ package mill
 package kotlinlib
 package js
 
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.Cross
 import mill.define.Discover
 import utest.{TestSuite, Tests, test}
@@ -35,7 +35,7 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
     }
   }
 
-  object module extends TestBaseModule {
+  object module extends TestRootModule {
     object foo extends Cross[KotlinJsFooCrossModule](kotlinVersions)
     object bar extends Cross[KotlinJsCrossModule](kotlinVersions)
     object qux extends Cross[KotlinJsQuxCrossModule](kotlinVersions)

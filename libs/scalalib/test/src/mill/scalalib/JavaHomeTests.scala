@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.define.{Args, Discover, ModuleRef, Task}
 import mill.api.ExecResult
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*
 import utest.*
 
@@ -10,7 +10,7 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 object JavaHomeTests extends TestSuite {
 
-  object HelloJavaJavaHome11Override extends TestBaseModule {
+  object HelloJavaJavaHome11Override extends TestRootModule {
     object JvmWorkerJava11 extends JvmWorkerModule {
       def jvmId = "temurin:11.0.24"
     }
@@ -24,7 +24,7 @@ object JavaHomeTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object HelloJavaJavaHome17Override extends TestBaseModule {
+  object HelloJavaJavaHome17Override extends TestRootModule {
     object JvmWorkerJava17 extends JvmWorkerModule {
       def jvmId = "temurin:17.0.9"
     }
@@ -37,7 +37,7 @@ object JavaHomeTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object JavaJdk11DoesntCompile extends TestBaseModule {
+  object JavaJdk11DoesntCompile extends TestRootModule {
     object JvmWorkerJava extends JvmWorkerModule {
       def jvmId = "temurin:11.0.25"
     }
@@ -52,7 +52,7 @@ object JavaHomeTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object JavaJdk17Compiles extends TestBaseModule {
+  object JavaJdk17Compiles extends TestRootModule {
     object JvmWorkerJava extends JvmWorkerModule {
       def jvmId = "temurin:17.0.13"
     }

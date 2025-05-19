@@ -4,12 +4,12 @@ import mill.*
 import mill.define.{Discover, Target}
 import mill.scalalib.*
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 
 object TestNGTests extends TestSuite {
 
-  object demo extends TestBaseModule with JavaModule {
+  object demo extends TestRootModule with JavaModule {
 
     object test extends JavaTests {
       override def runMvnDeps = super.runMvnDeps() ++ Seq(

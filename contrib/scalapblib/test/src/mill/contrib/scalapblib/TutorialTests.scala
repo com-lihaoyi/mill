@@ -5,13 +5,13 @@ import mill.define.PathRef
 import mill.constants.Util
 import mill.define.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, *}
 
 object TutorialTests extends TestSuite {
   val testScalaPbVersion = "0.11.7"
 
-  trait TutorialBase extends TestBaseModule
+  trait TutorialBase extends TestRootModule
 
   trait TutorialModule extends ScalaPBModule {
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)

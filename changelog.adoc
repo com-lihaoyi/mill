@@ -137,7 +137,7 @@ published with some other suffix via `def extraPublish`
 * Improve performances of Bloop/install ({link-pr}/4600[#4600]) ({link-pr}/4628[#4628])
 * Pass Mill source JARs to Bloop ({link-pr}/4608[#4608])
 * Optimize BSP initialization stuff ({link-pr}/4698[#4698])
-* Make source path configurable in TestBaseModule ({link-pr}/4703[#4703])
+* Make source path configurable in TestRootModule ({link-pr}/4703[#4703])
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]

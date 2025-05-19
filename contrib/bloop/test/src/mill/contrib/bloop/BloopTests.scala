@@ -7,7 +7,7 @@
 //import mill.define.Discover
 //import mill.scalanativelib.api.ReleaseMode
 //import mill.testkit.UnitTester
-//import mill.testkit.TestBaseModule
+//import mill.testkit.TestRootModule
 //import os.Path
 //import upickle.default._
 //import utest._
@@ -25,7 +25,7 @@
 //    addMillSources = None
 //  )
 //
-//  object build extends TestBaseModule {
+//  object build extends TestRootModule {
 //    object scalaModule extends scalalib.ScalaModule with testBloop.Module {
 //      def scalaVersion = "2.12.8"
 //      val bloopVersion = mill.contrib.bloop.Versions.bloop
