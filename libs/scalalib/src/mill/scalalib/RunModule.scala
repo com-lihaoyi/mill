@@ -117,7 +117,7 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    */
   def runMainBackground(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
     val task = runBackgroundTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
-    Task.Command { task() }
+    Task.Command(persistent = true) { task() }
   }
 
   /**
@@ -188,7 +188,7 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    */
   def runBackground(args: String*): Command[Unit] = {
     val task = runBackgroundTask(finalMainClass, Task.Anon { Args(args) })
-    Task.Command { task() }
+    Task.Command(persistent = true) { task() }
   }
 
   /**
@@ -349,21 +349,19 @@ object RunModule {
     }
   }
 
-  case class BackgroundPaths(
-      newestPidPath: os.Path,
-      currentlyRunningPidPath: os.Path,
-      lockPath: os.Path
-  ) {
+  /** @param destDir The `Task.dest`. Needs to be persistent for it to work properly. */
+  private[mill] class BackgroundPaths(val destDir: os.Path) {
+    def newestPidPath: os.Path = destDir / "newest-pid"
+    def currentlyRunningPidPath: os.Path = destDir / "currently-running-pid"
+    def lockPath: os.Path = destDir / "lock"
+    def logPath: os.Path = destDir / "log"
+
     def toArgs: Seq[String] =
-      Seq(newestPidPath.toString, currentlyRunningPidPath.toString, lockPath.toString)
-  }
-  object BackgroundPaths {
-    def apply(dest: os.Path): BackgroundPaths = {
-      BackgroundPaths(
-        newestPidPath = (dest / ".mill-background-process-newest-pid"),
-        currentlyRunningPidPath = (dest / ".mill-background-process-currently-running-pid"),
-        lockPath = (dest / ".mill-background-process-lock")
+      Seq(
+        newestPidPath.toString,
+        currentlyRunningPidPath.toString,
+        lockPath.toString,
+        logPath.toString
       )
-    }
   }
 }

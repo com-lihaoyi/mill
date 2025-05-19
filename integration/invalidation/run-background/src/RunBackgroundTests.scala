@@ -56,7 +56,7 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
           "first process should be exited after second process is running"
         )
 
-        if (tester.clientServerMode) eval("shutdown")
+        if (tester.daemonMode) eval("shutdown")
         continually { !probeLockAvailable(lock2) }
         os.write(stop, "")
         eventually { probeLockAvailable(lock2) }
