@@ -364,11 +364,11 @@ node4 -> node3;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p><a href="Task$.html#Command-fffffaf3">Command</a>s are only <a href="NamedTask.html">NamedTask</a>s defined using <code>def foo() = Task.Command{...}</code> and are typically called from the command-line. Unlike other <a href="NamedTask.html">NamedTask</a>s, <a href="Task$.html#Command-fffffaf3">Command</a>s can be defined to take arguments that are automatically converted to command-line arguments, as long as an implicit <span data-unresolved-link="">mainargs.TokensReader</span> is available.</p>
+             <p><a href="Task$.html#Command-20b">Command</a>s are only <a href="NamedTask.html">NamedTask</a>s defined using <code>def foo() = Task.Command{...}</code> and are typically called from the command-line. Unlike other <a href="NamedTask.html">NamedTask</a>s, <a href="Task$.html#Command-20b">Command</a>s can be defined to take arguments that are automatically converted to command-line arguments, as long as an implicit <span data-unresolved-link="">mainargs.TokensReader</span> is available.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p><a href="Task$.html#Command-fffffaf3">Command</a>s are only <a href="NamedTask.html">NamedTask</a>s defined using <code>def foo() = Task.Command{...}</code> and are typically called from the command-line. Unlike other <a href="NamedTask.html">NamedTask</a>s, <a href="Task$.html#Command-fffffaf3">Command</a>s can be defined to take arguments that are automatically converted to command-line arguments, as long as an implicit <span data-unresolved-link="">mainargs.TokensReader</span> is available.</p>
+              <p><a href="Task$.html#Command-20b">Command</a>s are only <a href="NamedTask.html">NamedTask</a>s defined using <code>def foo() = Task.Command{...}</code> and are typically called from the command-line. Unlike other <a href="NamedTask.html">NamedTask</a>s, <a href="Task$.html#Command-20b">Command</a>s can be defined to take arguments that are automatically converted to command-line arguments, as long as an implicit <span data-unresolved-link="">mainargs.TokensReader</span> is available.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -384,15 +384,15 @@ node4 -> node3;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="Command-fffffaf3">
+        <div class="documentableElement" id="Command-20b">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @param exclusive Exclusive commands run serially at the end of an evaluation,\n * without any other tasks running parallel, and without the\n * terminal logging prefixes that are applied to normal tasks.\n * These are normally used for \"top level\" commands which are\n * run directly to perform some action or display some output\n * to the user.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @param exclusive Exclusive commands run serially at the end of an evaluation,\n * without any other tasks running parallel, and without the\n * terminal logging prefixes that are applied to normal tasks.\n * These are normally used for \"top level\" commands which are\n * run directly to perform some action or display some output\n * to the user.\n * @param persistent If true the `Task.dest` directory is not cleaned between\n * runs.\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#Command-fffffaf3" t="n" class="documentableName ">Command</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <a href="internal/NamedParameterOnlyDummy.html" t="t">NamedParameterOnlyDummy</a>, <span t="k"></span><span data-unresolved-link="" t="n">exclusive</span>: <span data-unresolved-link="" t="t">Boolean</span>): <a href="Task$$CommandFactory.html" t="t">CommandFactory</a>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#Command-20b" t="n" class="documentableName ">Command</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <a href="internal/NamedParameterOnlyDummy.html" t="t">NamedParameterOnlyDummy</a>, <span t="k"></span><span data-unresolved-link="" t="n">exclusive</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">persistent</span>: <span data-unresolved-link="" t="t">Boolean</span>): <a href="Task$$CommandFactory.html" t="t">CommandFactory</a>
            </div>
           </div>
          </div>
@@ -410,6 +410,12 @@ node4 -> node3;
               </dt>
               <dd class="body-medium">
                <p>Exclusive commands run serially at the end of an evaluation, without any other tasks running parallel, and without the terminal logging prefixes that are applied to normal tasks. These are normally used for "top level" commands which are run directly to perform some action or display some output to the user.</p>
+              </dd>
+              <dt class="body-small">
+               persistent
+              </dt>
+              <dd class="body-medium">
+               <p>If true the <code>Task.dest</code> directory is not cleaned between runs.</p>
               </dd>
              </dl>
              <h2 class="h200">Attributes</h2>

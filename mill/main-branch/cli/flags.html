@@ -815,6 +815,15 @@ forcefully terminating the previous process even though it may be still alive:</
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill -w foo.runBackground</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Note that even if you interrupt mill watch via CTRL+C, the server spawned by runBackground still runs in the background.
+To actually stop the background server use:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill clean foo.runBackground</code></pre>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_jobs_j"><a class="anchor" href="#_jobs_j"></a><code>--jobs</code>/<code>-j</code></h3>
