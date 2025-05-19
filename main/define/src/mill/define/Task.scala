@@ -124,8 +124,8 @@ object Task extends TaskBase {
 
   /** Binary compatibility forwarder. */
   def Command(
-    t: NamedParameterOnlyDummy,
-    exclusive: Boolean,
+      t: NamedParameterOnlyDummy,
+      exclusive: Boolean
   ): CommandFactory = new CommandFactory(exclusive = exclusive, persistent = false)
 
   /**
@@ -145,6 +145,7 @@ object Task extends TaskBase {
   ): CommandFactory = new CommandFactory(exclusive = exclusive, persistent = persistent)
   class CommandFactory private[mill] (val exclusive: Boolean, val persistent: Boolean)
       extends TaskBase.TraverseCtxHolder {
+
     /** Binary compatibility forwarder */
     private[mill] def this(exclusive: Boolean) = this(exclusive, persistent = false)
 
@@ -888,7 +889,7 @@ class Command[+T](
     val exclusive: Boolean,
     val persistent: Boolean
 ) extends NamedTask[T] {
-  override def flushDest = !persistent
+  override def flushDest: Boolean = !persistent
 
   /** Binary compatibility forwarder. */
   def this(
