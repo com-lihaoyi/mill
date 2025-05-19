@@ -7,13 +7,13 @@ import mill.T
 import mill.define.{ModuleRef, PathRef, Target, Task}
 import mill.scalalib.*
 import mill.util.Jvm
+import upickle.implicits.namedTuples.default.given
 
 import scala.collection.immutable
 import scala.xml.XML
 
 trait AndroidModule extends JavaModule {
 
-  private val rClassDirName = "RClass"
   private val compiledResourcesDirName = "compiled-resources"
 
   // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/D8BundleMainDexListTask.kt;l=210-223;drc=66ab6bccb85ce3ed7b371535929a69f494d807f0
@@ -335,7 +335,7 @@ trait AndroidModule extends JavaModule {
     // But we also need to have R.java classes for libraries. The process below is quite hacky and inefficient, because:
     // * it will generate R.java for the library even library has no resources declared
     // * R.java will have not only resource ID from this library, but from other libraries as well. They should be stripped.
-    val rClassDir = androidCompiledResources()._1.path / rClassDirName
+    val rClassDir = androidCompiledResources().rClassDir.path
     val mainRClassPath = os.walk(rClassDir)
       .find(_.last == "R.java")
       .get
@@ -372,8 +372,17 @@ trait AndroidModule extends JavaModule {
    *         For more details on the aapt2 tool, refer to:
    *         [[https://developer.android.com/tools/aapt2 aapt Documentation]]
    */
-  def androidCompiledResources: T[(PathRef, Seq[PathRef])] = Task {
-    val rClassDir = T.dest / rClassDirName
+  def androidCompiledResources: T[(
+      resources: PathRef,
+      resApkFile: PathRef,
+      mainDexRulesProFile: PathRef,
+      rClassDir: PathRef,
+      zippedResources: Seq[PathRef]
+  )] = Task {
+    val rClassDir = T.dest / "RClass"
+    val resApkFile = T.dest / "res.apk"
+    val mainDexRulesProFile = T.dest / "main-dex-rules.pro"
+
     val compiledResDir = T.dest / compiledResourcesDirName
     os.makeDir(compiledResDir)
     val compiledResources = collection.mutable.Buffer[os.Path]()
@@ -446,10 +455,10 @@ trait AndroidModule extends JavaModule {
       "--version-name",
       androidVersionName(),
       "--proguard-main-dex",
-      (T.dest / "main-dex-rules.pro").toString,
+      mainDexRulesProFile.toString,
       "--proguard-conditional-keep-rules",
       "-o",
-      (T.dest / "res.apk").toString
+      resApkFile.toString
     )
 
     if (!androidIsDebug()) {
@@ -469,7 +478,13 @@ trait AndroidModule extends JavaModule {
 
     os.call(appLinkArgs)
 
-    (PathRef(T.dest), compiledResources.toSeq.map(PathRef(_)))
+    (
+      resources = PathRef(T.dest),
+      resApkFile = PathRef(resApkFile),
+      mainDexRulesProFile = PathRef(mainDexRulesProFile),
+      rClassDir = PathRef(rClassDir),
+      zippedResources = compiledResources.toSeq.map(PathRef(_))
+    )
   }
 
   /**

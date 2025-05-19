@@ -10,8 +10,8 @@ import os.zip.ZipSource
  */
 @mill.api.experimental
 trait AndroidAppBundle extends AndroidAppModule with JavaModule {
-
-  /**
+  
+    /**
    * Adds `--proto-format` option to AAPT commands.
    */
   override def androidAaptOptions: T[Seq[String]] = Task {
@@ -28,7 +28,7 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
    */
   def androidBundleZip: T[PathRef] = Task {
     val dexFile = androidDex().path
-    val resFile = androidCompiledResources()._1.path / "res.apk"
+    val resFile = androidCompiledResources().resApkFile.path
     val baseDir = Task.dest / "base"
     val appDir = Task.dest / "app"
 
