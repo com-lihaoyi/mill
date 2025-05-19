@@ -48,7 +48,7 @@ public class ClientTests {
   @Test
   public void readWriteString() throws Exception {
     String[] examples = {
-      "", "hello", "i am cow", "i am cow\nhear me moo\ni weight twice as much as you", "我是一个叉烧包",
+      "", "hello", "i am cow", "i am cow\nhear me moo\ni weight twice as much as you", "我是一个叉烧包", null
     };
     for (String example : examples) {
       checkStringRoundTrip(example);

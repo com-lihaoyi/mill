@@ -79,10 +79,10 @@ public class ClientUtil {
   }
 
   public static void writeString(OutputStream outputStream, String string) throws IOException {
-    final byte[] bytes = string.getBytes(utf8);
     if (string == null) {
       writeInt(outputStream, -1);
     } else {
+      final byte[] bytes = string.getBytes(utf8);
       writeInt(outputStream, bytes.length);
       outputStream.write(bytes);
     }
