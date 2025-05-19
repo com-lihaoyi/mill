@@ -842,9 +842,9 @@ own testing, and covers three approaches:</p>
 <h2 id="_unit_tests"><a class="anchor" href="#_unit_tests"></a>Unit Tests</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>These are tests that run in-process, with the Mill <code>build.mill</code> defined as a <code>TestBaseModule</code>,
+<p>These are tests that run in-process, with the Mill <code>build.mill</code> defined as a <code>TestRootModule</code>,
 and using a <code>UnitTester</code> to run its tasks and inspect their output. <code>UnitTester</code> is provided
-a path to a folder on disk containing the files that are to be built with the given <code>TestBaseModule</code>,
+a path to a folder on disk containing the files that are to be built with the given <code>TestRootModule</code>,
 and can be used to evaluate tasks (by direct reference or by string-selector) and inspect
 the results in-memory:</p>
 </div>
@@ -853,7 +853,7 @@ the results in-memory:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.define.Discover
 import mill.PathRef
 import mill.util.TokenReaders._
@@ -862,7 +862,7 @@ import utest._
 object UnitTests extends TestSuite {
   def tests: Tests = Tests {
     test(&quot;unit&quot;) {
-      object build extends TestBaseModule with LineCountJavaModule {
+      object build extends TestRootModule with LineCountJavaModule {
         def lineCountResourceFileName = &quot;line-count.txt&quot;
 
         lazy val millDiscover = Discover[this.type]
