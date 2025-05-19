@@ -231,9 +231,13 @@ object MillMain {
                     }
                     val (isSuccess, evalStateOpt) = Watching.watchLoop(
                       ringBell = config.ringBell.value,
-                      watch = config.watch.value,
+                      watch = Option.when(config.watch.value)(Watching.WatchArgs(
+                        setIdle,
+                        colors,
+                        useNotify = config.watchViaFsNotify,
+                        serverDir = serverDir
+                      )),
                       streams = streams,
-                      setIdle = setIdle,
                       evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
                         adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
@@ -285,8 +289,7 @@ object MillMain {
                             }
                           }
                         }
-                      },
-                      colors = colors
+                      }
                     )
                     bspContext.foreach { ctx =>
                       repeatForBsp =

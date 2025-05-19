@@ -345,7 +345,12 @@ object `package` extends RootModule with InstallModule {
 
     def mainClass = Some("mill.runner.client.MillClientMain")
 
-    def nativeImageClasspath = build.runner.client.runClasspath()
+    // Use assembly jar as the upstream ivy classpath rather than using runClasspath
+    // directly to try and avoid native image command length problems on windows
+    def nativeImageClasspath =
+      Seq(build.runner.client.resolvedIvyAssembly().pathRef) ++
+        build.runner.client.upstreamLocalAssemblyClasspath() ++
+        build.runner.client.localClasspath()
 
     def localBinName = "mill-native"
 
