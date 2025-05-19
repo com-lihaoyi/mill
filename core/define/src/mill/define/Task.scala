@@ -168,8 +168,10 @@ object Task extends TaskBase {
    * command line and do not perform any caching. Typically used as helpers to
    * implement `Task{...}` targets.
    */
-  inline def Anon[T](inline t: Result[T]): Task[T] =
-    ${ TaskMacros.anonTaskImpl[T]('t) }
+  inline def Anon[T](inline t: Result[T])(implicit
+      inline enclosing: sourcecode.Enclosing
+  ): Task[T] =
+    ${ TaskMacros.anonTaskImpl[T]('t, 'enclosing) }
 
   inline def apply[T](inline t: Result[T])(implicit
       inline rw: ReadWriter[T],
@@ -450,9 +452,15 @@ class SourceImpl(
       isPrivate
     ) {}
 
-class AnonImpl[T](val inputs: Seq[Task[_]], evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T])
-    extends Task[T] {
+class AnonImpl[T](
+    val inputs: Seq[Task[_]],
+    evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+    enclosing: sourcecode.Enclosing
+) extends Task[T] {
   def evaluate(ctx: mill.define.TaskCtx) = evaluate0(ctx.args, ctx)
+
+  override def toString =
+    s"Task.Anon@${System.identityHashCode(this).toHexString}(${enclosing.value})"
 }
 
 private object TaskMacros {
@@ -476,8 +484,10 @@ private object TaskMacros {
         else Expr(Some(false))
     }
 
-  def anonTaskImpl[T: Type](t: Expr[Result[T]])(using Quotes): Expr[Task[T]] = {
-    appImpl[Task, T]((in, ev) => '{ AnonImpl($in, $ev) }, t)
+  def anonTaskImpl[T: Type](t: Expr[Result[T]], enclosing: Expr[sourcecode.Enclosing])(using
+      Quotes
+  ): Expr[Task[T]] = {
+    appImpl[Task, T]((in, ev) => '{ AnonImpl($in, $ev, $enclosing) }, t)
   }
 
   def targetResultImpl[T: Type](using

@@ -3,7 +3,7 @@ package mill.daemon
 import mill.api.SystemStreams
 import mill.api.internal.internal
 import mill.define.internal.Watchable
-import mill.define.{PathRef, WorkspaceRoot}
+import mill.define.{BuildCtx, PathRef}
 import mill.internal.Colors
 
 import java.io.InputStream
@@ -25,13 +25,13 @@ object Watching {
 
   /**
    * @param useNotify whether to use filesystem based watcher. If it is false uses polling.
-   * @param serverDir the directory for storing logs of the mill server
+   * @param daemonDir the directory for storing logs of the mill server
    */
   case class WatchArgs(
       setIdle: Boolean => Unit,
       colors: Colors,
       useNotify: Boolean,
-      serverDir: os.Path
+      daemonDir: os.Path
   )
 
   /**
@@ -120,7 +120,7 @@ object Watching {
       doWatch(notifiablesChanged = () => watchedPathsSeq.exists(p => !haveNotChanged(p)))
 
     def doWatchFsNotify() = {
-      Using.resource(os.write.outputStream(watchArgs.serverDir / "fsNotifyWatchLog")) { watchLog =>
+      Using.resource(os.write.outputStream(watchArgs.daemonDir / "fsNotifyWatchLog")) { watchLog =>
         def writeToWatchLog(s: String): Unit = {
           try {
             watchLog.write(s.getBytes(java.nio.charset.StandardCharsets.UTF_8))
@@ -138,7 +138,7 @@ object Watching {
           s"[watched-paths:unfiltered] ${watchedPathsSet.toSeq.sorted.mkString("\n")}"
         )
 
-        val workspaceRoot = WorkspaceRoot.workspaceRoot
+        val workspaceRoot = BuildCtx.workspaceRoot
 
         /** Paths that are descendants of [[workspaceRoot]]. */
         val pathsUnderWorkspaceRoot = watchedPathsSet.filter { path =>

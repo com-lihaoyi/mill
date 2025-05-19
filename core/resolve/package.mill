@@ -8,6 +8,6 @@ import millbuild.*
  * tokens like 'foo.{bar,qux}.baz' into Mill tasks that can be
  * executed via [[build.core.exec]]
  */
-object `package` extends MillStableScalaModule {
+object `package` extends MillPublishScalaModule {
   def moduleDeps = Seq(build.core.api, build.core.define, build.core.internal)
 }

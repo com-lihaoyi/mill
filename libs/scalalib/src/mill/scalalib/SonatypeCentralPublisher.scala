@@ -41,7 +41,7 @@ class SonatypeCentralPublisher(
       artifacts: (Seq[(os.Path, String)], Artifact)*
   ): Unit = {
     val mappings = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
-
+    log.info(s"mappings ${pprint.apply(mappings.map { case (a, kvs) => (a, kvs.map(_._1)) })}")
     val (_, releases) = mappings.partition(_._1.isSnapshot)
 
     val releaseGroups = releases.groupBy(_._1.group)
@@ -53,6 +53,7 @@ class SonatypeCentralPublisher(
         groupReleases.foreach { case (artifact, data) =>
           val fileNameWithoutExtension = s"${artifact.group}-${artifact.id}-${artifact.version}"
           val zipFile = streamToFile(fileNameWithoutExtension, wd) { outputStream =>
+            log.info(s"bundle $fileNameWithoutExtension with ${pprint.apply(data.map(_._1))}")
             zipFilesToJar(data, outputStream)
           }
 
@@ -61,7 +62,6 @@ class SonatypeCentralPublisher(
             artifact.id,
             artifact.version
           )
-
           publishFile(zipFile, deploymentName, publishingType)
         }
       }
@@ -87,19 +87,25 @@ class SonatypeCentralPublisher(
       publishingType: PublishingType
   ): Unit = {
     try {
-      sonatypeCentralClient.uploadBundleFromFile(
-        zipFile,
-        deploymentName,
-        Some(publishingType),
-        timeout = awaitTimeout
-      )
+      mill.util.Retry(
+        count = 5,
+        backoffMillis = 1000,
+        filter = (_, ex) => ex.getMessage.contains("Read end dead")
+      ) {
+        sonatypeCentralClient.uploadBundleFromFile(
+          zipFile,
+          deploymentName,
+          Some(publishingType),
+          timeout = awaitTimeout
+        )
+      }
     } catch {
       case ex: Throwable => {
         throw new RuntimeException(
-          s"Failed to publish ${deploymentName.unapply} to Sonatype Central. Error: \n${ex.getMessage}"
+          s"Failed to publish ${deploymentName.unapply} to Sonatype Central",
+          ex
         )
       }
-
     }
 
     log.info(s"Successfully published ${deploymentName.unapply} to Sonatype Central")

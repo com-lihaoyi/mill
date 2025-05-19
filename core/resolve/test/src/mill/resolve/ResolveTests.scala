@@ -4,12 +4,12 @@ import mill.api.Result
 import mill.define.Discover
 import mill.util.TestGraphs
 import mill.util.TestGraphs.*
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import mill.{Module, Task}
 import utest.*
 object ResolveTests extends TestSuite {
 
-  object doubleNestedModule extends TestBaseModule {
+  object doubleNestedModule extends TestRootModule {
     def single = Task { 5 }
     object nested extends Module {
       def single = Task { 7 }

@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * 1. `Task.Source`
  * 2. `Task.Sources`
  * 3. `Task.Input`
- * 4. `interp.watchValue`
+ * 4. `mill.define.BuildCtx.watchValue`
  * 5. Implicitly watched files, like `build.mill`
  */
 trait WatchTests extends UtestIntegrationTestSuite {

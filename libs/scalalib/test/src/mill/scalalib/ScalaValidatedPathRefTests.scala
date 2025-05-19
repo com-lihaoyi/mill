@@ -3,11 +3,11 @@ package mill.scalalib
 import mill.*
 import mill.define.{Discover, NamedTask}
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 object ScalaValidatedPathRefTests extends TestSuite {
 
-  object ValidatedTarget extends TestBaseModule {
+  object ValidatedTarget extends TestRootModule {
     private def mkDirWithFile = Task.Anon {
       os.write(Task.dest / "dummy", "dummy", createFolders = true)
       PathRef(Task.dest)

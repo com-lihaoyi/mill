@@ -18,7 +18,8 @@ object `package` extends MillPublishScalaModule {
   def exampleList: T[PathRef] = Task {
     val data: Seq[(os.SubPath, String)] =
       build.dist.examplePathsWithArtifactName().map { case (pathRef, str) =>
-        val downloadUrl = s"${build.millDownloadUrl()}/$str.zip"
+        val downloadUrl =
+          s"${build.millDownloadUrl()}/${build.dist.artifactFileNamePrefix()}-$str.zip"
         val subPath = pathRef.path.subRelativeTo(Task.workspace / "example")
         (subPath, downloadUrl)
       }

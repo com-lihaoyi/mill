@@ -1,4 +1,4 @@
-//| mill-version: 0.13.0-M2-59-17fa7b
+//| mill-version: 1.0.0-M1-13-54815e
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C"]
 
@@ -137,7 +137,7 @@ trait BridgeModule extends MillPublishCrossScalaModule {
   def scalaVersion = crossScalaVersion
   def publishVersion = bridgeVersion
   def artifactName = "mill-scala-compiler-bridge"
-  def pomSettings = commonPomSettings(artifactName())
+  def pomSettings = MillPublishJavaModule.commonPomSettings(artifactName())
   def crossFullScalaVersion = true
   def mvnDeps = Seq(
     mvn"org.scala-sbt:compiler-interface:${Deps.zinc.version}",
@@ -191,7 +191,8 @@ val dummyDeps: Seq[Dep] = Seq(
   Deps.TestDeps.zioTest,
   Deps.acyclic,
   Deps.scalacScoverage2Plugin,
-  mvn"com.lihaoyi:::ammonite:${Deps.ammoniteVersion}"
+  mvn"com.lihaoyi:::ammonite:${Deps.ammoniteVersion}",
+  mvn"io.get-coursier.jvm.indices:index-darwin-arm64:${Deps.coursierJvmIndexVersion}"
 ) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.all
 
 implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>

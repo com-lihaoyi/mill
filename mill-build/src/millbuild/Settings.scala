@@ -9,9 +9,7 @@ object Settings {
   val newIssueUrl = s"${projectUrl}/issues/new/choose"
   val docUrl = "https://mill-build.org"
   val mavenRepoUrl = "https://repo1.maven.org/maven2"
-  val bestMillVersion = "0.12.10"
-  // the exact branches containing a doc root
-  val docBranches = Seq()
+
   // the exact tags containing a doc root. Publish docs for
   // the last point version in each minor release series
   val legacyDocTags: Seq[String] = Seq(
@@ -20,7 +18,7 @@ object Settings {
   )
   val docTags: Seq[String] = Seq(
     "0.11.13",
-    "0.12.10"
+    "0.12.13"
   )
   val mimaBaseVersions: Seq[String] = Seq("0.13.0-M0")
 

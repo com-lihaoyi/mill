@@ -3,7 +3,7 @@ package mill.server
 import mill.api.SystemStreams
 import mill.client.lock.Locks
 import mill.client.ServerLauncher
-import mill.constants.{ServerFiles, Util}
+import mill.constants.{DaemonFiles, Util}
 import utest.*
 
 import java.io.*
@@ -19,11 +19,16 @@ object ClientServerTests extends TestSuite {
   val ENDL = System.lineSeparator()
   class EchoServer(
       override val processId: String,
-      serverDir: os.Path,
+      daemonDir: os.Path,
       locks: Locks,
       testLogEvenWhenServerIdWrong: Boolean
-  ) extends Server[Option[Int]](serverDir, 1000, locks, testLogEvenWhenServerIdWrong)
+  ) extends Server[Option[Int]](daemonDir, 1000, locks, testLogEvenWhenServerIdWrong)
       with Runnable {
+
+    override def outLock = mill.client.lock.Lock.memory()
+
+    override def out = os.temp.dir()
+
     override def exitServer() = {
       serverLog("exiting server")
       super.exitServer()
@@ -95,22 +100,22 @@ object ClientServerTests extends TestSuite {
         memoryLock,
         forceFailureForTestingMillisDelay
       ) {
-        def prepareServerDir(serverDir: Path) = { /*do nothing*/ }
-        def initServer(serverDir: Path, locks: Locks) = {
+        def preparedaemonDir(daemonDir: Path) = { /*do nothing*/ }
+        def initServer(daemonDir: Path, locks: Locks) = {
           val processId = "server-" + nextServerId
           nextServerId += 1
           new Thread(new EchoServer(
             processId,
-            os.Path(serverDir, os.pwd),
+            os.Path(daemonDir, os.pwd),
             locks,
             testLogEvenWhenServerIdWrong
           )).start()
         }
-      }.run((outDir / "server-0").relativeTo(os.pwd).toNIO)
+      }.run((outDir / "server-0").relativeTo(os.pwd).toNIO, "")
 
       ClientResult(
         result.exitCode,
-        os.Path(result.serverDir, os.pwd),
+        os.Path(result.daemonDir, os.pwd),
         outDir,
         out.toString,
         err.toString
@@ -121,14 +126,14 @@ object ClientServerTests extends TestSuite {
 
   case class ClientResult(
       exitCode: Int,
-      serverDir: os.Path,
+      daemonDir: os.Path,
       outDir: os.Path,
       out: String,
       err: String
   ) {
     def logsFor(suffix: String) = {
       os.read
-        .lines(serverDir / ServerFiles.serverLog)
+        .lines(daemonDir / DaemonFiles.serverLog)
         .collect { case s if s.endsWith(" " + suffix) => s.dropRight(1 + suffix.length) }
     }
   }
@@ -213,9 +218,9 @@ object ClientServerTests extends TestSuite {
       // Mutiple server processes live in same out folder
       assert(resF1.outDir == resF2.outDir)
       assert(resF2.outDir == resF3.outDir)
-      // but the serverDir is placed in different subfolders
-      assert(resF1.serverDir == resF2.serverDir)
-      assert(resF2.serverDir == resF3.serverDir)
+      // but the daemonDir is placed in different subfolders
+      assert(resF1.daemonDir == resF2.daemonDir)
+      assert(resF2.daemonDir == resF3.daemonDir)
 
       assert(resF1.out == s"hello World$ENDL")
       assert(resF2.out == s"hello WORLD$ENDL")

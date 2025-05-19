@@ -108,6 +108,7 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
       env = Task.env,
       awaitTimeout = awaitTimeout
     )
+    Task.ctx().log.info(s"artifacts ${pprint.apply(artifacts)}")
     publisher.publishAll(
       getPublishingTypeFromReleaseFlag(shouldRelease),
       finalBundleName,

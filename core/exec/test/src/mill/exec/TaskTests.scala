@@ -5,12 +5,12 @@ import mill.Task
 import mill.define.{Discover, Module, Worker}
 import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.framework.TestPath
 import mill.api.ExecResult
 
 trait TaskTests extends TestSuite {
-  trait SuperBuild extends TestBaseModule {
+  trait SuperBuild extends TestRootModule {
 
     var superBuildInputCount = 0
 

@@ -4,7 +4,7 @@ import mill.define.Discover
 import mill.util.TokenReaders._
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.kotlinlib.TestModule
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.{T, Task, api}
 import utest.{TestSuite, Tests, assert, test}
 
@@ -16,7 +16,7 @@ object KoverModuleTests extends TestSuite {
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "contrib/kover"
 
-  object module extends TestBaseModule {
+  object module extends TestRootModule {
 
     trait KotestTestModule extends TestModule.Junit5 {
       override def forkArgs: T[Seq[String]] = Task {

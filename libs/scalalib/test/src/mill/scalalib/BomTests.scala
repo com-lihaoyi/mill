@@ -3,7 +3,7 @@ package scalalib
 
 import mill.define.Discover
 import mill.scalalib.publish.*
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
 import scala.jdk.CollectionConverters.*
@@ -22,7 +22,7 @@ object BomTests extends TestSuite {
     def publishVersion = "0.1.0-SNAPSHOT"
   }
 
-  object modules extends TestBaseModule {
+  object modules extends TestRootModule {
     object bom extends Module {
       object placeholder extends JavaModule with TestPublishModule {
         // Empty version in mvnDeps should be filled with BOM

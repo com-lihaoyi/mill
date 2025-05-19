@@ -91,7 +91,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
   ): EvaluatorApi.Result[T] = {
-    os.checker.withValue(os.Checker.Nop) {
+    mill.define.BuildCtx.withFilesystemCheckerDisabled {
       execute(
         targets.map(_.asInstanceOf[Task[T]]),
         reporter,

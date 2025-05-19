@@ -85,13 +85,13 @@ def compressBytes(input: Array[Byte]) = {
 //
 // Workers live as long as the Mill process. By default, consecutive `mill`
 // commands in the same folder will re-use the same Mill process and workers,
-// unless `--no-server` is passed which will terminate the Mill process and
+// unless `--no-daemon` is passed which will terminate the Mill process and
 // workers after every command. Commands run repeatedly using `--watch` will
 // also preserve the workers between them.
 //
 // Workers can also make use of their `Task.dest` folder as a cache that persist
 // when the worker shuts down, as a second layer of caching. The example usage
-// below demonstrates how using the `--no-server` flag will make the worker
+// below demonstrates how using the `--no-daemon` flag will make the worker
 // read from its disk cache, where it would have normally read from its
 // in-memory cache
 
@@ -110,11 +110,11 @@ Compressing: world.txt
 
 > sed -i.bak 's/Hello/HELLO/g' data/hello.txt
 
-> ./mill compressedData # not --no-server, we read the data from memory
+> ./mill compressedData # not --no-daemon, we read the data from memory
 Compressing: hello.txt
 Cached from memory: world.txt
 
-> ./mill compressedData # --no-server, we read the data from disk
+> ./mill compressedData # --no-daemon, we read the data from disk
 Compressing: hello.txt
 Cached from disk: world.txt
 

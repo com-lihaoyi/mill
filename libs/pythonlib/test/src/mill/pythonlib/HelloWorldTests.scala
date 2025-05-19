@@ -2,14 +2,14 @@ package mill
 package pythonlib
 
 import mill.define.Discover
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
 object HelloWorldTests extends TestSuite {
 
-  object HelloWorldPython extends TestBaseModule {
+  object HelloWorldPython extends TestRootModule {
     object foo extends PythonModule {
       override def moduleDeps: Seq[PythonModule] = Seq(bar)
       object bar extends PythonModule

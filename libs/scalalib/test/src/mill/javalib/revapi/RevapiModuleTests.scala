@@ -4,7 +4,7 @@ import mill.define.PathRef
 import mill.define.Discover
 import mill.javalib.*
 import mill.scalalib.publish.{PomSettings, VersionControl}
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.{T, Task}
 import utest.*
 import mill.util.TokenReaders._
@@ -61,7 +61,7 @@ object RevapiModuleTests extends TestSuite {
       root2: os.Path,
       conf: os.Path
   ): os.Path = {
-    trait module extends TestBaseModule with PublishModule {
+    trait module extends TestRootModule with PublishModule {
       override def artifactName = name
       override def pomSettings: T[PomSettings] =
         PomSettings("", "mill.revapi.local", "", Seq(), VersionControl(), Seq())
@@ -99,7 +99,7 @@ object RevapiModuleTests extends TestSuite {
       conf: os.Path
   ): os.Path = {
 
-    object module extends TestBaseModule with RevapiModule {
+    object module extends TestRootModule with RevapiModule {
       override def artifactName = id
       override def pomSettings: T[PomSettings] =
         PomSettings("", group, "", Seq(), VersionControl(), Seq())

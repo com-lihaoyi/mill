@@ -1,12 +1,19 @@
-= What Makes Mill Unique
+= Mill as a Direct Style Build Tool
 
+// tag::header[]
+:author: Li Haoyi
+:revdate: 10 May 2025
+
+_{author}, {revdate}_
 
 {mill-doc-url}[Mill] is a JVM build tool that targets Java/Scala/Kotlin and has
 potential to serve the large-monorepo codebases that Bazel currently serves. Mill has good
 traction among its users, benchmarks that demonstrate 3-6x faster builds than its competitors,
 and a unique "direct-style" design that make it easy to use and extend. This page discusses
-some of the most interesting design decisions in Mill, and how it sets Mill apart from
+one of the most interesting design decisions in Mill, and how it sets Mill apart from
 other build tools on the market.
+
+// end::header[]
 
 == What is a Build Tool?
 
@@ -79,15 +86,15 @@ had reached around 5-10% market share in the Scala community
 (https://www.jetbrains.com/lp/devecosystem-2023/scala/[Jetbrains Survey],
 https://scalasurvey2023.virtuslab.com/[VirtusLabs Survey]).
 It recently grew first-class Java support, demonstrating
-xref:comparisons/why-mill.adoc[3-6x speedups] over existing Java build tools
+xref:mill::comparisons/why-mill.adoc[3-6x speedups] over existing Java build tools
 like Maven or Gradle. Mill also has gained experimental support for Java-adjacent platforms
-like xref:kotlinlib/intro.adoc[Kotlin] and
-xref:android/java.adoc[Android], and has demonstrated the ability to branch out into supporting
-more distant toolchains like xref:extending/example-typescript-support.adoc[Typescript]
-and xref:extending/example-python-support.adoc[Python].
+like xref:mill::kotlinlib/intro.adoc[Kotlin] and
+xref:mill::android/java.adoc[Android], and has demonstrated the ability to branch out into supporting
+more distant toolchains like xref:mill::extending/example-typescript-support.adoc[Typescript]
+and xref:mill::extending/example-python-support.adoc[Python].
 
-Mill also works well with xref:large/large.adoc[large builds]: its build logic can be
-xref:large/multi-file-builds.adoc[split into multiple folders], is incrementally compiled,
+Mill also works well with xref:mill::large/large.adoc[large builds]: its build logic can be
+xref:mill::large/multi-file-builds.adoc[split into multiple folders], is incrementally compiled,
 lazily initialized, and automatically cached and parallelized. That means that even large
 codebases can remain fast and responsive: Mill's own build easily manages over 400 modules,
 and the tool can likely handle thousands of modules without issue.
@@ -237,12 +244,12 @@ they should be able to seamlessly navigate up and down your build graph just by 
 those functions. Below, we can see IntelliJ resolve `compile` to the exact `def compile`
 definition in `build.foo`, allowing us to jump to it if we want to see what it does:
 
-image::unique/IntellijDefinition.png[]
+image:mill::unique/IntellijDefinition.png[]
 
 In the `JavaModule` example earlier, IntelliJ is able to see the `def mvnDeps` configuration
 override, and find the exact override definitions in the parent class hierarchy:
 
-image::unique/IntellijOverride.png[]
+image:mill::unique/IntellijOverride.png[]
 
 This "direct style" doesn't just make navigating your build easy for IDEs: human programmers
 are _also_ used to navigating in and out of function calls, up and down class hierarchies,
@@ -348,12 +355,12 @@ This has the same benefits that React.js had from using a general-purpose langua
 For example, in Mill you may not be familiar with the bundled libraries and APIs, but your
 IDE can help you understand them:
 
-image::unique/IntellijDocs.png[]
+image:mill::unique/IntellijDocs.png[]
 
 And if you make an error, e.g. you typo-ed `resources` as `reources`, your IDE will
 immediately flag it for you even before you run the build:
 
-image::unique/IntellijError.png[]
+image:mill::unique/IntellijError.png[]
 
 While all IDEs have good support for understanding JSON/TOML/YAML/XML, the support for
 understanding _a particular tool's dialect of templated-bash-in-yaml_ is much more spotty.
@@ -363,9 +370,7 @@ for a widely-used general purpose programming language is much more solid.
 
 As another example, if you need a production-quality templating engine to use in your build
 system, you have a buffet of options. The common Java
-xref:extending/import-mvn-plugins.adoc#_importing_java_libraries[Thymeleaf] templating engine is
-available with a single import, as is the popular
-xref:extending/import-mvn-plugins.adoc#_importing_scala_libraries[Scalatags] templating engine.
+Thymeleaf templating engine is available with a single import, as is the popular Scalatags templating engine.
 Rather than being limited to what the build tool has built-in or what third-party plugins
 someone on the internet has published, you have at your fingertips any library in the huge JVM
 ecosystem, and can use them in exactly the same way you would in any Java/Scala/Kotlin application.
@@ -411,8 +416,8 @@ ecosystems rely on tools like Maven or Gradle to build their code, and I believe
 can provide a better alternative. Even today, there are already many advantages of
 using Mill over the incumbent build tools:
 
-1. Mill today runs the equivalent local workflows xref:comparisons/maven.adoc[3-6x faster than Maven]
-   and xref:comparisons/gradle.adoc[2-4x faster than Gradle], with automatic parallelization and caching for
+1. Mill today runs the equivalent local workflows xref:mill::comparisons/maven.adoc[3-6x faster than Maven]
+   and xref:mill::comparisons/gradle.adoc[2-4x faster than Gradle], with automatic parallelization and caching for
    every part of your build
 
 2. Mill today provides better ease of use than Maven or Gradle, with IDE support for
@@ -483,13 +488,13 @@ functionality, but at 10% the complexity:
 * Bazel itself is not getting any simpler over time - instead is getting more complex with
   additional features and functionality, as tends to happen to projects over time
 
-Mill provides many of the same things Bazel does: automatic xref:depth/evaluation-model.adoc[caching],
-parallelization, xref:depth/sandboxing.adoc[sandboxing],
-xref:extending/import-mvn-plugins.adoc[extensibility]. Mill
+Mill provides many of the same things Bazel does: automatic xref:mill::depth/evaluation-model.adoc[caching],
+parallelization, xref:mill::depth/sandboxing.adoc[sandboxing],
+extensibility. Mill
 can already work with a wide variety of programming languages,
-from JVM languages like xref:javalib/intro.adoc[Java]/xref:scalalib/intro.adoc[Scala]/xref:kotlinlib/intro.adoc[Kotlin]
-to xref:extending/example-typescript-support.adoc[Typescript] and
-xref:extending/example-python-support.adoc[Python]. Mill's features are not as
+from JVM languages like xref:mill::javalib/intro.adoc[Java]/xref:mill::scalalib/intro.adoc[Scala]/xref:mill::kotlinlib/intro.adoc[Kotlin]
+to xref:mill::extending/example-typescript-support.adoc[Typescript] and
+xref:mill::extending/example-python-support.adoc[Python]. Mill's features are not as
 highly-scalable as their Bazel equivalents, but they are provided in a lighter-weight,
 easier-to-use fashion suitable for organizations with less than 1,000 engineers
 who cannot afford the `O(1 person decade)` it takes to adopt Bazel in their organization.
@@ -520,13 +525,9 @@ Fundamentally, there are holes in the build-tool market that are not well served
 the Java folks deserve something more modern than Maven or Gradle, and the Monorepo folks need
 something easier to use than Bazel. I think Mill has a decent shot at occupying each
 of these two niches, and even if it is only able to succeed in one that would
-still be significant. Perhaps even significant enough to build a business around!
-
+still be significant.
 
 Going forward, I expect to pursue both paths: Mill as a better Java build tool, Mill as
-an easier Monorepo build tool. Much of the past
-quarter Q3 2024 has been spent polishing the experience of using Mill from Java, but
-similar efforts will need to be made on the Monorepo front. I will be working on this full time
-and also investing a significant amount of cash in order to support
-the effort. If anyone out there is interested in being paid to work on the next-generation
-of Java build tools or Monorepo build tools, let me know and we can try to make an arrangement!
+an easier Monorepo build tool, leveraging Mill's unique direct style to make the build
+tool experience easier. If anyone out there is interested in collaborating on improving
+the build tool, https://github.com/com-lihaoyi/mill/discussions[reach out on Github] or Discord and let me know!!

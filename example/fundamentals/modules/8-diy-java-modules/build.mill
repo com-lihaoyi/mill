@@ -98,30 +98,42 @@ object qux extends DiyJavaModule {
 //     style=dashed
 //     node [shape=box width=0 height=0 style=filled fillcolor=white]
 //     label = "foo.bar";
-//
-//     "foo.bar.sources" -> "foo.bar.compile" -> "foo.bar.classPath" -> "foo.bar.assembly"
-//     "foo.bar.mainClass" -> "foo.bar.assembly"
+//     "foo.bar.sources"
+//     "foo.bar.compile"
+//     "foo.bar.mainClass"
+//     "foo.bar.assembly"
+//     "foo.bar.classPath"
 //   }
 //   subgraph cluster_1 {
 //     style=dashed
 //     node [shape=box width=0 height=0 style=filled fillcolor=white]
 //     label = "foo";
-//
-//     "foo.bar.classPath" -> "foo.compile"   [constraint=false];
-//     "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
-//     "foo.mainClass" -> "foo.assembly"
+//     "foo.sources"
+//     "foo.compile"
+//     "foo.mainClass"
+//     "foo.assembly"
+//     "foo.classPath"
 //   }
 //   subgraph cluster_2 {
 //     style=dashed
 //     node [shape=box width=0 height=0 style=filled fillcolor=white]
 //     label = "qux";
-//
-//     "qux.mainClass" -> "qux.assembly"
-//     "foo.bar.classPath" -> "foo.classPath"
-//     "foo.classPath" -> "qux.compile" [constraint=false];
-//     "foo.classPath" -> "qux.classPath"
-//     "qux.sources" -> "qux.compile" -> "qux.classPath" -> "qux.assembly"
+//     "qux.sources"
+//     "qux.compile"
+//     "qux.mainClass"
+//     "qux.assembly"
+//     "qux.classPath"
 //   }
+//   "foo.bar.sources" -> "foo.bar.compile" -> "foo.bar.classPath" -> "foo.bar.assembly"
+//   "foo.bar.mainClass" -> "foo.bar.assembly"
+//   "foo.bar.classPath" -> "foo.compile"   [constraint=false];
+//   "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
+//   "foo.mainClass" -> "foo.assembly"
+//   "qux.mainClass" -> "qux.assembly"
+//   "foo.bar.classPath" -> "foo.classPath"
+//   "foo.classPath" -> "qux.compile" [constraint=false];
+//   "foo.classPath" -> "qux.classPath"
+//   "qux.sources" -> "qux.compile" -> "qux.classPath" -> "qux.assembly"
 // }
 // ....
 //

@@ -15,6 +15,17 @@ import mill.scalalib.publish.PomSettings
 import mill.scalalib.publish.VersionControl
 
 trait MillPublishJavaModule extends MillJavaModule with PublishModule {
+
+  def artifactName = "mill-" + super.artifactName()
+  def publishVersion = build.millVersion()
+  def publishProperties = super.publishProperties() ++ Map(
+    "info.releaseNotesURL" -> Settings.changelogUrl
+  )
+  def pomSettings = MillPublishJavaModule.commonPomSettings(artifactName())
+  def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
+}
+
+object MillPublishJavaModule {
   def commonPomSettings(artifactName: String) = {
     PomSettings(
       description = artifactName,
@@ -28,12 +39,4 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
       )
     )
   }
-
-  def artifactName = "mill-" + super.artifactName()
-  def publishVersion = build.millVersion()
-  def publishProperties = super.publishProperties() ++ Map(
-    "info.releaseNotesURL" -> Settings.changelogUrl
-  )
-  def pomSettings = commonPomSettings(artifactName())
-  def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
 }
