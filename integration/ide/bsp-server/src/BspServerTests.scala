@@ -5,6 +5,7 @@ import mill.api.BuildInfo
 import mill.bsp.Constants
 import mill.integration.BspServerTestUtil._
 import mill.testkit.UtestIntegrationTestSuite
+import mill.testrunner.TestRunnerUtils
 import utest._
 
 import java.io.ByteArrayOutputStream
@@ -227,7 +228,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         logs,
         snapshotsPath / "logging",
         // ignoring compilation warnings that might go away in the future
-        ignoreLine = _.startsWith("[bsp-build.mill-61] [warn] ")
+        ignoreLine = TestRunnerUtils.matchesGlob("[bsp-init-build.mill-*] [warn] *")
       )
     }
   }

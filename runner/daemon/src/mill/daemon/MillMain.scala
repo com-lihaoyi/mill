@@ -6,7 +6,7 @@ import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
 import mill.constants.{DaemonFiles, OutFiles, Util}
 import mill.define.BuildCtx
-import mill.internal.{Colors, MultiStream, PromptLogger, SimplePrefixLogger}
+import mill.internal.{Colors, MultiStream, PrefixLogger, PromptLogger, SimplePrefixLogger}
 import mill.server.Server
 import mill.util.BuildInfo
 import mill.{api, define}
@@ -341,14 +341,16 @@ object MillMain {
                           streams0,
                           streams,
                           prevRunnerState =>
+                            val initCommandLogger = new PrefixLogger(bspLogger, Seq("init"))
                             runMillBootstrap(
                               false,
                               prevRunnerState,
                               Seq("version"),
-                              streams,
+                              initCommandLogger.streams,
                               "BSP:initialize",
-                              loggerOpt = Some(bspLogger)
-                            ).result,
+                              loggerOpt = Some(initCommandLogger)
+                            ).result
+                          ,
                           outLock,
                           bspLogger
                         )

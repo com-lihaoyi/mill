@@ -3,8 +3,9 @@
 [1-buildInitialize] Entered buildInitialize
 [1-buildInitialize] buildInitialize took * msec
 [2-workspaceBuildTargets] Entered workspaceBuildTargets
-[bsp-build.mill-61] [info] compiling * Scala sources to * ...
-[bsp-build.mill-61] [info] done compiling
+[bsp-init-build.mill-61] [info] compiling * Scala sources to * ...
+[bsp-init-build.mill-61] [info] done compiling
+[bsp-init] SNAPSHOT
 [2-workspaceBuildTargets] Evaluating 5 tasks
 [2-workspaceBuildTargets] Done
 [2-workspaceBuildTargets] Evaluating 1 task
