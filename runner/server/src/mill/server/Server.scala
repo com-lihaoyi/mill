@@ -389,12 +389,16 @@ object Server {
       def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
 
       Using.resource {
-        val tryLocked = outLock.tryLock()
+        var tryLocked = outLock.tryLock()
         if (tryLocked.isLocked()) tryLocked
         else if (noWaitForBuildLock) throw new Exception(s"$activeTaskPrefix failing")
         else {
           streams.err.println(s"$activeTaskPrefix waiting for it to be done...")
-          outLock.lock()
+          while (!tryLocked.isLocked()) {
+            Thread.sleep(25L)
+            tryLocked = outLock.tryLock()
+          }
+          tryLocked
         }
       } { _ =>
         os.write.over(out / OutFiles.millActiveCommand, millActiveCommandMessage)
