@@ -100,6 +100,12 @@ package build
 
 * `interp.*` and `mill.api.Workspace.workspaceRoot` have been moved to a new `mill.define.BuildCtx` object
 
+* `mill.testkit.TestBaseModule` has been renamed `mill.testkit.TestRootModule`
+
+* The terms `client`/`server` throughout the codebase have been renamed to `launcher`/`daemon`
+
+* Removed `PublishModule.publishSelfDependency` in favor of `artifactMetadata`
+
 * `os.*` filesystem operations are now restricted by default: 
 
 ** During the execution phase, Task implementations can only write
