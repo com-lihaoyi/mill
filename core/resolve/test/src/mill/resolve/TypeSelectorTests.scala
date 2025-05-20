@@ -2,13 +2,13 @@ package mill.resolve
 
 import mill.define.Discover
 import mill.api.Result
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import mill.{Cross, Module, Task}
 import utest.*
 
 object TypeSelectorTests extends TestSuite {
 
-  object TypedModules extends TestBaseModule {
+  object TypedModules extends TestRootModule {
     trait TypeA extends Module {
       def foo = Task { "foo" }
     }
@@ -29,7 +29,7 @@ object TypeSelectorTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object TypedCrossModules extends TestBaseModule {
+  object TypedCrossModules extends TestRootModule {
     trait TypeA extends Cross.Module[String] {
       def foo = Task { crossValue }
     }
@@ -55,7 +55,7 @@ object TypeSelectorTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object TypedInnerModules extends TestBaseModule {
+  object TypedInnerModules extends TestRootModule {
     trait TypeA extends Module {
       def foo = Task { "foo" }
     }

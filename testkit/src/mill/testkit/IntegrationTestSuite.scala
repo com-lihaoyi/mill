@@ -43,7 +43,7 @@ trait IntegrationTestSuite {
    */
   def integrationTest[T](block: IntegrationTester => T): T = {
     Retry(
-      Retry.printStreamLogger(System.err),
+      logger = Retry.printStreamLogger(System.err),
       count = if (sys.env.contains("CI")) 1 else 0,
       timeoutMillis = 10.minutes.toMillis
     ) {

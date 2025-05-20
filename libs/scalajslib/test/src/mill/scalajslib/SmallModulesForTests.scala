@@ -3,11 +3,11 @@ package mill.scalajslib
 import mill.define.Discover
 import mill.scalajslib.api._
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest._
 
 object SmallModulesForTests extends TestSuite {
-  object SmallModulesForModule extends TestBaseModule with ScalaJSModule {
+  object SmallModulesForModule extends TestRootModule with ScalaJSModule {
 
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
     override def scalaJSVersion =

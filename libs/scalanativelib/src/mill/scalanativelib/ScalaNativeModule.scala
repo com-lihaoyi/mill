@@ -17,6 +17,7 @@ import mill.scalanativelib.worker.{
 import mill.T
 import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
+import upickle.implicits.namedTuples.default.given
 
 trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   def scalaNativeVersion: T[String]
@@ -370,12 +371,12 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
 
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   override def resources: T[Seq[PathRef]] = super[ScalaNativeModule].resources
-  override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
+  override def testLocal(args: String*): Command[(msg: String, results: Seq[TestResult])] =
     Task.Command { testForked(args*)() }
   override protected def testTask(
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
-  ): Task[(String, Seq[TestResult])] = Task.Anon {
+  ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
 
     val (close, framework) = withScalaNativeBridge.apply().apply(_.getFramework(
       nativeLink().path.toIO,

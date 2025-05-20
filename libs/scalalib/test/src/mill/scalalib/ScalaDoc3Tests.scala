@@ -4,11 +4,11 @@ import mill.*
 import mill.define.Discover
 import utest.*
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 
 object ScalaDoc3Tests extends TestSuite {
   // a project with static docs
-  object StaticDocsModule extends TestBaseModule {
+  object StaticDocsModule extends TestRootModule {
     object static extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
     }
@@ -16,7 +16,7 @@ object ScalaDoc3Tests extends TestSuite {
   }
 
   // a project without static docs (i.e. only api docs, no markdown files)
-  object EmptyDocsModule extends TestBaseModule {
+  object EmptyDocsModule extends TestRootModule {
     object empty extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
     }
@@ -25,7 +25,7 @@ object ScalaDoc3Tests extends TestSuite {
   }
 
   // a project with multiple static doc folders
-  object MultiDocsModule extends TestBaseModule {
+  object MultiDocsModule extends TestRootModule {
     object multidocs extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
       def docResources = Task.Sources(

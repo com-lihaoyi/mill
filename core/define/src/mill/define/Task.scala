@@ -124,7 +124,8 @@ object Task extends TaskBase {
   inline def Command[T](inline t: Result[T])(implicit
       inline w: Writer[T],
       inline ctx: ModuleCtx
-  ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }) }
+  ): Command[T] =
+    ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, persistent = '{ false }) }
 
   /**
    * @param exclusive Exclusive commands run serially at the end of an evaluation,
@@ -133,16 +134,20 @@ object Task extends TaskBase {
    *                  These are normally used for "top level" commands which are
    *                  run directly to perform some action or display some output
    *                  to the user.
+   * @param persistent If true the `Task.dest` directory is not cleaned between
+   *                   runs.
    */
   def Command(
       t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
-      exclusive: Boolean = false
-  ): CommandFactory = new CommandFactory(exclusive)
-  class CommandFactory private[mill] (val exclusive: Boolean) {
+      exclusive: Boolean = false,
+      persistent: Boolean = false
+  ): CommandFactory = new CommandFactory(exclusive = exclusive, persistent = persistent)
+  class CommandFactory private[mill] (val exclusive: Boolean, val persistent: Boolean) {
     inline def apply[T](inline t: Result[T])(implicit
         inline w: Writer[T],
         inline ctx: ModuleCtx
-    ): Command[T] = ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }) }
+    ): Command[T] =
+      ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }, '{ this.persistent }) }
   }
 
   /**
@@ -400,7 +405,8 @@ class Command[+T](
     val ctx0: mill.define.ModuleCtx,
     val writer: Writer[?],
     val isPrivate: Option[Boolean],
-    val exclusive: Boolean
+    val exclusive: Boolean,
+    override val persistent: Boolean
 ) extends NamedTask[T] {
 
   override def asCommand: Some[Command[T]] = Some(this)
@@ -555,12 +561,21 @@ private object TaskMacros {
   )(t: Expr[Result[T]])(
       w: Expr[Writer[T]],
       ctx: Expr[mill.define.ModuleCtx],
-      exclusive: Expr[Boolean]
+      exclusive: Expr[Boolean],
+      persistent: Expr[Boolean]
   ): Expr[Command[T]] = {
     appImpl[Command, T](
       (in, ev) =>
         '{
-          new Command[T]($in, $ev, $ctx, $w, ${ taskIsPrivate() }, exclusive = $exclusive)
+          new Command[T](
+            $in,
+            $ev,
+            $ctx,
+            $w,
+            ${ taskIsPrivate() },
+            exclusive = $exclusive,
+            persistent = $persistent
+          )
         },
       t
     )

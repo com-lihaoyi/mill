@@ -77,9 +77,9 @@ object app extends AndroidNativeAppModule { // <1>
 
 > ./mill show app.it
 ...
-[
-  "",
-  [
+{
+  "msg": "",
+  "results": [
     {
       "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp",
       "selector": "com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp",
@@ -87,7 +87,7 @@ object app extends AndroidNativeAppModule { // <1>
       "status": "Success"
     }
   ]
-]
+}
 ...
 
 > ./mill show app.stopAndroidEmulator

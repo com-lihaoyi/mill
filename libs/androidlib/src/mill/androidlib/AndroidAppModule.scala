@@ -10,6 +10,7 @@ import mill.testrunner.TestResult
 import mill.util.Jvm
 import os.{Path, RelPath, zip}
 import upickle.default.*
+import upickle.implicits.namedTuples.default.given
 
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.{Attribute, Elem, NodeBuffer, Null, Text, XML}
@@ -227,7 +228,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidUnsignedApk: T[PathRef] = Task {
     val unsignedApk = Task.dest / "app.unsigned.apk"
 
-    os.copy(androidCompiledResources()._1.path / "res.apk", unsignedApk)
+    os.copy(androidCompiledResources().resApkFile.path, unsignedApk)
     val dexFiles = os.walk(androidDex().path)
       .filter(_.ext == "dex")
       .map(os.zip.ZipSource.fromPath)
@@ -807,7 +808,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .flatMap(_.proguardRules)
       .map(p => os.read(p.path))
       .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidCompiledResources()._1.path / "main-dex-rules.pro"))
+      .appended(os.read(androidCompiledResources().mainDexRulesProFile.path))
       .mkString("\n")
     os.write(proguardFileDebug, knownProguardRulesDebug)
 
@@ -819,7 +820,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .flatMap(_.proguardRules)
       .map(p => os.read(p.path))
       .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidCompiledResources()._1.path / "main-dex-rules.pro"))
+      .appended(os.read(androidCompiledResources().mainDexRulesProFile.path))
       .mkString("\n")
     os.write(proguardFileRelease, knownProguardRulesRelease)
 
@@ -838,7 +839,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       pf => androidProguardPath / pf
     }
     val userProguardFiles = proguardFilesFromReleaseSettings.localFiles
-    os.checker.withValue(os.Checker.Nop) {
+    mill.define.BuildCtx.withFilesystemCheckerDisabled {
       (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(_))
     }
   }
@@ -886,23 +887,22 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val buildSettings: AndroidBuildTypeSettings = androidBuildSettings()
 
-    val (outPath, dexCliArgs) = {
-      if (buildSettings.isMinifyEnabled) {
+    val dex =
+      if (buildSettings.isMinifyEnabled)
         androidR8Dex()
-      } else
+      else
         androidD8Dex()
-    }
 
-    Task.log.debug("Building dex with command: " + dexCliArgs.mkString(" "))
+    Task.log.debug("Building dex with command: " + dex.dexCliArgs.mkString(" "))
 
-    os.call(dexCliArgs)
+    os.call(dex.dexCliArgs)
 
-    outPath
+    dex.outPath
 
   }
 
   // uses the d8 tool to generate the dex file, when minification is disabled
-  private def androidD8Dex: T[(PathRef, Seq[String])] = Task {
+  private def androidD8Dex: T[(outPath: PathRef, dexCliArgs: Seq[String])] = Task {
 
     val outPath = T.dest
 
@@ -920,7 +920,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .flatMap(_.proguardRules)
       .map(p => os.read(p.path))
       .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidCompiledResources()._1.path / "main-dex-rules.pro"))
+      .appended(os.read(androidCompiledResources().mainDexRulesProFile.path))
       .mkString("\n")
     os.write(proguardFile, knownProguardRules)
 
@@ -953,7 +953,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   // uses the R8 tool to generate the dex (to shrink and obfuscate)
-  private def androidR8Dex: Task[(PathRef, Seq[String])] = Task {
+  private def androidR8Dex: Task[(outPath: PathRef, dexCliArgs: Seq[String])] = Task {
     val destDir = T.dest / "minify"
     os.makeDir.all(destDir)
 
@@ -1168,7 +1168,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def testTask(
         args: Task[Seq[String]],
         globSelectors: Task[Seq[String]]
-    ): Task[(String, Seq[TestResult])] = Task.Anon {
+    ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
       val device = androidTestInstall().apply()
 
       val instrumentOutput = os.proc(

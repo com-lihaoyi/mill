@@ -4,7 +4,7 @@ package kotlinlib.js
 import mill.api.ExecResult
 import mill.define.Discover
 import mill.define.ExecutionPaths
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, assert, test}
 
 object KotlinJsKotestModuleTests extends TestSuite {
@@ -13,7 +13,7 @@ object KotlinJsKotestModuleTests extends TestSuite {
   private val testKotlinVersion = "1.9.25"
   val testKotestVersion = sys.props.getOrElse("TEST_KOTEST_VERSION", ???)
 
-  object module extends TestBaseModule {
+  object module extends TestRootModule {
 
     object bar extends KotlinJsModule {
       def kotlinVersion = testKotlinVersion

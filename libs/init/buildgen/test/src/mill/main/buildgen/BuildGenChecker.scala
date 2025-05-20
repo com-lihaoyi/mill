@@ -3,7 +3,7 @@ package mill.main.buildgen
 import mill.constants.{CodeGenConstants, OutFiles}
 import mill.define.Discover
 import mill.scalalib.scalafmt.ScalafmtModule
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.{PathRef, T}
 import utest.framework.TestPath
 import mill.util.TokenReaders._
@@ -28,7 +28,7 @@ class BuildGenChecker(sourceRoot: os.Path, scalafmtConfigFile: os.Path) {
 
     // fmt
     val files = mill.init.Util.buildFiles(testRoot).map(PathRef(_)).toSeq
-    object module extends TestBaseModule with ScalafmtModule {
+    object module extends TestRootModule with ScalafmtModule {
       override def filesToFormat(sources: Seq[PathRef]): Seq[PathRef] = files
 
       override def scalafmtConfig: T[Seq[PathRef]] = Seq(PathRef(scalafmtConfigFile))

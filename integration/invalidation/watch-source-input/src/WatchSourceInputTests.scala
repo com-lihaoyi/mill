@@ -16,7 +16,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * 1. `Task.Source`
  * 2. `Task.Sources`
  * 3. `Task.Input`
- * 4. `interp.watchValue`
+ * 4. `mill.define.BuildCtx.watchValue`
  * 5. Implicitly watched files, like `build.mill`
  */
 trait WatchTests extends UtestIntegrationTestSuite {
@@ -44,12 +44,9 @@ trait WatchTests extends UtestIntegrationTestSuite {
     val expectedShows0 = mutable.Buffer.empty[String]
     val res = f(expectedOut, expectedErr, expectedShows0)
     val (shows, out) = res.out.linesIterator.toVector.partition(_.startsWith("\""))
-    val err = res.err.linesIterator.toVector
-      .filter(!_.contains("Compiling compiler interface..."))
-      .filter(!_.contains("Watching for changes"))
-      .filter(!_.contains("[info] compiling"))
-      .filter(!_.contains("[info] done compiling"))
-      .filter(!_.contains("mill-daemon/ exitCode file not found"))
+    val err = res.err.linesIterator.toVector.filter(s =>
+      s.startsWith("Setting up ") || s.startsWith("Running ")
+    )
 
     assert(out == expectedOut)
 

@@ -17,7 +17,7 @@ object UtestExampleTestSuite extends TestSuite {
     test("exampleTest") {
       def run() =
         Retry(
-          Retry.printStreamLogger(System.err),
+          logger = Retry.printStreamLogger(System.err),
           count = if (sys.env.contains("CI")) 1 else 0,
           timeoutMillis = 15.minutes.toMillis
         ) {

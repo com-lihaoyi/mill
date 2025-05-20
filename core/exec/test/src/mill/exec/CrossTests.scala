@@ -2,7 +2,7 @@ package mill.exec
 
 import mill.define.Discover
 import mill.{Cross, Task}
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.testkit.UnitTester.Result
 import mill.util.TestGraphs
 import mill.util.TestGraphs.{crossResolved, doubleCross, nestedCrosses, nonStringCross, singleCross}
@@ -10,7 +10,7 @@ import utest.*
 
 object CrossTests extends TestSuite {
 
-  object crossExtension extends TestBaseModule {
+  object crossExtension extends TestRootModule {
     object myCross extends Cross[MyCrossModule]("a", "b")
     trait MyCrossModule extends Cross.Module[String] {
       def param1 = Task { "Param Value: " + crossValue }
@@ -30,7 +30,7 @@ object CrossTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object innerCrossModule extends TestBaseModule {
+  object innerCrossModule extends TestRootModule {
     object myCross extends Cross[MyCrossModule]("a", "b")
     trait MyCrossModule extends Cross.Module[String] {
       object foo extends CrossValue {

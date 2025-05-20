@@ -87,19 +87,25 @@ class SonatypeCentralPublisher(
       publishingType: PublishingType
   ): Unit = {
     try {
-      sonatypeCentralClient.uploadBundleFromFile(
-        zipFile,
-        deploymentName,
-        Some(publishingType),
-        timeout = awaitTimeout
-      )
+      mill.util.Retry(
+        count = 5,
+        backoffMillis = 1000,
+        filter = (_, ex) => ex.getMessage.contains("Read end dead")
+      ) {
+        sonatypeCentralClient.uploadBundleFromFile(
+          zipFile,
+          deploymentName,
+          Some(publishingType),
+          timeout = awaitTimeout
+        )
+      }
     } catch {
       case ex: Throwable => {
         throw new RuntimeException(
-          s"Failed to publish ${deploymentName.unapply} to Sonatype Central. Error: \n${ex.getMessage}"
+          s"Failed to publish ${deploymentName.unapply} to Sonatype Central",
+          ex
         )
       }
-
     }
 
     log.info(s"Successfully published ${deploymentName.unapply} to Sonatype Central")

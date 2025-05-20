@@ -11,6 +11,7 @@ import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.api.internal.{ScalaBuildTarget, ScalaJSModuleApi, ScalaPlatform, internal}
 import mill.T
+import upickle.implicits.namedTuples.default.given
 
 trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =>
 
@@ -376,13 +377,13 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     )
   }
 
-  override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
+  override def testLocal(args: String*): Command[(msg: String, results: Seq[TestResult])] =
     Task.Command { testForked(args*)() }
 
   override protected def testTask(
       args: Task[Seq[String]],
       globSelectors: Task[Seq[String]]
-  ): Task[(String, Seq[TestResult])] = Task.Anon {
+  ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
 
     val (close, framework) = ScalaJSWorkerExternalModule.scalaJSWorker().getFramework(
       scalaJSToolsClasspath(),

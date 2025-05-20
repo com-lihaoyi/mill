@@ -3,7 +3,7 @@ package mill.exec
 import mill.util.Jvm
 import mill.define.TaskCtx.Dest
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 
 import mill.util.JarManifest
 
@@ -26,7 +26,7 @@ object JavaCompileJarTests extends TestSuite {
   val tests = Tests {
 
     test("javac") {
-      object Build extends TestBaseModule {
+      object Build extends TestRootModule {
         def sourceRootPath: os.SubPath = "src"
         def readmePath: os.SubPath = "readme.md"
         def resourceRootPath: os.SubPath = "resources"

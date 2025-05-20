@@ -175,21 +175,17 @@ trait PythonModule extends PipModule with TaskModule { outer =>
    *
    * @see [[mainScript]]
    */
-  def runBackground(args: mill.define.Args) = Task.Command {
-    val (procUuidPath, procLockfile, procUuid) = mill.scalalib.RunModule.backgroundSetup(Task.dest)
+  def runBackground(args: mill.define.Args) = Task.Command(persistent = true) {
+    val backgroundPaths = mill.scalalib.RunModule.BackgroundPaths(Task.dest)
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
-    os.checker.withValue(os.Checker.Nop) {
+    mill.define.BuildCtx.withFilesystemCheckerDisabled {
       Jvm.spawnProcess(
         mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
         classPath = mill.scalalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
         env = runnerEnvTask(),
-        mainArgs = Seq(
-          procUuidPath.toString,
-          procLockfile.toString,
-          procUuid,
-          "500",
+        mainArgs = backgroundPaths.toArgs ++ Seq(
           "<subprocess>",
           pythonExe().path.toString,
           mainScript().path.toString

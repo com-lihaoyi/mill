@@ -4,7 +4,7 @@ package js
 
 import mill.define.Discover
 import mill.define.ExecutionPaths
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, test}
 
 object KotlinJsNodeRunTests extends TestSuite {
@@ -13,7 +13,7 @@ object KotlinJsNodeRunTests extends TestSuite {
   private val kotlinVersion = "1.9.25"
   private val expectedSuccessOutput = "Hello, world"
 
-  object module extends TestBaseModule {
+  object module extends TestRootModule {
 
     private val matrix = for {
       splits <- Seq(true, false)

@@ -3,13 +3,13 @@ package mill.daemon
 import mill.api.internal.{BspServerResult, internal}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
-import mill.client.lock.Lock
-import mill.constants.{OutFiles, DaemonFiles, Util}
-import mill.{api, define}
-import mill.define.WorkspaceRoot
+import mill.client.lock.{DoubleLock, Lock}
+import mill.constants.{DaemonFiles, OutFiles, Util}
+import mill.define.BuildCtx
 import mill.internal.{Colors, MultiStream, PromptLogger}
 import mill.server.Server
 import mill.util.BuildInfo
+import mill.{api, define}
 
 import java.io.{InputStream, PipedInputStream, PrintStream}
 import java.lang.reflect.InvocationTargetException
@@ -17,8 +17,8 @@ import java.util.Locale
 import java.util.concurrent.locks.ReentrantLock
 import scala.collection.immutable
 import scala.jdk.CollectionConverters.*
-import scala.util.{Properties, Using}
 import scala.util.control.NonFatal
+import scala.util.{Properties, Using}
 
 @internal
 object MillMain {
@@ -47,7 +47,7 @@ object MillMain {
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
 
     val processId = Server.computeProcessId()
-    val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
+    val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
     Server.watchProcessIdFile(
       out / OutFiles.millNoDaemon / processId / DaemonFiles.processId,
       processId,
@@ -56,6 +56,11 @@ object MillMain {
         System.err.println(msg)
         System.exit(0)
       }
+    )
+
+    val outLock = new DoubleLock(
+      outMemoryLock,
+      Lock.file((out / OutFiles.millOutLock).toString)
     )
 
     val daemonDir = os.Path(args.head)
@@ -71,12 +76,14 @@ object MillMain {
           initialSystemProperties = sys.props.toMap,
           systemExit = i => sys.exit(i),
           daemonDir = daemonDir,
-          outLock = Lock.file((out / OutFiles.millOutLock).toString)
+          outLock = outLock
         )
       catch handleMillException(initialSystemStreams.err, ())
 
     System.exit(if (result) 0 else 1)
   }
+
+  val outMemoryLock = Lock.memory()
 
   private def withStreams[T](
       bspMode: Boolean,
@@ -86,11 +93,11 @@ object MillMain {
       // In BSP mode, don't let anything other than the BSP server write to stdout and read from stdin
 
       val outFileStream = os.write.outputStream(
-        WorkspaceRoot.workspaceRoot / OutFiles.out / "mill-bsp/out.log",
+        BuildCtx.workspaceRoot / OutFiles.out / "mill-bsp/out.log",
         createFolders = true
       )
       val errFileStream = os.write.outputStream(
-        WorkspaceRoot.workspaceRoot / OutFiles.out / "mill-bsp/err.log",
+        BuildCtx.workspaceRoot / OutFiles.out / "mill-bsp/err.log",
         createFolders = true
       )
 
@@ -190,7 +197,7 @@ object MillMain {
                 if (colored) mill.internal.Colors.Default else mill.internal.Colors.BlackWhite
 
               if (!config.silent.value) {
-                checkMillVersionFromFile(WorkspaceRoot.workspaceRoot, streams.err)
+                checkMillVersionFromFile(BuildCtx.workspaceRoot, streams.err)
               }
 
               val maybeThreadCount =
@@ -252,7 +259,7 @@ object MillMain {
 
                   val threadCount = Some(maybeThreadCount.toOption.get)
 
-                  val out = os.Path(OutFiles.out, WorkspaceRoot.workspaceRoot)
+                  val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
                   Using.resource(new TailManager(daemonDir)) { tailManager =>
                     def runMillBootstrap(
                         enterKeyPressed: Boolean,
@@ -287,7 +294,7 @@ object MillMain {
                           tailManager.withOutErr(logger.streams.out, logger.streams.err) {
 
                             new MillBuildBootstrap(
-                              projectRoot = WorkspaceRoot.workspaceRoot,
+                              projectRoot = BuildCtx.workspaceRoot,
                               output = out,
                               keepGoing = config.keepGoing.value,
                               imports = config.imports,
@@ -344,9 +351,13 @@ object MillMain {
                       if (config.watch.value) os.remove(out / OutFiles.millSelectiveExecution)
                       Watching.watchLoop(
                         ringBell = config.ringBell.value,
-                        watch = config.watch.value,
+                        watch = Option.when(config.watch.value)(Watching.WatchArgs(
+                          setIdle = setIdle,
+                          colors,
+                          useNotify = config.watchViaFsNotify,
+                          daemonDir = daemonDir
+                        )),
                         streams = streams,
-                        setIdle = setIdle,
                         evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
                           adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
                           runMillBootstrap(
@@ -356,8 +367,7 @@ object MillMain {
                             streams,
                             config.leftoverArgs.value.mkString(" ")
                           )
-                        },
-                        colors = colors
+                        }
                       )
                     }
                   }
@@ -393,12 +403,12 @@ object MillMain {
   ): Result[BspServerResult] = {
     logStreams.err.println("Trying to load BSP server...")
 
-    val wsRoot = WorkspaceRoot.workspaceRoot
+    val wsRoot = BuildCtx.workspaceRoot
     val logDir = wsRoot / OutFiles.out / "mill-bsp"
     val bspServerHandleRes = {
       os.makeDir.all(logDir)
       mill.bsp.worker.BspWorkerImpl.startBspServer(
-        define.WorkspaceRoot.workspaceRoot,
+        define.BuildCtx.workspaceRoot,
         bspStreams,
         logDir,
         true,
