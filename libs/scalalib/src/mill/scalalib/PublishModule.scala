@@ -332,17 +332,18 @@ trait PublishModule extends JavaModule { outer =>
    *                   If not set, falls back to `maven.repo.local` system property or `~/.m2/repository`
    * @return [[PathRef]]s to published files.
    */
-  def publishLocal(m2RepoPath: String = null): Command[Seq[PathRef]] = m2RepoPath match {
-    case null => Task.Command { publishLocalTask(Task.Anon { publishLocalRepoPath() })() }
-    case p => Task.Command { publishLocalTask(Task.Anon { os.Path(p, Task.workspace) })() }
-  }
+  def publishLocal(m2RepoPath: String = null, doc: Boolean = true): Command[Seq[PathRef]] =
+    m2RepoPath match {
+      case null => Task.Command { publishLocalTask(Task.Anon { publishLocalRepoPath() }, doc)() }
+      case p => Task.Command { publishLocalTask(Task.Anon { os.Path(p, Task.workspace) }, doc)() }
+    }
 
   /**
    * Publish artifacts to the local Maven repository.
    * @return [[PathRef]]s to published files.
    */
   def publishLocalCached: T[Seq[PathRef]] = Task {
-    publishLocalTask(publishLocalRepoPath)()
+    publishLocalTask(publishLocalRepoPath, true)()
   }
 
   /**
@@ -355,19 +356,20 @@ trait PublishModule extends JavaModule { outer =>
       .getOrElse(os.Path(os.home / ".m2", Task.workspace)) / "repository"
   }
 
-  private def publishLocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = Task.Anon {
-    val path = m2RepoPath()
-    val publishInfos = defaultPublishInfos() ++
-      Seq(
-        PublishInfo.sourcesJar(sourceJar()),
-        PublishInfo.docJar(docJar())
-      ) ++
-      extraPublish()
+  private def publishLocalTask(m2RepoPath: Task[os.Path], doc: Boolean): Task[Seq[PathRef]] =
+    Task.Anon {
+      val path = m2RepoPath()
+      val publishInfos = defaultPublishInfos() ++
+        Seq(PublishInfo.sourcesJar(sourceJar())) ++
+        (if (doc) docJar.map(Seq(_)) else Task.Anon { Seq.empty[PathRef] }) ().map(
+          PublishInfo.docJar(_)
+        ) ++
+        extraPublish()
 
-    new LocalM2Publisher(path)
-      .publish(pom().path, artifactMetadata(), publishInfos)
-      .map(PathRef(_).withRevalidateOnce)
-  }
+      new LocalM2Publisher(path)
+        .publish(pom().path, artifactMetadata(), publishInfos)
+        .map(PathRef(_).withRevalidateOnce)
+    }
 
   def sonatypeUri: String = "https://oss.sonatype.org/service/local"
 
