@@ -5,7 +5,7 @@ import mill.constants.{DaemonFiles, OutFiles, Util}
 import mill.daemon.MillMain0.{handleMillException, main0, outMemoryLock}
 import mill.define.BuildCtx
 import mill.server.Server
-
+import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 object MillNoDaemonMain {
