@@ -12,6 +12,26 @@ include::partial$example/scalalib/spark/1-hello-spark.adoc[]
 
 include::partial$example/scalalib/spark/1-hello-spark.adoc[]
 
+== Spark Streaming
+
+include::partial$example/scalalib/spark/3-spark-streaming.adoc[]
+
+== Hello Spark + Delta
+
+include::partial$example/scalalib/spark/4-hello-delta.adoc[]
+
+== Hello Spark + IceBerg
+
+include::partial$example/scalalib/spark/5-hello-iceberg.adoc[]
+
+== Hello Spark + ML-Lib
+
+include::partial$example/scalalib/spark/6-hello-mllib.adoc[]
+
+== Hello Pyspark + ML-Lib
+
+include::partial$example/scalalib/spark/7-hello-pyspark-mllib.adoc[]
+
 == Semi realistic spark project with spark submit
 
-include::partial$example/scalalib/spark/3-semi-realistic.adoc[]
+include::partial$example/scalalib/spark/8-semi-realistic.adoc[]

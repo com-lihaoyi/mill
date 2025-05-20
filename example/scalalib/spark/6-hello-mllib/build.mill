@@ -1,0 +1,37 @@
+package build
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.15"
+  def mvnDeps = Seq(
+    mvn"org.apache.spark::spark-core:3.5.4",
+    mvn"org.apache.spark::spark-sql:3.5.4",
+    mvn"org.apache.spark::spark-mllib:3.5.4"
+  )
+
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+  }
+
+}
+// This examples demonstrates running spark + mlib using mill.
+
+/** Usage
+
+> ./mill foo.run
++--------------+
+|         words|
++--------------+
+|[hello, mllib]|
++--------------+
+
+> ./mill foo.test
+...
++ foo.FooTests.'tokenize' should split 'Hello MLlib' into words...
+...
+*/

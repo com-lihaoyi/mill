@@ -1,0 +1,37 @@
+package build
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.15"
+  def mvnDeps = Seq(
+    mvn"org.apache.spark::spark-core:3.4.0",
+    mvn"org.apache.spark::spark-sql:3.4.0",
+    mvn"io.delta:delta-core_2.12:2.4.0",
+  )
+
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+  }
+
+}
+// This examples demonstrates running spark with delta using mill.
+
+/** Usage
+
+> ./mill foo.run
++-------------+
+|      message|
++-------------+
+|Hello, Delta!|
++-------------+
+
+> ./mill foo.test
+...
++ foo.FooTests.Delta table should contain one row with 'Hello, Delta!'...
+...
+*/
