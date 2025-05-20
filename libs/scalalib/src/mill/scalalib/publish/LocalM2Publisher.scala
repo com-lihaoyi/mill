@@ -20,7 +20,7 @@ class LocalM2Publisher(m2Repo: os.Path) {
   )(implicit ctx: TaskCtx.Log): Seq[os.Path] = {
 
     val releaseDir = m2Repo / artifact.group.split("[.]") / artifact.id / artifact.version
-    ctx.log.info(s"Publish ${artifact.id}-${artifact.version} to ${releaseDir}")
+    ctx.log.info(s"Publishing ${artifact.id}-${artifact.version} to ${releaseDir}")
 
     val toCopy: Seq[(os.Path, os.Path)] =
       Seq(pom -> releaseDir / s"${artifact.id}-${artifact.version}.pom") ++
