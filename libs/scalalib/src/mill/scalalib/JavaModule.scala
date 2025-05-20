@@ -1126,11 +1126,11 @@ trait JavaModule
    * @param whatDependsOn possible list of modules to target in the tree in order to see
    *                      where a dependency stems from.
    */
-  protected def printDepsTree(
+  private def renderDepsTree(
       inverse: Boolean,
       additionalDeps: Task[Seq[BoundDep]],
       whatDependsOn: List[JavaOrScalaModule]
-  ): Task[Unit] =
+  ): Task[String] =
     Task.Anon {
       val dependencies =
         (additionalDeps() ++ Seq(BoundDep(coursierDependency, force = false))).iterator.to(Seq)
@@ -1148,7 +1148,7 @@ trait JavaModule
         case List() =>
           val mandatoryModules =
             mandatoryMvnDeps().map(bindDependency()).iterator.map(_.dep.module).toSet
-          val (mandatory, main) = resolution.dependenciesOf(coursierDependency)
+          val (mandatory, main) = resolution.dependenciesOf0(coursierDependency).toTry.get
             .partition(dep => mandatoryModules.contains(dep.module))
           additionalDeps().iterator.toSeq.map(_.dep) ++ main ++ mandatory
         case _ =>
@@ -1180,71 +1180,76 @@ trait JavaModule
         .replace(":0+mill-internal ", " ")
         .replace(":0+mill-internal" + System.lineSeparator(), System.lineSeparator())
 
-      println(processedTree)
-
-      ()
+      processedTree
     }
 
   /**
    * Command to print the transitive dependency tree to STDOUT.
    */
-  def mvnDepsTree(args: MvnDepsTreeArgs = MvnDepsTreeArgs()): Command[Unit] = {
+  def showMvnDepsTree(args: MvnDepsTreeArgs = MvnDepsTreeArgs()): Command[String] = {
+    val treeTask = mvnDepsTree(args)
+    Task.Command {
+      val rendered = treeTask()
+      Task.log.streams.out.println(rendered)
+      rendered
+    }
+  }
 
-    val (invalidModules, validModules) =
-      args.whatDependsOn.map(ModuleParser.javaOrScalaModule(_)).partitionMap(identity)
+  protected def mvnDepsTree(args: MvnDepsTreeArgs): Task[String] = {
+    val (invalidModules, modules) =
+      args.whatDependsOn.partitionMap(ModuleParser.javaOrScalaModule)
 
-    if (invalidModules.isEmpty) {
-      (args.withCompile, args.withRuntime) match {
-        case (Flag(true), Flag(true)) =>
-          Task.Command {
-            printDepsTree(
-              args.inverse.value,
-              Task.Anon {
-                Seq(
-                  coursierDependency.withConfiguration(cs.Configuration.provided),
-                  coursierDependency.withConfiguration(cs.Configuration.runtime)
-                ).map(BoundDep(_, force = false))
-              },
-              validModules
-            )()
-          }
-        case (Flag(true), Flag(false)) =>
-          Task.Command {
-            printDepsTree(
-              args.inverse.value,
-              Task.Anon {
-                Seq(BoundDep(
-                  coursierDependency.withConfiguration(cs.Configuration.provided),
-                  force = false
-                ))
-              },
-              validModules
-            )()
-          }
-        case (Flag(false), Flag(true)) =>
-          Task.Command {
-            printDepsTree(
-              args.inverse.value,
-              Task.Anon {
-                Seq(BoundDep(
-                  coursierDependency.withConfiguration(cs.Configuration.runtime),
-                  force = false
-                ))
-              },
-              validModules
-            )()
-          }
-        case _ =>
-          Task.Command {
-            printDepsTree(args.inverse.value, Task.Anon { Seq.empty[BoundDep] }, validModules)()
-          }
-      }
-    } else {
-      Task.Command {
+    if (invalidModules.nonEmpty) {
+      Task.Anon {
         val msg = invalidModules.mkString("\n")
         Task.fail(msg)
       }
+    } else {
+      (args.withCompile, args.withRuntime) match {
+        case (Flag(true), Flag(true)) =>
+          renderDepsTree(
+            args.inverse.value,
+            Task.Anon {
+              Seq(
+                coursierDependency.withConfiguration(cs.Configuration.provided),
+                coursierDependency.withConfiguration(cs.Configuration.runtime)
+              ).map(BoundDep(_, force = false))
+            },
+            modules
+          )
+        case (Flag(true), Flag(false)) =>
+          renderDepsTree(
+            args.inverse.value,
+            Task.Anon {
+              Seq(BoundDep(
+                coursierDependency.withConfiguration(cs.Configuration.provided),
+                force = false
+              ))
+            },
+            modules
+          )
+        case (Flag(false), Flag(true)) =>
+          renderDepsTree(
+            args.inverse.value,
+            Task.Anon {
+              Seq(BoundDep(
+                coursierDependency.withConfiguration(cs.Configuration.runtime),
+                force = false
+              ))
+            },
+            modules
+          )
+        case _ =>
+          renderDepsTree(
+            args.inverse.value,
+            Task.Anon {
+              Seq.empty[BoundDep]
+            },
+            modules
+          )
+      }
     }
+
   }
 
   /**

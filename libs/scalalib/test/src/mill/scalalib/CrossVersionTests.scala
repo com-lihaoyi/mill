@@ -140,7 +140,7 @@ object CrossVersionTests extends TestSuite {
       testPath: TestPath
   ) = {
     init().scoped { eval =>
-      eval.apply(mod.mvnDepsTree(MvnDepsTreeArgs()))
+      eval.apply(mod.showMvnDepsTree(MvnDepsTreeArgs()))
 
       expectedMvnDepsTree.foreach { tree =>
         if (!scala.util.Properties.isWin) {
@@ -149,7 +149,7 @@ object CrossVersionTests extends TestSuite {
           val depsTree =
             os.read(ExecutionPaths.resolve(
               eval.outPath,
-              mod.mvnDepsTree(MvnDepsTreeArgs())
+              mod.showMvnDepsTree(MvnDepsTreeArgs())
             ).log)
           assert(depsTree == expectedDepsTree)
         }
