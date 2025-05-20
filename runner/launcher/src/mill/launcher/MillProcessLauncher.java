@@ -28,7 +28,7 @@ public class MillProcessLauncher {
 
     final List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand());
-    l.add("mill.daemon.MillMain");
+    l.add("mill.daemon.MillNoDaemonMain");
     l.add(processDir.toAbsolutePath().toString());
     l.addAll(millOpts());
     l.addAll(Arrays.asList(args));

@@ -52,7 +52,7 @@ class MillDaemonMain(
   val out = os.Path(OutFiles.out, mill.define.BuildCtx.workspaceRoot)
 
   val outLock = new DoubleLock(
-    MillMain.outMemoryLock,
+    MillMain0.outMemoryLock,
     Lock.file((out / OutFiles.millOutLock).toString)
   )
 
@@ -67,7 +67,7 @@ class MillDaemonMain(
       initialSystemProperties: Map[String, String],
       systemExit: Int => Nothing
   ): (Boolean, RunnerState) = {
-    try MillMain.main0(
+    try MillMain0.main0(
         args = args,
         stateCache = stateCache,
         mainInteractive = mainInteractive,
@@ -80,6 +80,6 @@ class MillDaemonMain(
         daemonDir = daemonDir,
         outLock = outLock
       )
-    catch MillMain.handleMillException(streams.err, stateCache)
+    catch MillMain0.handleMillException(streams.err, stateCache)
   }
 }

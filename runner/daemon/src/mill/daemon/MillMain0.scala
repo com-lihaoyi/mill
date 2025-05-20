@@ -21,7 +21,7 @@ import scala.util.control.NonFatal
 import scala.util.{Properties, Using}
 
 @internal
-object MillMain {
+object MillMain0 {
 
   def handleMillException[T](
       err: PrintStream,
