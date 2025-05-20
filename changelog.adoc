@@ -98,6 +98,8 @@ package build
 ...Qux...
 ```
 
+* `interp.*` and `mill.api.Workspace.workspaceRoot` have been moved to a new `mill.define.BuildCtx` object
+
 * `os.*` filesystem operations are now restricted by default: 
 
 ** During the execution phase, Task implementations can only write
@@ -216,6 +218,9 @@ object `package` extends Cross[FooModule]("3.6.2", "2.13.16") {
 * `def testParallelism` is set to `true` by default, letting Mill run multiple test classes
   in parallel subprocesses even within the same module. Can be disabled by overriding
   `def testParallelism = false` on the test module.
+
+* `--notify-watch` now defaults to `true`, but can be disabled by explicitly passing `--notify-watch false`
+  to the Mill launcher or in the `.mill-opts` file
 
 * Lots of miscellaneous improvements:
 
