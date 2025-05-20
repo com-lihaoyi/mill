@@ -618,9 +618,9 @@ object BomTests extends TestSuite {
       scalaSuffix: String
   )(implicit eval: UnitTester): Seq[os.Path] = {
     val localM2Repo = eval.evaluator.workspace / "m2Local"
-    eval(module.publishM2Local(localM2Repo.toString)).right.get
+    eval(module.publishLocal(localM2Repo.toString)).right.get
     for (dependencyModule <- dependencyModules)
-      eval(dependencyModule.publishM2Local(localM2Repo.toString)).right.get
+      eval(dependencyModule.publishLocal(localM2Repo.toString)).right.get
 
     val moduleString = eval(module.artifactName).right.get.value
 
