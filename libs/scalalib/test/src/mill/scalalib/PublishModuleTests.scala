@@ -13,7 +13,7 @@ import mill.scalalib.publish.{
   VersionScheme
 }
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 import mill.util.TokenReaders._
 import java.io.PrintStream
@@ -32,7 +32,7 @@ object PublishModuleTests extends TestSuite {
     }
   }
 
-  object HelloWorldWithPublish extends TestBaseModule {
+  object HelloWorldWithPublish extends TestRootModule {
     object core extends HelloScalaModule with PublishModule {
       override def artifactName = "hello-world"
       override def publishVersion = "0.0.1"
@@ -55,7 +55,7 @@ object PublishModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object PomOnly extends TestBaseModule {
+  object PomOnly extends TestRootModule {
     object core extends JavaModule with PublishModule {
       override def pomPackagingType: String = PackagingType.Pom
       override def artifactName = "pom-only"
@@ -82,7 +82,7 @@ object PublishModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object compileAndRuntimeStuff extends TestBaseModule {
+  object compileAndRuntimeStuff extends TestRootModule {
     def organization = "com.lihaoyi.pubmodtests"
     def version = "0.1.0-SNAPSHOT"
     trait TestPublishModule extends PublishModule {

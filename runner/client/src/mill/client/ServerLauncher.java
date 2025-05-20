@@ -1,6 +1,5 @@
 package mill.client;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -10,29 +9,29 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import mill.client.lock.Locks;
+import mill.constants.DaemonFiles;
 import mill.constants.InputPumper;
 import mill.constants.ProxyStream;
-import mill.constants.ServerFiles;
 import mill.constants.Util;
 
 /**
  * Client side code that interacts with `Server.scala` in order to launch a generic
- * long-lived background server.
+ * long-lived background daemon.
  *
  * The protocol is as follows:
  *
  * - Client:
- *   - Take clientLock
- *   - If serverLock is not yet taken, it means server is not running, so spawn a server
+ *   - Take launcherLock
+ *   - If daemonLock is not yet taken, it means server is not running, so spawn a server
  *   - Wait for server socket to be available for connection
  * - Server:
- *   - Take serverLock.
+ *   - Take daemonLock.
  *     - If already taken, it means another server was running
  *       (e.g. spawned by a different client) so exit immediately
  * - Server: loop:
  *   - Listen for incoming client requests on serverSocket
  *   - Execute client request
- *   - If clientLock is released during execution, terminate server (otherwise
+ *   - If launcherLock is released during execution, terminate server (otherwise
  *     we have no safe way of terminating the in-process request, so the server
  *     may continue running for arbitrarily long with no client attached)
  *   - Send `ProxyStream.END` packet and call `clientSocket.close()`
@@ -43,14 +42,14 @@ import mill.constants.Util;
 public abstract class ServerLauncher {
   public static class Result {
     public int exitCode;
-    public Path serverDir;
+    public Path daemonDir;
   }
 
   final int serverInitWaitMillis = 10000;
 
-  public abstract void initServer(Path serverDir, Locks locks) throws Exception;
+  public abstract void initServer(Path daemonDir, Locks locks) throws Exception;
 
-  public abstract void prepareServerDir(Path serverDir) throws Exception;
+  public abstract void preparedaemonDir(Path daemonDir) throws Exception;
 
   InputStream stdin;
   PrintStream stdout;
@@ -82,42 +81,42 @@ public abstract class ServerLauncher {
     this.forceFailureForTestingMillisDelay = forceFailureForTestingMillisDelay;
   }
 
-  public Result run(Path serverDir) throws Exception {
+  public Result run(Path daemonDir, String javaHome) throws Exception {
 
-    Files.createDirectories(serverDir);
+    Files.createDirectories(daemonDir);
 
-    prepareServerDir(serverDir);
+    preparedaemonDir(daemonDir);
 
-    Socket ioSocket = launchConnectToServer(serverDir);
+    Socket ioSocket = launchConnectToServer(daemonDir);
 
+    Result result = new Result();
     try {
-      Thread outPumperThread = startStreamPumpers(ioSocket);
-      forceTestFailure(serverDir);
+      PumperThread outPumperThread = startStreamPumpers(ioSocket, javaHome);
+      forceTestFailure(daemonDir);
       outPumperThread.join();
+      result.exitCode = outPumperThread.exitCode();
+      result.daemonDir = daemonDir;
     } finally {
       ioSocket.close();
     }
 
-    Result result = new Result();
-    result.exitCode = readExitCode(serverDir);
-    result.serverDir = serverDir;
     return result;
   }
 
-  Socket launchConnectToServer(Path serverDir) throws Exception {
+  Socket launchConnectToServer(Path daemonDir) throws Exception {
 
-    try (Locks locks = memoryLock != null ? memoryLock : Locks.files(serverDir.toString());
-        mill.client.lock.Locked locked = locks.clientLock.lock()) {
+    try (Locks locks = memoryLock != null ? memoryLock : Locks.files(daemonDir.toString());
+        mill.client.lock.Locked locked = locks.launcherLock.lock()) {
 
-      if (locks.serverLock.probe()) initServer(serverDir, locks);
-      while (locks.serverLock.probe()) Thread.sleep(1);
+      if (locks.daemonLock.probe()) initServer(daemonDir, locks);
+      while (locks.daemonLock.probe()) Thread.sleep(1);
     }
     long retryStart = System.currentTimeMillis();
     Socket ioSocket = null;
     Throwable socketThrowable = null;
     while (ioSocket == null && System.currentTimeMillis() - retryStart < serverInitWaitMillis) {
       try {
-        int port = Integer.parseInt(Files.readString(serverDir.resolve(ServerFiles.socketPort)));
+        int port = Integer.parseInt(Files.readString(daemonDir.resolve(DaemonFiles.socketPort)));
         ioSocket = new java.net.Socket(InetAddress.getLoopbackAddress(), port);
       } catch (Throwable e) {
         socketThrowable = e;
@@ -130,38 +129,42 @@ public abstract class ServerLauncher {
     return ioSocket;
   }
 
-  private void forceTestFailure(Path serverDir) throws Exception {
+  private void forceTestFailure(Path daemonDir) throws Exception {
     if (forceFailureForTestingMillisDelay > 0) {
       Thread.sleep(forceFailureForTestingMillisDelay);
-      throw new Exception("Force failure for testing: " + serverDir);
+      throw new Exception("Force failure for testing: " + daemonDir);
     }
   }
 
-  Thread startStreamPumpers(Socket ioSocket) throws Exception {
+  class PumperThread extends Thread {
+    ProxyStream.Pumper runnable;
+
+    public PumperThread(ProxyStream.Pumper runnable, String name) {
+      super(runnable, name);
+      this.runnable = runnable;
+    }
+
+    public int exitCode() {
+      return runnable.exitCode;
+    }
+  }
+
+  PumperThread startStreamPumpers(Socket ioSocket, String javaHome) throws Exception {
     InputStream outErr = ioSocket.getInputStream();
     OutputStream in = ioSocket.getOutputStream();
     in.write(Util.hasConsole() ? 1 : 0);
     ClientUtil.writeString(in, BuildInfo.millVersion);
+    ClientUtil.writeString(in, javaHome);
     ClientUtil.writeArgs(args, in);
     ClientUtil.writeMap(env, in);
     ProxyStream.Pumper outPumper = new ProxyStream.Pumper(outErr, stdout, stderr);
     InputPumper inPump = new InputPumper(() -> stdin, () -> in, true);
-    Thread outPumperThread = new Thread(outPumper, "outPump");
+    PumperThread outPumperThread = new PumperThread(outPumper, "outPump");
     outPumperThread.setDaemon(true);
     Thread inThread = new Thread(inPump, "inPump");
     inThread.setDaemon(true);
     outPumperThread.start();
     inThread.start();
     return outPumperThread;
-  }
-
-  int readExitCode(Path serverDir) throws IOException {
-    Path exitCodeFile = serverDir.resolve(ServerFiles.exitCode);
-    if (Files.exists(exitCodeFile)) {
-      return Integer.parseInt(Files.readAllLines(exitCodeFile).get(0));
-    } else {
-      System.err.println("mill-server/ exitCode file not found");
-      return 1;
-    }
   }
 }

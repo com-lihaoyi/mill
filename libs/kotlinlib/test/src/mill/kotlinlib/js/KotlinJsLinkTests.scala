@@ -1,7 +1,7 @@
 package mill.kotlinlib.js
 
 import mill.define.Discover
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.{Cross, T}
 import utest.{TestSuite, Tests, assert, test}
 import mill.util.TokenReaders._
@@ -20,7 +20,7 @@ object KotlinJsLinkTests extends TestSuite {
     override def artifactNameParts = super.artifactNameParts().dropRight(1)
   }
 
-  object module extends TestBaseModule {
+  object module extends TestRootModule {
 
     object bar extends KotlinJsModule {
       def kotlinVersion = KotlinJsLinkTests.kotlinVersion

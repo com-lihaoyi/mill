@@ -171,7 +171,7 @@ object VisualizeModule extends ExternalModule {
             stdout = os.Inherit
           )
 
-          os.checker.withValue(os.Checker.Nop) {
+          mill.define.BuildCtx.withFilesystemCheckerDisabled {
             os.list(dest).sorted.map(PathRef(_))
           }
         }

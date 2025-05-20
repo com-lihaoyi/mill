@@ -9,7 +9,7 @@ object UnitTesterTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "unit-test-example-project"
   def tests: Tests = Tests {
     test("simple") {
-      object build extends TestBaseModule {
+      object build extends TestRootModule {
         def testTask = Task { "test" }
 
         lazy val millDiscover = Discover[this.type]
@@ -22,7 +22,7 @@ object UnitTesterTests extends TestSuite {
     }
 
     test("sources") {
-      object build extends TestBaseModule {
+      object build extends TestRootModule {
         def testSource = Task.Source("source-file.txt")
         def testTask = Task { os.read(testSource().path).toUpperCase() }
 

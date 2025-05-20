@@ -2,7 +2,7 @@ package mill
 package kotlinlib
 
 import mill.scalalib.TestModule
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.api.ExecResult
 import mill.define.Discover
 import utest.*
@@ -16,7 +16,7 @@ object HelloKotlinTests extends TestSuite {
 
   val junit5Version = sys.props.getOrElse("TEST_JUNIT5_VERSION", "5.9.1")
 
-  object HelloKotlin extends TestBaseModule {
+  object HelloKotlin extends TestRootModule {
     // crossValue - test different Kotlin versions
     // crossValue2 - test with/without the kotlin embeddable compiler
     trait KotlinVersionCross extends KotlinModule with Cross.Module2[String, Boolean] {

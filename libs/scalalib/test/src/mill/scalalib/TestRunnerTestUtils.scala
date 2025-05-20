@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.api.Result
 import mill.define.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import mill.util.TokenReaders._
 import mill.Task
 import os.Path
@@ -35,7 +35,7 @@ object TestRunnerTestUtils {
     lazy val millDiscover = Discover[this.type]
   }
 
-  trait TestRunnerTestModule extends TestBaseModule with ScalaModule {
+  trait TestRunnerTestModule extends TestRootModule with ScalaModule {
     def computeTestForkGrouping(x: Seq[String]): Seq[Seq[String]]
     def enableParallelism: Boolean
     def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
@@ -106,7 +106,7 @@ object TestRunnerTestUtils {
         }
         // Regardless of whether tests are grouped or not, the same
         // number of test results appear at the end
-        assert(testOnly._2.size == size)
+        assert(testOnly.results.size == size)
       }
     }
   }

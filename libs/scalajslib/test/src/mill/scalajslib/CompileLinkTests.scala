@@ -5,7 +5,7 @@ import mill.define.Discover
 import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest._
 
 import mill.scalalib.api.JvmWorkerUtil
@@ -20,7 +20,7 @@ object CompileLinkTests extends TestSuite {
     override def mainClass = Some("Main")
   }
 
-  object HelloJSWorld extends TestBaseModule {
+  object HelloJSWorld extends TestRootModule {
     val scalaVersions = Seq("2.13.3", "3.0.0-RC1", "2.12.12")
     val scalaJSVersions = Seq("1.8.0", "1.0.1")
     val matrix = for {

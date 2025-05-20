@@ -58,9 +58,9 @@ Random number: ...
 
 > ./mill show dagger.test
 ...
-[
-  "",
-  [
+{
+  "msg": "",
+  "results": [
     {
       "fullyQualifiedName": "com.example.dagger.TestConstantNumberGeneratorInjection",
       "selector": "SuiteSelector",
@@ -74,7 +74,7 @@ Random number: ...
       "status": "Success"
     }
   ]
-]
+}
 ...
 
 > ls out/dagger/test/generatedSourcesWithKSP.dest/generated/ksp/main/java/com/example/dagger/

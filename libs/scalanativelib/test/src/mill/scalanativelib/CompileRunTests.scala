@@ -8,7 +8,7 @@ import mill.scalalib.{PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest._
 
 import java.util.jar.JarFile
@@ -31,7 +31,7 @@ object CompileRunTests extends TestSuite {
   val scalaNative05 = sys.props.getOrElse("TEST_SCALANATIVE_0_5_VERSION", ???)
   val testUtestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)
 
-  object HelloNativeWorld extends TestBaseModule {
+  object HelloNativeWorld extends TestRootModule {
     implicit object ReleaseModeToSegments
         extends Cross.ToSegments[ReleaseMode](v => List(v.toString))
 

@@ -30,7 +30,7 @@ import dotty.tools.dotc.util.SourcePosition
 import mill.api.internal.{MillScalaParser}
 import mill.api.internal.MillScalaParser.{ObjectData, Snip}
 
-final class MillScalaParserImpl extends MillScalaParser { worker =>
+object MillScalaParserImpl extends MillScalaParser {
 
   def splitScript(rawCode: String, fileName: String): Either[String, (Seq[String], Seq[String])] = {
     val source = SourceFile.virtual(fileName, rawCode)

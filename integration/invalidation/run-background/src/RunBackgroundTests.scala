@@ -32,11 +32,37 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
       os.remove(stop)
       eval(("foo.runBackground", lock, stop))
       eventually { !probeLockAvailable(lock) }
-      if (tester.clientServerMode) eval("shutdown")
+      if (tester.daemonMode) eval("shutdown")
       continually { !probeLockAvailable(lock) }
       os.write(stop, "")
       eventually { probeLockAvailable(lock) }
     }
+
+    test("sequential") - integrationTest { tester =>
+      // This test fails on Windows. We will need to look into it, but it also does not work on `main` branch, so it's
+      // not a regression, thus we'll leave it for now.
+      if (!scala.util.Properties.isWin) {
+        import tester._
+        val lock1 = os.temp()
+        val lock2 = os.temp()
+        val stop = os.temp()
+        os.remove(stop)
+        eval(("foo.runBackground", lock1, stop))
+        eventually { !probeLockAvailable(lock1) }
+        eval(("foo.runBackground", lock2, stop))
+        eventually { !probeLockAvailable(lock2) }
+        Predef.assert(
+          probeLockAvailable(lock1),
+          "first process should be exited after second process is running"
+        )
+
+        if (tester.daemonMode) eval("shutdown")
+        continually { !probeLockAvailable(lock2) }
+        os.write(stop, "")
+        eventually { probeLockAvailable(lock2) }
+      }
+    }
+
     test("clean") - integrationTest { tester =>
       import tester._
       val lock = os.temp()

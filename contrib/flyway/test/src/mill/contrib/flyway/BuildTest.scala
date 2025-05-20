@@ -4,12 +4,12 @@ import mill.*
 import mill.define.Discover
 import mill.scalalib.*
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, *}
 
 object BuildTest extends TestSuite {
 
-  object Build extends TestBaseModule {
+  object Build extends TestRootModule {
     object build extends FlywayModule {
 
       val resourceFolder = os.Path(sys.env("MILL_TEST_RESOURCE_DIR"))

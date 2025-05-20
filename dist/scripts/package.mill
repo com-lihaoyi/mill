@@ -4,6 +4,7 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.regex.Pattern
 
 import mill.*
+import mill.scalalib.*
 import mill.api.Result
 import millbuild.*
 
@@ -27,41 +28,39 @@ object `package` extends mill.Module { scripts =>
 
     /** Compiles the script from the [[templateFile]] and substitutes all [[substitutions]]. */
     def compile0: T[PathRef] = Task {
-      os.checker.withValue(os.Checker.Nop) {
-        val script = T.dest / finalName()
-        val template = templateFile().path
-        val (start, end) = substitutionMarkers()
+      val script = T.dest / finalName()
+      val template = templateFile().path
+      val (start, end) = substitutionMarkers()
 
-        def pattern(key: String, quote: Boolean = true) =
-          s"""\\Q${start}\\E\\s*${if (quote) Pattern.quote(key) else key}\\s*\\Q${end}\\E""".r
-        val findAndReplace = substitutions().map((key, value) => (pattern(key), value))
-        val missing = pattern("[\\w+-_ ]+", false)
+      def pattern(key: String, quote: Boolean = true) =
+        s"""\\Q${start}\\E\\s*${if (quote) Pattern.quote(key) else key}\\s*\\Q${end}\\E""".r
+      val findAndReplace = substitutions().map((key, value) => (pattern(key), value))
+      val missing = pattern("[\\w+-_ ]+", false)
 
-        def substitute(line: String): String = {
-          val result = findAndReplace.foldLeft(line) { (line, r) =>
-            r._1.replaceAllIn(line, r._2)
-          }
-          missing.findFirstIn(result).foreach(m =>
-            throw RuntimeException(s"Detected unmatched substitution block: ${m}")
-          )
-          result
+      def substitute(line: String): String = {
+        val result = findAndReplace.foldLeft(line) { (line, r) =>
+          r._1.replaceAllIn(line, r._2)
         }
-
-        assert(os.exists(template))
-        Task.log.streams.out.println(s"Compiling script ${script}")
-        os.write(
-          target = script,
-          data = os.read.lines.stream(template).map(substitute).map(_ + '\n')
+        missing.findFirstIn(result).foreach(m =>
+          throw RuntimeException(s"Detected unmatched substitution block: ${m}")
         )
-        if (!scala.util.Properties.isWin) {
-          val p = os.perms(script) +
-            PosixFilePermission.OWNER_EXECUTE +
-            PosixFilePermission.GROUP_EXECUTE +
-            PosixFilePermission.OTHERS_EXECUTE
-          os.perms.set(script, p)
-        }
-        PathRef(script)
+        result
       }
+
+      assert(os.exists(template))
+      Task.log.streams.out.println(s"Compiling script ${script}")
+      os.write(
+        target = script,
+        data = os.read.lines.stream(template).map(substitute).map(_ + '\n')
+      )
+      if (!scala.util.Properties.isWin) {
+        val p = os.perms(script) +
+          PosixFilePermission.OWNER_EXECUTE +
+          PosixFilePermission.GROUP_EXECUTE +
+          PosixFilePermission.OTHERS_EXECUTE
+        os.perms.set(script, p)
+      }
+      PathRef(script)
     }
   }
 
@@ -74,26 +73,33 @@ object `package` extends mill.Module { scripts =>
     def finalName = "mill.bat"
   }
 
+  object test extends ScalaModule with TestModule.Utest {
+    def scalaVersion = millbuild.Deps.scalaVersion
+    def mvnDeps = Seq(millbuild.Deps.osLib, millbuild.Deps.pprint)
+    def utestVersion = millbuild.Deps.TestDeps.utest.version
+    def forkEnv = Map(
+      "MILL_TEST_SH_SCRIPT" -> millSh.compile0().path.toString,
+      "MILL_TEST_BAT_SCRIPT" -> millBat.compile0().path.toString,
+      "MILL_NATIVE_SUFFIX" -> build.dist.native.nativeSuffix()
+    )
+  }
   def scriptsModules: Seq[BootstrapScriptModule] = Seq(millSh, millBat)
 
-  def installInRepo: T[Seq[PathRef]] = Task {
-    os.checker.withValue(os.Checker.Nop) {
-      Task.traverse(scriptsModules)(m =>
-        Task.Anon {
-          os.checker.withValue(os.Checker.Nop) {
-            val script = m.compile0().path
-            val dest = T.workspace / m.inRepoDir()
-            if (os.isDir(dest)) {
-              sys.error(s"Install destination is a directory: ${dest}")
-            } else if (os.exists(dest)) {
-              Task.log.warn(s"Overwriting file: ${dest}")
-            }
-            Task.log.info(s"Installing script: ${dest}")
-            os.copy.over(script, dest)
-            Result.Success(dest)
-          }
+  def installInRepo(): Command[Unit] = Task.Command {
+    Task.traverse(scriptsModules)(m =>
+      Task.Anon {
+        val script = m.compile0().path
+        val dest = T.workspace / m.inRepoDir()
+        if (os.isDir(dest)) {
+          sys.error(s"Install destination is a directory: ${dest}")
+        } else if (os.exists(dest)) {
+          Task.log.warn(s"Overwriting file: ${dest}")
         }
-      )().map(path => PathRef(path).withRevalidateOnce)
-    }
+        Task.log.info(s"Installing script: ${dest}")
+        os.copy.over(script, dest)
+        Result.Success(dest)
+
+      }
+    )().map(path => PathRef(path).withRevalidateOnce)
   }
 }

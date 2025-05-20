@@ -20,9 +20,14 @@ case class MillCliConfig(
     )
     repl: Flag = Flag(),
     @arg(
-      doc = """Run without a background server. Must be the first argument."""
+      hidden = true,
+      doc = """Run without a background daemon. Must be the first argument."""
     )
     noServer: Flag = Flag(),
+    @arg(
+      doc = """Run without a background daemon. Must be the first argument."""
+    )
+    noDaemon: Flag = Flag(),
     @arg(doc = """Enable BSP server mode.""")
     bsp: Flag,
     @arg(doc = """Create mill-bsp.json with Mill details under .bsp/""")
@@ -98,6 +103,11 @@ case class MillCliConfig(
     )
     watch: Flag = Flag(),
     @arg(
+      name = "notify-watch",
+      doc = "Use filesystem based file watching instead of polling based one (defaults to true)."
+    )
+    watchViaFsNotify: Boolean = true,
+    @arg(
       short = 's',
       doc =
         """Make ivy logs during script import resolution go silent instead of printing"""
@@ -158,14 +168,17 @@ case class MillCliConfig(
           .stripMargin
     )
     offline: Flag = Flag()
-)
+) {
+  def noDaemonEnabled =
+    Seq(interactive.value, noServer.value, noDaemon.value, bsp.value).count(identity)
+}
 
 import mainargs.ParserForClass
 
 // We want this in a separate source file, but to avoid stale --help output due
 // to under-compilation, we have it in this file
 // see https://github.com/com-lihaoyi/mill/issues/2315
-object MillCliConfigParser {
+object MillCliConfig {
   val customName: String = s"Mill Build Tool, version ${mill.util.BuildInfo.millVersion}"
   val customDoc = """
 Usage: mill [options] task [task-options] [+ task ...]

@@ -4,16 +4,17 @@ import mill.api.SystemStreams
 import mill.constants.ProxyStream.Output
 import mill.client.lock.{DoubleLock, Lock, Locks}
 import mill.client.*
-import mill.constants.ServerFiles
-import mill.constants.InputPumper
+import mill.constants.{DaemonFiles, InputPumper}
 import mill.constants.ProxyStream
 
 import java.io.*
-import java.net.{InetAddress, Socket}
+import java.net.{InetAddress, Socket, ServerSocket}
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 import scala.util.Using
 import mill.constants.OutFiles
+
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * Models a long-lived server that receives requests from a client and calls a [[main0]]
@@ -22,35 +23,40 @@ import mill.constants.OutFiles
  * client command
  */
 abstract class Server[T](
-    serverDir: os.Path,
+    daemonDir: os.Path,
     acceptTimeoutMillis: Int,
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
 ) {
+
+  def outLock: mill.client.lock.Lock
+  def out: os.Path
 
   @volatile var running = true
   def exitServer(): Unit = running = false
   var stateCache = stateCache0
   def stateCache0: T
 
+  var lastMillVersion = Option.empty[String]
+  var lastJavaVersion = Option.empty[String]
   val processId: String = Server.computeProcessId()
   def serverLog0(s: String): Unit = {
-    if (os.exists(serverDir) || testLogEvenWhenServerIdWrong) {
-      os.write.append(serverDir / ServerFiles.serverLog, s"$s\n", createFolders = true)
+    if (os.exists(daemonDir) || testLogEvenWhenServerIdWrong) {
+      os.write.append(daemonDir / DaemonFiles.serverLog, s"$s\n", createFolders = true)
     }
   }
 
   def serverLog(s: String): Unit = serverLog0(s"$processId $s")
 
   def run(): Unit = {
-    serverLog("running server in " + serverDir)
+    serverLog("running server in " + daemonDir)
     val initialSystemProperties = sys.props.toMap
 
     try {
-      Server.tryLockBlock(locks.serverLock) {
+      Server.tryLockBlock(locks.daemonLock) { locked =>
         serverLog("server file locked")
         Server.watchProcessIdFile(
-          serverDir / ServerFiles.processId,
+          daemonDir / DaemonFiles.processId,
           processId,
           running = () => running,
           exit = msg => {
@@ -59,27 +65,42 @@ abstract class Server[T](
           }
         )
         val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
-        os.write.over(serverDir / ServerFiles.socketPort, serverSocket.getLocalPort.toString)
-        serverLog("listening on port " + serverSocket.getLocalPort)
-        while (
-          running && {
-            interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
-              case None => false
-              case Some(sock) =>
-                serverLog("handling run")
-                new Thread(
-                  () =>
-                    try handleRun(sock, initialSystemProperties)
-                    catch {
-                      case e: Throwable =>
-                        serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
-                    } finally sock.close();,
-                  "HandleRunThread"
-                ).start()
-                true
-            }
+        try {
+          os.write.over(daemonDir / DaemonFiles.socketPort, serverSocket.getLocalPort.toString)
+          serverLog("listening on port " + serverSocket.getLocalPort)
+
+          def systemExit(exitCode: Int) = {
+            // Explicitly close serverSocket before exiting otherwise it can keep the
+            // server alive 500-1000ms before letting it exit properly
+            serverSocket.close()
+            // Explicitly release process lock to indicate this serverwill not be
+            // taking any more requests, and a new server should be spawned if necessary.
+            // Otherwise launchers may continue trying to connect to the server and
+            // failing since the socket is closed.
+            locked.release()
+            sys.exit(exitCode)
           }
-        ) ()
+
+          while (
+            running && {
+              interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
+                case None => false
+                case Some(sock) =>
+                  serverLog("handling run")
+                  new Thread(
+                    () =>
+                      try handleRun(systemExit, sock, initialSystemProperties)
+                      catch {
+                        case e: Throwable =>
+                          serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
+                      } finally sock.close();,
+                    "HandleRunThread"
+                  ).start()
+                  true
+              }
+            }
+          ) ()
+        } finally serverSocket.close()
         serverLog("server loop ended")
       }.getOrElse(throw new Exception("Mill server process already present"))
     } catch {
@@ -137,9 +158,19 @@ abstract class Server[T](
     }
   }
 
-  def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]): Unit = {
-
+  def handleRun(
+      systemExit: Int => Nothing,
+      clientSocket: Socket,
+      initialSystemProperties: Map[String, String]
+  ): Unit = {
     val currentOutErr = clientSocket.getOutputStream
+    val writtenExitCode = AtomicBoolean()
+    def writeExitCode(code: Int) = {
+      if (!writtenExitCode.getAndSet(true)) {
+        ProxyStream.sendEnd(currentOutErr, code)
+      }
+    }
+
     var clientDisappeared = false
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
     // detect client-side connection closing, so instead we send a no-op heartbeat
@@ -162,6 +193,7 @@ abstract class Server[T](
 
       val interactive = socketIn.read() != 0
       val clientMillVersion = ClientUtil.readString(socketIn)
+      val clientJavaVersion = ClientUtil.readString(socketIn)
       val args = ClientUtil.parseArgs(socketIn)
       val env = ClientUtil.parseMap(socketIn)
       serverLog("args " + upickle.default.write(args))
@@ -173,18 +205,39 @@ abstract class Server[T](
       // that relies on that method
       val proxiedSocketInput = proxyInputStreamThroughPumper(socketIn)
 
-      val serverMillVersion = BuildInfo.millVersion
-      if (clientMillVersion != serverMillVersion) {
-        stderr.println(
-          s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server"
-        )
-        os.write(
-          serverDir / ServerFiles.exitCode,
-          ClientUtil.ExitServerCodeWhenVersionMismatch().toString.getBytes()
-        )
-        System.exit(ClientUtil.ExitServerCodeWhenVersionMismatch())
-      }
+      val millVersionChanged = lastMillVersion.exists(_ != clientMillVersion)
+      val javaVersionChanged = lastJavaVersion.exists(_ != clientJavaVersion)
 
+      if (millVersionChanged || javaVersionChanged) {
+        Server.withOutLock(
+          noBuildLock = false,
+          noWaitForBuildLock = false,
+          out = out,
+          millActiveCommandMessage = "checking server mill version and java version",
+          streams = new mill.api.SystemStreams(
+            new PrintStream(mill.api.DummyOutputStream),
+            new PrintStream(mill.api.DummyOutputStream),
+            mill.api.DummyInputStream
+          ),
+          outLock = outLock
+        ) {
+          if (millVersionChanged) {
+            stderr.println(
+              s"Mill version changed ($lastMillVersion -> $clientMillVersion), re-starting server"
+            )
+          }
+          if (javaVersionChanged) {
+            stderr.println(
+              s"Java version changed ($lastJavaVersion -> $clientJavaVersion), re-starting server"
+            )
+          }
+
+          writeExitCode(ClientUtil.ExitServerCodeWhenVersionMismatch())
+          systemExit(ClientUtil.ExitServerCodeWhenVersionMismatch())
+        }
+      }
+      lastMillVersion = Some(clientMillVersion)
+      lastJavaVersion = Some(clientJavaVersion)
       @volatile var done = false
       @volatile var idle = false
       val t = new Thread(
@@ -200,15 +253,15 @@ abstract class Server[T](
               Map(),
               initialSystemProperties,
               systemExit = exitCode => {
-                os.write.over(serverDir / ServerFiles.exitCode, exitCode.toString)
-                sys.exit(exitCode)
+                writeExitCode(exitCode)
+                systemExit(exitCode)
               }
             )
 
             stateCache = newStateCache
-            val exitCode = if (result) "0" else "1"
+            val exitCode = if (result) 0 else 1
             serverLog("exitCode " + exitCode)
-            os.write.over(serverDir / ServerFiles.exitCode, exitCode)
+            writeExitCode(exitCode)
           } finally {
             done = true
             idle = true
@@ -218,7 +271,7 @@ abstract class Server[T](
       t.start()
 
       // We cannot simply use Lock#await here, because the filesystem doesn't
-      // realize the clientLock/serverLock are held by different threads in the
+      // realize the launcherLock/daemonLock are held by different threads in the
       // two processes and gives a spurious deadlock error
       while (!done && checkClientAlive()) Thread.sleep(1)
 
@@ -243,7 +296,10 @@ abstract class Server[T](
       System.err.flush()
 
     } finally {
-      if (!clientDisappeared) ProxyStream.sendEnd(currentOutErr) // Send a termination
+      try writeExitCode(1) // Send a termination if it has not already happened
+      catch {
+        case e: Throwable => /*donothing*/
+      }
     }
   }
 
@@ -301,12 +357,12 @@ object Server {
     processIdThread.start()
   }
 
-  def tryLockBlock[T](lock: Lock)(t: => T): Option[T] = {
+  def tryLockBlock[T](lock: Lock)(block: mill.client.lock.TryLocked => T): Option[T] = {
     lock.tryLock() match {
       case null => None
       case l =>
         if (l.isLocked) {
-          try Some(t)
+          try Some(block(l))
           finally l.release()
         } else {
           None
@@ -318,7 +374,7 @@ object Server {
       noBuildLock: Boolean,
       noWaitForBuildLock: Boolean,
       out: os.Path,
-      targetsAndParams: Seq[String],
+      millActiveCommandMessage: String,
       streams: SystemStreams,
       outLock: Lock
   )(t: => T): T = {
@@ -341,7 +397,7 @@ object Server {
           outLock.lock()
         }
       } { _ =>
-        os.write.over(out / OutFiles.millActiveCommand, targetsAndParams.mkString(" "))
+        os.write.over(out / OutFiles.millActiveCommand, millActiveCommandMessage)
         try t
         finally os.remove.all(out / OutFiles.millActiveCommand)
       }
