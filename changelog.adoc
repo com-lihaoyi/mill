@@ -579,9 +579,9 @@ name above, so you can attribute each line of logs to the task that generated it
 ```
 ...
 [3861/4712] main.client.publishLocalCached
-[3861] Publishing Artifact(com.lihaoyi,mill-libs-client,0.12.0-RC2-67-a566d8-DIRTY875bcbb1) to ivy repo /Users/lihaoyi/.ivy2/local
+[3861] Publishing mill-libs-client-0.12.0-RC2-67-a566d8-DIRTY875bcbb1 to ivy repo /Users/lihaoyi/.ivy2/local
 [3868/4712] runner.client.publishLocalCached
-[3868] Publishing Artifact(com.lihaoyi,mill-runner-client,0.12.0-RC2-67-a566d8-DIRTY875bcbb1) to ivy repo /Users/lihaoyi/.ivy2/local
+[3868] Publishing mill-runner-client-0.12.0-RC2-67-a566d8-DIRTY875bcbb1 to ivy repo /Users/lihaoyi/.ivy2/local
   [3869/4712] ======================================= installLocalCache ============================================== 4s
 [3676] scalajslib.worker-api.docJar 1s
 [3688] scalanativelib.worker-api.docJar 1s

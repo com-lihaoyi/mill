@@ -327,98 +327,23 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   /**
-   * Publish artifacts to a local ivy repository.
-   * @param localIvyRepo The local ivy repository.
-   *                     If not defined, the default resolution is used (probably `$HOME/.ivy2/local`).
-   * @param sources whether to generate and publish a sources JAR
-   * @param doc whether to generate and publish a javadoc JAR
-   * @param transitive if true, also publish locally the transitive module dependencies of this module
-   *                   (this includes the runtime transitive module dependencies, but not the compile-only ones)
-   */
-  def publishLocal(
-      localIvyRepo: String = null,
-      sources: Boolean = true,
-      doc: Boolean = true,
-      transitive: Boolean = false
-  ): define.Command[Unit] = Task.Command {
-    publishLocalTask(
-      Task.Anon {
-        Option(localIvyRepo).map(os.Path(_, Task.workspace))
-      },
-      sources,
-      doc,
-      transitive
-    )()
-    ()
-  }
-
-  /**
-   * Publish artifacts the local ivy repository.
-   */
-  def publishLocalCached: T[Seq[PathRef]] = Task {
-    val res = publishLocalTask(
-      Task.Anon(None),
-      sources = true,
-      doc = true,
-      transitive = false
-    )()
-    res.map(p => PathRef(p).withRevalidateOnce)
-  }
-
-  private def publishLocalTask(
-      localIvyRepo: Task[Option[os.Path]],
-      sources: Boolean,
-      doc: Boolean,
-      transitive: Boolean
-  ): Task[Seq[Path]] =
-    if (transitive) {
-      val publishTransitiveModuleDeps = (transitiveModuleDeps ++ transitiveRunModuleDeps).collect {
-        case p: PublishModule => p
-      }
-      Target.traverse(publishTransitiveModuleDeps.distinct) { publishMod =>
-        publishMod.publishLocalTask(localIvyRepo, sources, doc, transitive = false)
-      }.map(_.flatten)
-    } else {
-      val sourcesJarOpt =
-        if (sources) Task.Anon(Some(PublishInfo.sourcesJar(sourceJar())))
-        else Task.Anon(None)
-      val docJarOpt =
-        if (doc) Task.Anon(Some(PublishInfo.docJar(docJar())))
-        else Task.Anon(None)
-
-      Task.Anon {
-        val publisher = localIvyRepo() match {
-          case None => LocalIvyPublisher
-          case Some(path) => new LocalIvyPublisher(path)
-        }
-        val publishInfos =
-          defaultPublishInfos() ++ sourcesJarOpt().toSeq ++ docJarOpt().toSeq ++ extraPublish()
-        publisher.publishLocal(
-          pom = pom().path,
-          ivy = Right(ivy().path),
-          artifact = artifactMetadata(),
-          publishInfos = publishInfos
-        )
-      }
-    }
-
-  /**
    * Publish artifacts to a local Maven repository.
    * @param m2RepoPath The path to the local repository  as string (default: `$HOME/.m2repository`).
    *                   If not set, falls back to `maven.repo.local` system property or `~/.m2/repository`
    * @return [[PathRef]]s to published files.
    */
-  def publishM2Local(m2RepoPath: String = null): Command[Seq[PathRef]] = m2RepoPath match {
-    case null => Task.Command { publishM2LocalTask(Task.Anon { publishM2LocalRepoPath() })() }
-    case p => Task.Command { publishM2LocalTask(Task.Anon { os.Path(p, Task.workspace) })() }
-  }
+  def publishLocal(m2RepoPath: String = null, doc: Boolean = true): Command[Seq[PathRef]] =
+    m2RepoPath match {
+      case null => Task.Command { publishLocalTask(Task.Anon { publishLocalRepoPath() }, doc)() }
+      case p => Task.Command { publishLocalTask(Task.Anon { os.Path(p, Task.workspace) }, doc)() }
+    }
 
   /**
    * Publish artifacts to the local Maven repository.
    * @return [[PathRef]]s to published files.
    */
-  def publishM2LocalCached: T[Seq[PathRef]] = Task {
-    publishM2LocalTask(publishM2LocalRepoPath)()
+  def publishLocalCached: T[Seq[PathRef]] = Task {
+    publishLocalTask(publishLocalRepoPath, true)()
   }
 
   /**
@@ -426,24 +351,25 @@ trait PublishModule extends JavaModule { outer =>
    * Defaults to `~/.m2/repository`, but can be configured by setting the
    * `maven.repo.local` JVM property
    */
-  def publishM2LocalRepoPath: Task[os.Path] = Task.Input {
+  def publishLocalRepoPath: Task[os.Path] = Task.Input {
     sys.props.get("maven.repo.local").map(os.Path(_))
       .getOrElse(os.Path(os.home / ".m2", Task.workspace)) / "repository"
   }
 
-  private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = Task.Anon {
-    val path = m2RepoPath()
-    val publishInfos = defaultPublishInfos() ++
-      Seq(
-        PublishInfo.sourcesJar(sourceJar()),
-        PublishInfo.docJar(docJar())
-      ) ++
-      extraPublish()
+  private def publishLocalTask(m2RepoPath: Task[os.Path], doc: Boolean): Task[Seq[PathRef]] =
+    Task.Anon {
+      val path = m2RepoPath()
+      val publishInfos = defaultPublishInfos() ++
+        Seq(PublishInfo.sourcesJar(sourceJar())) ++
+        (if (doc) docJar.map(Seq(_)) else Task.Anon { Seq.empty[PathRef] }) ().map(
+          PublishInfo.docJar(_)
+        ) ++
+        extraPublish()
 
-    new LocalM2Publisher(path)
-      .publish(pom().path, artifactMetadata(), publishInfos)
-      .map(PathRef(_).withRevalidateOnce)
-  }
+      new LocalM2Publisher(path)
+        .publish(pom().path, artifactMetadata(), publishInfos)
+        .map(PathRef(_).withRevalidateOnce)
+    }
 
   def sonatypeUri: String = "https://oss.sonatype.org/service/local"
 
@@ -492,7 +418,7 @@ trait PublishModule extends JavaModule { outer =>
    *                      Specifying this will override/remove the defaults.
    *                      Add the default args to your args to keep them.
    */
-  def publish(
+  def publishLegacyOssrh(
       sonatypeCreds: String = "",
       signed: Boolean = true,
       // mainargs wasn't handling a default value properly,
@@ -604,7 +530,7 @@ object PublishModule extends ExternalModule with TaskModule {
    * @param stagingRelease
    * @return
    */
-  def publishAll(
+  def publishAllLegacyOssrh(
       publishArtifacts: Tasks[PublishModule.PublishData] =
         Tasks.resolveMainDefault("__.publishArtifacts"),
       sonatypeCreds: String = "",
