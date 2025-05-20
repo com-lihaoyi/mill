@@ -10,7 +10,10 @@ object FooTests extends TestSuite {
         .appName("FooDeltaTest")
         .master("local[*]")
         .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension")
-        .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+        .config(
+          "spark.sql.catalog.spark_catalog",
+          "org.apache.spark.sql.delta.catalog.DeltaCatalog"
+        )
         .getOrCreate()
 
       val path = "tmp/test-delta-table"
