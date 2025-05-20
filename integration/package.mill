@@ -14,6 +14,7 @@ import mill.T
 import mill.define.Cross
 import mill.testrunner.TestResult
 import millbuild.*
+import upickle.implicits.namedTuples.default.given
 
 object `package` extends mill.Module {
   // We compile the test code once and then offer multiple modes to

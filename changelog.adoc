@@ -13,6 +13,21 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#0-12-14]
+=== 0.12.14 - 2025-05-20
+:version: 0.12.14
+:milestone-name: 0.12.14
+:milestone: 116
+:prev-version: 0.12.13
+
+* Convert `runBackground` process exit detection from file-locks to process-ID liveness checks
+  ({link-pr}/5120[#5120]), which should hopefully fix some non-deterministic bugs where the new
+  process starts before the prior process has fully exited, causing failure to bind to sockets
+
+* Add an opt-in `--notify-watch true` flag to make `--watch` use linux-inotify/mac-fsevents
+  instead of polling, which should greatly reduce baseline CPU usage when `--watch` is active
+  but no builds are being run ({link-pr}/5073[#5073])
+
 [#0-12-13]
 === 0.12.13 - 2025-05-18
 :version: 0.12.13
