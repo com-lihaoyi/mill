@@ -1188,7 +1188,7 @@ trait JavaModule
    */
   def showMvnDepsTree(args: MvnDepsTreeArgs = MvnDepsTreeArgs()): Command[String] = {
     val treeTask = mvnDepsTree(args)
-    Task.Command {
+    Task.Command(exclusive = true) {
       val rendered = treeTask()
       Task.log.streams.out.println(rendered)
       rendered
