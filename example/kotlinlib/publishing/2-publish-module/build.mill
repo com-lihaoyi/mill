@@ -27,7 +27,7 @@ object foo extends KotlinModule with PublishModule {
 /** Usage
 
 > mill foo.publishLocal
-Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...
+Publishing Artifact(com.lihaoyi,foo,0.0.1) to .../.m2/...
 
 */
 

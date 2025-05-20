@@ -7,9 +7,6 @@ package object publish {
   type License = mill.scalalib.publish.License
   val License = mill.scalalib.publish.License
 
-  type LocalIvyPublisher = mill.scalalib.publish.LocalIvyPublisher
-  val LocalIvyPublisher = mill.scalalib.publish.LocalIvyPublisher
-
   type LocalM2Publisher = mill.scalalib.publish.LocalM2Publisher
 
   val Pom = mill.scalalib.publish.Pom
