@@ -269,7 +269,8 @@ $txt
                 if (seenCode) ""
                 else {
                   val exampleDashed = examplePath.segments.mkString("-")
-                  val download = s"{mill-download-url}/mill-dist-${build.millVersion()}-$exampleDashed.zip[download]"
+                  val download = 
+                    s"{mill-download-url}/mill-dist-${build.millVersion()}-$exampleDashed.zip[download]"
                   val browse = s"{mill-example-url}/$examplePath[browse]"
                   s".build.mill ($download, $browse)"
                 }
