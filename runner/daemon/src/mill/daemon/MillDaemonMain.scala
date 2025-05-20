@@ -5,6 +5,7 @@ import mill.client.ClientUtil
 import mill.client.lock.{DoubleLock, Lock, Locks}
 import mill.constants.{OutFiles, DaemonFiles}
 import sun.misc.{Signal, SignalHandler}
+import scala.jdk.CollectionConverters.*
 
 import scala.util.Try
 
