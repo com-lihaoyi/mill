@@ -18,7 +18,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
    */
   def androidLibPackage: String
 
-  override protected def androidGeneratedResourcesPackage: String = androidLibPackage
+  override final def androidNamespace: String = androidLibPackage
 
   /**
    * Provides os.Path to an XML file containing configuration and metadata about your android application.

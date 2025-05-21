@@ -6,7 +6,7 @@ import mill.{T, Task}
 
 // TODO expose Compose configuration options
 // https://kotlinlang.org/docs/compose-compiler-options.html possible options
-trait AndroidKotlinModule extends KotlinModule {
+trait AndroidKotlinModule extends KotlinModule with AndroidModule {
 
   /**
    * Enable Jetpack Compose support in the module. Default is `false`.
@@ -24,9 +24,14 @@ trait AndroidKotlinModule extends KotlinModule {
         // Compose compiler version -> Kotlin version
         Task.fail("Compose can be used only with Kotlin version 2 or newer.")
       } else {
-        deps ++ Seq(
-          mvn"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
-        )
+        if (kotlinUseEmbeddableCompiler())
+          deps ++ Seq(
+            mvn"org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:${kotlinVersion()}"
+          )
+        else
+          deps ++ Seq(
+            mvn"org.jetbrains.kotlin:kotlin-compose-compiler-plugin:${kotlinVersion()}"
+          )
       }
     } else deps
   }

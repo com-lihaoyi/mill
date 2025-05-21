@@ -360,10 +360,26 @@ trait KotlinModule extends JavaModule { outer =>
       }
     }
 
+  /** If this module has any module dependencies, we need to tell the kotlin compiler to
+   * handle the compiled output as a friend path so top level declarations are visible.
+   */
+  def kotlincFriendPaths: T[Option[String]] = Task {
+    val compiledCodePaths = Task.traverse(transitiveModuleCompileModuleDeps)(m =>
+      Task.Anon {
+        Seq(m.compile().classes.path)
+      }
+    )().flatten
+
+    val friendlyPathFlag: Option[String] =
+      compiledCodePaths.headOption.map(_ => s"-Xfriend-paths=${compiledCodePaths.mkString(",")}")
+
+    friendlyPathFlag
+  }
+
   /**
    * Additional Kotlin compiler options to be used by [[compile]].
    */
-  def kotlincOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  def kotlincOptions: T[Seq[String]] = Task { kotlincFriendPaths().toSeq }
 
   /**
    * Mandatory command-line options to pass to the Kotlin compiler
@@ -441,11 +457,11 @@ trait KotlinModule extends JavaModule { outer =>
     override def kotlinVersion: T[String] = Task { outer.kotlinVersion() }
     override def kotlincPluginMvnDeps: T[Seq[Dep]] =
       Task { outer.kotlincPluginMvnDeps() }
-      // TODO: make Xfriend-path an explicit setting
+
     override def kotlincOptions: T[Seq[String]] = Task {
-      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources")) ++
-        Seq(s"-Xfriend-paths=${outer.compile().classes.path.toString()}")
+      outer.kotlincOptions().filterNot(_.startsWith("-Xcommon-sources"))
     }
+
     override def kotlinUseEmbeddableCompiler: Task[Boolean] =
       Task.Anon { outer.kotlinUseEmbeddableCompiler() }
   }

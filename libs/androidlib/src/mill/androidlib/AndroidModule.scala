@@ -10,7 +10,7 @@ import mill.util.Jvm
 import upickle.implicits.namedTuples.default.given
 
 import scala.collection.immutable
-import scala.xml.XML
+import scala.xml.*
 
 trait AndroidModule extends JavaModule {
 
@@ -47,11 +47,33 @@ trait AndroidModule extends JavaModule {
    */
   def androidSdkModule: ModuleRef[AndroidSdkModule]
 
+  private def androidManifestUsesSdkSection: Task[Elem] = Task.Anon {
+    val minSdkVersion = androidMinSdk().toString
+    val targetSdkVersion = androidTargetSdk().toString
+      <uses-sdk android:minSdkVersion={minSdkVersion} />
+  }
   /**
-   * Provides os.Path to an XML file containing configuration and metadata about your android library.
+   * Provides os.Path to an XML file containing configuration and metadata about your android application.
+   * TODO dynamically add android:debuggable
    */
-  def androidManifest: Task[PathRef] = Task.Source("src/main/AndroidManifest.xml")
+  def androidManifest: T[PathRef] = Task {
+    val manifestFromSourcePath = moduleDir / "src/main/AndroidManifest.xml"
 
+    val manifestElem = XML.loadFile(manifestFromSourcePath.toString()) %
+      Attribute(None, "xmlns:android", Text("http://schemas.android.com/apk/res/android"), Null)
+    // add the application package
+    val manifestWithPackage =
+      manifestElem % Attribute(None, "package", Text(androidNamespace), Null)
+
+    val manifestWithUsesSdk = manifestWithPackage.copy(
+      child = androidManifestUsesSdkSection() ++ manifestWithPackage.child
+    )
+
+    val generatedManifestPath = Task.dest / "AndroidManifest.xml"
+    os.write(generatedManifestPath, manifestWithUsesSdk.mkString)
+
+    PathRef(generatedManifestPath)
+  }
   /**
    * Controls debug vs release build type. Default is `true`, meaning debug build will be generated.
    *
@@ -360,8 +382,10 @@ trait AndroidModule extends JavaModule {
     libClasses :+ PathRef(mainRClassPath)
   }
 
-  /** In which package to place the generated R sources */
-  protected def androidGeneratedResourcesPackage: String
+  /** Namespace of the Android module.
+   * Used in manifest package and also used as the package to place the generated R sources
+   */
+  def androidNamespace: String
 
   /**
    * Compiles Android resources and generates `R.java` and `res.apk`.
@@ -443,7 +467,7 @@ trait AndroidModule extends JavaModule {
       "--manifest",
       androidMergedManifest().path.toString,
       "--custom-package",
-      androidGeneratedResourcesPackage,
+      androidNamespace,
       "--java",
       rClassDir.toString,
       "--min-sdk-version",

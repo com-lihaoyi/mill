@@ -71,7 +71,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * In the case of android apps this the [[androidApplicationNamespace]].
    * @return
    */
-  protected override def androidGeneratedResourcesPackage: String = androidApplicationNamespace
+  override final def androidNamespace: String = androidApplicationNamespace
 
   /**
    * Android Application Id which is typically package.main .
