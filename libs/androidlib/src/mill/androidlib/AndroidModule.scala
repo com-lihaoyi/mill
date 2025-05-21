@@ -4,7 +4,7 @@ import coursier.Repository
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.T
-import mill.define.{ModuleRef, PathRef, Target, Task}
+import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.util.Jvm
 import upickle.implicits.namedTuples.default.given
@@ -490,7 +490,7 @@ trait AndroidModule extends JavaModule {
   /**
    * Creates an intermediate R.jar that includes all the resources from the application and its dependencies.
    */
-  def androidProcessedResources: Target[PathRef] = Task {
+  def androidProcessedResources: T[PathRef] = Task {
 
     val sources = androidLibsRClasses()
 

@@ -5,7 +5,7 @@ import mill.api.Result
 import mill.api.internal.internal
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.constants.OutFiles.*
-import mill.define.{PathRef, Discover, RootModule0, Target, Task}
+import mill.define.{PathRef, Discover, RootModule0, Task}
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.util.BuildInfo
@@ -47,7 +47,7 @@ trait MillBuildRootModule()(implicit
    * All script files (that will get wrapped later)
    * @see [[generatedSources]]
    */
-  def scriptSources: Target[Seq[PathRef]] = Task.Sources(
+  def scriptSources: T[Seq[PathRef]] = Task.Sources(
     scriptSourcesPaths.map(Result.Success(_))* // Ensure ordering is deterministic
   )
 
@@ -101,7 +101,7 @@ trait MillBuildRootModule()(implicit
    * The `wrapped` files aren't supposed to appear under [[generatedSources]] and [[allSources]],
    * since they are derived from [[sources]] and would confuse any further tooling like IDEs.
    */
-  def generatedScriptSources: Target[(wrapped: Seq[PathRef], support: Seq[PathRef])] = Task {
+  def generatedScriptSources: T[(wrapped: Seq[PathRef], support: Seq[PathRef])] = Task {
     val wrapped = Task.dest / "wrapped"
     val support = Task.dest / "support"
 
@@ -145,7 +145,7 @@ trait MillBuildRootModule()(implicit
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
           def isSimpleTarget(desc: mill.codesig.JvmModel.Desc) =
-            (desc.ret.pretty == classOf[mill.define.Target[?]].getName ||
+            (desc.ret.pretty == classOf[mill.define.Task.Target[?]].getName ||
               desc.ret.pretty == classOf[mill.define.Worker[?]].getName) &&
               desc.args.isEmpty
 
@@ -270,7 +270,7 @@ trait MillBuildRootModule()(implicit
   /** Used in BSP IntelliJ, which can only work with directories */
   def dummySources: Sources = Task.Sources(Task.dest)
 
-  def millVersion: Target[String] = Task.Input { BuildInfo.millVersion }
+  def millVersion: T[String] = Task.Input { BuildInfo.millVersion }
 
   override def compile: T[CompilationResult] = Task(persistent = true) {
     val mv = millVersion()

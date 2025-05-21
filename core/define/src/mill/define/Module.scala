@@ -3,6 +3,7 @@ package mill.define
 import mill.api
 import mill.api.internal.{ModuleApi, internal}
 import mill.define.internal.{OverrideMapping, Reflect}
+import mill.define.Task.Target
 
 import scala.reflect.ClassTag
 

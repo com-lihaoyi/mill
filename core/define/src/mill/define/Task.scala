@@ -8,6 +8,7 @@ import mill.define.internal.Applicative.Applyable
 import mill.define.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
 import upickle.default.ReadWriter
 import upickle.default.Writer
+import Task.Target
 
 import scala.language.implicitConversions
 import scala.quoted.*
@@ -365,36 +366,36 @@ object Task {
     override def readWriterOpt: Some[ReadWriter[?]] = Some(readWriter)
   }
 
-}
-
-
-/**
- * A Target is a [[Task.Named]] that is cached on disk; either a
- * [[Task.Cached]] or an [[InputImpl]]
- */
-trait Target[+T] extends Task.Named[T]
-
-object Target {
-
   /**
-   * A target is the most common [[Task]] a user would encounter, commonly
-   * defined using the `def foo = Task {...}` syntax. [[Task.Cached]]s require that their
-   * return type is JSON serializable. In return they automatically caches their
-   * return value to disk, only re-computing if upstream [[Task]]s change
+   * A Target is a [[Task.Named]] that is cached on disk; either a
+   * [[Task.Cached]] or an [[InputImpl]]
    */
-  implicit inline def create[T](inline t: T)(implicit
-      inline rw: ReadWriter[T],
-      inline ctx: ModuleCtx
-  ): Target[T] =
-    ${ TaskMacros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
+  trait Target[+T] extends Task.Named[T]
 
-  implicit inline def create[T](inline t: Result[T])(implicit
-      inline rw: ReadWriter[T],
-      inline ctx: ModuleCtx
-  ): Target[T] =
-    ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
+  object Target {
 
+    /**
+     * A target is the most common [[Task]] a user would encounter, commonly
+     * defined using the `def foo = Task {...}` syntax. [[Task.Cached]]s require that their
+     * return type is JSON serializable. In return they automatically caches their
+     * return value to disk, only re-computing if upstream [[Task]]s change
+     */
+    implicit inline def create[T](inline t: T)(implicit
+                                               inline rw: ReadWriter[T],
+                                               inline ctx: ModuleCtx
+    ): Target[T] =
+      ${ TaskMacros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
+
+    implicit inline def create[T](inline t: Result[T])(implicit
+                                                       inline rw: ReadWriter[T],
+                                                       inline ctx: ModuleCtx
+    ): Target[T] =
+      ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
+
+  }
 }
+
+
 
 class Command[+T](
     val inputs: Seq[Task[Any]],

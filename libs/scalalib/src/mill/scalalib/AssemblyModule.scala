@@ -3,7 +3,8 @@ package mill.scalalib
 import mill.define.PathRef
 import mill.api.Result
 import mill.util.JarManifest
-import mill.define.{Target as T, *}
+import mill.define.*
+import mill.define.Task.{Target as T}
 import mill.scalalib.Assembly.UnopenedInputStream
 import mill.util.Jvm
 

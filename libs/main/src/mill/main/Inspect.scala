@@ -63,7 +63,7 @@ private object Inspect {
       def rec(t: Task[?]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: mill.define.Target[_]
+          case t: mill.define.Task.Target[_]
               if evaluator.rootModule.moduleInternal.targets.contains(t) =>
             Seq(t.ctx.segments)
           case _ =>

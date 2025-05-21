@@ -3,7 +3,7 @@ package scalanativelib
 
 import mainargs.Flag
 import mill.api.Result
-import mill.define.{Command, PathRef, Target, Task}
+import mill.define.{Command, PathRef, Task}
 import mill.scalalib.api.JvmWorkerUtil
 import mill.api.internal.{ScalaBuildTarget, ScalaNativeModuleApi, ScalaPlatform, internal}
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}

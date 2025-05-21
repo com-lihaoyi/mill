@@ -128,7 +128,7 @@ object Discover {
             curCls,
             declMethods,
             (TypeRepr.of[mill.define.Command[?]], 1, "`Task.Command`"),
-            (TypeRepr.of[mill.define.Target[?]], 0, "Target")
+            (TypeRepr.of[mill.define.Task.Target[?]], 0, "Target")
           )
 
           val names =

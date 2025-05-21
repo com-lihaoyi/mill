@@ -11,10 +11,10 @@ import mill.define.{
   ExternalModule,
   MultiBiMap,
   SelectMode,
-  Target,
   Task,
   Worker
 }
+import mill.T
 import mill.util.MillModuleUtil.millProjectModule
 import mill.api.{Result}
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
@@ -79,7 +79,7 @@ object VisualizeModule extends ExternalModule {
   @deprecated("Use toolsClasspath instead", "0.13.0-M1")
   def classpath = toolsClasspath
 
-  def toolsClasspath: Target[Seq[PathRef]] = Task {
+  def toolsClasspath: T[Seq[PathRef]] = Task {
     millProjectModule("mill-libs-graphviz", repositories)
   }
 

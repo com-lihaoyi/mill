@@ -1,6 +1,7 @@
 package mill.define
 
 import mill.util.TestGraphs
+import Task.Target
 import utest._
 
 object DiscoverTests extends TestSuite {

@@ -1,6 +1,6 @@
 package object mill extends mill.define.JsonFormatters with mill.util.TokenReaders0 {
-  type T[+T] = define.Target[T]
-  type Target[+T] = define.Target[T]
+  type T[+T] = define.Task.Target[T]
+  type Target[+T] = define.Task.Target[T]
   val PathRef = mill.define.PathRef
   type PathRef = mill.define.PathRef
   type Module = define.Module
@@ -19,10 +19,10 @@ package object mill extends mill.define.JsonFormatters with mill.util.TokenReade
 
   type Command[+T] = define.Command[T]
   type Worker[+T] = define.Worker[T]
-  type Input[T] = define.Target[T]
-  type Persistent[T] = define.Target[T]
-  type Source = define.Target[PathRef]
-  type Sources = define.Target[Seq[PathRef]]
+  type Input[T] = define.Task.Target[T]
+  type Persistent[T] = define.Task.Target[T]
+  type Source = define.Task.Target[PathRef]
+  type Sources = define.Task.Target[Seq[PathRef]]
 
   type TaskModule = define.TaskModule
 }

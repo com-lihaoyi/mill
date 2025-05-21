@@ -1,6 +1,7 @@
 package mill.exec
 
-import mill.define.{Task, Target}
+import mill.define.Task
+import mill.define.Task.Target
 import mill.util.TestGraphs
 import utest.*
 
