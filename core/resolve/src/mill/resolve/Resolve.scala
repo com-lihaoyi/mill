@@ -7,7 +7,7 @@ import mill.define.{
   Command,
   Discover,
   Module,
-  NamedTask,
+  Task,
   Segments,
   SelectMode,
   TaskModule,
@@ -34,7 +34,7 @@ private[mill] object Resolve {
     private[mill] override def deduplicate(items: List[Segments]): List[Segments] = items.distinct
   }
 
-  object Inspect extends Resolve[Either[Module, NamedTask[Any]]] {
+  object Inspect extends Resolve[Either[Module, Task.Named[Any]]] {
     private[mill] def handleResolved(
         rootModule: BaseModule,
         resolved: Seq[Resolved],
@@ -46,7 +46,7 @@ private[mill] object Resolve {
         cache: ResolveCore.Cache
     ) = {
 
-      val taskList: Seq[Result[Either[Module, Option[NamedTask[?]]]]] = resolved.map {
+      val taskList: Seq[Result[Either[Module, Option[Task.Named[?]]]]] = resolved.map {
         case m: Resolved.Module =>
           ResolveCore.instantiateModule(rootModule, m.segments, cache).map(Left(_))
 
@@ -70,7 +70,7 @@ private[mill] object Resolve {
 
   }
 
-  object Tasks extends Resolve[NamedTask[Any]] {
+  object Tasks extends Resolve[Task.Named[Any]] {
     private[Resolve] def handleTask(
         rootModule: BaseModule,
         args: Seq[String],
@@ -141,7 +141,7 @@ private[mill] object Resolve {
         cache: ResolveCore.Cache
     ) = {
 
-      val taskList: Seq[Result[Option[NamedTask[?]]]] = resolved.map(handleTask(
+      val taskList: Seq[Result[Option[Task.Named[?]]]] = resolved.map(handleTask(
         rootModule,
         args,
         nullCommandDefaults,
@@ -158,7 +158,7 @@ private[mill] object Resolve {
       )
     }
 
-    private[mill] override def deduplicate(items: List[NamedTask[Any]]): List[NamedTask[Any]] =
+    private[mill] override def deduplicate(items: List[Task.Named[Any]]): List[Task.Named[Any]] =
       items.distinctBy(_.ctx.segments)
   }
 
@@ -166,11 +166,11 @@ private[mill] object Resolve {
       r: Resolved.NamedTask,
       p: Module,
       cache: ResolveCore.Cache
-  ): Result[NamedTask[?]] = {
+  ): Result[Task.Named[?]] = {
     val definition = Reflect
       .reflect(
         p.getClass,
-        classOf[NamedTask[?]],
+        classOf[Task.Named[?]],
         _ == r.segments.last.value,
         true,
         getMethods = cache.getMethods
@@ -178,7 +178,7 @@ private[mill] object Resolve {
       .head
 
     ResolveCore.catchWrapException(
-      definition.invoke(p).asInstanceOf[NamedTask[?]]
+      definition.invoke(p).asInstanceOf[Task.Named[?]]
     )
   }
 

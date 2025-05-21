@@ -102,7 +102,7 @@ private trait GroupExecution {
       val scriptsHash = MurmurHash3.orderedHash(
         group
           .iterator
-          .collect { case namedTask: NamedTask[_] =>
+          .collect { case namedTask: Task.Named[_] =>
             CodeSigUtils.codeSigForTask(
               namedTask,
               classToTransitiveClasses,
@@ -120,7 +120,7 @@ private trait GroupExecution {
 
       terminal match {
 
-        case labelled: NamedTask[_] =>
+        case labelled: Task.Named[_] =>
           labelled.ctx.segments.value match {
             case Seq(Segment.Label(single)) if parsedHeaderData.contains(single) =>
               val jsonData = parsedHeaderData(single)
@@ -380,7 +380,7 @@ private trait GroupExecution {
       hashCode: Int,
       metaPath: os.Path,
       inputsHash: Int,
-      labelled: NamedTask[?]
+      labelled: Task.Named[?]
   ): Seq[PathRef] = {
     for (w <- labelled.asWorker)
       workerCache.synchronized {
@@ -438,7 +438,7 @@ private trait GroupExecution {
   private def loadCachedJson(
       logger: Logger,
       inputsHash: Int,
-      labelled: NamedTask[?],
+      labelled: Task.Named[?],
       paths: ExecutionPaths
   ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
     for {
@@ -473,7 +473,7 @@ private trait GroupExecution {
   private def loadUpToDateWorker(
       logger: Logger,
       inputsHash: Int,
-      labelled: NamedTask[?],
+      labelled: Task.Named[?],
       forceDiscard: Boolean
   ): Option[Val] = {
     labelled.asWorker

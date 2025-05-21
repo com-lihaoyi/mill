@@ -178,7 +178,7 @@ object Task {
     ${ TaskMacros.sourceImpl('{ PathRef(ctx.millSourcePath / os.up / value) })('ctx) }
 
   /**
-   * [[InputImpl]]s, normally defined using `Task.Input`, are [[NamedTask]]s that
+   * [[InputImpl]]s, normally defined using `Task.Input`, are [[Task.Named]]s that
    * re-evaluate every time Mill is run. This is in contrast to [[TargetImpl]]s
    * which only re-evaluate when upstream tasks change.
    *
@@ -200,9 +200,9 @@ object Task {
     ${ TaskMacros.inputImpl[T]('value)('w, 'ctx) }
 
   /**
-   * [[Command]]s are only [[NamedTask]]s defined using
+   * [[Command]]s are only [[Task.Named]]s defined using
    * `def foo() = Task.Command{...}` and are typically called from the
-   * command-line. Unlike other [[NamedTask]]s, [[Command]]s can be defined to
+   * command-line. Unlike other [[Task.Named]]s, [[Command]]s can be defined to
    * take arguments that are automatically converted to command-line
    * arguments, as long as an implicit [[mainargs.TokensReader]] is available.
    */
@@ -236,7 +236,7 @@ object Task {
   }
 
   /**
-   * [[Worker]] is a [[NamedTask]] that lives entirely in-memory, defined using
+   * [[Worker]] is a [[Task.Named]] that lives entirely in-memory, defined using
    * `Task.Worker{...}`. The value returned by `Task.Worker{...}` is long-lived,
    * persisting as long as the Mill process is kept alive (e.g. via `--watch`,
    * or via its default `MillDaemonMain` server process). This allows the user to
@@ -318,41 +318,45 @@ object Task {
     def evaluate(ctx: mill.define.TaskCtx): Result[(T, V)] = (ctx.arg(0), ctx.arg(1))
     val inputs: Seq[Task[?]] = List(source1, source2)
   }
-}
 
-/**
- * Represents a task that can be referenced by its path segments. `Task{...}`
- * targets, `Task.Input`, `Task.Worker`, etc. but not including anonymous
- * `Task.Anon` or `Task.traverse` etc. instances
- */
-trait NamedTask[+T] extends Task[T] with NamedTaskApi[T] {
+  /**
+   * Represents a task that can be referenced by its path segments. `Task{...}`
+   * targets, `Task.Input`, `Task.Worker`, etc. but not including anonymous
+   * `Task.Anon` or `Task.traverse` etc. instances
+   */
+  trait Named[+T] extends Task[T] with NamedTaskApi[T] {
 
-  def ctx0: mill.define.ModuleCtx
-  def isPrivate: Option[Boolean]
-  def label: String = ctx.segments.value.last match {
-    case Segment.Label(v) => v
-    case Segment.Cross(_) => throw new IllegalArgumentException(
-        "NamedTask only support a ctx with a Label segment, but found a Cross."
+    def ctx0: mill.define.ModuleCtx
+
+    def isPrivate: Option[Boolean]
+
+    def label: String = ctx.segments.value.last match {
+      case Segment.Label(v) => v
+      case Segment.Cross(_) => throw new IllegalArgumentException(
+        "Task.Named only support a ctx with a Label segment, but found a Cross."
       )
+    }
+
+    override def toString = ctx.segments.render
+
+    def evaluate(ctx: mill.define.TaskCtx): Result[T] = evaluate0(ctx.args, ctx)
+
+    def evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T]
+
+    val ctx: ModuleCtx = ctx0
+
+    def readWriterOpt: Option[upickle.default.ReadWriter[?]] = None
+
+    def writerOpt: Option[upickle.default.Writer[?]] = readWriterOpt.orElse(None)
   }
-  override def toString = ctx.segments.render
-
-  def evaluate(ctx: mill.define.TaskCtx): Result[T] = evaluate0(ctx.args, ctx)
-
-  def evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T]
-
-  val ctx: ModuleCtx = ctx0
-
-  def readWriterOpt: Option[upickle.default.ReadWriter[?]] = None
-
-  def writerOpt: Option[upickle.default.Writer[?]] = readWriterOpt.orElse(None)
 }
 
+
 /**
- * A Target is a [[NamedTask]] that is cached on disk; either a
+ * A Target is a [[Task.Named]] that is cached on disk; either a
  * [[TargetImpl]] or an [[InputImpl]]
  */
-trait Target[+T] extends NamedTask[T]
+trait Target[+T] extends Task.Named[T]
 
 object Target {
 
@@ -397,7 +401,7 @@ class Command[+T](
     val isPrivate: Option[Boolean],
     val exclusive: Boolean,
     override val persistent: Boolean
-) extends NamedTask[T] {
+) extends Task.Named[T] {
 
   override def asCommand: Some[Command[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
@@ -409,7 +413,7 @@ class Worker[+T](
     val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
     val ctx0: mill.define.ModuleCtx,
     val isPrivate: Option[Boolean]
-) extends NamedTask[T] {
+) extends Task.Named[T] {
   override def persistent = false
   override def asWorker: Some[Worker[T]] = Some(this)
 }

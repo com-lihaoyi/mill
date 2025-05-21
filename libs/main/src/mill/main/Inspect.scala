@@ -57,7 +57,7 @@ private object Inspect {
       s"${name}:${ctx.lineNum}"
     }
 
-    def pprintTask(t: NamedTask[?], evaluator: Evaluator): Tree.Lazy = {
+    def pprintTask(t: Task.Named[?], evaluator: Evaluator): Tree.Lazy = {
       val seen = mutable.Set.empty[Task[?]]
 
       def rec(t: Task[?]): Seq[Segments] = {

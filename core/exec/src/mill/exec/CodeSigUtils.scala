@@ -1,13 +1,13 @@
 package mill.exec
 
 import mill.api.{BuildInfo, MillException}
-import mill.define.{NamedTask, Segment}
+import mill.define.{Task, Segment}
 
 import scala.reflect.NameTransformer.encode
 import java.lang.reflect.Method
 
 private[mill] object CodeSigUtils {
-  def precomputeMethodNamesPerClass(transitiveNamed: Seq[NamedTask[?]])
+  def precomputeMethodNamesPerClass(transitiveNamed: Seq[Task.Named[?]])
       : (Map[Class[?], IndexedSeq[Class[?]]], Map[Class[?], Map[String, Method]]) = {
     def resolveTransitiveParents(c: Class[?]): Iterator[Class[?]] = {
       Iterator(c) ++
@@ -17,7 +17,7 @@ private[mill] object CodeSigUtils {
 
     val classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]] = transitiveNamed
       .iterator
-      .map { case namedTask: NamedTask[?] => namedTask.ctx.enclosingCls }
+      .map { case namedTask: Task.Named[?] => namedTask.ctx.enclosingCls }
       .map(cls => cls -> resolveTransitiveParents(cls).toVector)
       .toMap
 
@@ -55,7 +55,7 @@ private[mill] object CodeSigUtils {
       .groupMap(_._1)(t => (t._2, t._3))
 
   def codeSigForTask(
-      namedTask: => NamedTask[?],
+      namedTask: => Task.Named[?],
       classToTransitiveClasses: => Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: => Map[Class[?], Map[String, java.lang.reflect.Method]],
       codeSignatures: => Map[String, Int],

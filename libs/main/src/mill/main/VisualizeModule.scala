@@ -10,7 +10,6 @@ import mill.define.{
   Evaluator,
   ExternalModule,
   MultiBiMap,
-  NamedTask,
   SelectMode,
   Target,
   Task,
@@ -33,9 +32,9 @@ object VisualizeModule extends ExternalModule {
 
   private type VizWorker = (
       LinkedBlockingQueue[(
-          scala.Seq[NamedTask[Any]],
-          scala.Seq[NamedTask[Any]],
-          MultiBiMap[NamedTask[Any], Task[?]],
+          scala.Seq[Task.Named[Any]],
+          scala.Seq[Task.Named[Any]],
+          MultiBiMap[Task.Named[Any], Task[?]],
           mill.define.Plan,
           os.Path
       )],
@@ -47,17 +46,17 @@ object VisualizeModule extends ExternalModule {
       targets: Seq[String],
       ctx: mill.define.TaskCtx,
       vizWorker: VizWorker,
-      planTasks: Option[List[NamedTask[?]]] = None
+      planTasks: Option[List[Task.Named[?]]] = None
   ): Result[Seq[PathRef]] = {
     def callVisualizeModule(
-        tasks: List[NamedTask[Any]],
-        transitiveTasks: List[NamedTask[Any]]
+        tasks: List[Task.Named[Any]],
+        transitiveTasks: List[Task.Named[Any]]
     ): Result[Seq[PathRef]] = {
       val (in, out) = vizWorker
       val transitive = evaluator.transitiveTargets(tasks)
       val topoSorted = evaluator.topoSorted(transitive)
       val sortedGroups = evaluator.groupAroundImportantTargets(topoSorted) {
-        case x: NamedTask[Any] if transitiveTasks.contains(x) => x
+        case x: Task.Named[Any] if transitiveTasks.contains(x) => x
       }
       val plan = evaluator.plan(transitiveTasks)
       in.put((tasks, transitiveTasks, sortedGroups, plan, ctx.dest))
@@ -93,9 +92,9 @@ object VisualizeModule extends ExternalModule {
    */
   private[mill] def worker: Worker[(
       LinkedBlockingQueue[(
-          scala.Seq[NamedTask[Any]],
-          scala.Seq[NamedTask[Any]],
-          MultiBiMap[NamedTask[Any], Task[?]],
+          scala.Seq[Task.Named[Any]],
+          scala.Seq[Task.Named[Any]],
+          MultiBiMap[Task.Named[Any], Task[?]],
           mill.define.Plan,
           os.Path
       )],
@@ -103,9 +102,9 @@ object VisualizeModule extends ExternalModule {
   )] = mill.define.Task.Worker {
     val in =
       new LinkedBlockingQueue[(
-          scala.Seq[NamedTask[Any]],
-          scala.Seq[NamedTask[Any]],
-          MultiBiMap[NamedTask[Any], Task[?]],
+          scala.Seq[Task.Named[Any]],
+          scala.Seq[Task.Named[Any]],
+          MultiBiMap[Task.Named[Any], Task[?]],
           mill.define.Plan,
           os.Path
       )]()
@@ -123,7 +122,7 @@ object VisualizeModule extends ExternalModule {
                 k,
                 for {
                   v <- vs
-                  dest <- v.inputs.collect { case v: mill.define.NamedTask[Any] => v }
+                  dest <- v.inputs.collect { case v: mill.define.Task.Named[Any] => v }
                   if goalSet.contains(dest)
                 } yield dest
               )

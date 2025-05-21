@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.define.{NamedTask, Target, TargetImpl, Task}
+import mill.define.{Task, Target, TargetImpl, Task}
 import mill.util.TestGraphs
 import utest.*
 
@@ -135,7 +135,7 @@ object PlanTests extends TestSuite {
           PlanImpl.transitiveTargets(Seq.from(goals))
         )
         val grouped = PlanImpl.groupAroundImportantTargets(topoSorted) {
-          case t: NamedTask[Any] => t
+          case t: Task.Named[Any] => t
           case t if goals.contains(t) => t
         }
         grouped.keyCount

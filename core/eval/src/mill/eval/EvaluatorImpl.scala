@@ -64,7 +64,7 @@ final class EvaluatorImpl private[mill] (
   }
 
   /**
-   * Takes query selector tokens and resolves them to a list of [[NamedTask]]s
+   * Takes query selector tokens and resolves them to a list of [[Task.Named]]s
    * representing concrete tasks or modules that match that selector
    */
   def resolveTasks(
@@ -72,7 +72,7 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): mill.api.Result[List[NamedTask[?]]] = {
+  ): mill.api.Result[List[Task.Named[?]]] = {
     os.checker.withValue(ResolveChecker(workspace)) {
       Evaluator.withCurrentEvaluator(this) {
         Resolve.Tasks.resolve(
@@ -90,7 +90,7 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): mill.api.Result[List[Either[Module, NamedTask[?]]]] = {
+  ): mill.api.Result[List[Either[Module, Task.Named[?]]]] = {
     os.checker.withValue(ResolveChecker(workspace)) {
       Evaluator.withCurrentEvaluator(this) {
         Resolve.Inspect.resolve(
@@ -145,7 +145,7 @@ final class EvaluatorImpl private[mill] (
       if (!selectiveExecutionEnabled) (targets, Map.empty, None)
       else {
         val (named, unnamed) =
-          targets.partitionMap { case n: NamedTask[?] => Left(n); case t => Right(t) }
+          targets.partitionMap { case n: Task.Named[?] => Left(n); case t => Right(t) }
         val newComputedMetadata = SelectiveExecutionImpl.Metadata.compute(this, named)
 
         val selectiveExecutionStoredData = for {

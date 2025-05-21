@@ -447,7 +447,7 @@ private object ResolveCore {
     }
 
     val namedTasks = Reflect
-      .reflect(cls, classOf[NamedTask[?]], namePred, noParams = true, cache.getMethods)
+      .reflect(cls, classOf[Task.Named[?]], namePred, noParams = true, cache.getMethods)
       .map { m =>
         Resolved.NamedTask(Segments.labels(cache.decode(m.getName))) ->
           None

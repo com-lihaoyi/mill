@@ -11,7 +11,7 @@ object TestingTests extends TestSuite {
   import CompileRunTests._
   def tests: Tests = Tests {
 
-    def runTests(testTask: define.NamedTask[(msg: String, results: Seq[TestResult])])
+    def runTests(testTask: define.Task.Named[(msg: String, results: Seq[TestResult])])
         : Unit =
       UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
         val Left(ExecResult.Failure(_)) = eval(testTask): @unchecked

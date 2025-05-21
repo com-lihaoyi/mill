@@ -13,7 +13,7 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
     extends mill.define.SelectiveExecution {
 
   def computeHashCodeSignatures(
-      transitiveNamed: Seq[NamedTask[?]],
+      transitiveNamed: Seq[Task.Named[?]],
       codeSignatures: Map[String, Int]
   ): Map[String, Int] = {
 
@@ -39,7 +39,7 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
   }
 
   def computeDownstream(
-      transitiveNamed: Seq[NamedTask[?]],
+      transitiveNamed: Seq[Task.Named[?]],
       oldHashes: SelectiveExecution.Metadata,
       newHashes: SelectiveExecution.Metadata
   ): (Set[Task[?]], Seq[Task[Any]]) = {
@@ -99,7 +99,7 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
    * @note throws if the metadata file does not exist.
    */
   def computeChangedTasks0(
-      tasks: Seq[NamedTask[?]],
+      tasks: Seq[Task.Named[?]],
       computedMetadata: SelectiveExecution.Metadata.Computed
   ): Option[ChangedTasks] = {
     val oldMetadataTxt = os.read(evaluator.outPath / OutFiles.millSelectiveExecution)
@@ -121,8 +121,8 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
 
       ChangedTasks(
         tasks,
-        changedRootTasks.collect { case n: NamedTask[_] => n },
-        downstreamTasks.collect { case n: NamedTask[_] => n }
+        changedRootTasks.collect { case n: Task.Named[_] => n },
+        downstreamTasks.collect { case n: Task.Named[_] => n }
       )
     }
   }
@@ -189,7 +189,7 @@ private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
   }
 
   def computeMetadata(
-      tasks: Seq[NamedTask[?]]
+      tasks: Seq[Task.Named[?]]
   ): SelectiveExecution.Metadata.Computed =
     SelectiveExecutionImpl.Metadata.compute(evaluator, tasks)
 }
@@ -197,16 +197,16 @@ object SelectiveExecutionImpl {
   object Metadata {
     def compute(
         evaluator: Evaluator,
-        tasks: Seq[NamedTask[?]]
+        tasks: Seq[Task.Named[?]]
     ): SelectiveExecution.Metadata.Computed = {
       compute0(evaluator, PlanImpl.transitiveNamed(tasks))
     }
 
     def compute0(
         evaluator: Evaluator,
-        transitiveNamed: Seq[NamedTask[?]]
+        transitiveNamed: Seq[Task.Named[?]]
     ): SelectiveExecution.Metadata.Computed = {
-      val results: Map[NamedTask[?], mill.api.Result[Val]] = transitiveNamed
+      val results: Map[Task.Named[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: InputImpl[_] =>
           val ctx = new mill.define.TaskCtx.Impl(
             args = Vector(),

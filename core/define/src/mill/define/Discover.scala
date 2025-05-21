@@ -134,7 +134,7 @@ object Discover {
           val names =
             sortedMethods(
               curCls,
-              sub = TypeRepr.of[mill.define.NamedTask[?]],
+              sub = TypeRepr.of[mill.define.Task.Named[?]],
               declMethods
             ).map(_.name)
           val entryPoints = for {
