@@ -334,8 +334,8 @@ object Task {
     def label: String = ctx.segments.value.last match {
       case Segment.Label(v) => v
       case Segment.Cross(_) => throw new IllegalArgumentException(
-        "Task.Named only support a ctx with a Label segment, but found a Cross."
-      )
+          "Task.Named only support a ctx with a Label segment, but found a Cross."
+        )
     }
 
     override def toString = ctx.segments.render
@@ -351,15 +351,14 @@ object Task {
     def writerOpt: Option[upickle.default.Writer[?]] = readWriterOpt.orElse(None)
   }
 
-
   class Computed[+T](
-                        val inputs: Seq[Task[Any]],
-                        val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-                        val ctx0: mill.define.ModuleCtx,
-                        val readWriter: ReadWriter[?],
-                        val isPrivate: Option[Boolean],
-                        override val persistent: Boolean
-                      ) extends Cached[T] {
+      val inputs: Seq[Task[Any]],
+      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+      val ctx0: mill.define.ModuleCtx,
+      val readWriter: ReadWriter[?],
+      val isPrivate: Option[Boolean],
+      override val persistent: Boolean
+  ) extends Cached[T] {
     override def asTarget: Option[Cached[T]] = Some(this)
 
     // FIXME: deprecated return type: Change to Option
@@ -381,24 +380,24 @@ object Task {
      * return value to disk, only re-computing if upstream [[Task]]s change
      */
     implicit inline def create[T](inline t: T)(implicit
-                                               inline rw: ReadWriter[T],
-                                               inline ctx: ModuleCtx
+        inline rw: ReadWriter[T],
+        inline ctx: ModuleCtx
     ): Cached[T] =
       ${ TaskMacros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
     implicit inline def create[T](inline t: Result[T])(implicit
-                                                       inline rw: ReadWriter[T],
-                                                       inline ctx: ModuleCtx
+        inline rw: ReadWriter[T],
+        inline ctx: ModuleCtx
     ): Cached[T] =
       ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
   }
 
   class Anon[T](
-                 val inputs: Seq[Task[_]],
-                 evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-                 enclosing: sourcecode.Enclosing
-               ) extends Task[T] {
+      val inputs: Seq[Task[_]],
+      evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+      enclosing: sourcecode.Enclosing
+  ) extends Task[T] {
     def evaluate(ctx: mill.define.TaskCtx) = evaluate0(ctx.args, ctx)
 
     override def toString =
@@ -406,16 +405,16 @@ object Task {
   }
 
   private object TaskMacros {
-    def appImpl[M[_] : Type, T: Type](using
-                                      Quotes
-                                     )(
-                                       traverseCtx: (
-                                         Expr[Seq[Task[Any]]],
-                                           Expr[(Seq[Any], mill.define.TaskCtx) => Result[T]]
-                                         ) => Expr[M[T]],
-                                       t: Expr[Result[T]],
-                                       allowTaskReferences: Boolean = true
-                                     ): Expr[M[T]] =
+    def appImpl[M[_]: Type, T: Type](using
+        Quotes
+    )(
+        traverseCtx: (
+            Expr[Seq[Task[Any]]],
+            Expr[(Seq[Any], mill.define.TaskCtx) => Result[T]]
+        ) => Expr[M[T]],
+        t: Expr[Result[T]],
+        allowTaskReferences: Boolean = true
+    ): Expr[M[T]] =
       Applicative.impl[M, Task, Result, T, mill.define.TaskCtx](traverseCtx, t, allowTaskReferences)
 
     private def taskIsPrivate()(using Quotes): Expr[Option[Boolean]] =
@@ -427,20 +426,21 @@ object Task {
       }
 
     def anonTaskImpl[T: Type](t: Expr[Result[T]], enclosing: Expr[sourcecode.Enclosing])(using
-                                                                                         Quotes
+        Quotes
     ): Expr[Task[T]] = {
       appImpl[Task, T]((in, ev) => '{ new Anon($in, $ev, $enclosing) }, t)
     }
 
     def targetResultImpl[T: Type](using
-                                  Quotes
-                                 )(t: Expr[Result[T]])(
-                                   rw: Expr[ReadWriter[T]],
-                                   ctx: Expr[mill.define.ModuleCtx],
-                                   persistent: Expr[Boolean]
-                                 ): Expr[Cached[T]] = {
+        Quotes
+    )(t: Expr[Result[T]])(
+        rw: Expr[ReadWriter[T]],
+        ctx: Expr[mill.define.ModuleCtx],
+        persistent: Expr[Boolean]
+    ): Expr[Cached[T]] = {
       val expr = appImpl[Cached, T](
-        (in, ev) => '{ new Task.Computed[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
+        (in, ev) =>
+          '{ new Task.Computed[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
         t
       )
 
@@ -448,12 +448,12 @@ object Task {
     }
 
     def sourcesImpl(using
-                    Quotes
-                   )(
-                     values: Expr[Result[Seq[PathRef]]]
-                   )(
-                     ctx: Expr[mill.define.ModuleCtx]
-                   ): Expr[Cached[Seq[PathRef]]] = {
+        Quotes
+    )(
+        values: Expr[Result[Seq[PathRef]]]
+    )(
+        ctx: Expr[mill.define.ModuleCtx]
+    ): Expr[Cached[Seq[PathRef]]] = {
       val expr = appImpl[Cached, Seq[PathRef]](
         (in, ev) => '{ new Sources($ev, $ctx, ${ taskIsPrivate() }) },
         values,
@@ -463,10 +463,10 @@ object Task {
     }
 
     def sourceImpl(using
-                   Quotes
-                  )(value: Expr[Result[PathRef]])(
-                    ctx: Expr[mill.define.ModuleCtx]
-                  ): Expr[Cached[PathRef]] = {
+        Quotes
+    )(value: Expr[Result[PathRef]])(
+        ctx: Expr[mill.define.ModuleCtx]
+    ): Expr[Cached[PathRef]] = {
 
       val expr = appImpl[Cached, PathRef](
         (in, ev) => '{ new Source($ev, $ctx, ${ taskIsPrivate() }) },
@@ -478,11 +478,11 @@ object Task {
     }
 
     def inputImpl[T: Type](using
-                           Quotes
-                          )(value: Expr[Result[T]])(
-                            w: Expr[upickle.default.Writer[T]],
-                            ctx: Expr[mill.define.ModuleCtx]
-                          ): Expr[Cached[T]] = {
+        Quotes
+    )(value: Expr[Result[T]])(
+        w: Expr[upickle.default.Writer[T]],
+        ctx: Expr[mill.define.ModuleCtx]
+    ): Expr[Cached[T]] = {
 
       val expr = appImpl[Cached, T](
         (in, ev) => '{ new Input[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
@@ -493,13 +493,13 @@ object Task {
     }
 
     def commandImpl[T: Type](using
-                             Quotes
-                            )(t: Expr[Result[T]])(
-                              w: Expr[Writer[T]],
-                              ctx: Expr[mill.define.ModuleCtx],
-                              exclusive: Expr[Boolean],
-                              persistent: Expr[Boolean]
-                            ): Expr[Command[T]] = {
+        Quotes
+    )(t: Expr[Result[T]])(
+        w: Expr[Writer[T]],
+        ctx: Expr[mill.define.ModuleCtx],
+        exclusive: Expr[Boolean],
+        persistent: Expr[Boolean]
+    ): Expr[Command[T]] = {
       appImpl[Command, T](
         (in, ev) =>
           '{
@@ -518,10 +518,10 @@ object Task {
     }
 
     def workerImpl2[T: Type](using
-                             Quotes
-                            )(t: Expr[Result[T]])(
-                              ctx: Expr[mill.define.ModuleCtx]
-                            ): Expr[Worker[T]] = {
+        Quotes
+    )(t: Expr[Result[T]])(
+        ctx: Expr[mill.define.ModuleCtx]
+    ): Expr[Worker[T]] = {
 
       val expr = appImpl[Worker, T](
         (in, ev) => '{ new Worker[T]($in, $ev, $ctx, ${ taskIsPrivate() }) },
@@ -532,8 +532,6 @@ object Task {
   }
 
 }
-
-
 
 class Command[+T](
     val inputs: Seq[Task[Any]],
@@ -593,4 +591,3 @@ class Source(
       upickle.default.readwriter[PathRef],
       isPrivate
     ) {}
-

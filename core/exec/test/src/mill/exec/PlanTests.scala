@@ -61,9 +61,9 @@ object PlanTests extends TestSuite {
     }
     test("groupAroundNamedTargets") {
       def check[T, R <: Cached[Int]](base: T)(
-        target: T => R,
-        important0: Seq[T => Cached[?]],
-        expected: Seq[(R, Int)]
+          target: T => R,
+          important0: Seq[T => Cached[?]],
+          expected: Seq[(R, Int)]
       ) = {
 
         val topoSorted = PlanImpl.topoSorted(PlanImpl.transitiveTargets(Seq(target(base))))
