@@ -694,7 +694,7 @@ package.json
 tsconfig.json
 
 
-.build.mill ({mill-download-url}/mill-dist-1.0.0-M1-39-96c13d-example-thirdparty-ollama-js.zip[download], {mill-example-url}/example/thirdparty/ollama-js[browse])
+.build.mill ({mill-download-url}/mill-dist-1.0.0-M1-40-a99d9f-example-thirdparty-ollama-js.zip[download], {mill-example-url}/example/thirdparty/ollama-js[browse])
 [source,scala,subs=&quot;attributes,verbatim&quot;]</code></pre>
 </div>
 </div>
@@ -791,25 +791,25 @@ def unbuild = Task {
     p.last == &quot;node_modules&quot; ||
       p.last == &quot;package-lock.json&quot;
 )
-  .foreach(p =&gt; os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))</pre>
+  .foreach(p =&gt; os.copy.over(p, Task.dest / p.relativeTo(out), createFolders = true))</pre>
 </div>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>os.call(&quot;node_modules/.bin/unbuild&quot;, cwd = T.dest)</pre>
+<pre>os.call(&quot;node_modules/.bin/unbuild&quot;, cwd = Task.dest)</pre>
 </div>
 </div>
 <div class="literalblock">
 <div class="content">
 <pre>// prepare bundled ouptut to be used as `unmanagedDeps` in examples section.
-os.makeDir.all(T.dest / &quot;ollama&quot;)
-os.copy(T.dest / &quot;package.json&quot;, T.dest / &quot;ollama&quot; / &quot;package.json&quot;)
-os.copy(T.dest / &quot;dist&quot;, T.dest / &quot;ollama&quot; / &quot;dist&quot;)</pre>
+os.makeDir.all(Task.dest / &quot;ollama&quot;)
+os.copy(Task.dest / &quot;package.json&quot;, Task.dest / &quot;ollama&quot; / &quot;package.json&quot;)
+os.copy(Task.dest / &quot;dist&quot;, Task.dest / &quot;ollama&quot; / &quot;dist&quot;)</pre>
 </div>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>    PathRef(T.dest / &quot;ollama&quot;)
+<pre>    PathRef(Task.dest / &quot;ollama&quot;)
   }
 }</pre>
 </div>

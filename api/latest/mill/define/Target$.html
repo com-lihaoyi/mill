@@ -10,7 +10,7 @@
 </div>
 <div class="main-signature mono-small-block">
  <div class="signature">
-  <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="Target$.html" t="n" class="documentableName ">Target</a><span t="k"> extends </span><a href="TaskBase.html" t="t">TaskBase</a></span><span class="signature-long"></span>
+  <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="Target$.html" t="n" class="documentableName ">Target</a>
  </div>
 </div>
 <div class="cover">
@@ -39,17 +39,15 @@
      <svg id="graph"></svg>
      <script type="text/dot" id="dot"> digraph g {
  node0 [id=node0, label="<span style=\"color: #FFFFFF;\">object <a href=\"Target$.html\" t=\"n\">Target</a></span>", class="object vertex"];
-node1 [id=node1, label="<span style=\"color: #FFFFFF;\">class <a href=\"TaskBase.html\" t=\"n\">TaskBase</a></span>", class="class vertex"];
-node2 [id=node2, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Object</span></span>", class="class vertex"];
-node3 [id=node3, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Any</span></span>", class="class vertex"];
-node4 [id=node4, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">Matchable</span></span>", class="trait vertex"];
+node1 [id=node1, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Object</span></span>", class="class vertex"];
+node2 [id=node2, label="<span style=\"color: #FFFFFF;\">class <span data-unresolved-link=\"\" t=\"n\">Any</span></span>", class="class vertex"];
+node3 [id=node3, label="<span style=\"color: #FFFFFF;\">trait <span data-unresolved-link=\"\" t=\"n\">Matchable</span></span>", class="trait vertex"];
 
 
  node0 -> node1;
 node1 -> node2;
-node2 -> node3;
-node2 -> node4;
-node4 -> node3;
+node1 -> node3;
+node3 -> node2;
 
 }
 </script>
@@ -60,9 +58,6 @@ node4 -> node3;
    </dt>
    <dd class="body-medium">
     <div class="mono-small-block supertypes">
-     <div>
-      class <a href="TaskBase.html" t="n">TaskBase</a>
-     </div>
      <div>
       class <span data-unresolved-link="" t="n">Object</span>
      </div>
@@ -96,580 +91,6 @@ node4 -> node3;
  <div class="membersList expand">
   <div class="tabs">
    <div class="contents">
-    <section id="Value-members">
-     <div data-togglable="Value members" class="tab expand">
-      <div class="member-group-header">
-       <h3 data-togglable="Value members" class="h400">Value members</h3>
-      </div>
-      <section id="Inherited-methods">
-       <div class="documentableList expand">
-        <div class="documentableList-expander">
-         <button class="icon-button show-content expand"></button>
-         <h4 class="groupHeader h200">Inherited methods</h4>
-        </div>
-        <div class="documentableElement" id="args-e7a" data-f-inherited="TaskBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Returns the implicit [[mill.define.TaskCtx.Args.args]] in scope.\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#args-e7a" t="n" class="documentableName ">args</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx$$Args.html" t="t">Args</a>): <span data-unresolved-link="" t="t">IndexedSeq</span>[<span t="k">_</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Returns the implicit <a href="TaskCtx$$Args.html#args-0">mill.define.TaskCtx.Args.args</a> in scope.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Returns the implicit <a href="TaskCtx$$Args.html#args-0">mill.define.TaskCtx.Args.args</a> in scope.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TaskBase.html#args-e7a">TaskBase</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="ctx-260" data-f-inherited="TaskBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Returns the [[mill.define.TaskCtx]] that is available within this task\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#ctx-260" t="n" class="documentableName ">ctx</a>(<span t="k"></span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">c</span>: <a href="TaskCtx.html" t="t">TaskCtx</a>): <a href="TaskCtx.html" t="t">TaskCtx</a>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Returns the <a href="TaskCtx.html">mill.define.TaskCtx</a> that is available within this task</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Returns the <a href="TaskCtx.html">mill.define.TaskCtx</a> that is available within this task</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TaskBase.html#ctx-260">TaskBase</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="dest-fffff6c2" data-f-inherited="TaskBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)\n * that is assigned to every Target or Command. It is cleared before your\n * task runs, and you can use it as a scratch space for temporary files or\n * a place to put returned artifacts. This is guaranteed to be unique for\n * every Target or Command, so you can be sure that you will not collide or\n * interfere with anyone else writing to those same paths.\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#dest-fffff6c2" t="n" class="documentableName ">dest</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx$$Dest.html" t="t">Dest</a>): <span data-unresolved-link="" t="t">Path</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p><code>Task.dest</code> is a unique <code>os.Path</code> (e.g. <code>out/classFiles.dest/</code> or <code>out/run.dest/</code>) that is assigned to every Target or Command. It is cleared before your task runs, and you can use it as a scratch space for temporary files or a place to put returned artifacts. This is guaranteed to be unique for every Target or Command, so you can be sure that you will not collide or interfere with anyone else writing to those same paths.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p><code>Task.dest</code> is a unique <code>os.Path</code> (e.g. <code>out/classFiles.dest/</code> or <code>out/run.dest/</code>) that is assigned to every Target or Command. It is cleared before your task runs, and you can use it as a scratch space for temporary files or a place to put returned artifacts. This is guaranteed to be unique for every Target or Command, so you can be sure that you will not collide or interfere with anyone else writing to those same paths.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TaskBase.html#dest-fffff6c2">TaskBase</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="env-f2a" data-f-inherited="TaskBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * `Task.env` is the environment variable map passed to the Mill command when\n * it is run; typically used inside a `Task.Input` to ensure any changes in\n * the env vars are properly detected.\n *\n * Note that you should not use `sys.env`, as Mill\'s long-lived server\n * process means that `sys.env` variables may not be up to date.\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#env-f2a" t="n" class="documentableName ">env</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx$$Env.html" t="t">Env</a>): <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p><code>Task.env</code> is the environment variable map passed to the Mill command when it is run; typically used inside a <code>Task.Input</code> to ensure any changes in the env vars are properly detected.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p><code>Task.env</code> is the environment variable map passed to the Mill command when it is run; typically used inside a <code>Task.Input</code> to ensure any changes in the env vars are properly detected.</p>
-              <p>Note that you should not use <code>sys.env</code>, as Mill's long-lived server process means that <code>sys.env</code> variables may not be up to date.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TaskBase.html#env-f2a">TaskBase</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="fail-fffff9e9" data-f-inherited="TaskBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#fail-fffff9e9" t="n" class="documentableName ">fail</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">msg</span>: <span data-unresolved-link="" t="t">String</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx.html" t="t">TaskCtx</a>): <span data-unresolved-link="" t="t">Nothing</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TaskBase.html#fail-fffff9e9">TaskBase</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="fork-fffffde4" data-f-inherited="TaskBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Provides the `.fork.async` and `.fork.await` APIs for spawning and joining\n * async futures within your task in a Mill-friendly mannter\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#fork-fffffde4" t="n" class="documentableName ">fork</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx.html" t="t">TaskCtx</a>): <a href="TaskCtx$$Fork$$Api.html" t="t">Api</a>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Provides the <code>.fork.async</code> and <code>.fork.await</code> APIs for spawning and joining async futures within your task in a Mill-friendly mannter</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Provides the <code>.fork.async</code> and <code>.fork.await</code> APIs for spawning and joining async futures within your task in a Mill-friendly mannter</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TaskBase.html#fork-fffffde4">TaskBase</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="log-a1d" data-f-inherited="TaskBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * `Task.log` is the default logger provided for every task. While your task is running,\n * `System.out` and `System.in` are also redirected to this logger. The logs for a\n * task are streamed to standard out/error as you would expect, but each task\'s\n * specific output is also streamed to a log file on disk, e.g. `out/run.log` or\n * `out/classFiles.log` for you to inspect later.\n *\n * Messages logged with `log.debug` appear by default only in the log files.\n * You can use the `--debug` option when running mill to show them on the console too.\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#log-a1d" t="n" class="documentableName ">log</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx$$Log.html" t="t">Log</a>): <a href="../api/Logger.html" t="t">Logger</a>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p><code>Task.log</code> is the default logger provided for every task. While your task is running, <code>System.out</code> and <code>System.in</code> are also redirected to this logger. The logs for a task are streamed to standard out/error as you would expect, but each task's specific output is also streamed to a log file on disk, e.g. <code>out/run.log</code> or <code>out/classFiles.log</code> for you to inspect later.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p><code>Task.log</code> is the default logger provided for every task. While your task is running, <code>System.out</code> and <code>System.in</code> are also redirected to this logger. The logs for a task are streamed to standard out/error as you would expect, but each task's specific output is also streamed to a log file on disk, e.g. <code>out/run.log</code> or <code>out/classFiles.log</code> for you to inspect later.</p>
-              <p>Messages logged with <code>log.debug</code> appear by default only in the log files. You can use the <code>--debug</code> option when running mill to show them on the console too.</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TaskBase.html#log-a1d">TaskBase</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="offline-bdf" data-f-inherited="TaskBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#offline-bdf" t="n" class="documentableName ">offline</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx.html" t="t">TaskCtx</a>): <span data-unresolved-link="" t="t">Boolean</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TaskBase.html#offline-bdf">TaskBase</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="reporter-550" data-f-inherited="TaskBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Report build results to BSP for IDE integration\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#reporter-550" t="n" class="documentableName ">reporter</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx.html" t="t">TaskCtx</a>): <span data-unresolved-link="" t="t">Int</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Option</span>[<a href="../api/internal/CompileProblemReporter.html" t="t">CompileProblemReporter</a>]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Report build results to BSP for IDE integration</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Report build results to BSP for IDE integration</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TaskBase.html#reporter-550">TaskBase</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="sequence-dc2" data-f-inherited="TaskBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#sequence-dc2" t="n" class="documentableName ">sequence</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">source</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="Task.html" t="t">Task</a>[<span t="t">T</span>]]): <a href="Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">T</span>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Converts a <code>Seq[Task[T]]</code> into a <code>Task[Seq[T]]</code></p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Converts a <code>Seq[Task[T]]</code> into a <code>Task[Seq[T]]</code></p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TaskBase.html#sequence-dc2">TaskBase</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="testReporter-47f" data-f-inherited="TaskBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Report test results to BSP for IDE integration\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#testReporter-47f" t="n" class="documentableName ">testReporter</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx.html" t="t">TaskCtx</a>): <a href="../api/internal/TestReporter.html" t="t">TestReporter</a>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Report test results to BSP for IDE integration</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Report test results to BSP for IDE integration</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TaskBase.html#testReporter-47f">TaskBase</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="traverse-73a" data-f-inherited="TaskBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Converts a `Seq[T]` into a `Task[Seq[V]]` using the given `f: T =&gt; Task[V]`\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#traverse-73a" t="n" class="documentableName ">traverse</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>, <span t="k"></span><span data-unresolved-link="" t="t">V</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">source</span>: <span data-unresolved-link="" t="t">Seq</span>[<span t="t">T</span>])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: <span t="t">T</span><span t="k"> =&gt; </span><a href="Task.html" t="t">Task</a>[<span t="t">V</span>]): <a href="Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">V</span>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>Converts a <code>Seq[T]</code> into a <code>Task[Seq[V]]</code> using the given <code>f: T =&gt; Task[V]</code></p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>Converts a <code>Seq[T]</code> into a <code>Task[Seq[V]]</code> using the given <code>f: T =&gt; Task[V]</code></p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TaskBase.html#traverse-73a">TaskBase</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="workspace-1ce" data-f-inherited="TaskBase">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * This is the `os.Path` pointing to the project root directory.\n *\n * This is the preferred access to the project directory, and should\n * always be prefered over `os.pwd`* (which might also point to the\n * project directory in classic cli scenarios, but might not in other\n * use cases like BSP or LSP server usage).\n */") </span>
-          </div>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#workspace-1ce" t="n" class="documentableName ">workspace</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx.html" t="t">TaskCtx</a>): <span data-unresolved-link="" t="t">Path</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="documentableBrief doc">
-             <p>This is the <code>os.Path</code> pointing to the project root directory.</p>
-            </div>
-            <div class="cover">
-             <div class="doc">
-              <p>This is the <code>os.Path</code> pointing to the project root directory.</p>
-              <p>This is the preferred access to the project directory, and should always be prefered over <code>os.pwd</code>* (which might also point to the project directory in classic cli scenarios, but might not in other use cases like BSP or LSP server usage).</p>
-             </div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="TaskBase.html#workspace-1ce">TaskBase</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/home/runner/work/mill/mill/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-       </div>
-      </section>
-     </div>
-    </section>
     <section id="Implicits">
      <div data-togglable="Implicits" class="tab expand">
       <div class="member-group-header">
@@ -681,7 +102,7 @@ node4 -> node3;
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Implicits</h4>
         </div>
-        <div class="documentableElement" id="apply-fffff342" data-f-keywords="implicit,inline">
+        <div class="documentableElement" id="create-fffff342" data-f-keywords="implicit,inline">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
@@ -689,7 +110,7 @@ node4 -> node3;
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">implicit inline </span></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#apply-fffff342" t="n" class="documentableName ">apply</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k">inline </span><span data-unresolved-link="" t="n">t</span>: <span t="t">T</span>)(<span t="k">implicit </span><span t="k">inline </span><span data-unresolved-link="" t="n">rw</span>: <span data-unresolved-link="" t="t">ReadWriter</span>[<span t="t">T</span>], <span t="k">inline </span><span data-unresolved-link="" t="n">ctx</span>: <a href="ModuleCtx.html" t="t">ModuleCtx</a>): <a href="Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">T</span>]
+            <span class="modifiers"><span t="k">implicit inline </span></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#create-fffff342" t="n" class="documentableName ">create</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k">inline </span><span data-unresolved-link="" t="n">t</span>: <span t="t">T</span>)(<span t="k">implicit </span><span t="k">inline </span><span data-unresolved-link="" t="n">rw</span>: <span data-unresolved-link="" t="t">ReadWriter</span>[<span t="t">T</span>], <span t="k">inline </span><span data-unresolved-link="" t="n">ctx</span>: <a href="ModuleCtx.html" t="t">ModuleCtx</a>): <a href="Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">T</span>]
            </div>
           </div>
          </div>
@@ -719,12 +140,12 @@ node4 -> node3;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="apply-fffffbd0" data-f-keywords="implicit,inline">
+        <div class="documentableElement" id="create-fffffbd0" data-f-keywords="implicit,inline">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"><span t="k">implicit inline </span></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#apply-fffffbd0" t="n" class="documentableName ">apply</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k">inline </span><span data-unresolved-link="" t="n">t</span>: <a href="../api/Result.html" t="t">Result</a>[<span t="t">T</span>])(<span t="k">implicit </span><span t="k">inline </span><span data-unresolved-link="" t="n">rw</span>: <span data-unresolved-link="" t="t">ReadWriter</span>[<span t="t">T</span>], <span t="k">inline </span><span data-unresolved-link="" t="n">ctx</span>: <a href="ModuleCtx.html" t="t">ModuleCtx</a>): <a href="Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">T</span>]
+            <span class="modifiers"><span t="k">implicit inline </span></span><span class="kind"><span t="k">def </span></span><a href="Target$.html#create-fffffbd0" t="n" class="documentableName ">create</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k">inline </span><span data-unresolved-link="" t="n">t</span>: <a href="../api/Result.html" t="t">Result</a>[<span t="t">T</span>])(<span t="k">implicit </span><span t="k">inline </span><span data-unresolved-link="" t="n">rw</span>: <span data-unresolved-link="" t="t">ReadWriter</span>[<span t="t">T</span>], <span t="k">inline </span><span data-unresolved-link="" t="n">ctx</span>: <a href="ModuleCtx.html" t="t">ModuleCtx</a>): <a href="Target.html" t="t">Target</a>[<span data-unresolved-link="" t="t">T</span>]
            </div>
           </div>
          </div>
@@ -756,4 +177,4 @@ node4 -> node3;
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Value-members">Value members</a><ul><li><a href="#Inherited-methods">Inherited methods</a></li></ul></li><li><a href="#Implicits">Implicits</a><ul><li><a href="#Implicits">Implicits</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Implicits">Implicits</a><ul><li><a href="#Implicits">Implicits</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
