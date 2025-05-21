@@ -1,6 +1,5 @@
 package mill.kotlinlib.android
 
-import coursier.Dependency
 import coursier.core.Reconciliation
 import coursier.params.ResolutionParams
 import coursier.util.ModuleMatchers
