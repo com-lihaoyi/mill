@@ -71,7 +71,7 @@ private[dependency] object VersionsFinder {
       val x = Lib.resolveDependenciesMetadataSafe(
         repositories = repos,
         deps = dependencies: IterableOnce[BoundDep],
-        mapDependencies = Option(mapDeps),
+        deprecatedMapDependencies = Option(mapDeps),
         customizer = custom,
         ctx = Option(Task.log),
         coursierCacheCustomizer = cacheCustom,

@@ -34,7 +34,11 @@ object Lib {
   def resolveDependenciesMetadata(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
-      mapDependencies: Option[Dependency => Dependency] = None,
+      @deprecated(
+        "This parameter is now ignored, use resolutionParams to adjust how resolution behaves",
+        "Mill 0.12.15"
+      )
+      deprecatedMapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[Ctx.Log] = None,
       coursierCacheCustomizer: Option[
@@ -45,7 +49,7 @@ object Lib {
     val res = resolveDependenciesMetadataSafe(
       repositories,
       deps0,
-      mapDependencies,
+      deprecatedMapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer
@@ -56,7 +60,11 @@ object Lib {
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
-      mapDependencies: Option[Dependency => Dependency] = None,
+      @deprecated(
+        "This parameter is now ignored, use resolutionParams to adjust how resolution behaves",
+        "Mill 0.12.15"
+      )
+      deprecatedMapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[Ctx.Log] = None,
       coursierCacheCustomizer: Option[
@@ -70,7 +78,7 @@ object Lib {
       repositories = repositories,
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
-      mapDependencies = mapDependencies,
+      deprecatedMapDependencies = None,
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
@@ -83,7 +91,11 @@ object Lib {
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
-      mapDependencies: Option[Dependency => Dependency],
+      @deprecated(
+        "This parameter is now ignored, use resolutionParams to adjust how resolution behaves",
+        "Mill 0.12.15"
+      )
+      deprecatedMapDependencies: Option[Dependency => Dependency],
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
       ctx: Option[Ctx.Log],
       coursierCacheCustomizer: Option[
@@ -94,7 +106,7 @@ object Lib {
     resolveDependenciesMetadataSafe(
       repositories,
       deps,
-      mapDependencies,
+      deprecatedMapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer,
@@ -106,7 +118,11 @@ object Lib {
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
-      mapDependencies: Option[Dependency => Dependency],
+      @deprecated(
+        "This parameter is now ignored, use resolutionParams to adjust how resolution behaves",
+        "Mill 0.12.15"
+      )
+      deprecatedMapDependencies: Option[Dependency => Dependency],
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
       ctx: Option[Ctx.Log],
       coursierCacheCustomizer: Option[
@@ -116,7 +132,7 @@ object Lib {
     resolveDependenciesMetadataSafe(
       repositories,
       deps,
-      mapDependencies,
+      deprecatedMapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer,
@@ -135,7 +151,11 @@ object Lib {
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
       sources: Boolean = false,
-      mapDependencies: Option[Dependency => Dependency] = None,
+      @deprecated(
+        "This parameter is now ignored, use resolutionParams to adjust how resolution behaves",
+        "Mill 0.12.15"
+      )
+      deprecatedMapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[Ctx.Log] = None,
       coursierCacheCustomizer: Option[
@@ -151,7 +171,7 @@ object Lib {
       force = depSeq.filter(_.force).map(_.dep),
       sources = sources,
       artifactTypes = artifactTypes,
-      mapDependencies = mapDependencies,
+      deprecatedMapDependencies = deprecatedMapDependencies,
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
@@ -162,37 +182,16 @@ object Lib {
     res.map(_.map(_.withRevalidateOnce))
   }
 
-  // bin-compat shim
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      deps: IterableOnce[BoundDep],
-      sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
-      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
-      ctx: Option[Ctx.Log],
-      coursierCacheCustomizer: Option[
-        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
-      ],
-      artifactTypes: Option[Set[Type]]
-  ): Result[Agg[PathRef]] =
-    resolveDependencies(
-      repositories,
-      deps,
-      sources,
-      mapDependencies,
-      customizer,
-      ctx,
-      coursierCacheCustomizer,
-      artifactTypes,
-      ResolutionParams()
-    )
-
   @deprecated("Use the override accepting artifactTypes", "Mill after 0.12.0-RC3")
   def resolveDependencies(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
       sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
+      @deprecated(
+        "This parameter is now ignored, use resolutionParams to adjust how resolution behaves",
+        "Mill 0.12.15"
+      )
+      deprecatedMapDependencies: Option[Dependency => Dependency],
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
       ctx: Option[Ctx.Log],
       coursierCacheCustomizer: Option[
@@ -203,7 +202,7 @@ object Lib {
       repositories,
       deps,
       sources,
-      mapDependencies,
+      deprecatedMapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer,
@@ -293,7 +292,7 @@ object Lib {
             BoundDep(coursier.Dependency(distModule, BuildInfo.millVersion), force = false)
           ),
           sources = useSources,
-          mapDependencies = None,
+          deprecatedMapDependencies = None,
           customizer = None,
           coursierCacheCustomizer = None,
           ctx = ctx

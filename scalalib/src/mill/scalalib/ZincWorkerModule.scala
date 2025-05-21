@@ -148,10 +148,15 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
     val useSources = !isBinaryBridgeAvailable(scalaVersion)
 
     val bridgeJar = resolveDependencies(
-      repositories,
-      Seq(bridgeDep.bindDep("", "", "")),
+      repositories = repositories,
+      deps = Seq(bridgeDep.bindDep("", "", "")),
       sources = useSources,
-      mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
+      deprecatedMapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization)),
+      customizer = None,
+      ctx = None,
+      coursierCacheCustomizer = None,
+      artifactTypes = None,
+      resolutionParams = coursier.params.ResolutionParams()
     ).map(deps =>
       ZincWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
     )
@@ -204,7 +209,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
     val deps = resolver.classpath(
       Seq(bridgeDep.bindDep("", "", "")),
       sources = useSources,
-      mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
+      deprecatedMapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
     )
 
     val bridgeJar = ZincWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
@@ -226,7 +231,13 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module
-      mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
+      sources = false,
+      deprecatedMapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization)),
+      customizer = None,
+      ctx = None,
+      coursierCacheCustomizer = None,
+      artifactTypes = None,
+      resolutionParams = coursier.params.ResolutionParams()
     )
   }
 
@@ -239,7 +250,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule with Coursi
       deps = Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}".bindDep("", "", "")),
       // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
       // We need to override it with the scalaVersion and scalaOrganization of the module
-      mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
+      deprecatedMapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
     )
   }
 
