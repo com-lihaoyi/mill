@@ -1137,7 +1137,6 @@ trait JavaModule
         allRepositories(),
         dependencies,
         checkGradleModules = checkGradleModules(),
-        Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
         resolutionParams = resolutionParams()
