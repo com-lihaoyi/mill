@@ -32,12 +32,12 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
 
   trait AndroidAppKotlinTests extends AndroidAppKotlinModule with AndroidAppTests {
     override def kotlinVersion: T[String] = outer.kotlinVersion
-    
+
     override def kotlinSources: T[Seq[PathRef]] = Task.Sources("src/test/kotlin")
-    
+
     override def sources: T[Seq[PathRef]] =
       super[AndroidAppTests].sources() ++ kotlinSources()
-      
+
     override def kotlincPluginMvnDeps: T[Seq[Dep]] = outer.kotlincPluginMvnDeps()
   }
 
@@ -50,7 +50,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     override def kotlinSources: T[Seq[PathRef]] = Task.Sources("src/androidTest/kotlin")
 
     override def kotlincPluginMvnDeps: T[Seq[Dep]] = outer.kotlincPluginMvnDeps()
-    
+
     override def sources: T[Seq[PathRef]] =
       super[AndroidAppInstrumentedTests].sources() ++ kotlinSources()
 

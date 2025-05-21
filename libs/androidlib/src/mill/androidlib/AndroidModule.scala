@@ -50,8 +50,9 @@ trait AndroidModule extends JavaModule {
   private def androidManifestUsesSdkSection: Task[Elem] = Task.Anon {
     val minSdkVersion = androidMinSdk().toString
     val targetSdkVersion = androidTargetSdk().toString
-      <uses-sdk android:minSdkVersion={minSdkVersion} />
+    <uses-sdk android:minSdkVersion={minSdkVersion} />
   }
+
   /**
    * Provides os.Path to an XML file containing configuration and metadata about your android application.
    * TODO dynamically add android:debuggable
@@ -74,6 +75,7 @@ trait AndroidModule extends JavaModule {
 
     PathRef(generatedManifestPath)
   }
+
   /**
    * Controls debug vs release build type. Default is `true`, meaning debug build will be generated.
    *
@@ -382,7 +384,8 @@ trait AndroidModule extends JavaModule {
     libClasses :+ PathRef(mainRClassPath)
   }
 
-  /** Namespace of the Android module.
+  /**
+   * Namespace of the Android module.
    * Used in manifest package and also used as the package to place the generated R sources
    */
   def androidNamespace: String

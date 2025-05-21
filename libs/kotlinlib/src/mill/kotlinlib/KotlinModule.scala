@@ -360,7 +360,8 @@ trait KotlinModule extends JavaModule { outer =>
       }
     }
 
-  /** If this module has any module dependencies, we need to tell the kotlin compiler to
+  /**
+   * If this module has any module dependencies, we need to tell the kotlin compiler to
    * handle the compiled output as a friend path so top level declarations are visible.
    */
   def kotlincFriendPaths: T[Option[String]] = Task {

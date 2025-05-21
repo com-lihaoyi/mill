@@ -98,7 +98,7 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
       mvn"com.google.truth:truth:1.4.4",
       mvn"androidx.compose:compose-bom:2024.12.01",
       mvn"androidx.compose.ui:ui-test-junit4:1.7.6",
-      mvn"com.google.dagger:hilt-android-testing:2.56",
+      mvn"com.google.dagger:hilt-android-testing:2.56"
     )
   }
 
@@ -144,7 +144,7 @@ object `shared-test` extends AndroidKotlinModule with AndroidHiltSupport {
     mvn"com.google.dagger:hilt-android:2.56",
     mvn"com.google.dagger:hilt-android-testing:2.56",
     mvn"androidx.room:room-runtime:2.6.1",
-    mvn"androidx.room:room-ktx:2.6.1",
+    mvn"androidx.room:room-ktx:2.6.1"
   )
 }
 

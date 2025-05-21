@@ -116,7 +116,7 @@ trait KspModule extends KotlinModule { outer =>
       "-no-reflect",
       "-no-stdlib",
       "-language-version",
-      kotlinLanguageVersion(),
+      kotlinLanguageVersion()
     ) ++ kotlincFriendPaths().toSeq
   }
 
