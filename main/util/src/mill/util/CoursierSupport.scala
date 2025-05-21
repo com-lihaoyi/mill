@@ -129,7 +129,11 @@ trait CoursierSupport {
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency] = Nil,
       sources: Boolean = false,
-      mapDependencies: Option[Dependency => Dependency] = None,
+      @deprecated(
+        "This parameter is now ignored, use resolutionParams to adjust how resolution behaves",
+        "Mill 0.12.15"
+      )
+      deprecatedMapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
@@ -140,7 +144,7 @@ trait CoursierSupport {
       repositories,
       deps,
       force,
-      mapDependencies,
+      deprecatedMapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer,
@@ -192,7 +196,11 @@ trait CoursierSupport {
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
       sources: Boolean = false,
-      mapDependencies: Option[Dependency => Dependency] = None,
+      @deprecated(
+        "This parameter is now ignored, use resolutionParams to adjust how resolution behaves",
+        "Mill 0.12.15"
+      )
+      deprecatedMapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
@@ -209,7 +217,7 @@ trait CoursierSupport {
       deps,
       force,
       sources,
-      mapDependencies,
+      deprecatedMapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer,
@@ -230,7 +238,11 @@ trait CoursierSupport {
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
       sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
+      @deprecated(
+        "This parameter is now ignored, use resolutionParams to adjust how resolution behaves",
+        "Mill 0.12.15"
+      )
+      deprecatedMapDependencies: Option[Dependency => Dependency],
       customizer: Option[Resolution => Resolution],
       ctx: Option[mill.api.Ctx.Log],
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
@@ -246,7 +258,7 @@ trait CoursierSupport {
       deps,
       force,
       sources,
-      mapDependencies,
+      deprecatedMapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer,
@@ -261,7 +273,11 @@ trait CoursierSupport {
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
       sources: Boolean,
-      mapDependencies: Option[Dependency => Dependency],
+      @deprecated(
+        "This parameter is now ignored, use resolutionParams to adjust how resolution behaves",
+        "Mill 0.12.15"
+      )
+      deprecatedMapDependencies: Option[Dependency => Dependency],
       customizer: Option[Resolution => Resolution],
       ctx: Option[mill.api.Ctx.Log],
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
@@ -276,7 +292,7 @@ trait CoursierSupport {
       deps,
       force,
       sources,
-      mapDependencies,
+      deprecatedMapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer,
@@ -291,7 +307,11 @@ trait CoursierSupport {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
-      mapDependencies: Option[Dependency => Dependency] = None,
+      @deprecated(
+        "This parameter is now ignored, use resolutionParams to adjust how resolution behaves",
+        "Mill 0.12.15"
+      )
+      deprecatedMapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
@@ -301,7 +321,7 @@ trait CoursierSupport {
       repositories,
       deps0,
       force,
-      mapDependencies,
+      deprecatedMapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer,
@@ -365,7 +385,11 @@ trait CoursierSupport {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
-      mapDependencies: Option[Dependency => Dependency] = None,
+      @deprecated(
+        "This parameter is now ignored, use resolutionParams to adjust how resolution behaves",
+        "Mill 0.12.15"
+      )
+      deprecatedMapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.api.Ctx.Log] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
@@ -374,11 +398,11 @@ trait CoursierSupport {
   ): Result[Resolution] = {
 
     val rootDeps = deps.iterator
-      .map(d => mapDependencies.fold(d)(_.apply(d)))
+      .map(d => deprecatedMapDependencies.fold(d)(_.apply(d)))
       .toSeq
 
     val forceVersions = force.iterator
-      .map(mapDependencies.getOrElse(identity[Dependency](_)))
+      .map(deprecatedMapDependencies.getOrElse(identity[Dependency](_)))
       .map { d => d.module -> d.version }
       .toMap
 
@@ -395,7 +419,7 @@ trait CoursierSupport {
       .withDependencies(rootDeps)
       .withRepositories(testOverridesRepo +: repositories)
       .withResolutionParams(resolutionParams0)
-      .withMapDependenciesOpt(mapDependencies)
+      .withMapDependenciesOpt(deprecatedMapDependencies)
       .withBoms(boms.toSeq)
 
     resolve.either() match {
@@ -438,7 +462,11 @@ trait CoursierSupport {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
-      mapDependencies: Option[Dependency => Dependency],
+      @deprecated(
+        "This parameter is now ignored, use resolutionParams to adjust how resolution behaves",
+        "Mill 0.12.15"
+      )
+      deprecatedMapDependencies: Option[Dependency => Dependency],
       customizer: Option[Resolution => Resolution],
       ctx: Option[mill.api.Ctx.Log],
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
@@ -448,7 +476,7 @@ trait CoursierSupport {
       repositories,
       deps,
       force,
-      mapDependencies,
+      deprecatedMapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer,
@@ -461,7 +489,11 @@ trait CoursierSupport {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
-      mapDependencies: Option[Dependency => Dependency],
+      @deprecated(
+        "This parameter is now ignored, use resolutionParams to adjust how resolution behaves",
+        "Mill 0.12.15"
+      )
+      deprecatedMapDependencies: Option[Dependency => Dependency],
       customizer: Option[Resolution => Resolution],
       ctx: Option[mill.api.Ctx.Log],
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
@@ -470,7 +502,7 @@ trait CoursierSupport {
       repositories,
       deps,
       force,
-      mapDependencies,
+      deprecatedMapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer,
