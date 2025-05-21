@@ -146,7 +146,7 @@ object Task {
    * This is most used when detecting changes in source code: when you edit a
    * file and run `mill compile`, it is the `Task.Sources` that re-computes the
    * signature for you source files/folders and decides whether or not downstream
-   * [[TargetImpl]]s need to be invalidated and re-computed.
+   * [[Task.Cached]]s need to be invalidated and re-computed.
    */
   inline def Sources(inline values: Result[os.Path]*)(implicit
       inline ctx: mill.define.ModuleCtx
@@ -179,16 +179,16 @@ object Task {
 
   /**
    * [[InputImpl]]s, normally defined using `Task.Input`, are [[Task.Named]]s that
-   * re-evaluate every time Mill is run. This is in contrast to [[TargetImpl]]s
+   * re-evaluate every time Mill is run. This is in contrast to [[Task.Cached]]s
    * which only re-evaluate when upstream tasks change.
    *
    * [[InputImpl]]s are useful when you want to capture some input to the Mill
    * build graph that comes from outside: maybe from an environment variable, a
    * JVM system property, the hash returned by `git rev-parse HEAD`. Reading
-   * these external mutable variables inside a `Task{...}` [[TargetImpl]] will
+   * these external mutable variables inside a `Task{...}` [[Task.Cached]] will
    * incorrectly cache them forever. Reading them inside a `Task.Input{...}`
    * will re-compute them every time, and only if the value changes would it
-   * continue to invalidate downstream [[TargetImpl]]s
+   * continue to invalidate downstream [[Task.Cached]]s
    *
    * The most common case of [[InputImpl]] is [[SourceImpl]] and [[SourcesImpl]],
    * used for detecting changes to source files.
@@ -272,7 +272,7 @@ object Task {
   /**
    * Persistent tasks are defined using
    * the `Task(persistent = true){...}` syntax. The main difference is that while
-   * [[TargetImpl]] deletes the `Task.dest` folder in between runs,
+   * [[Task.Cached]] deletes the `Task.dest` folder in between runs,
    * [[PersistentImpl]] preserves it. This lets the user make use of files on
    * disk that persistent between runs of the task, e.g. to implement their own
    * fine-grained caching beyond what Mill provides by default.
@@ -349,12 +349,28 @@ object Task {
 
     def writerOpt: Option[upickle.default.Writer[?]] = readWriterOpt.orElse(None)
   }
+
+
+  class Cached[+T](
+                        val inputs: Seq[Task[Any]],
+                        val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+                        val ctx0: mill.define.ModuleCtx,
+                        val readWriter: ReadWriter[?],
+                        val isPrivate: Option[Boolean],
+                        override val persistent: Boolean
+                      ) extends Target[T] {
+    override def asTarget: Option[Target[T]] = Some(this)
+
+    // FIXME: deprecated return type: Change to Option
+    override def readWriterOpt: Some[ReadWriter[?]] = Some(readWriter)
+  }
+
 }
 
 
 /**
  * A Target is a [[Task.Named]] that is cached on disk; either a
- * [[TargetImpl]] or an [[InputImpl]]
+ * [[Task.Cached]] or an [[InputImpl]]
  */
 trait Target[+T] extends Task.Named[T]
 
@@ -362,7 +378,7 @@ object Target {
 
   /**
    * A target is the most common [[Task]] a user would encounter, commonly
-   * defined using the `def foo = Task {...}` syntax. [[TargetImpl]]s require that their
+   * defined using the `def foo = Task {...}` syntax. [[Task.Cached]]s require that their
    * return type is JSON serializable. In return they automatically caches their
    * return value to disk, only re-computing if upstream [[Task]]s change
    */
@@ -378,19 +394,6 @@ object Target {
   ): Target[T] =
     ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
-}
-
-class TargetImpl[+T](
-    val inputs: Seq[Task[Any]],
-    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-    val ctx0: mill.define.ModuleCtx,
-    val readWriter: ReadWriter[?],
-    val isPrivate: Option[Boolean],
-    override val persistent: Boolean
-) extends Target[T] {
-  override def asTarget: Option[Target[T]] = Some(this)
-  // FIXME: deprecated return type: Change to Option
-  override def readWriterOpt: Some[ReadWriter[?]] = Some(readWriter)
 }
 
 class Command[+T](
@@ -498,7 +501,7 @@ private object TaskMacros {
       persistent: Expr[Boolean]
   ): Expr[Target[T]] = {
     val expr = appImpl[Target, T](
-      (in, ev) => '{ new TargetImpl[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
+      (in, ev) => '{ new Task.Cached[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
       t
     )
 

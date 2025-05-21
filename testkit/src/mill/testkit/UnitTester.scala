@@ -3,7 +3,7 @@ package mill.testkit
 import mill.{Target, Task}
 import mill.api.ExecResult.OuterStack
 import mill.api.{DummyInputStream, ExecResult, Result, SystemStreams, Val}
-import mill.define.{Evaluator, InputImpl, SelectMode, TargetImpl}
+import mill.define.{Evaluator, InputImpl, SelectMode, Task}
 import mill.resolve.Resolve
 import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
@@ -153,7 +153,7 @@ class UnitTester(
         UnitTester.Result(
           evaluated.results.map(_.asInstanceOf[ExecResult.Success[Val]].value.value),
           evaluated.uncached.collect {
-            case t: TargetImpl[_]
+            case t: Task.Cached[_]
                 if module.moduleInternal.targets.contains(t)
                   && !t.ctx.external => t
             case t: mill.define.Command[_] => t

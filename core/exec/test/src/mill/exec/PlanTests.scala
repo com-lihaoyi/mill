@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.define.{Task, Target, TargetImpl, Task}
+import mill.define.{Task, Target}
 import mill.util.TestGraphs
 import utest.*
 
@@ -69,7 +69,7 @@ object PlanTests extends TestSuite {
 
         val important = important0.map(_(base))
         val grouped = PlanImpl.groupAroundImportantTargets(topoSorted) {
-          case t: TargetImpl[_] if important.contains(t) => t: Target[?]
+          case t: Task.Cached[_] if important.contains(t) => t: Target[?]
         }
         val flattened = Seq.from(grouped.values().flatten)
 
