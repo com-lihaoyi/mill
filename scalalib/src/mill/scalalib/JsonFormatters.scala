@@ -19,6 +19,15 @@ trait JsonFormatters {
       _.asString,
       coursier.version.Version(_)
     )
+  implicit lazy val variantMatcherFormat: RW[coursier.core.VariantSelector.VariantMatcher] =
+    RW.merge(
+      upickle.default.macroRW[coursier.core.VariantSelector.VariantMatcher.Api.type],
+      upickle.default.macroRW[coursier.core.VariantSelector.VariantMatcher.Runtime.type],
+      upickle.default.macroRW[coursier.core.VariantSelector.VariantMatcher.Equals],
+      upickle.default.macroRW[coursier.core.VariantSelector.VariantMatcher.MinimumVersion],
+      upickle.default.macroRW[coursier.core.VariantSelector.VariantMatcher.AnyOf],
+      upickle.default.macroRW[coursier.core.VariantSelector.VariantMatcher.EndsWith]
+    )
   implicit lazy val variantSelectorFormat: RW[coursier.core.VariantSelector] =
     RW.merge(
       upickle.default.macroRW[coursier.core.VariantSelector.ConfigurationBased],
