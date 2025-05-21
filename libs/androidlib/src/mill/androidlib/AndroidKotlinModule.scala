@@ -35,4 +35,25 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule {
       }
     } else deps
   }
+
+  /**
+   * If this module has any module dependencies, we need to tell the kotlin compiler to
+   * handle the compiled output as a friend path so top level declarations are visible.
+   */
+  def kotlincFriendPaths: T[Option[String]] = Task {
+    val compiledCodePaths = Task.traverse(transitiveModuleCompileModuleDeps)(m =>
+      Task.Anon {
+        Seq(m.compile().classes.path)
+      }
+    )().flatten
+
+    val friendlyPathFlag: Option[String] =
+      compiledCodePaths.headOption.map(_ => s"-Xfriend-paths=${compiledCodePaths.mkString(",")}")
+
+    friendlyPathFlag
+  }
+
+  override def kotlincOptions: T[Seq[String]] = Task {
+    super.kotlincOptions() ++ kotlincFriendPaths().toSeq
+  }
 }
