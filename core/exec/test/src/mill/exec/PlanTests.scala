@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.define.Task
-import mill.define.Task.Cached
+import mill.define.Task.Simple
 import mill.util.TestGraphs
 import utest.*
 
@@ -60,17 +60,17 @@ object PlanTests extends TestSuite {
       )
     }
     test("groupAroundNamedTargets") {
-      def check[T, R <: Cached[Int]](base: T)(
-          target: T => R,
-          important0: Seq[T => Cached[?]],
-          expected: Seq[(R, Int)]
+      def check[T, R <: Simple[Int]](base: T)(
+        target: T => R,
+        important0: Seq[T => Simple[?]],
+        expected: Seq[(R, Int)]
       ) = {
 
         val topoSorted = PlanImpl.topoSorted(PlanImpl.transitiveTargets(Seq(target(base))))
 
         val important = important0.map(_(base))
         val grouped = PlanImpl.groupAroundImportantTargets(topoSorted) {
-          case t: Task.Computed[_] if important.contains(t) => t: Cached[?]
+          case t: Task.Computed[_] if important.contains(t) => t: Simple[?]
         }
         val flattened = Seq.from(grouped.values().flatten)
 
@@ -79,7 +79,7 @@ object PlanTests extends TestSuite {
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.flatMap(_.asTarget: Option[Cached[?]]).filter(important.contains) == Seq(
+            grouping.flatMap(_.asTarget: Option[Simple[?]]).filter(important.contains) == Seq(
               terminal
             )
           )

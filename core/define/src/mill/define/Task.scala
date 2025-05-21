@@ -42,7 +42,7 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
    */
   def persistent: Boolean = false
 
-  def asTarget: Option[Task.Cached[T]] = None
+  def asTarget: Option[Task.Simple[T]] = None
   def asCommand: Option[Task.Command[T]] = None
   def asWorker: Option[Task.Worker[T]] = None
   def isExclusiveCommand: Boolean = this match {
@@ -150,14 +150,14 @@ object Task {
    */
   inline def Sources(inline values: Result[os.Path]*)(implicit
       inline ctx: mill.define.ModuleCtx
-  ): Cached[Seq[PathRef]] = ${
+  ): Simple[Seq[PathRef]] = ${
     Macros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx)
   }
 
   inline def Sources(inline values: os.SubPath*)(implicit
       inline ctx: mill.define.ModuleCtx,
       dummy: Boolean = true
-  ): Cached[Seq[PathRef]] = ${
+  ): Simple[Seq[PathRef]] = ${
     Macros.sourcesImpl(
       '{ values.map(sub => PathRef(ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk(sub))) }
     )('ctx)
@@ -169,12 +169,12 @@ object Task {
    */
   inline def Source(inline value: Result[os.Path])(implicit
       inline ctx: mill.define.ModuleCtx
-  ): Cached[PathRef] =
+  ): Simple[PathRef] =
     ${ Macros.sourceImpl('{ value.map(PathRef(_)) })('ctx) }
 
   inline def Source(inline value: os.SubPath)(implicit
       inline ctx: mill.define.ModuleCtx
-  ): Cached[PathRef] =
+  ): Simple[PathRef] =
     ${ Macros.sourceImpl('{ PathRef(ctx.millSourcePath / os.up / value) })('ctx) }
 
   /**
@@ -196,7 +196,7 @@ object Task {
   inline def Input[T](inline value: Result[T])(implicit
       inline w: Writer[T],
       inline ctx: ModuleCtx
-  ): Cached[T] =
+  ): Simple[T] =
     ${ Macros.inputImpl[T]('value)('w, 'ctx) }
 
   /**
@@ -266,7 +266,7 @@ object Task {
   inline def apply[T](inline t: Result[T])(implicit
       inline rw: ReadWriter[T],
       inline ctx: mill.define.ModuleCtx
-  ): Cached[T] =
+  ): Simple[T] =
     ${ Macros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
   /**
@@ -290,7 +290,7 @@ object Task {
     inline def apply[T](inline t: Result[T])(implicit
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
-    ): Cached[T] = ${ Macros.targetResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
+    ): Simple[T] = ${ Macros.targetResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
   abstract class Ops[+T] { this: Task[T] =>
@@ -357,8 +357,8 @@ object Task {
       val readWriter: ReadWriter[?],
       val isPrivate: Option[Boolean],
       override val persistent: Boolean
-  ) extends Cached[T] {
-    override def asTarget: Option[Cached[T]] = Some(this)
+  ) extends Simple[T] {
+    override def asTarget: Option[Simple[T]] = Some(this)
 
     // FIXME: deprecated return type: Change to Option
     override def readWriterOpt: Some[ReadWriter[?]] = Some(readWriter)
@@ -368,9 +368,9 @@ object Task {
    * A Target is a [[Task.Named]] that is cached on disk; either a
    * [[Task.Computed]] or an [[Input]]
    */
-  trait Cached[+T] extends Task.Named[T]
+  trait Simple[+T] extends Task.Named[T]
 
-  object Cached {
+  object Simple {
 
     /**
      * A target is the most common [[Task]] a user would encounter, commonly
@@ -381,13 +381,13 @@ object Task {
     implicit inline def create[T](inline t: T)(implicit
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
-    ): Cached[T] =
+    ): Simple[T] =
       ${ Macros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
     implicit inline def create[T](inline t: Result[T])(implicit
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
-    ): Cached[T] =
+    ): Simple[T] =
       ${ Macros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
   }
@@ -433,7 +433,7 @@ object Task {
       val ctx0: mill.define.ModuleCtx,
       val writer: upickle.default.Writer[?],
       val isPrivate: Option[Boolean]
-  ) extends Cached[T] {
+  ) extends Simple[T] {
     val inputs = Nil
     override def sideHash: Int = util.Random.nextInt()
     // FIXME: deprecated return type: Change to Option
@@ -495,8 +495,8 @@ object Task {
         rw: Expr[ReadWriter[T]],
         ctx: Expr[mill.define.ModuleCtx],
         persistent: Expr[Boolean]
-    ): Expr[Cached[T]] = {
-      val expr = appImpl[Cached, T](
+    ): Expr[Simple[T]] = {
+      val expr = appImpl[Simple, T](
         (in, ev) =>
           '{ new Task.Computed[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
         t
@@ -511,8 +511,8 @@ object Task {
         values: Expr[Result[Seq[PathRef]]]
     )(
         ctx: Expr[mill.define.ModuleCtx]
-    ): Expr[Cached[Seq[PathRef]]] = {
-      val expr = appImpl[Cached, Seq[PathRef]](
+    ): Expr[Simple[Seq[PathRef]]] = {
+      val expr = appImpl[Simple, Seq[PathRef]](
         (in, ev) => '{ new Sources($ev, $ctx, ${ taskIsPrivate() }) },
         values,
         allowTaskReferences = false
@@ -524,9 +524,9 @@ object Task {
         Quotes
     )(value: Expr[Result[PathRef]])(
         ctx: Expr[mill.define.ModuleCtx]
-    ): Expr[Cached[PathRef]] = {
+    ): Expr[Simple[PathRef]] = {
 
-      val expr = appImpl[Cached, PathRef](
+      val expr = appImpl[Simple, PathRef](
         (in, ev) => '{ new Source($ev, $ctx, ${ taskIsPrivate() }) },
         value,
         allowTaskReferences = false
@@ -540,9 +540,9 @@ object Task {
     )(value: Expr[Result[T]])(
         w: Expr[upickle.default.Writer[T]],
         ctx: Expr[mill.define.ModuleCtx]
-    ): Expr[Cached[T]] = {
+    ): Expr[Simple[T]] = {
 
-      val expr = appImpl[Cached, T](
+      val expr = appImpl[Simple, T](
         (in, ev) => '{ new Input[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
         value,
         allowTaskReferences = false

@@ -128,7 +128,7 @@ object Discover {
             curCls,
             declMethods,
             (TypeRepr.of[Task.Command[?]], 1, "`Task.Command`"),
-            (TypeRepr.of[Task.Cached[?]], 0, "Target")
+            (TypeRepr.of[Task.Simple[?]], 0, "Target")
           )
 
           val names =
