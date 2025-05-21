@@ -118,6 +118,10 @@ class JvmWorkerImpl(
       classloaderCache.updateWith(compilersSig) {
         case Some((cl, groupOpt, 1)) =>
           for (group <- groupOpt) {
+            // Trying to find the timer created by scala.tools.nsc.classpath.FileBasedCache
+            // and its thread. We cancel the timer and interrupt the thread, so that
+            // the thread cleanly exits, and doesn't keep hanging around.
+
             val threadOpt = Thread.getAllStackTraces()
               .asScala
               .keysIterator
@@ -188,6 +192,11 @@ class JvmWorkerImpl(
           ) {
             val group = new ThreadGroup("mill-jvm-worker-impl")
             var result: Try[Boolean] = null
+
+            // Making sure scala.tools.nsc.classpath.FileBasedCache is initialized from
+            // a thread with a specific thread group, so that the java.util.Timer it creates
+            // starts its thread in this thread group, and we can find it back and interrupt it
+            // later on.
             val tmpThread = new Thread(group, "mill-jvm-worker-impl") {
               setDaemon(true)
               override def run(): Unit = {
