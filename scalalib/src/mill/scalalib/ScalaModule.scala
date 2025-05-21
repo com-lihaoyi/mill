@@ -78,7 +78,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
     }
     super.resolutionParams()
       .withTypelevel(isTypelevelScala)
-      .addForceVersion0(forced *)
+      .addForceVersion0(forced: _*)
   }
 
   override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
