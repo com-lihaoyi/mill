@@ -21,7 +21,7 @@ object LauncherTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "launcher"
 
   def tests: Tests = Tests {
-    def check(executableTask: mill.define.Task.Target[PathRef], copyBat: Boolean = false) = {
+    def check(executableTask: mill.define.Task.Cached[PathRef], copyBat: Boolean = false) = {
       UnitTester(HelloJava, resourcePath).scoped { eval =>
 
         val Right(result1) = eval.apply(executableTask): @unchecked

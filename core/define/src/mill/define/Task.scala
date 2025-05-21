@@ -8,7 +8,7 @@ import mill.define.internal.Applicative.Applyable
 import mill.define.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
 import upickle.default.ReadWriter
 import upickle.default.Writer
-import Task.Target
+import Task.Cached
 
 import scala.language.implicitConversions
 import scala.quoted.*
@@ -43,7 +43,7 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
    */
   def persistent: Boolean = false
 
-  def asTarget: Option[Target[T]] = None
+  def asTarget: Option[Cached[T]] = None
   def asCommand: Option[Command[T]] = None
   def asWorker: Option[Worker[T]] = None
   def isExclusiveCommand: Boolean = this match {
@@ -147,18 +147,18 @@ object Task {
    * This is most used when detecting changes in source code: when you edit a
    * file and run `mill compile`, it is the `Task.Sources` that re-computes the
    * signature for you source files/folders and decides whether or not downstream
-   * [[Task.Cached]]s need to be invalidated and re-computed.
+   * [[Task.Computed]]s need to be invalidated and re-computed.
    */
   inline def Sources(inline values: Result[os.Path]*)(implicit
       inline ctx: mill.define.ModuleCtx
-  ): Target[Seq[PathRef]] = ${
+  ): Cached[Seq[PathRef]] = ${
     TaskMacros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx)
   }
 
   inline def Sources(inline values: os.SubPath*)(implicit
       inline ctx: mill.define.ModuleCtx,
       dummy: Boolean = true
-  ): Target[Seq[PathRef]] = ${
+  ): Cached[Seq[PathRef]] = ${
     TaskMacros.sourcesImpl(
       '{ values.map(sub => PathRef(ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk(sub))) }
     )('ctx)
@@ -170,26 +170,26 @@ object Task {
    */
   inline def Source(inline value: Result[os.Path])(implicit
       inline ctx: mill.define.ModuleCtx
-  ): Target[PathRef] =
+  ): Cached[PathRef] =
     ${ TaskMacros.sourceImpl('{ value.map(PathRef(_)) })('ctx) }
 
   inline def Source(inline value: os.SubPath)(implicit
       inline ctx: mill.define.ModuleCtx
-  ): Target[PathRef] =
+  ): Cached[PathRef] =
     ${ TaskMacros.sourceImpl('{ PathRef(ctx.millSourcePath / os.up / value) })('ctx) }
 
   /**
    * [[InputImpl]]s, normally defined using `Task.Input`, are [[Task.Named]]s that
-   * re-evaluate every time Mill is run. This is in contrast to [[Task.Cached]]s
+   * re-evaluate every time Mill is run. This is in contrast to [[Task.Computed]]s
    * which only re-evaluate when upstream tasks change.
    *
    * [[InputImpl]]s are useful when you want to capture some input to the Mill
    * build graph that comes from outside: maybe from an environment variable, a
    * JVM system property, the hash returned by `git rev-parse HEAD`. Reading
-   * these external mutable variables inside a `Task{...}` [[Task.Cached]] will
+   * these external mutable variables inside a `Task{...}` [[Task.Computed]] will
    * incorrectly cache them forever. Reading them inside a `Task.Input{...}`
    * will re-compute them every time, and only if the value changes would it
-   * continue to invalidate downstream [[Task.Cached]]s
+   * continue to invalidate downstream [[Task.Computed]]s
    *
    * The most common case of [[InputImpl]] is [[SourceImpl]] and [[SourcesImpl]],
    * used for detecting changes to source files.
@@ -197,7 +197,7 @@ object Task {
   inline def Input[T](inline value: Result[T])(implicit
       inline w: Writer[T],
       inline ctx: ModuleCtx
-  ): Target[T] =
+  ): Cached[T] =
     ${ TaskMacros.inputImpl[T]('value)('w, 'ctx) }
 
   /**
@@ -267,13 +267,13 @@ object Task {
   inline def apply[T](inline t: Result[T])(implicit
       inline rw: ReadWriter[T],
       inline ctx: mill.define.ModuleCtx
-  ): Target[T] =
+  ): Cached[T] =
     ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
   /**
    * Persistent tasks are defined using
    * the `Task(persistent = true){...}` syntax. The main difference is that while
-   * [[Task.Cached]] deletes the `Task.dest` folder in between runs,
+   * [[Task.Computed]] deletes the `Task.dest` folder in between runs,
    * [[PersistentImpl]] preserves it. This lets the user make use of files on
    * disk that persistent between runs of the task, e.g. to implement their own
    * fine-grained caching beyond what Mill provides by default.
@@ -291,7 +291,7 @@ object Task {
     inline def apply[T](inline t: Result[T])(implicit
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
-    ): Target[T] = ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
+    ): Cached[T] = ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
   abstract class Ops[+T] { this: Task[T] =>
@@ -352,15 +352,15 @@ object Task {
   }
 
 
-  class Cached[+T](
+  class Computed[+T](
                         val inputs: Seq[Task[Any]],
                         val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
                         val ctx0: mill.define.ModuleCtx,
                         val readWriter: ReadWriter[?],
                         val isPrivate: Option[Boolean],
                         override val persistent: Boolean
-                      ) extends Target[T] {
-    override def asTarget: Option[Target[T]] = Some(this)
+                      ) extends Cached[T] {
+    override def asTarget: Option[Cached[T]] = Some(this)
 
     // FIXME: deprecated return type: Change to Option
     override def readWriterOpt: Some[ReadWriter[?]] = Some(readWriter)
@@ -368,28 +368,28 @@ object Task {
 
   /**
    * A Target is a [[Task.Named]] that is cached on disk; either a
-   * [[Task.Cached]] or an [[InputImpl]]
+   * [[Task.Computed]] or an [[InputImpl]]
    */
-  trait Target[+T] extends Task.Named[T]
+  trait Cached[+T] extends Task.Named[T]
 
-  object Target {
+  object Cached {
 
     /**
      * A target is the most common [[Task]] a user would encounter, commonly
-     * defined using the `def foo = Task {...}` syntax. [[Task.Cached]]s require that their
+     * defined using the `def foo = Task {...}` syntax. [[Task.Computed]]s require that their
      * return type is JSON serializable. In return they automatically caches their
      * return value to disk, only re-computing if upstream [[Task]]s change
      */
     implicit inline def create[T](inline t: T)(implicit
                                                inline rw: ReadWriter[T],
                                                inline ctx: ModuleCtx
-    ): Target[T] =
+    ): Cached[T] =
       ${ TaskMacros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
     implicit inline def create[T](inline t: Result[T])(implicit
                                                        inline rw: ReadWriter[T],
                                                        inline ctx: ModuleCtx
-    ): Target[T] =
+    ): Cached[T] =
       ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
   }
@@ -427,7 +427,7 @@ class InputImpl[T](
     val ctx0: mill.define.ModuleCtx,
     val writer: upickle.default.Writer[?],
     val isPrivate: Option[Boolean]
-) extends Target[T] {
+) extends Cached[T] {
   val inputs = Nil
   override def sideHash: Int = util.Random.nextInt()
   // FIXME: deprecated return type: Change to Option
@@ -500,9 +500,9 @@ private object TaskMacros {
       rw: Expr[ReadWriter[T]],
       ctx: Expr[mill.define.ModuleCtx],
       persistent: Expr[Boolean]
-  ): Expr[Target[T]] = {
-    val expr = appImpl[Target, T](
-      (in, ev) => '{ new Task.Cached[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
+  ): Expr[Cached[T]] = {
+    val expr = appImpl[Cached, T](
+      (in, ev) => '{ new Task.Computed[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
       t
     )
 
@@ -515,8 +515,8 @@ private object TaskMacros {
       values: Expr[Result[Seq[PathRef]]]
   )(
       ctx: Expr[mill.define.ModuleCtx]
-  ): Expr[Target[Seq[PathRef]]] = {
-    val expr = appImpl[Target, Seq[PathRef]](
+  ): Expr[Cached[Seq[PathRef]]] = {
+    val expr = appImpl[Cached, Seq[PathRef]](
       (in, ev) => '{ new SourcesImpl($ev, $ctx, ${ taskIsPrivate() }) },
       values,
       allowTaskReferences = false
@@ -528,9 +528,9 @@ private object TaskMacros {
       Quotes
   )(value: Expr[Result[PathRef]])(
       ctx: Expr[mill.define.ModuleCtx]
-  ): Expr[Target[PathRef]] = {
+  ): Expr[Cached[PathRef]] = {
 
-    val expr = appImpl[Target, PathRef](
+    val expr = appImpl[Cached, PathRef](
       (in, ev) => '{ new SourceImpl($ev, $ctx, ${ taskIsPrivate() }) },
       value,
       allowTaskReferences = false
@@ -544,9 +544,9 @@ private object TaskMacros {
   )(value: Expr[Result[T]])(
       w: Expr[upickle.default.Writer[T]],
       ctx: Expr[mill.define.ModuleCtx]
-  ): Expr[Target[T]] = {
+  ): Expr[Cached[T]] = {
 
-    val expr = appImpl[Target, T](
+    val expr = appImpl[Cached, T](
       (in, ev) => '{ new InputImpl[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
       value,
       allowTaskReferences = false
