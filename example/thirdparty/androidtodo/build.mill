@@ -75,6 +75,7 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
 
   object test extends AndroidAppKotlinTests with AndroidHiltSupport with TestModule.Junit4 {
 
+    def androidApplicationNamespace = "com.example.android.architecture.blueprints.todoapp.test"
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
     def androidEnableCompose = true
