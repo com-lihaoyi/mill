@@ -94,7 +94,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
   }
 
   def androidAar: T[PathRef] = Task {
-    val dest = T.dest
+    val dest = Task.dest
     val aarFile = dest / "library.aar"
     val compiledRes = dest / "compiled-res"
     val classesJar = dest / "classes.jar"

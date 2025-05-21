@@ -33,8 +33,8 @@ trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
 
   def mimaExcludeAnnotations = Seq("mill.api.internal", "mill.api.experimental")
 //  def mimaCheckDirection = CheckDirection.Backward
-  def skipPreviousVersions: T[Seq[String]] = T {
-    T.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
-    mimaPreviousVersions() // T(Seq.empty[String])
+  def skipPreviousVersions: T[Seq[String]] = Task {
+    Task.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
+    mimaPreviousVersions() // Task {Seq.empty[String]}
   }*/
 }

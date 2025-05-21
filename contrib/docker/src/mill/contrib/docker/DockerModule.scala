@@ -14,10 +14,10 @@ trait DockerModule { outer: JavaModule =>
      * Tags that should be applied to the built image
      * In the standard registry/repository:tag format
      */
-    def tags: T[Seq[String]] = T(List(outer.artifactName()))
+    def tags: T[Seq[String]] = Task { List(outer.artifactName()) }
     def labels: T[Map[String, String]] = Map.empty[String, String]
     def baseImage: T[String] = "gcr.io/distroless/java:latest"
-    def pullBaseImage: T[Boolean] = T(baseImage().endsWith(":latest"))
+    def pullBaseImage: T[Boolean] = Task { baseImage().endsWith(":latest") }
 
     /**
      * JVM runtime options. Each item of the Seq should consist of an option and its desired value, like

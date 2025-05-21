@@ -9,7 +9,7 @@ import mill.util.Jvm
 
 trait ClassgraphWorkerModule extends CoursierModule with OfflineSupportModule {
 
-  def classgraphWorkerClasspath: T[Seq[PathRef]] = T {
+  def classgraphWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
       Dep.millProjectModule("mill-libs-scalalib-classgraph-worker")
     ))

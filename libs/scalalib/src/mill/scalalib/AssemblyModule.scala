@@ -150,7 +150,7 @@ trait AssemblyModule extends mill.define.Module {
 }
 object AssemblyModule extends ExternalModule with CoursierModule with OfflineSupportModule {
 
-  def jarjarabramsWorkerClasspath: T[Seq[PathRef]] = T {
+  def jarjarabramsWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
       Dep.millProjectModule("mill-libs-scalalib-jarjarabrams-worker")
     ))

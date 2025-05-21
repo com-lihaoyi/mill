@@ -17,7 +17,7 @@ import scala.quoted.*
  * single output of type [[T]].
  *
  * Generally not instantiated manually, but instead constructed via the
- * [[Target.apply]] & similar macros.
+ * [[Task.apply]] & similar macros.
  */
 sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with TaskApi[T] {
 
@@ -51,7 +51,92 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
   }
 }
 
-object Task extends TaskBase {
+object Task {
+
+  /**
+   * Returns the [[mill.define.TaskCtx]] that is available within this task
+   */
+  def ctx()(implicit c: mill.define.TaskCtx): mill.define.TaskCtx = c
+
+  /**
+   * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
+   * that is assigned to every Target or Command. It is cleared before your
+   * task runs, and you can use it as a scratch space for temporary files or
+   * a place to put returned artifacts. This is guaranteed to be unique for
+   * every Target or Command, so you can be sure that you will not collide or
+   * interfere with anyone else writing to those same paths.
+   */
+  def dest(implicit ctx: mill.define.TaskCtx.Dest): os.Path = ctx.dest
+
+  /**
+   * `Task.log` is the default logger provided for every task. While your task is running,
+   * `System.out` and `System.in` are also redirected to this logger. The logs for a
+   * task are streamed to standard out/error as you would expect, but each task's
+   * specific output is also streamed to a log file on disk, e.g. `out/run.log` or
+   * `out/classFiles.log` for you to inspect later.
+   *
+   * Messages logged with `log.debug` appear by default only in the log files.
+   * You can use the `--debug` option when running mill to show them on the console too.
+   */
+  def log(implicit ctx: mill.define.TaskCtx.Log): Logger = ctx.log
+
+  /**
+   * `Task.env` is the environment variable map passed to the Mill command when
+   * it is run; typically used inside a `Task.Input` to ensure any changes in
+   * the env vars are properly detected.
+   *
+   * Note that you should not use `sys.env`, as Mill's long-lived server
+   * process means that `sys.env` variables may not be up to date.
+   */
+  def env(implicit ctx: mill.define.TaskCtx.Env): Map[String, String] = ctx.env
+
+  /**
+   * Returns the implicit [[mill.define.TaskCtx.Args.args]] in scope.
+   */
+  def args(implicit ctx: mill.define.TaskCtx.Args): IndexedSeq[?] = ctx.args
+
+  /**
+   * Report test results to BSP for IDE integration
+   */
+  def testReporter(implicit ctx: mill.define.TaskCtx): TestReporter = ctx.testReporter
+
+  /**
+   * Report build results to BSP for IDE integration
+   */
+  def reporter(implicit ctx: mill.define.TaskCtx): Int => Option[CompileProblemReporter] =
+    ctx.reporter
+
+  /**
+   * This is the `os.Path` pointing to the project root directory.
+   *
+   * This is the preferred access to the project directory, and should
+   * always be prefered over `os.pwd`* (which might also point to the
+   * project directory in classic cli scenarios, but might not in other
+   * use cases like BSP or LSP server usage).
+   */
+  def workspace(implicit ctx: mill.define.TaskCtx): os.Path = ctx.workspace
+
+  /**
+   * Provides the `.fork.async` and `.fork.await` APIs for spawning and joining
+   * async futures within your task in a Mill-friendly mannter
+   */
+  def fork(implicit ctx: mill.define.TaskCtx): mill.define.TaskCtx.Fork.Api = ctx.fork
+
+  def offline(implicit ctx: mill.define.TaskCtx): Boolean = ctx.offline
+
+  def fail(msg: String)(implicit ctx: mill.define.TaskCtx): Nothing = ctx.fail(msg)
+
+  /**
+   * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`
+   */
+  def sequence[T](source: Seq[Task[T]]): Task[Seq[T]] = new Task.Sequence[T](source)
+
+  /**
+   * Converts a `Seq[T]` into a `Task[Seq[V]]` using the given `f: T => Task[V]`
+   */
+  def traverse[T, V](source: Seq[T])(f: T => Task[V]): Task[Seq[V]] = {
+    new Task.Sequence[V](source.map(f))
+  }
 
   /**
    * A specialization of [[InputImpl]] defined via `Task.Sources`, [[SourcesImpl]]
@@ -269,7 +354,7 @@ trait NamedTask[+T] extends Task[T] with NamedTaskApi[T] {
  */
 trait Target[+T] extends NamedTask[T]
 
-object Target extends TaskBase {
+object Target {
 
   /**
    * A target is the most common [[Task]] a user would encounter, commonly
@@ -277,13 +362,13 @@ object Target extends TaskBase {
    * return type is JSON serializable. In return they automatically caches their
    * return value to disk, only re-computing if upstream [[Task]]s change
    */
-  implicit inline def apply[T](inline t: T)(implicit
+  implicit inline def create[T](inline t: T)(implicit
       inline rw: ReadWriter[T],
       inline ctx: ModuleCtx
   ): Target[T] =
     ${ TaskMacros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
-  implicit inline def apply[T](inline t: Result[T])(implicit
+  implicit inline def create[T](inline t: Result[T])(implicit
       inline rw: ReadWriter[T],
       inline ctx: ModuleCtx
   ): Target[T] =

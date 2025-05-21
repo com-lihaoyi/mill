@@ -12,13 +12,13 @@ import mill.scalalib.api.JvmWorkerUtil
 trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixModule*/ { outer =>
   def scalaVersion = Deps.scalaVersion
   def scalapVersion: T[String] = Deps.scala2Version
-  def scalafixScalaBinaryVersion = T {
+  def scalafixScalaBinaryVersion = Task {
     def sv = scalaVersion()
     if (JvmWorkerUtil.isScala3(sv)) "2.13"
     else JvmWorkerUtil.scalaBinaryVersion(sv)
   }
 
-  def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
+  def scalafixConfig = Task { Some(Task.workspace / ".scalafix.conf") }
 
   def semanticDbVersion = Deps.semanticDBscala.version
 
@@ -61,7 +61,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
       )
     )
 
-  def scalacPluginMvnDeps = T {
+  def scalacPluginMvnDeps = Task {
     val sv = scalaVersion()
     val binaryVersion = JvmWorkerUtil.scalaBinaryVersion(sv)
     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
@@ -70,7 +70,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
       Option.when(hasModuleDefs)(Deps.millModuledefsPlugin)
   }
 
-  def mandatoryMvnDeps = T {
+  def mandatoryMvnDeps = Task {
     val sv = scalaVersion()
     val binaryVersion = JvmWorkerUtil.scalaBinaryVersion(sv)
     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
@@ -82,7 +82,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
   lazy val test: MillScalaTests = new MillScalaTests {}
   trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
       /*with ScalafixModule*/ {
-    def scalafixConfig = T { Some(T.workspace / ".scalafix.conf") }
+    def scalafixConfig = Task { Some(Task.workspace / ".scalafix.conf") }
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
     def mvnDeps = super.mvnDeps() ++ outer.testMvnDeps()

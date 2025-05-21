@@ -1045,7 +1045,7 @@ trait JavaModule
    * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
    * publishing to Maven Central
    */
-  def docJar: T[PathRef] = T[PathRef] {
+  def docJar: T[PathRef] = Task[PathRef] {
     val outDir = Task.dest
 
     val javadocDir = outDir / "javadoc"

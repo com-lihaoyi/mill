@@ -10,7 +10,7 @@ object ScalaScaladocTests extends TestSuite {
 
   object HelloWorldWithDocVersion extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+      override def scalacOptions = Task { Seq("-Ywarn-unused", "-Xfatal-warnings") }
       override def scalaDocOptions = super.scalaDocOptions() ++ Seq("-doc-version", "1.2.3")
     }
 
@@ -19,8 +19,8 @@ object ScalaScaladocTests extends TestSuite {
 
   object HelloWorldOnlyDocVersion extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
-      override def scalaDocOptions = T(Seq("-doc-version", "1.2.3"))
+      override def scalacOptions = Task { Seq("-Ywarn-unused", "-Xfatal-warnings") }
+      override def scalaDocOptions = Task { Seq("-doc-version", "1.2.3") }
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -29,7 +29,7 @@ object ScalaScaladocTests extends TestSuite {
 
   object HelloWorldDocTitle extends TestRootModule {
     object core extends HelloWorldModule {
-      override def scalaDocOptions = T(Seq("-doc-title", "Hello World"))
+      override def scalaDocOptions = Task { Seq("-doc-title", "Hello World") }
     }
 
     lazy val millDiscover = Discover[this.type]

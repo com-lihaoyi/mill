@@ -130,7 +130,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
       scalafmtMainClass,
       args,
       classPath = scalafmtClasspath().map(_.path),
-      cwd = T.workspace,
+      cwd = Task.workspace,
       stdin = os.Inherit,
       stdout = os.Inherit
     )

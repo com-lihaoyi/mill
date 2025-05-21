@@ -127,7 +127,7 @@ trait TestModule
    * When used in combination with [[testForkGrouping]], every JVM test running process
    * will guarantee to never claim tests from different test groups.
    */
-  def testParallelism: T[Boolean] = T(true)
+  def testParallelism: T[Boolean] = Task { true }
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -160,7 +160,7 @@ trait TestModule
    * Sets the file name for the generated JUnit-compatible test report.
    * If None is set, no file will be generated.
    */
-  def testReportXml: T[Option[String]] = T(Some("test-report.xml"))
+  def testReportXml: T[Option[String]] = Task { Some("test-report.xml") }
 
   def testLogLevel: T[TestReporter.LogLevel] = Task(TestReporter.LogLevel.Debug)
 

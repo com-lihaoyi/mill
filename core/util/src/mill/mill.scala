@@ -1,7 +1,5 @@
 package object mill extends mill.define.JsonFormatters with mill.util.TokenReaders0 {
-  val T = define.Target
   type T[+T] = define.Target[T]
-  val Target = define.Target
   type Target[+T] = define.Target[T]
   val PathRef = mill.define.PathRef
   type PathRef = mill.define.PathRef
