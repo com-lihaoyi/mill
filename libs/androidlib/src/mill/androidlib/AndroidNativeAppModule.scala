@@ -87,7 +87,7 @@ trait AndroidNativeAppModule extends AndroidAppModule {
         "-GNinja"
       ) ++ androidCMakeExtraArgs()
 
-      T.log.info(s"Calling CMake with arguments: ${cmakeArgs.mkString(" ")}")
+      Task.log.info(s"Calling CMake with arguments: ${cmakeArgs.mkString(" ")}")
 
       os.proc(cmakeArgs).call()
 

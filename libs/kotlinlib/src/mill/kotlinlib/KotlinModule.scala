@@ -181,7 +181,7 @@ trait KotlinModule extends JavaModule { outer =>
    * publishing to Maven Central. You can control Dokka version by using [[dokkaVersion]]
    * and option by using [[dokkaOptions]].
    */
-  override def docJar: T[PathRef] = T[PathRef] {
+  override def docJar: T[PathRef] = Task[PathRef] {
     val outDir = Task.dest
 
     val dokkaDir = outDir / "dokka"

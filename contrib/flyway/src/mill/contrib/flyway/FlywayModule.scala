@@ -18,8 +18,8 @@ trait FlywayModule extends JavaModule {
   import FlywayModule._
 
   def flywayUrl: T[String]
-  def flywayUser: T[String] = T("")
-  def flywayPassword: T[String] = T("")
+  def flywayUser: T[String] = Task { "" }
+  def flywayPassword: T[String] = Task { "" }
   def flywayFileLocations: T[Seq[PathRef]] = Task {
     resources().map(pr => PathRef(pr.path / "db/migration", pr.quick))
   }

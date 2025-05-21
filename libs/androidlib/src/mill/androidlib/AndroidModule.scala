@@ -113,7 +113,7 @@ trait AndroidModule extends JavaModule {
    * @return
    */
   def androidTransitiveResources: T[Seq[PathRef]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps) {
+    Task.traverse(transitiveModuleCompileModuleDeps) {
       case m: AndroidModule =>
         Task.Anon(m.androidResources())
       case _ =>
@@ -305,7 +305,7 @@ trait AndroidModule extends JavaModule {
    */
   def androidMergedManifest: T[PathRef] = Task {
     val libManifests = androidUnpackArchives().map(_.manifest.get)
-    val mergedManifestPath = T.dest / "AndroidManifest.xml"
+    val mergedManifestPath = Task.dest / "AndroidManifest.xml"
     // TODO put it to the dedicated worker if cost of classloading is too high
     Jvm.callProcess(
       mainClass = "com.android.manifmerger.Merger",
@@ -379,11 +379,11 @@ trait AndroidModule extends JavaModule {
       rClassDir: PathRef,
       zippedResources: Seq[PathRef]
   )] = Task {
-    val rClassDir = T.dest / "RClass"
-    val resApkFile = T.dest / "res.apk"
-    val mainDexRulesProFile = T.dest / "main-dex-rules.pro"
+    val rClassDir = Task.dest / "RClass"
+    val resApkFile = Task.dest / "res.apk"
+    val mainDexRulesProFile = Task.dest / "main-dex-rules.pro"
 
-    val compiledResDir = T.dest / compiledResourcesDirName
+    val compiledResDir = Task.dest / compiledResourcesDirName
     os.makeDir(compiledResDir)
     val compiledResources = collection.mutable.Buffer[os.Path]()
 
@@ -405,7 +405,7 @@ trait AndroidModule extends JavaModule {
 
       val libCompileArgsBuilder = Seq.newBuilder[String]
       libCompileArgsBuilder ++= Seq(androidSdkModule().aapt2Path().path.toString(), "compile")
-      if (T.log.debugEnabled) {
+      if (Task.log.debugEnabled) {
         libCompileArgsBuilder += "-v"
       }
       libCompileArgsBuilder ++= Seq(
@@ -424,7 +424,7 @@ trait AndroidModule extends JavaModule {
       }
 
       val libCompileArgs = libCompileArgsBuilder.result()
-      T.log.info(
+      Task.log.info(
         s"Compiling resources of $libraryName with the following command: ${libCompileArgs.mkString(" ")}"
       )
       os.call(libCompileArgs)
@@ -434,7 +434,7 @@ trait AndroidModule extends JavaModule {
     // TODO support stable IDs
     val appLinkArgsBuilder = Seq.newBuilder[String]
     appLinkArgsBuilder ++= Seq(androidSdkModule().aapt2Path().path.toString, "link")
-    if (T.log.debugEnabled) {
+    if (Task.log.debugEnabled) {
       appLinkArgsBuilder += "-v"
     }
     appLinkArgsBuilder ++= Seq(
@@ -472,14 +472,14 @@ trait AndroidModule extends JavaModule {
 
     val appLinkArgs = appLinkArgsBuilder.result()
 
-    T.log.info(
+    Task.log.info(
       s"Linking application resources with the command: ${appLinkArgs.mkString(" ")}"
     )
 
     os.call(appLinkArgs)
 
     (
-      resources = PathRef(T.dest),
+      resources = PathRef(Task.dest),
       resApkFile = PathRef(resApkFile),
       mainDexRulesProFile = PathRef(mainDexRulesProFile),
       rClassDir = PathRef(rClassDir),

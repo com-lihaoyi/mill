@@ -794,11 +794,11 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   def androidModuleGeneratedDexVariants: Task[AndroidModuleGeneratedDexVariants] = Task {
-    val androidDebugDex = T.dest / "androidDebugDex.dest"
+    val androidDebugDex = Task.dest / "androidDebugDex.dest"
     os.makeDir(androidDebugDex)
-    val androidReleaseDex = T.dest / "androidReleaseDex.dest"
+    val androidReleaseDex = Task.dest / "androidReleaseDex.dest"
     os.makeDir(androidReleaseDex)
-    val mainDexListOutput = T.dest / "main-dex-list-output.txt"
+    val mainDexListOutput = Task.dest / "main-dex-list-output.txt"
 
     val proguardFileDebug = androidDebugDex / "proguard-rules.pro"
 
@@ -904,7 +904,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   // uses the d8 tool to generate the dex file, when minification is disabled
   private def androidD8Dex: T[(outPath: PathRef, dexCliArgs: Seq[String])] = Task {
 
-    val outPath = T.dest
+    val outPath = Task.dest
 
     val appCompiledFiles = (androidPackagedCompiledClasses() ++ androidPackagedClassfiles())
       .map(_.path.toString())
@@ -954,12 +954,12 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   // uses the R8 tool to generate the dex (to shrink and obfuscate)
   private def androidR8Dex: Task[(outPath: PathRef, dexCliArgs: Seq[String])] = Task {
-    val destDir = T.dest / "minify"
+    val destDir = Task.dest / "minify"
     os.makeDir.all(destDir)
 
     val outputPath = destDir
 
-    T.log.debug("outptuPath: " + outputPath)
+    Task.log.debug("outptuPath: " + outputPath)
 
     // Define diagnostic output file paths
     val mappingOut = destDir / "mapping.txt"
