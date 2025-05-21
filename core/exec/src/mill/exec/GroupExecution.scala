@@ -186,7 +186,7 @@ private trait GroupExecution {
                       executionContext = executionContext,
                       exclusive = exclusive,
                       isCommand = labelled.isInstanceOf[Command[?]],
-                      isInput = labelled.isInstanceOf[InputImpl[?]],
+                      isInput = labelled.isInstanceOf[Input[?]],
                       deps = deps,
                       offline = offline,
                       upstreamPathRefs = upstreamPathRefs
@@ -211,7 +211,7 @@ private trait GroupExecution {
                   GroupExecution.Results(
                     newResults,
                     newEvaluated.toSeq,
-                    cached = if (labelled.isInstanceOf[InputImpl[?]]) null else false,
+                    cached = if (labelled.isInstanceOf[Input[?]]) null else false,
                     inputsHash,
                     cached.map(_._1).getOrElse(-1),
                     !cached.map(_._3).contains(valueHash),
@@ -233,7 +233,7 @@ private trait GroupExecution {
             executionContext = executionContext,
             exclusive = exclusive,
             isCommand = task.isInstanceOf[Command[?]],
-            isInput = task.isInstanceOf[InputImpl[?]],
+            isInput = task.isInstanceOf[Input[?]],
             deps = deps,
             offline = offline,
             upstreamPathRefs = upstreamPathRefs

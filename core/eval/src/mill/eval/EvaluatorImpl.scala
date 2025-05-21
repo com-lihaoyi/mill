@@ -184,11 +184,11 @@ final class EvaluatorImpl private[mill] (
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.transitiveResults.iterator ++ selectiveResults)
           .collect {
-            case (t: SourcesImpl, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
+            case (t: Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
               ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
-            case (t: SourceImpl, ExecResult.Success(Val(p: PathRef))) =>
+            case (t: Source, ExecResult.Success(Val(p: PathRef))) =>
               Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
-            case (t: InputImpl[_], result) =>
+            case (t: Input[_], result) =>
 
               val ctx = new mill.define.TaskCtx.Impl(
                 args = Vector(),
