@@ -97,7 +97,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val manifestElem = XML.loadFile(manifestFromSourcePath.toString())
     // add the application package
     val manifestWithPackage =
-      manifestElem % Attribute(None, "package", Text(androidApplicationId), Null)
+      manifestElem % Attribute(None, "package", Text(androidApplicationNamespace), Null)
 
     val manifestWithUsesSdk = manifestWithPackage.copy(
       child = androidManifestUsesSdkSection() ++ manifestWithPackage.child
@@ -1059,7 +1059,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def androidApplicationId: String = outer.androidApplicationId
 
-    override def androidApplicationNamespace: String = outer.androidApplicationNamespace
+    override def androidApplicationNamespace: String = s"${outer.androidApplicationNamespace}.test"
 
     override def moduleDir: Path = outer.moduleDir
 
@@ -1086,8 +1086,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer.resolutionParams())
 
-    override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
-    override def androidApplicationNamespace: String = outer.androidApplicationNamespace
+    override def androidApplicationId: String = s"${outer.androidApplicationId}"
+    override def androidApplicationNamespace: String = s"${outer.androidApplicationNamespace}.test"
 
     override def androidReleaseKeyAlias: T[Option[String]] = outer.androidReleaseKeyAlias()
     override def androidReleaseKeyName: Option[String] = outer.androidReleaseKeyName
@@ -1105,7 +1105,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     private def androidInstrumentedTestsBaseManifest: Task[Elem] = Task.Anon {
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package={
-        androidApplicationId
+        androidApplicationNamespace
       }>
         {androidManifestUsesSdkSection()}
       </manifest>
@@ -1122,7 +1122,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       val manifestWithInstrumentation = {
         val instrumentation =
           <instrumentation android:name={testFrameworkName} android:targetPackage={
-            androidApplicationNamespace
+            outer.androidApplicationNamespace
           }/>
         baseManifestElem.copy(child = baseManifestElem.child ++ instrumentation)
       }
@@ -1181,7 +1181,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
           "instrument",
           "-w",
           "-r",
-          s"${androidApplicationId}/${testFramework()}"
+          s"${androidApplicationNamespace}/${testFramework()}"
         )
       ).spawn()
 

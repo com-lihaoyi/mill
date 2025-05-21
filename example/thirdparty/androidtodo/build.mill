@@ -3,18 +3,26 @@ package build
 import mill._, androidlib._, kotlinlib._
 import hilt.AndroidHiltSupport
 
+object Versions {
+  val kotlinVersion = "2.0.21"
+  val kotlinLanguageVersion = "1.9"
+
+  val kspVersion = "1.0.28"
+  val androidCompileSdk = 35
+  val androidMinSdk = 26
+}
+
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
 }
 
 // Mill configuration for the Android Todo App project.
-object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHiltSupport { outer =>
+object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHiltSupport {
 
-  def kotlinVersion = "2.0.21"
-  def kotlinLanguageVersion = "1.9"
-
-  def kspVersion = "1.0.28"
+  def kotlinVersion = Versions.kotlinVersion
+  def kotlinLanguageVersion = Versions.kotlinLanguageVersion
+  def kspVersion = Versions.kspVersion
 
   def androidApplicationNamespace = "com.example.android.architecture.blueprints.todoapp"
   // TODO change this to com.example.android.architecture.blueprints.main when mill supports build variants
@@ -22,9 +30,9 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
 
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
-  def androidCompileSdk = 35
+  def androidCompileSdk = Versions.androidCompileSdk
 
-  def androidMinSdk = 26
+  def androidMinSdk = Versions.androidMinSdk
 
   def androidEnableCompose = true
 
@@ -75,12 +83,11 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
 
   object test extends AndroidAppKotlinTests with AndroidHiltSupport with TestModule.Junit4 {
 
-    def androidApplicationNamespace = "com.example.android.architecture.blueprints.todoapp.test"
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
     def androidEnableCompose = true
 
-    override def kspVersion = outer.kspVersion
+    override def kspVersion = Versions.kspVersion
 
     def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
       mvn"androidx.room:room-compiler:2.6.1",
@@ -106,7 +113,7 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
   // TODO support instrumented tests on Hilt setups
   object androidTest extends AndroidAppKotlinInstrumentedTests
       with AndroidTestModule.AndroidJUnit with AndroidHiltSupport {
-    override def kspVersion = outer.kspVersion
+    override def kspVersion = Versions.kspVersion
 
   }
 
@@ -116,14 +123,14 @@ object `shared-test` extends AndroidKotlinModule with AndroidHiltSupport {
 
   def moduleDeps = Seq(app)
 
-  def kotlinVersion = "2.0.21"
-  def kotlinLanguageVersion = "1.9"
-  def kspVersion = "1.0.28"
+  def kotlinVersion = Versions.kotlinVersion
+  def kotlinLanguageVersion = Versions.kotlinLanguageVersion
+  def kspVersion = Versions.kspVersion
   def androidIsDebug = true
 
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
-  def androidCompileSdk = 35
-  def androidMinSdk = 26
+  def androidCompileSdk = Versions.androidCompileSdk
+  def androidMinSdk = Versions.androidMinSdk
 
   def androidEnableCompose = true
 
@@ -154,6 +161,11 @@ object `shared-test` extends AndroidKotlinModule with AndroidHiltSupport {
 > ./mill app.androidApk
 
 > ./mill app.test
+
+> cat out/app/test/testForked.dest/test-report.xml
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites tests="46" failures="0" errors="0" skipped="0" time="...">
+...
 
 > ./mill show app.createAndroidVirtualDevice
 ...Name: test, DeviceId: medium_phone...
