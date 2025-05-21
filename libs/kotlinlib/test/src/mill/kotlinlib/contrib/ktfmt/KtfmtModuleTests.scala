@@ -99,7 +99,7 @@ object KtfmtModuleTests extends TestSuite {
       style: String = "kotlin",
       format: Boolean = true,
       removeUnusedImports: Boolean = true,
-      sources: Seq[mill.define.NamedTask[Seq[PathRef]]] = Seq.empty
+      sources: Seq[mill.define.Task.Named[Seq[PathRef]]] = Seq.empty
   ): Seq[os.Path] = {
 
     UnitTester(module, moduleRoot).scoped { eval =>

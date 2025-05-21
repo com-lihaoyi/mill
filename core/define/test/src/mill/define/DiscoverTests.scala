@@ -1,11 +1,12 @@
 package mill.define
 
 import mill.util.TestGraphs
+import Task.Cached
 import utest._
 
 object DiscoverTests extends TestSuite {
   val tests = Tests {
-    def check[T <: Module](m: T)(targets: (T => Target[?])*) = {
+    def check[T <: Module](m: T)(targets: (T => Cached[?])*) = {
       val discovered = m.moduleInternal.targets
       val expected = targets.map(_(m)).toSet
       assert(discovered == expected)

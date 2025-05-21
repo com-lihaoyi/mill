@@ -3,7 +3,7 @@ package mill.main
 import scala.util.Try
 import mill.define.Task
 import mill.api.Logger
-import mill.Input
+import mill.*
 import mill.define.{Discover, ExternalModule}
 import os.SubprocessException
 
@@ -101,7 +101,7 @@ trait VcsVersion extends mill.Module {
    *
    * @return A tuple of (the latest tag, the calculated version string)
    */
-  def vcsState: Input[VcsVersion.State] = Task.Input { calcVcsState(Task.log) }
+  def vcsState: T[VcsVersion.State] = Task.Input { calcVcsState(Task.log) }
 
   def calcVcsState(logger: Logger): VcsVersion.State = {
     val curHeadRaw =

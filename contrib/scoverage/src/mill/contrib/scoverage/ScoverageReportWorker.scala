@@ -3,7 +3,7 @@ package mill.contrib.scoverage
 import mill.Task
 import mill.define.{TaskCtx, PathRef}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2
-import mill.define.{Discover, ExternalModule, Worker}
+import mill.define.{Discover, ExternalModule}
 
 import ScoverageReportWorker.ScoverageReportWorkerApiBridge
 import ScoverageReportWorkerApi2.ReportType
@@ -75,7 +75,7 @@ object ScoverageReportWorker extends ExternalModule {
     ): Unit
   }
 
-  def scoverageReportWorker: Worker[ScoverageReportWorker] =
+  def scoverageReportWorker: Task.Worker[ScoverageReportWorker] =
     Task.Worker { new ScoverageReportWorker() }
   lazy val millDiscover = Discover[this.type]
 }

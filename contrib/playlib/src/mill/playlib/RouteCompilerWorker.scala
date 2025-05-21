@@ -4,7 +4,7 @@ import mill.define.{TaskCtx, PathRef}
 import mill.api.Result
 import mill.playlib.api.{RouteCompilerType, RouteCompilerWorkerApi}
 import mill.scalalib.api.CompilationResult
-import mill.Task
+import mill.*
 
 private[playlib] class RouteCompilerWorker {
 

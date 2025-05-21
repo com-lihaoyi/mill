@@ -6,7 +6,6 @@ import mill.api.internal.BspBuildTarget
 import mill.api.internal.BspModuleApi
 import mill.api.internal.TestModuleApi
 import mill.api.internal.TestReporter
-import mill.define.Command
 import mill.define.PathRef
 import mill.define.Task
 import mill.define.TaskCtx
@@ -84,11 +83,12 @@ trait TestModule
    * results to the console.
    * @see [[testCached]]
    */
-  def testForked(args: String*): Command[(msg: String, results: Seq[TestResult])] = Task.Command {
-    testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
-  }
+  def testForked(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+    Task.Command {
+      testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
+    }
 
-  def getTestEnvironmentVars(args: String*): Command[(String, String, String, Seq[String])] = {
+  def getTestEnvironmentVars(args: String*): Task.Command[(String, String, String, Seq[String])] = {
     Task.Command {
       getTestEnvironmentVarsTask(Task.Anon { args })()
     }
@@ -138,7 +138,7 @@ trait TestModule
    * (includes package name) 1. end with "foo", 2. exactly "foobar", 3. start
    * with "bar", with "arguments" as arguments passing to test framework.
    */
-  def testOnly(args: String*): Command[(msg: String, results: Seq[TestResult])] = {
+  def testOnly(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] = {
     val (selector, testArgs) = args.indexOf("--") match {
       case -1 => (args, Seq.empty)
       case pos =>
@@ -245,16 +245,17 @@ trait TestModule
    * Discovers and runs the module's tests in-process in an isolated classloader,
    * reporting the results to the console
    */
-  def testLocal(args: String*): Command[(msg: String, results: Seq[TestResult])] = Task.Command {
-    val (doneMsg, results) = TestRunner.runTestFramework(
-      Framework.framework(testFramework()),
-      runClasspath().map(_.path),
-      Seq.from(testClasspath().map(_.path)),
-      args,
-      Task.testReporter
-    )
-    TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
-  }
+  def testLocal(args: String*): Task.Command[(msg: String, results: Seq[TestResult])] =
+    Task.Command {
+      val (doneMsg, results) = TestRunner.runTestFramework(
+        Framework.framework(testFramework()),
+        runClasspath().map(_.path),
+        Seq.from(testClasspath().map(_.path)),
+        args,
+        Task.testReporter
+      )
+      TestModule.handleResults(doneMsg, results, Task.ctx(), testReportXml())
+    }
 
   override def bspBuildTarget: BspBuildTarget = {
     val parent = super.bspBuildTarget

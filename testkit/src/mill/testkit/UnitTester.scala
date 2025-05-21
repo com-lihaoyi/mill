@@ -3,7 +3,7 @@ package mill.testkit
 import mill.{Target, Task}
 import mill.api.ExecResult.OuterStack
 import mill.api.{DummyInputStream, ExecResult, Result, SystemStreams, Val}
-import mill.define.{Evaluator, InputImpl, SelectMode, TargetImpl}
+import mill.define.{Evaluator, SelectMode, Task}
 import mill.resolve.Resolve
 import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
@@ -148,19 +148,21 @@ class UnitTester(
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
     val evaluated = evaluator.execute(tasks).executionResults
 
-    if (evaluated.transitiveFailing.isEmpty) {
-      Right(
-        UnitTester.Result(
-          evaluated.results.map(_.asInstanceOf[ExecResult.Success[Val]].value.value),
-          evaluated.uncached.collect {
-            case t: TargetImpl[_]
-                if module.moduleInternal.targets.contains(t)
-                  && !t.ctx.external => t
-            case t: mill.define.Command[_] => t
-          }.size
-        )
-      )
-    } else Left(evaluated.transitiveFailing.values.head)
+    if (evaluated.transitiveFailing.nonEmpty) Left(evaluated.transitiveFailing.values.head)
+    else {
+      val values = evaluated.results.map(_.asInstanceOf[ExecResult.Success[Val]].value.value)
+      val evalCount = evaluated
+        .uncached
+        .collect {
+          case t: Task.Computed[_]
+              if module.moduleInternal.targets.contains(t)
+                && !t.ctx.external => t
+          case t: Task.Command[_] => t
+        }
+        .size
+
+      Right(UnitTester.Result(values, evalCount))
+    }
   }
 
   def fail(
@@ -187,7 +189,7 @@ class UnitTester(
       .uncached
       .flatMap(_.asTarget)
       .filter(module.moduleInternal.targets.contains)
-      .filter(!_.isInstanceOf[InputImpl[?]])
+      .filter(!_.isInstanceOf[Task.Input[?]])
     assert(
       evaluated.toSet == expected.toSet,
       s"evaluated is not equal expected. evaluated=${evaluated}, expected=${expected}"

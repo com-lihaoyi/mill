@@ -58,7 +58,7 @@ object NodeJSConfigTests extends TestSuite {
   val millSourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-js-world"
 
   def tests: Tests = Tests {
-    def checkLog(command: define.Command[?], nodeArgs: List[String], notNodeArgs: List[String]) = {
+    def checkLog(command: Command[?], nodeArgs: List[String], notNodeArgs: List[String]) = {
       UnitTester(HelloJSWorld, millSourcePath).scoped { helloWorldEvaluator =>
         helloWorldEvaluator(command)
         val paths = ExecutionPaths.resolve(helloWorldEvaluator.outPath, command)

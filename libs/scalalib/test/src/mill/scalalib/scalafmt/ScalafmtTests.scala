@@ -33,7 +33,7 @@ object ScalafmtTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("scalafmt") {
-      def checkReformat(reformatCommand: mill.define.Command[Unit], buildSrcIncluded: Boolean) =
+      def checkReformat(reformatCommand: Command[Unit], buildSrcIncluded: Boolean) =
         UnitTester(ScalafmtTestModule, resourcePath).scoped { eval =>
           os.write(
             ScalafmtTestModule.moduleDir / ".scalafmt.conf",

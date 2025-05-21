@@ -57,13 +57,13 @@ private object Inspect {
       s"${name}:${ctx.lineNum}"
     }
 
-    def pprintTask(t: NamedTask[?], evaluator: Evaluator): Tree.Lazy = {
+    def pprintTask(t: Task.Named[?], evaluator: Evaluator): Tree.Lazy = {
       val seen = mutable.Set.empty[Task[?]]
 
       def rec(t: Task[?]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: mill.define.Target[_]
+          case t: mill.define.Task.Cached[_]
               if evaluator.rootModule.moduleInternal.targets.contains(t) =>
             Seq(t.ctx.segments)
           case _ =>

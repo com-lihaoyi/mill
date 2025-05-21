@@ -1,5 +1,6 @@
 package mill.main
 
+import mill.*
 import mill.api.*
 import mill.api.internal.{EvaluatorApi, MainModuleApi, TaskApi}
 import mill.define.*
@@ -94,7 +95,7 @@ trait MainModule extends BaseModule with MainModuleApi {
           found match {
             case None => Task.fail(s"No path found between $src and $dest")
             case Some(list) =>
-              val labels = list.collect { case n: NamedTask[_] => n.ctx.segments.render }
+              val labels = list.collect { case n: Task.Named[_] => n.ctx.segments.render }
               labels.foreach(println)
               labels
           }
@@ -349,7 +350,7 @@ object MainModule {
         case Evaluator.Result(watched, Result.Success(res), selectedTasks, executionResults) =>
           val namesAndJson = for (t <- selectedTasks) yield {
             t match {
-              case t: mill.define.NamedTask[_] =>
+              case t: mill.define.Task.Named[_] =>
                 val jsonFile = ExecutionPaths.resolve(evaluator.outPath, t).meta
                 val metadata = upickle.default.read[Cached](ujson.read(jsonFile.toIO))
                 Some((t.toString, metadata.value))
@@ -366,11 +367,11 @@ object MainModule {
   def plan0(
       evaluator: Evaluator,
       tasks: Seq[String]
-  ): Result[Array[NamedTask[?]]] = {
+  ): Result[Array[Task.Named[?]]] = {
     evaluator.resolveTasks(tasks, SelectMode.Multi).map {
       rs =>
         val plan = evaluator.plan(rs)
-        plan.sortedGroups.keys().collect { case r: NamedTask[_] => r }.toArray
+        plan.sortedGroups.keys().collect { case r: Task.Named[_] => r }.toArray
     }
   }
 

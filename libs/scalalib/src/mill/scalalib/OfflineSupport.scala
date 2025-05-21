@@ -2,7 +2,6 @@ package mill.scalalib
 
 import mill.api.Result
 import mill.api.SelectMode.Separated
-import mill.define.Command
 import mill.define.Discover
 import mill.define.Evaluator
 import mill.define.ExternalModule
@@ -36,7 +35,7 @@ object OfflineSupport extends ExternalModule {
   def prepareOffline(
       evaluator: Evaluator,
       modules: mainargs.Leftover[String]
-  ): Command[Seq[PathRef]] = {
+  ): Task.Command[Seq[PathRef]] = {
 
     val tasks = evaluator.resolveTasks(
       // if not given, use all project modules

@@ -32,15 +32,15 @@ trait ReactScriptsModule extends TypeScriptModule {
     )
   }
 
-  override def sources: Target[Seq[PathRef]] = Task.Sources(moduleDir)
+  override def sources: T[Seq[PathRef]] = Task.Sources(moduleDir)
 
-  def packageJestOptions: Target[ujson.Obj] = Task {
+  def packageJestOptions: T[ujson.Obj] = Task {
     ujson.Obj(
       "moduleNameMapper" -> ujson.Obj("^app/(.*)$" -> "<rootDir>/src/app/$1")
     )
   }
 
-  def packageOptions: Target[Map[String, ujson.Value]] = Task {
+  def packageOptions: T[Map[String, ujson.Value]] = Task {
     Map(
       "jest" -> packageJestOptions(),
       "browserslist" -> ujson.Obj("product" -> ujson.Arr(">0.2%", "not dead", "not op_mini all"))
@@ -110,7 +110,7 @@ trait ReactScriptsModule extends TypeScriptModule {
     PathRef(Task.dest)
   }
 
-  override def bundle: Target[PathRef] = Task {
+  override def bundle: T[PathRef] = Task {
     val compiled = compile().path
     os.call(
       ("node", compiled / "node_modules/react-scripts/bin/react-scripts.js", "build"),
@@ -141,7 +141,7 @@ trait ReactScriptsModule extends TypeScriptModule {
   }
 
   // react-script tests
-  def test: Target[CommandResult] = Task {
+  def test: T[CommandResult] = Task {
     val compiled = compile().path
 
     os.call(
