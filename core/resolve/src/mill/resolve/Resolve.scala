@@ -4,7 +4,6 @@ import mainargs.{MainData, TokenGrouping}
 import mill.define.internal.Reflect
 import mill.define.{
   BaseModule,
-  Command,
   Discover,
   Module,
   Task,
@@ -211,7 +210,7 @@ private[mill] object Resolve {
       rest: Seq[String],
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
-  ): Option[Result[Command[?]]] = for {
+  ): Option[Result[Task.Command[?]]] = for {
     ep <- discover.resolveEntrypoint(target.getClass, name)
   } yield {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
@@ -247,7 +246,7 @@ private[mill] object Resolve {
         grouped
       )
     } match {
-      case mainargs.Result.Success(v: Command[_]) => Result.Success(v)
+      case mainargs.Result.Success(v: Task.Command[_]) => Result.Success(v)
       case mainargs.Result.Failure.Exception(e) =>
         Result.Failure(makeResultException(e, new Exception()).left.get)
       case f: mainargs.Result.Failure =>

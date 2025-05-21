@@ -8,7 +8,6 @@ import mill.define.internal.Applicative.Applyable
 import mill.define.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
 import upickle.default.ReadWriter
 import upickle.default.Writer
-import Task.Cached
 
 import scala.language.implicitConversions
 import scala.quoted.*
@@ -43,11 +42,11 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
    */
   def persistent: Boolean = false
 
-  def asTarget: Option[Cached[T]] = None
-  def asCommand: Option[Command[T]] = None
-  def asWorker: Option[Worker[T]] = None
+  def asTarget: Option[Task.Cached[T]] = None
+  def asCommand: Option[Task.Command[T]] = None
+  def asWorker: Option[Task.Worker[T]] = None
   def isExclusiveCommand: Boolean = this match {
-    case c: Command[_] if c.exclusive => true
+    case c: Task.Command[_] if c.exclusive => true
     case _ => false
   }
 }
@@ -531,63 +530,62 @@ object Task {
     }
   }
 
+  class Command[+T](
+      val inputs: Seq[Task[Any]],
+      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+      val ctx0: mill.define.ModuleCtx,
+      val writer: Writer[?],
+      val isPrivate: Option[Boolean],
+      val exclusive: Boolean,
+      override val persistent: Boolean
+  ) extends Task.Named[T] {
+
+    override def asCommand: Some[Command[T]] = Some(this)
+    // FIXME: deprecated return type: Change to Option
+    override def writerOpt: Some[Writer[?]] = Some(writer)
+  }
+
+  class Worker[+T](
+      val inputs: Seq[Task[Any]],
+      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+      val ctx0: mill.define.ModuleCtx,
+      val isPrivate: Option[Boolean]
+  ) extends Task.Named[T] {
+    override def persistent = false
+    override def asWorker: Some[Worker[T]] = Some(this)
+  }
+
+  class Input[T](
+      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+      val ctx0: mill.define.ModuleCtx,
+      val writer: upickle.default.Writer[?],
+      val isPrivate: Option[Boolean]
+  ) extends Cached[T] {
+    val inputs = Nil
+    override def sideHash: Int = util.Random.nextInt()
+    // FIXME: deprecated return type: Change to Option
+    override def writerOpt: Some[Writer[?]] = Some(writer)
+  }
+
+  class Sources(
+      evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[Seq[PathRef]],
+      ctx0: mill.define.ModuleCtx,
+      isPrivate: Option[Boolean]
+  ) extends Input[Seq[PathRef]](
+        evaluate0,
+        ctx0,
+        upickle.default.readwriter[Seq[PathRef]],
+        isPrivate
+      ) {}
+
+  class Source(
+      evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[PathRef],
+      ctx0: mill.define.ModuleCtx,
+      isPrivate: Option[Boolean]
+  ) extends Input[PathRef](
+        evaluate0,
+        ctx0,
+        upickle.default.readwriter[PathRef],
+        isPrivate
+      ) {}
 }
-
-class Command[+T](
-    val inputs: Seq[Task[Any]],
-    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-    val ctx0: mill.define.ModuleCtx,
-    val writer: Writer[?],
-    val isPrivate: Option[Boolean],
-    val exclusive: Boolean,
-    override val persistent: Boolean
-) extends Task.Named[T] {
-
-  override def asCommand: Some[Command[T]] = Some(this)
-  // FIXME: deprecated return type: Change to Option
-  override def writerOpt: Some[Writer[?]] = Some(writer)
-}
-
-class Worker[+T](
-    val inputs: Seq[Task[Any]],
-    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-    val ctx0: mill.define.ModuleCtx,
-    val isPrivate: Option[Boolean]
-) extends Task.Named[T] {
-  override def persistent = false
-  override def asWorker: Some[Worker[T]] = Some(this)
-}
-
-class Input[T](
-    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-    val ctx0: mill.define.ModuleCtx,
-    val writer: upickle.default.Writer[?],
-    val isPrivate: Option[Boolean]
-) extends Cached[T] {
-  val inputs = Nil
-  override def sideHash: Int = util.Random.nextInt()
-  // FIXME: deprecated return type: Change to Option
-  override def writerOpt: Some[Writer[?]] = Some(writer)
-}
-
-class Sources(
-    evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[Seq[PathRef]],
-    ctx0: mill.define.ModuleCtx,
-    isPrivate: Option[Boolean]
-) extends Input[Seq[PathRef]](
-      evaluate0,
-      ctx0,
-      upickle.default.readwriter[Seq[PathRef]],
-      isPrivate
-    ) {}
-
-class Source(
-    evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[PathRef],
-    ctx0: mill.define.ModuleCtx,
-    isPrivate: Option[Boolean]
-) extends Input[PathRef](
-      evaluate0,
-      ctx0,
-      upickle.default.readwriter[PathRef],
-      isPrivate
-    ) {}

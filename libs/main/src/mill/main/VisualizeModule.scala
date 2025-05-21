@@ -4,17 +4,8 @@ import java.util.concurrent.LinkedBlockingQueue
 import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
-import mill.define.{
-  PathRef,
-  Discover,
-  Evaluator,
-  ExternalModule,
-  MultiBiMap,
-  SelectMode,
-  Task,
-  Worker
-}
-import mill.T
+import mill.define.{PathRef, Discover, Evaluator, ExternalModule, MultiBiMap, SelectMode}
+import mill.*
 import mill.util.MillModuleUtil.millProjectModule
 import mill.api.{Result}
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}

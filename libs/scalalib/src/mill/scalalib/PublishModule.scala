@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import coursier.core.{Configuration, DependencyManagement}
-import mill.define.{Command, ExternalModule, Task, TaskModule}
+import mill.define.{ExternalModule, Task, TaskModule}
 import mill.define.PathRef
 import mill.api.Result
 import mill.util.JarManifest
@@ -340,7 +340,7 @@ trait PublishModule extends JavaModule { outer =>
       sources: Boolean = true,
       doc: Boolean = true,
       transitive: Boolean = false
-  ): define.Command[Unit] = Task.Command {
+  ): Task.Command[Unit] = Task.Command {
     publishLocalTask(
       Task.Anon {
         Option(localIvyRepo).map(os.Path(_, Task.workspace))
@@ -408,7 +408,7 @@ trait PublishModule extends JavaModule { outer =>
    *                   If not set, falls back to `maven.repo.local` system property or `~/.m2/repository`
    * @return [[PathRef]]s to published files.
    */
-  def publishM2Local(m2RepoPath: String = null): Command[Seq[PathRef]] = m2RepoPath match {
+  def publishM2Local(m2RepoPath: String = null): Task.Command[Seq[PathRef]] = m2RepoPath match {
     case null => Task.Command { publishM2LocalTask(Task.Anon { publishM2LocalRepoPath() })() }
     case p => Task.Command { publishM2LocalTask(Task.Anon { os.Path(p, Task.workspace) })() }
   }
@@ -506,7 +506,7 @@ trait PublishModule extends JavaModule { outer =>
       connectTimeout: Int = 30 * 60 * 1000,
       awaitTimeout: Int = 30 * 60 * 1000,
       stagingRelease: Boolean = true
-  ): define.Command[Unit] = Task.Command {
+  ): Task.Command[Unit] = Task.Command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     PublishModule.pgpImportSecretIfProvided(Task.env)
     new SonatypePublisher(
@@ -617,7 +617,7 @@ object PublishModule extends ExternalModule with TaskModule {
       connectTimeout: Int = 30 * 60 * 1000,
       awaitTimeout: Int = 30 * 60 * 1000,
       stagingRelease: Boolean = true
-  ): Command[Unit] = Task.Command {
+  ): Task.Command[Unit] = Task.Command {
     val x: Seq[(Seq[(os.Path, String)], Artifact)] = Task.sequence(publishArtifacts.value)().map {
       case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
     }

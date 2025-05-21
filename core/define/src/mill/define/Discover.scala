@@ -127,8 +127,8 @@ object Discover {
           assertParamListCounts(
             curCls,
             declMethods,
-            (TypeRepr.of[mill.define.Command[?]], 1, "`Task.Command`"),
-            (TypeRepr.of[mill.define.Task.Cached[?]], 0, "Target")
+            (TypeRepr.of[Task.Command[?]], 1, "`Task.Command`"),
+            (TypeRepr.of[Task.Cached[?]], 0, "Target")
           )
 
           val names =
@@ -138,7 +138,7 @@ object Discover {
               declMethods
             ).map(_.name)
           val entryPoints = for {
-            m <- sortedMethods(curCls, sub = TypeRepr.of[mill.define.Command[?]], declMethods)
+            m <- sortedMethods(curCls, sub = TypeRepr.of[Task.Command[?]], declMethods)
           } yield curCls.asType match {
             case '[t] =>
               val expr =

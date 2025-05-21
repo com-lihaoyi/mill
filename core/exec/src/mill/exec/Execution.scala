@@ -281,7 +281,7 @@ private[mill] case class Execution(
     }
 
     val tasks0 = terminals0.filter {
-      case c: Command[_] => false
+      case c: Task.Command[_] => false
       case _ => true
     }
 

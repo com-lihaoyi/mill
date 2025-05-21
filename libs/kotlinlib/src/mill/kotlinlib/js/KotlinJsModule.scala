@@ -5,7 +5,8 @@ import coursier.params.ResolutionParams
 import mainargs.arg
 import mill.define.PathRef
 import mill.api.Result
-import mill.define.{Command, Task}
+import mill.define.Task.Command
+import mill.define.Task
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 import mill.scalalib.Lib

@@ -2,11 +2,11 @@ package mill.androidlib
 
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import mill.define.{Command, ModuleRef, PathRef, Task}
+import mill.define.{ModuleRef, PathRef, Task}
 import mill.kotlinlib.{Dep, DepSyntax}
 import mill.scalalib.TestModule.Junit5
 import mill.scalalib.{JavaModule, TestModule}
-import mill.T
+import mill.*
 import upickle.implicits.namedTuples.default.given
 
 /**

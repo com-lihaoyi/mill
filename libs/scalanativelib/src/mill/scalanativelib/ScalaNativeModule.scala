@@ -3,7 +3,6 @@ package scalanativelib
 
 import mainargs.Flag
 import mill.api.Result
-import mill.define.{Command, PathRef, Task}
 import mill.scalalib.api.JvmWorkerUtil
 import mill.api.internal.{ScalaBuildTarget, ScalaNativeModuleApi, ScalaPlatform, internal}
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
@@ -14,7 +13,8 @@ import mill.scalanativelib.worker.{
   ScalaNativeWorkerExternalModule,
   api as workerApi
 }
-import mill.T
+import mill.{api => _, *}
+
 import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 import upickle.implicits.namedTuples.default.given

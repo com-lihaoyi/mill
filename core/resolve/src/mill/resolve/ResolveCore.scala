@@ -454,7 +454,7 @@ private object ResolveCore {
       }
 
     val commands = Reflect
-      .reflect(cls, classOf[Command[?]], namePred, noParams = false, cache.getMethods)
+      .reflect(cls, classOf[Task.Command[?]], namePred, noParams = false, cache.getMethods)
       .map(m => cache.decode(m.getName))
       .map { name => Resolved.Command(Segments.labels(name)) -> None }
 

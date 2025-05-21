@@ -16,7 +16,7 @@ trait CodeartifactPublishModule extends PublishModule {
       codeartifactSnapshotUri: String = codeartifactSnapshotUri,
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] =
+  ): Command[Unit] =
     Task.Command {
       val PublishModule.PublishData(artifactInfo, artifacts) =
         publishArtifacts()

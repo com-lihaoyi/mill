@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mainargs.Flag
-import mill.define.{Command, PathRef, Task}
+import mill.define.{PathRef, Task}
 
 trait OfflineSupportModule extends mill.define.Module {
 
@@ -10,7 +10,7 @@ trait OfflineSupportModule extends mill.define.Module {
    *
    * @param all If `true`, it also fetches resources not always needed.
    */
-  def prepareOffline(all: Flag): Command[Seq[PathRef]] = {
+  def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = {
     val check = Task.Anon {
       if (Task.offline) {
         Task.log.warn("Running prepareOffline while in --offline mode is likely not what you want")

@@ -8,7 +8,7 @@ import mill.api.Result
 import mill.api.internal.RunModuleApi
 import mill.constants.DaemonFiles
 import mill.define.{ModuleCtx, PathRef, TaskCtx}
-import mill.define.{Command, ModuleRef, Task}
+import mill.define.{ModuleRef, Task}
 import mill.util.Jvm
 import mill.{Args, T}
 import os.{Path, ProcessOutput}
@@ -90,7 +90,7 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
   /**
    * Runs this module's code in a subprocess and waits for it to finish
    */
-  def run(args: Task[Args] = Task.Anon(Args())): Command[Unit] = Task.Command {
+  def run(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] = Task.Command {
     runForkedTask(finalMainClass, args)()
   }
 
@@ -100,14 +100,14 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    * since the code can dirty the parent Mill process and potentially leave it
    * in a bad state.
    */
-  def runLocal(args: Task[Args] = Task.Anon(Args())): Command[Unit] = Task.Command {
+  def runLocal(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] = Task.Command {
     runLocalTask(finalMainClass, args)()
   }
 
   /**
    * Same as `run`, but lets you specify a main class to run
    */
-  def runMain(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
+  def runMain(@arg(positional = true) mainClass: String, args: String*): Task.Command[Unit] = {
     val task = runForkedTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
     Task.Command { task() }
   }
@@ -115,7 +115,10 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
   /**
    * Same as `runBackground`, but lets you specify a main class to run
    */
-  def runMainBackground(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
+  def runMainBackground(
+      @arg(positional = true) mainClass: String,
+      args: String*
+  ): Task.Command[Unit] = {
     val task = runBackgroundTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
     Task.Command(persistent = true) { task() }
   }
@@ -123,7 +126,7 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
   /**
    * Same as `runLocal`, but lets you specify a main class to run
    */
-  def runMainLocal(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
+  def runMainLocal(@arg(positional = true) mainClass: String, args: String*): Task.Command[Unit] = {
     val task = runLocalTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
     Task.Command { task() }
   }
@@ -186,7 +189,7 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    * when ready. This is useful when working on long-running server processes
    * that would otherwise run forever
    */
-  def runBackground(args: String*): Command[Unit] = {
+  def runBackground(args: String*): Task.Command[Unit] = {
     val task = runBackgroundTask(finalMainClass, Task.Anon { Args(args) })
     Task.Command(persistent = true) { task() }
   }

@@ -145,8 +145,8 @@ trait MillBuildRootModule()(implicit
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
           def isSimpleTarget(desc: mill.codesig.JvmModel.Desc) =
-            (desc.ret.pretty == classOf[mill.define.Task.Cached[?]].getName ||
-              desc.ret.pretty == classOf[mill.define.Worker[?]].getName) &&
+            (desc.ret.pretty == classOf[Task.Cached[?]].getName ||
+              desc.ret.pretty == classOf[Worker[?]].getName) &&
               desc.args.isEmpty
 
           // We avoid ignoring method calls that are simple trait forwarders, because
@@ -181,7 +181,7 @@ trait MillBuildRootModule()(implicit
           // part of the `millbuild.build#<init>` transitive call graph they would normally
           // be counted as
           def isCommand =
-            calledSig.desc.ret.pretty == classOf[mill.define.Command[?]].getName
+            calledSig.desc.ret.pretty == classOf[Command[?]].getName
 
           // Skip calls to `millDiscover`. `millDiscover` is bundled as part of `RootModule` for
           // convenience, but it should really never be called by any normal Mill module/task code,

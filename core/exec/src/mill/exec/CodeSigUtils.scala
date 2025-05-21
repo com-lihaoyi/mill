@@ -84,8 +84,8 @@ private[mill] object CodeSigUtils {
       ))
       .getDeclaringClass.getName
 
-    val expectedName = methodClass + "#" + encodedTaskName + "()mill.define.Target"
-    val expectedName2 = methodClass + "#" + encodedTaskName + "()mill.define.Command"
+    val expectedName = methodClass + "#" + encodedTaskName + "()mill.define.Task$Cached"
+    val expectedName2 = methodClass + "#" + encodedTaskName + "()mill.define.Task$Command"
 
     // We not only need to look up the code hash of the Target method being called,
     // but also the code hash of the constructors required to instantiate the Module

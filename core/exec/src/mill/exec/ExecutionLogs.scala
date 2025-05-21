@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.constants.OutFiles
-import mill.define.{Input, Task}
+import mill.define.Task
 import mill.internal.SpanningForest
 
 import java.util.concurrent.ConcurrentHashMap
@@ -55,7 +55,7 @@ private object ExecutionLogs {
             // from the invalidation tree, because most of them are un-interesting and the
             // user really only cares about (a) inputs that cause downstream tasks to invalidate
             // or (b) non-input tasks that were invalidated alone (e.g. due to a codesig change)
-            !uncachedTask.isInstanceOf[Input[?]] || edgeSourceIndices(uncachedIndex)
+            !uncachedTask.isInstanceOf[Task.Input[?]] || edgeSourceIndices(uncachedIndex)
           ) {
             uncachedIndex
           }

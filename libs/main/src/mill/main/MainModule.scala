@@ -1,5 +1,6 @@
 package mill.main
 
+import mill.*
 import mill.api.*
 import mill.api.internal.{EvaluatorApi, MainModuleApi, TaskApi}
 import mill.define.*

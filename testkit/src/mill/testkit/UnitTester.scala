@@ -3,7 +3,7 @@ package mill.testkit
 import mill.{Target, Task}
 import mill.api.ExecResult.OuterStack
 import mill.api.{DummyInputStream, ExecResult, Result, SystemStreams, Val}
-import mill.define.{Evaluator, Input, SelectMode, Task}
+import mill.define.{Evaluator, SelectMode, Task}
 import mill.resolve.Resolve
 import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
@@ -156,7 +156,7 @@ class UnitTester(
             case t: Task.Cached[_]
                 if module.moduleInternal.targets.contains(t)
                   && !t.ctx.external => t
-            case t: mill.define.Command[_] => t
+            case t: Task.Command[_] => t
           }.size
         )
       )
@@ -187,7 +187,7 @@ class UnitTester(
       .uncached
       .flatMap(_.asTarget)
       .filter(module.moduleInternal.targets.contains)
-      .filter(!_.isInstanceOf[Input[?]])
+      .filter(!_.isInstanceOf[Task.Input[?]])
     assert(
       evaluated.toSet == expected.toSet,
       s"evaluated is not equal expected. evaluated=${evaluated}, expected=${expected}"

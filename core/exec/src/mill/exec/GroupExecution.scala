@@ -185,8 +185,8 @@ private trait GroupExecution {
                       logger = logger,
                       executionContext = executionContext,
                       exclusive = exclusive,
-                      isCommand = labelled.isInstanceOf[Command[?]],
-                      isInput = labelled.isInstanceOf[Input[?]],
+                      isCommand = labelled.isInstanceOf[Task.Command[?]],
+                      isInput = labelled.isInstanceOf[Task.Input[?]],
                       deps = deps,
                       offline = offline,
                       upstreamPathRefs = upstreamPathRefs
@@ -211,7 +211,7 @@ private trait GroupExecution {
                   GroupExecution.Results(
                     newResults,
                     newEvaluated.toSeq,
-                    cached = if (labelled.isInstanceOf[Input[?]]) null else false,
+                    cached = if (labelled.isInstanceOf[Task.Input[?]]) null else false,
                     inputsHash,
                     cached.map(_._1).getOrElse(-1),
                     !cached.map(_._3).contains(valueHash),
@@ -232,8 +232,8 @@ private trait GroupExecution {
             logger = logger,
             executionContext = executionContext,
             exclusive = exclusive,
-            isCommand = task.isInstanceOf[Command[?]],
-            isInput = task.isInstanceOf[Input[?]],
+            isCommand = task.isInstanceOf[Task.Command[?]],
+            isInput = task.isInstanceOf[Task.Input[?]],
             deps = deps,
             offline = offline,
             upstreamPathRefs = upstreamPathRefs
@@ -306,7 +306,7 @@ private trait GroupExecution {
           // the point of workers is to manualy manage long-lived state which includes
           // state on disk.
           val validWriteDests =
-            deps.collect { case n: Worker[?] =>
+            deps.collect { case n: Task.Worker[?] =>
               ExecutionPaths.resolve(outPath, n.ctx.segments).dest
             } ++
               paths.map(_.dest)
@@ -468,7 +468,7 @@ private trait GroupExecution {
   }
 
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
-    if (task.isInstanceOf[Worker[?]]) inputsHash else v.##
+    if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.##
   }
   private def loadUpToDateWorker(
       logger: Logger,
