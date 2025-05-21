@@ -8,10 +8,12 @@ class FileLock extends Lock {
 
   private final RandomAccessFile raf;
   private final FileChannel chan;
+  private final String path;
 
   public FileLock(String path) throws Exception {
     raf = new RandomAccessFile(path, "rw");
     chan = raf.getChannel();
+    this.path = path;
   }
 
   @Override

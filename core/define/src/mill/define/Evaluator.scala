@@ -36,13 +36,13 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): mill.api.Result[List[NamedTask[?]]]
+  ): mill.api.Result[List[Task.Named[?]]]
   def resolveModulesOrTasks(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): mill.api.Result[List[Either[Module, NamedTask[?]]]]
+  ): mill.api.Result[List[Either[Module, Task.Named[?]]]]
 
   def plan(tasks: Seq[Task[?]]): Plan
 
@@ -91,7 +91,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
   ): EvaluatorApi.Result[T] = {
-    os.checker.withValue(os.Checker.Nop) {
+    mill.define.BuildCtx.withFilesystemCheckerDisabled {
       execute(
         targets.map(_.asInstanceOf[Task[T]]),
         reporter,
@@ -113,13 +113,20 @@ object Evaluator {
   // the TargetScopt#read call, which does not accept additional parameters.
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
   // in directly) we are forced to pass it in via a ThreadLocal
-  private[mill] val currentEvaluator0 = new DynamicVariable[Evaluator](null)
-
-  private[mill] def currentEvaluator = currentEvaluator0.value match {
-    case null =>
-      sys.error("No evaluator available here; Evaluator is only available in exclusive commands")
-    case v => v
+  private val currentEvaluator0 = new DynamicVariable[Evaluator](null)
+  private[mill] def withCurrentEvaluator[T](ev: Evaluator)(t: => T) = {
+    // Make sure we only put a `EvaluatorProxy` in the `DynamicVariable` rather than a
+    // raw `Evaluator`, and `.close()` it after we're done to `null` out the contents.
+    // This is so that if the `InheritableThreadLocal` gets captured by long-lived spawned
+    // thread pools, we do not end up leaking the contents.
+    scala.util.Using.resource(new EvaluatorProxy(() => ev)) { ev2 =>
+      currentEvaluator0.withValue(ev2) {
+        t
+      }
+    }
   }
+
+  private[mill] def currentEvaluator = currentEvaluator0.value
 
   /**
    * @param watchable the list of [[Watchable]]s that were generated during this evaluation,

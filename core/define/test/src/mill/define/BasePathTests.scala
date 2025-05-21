@@ -1,12 +1,12 @@
 package mill.define
 
 import mill.util.TestGraphs
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest._
 
 object BasePathTests extends TestSuite {
 
-  object overriddenBasePath extends TestBaseModule {
+  object overriddenBasePath extends TestRootModule {
     override def moduleDir = os.pwd / "overriddenBasePathRootValue"
     object nested extends Module {
       override def moduleDir = super.moduleDir / "overriddenBasePathNested"

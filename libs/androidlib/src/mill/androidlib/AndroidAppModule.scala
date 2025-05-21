@@ -1,5 +1,6 @@
 package mill.androidlib
 
+import coursier.params.ResolutionParams
 import mill.*
 import mill.api.Logger
 import mill.api.internal.{BspBuildTarget, EvaluatorApi, internal}
@@ -7,8 +8,9 @@ import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.testrunner.TestResult
 import mill.util.Jvm
-import os.{RelPath, zip}
+import os.{Path, RelPath, zip}
 import upickle.default.*
+import upickle.implicits.namedTuples.default.given
 
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.{Attribute, Elem, NodeBuffer, Null, Text, XML}
@@ -136,16 +138,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def androidLintArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
-  /**
-   * Combines module resources with those unpacked from AARs.
-   */
-  override def resources: T[Seq[PathRef]] = Task {
-    val libResFolders = androidUnpackArchives().flatMap(_.resources)
-    libResFolders :+ resFolder()
-  }
-
-  def resFolder = Task.Source(moduleDir / "src/main/res")
-
   @internal
   override def bspCompileClasspath = Task.Anon { (ev: EvaluatorApi) =>
     compileClasspath().map(
@@ -158,43 +150,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     baseDirectory = Some((moduleDir / "src/main").toNIO),
     tags = Seq("application")
   )
-
-  def androidTransformAarFiles: T[Seq[UnpackedDep]] = Task {
-    val transformDest = Task.dest / "transform"
-    val aarFiles = super.resolvedRunMvnDeps()
-      .map(_.path)
-      .filter(_.ext == "aar")
-      .distinct
-
-    // TODO do it in some shared location, otherwise each module is doing the same, having its own copy for nothing
-    extractAarFiles(aarFiles, transformDest)
-  }
-
-  override def resolvedRunMvnDeps: T[Seq[PathRef]] = Task {
-    val transformedAarFilesToJar: Seq[PathRef] = androidTransformAarFiles().flatMap(_.classesJar)
-    val jarFiles = super.resolvedRunMvnDeps()
-      .filter(_.path.ext == "jar")
-      .distinct
-    transformedAarFilesToJar ++ jarFiles
-  }
-
-  /**
-   * Replaces AAR files in classpath with their extracted JARs.
-   */
-  override def compileClasspath: T[Seq[PathRef]] = Task {
-    // TODO process metadata shipped with Android libs. It can have some rules with Target SDK, for example.
-    // TODO support baseline profiles shipped with Android libs.
-
-    (super.compileClasspath().filter(_.path.ext != "aar") ++ resolvedRunMvnDeps()).map(
-      _.path
-    ).distinct.map(PathRef(_))
-  }
-
-  def androidTransitiveResources: Target[Seq[PathRef]] = Task {
-    Task.traverse(transitiveModuleCompileModuleDeps) { m =>
-      Task.Anon(m.resources())
-    }().flatten
-  }
 
   /**
    * Adds the Android SDK JAR file to the classpath during the compilation process.
@@ -225,6 +180,25 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .flatMap(ref => {
         val dest = Task.dest / ref.path.baseName
         os.unzip(ref.path, dest)
+
+        // Fix permissions of unzipped directories
+        // `os.walk.stream` doesn't work
+        def walkStream(p: os.Path): geny.Generator[os.Path] = {
+          if (!os.isDir(p)) geny.Generator()
+          else {
+            val streamed = os.list.stream(p)
+            streamed ++ streamed.flatMap(walkStream)
+          }
+        }
+
+        for (p <- walkStream(dest) if os.isDir(p)) {
+          import java.nio.file.attribute.PosixFilePermission
+          val newPerms =
+            os.perms(p) + PosixFilePermission.OWNER_READ + PosixFilePermission.OWNER_EXECUTE
+
+          os.perms.set(p, newPerms)
+        }
+
         val lookupPath = dest / "META-INF"
         if (os.exists(lookupPath)) {
           os.walk(lookupPath)
@@ -254,7 +228,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidUnsignedApk: T[PathRef] = Task {
     val unsignedApk = Task.dest / "app.unsigned.apk"
 
-    os.copy(androidResources()._1.path / "res.apk", unsignedApk)
+    os.copy(androidCompiledResources().resApkFile.path, unsignedApk)
     val dexFiles = os.walk(androidDex().path)
       .filter(_.ext == "dex")
       .map(os.zip.ZipSource.fromPath)
@@ -820,11 +794,11 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   def androidModuleGeneratedDexVariants: Task[AndroidModuleGeneratedDexVariants] = Task {
-    val androidDebugDex = T.dest / "androidDebugDex.dest"
+    val androidDebugDex = Task.dest / "androidDebugDex.dest"
     os.makeDir(androidDebugDex)
-    val androidReleaseDex = T.dest / "androidReleaseDex.dest"
+    val androidReleaseDex = Task.dest / "androidReleaseDex.dest"
     os.makeDir(androidReleaseDex)
-    val mainDexListOutput = T.dest / "main-dex-list-output.txt"
+    val mainDexListOutput = Task.dest / "main-dex-list-output.txt"
 
     val proguardFileDebug = androidDebugDex / "proguard-rules.pro"
 
@@ -834,7 +808,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .flatMap(_.proguardRules)
       .map(p => os.read(p.path))
       .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
+      .appended(os.read(androidCompiledResources().mainDexRulesProFile.path))
       .mkString("\n")
     os.write(proguardFileDebug, knownProguardRulesDebug)
 
@@ -846,7 +820,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .flatMap(_.proguardRules)
       .map(p => os.read(p.path))
       .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
+      .appended(os.read(androidCompiledResources().mainDexRulesProFile.path))
       .mkString("\n")
     os.write(proguardFileRelease, knownProguardRulesRelease)
 
@@ -857,14 +831,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     )
   }
 
-  /**
-   * Provides the output path for the generated main-dex list file, which is used
-   * during the DEX generation process.
-   */
-  def mainDexListOutput: T[Option[PathRef]] = Task {
-    Some(androidModuleGeneratedDexVariants().mainDexListOutput)
-  }
-
   /** ProGuard/R8 rules configuration files for release target (user-provided and generated) */
   def androidProguardReleaseConfigs: T[Seq[PathRef]] = Task {
     val proguardFilesFromReleaseSettings = androidReleaseSettings().proguardFiles
@@ -873,7 +839,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       pf => androidProguardPath / pf
     }
     val userProguardFiles = proguardFilesFromReleaseSettings.localFiles
-    os.checker.withValue(os.Checker.Nop) {
+    mill.define.BuildCtx.withFilesystemCheckerDisabled {
       (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(_))
     }
   }
@@ -921,25 +887,24 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     val buildSettings: AndroidBuildTypeSettings = androidBuildSettings()
 
-    val (outPath, dexCliArgs) = {
-      if (buildSettings.isMinifyEnabled) {
+    val dex =
+      if (buildSettings.isMinifyEnabled)
         androidR8Dex()
-      } else
+      else
         androidD8Dex()
-    }
 
-    Task.log.debug("Building dex with command: " + dexCliArgs.mkString(" "))
+    Task.log.debug("Building dex with command: " + dex.dexCliArgs.mkString(" "))
 
-    os.call(dexCliArgs)
+    os.call(dex.dexCliArgs)
 
-    outPath
+    dex.outPath
 
   }
 
   // uses the d8 tool to generate the dex file, when minification is disabled
-  private def androidD8Dex: T[(PathRef, Seq[String])] = Task {
+  private def androidD8Dex: T[(outPath: PathRef, dexCliArgs: Seq[String])] = Task {
 
-    val outPath = T.dest
+    val outPath = Task.dest
 
     val appCompiledFiles = (androidPackagedCompiledClasses() ++ androidPackagedClassfiles())
       .map(_.path.toString())
@@ -955,7 +920,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .flatMap(_.proguardRules)
       .map(p => os.read(p.path))
       .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidResources()._1.path / "main-dex-rules.pro"))
+      .appended(os.read(androidCompiledResources().mainDexRulesProFile.path))
       .mkString("\n")
     os.write(proguardFile, knownProguardRules)
 
@@ -988,13 +953,13 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   // uses the R8 tool to generate the dex (to shrink and obfuscate)
-  private def androidR8Dex: Task[(PathRef, Seq[String])] = Task {
-    val destDir = T.dest / "minify"
+  private def androidR8Dex: Task[(outPath: PathRef, dexCliArgs: Seq[String])] = Task {
+    val destDir = Task.dest / "minify"
     os.makeDir.all(destDir)
 
     val outputPath = destDir
 
-    T.log.debug("outptuPath: " + outputPath)
+    Task.log.debug("outptuPath: " + outputPath)
 
     // Define diagnostic output file paths
     val mappingOut = destDir / "mapping.txt"
@@ -1059,14 +1024,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
       "--dex"
     )
 
-    // Multi-dex arguments (if any are provided)
-    val multiDexArgs =
-      mainDexRules().toSeq.flatMap(r => Seq("--main-dex-rules", r.path.toString)) ++
-        mainDexList().toSeq.flatMap(l => Seq("--main-dex-list", l.path.toString)) ++
-        mainDexListOutput().toSeq.flatMap(l => Seq("--main-dex-list-output", l.path.toString))
-
-    r8ArgsBuilder ++= multiDexArgs
-
     // Baseline profile rewriting arguments, if a baseline profile is provided.
     val baselineArgs = baselineProfile().map { bp =>
       Seq("--art-profile", bp.path.toString, baselineOutOpt.toString)
@@ -1104,11 +1061,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def androidApplicationNamespace: String = outer.androidApplicationNamespace
 
-    override def moduleDir = outer.moduleDir
+    override def moduleDir: Path = outer.moduleDir
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
-
-    override def resources: T[Seq[PathRef]] = Task.Sources("src/test/res")
+    def androidResources: T[Seq[PathRef]] = Task.Sources()
 
     override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
       baseDirectory = Some((moduleDir / "src/test").toNIO),
@@ -1128,6 +1084,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def androidIsDebug: T[Boolean] = Task { true }
 
+    override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer.resolutionParams())
+
     override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
     override def androidApplicationNamespace: String = outer.androidApplicationNamespace
 
@@ -1141,12 +1099,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/androidTest/java")
 
-    /** The resources in res directories of both main source and androidTest sources */
-    override def resources: T[Seq[PathRef]] = Task {
-      val libResFolders = androidUnpackArchives().flatMap(_.resources)
-      libResFolders ++ resources0()
-    }
-    def resources0 = Task.Sources("src/androidTest/res")
+    def androidResources = Task.Sources("src/androidTest/res")
 
     override def generatedSources: T[Seq[PathRef]] = Task.Sources()
 
@@ -1215,7 +1168,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def testTask(
         args: Task[Seq[String]],
         globSelectors: Task[Seq[String]]
-    ): Task[(String, Seq[TestResult])] = Task.Anon {
+    ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
       val device = androidTestInstall().apply()
 
       val instrumentOutput = os.proc(
@@ -1252,7 +1205,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
     override def androidPackagedDeps: T[Seq[PathRef]] = Task {
-      resolvedRunMvnDeps()
+      androidResolvedRunMvnDeps()
     }
 
     /**
@@ -1283,7 +1236,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
  * @param name dependency name
  * @param classesJar path to the classes.jar
  * @param proguardRules path to the proguard rules
- * @param resources path to the res folder
+ * @param androidResources path to the res folder
  * @param manifest path to the AndroidManifest.xml
  * @param lintJar path to the lint.jar file
  * @param metaInf path to the META-INF folder
@@ -1296,7 +1249,7 @@ case class UnpackedDep(
     name: String,
     classesJar: Option[PathRef],
     proguardRules: Option[PathRef],
-    resources: Option[PathRef],
+    androidResources: Option[PathRef],
     manifest: Option[PathRef],
     lintJar: Option[PathRef],
     metaInf: Option[PathRef],

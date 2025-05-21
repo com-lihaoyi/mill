@@ -73,7 +73,8 @@ private[dependency] object VersionsFinder {
         ctx = Option(Task.ctx()),
         coursierCacheCustomizer = cacheCustom,
         resolutionParams = coursier.params.ResolutionParams(),
-        boms = Nil
+        boms = Nil,
+        checkGradleModules = javaModule.checkGradleModules()
       )
 
       x.map { _ =>

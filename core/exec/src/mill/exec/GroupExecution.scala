@@ -102,7 +102,7 @@ private trait GroupExecution {
       val scriptsHash = MurmurHash3.orderedHash(
         group
           .iterator
-          .collect { case namedTask: NamedTask[_] =>
+          .collect { case namedTask: Task.Named[_] =>
             CodeSigUtils.codeSigForTask(
               namedTask,
               classToTransitiveClasses,
@@ -120,7 +120,7 @@ private trait GroupExecution {
 
       terminal match {
 
-        case labelled: NamedTask[_] =>
+        case labelled: Task.Named[_] =>
           labelled.ctx.segments.value match {
             case Seq(Segment.Label(single)) if parsedHeaderData.contains(single) =>
               val jsonData = parsedHeaderData(single)
@@ -185,8 +185,8 @@ private trait GroupExecution {
                       logger = logger,
                       executionContext = executionContext,
                       exclusive = exclusive,
-                      isCommand = labelled.isInstanceOf[Command[?]],
-                      isInput = labelled.isInstanceOf[InputImpl[?]],
+                      isCommand = labelled.isInstanceOf[Task.Command[?]],
+                      isInput = labelled.isInstanceOf[Task.Input[?]],
                       deps = deps,
                       offline = offline,
                       upstreamPathRefs = upstreamPathRefs
@@ -211,7 +211,7 @@ private trait GroupExecution {
                   GroupExecution.Results(
                     newResults,
                     newEvaluated.toSeq,
-                    cached = if (labelled.isInstanceOf[InputImpl[?]]) null else false,
+                    cached = if (labelled.isInstanceOf[Task.Input[?]]) null else false,
                     inputsHash,
                     cached.map(_._1).getOrElse(-1),
                     !cached.map(_._3).contains(valueHash),
@@ -232,8 +232,8 @@ private trait GroupExecution {
             logger = logger,
             executionContext = executionContext,
             exclusive = exclusive,
-            isCommand = task.isInstanceOf[Command[?]],
-            isInput = task.isInstanceOf[InputImpl[?]],
+            isCommand = task.isInstanceOf[Task.Command[?]],
+            isInput = task.isInstanceOf[Task.Input[?]],
             deps = deps,
             offline = offline,
             upstreamPathRefs = upstreamPathRefs
@@ -277,30 +277,20 @@ private trait GroupExecution {
     val nonEvaluatedTargets = group.toIndexedSeq.filterNot(results.contains)
     val (multiLogger, fileLoggerOpt) = resolveLogger(paths.map(_.log), logger)
 
-    var usedDest = Option.empty[os.Path]
+    val destCreator = new GroupExecution.DestCreator(paths)
+
     for (task <- nonEvaluatedTargets) {
       newEvaluated.append(task)
       val targetInputValues = task.inputs
         .map { x => newResults.getOrElse(x, results(x)) }
         .collect { case ExecResult.Success((v, _)) => v }
 
-      def makeDest() = this.synchronized {
-        paths match {
-          case Some(dest) =>
-            if (usedDest.isEmpty) os.makeDir.all(dest.dest)
-            usedDest = Some(dest.dest)
-            dest.dest
-
-          case None => throw new Exception("No `dest` folder available here")
-        }
-      }
-
       val res = {
         if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
         else {
           val args = new mill.define.TaskCtx.Impl(
             args = targetInputValues.map(_.value).toIndexedSeq,
-            dest0 = () => makeDest(),
+            dest0 = () => destCreator.makeDest(),
             log = multiLogger,
             env = env,
             reporter = reporter,
@@ -311,65 +301,33 @@ private trait GroupExecution {
             jobs = effectiveThreadCount,
             offline = offline
           )
+
           // Tasks must be allowed to write to upstream worker's dest folders, because
           // the point of workers is to manualy manage long-lived state which includes
           // state on disk.
-          lazy val validWriteDests =
-            deps.collect { case n: Worker[?] =>
+          val validWriteDests =
+            deps.collect { case n: Task.Worker[?] =>
               ExecutionPaths.resolve(outPath, n.ctx.segments).dest
             } ++
               paths.map(_.dest)
 
-          lazy val validReadDests = validWriteDests ++ upstreamPathRefs.map(_.path)
+          val validReadDests = validWriteDests ++ upstreamPathRefs.map(_.path)
 
-          val executionChecker = new os.Checker {
-            def onRead(path: os.ReadablePath): Unit = path match {
-              case path: os.Path =>
-                if (!isCommand && !isInput) {
-                  if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
-                    sys.error(
-                      s"Reading from ${path.relativeTo(workspace)} not allowed during execution phase"
-                    )
-                  }
-                }
-              case _ =>
-            }
-
-            def onWrite(path: os.Path): Unit = {
-              if (!isCommand) {
-                if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
-                  sys.error(
-                    s"Writing to ${path.relativeTo(workspace)} not allowed during execution phase"
-                  )
-                }
-              }
-            }
-          }
-          def wrap[T](t: => T): T = {
-            val (streams, destFunc) =
-              if (exclusive) (exclusiveSystemStreams, () => workspace)
-              else (multiLogger.streams, () => makeDest())
-
-            os.dynamicPwdFunction.withValue(destFunc) {
-              os.checker.withValue(executionChecker) {
-                mill.define.SystemStreams.withStreams(streams) {
-                  val exposedEvaluator =
-                    if (!exclusive) null else getEvaluator().asInstanceOf[Evaluator]
-                  Evaluator.currentEvaluator0.withValue(exposedEvaluator) {
-                    if (!exclusive) t
-                    else {
-                      logger.prompt.reportKey(Seq(counterMsg))
-                      logger.prompt.withPromptPaused { t }
-                    }
-                  }
-                }
-              }
-            }
-          }
-
-          wrap {
+          GroupExecution.wrap(
+            workspace,
+            validWriteDests,
+            validReadDests,
+            isCommand,
+            isInput,
+            exclusive,
+            multiLogger,
+            logger,
+            exclusiveSystemStreams,
+            counterMsg,
+            destCreator,
+            getEvaluator().asInstanceOf[Evaluator]
+          ) {
             try {
-
               task.evaluate(args) match {
                 case Result.Success(v) => ExecResult.Success(Val(v))
                 case Result.Failure(err) => ExecResult.Failure(err)
@@ -422,7 +380,7 @@ private trait GroupExecution {
       hashCode: Int,
       metaPath: os.Path,
       inputsHash: Int,
-      labelled: NamedTask[?]
+      labelled: Task.Named[?]
   ): Seq[PathRef] = {
     for (w <- labelled.asWorker)
       workerCache.synchronized {
@@ -480,7 +438,7 @@ private trait GroupExecution {
   private def loadCachedJson(
       logger: Logger,
       inputsHash: Int,
-      labelled: NamedTask[?],
+      labelled: Task.Named[?],
       paths: ExecutionPaths
   ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
     for {
@@ -510,12 +468,12 @@ private trait GroupExecution {
   }
 
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
-    if (task.isInstanceOf[Worker[?]]) inputsHash else v.##
+    if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.##
   }
   private def loadUpToDateWorker(
       logger: Logger,
       inputsHash: Int,
-      labelled: NamedTask[?],
+      labelled: Task.Named[?],
       forceDiscard: Boolean
   ): Option[Val] = {
     labelled.asWorker
@@ -555,6 +513,85 @@ private trait GroupExecution {
 
 private object GroupExecution {
 
+  class DestCreator(paths: Option[ExecutionPaths]) {
+    var usedDest = Option.empty[os.Path]
+
+    def makeDest() = this.synchronized {
+      paths match {
+        case Some(dest) =>
+          if (usedDest.isEmpty) os.makeDir.all(dest.dest)
+          usedDest = Some(dest.dest)
+          dest.dest
+
+        case None => throw new Exception("No `dest` folder available here")
+      }
+    }
+  }
+  def wrap[T](
+      workspace: os.Path,
+      validWriteDests: Seq[os.Path],
+      validReadDests: Seq[os.Path],
+      isCommand: Boolean,
+      isInput: Boolean,
+      exclusive: Boolean,
+      multiLogger: Logger,
+      logger: Logger,
+      exclusiveSystemStreams: SystemStreams,
+      counterMsg: String,
+      destCreator: DestCreator,
+      evaluator: Evaluator
+  )(t: => T): T = {
+    val executionChecker = new os.Checker {
+      def onRead(path: os.ReadablePath): Unit = path match {
+        case path: os.Path =>
+          if (!isCommand && !isInput) {
+            if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
+              sys.error(
+                s"Reading from ${path.relativeTo(workspace)} not allowed during execution phase"
+              )
+            }
+          }
+        case _ =>
+      }
+
+      def onWrite(path: os.Path): Unit = {
+        if (!isCommand) {
+          if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
+            sys.error(
+              s"Writing to ${path.relativeTo(workspace)} not allowed during execution phase"
+            )
+          }
+        }
+      }
+    }
+    val (streams, destFunc) =
+      if (exclusive) (exclusiveSystemStreams, () => workspace)
+      else (multiLogger.streams, () => destCreator.makeDest())
+
+    os.dynamicPwdFunction.withValue(destFunc) {
+      os.checker.withValue(executionChecker) {
+        mill.define.SystemStreams.withStreams(streams) {
+          val exposedEvaluator =
+            if (exclusive) evaluator.asInstanceOf[Evaluator]
+            else new EvaluatorProxy(() =>
+              sys.error(
+                "No evaluator available here; Evaluator is only available in exclusive commands"
+              )
+            )
+
+          Evaluator.withCurrentEvaluator(exposedEvaluator) {
+            if (!exclusive) t
+            else {
+              logger.prompt.reportKey(Seq(counterMsg))
+              logger.prompt.withPromptPaused {
+                t
+              }
+            }
+          }
+        }
+      }
+    }
+  }
   case class Results(
       newResults: Map[Task[?], ExecResult[(Val, Int)]],
       newEvaluated: Seq[Task[?]],

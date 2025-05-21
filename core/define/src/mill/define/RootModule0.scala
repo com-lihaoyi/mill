@@ -29,18 +29,15 @@ abstract class RootModule0()(implicit
 @internal
 object RootModule0 {
   class Info(
-      val compilerWorkerClasspath: Seq[os.Path],
       val projectRoot: os.Path,
       val output: os.Path,
       val topLevelProjectRoot: os.Path
   ) {
     def this(
-        compilerWorkerClasspath0: Seq[String],
         projectRoot0: String,
         output0: String,
         topLevelProjectRoot0: String
     ) = this(
-      compilerWorkerClasspath0.map(os.Path(_)),
       os.Path(projectRoot0),
       os.Path(output0),
       os.Path(topLevelProjectRoot0)

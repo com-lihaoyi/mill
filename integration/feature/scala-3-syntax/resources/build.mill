@@ -4,6 +4,7 @@ import mill.{Task, Command, Cross}, Task.Anon
 
 import build.Box
 import build.{given Box[Int]}
+import upickle.implicits.namedTuples.default.given
 
 given Cross.ToSegments[DayValue](d => List(d.toString))
 
@@ -38,5 +39,9 @@ object `package` extends mill.Module:
       println(s"Today is $myDay")
     end today
   end DayModule
+
+  def namedTupleTask = Task {
+    (hello = "world", i = Seq("am", "cow"))
+  }
 
 end `package`

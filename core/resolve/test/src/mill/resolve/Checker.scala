@@ -1,20 +1,20 @@
 package mill.resolve
 
 import mill.api.Result
-import mill.define.{NamedTask, SelectMode}
+import mill.define.{Task, SelectMode}
 import utest.*
 
 class Checker[T <: mill.define.BaseModule](module: T) {
 
   def apply(
       selectorString: String,
-      expected0: Result[Set[T => NamedTask[?]]],
+      expected0: Result[Set[T => Task.Named[?]]],
       expectedMetadata: Set[String] = Set()
   ) = checkSeq(Seq(selectorString), expected0, expectedMetadata)
 
   def checkSeq(
       selectorStrings: Seq[String],
-      expected0: Result[Set[T => NamedTask[?]]],
+      expected0: Result[Set[T => Task.Named[?]]],
       expectedMetadata: Set[String] = Set()
   ) = {
     val expected = expected0.map(_.map(_(module)))
@@ -34,7 +34,7 @@ class Checker[T <: mill.define.BaseModule](module: T) {
 
   def checkSeq0(
       selectorStrings: Seq[String],
-      check: Result[List[NamedTask[?]]] => Boolean,
+      check: Result[List[Task.Named[?]]] => Boolean,
       checkMetadata: Result[List[String]] => Boolean = _ => true
   ) = {
 

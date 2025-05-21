@@ -5,12 +5,12 @@ import mill.api.Result
 import mill.api.internal.internal
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.constants.OutFiles.*
-import mill.define.{PathRef, Discover, RootModule0, Target, Task}
+import mill.define.{PathRef, Discover, RootModule0, Task}
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.util.BuildInfo
-import mill.compilerworker.api.ScalaCompilerWorkerApi
-import mill.compilerworker.api.MillScalaParser
+import mill.api.internal.MillScalaParser
+import upickle.implicits.namedTuples.default.given
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 
@@ -23,8 +23,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
  */
 @internal
 trait MillBuildRootModule()(implicit
-    rootModuleInfo: RootModule0.Info,
-    scalaCompilerResolver: ScalaCompilerWorker.Resolver
+    rootModuleInfo: RootModule0.Info
 ) extends ScalaModule {
   override def bspDisplayName0: String = rootModuleInfo
     .projectRoot
@@ -38,7 +37,7 @@ trait MillBuildRootModule()(implicit
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
-  val scriptSourcesPaths = os.checker.withValue(os.Checker.Nop) {
+  val scriptSourcesPaths = mill.define.BuildCtx.withFilesystemCheckerDisabled {
     FileImportGraph
       .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
       .sorted
@@ -48,19 +47,15 @@ trait MillBuildRootModule()(implicit
    * All script files (that will get wrapped later)
    * @see [[generatedSources]]
    */
-  def scriptSources: Target[Seq[PathRef]] = Task.Sources(
+  def scriptSources: T[Seq[PathRef]] = Task.Sources(
     scriptSourcesPaths.map(Result.Success(_))* // Ensure ordering is deterministic
   )
 
   def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
-    os.checker.withValue(os.Checker.Nop) {
-      MillBuildRootModule.parseBuildFiles(compilerWorker(), rootModuleInfo)
+    mill.define.BuildCtx.withFilesystemCheckerDisabled {
+      MillBuildRootModule.parseBuildFiles(MillScalaParser.current.value, rootModuleInfo)
     }
-  }
-
-  private[mill] def compilerWorker: Worker[ScalaCompilerWorkerApi] = Task.Worker {
-    scalaCompilerResolver.resolve(rootModuleInfo.compilerWorkerClasspath)
   }
 
   def cliImports: T[Seq[String]] = Task.Input {
@@ -96,26 +91,40 @@ trait MillBuildRootModule()(implicit
   override def platformSuffix: T[String] = s"_mill${BuildInfo.millBinPlatform}"
 
   override def generatedSources: T[Seq[PathRef]] = Task {
+    generatedScriptSources().support
+  }
+
+  /**
+   * Additional script files, we generate, since not all Mill source
+   * files (e.g. `.sc` and `.mill`) can be fed to the compiler as-is.
+   *
+   * The `wrapped` files aren't supposed to appear under [[generatedSources]] and [[allSources]],
+   * since they are derived from [[sources]] and would confuse any further tooling like IDEs.
+   */
+  def generatedScriptSources: T[(wrapped: Seq[PathRef], support: Seq[PathRef])] = Task {
+    val wrapped = Task.dest / "wrapped"
+    val support = Task.dest / "support"
+
     val parsed = parseBuildFiles()
     if (parsed.errors.nonEmpty) Task.fail(parsed.errors.mkString("\n"))
     else {
-      CodeGen.generateWrappedSources(
+      CodeGen.generateWrappedAndSupportSources(
         rootModuleInfo.projectRoot / os.up,
         parsed.seenScripts,
-        Task.dest,
-        rootModuleInfo.compilerWorkerClasspath,
+        wrapped,
+        support,
         rootModuleInfo.topLevelProjectRoot,
         rootModuleInfo.output,
-        compilerWorker()
+        MillScalaParser.current.value
       )
-      Seq(PathRef(Task.dest))
+      (wrapped = Seq(PathRef(wrapped)), support = Seq(PathRef(support)))
     }
   }
 
   def millBuildRootModuleResult = Task {
     Tuple3(
-      runClasspath().map(_.path.toNIO.toString),
-      compile().classes.path.toNIO.toString,
+      runClasspath(),
+      compile().classes,
       codeSignatures()
     )
   }
@@ -136,8 +145,8 @@ trait MillBuildRootModule()(implicit
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
           def isSimpleTarget(desc: mill.codesig.JvmModel.Desc) =
-            (desc.ret.pretty == classOf[mill.define.Target[?]].getName ||
-              desc.ret.pretty == classOf[mill.define.Worker[?]].getName) &&
+            (desc.ret.pretty == classOf[Task.Simple[?]].getName ||
+              desc.ret.pretty == classOf[Worker[?]].getName) &&
               desc.args.isEmpty
 
           // We avoid ignoring method calls that are simple trait forwarders, because
@@ -172,7 +181,7 @@ trait MillBuildRootModule()(implicit
           // part of the `millbuild.build#<init>` transitive call graph they would normally
           // be counted as
           def isCommand =
-            calledSig.desc.ret.pretty == classOf[mill.define.Command[?]].getName
+            calledSig.desc.ret.pretty == classOf[Command[?]].getName
 
           // Skip calls to `millDiscover`. `millDiscover` is bundled as part of `RootModule` for
           // convenience, but it should really never be called by any normal Mill module/task code,
@@ -203,15 +212,28 @@ trait MillBuildRootModule()(implicit
     codesig.transitiveCallGraphHashes
   }
 
+  /**
+   * All mill build source files.
+   * These files are the inputs but not necessarily the same files we feed to the compiler,
+   * since we need to process `.mill` files and generate additional Scala files from it.
+   */
   override def sources: T[Seq[PathRef]] = Task {
     scriptSources() ++ super.sources()
   }
 
   override def allSourceFiles: T[Seq[PathRef]] = Task {
+    val allMillSources =
+      // the real input-sources
+      allSources() ++
+        // also sources, but derived from `scriptSources`
+        generatedScriptSources().wrapped
+
     val candidates =
-      Lib.findSourceFiles(allSources(), Seq("scala", "java") ++ buildFileExtensions.asScala)
+      Lib.findSourceFiles(allMillSources, Seq("scala", "java") ++ buildFileExtensions.asScala.toSeq)
+
     // We need to unlist those files, which we replaced by generating wrapper scripts
     val filesToExclude = Lib.findSourceFiles(scriptSources(), buildFileExtensions.asScala.toSeq)
+
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
@@ -248,7 +270,7 @@ trait MillBuildRootModule()(implicit
   /** Used in BSP IntelliJ, which can only work with directories */
   def dummySources: Sources = Task.Sources(Task.dest)
 
-  def millVersion: Target[String] = Task.Input { BuildInfo.millVersion }
+  def millVersion: T[String] = Task.Input { BuildInfo.millVersion }
 
   override def compile: T[CompilationResult] = Task(persistent = true) {
     val mv = millVersion()
@@ -294,8 +316,7 @@ trait MillBuildRootModule()(implicit
 object MillBuildRootModule {
 
   class BootstrapModule()(implicit
-      rootModuleInfo: RootModule0.Info,
-      scalaCompilerResolver: ScalaCompilerWorker.Resolver
+      rootModuleInfo: RootModule0.Info
   ) extends mill.main.MainRootModule() with MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]
   }
@@ -311,7 +332,6 @@ object MillBuildRootModule {
       millBuildRootModuleInfo: RootModule0.Info
   ): FileImportGraph = {
     FileImportGraph.parseBuildFiles(
-      parser,
       millBuildRootModuleInfo.topLevelProjectRoot,
       millBuildRootModuleInfo.projectRoot / os.up,
       millBuildRootModuleInfo.output

@@ -8,7 +8,7 @@ import mill._, scalalib._, publish._
 import mill.util.BuildInfo.{millVersion, millBinPlatform}
 
 object myplugin extends ScalaModule with PublishModule {
-  def scalaVersion = "3.6.2"
+  def scalaVersion = "3.7.0"
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
   def platformSuffix = s"_mill$millBinPlatform"
@@ -114,9 +114,9 @@ compiling 1 Scala source...
 //
 // == Unit Tests
 //
-// These are tests that run in-process, with the Mill `build.mill` defined as a `TestBaseModule`,
+// These are tests that run in-process, with the Mill `build.mill` defined as a `TestRootModule`,
 // and using a `UnitTester` to run its tasks and inspect their output. `UnitTester` is provided
-// a path to a folder on disk containing the files that are to be built with the given `TestBaseModule`,
+// a path to a folder on disk containing the files that are to be built with the given `TestRootModule`,
 // and can be used to evaluate tasks (by direct reference or by string-selector) and inspect
 // the results in-memory:
 

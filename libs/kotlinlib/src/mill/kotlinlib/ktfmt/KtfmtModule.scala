@@ -3,7 +3,7 @@ package mill.kotlinlib.ktfmt
 import mill._
 import mill.define.{PathRef}
 import mill.define.{Discover, ExternalModule}
-import mill.kotlinlib.{DepSyntax, Versions}
+import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.util.Tasks
 import mill.scalalib.JavaModule
 import mill.util.Jvm
@@ -15,7 +15,8 @@ trait KtfmtBaseModule extends JavaModule {
    */
   def ktfmtClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Seq(mvn"com.facebook:ktfmt:${ktfmtVersion()}")
+      Seq(mvn"com.facebook:ktfmt:${ktfmtVersion()}"),
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
   }
 

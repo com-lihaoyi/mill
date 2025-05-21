@@ -12,7 +12,7 @@ import scalatags.Text.all._
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
 
-// Next, we use `os.list` and `interp.watchValue` on the `post/` folder to
+// Next, we use `os.list` and `mill.define.BuildCtx.watchValue` on the `post/` folder to
 // build a `Cross[PostModule]` whose entries depend no the markdown files we
 // find in that folder. Each post has a `source` pointing at the markdown file,
 // and a `render` task that parses the file's markdown and generates a HTML
@@ -24,7 +24,7 @@ def mdNameToHtml(s: String) = s.toLowerCase.replace(".md", ".html")
 def mdNameToTitle(s: String) =
   s.split('-').drop(1).mkString(" ").stripSuffix(".md")
 
-val posts = interp.watchValue {
+val posts = mill.define.BuildCtx.watchValue {
   os.list(moduleDir / "post").map(_.last).sorted
 }
 

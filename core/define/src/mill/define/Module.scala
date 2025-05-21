@@ -3,6 +3,7 @@ package mill.define
 import mill.api
 import mill.api.internal.{ModuleApi, internal}
 import mill.define.internal.{OverrideMapping, Reflect}
+import mill.define.Task.Simple
 
 import scala.reflect.ClassTag
 
@@ -70,8 +71,8 @@ object Module {
     lazy val segmentsToModules: Map[Segments, Module] =
       modules.map(m => (m.moduleSegments, m)).toMap
 
-    lazy val targets: Set[Target[?]] =
-      traverse { _.moduleInternal.reflectAll[Target[?]].toIndexedSeq }.toSet
+    lazy val targets: Set[Simple[?]] =
+      traverse { _.moduleInternal.reflectAll[Simple[?]].toIndexedSeq }.toSet
 
     def reflect[T: ClassTag](filter: String => Boolean): Seq[T] = {
       Reflect.reflect(

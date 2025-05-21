@@ -18,6 +18,8 @@ object BspModulesTests extends UtestIntegrationTestSuite {
           os.read(workspacePath / Constants.bspDir / s"${Constants.serverName}.json")
         )
 
+        eval("shutdown")
+        Thread.sleep(1000)
         val executable = json("argv").arr(0).str
         val checkRes = os.call((executable, "checkExecutable"), cwd = workspacePath)
         assert(checkRes.exitCode == 0)

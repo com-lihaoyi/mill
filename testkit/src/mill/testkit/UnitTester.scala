@@ -3,7 +3,7 @@ package mill.testkit
 import mill.{Target, Task}
 import mill.api.ExecResult.OuterStack
 import mill.api.{DummyInputStream, ExecResult, Result, SystemStreams, Val}
-import mill.define.{Evaluator, InputImpl, SelectMode, TargetImpl}
+import mill.define.{Evaluator, SelectMode, Task}
 import mill.resolve.Resolve
 import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
@@ -13,7 +13,7 @@ import java.io.{InputStream, PrintStream}
 object UnitTester {
   case class Result[T](value: T, evalCount: Int)
   def apply(
-      module: mill.testkit.TestBaseModule,
+      module: mill.testkit.TestRootModule,
       sourceRoot: os.Path,
       failFast: Boolean = false,
       threads: Option[Int] = Some(1),
@@ -45,7 +45,7 @@ object UnitTester {
  * @param threads explicitly used nr. of parallel threads
  */
 class UnitTester(
-    module: mill.testkit.TestBaseModule,
+    module: mill.testkit.TestRootModule,
     sourceRoot: os.Path,
     failFast: Boolean,
     threads: Option[Int],
@@ -57,6 +57,10 @@ class UnitTester(
     resetSourcePath: Boolean,
     offline: Boolean
 )(implicit fullName: sourcecode.FullName) extends AutoCloseable {
+  assert(
+    mill.api.MillURLClassLoader.openClassloaders.isEmpty,
+    s"Unit tester detected leaked classloaders on initialization: \n${mill.api.MillURLClassLoader.openClassloaders.mkString("\n")}"
+  )
   val outPath: os.Path = module.moduleDir / "out"
 
   if (resetSourcePath) {
@@ -121,7 +125,7 @@ class UnitTester(
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
-    Evaluator.currentEvaluator0.withValue(evaluator) {
+    Evaluator.withCurrentEvaluator(evaluator) {
       Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
     } match {
       case Result.Failure(err) => Left(ExecResult.Failure(err))
@@ -144,19 +148,21 @@ class UnitTester(
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
     val evaluated = evaluator.execute(tasks).executionResults
 
-    if (evaluated.transitiveFailing.isEmpty) {
-      Right(
-        UnitTester.Result(
-          evaluated.results.map(_.asInstanceOf[ExecResult.Success[Val]].value.value),
-          evaluated.uncached.collect {
-            case t: TargetImpl[_]
-                if module.moduleInternal.targets.contains(t)
-                  && !t.ctx.external => t
-            case t: mill.define.Command[_] => t
-          }.size
-        )
-      )
-    } else Left(evaluated.transitiveFailing.values.head)
+    if (evaluated.transitiveFailing.nonEmpty) Left(evaluated.transitiveFailing.values.head)
+    else {
+      val values = evaluated.results.map(_.asInstanceOf[ExecResult.Success[Val]].value.value)
+      val evalCount = evaluated
+        .uncached
+        .collect {
+          case t: Task.Computed[_]
+              if module.moduleInternal.targets.contains(t)
+                && !t.ctx.external => t
+          case t: Task.Command[_] => t
+        }
+        .size
+
+      Right(UnitTester.Result(values, evalCount))
+    }
   }
 
   def fail(
@@ -183,7 +189,7 @@ class UnitTester(
       .uncached
       .flatMap(_.asTarget)
       .filter(module.moduleInternal.targets.contains)
-      .filter(!_.isInstanceOf[InputImpl[?]])
+      .filter(!_.isInstanceOf[Task.Input[?]])
     assert(
       evaluated.toSet == expected.toSet,
       s"evaluated is not equal expected. evaluated=${evaluated}, expected=${expected}"
@@ -200,5 +206,10 @@ class UnitTester(
       obsolete.close()
     }
     evaluator.close()
+
+    assert(
+      mill.api.MillURLClassLoader.openClassloaders.isEmpty,
+      s"Unit tester detected leaked classloaders on close: \n${mill.api.MillURLClassLoader.openClassloaders.mkString("\n")}"
+    )
   }
 }

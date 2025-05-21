@@ -2,7 +2,8 @@ package mill.main
 
 import mill.api.Result
 import mill.constants.OutFiles
-import mill.define.{Command, Evaluator, Task}
+import mill.*
+import mill.define.Evaluator
 import mill.define.SelectMode
 
 /**

@@ -3,30 +3,30 @@
         <output url="file://$MODULE_DIR$/../../out/mill-build/ideaCompileOutput.dest/classes"/>
         <exclude-output/>
         <content url="file://$MODULE_DIR$/../..">
-            <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/generatedSources.dest" isTestSource="false" generated="true"/>
+            <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/generatedScriptSources.dest/support" isTestSource="false" generated="true"/>
             <sourceFolder url="file://$MODULE_DIR$/../../build.mill" isTestSource="false"/>
             <sourceFolder url="file://$MODULE_DIR$/../../mill-build/src" isTestSource="false"/>
             <sourceFolder url="file://$MODULE_DIR$/../../mill-build/resources" type="java-resource"/>
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
-        <orderEntry type="library" name="scala-SDK-3.6.4" level="project"/>
+        <orderEntry type="library" name="scala-SDK-3.7.0" level="project"/>
         <orderEntry type="library" name="aircompressor-0.27.jar" level="project"/>
-        <orderEntry type="library" name="cache-util-2.1.25-M12.jar" level="project"/>
+        <orderEntry type="library" name="cache-util-2.1.25-M13.jar" level="project"/>
         <orderEntry type="library" name="commons-codec-1.17.0.jar" level="project"/>
         <orderEntry type="library" name="commons-compress-1.26.2.jar" level="project"/>
         <orderEntry type="library" name="commons-io-2.18.0.jar" level="project"/>
         <orderEntry type="library" name="commons-lang3-3.14.0.jar" level="project"/>
         <orderEntry type="library" name="concurrent-reference-hash-map-1.1.0.jar" level="project"/>
         <orderEntry type="library" name="config_2.13-1.1.3.jar" level="project"/>
-        <orderEntry type="library" name="coursier-cache_2.13-2.1.25-M12.jar" level="project"/>
-        <orderEntry type="library" name="coursier-core_2.13-2.1.25-M12.jar" level="project"/>
-        <orderEntry type="library" name="coursier-env_2.13-2.1.25-M12.jar" level="project"/>
-        <orderEntry type="library" name="coursier-exec-2.1.25-M12.jar" level="project"/>
-        <orderEntry type="library" name="coursier-jvm_2.13-2.1.25-M12.jar" level="project"/>
-        <orderEntry type="library" name="coursier-proxy-setup-2.1.25-M12.jar" level="project"/>
-        <orderEntry type="library" name="coursier-util_2.13-2.1.25-M12.jar" level="project"/>
-        <orderEntry type="library" name="coursier_2.13-2.1.25-M12.jar" level="project"/>
+        <orderEntry type="library" name="coursier-cache_2.13-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier-core_2.13-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier-env_2.13-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier-exec-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier-jvm_2.13-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier-proxy-setup-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier-util_2.13-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier_2.13-2.1.25-M13.jar" level="project"/>
         <orderEntry type="library" name="dependency_2.13-0.3.2.jar" level="project"/>
         <orderEntry type="library" name="fansi_3-0.5.0.jar" level="project"/>
         <orderEntry type="library" name="fastparse_3-3.1.1.jar" level="project"/>
@@ -76,10 +76,11 @@
         <orderEntry type="library" name="mill-libs-testrunner-entrypoint.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-testrunner_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-moduledefs_3-0.11.3-M5.jar" level="project"/>
+        <orderEntry type="library" name="mill-moduledefs_3-0.11.4.jar" level="project"/>
         <orderEntry type="library" name="munit_3-0.7.29.jar" level="project"/>
         <orderEntry type="library" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
-        <orderEntry type="library" name="os-lib_3-0.11.5-M2.jar" level="project"/>
+        <orderEntry type="library" name="os-lib_3-0.11.5-M8.jar" level="project"/>
+        <orderEntry type="library" name="os-zip-0.11.5-M8.jar" level="project"/>
         <orderEntry type="library" name="plexus-archiver-4.10.0.jar" level="project"/>
         <orderEntry type="library" name="plexus-classworlds-2.6.0.jar" level="project"/>
         <orderEntry type="library" name="plexus-container-default-2.1.1.jar" level="project"/>
@@ -95,7 +96,7 @@
         <orderEntry type="library" name="scala-xml_2.13-2.3.0.jar" level="project"/>
         <orderEntry type="library" name="scala-xml_3-2.3.0.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-3.3.3.jar" level="project"/>
-        <orderEntry type="library" name="scala3-library_3-3.6.4.jar" level="project"/>
+        <orderEntry type="library" name="scala3-library_3-3.7.0.jar" level="project"/>
         <orderEntry type="library" name="slf4j-api-2.0.17.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="snakeyaml-engine-2.9.jar" level="project"/>
         <orderEntry type="library" name="sonatype-central-client-core_3-0.3.0.jar" level="project"/>
@@ -105,16 +106,17 @@
         <orderEntry type="library" name="specification-level_2.13-1.1.3.jar" level="project"/>
         <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>
         <orderEntry type="library" name="tika-core-3.1.0.jar" level="project"/>
-        <orderEntry type="library" name="ujson_3-4.1.0.jar" level="project"/>
-        <orderEntry type="library" name="upack_3-4.1.0.jar" level="project"/>
-        <orderEntry type="library" name="upickle-core_3-4.1.0.jar" level="project"/>
-        <orderEntry type="library" name="upickle-implicits_3-4.1.0.jar" level="project"/>
-        <orderEntry type="library" name="upickle_3-4.1.0.jar" level="project"/>
+        <orderEntry type="library" name="ujson_3-4.2.1.jar" level="project"/>
+        <orderEntry type="library" name="upack_3-4.2.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle-core_3-4.2.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle-implicits-named-tuples_3-4.2.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle-implicits_3-4.2.1.jar" level="project"/>
+        <orderEntry type="library" name="upickle_3-4.2.1.jar" level="project"/>
         <orderEntry type="library" name="versions_2.13-0.5.1.jar" level="project"/>
         <orderEntry type="library" name="windows-ansi-0.0.6.jar" level="project"/>
         <orderEntry type="library" name="windows-jni-utils-0.3.3.jar" level="project"/>
         <orderEntry type="library" name="xbean-reflect-3.7.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="xz-1.9.jar" level="project"/>
-        <orderEntry type="library" name="zstd-jni-1.5.7-2.jar" level="project"/>
+        <orderEntry type="library" name="zstd-jni-1.5.7-3.jar" level="project"/>
     </component>
 </module>

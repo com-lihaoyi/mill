@@ -1,11 +1,10 @@
 package mill.kotlinlib.ksp
 
 import mill.*
-import mill.define.PathRef
 import mill.api.Result
-import mill.define.Task
-import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
+import mill.define.{PathRef, Task}
+import mill.kotlinlib.worker.api.KotlinWorkerTarget
+import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 
 import java.io.File
 
@@ -40,8 +39,8 @@ trait KspModule extends KotlinModule { outer =>
    *
    * @return
    */
-  def kspPlugins: T[Agg[Dep]] = Task {
-    Agg(
+  def kspPlugins: T[Seq[Dep]] = Task {
+    Seq(
       mvn"com.google.devtools.ksp:symbol-processing-api:${kotlinVersion()}-${kspVersion()}",
       mvn"com.google.devtools.ksp:symbol-processing:${kotlinVersion()}-${kspVersion()}"
     )
@@ -51,7 +50,7 @@ trait KspModule extends KotlinModule { outer =>
     super.generatedSources() ++ generatedSourcesWithKSP().sources
   }
 
-  def kspPluginsResolved: T[Agg[PathRef]] = Task {
+  def kspPluginsResolved: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(kspPlugins())
   }
 
@@ -59,11 +58,11 @@ trait KspModule extends KotlinModule { outer =>
    * The symbol processors to be used by the Kotlin compiler.
    * Default is empty.
    */
-  def kotlinSymbolProcessors: T[Agg[Dep]] = Task {
-    Agg.empty[Dep]
+  def kotlinSymbolProcessors: T[Seq[Dep]] = Task {
+    Seq.empty[Dep]
   }
 
-  def kotlinSymbolProcessorsResolved: T[Agg[PathRef]] = Task {
+  def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       kotlinSymbolProcessors()
     )
@@ -154,9 +153,9 @@ trait KspModule extends KotlinModule { outer =>
     val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
 
     val kspProjectBasedDir = moduleDir
-    val kspOutputDir = T.dest / "generated/ksp/main"
+    val kspOutputDir = Task.dest / "generated/ksp/main"
 
-    val kspCachesDir = T.dest / "caches/main"
+    val kspCachesDir = Task.dest / "caches/main"
     val java = kspOutputDir / "java"
     val kotlin = kspOutputDir / "kotlin"
     val resources = kspOutputDir / "resources"
@@ -184,7 +183,7 @@ trait KspModule extends KotlinModule { outer =>
       s"Running Kotlin Symbol Processing for ${sourceFiles.size} Kotlin sources to ${kspOutputDir} ..."
     )
 
-    val compiledSources = T.dest / "compiled"
+    val compiledSources = Task.dest / "compiled"
     os.makeDir.all(compiledSources)
 
     val classpath = Seq(
@@ -198,9 +197,11 @@ trait KspModule extends KotlinModule { outer =>
 
     val compilerArgs: Seq[String] = classpath ++ kspCompilerArgs ++ sourceFiles.map(_.toString)
 
-    T.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
+    Task.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
 
-    kotlinWorkerTask().compile(KotlinWorkerTarget.Jvm, compilerArgs)
+    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath().map(_.path)) {
+      _._2.compile(KotlinWorkerTarget.Jvm, compilerArgs)
+    }
 
     GeneratedKSPSources(PathRef(java), PathRef(kotlin), PathRef(resources), PathRef(classes))
   }

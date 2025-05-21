@@ -29,7 +29,6 @@ import mill.api.internal.JvmBuildTarget
 import mill.api.internal.ResolvedModule
 import mill.api.internal.Scoped
 import mill.api.internal.internal
-import mill.define.Command
 import mill.define.ModuleRef
 import mill.define.PathRef
 import mill.define.Segment
@@ -441,7 +440,7 @@ trait JavaModule
    * Show the module dependencies.
    * @param recursive If `true` include all recursive module dependencies, else only show direct dependencies.
    */
-  def showModuleDeps(recursive: Boolean = false): Command[Unit] = {
+  def showModuleDeps(recursive: Boolean = false): Task.Command[Unit] = {
     // This is exclusive to avoid scrambled output
     Task.Command(exclusive = true) {
       val asString = formatModuleDeps(recursive, true)()
@@ -559,23 +558,38 @@ trait JavaModule
           // Standard dependencies, like above
           // We pull their compile scope when our compile scope is asked,
           // and pull their runtime scope when our runtime scope is asked.
-          Seq(
-            (cs.Configuration.compile, dep.withConfiguration(cs.Configuration.compile)),
-            (cs.Configuration.runtime, dep.withConfiguration(cs.Configuration.runtime))
-          )
+          if (dep.isVariantAttributesBased)
+            Seq(
+              (cs.Configuration.compile, dep),
+              (cs.Configuration.runtime, dep)
+            )
+          else
+            Seq(
+              (cs.Configuration.compile, dep.withConfiguration(cs.Configuration.compile)),
+              (cs.Configuration.runtime, dep.withConfiguration(cs.Configuration.runtime))
+            )
       } ++
         compileMvnDeps().map(bindDependency()).map(_.dep).map { dep =>
           // Compile-only (aka provided) dependencies, like above
           // We pull their compile scope when our provided scope is asked (see scopes above)
-          (cs.Configuration.provided, dep.withConfiguration(cs.Configuration.compile))
+          if (dep.isVariantAttributesBased)
+            (cs.Configuration.provided, dep)
+          else
+            (cs.Configuration.provided, dep.withConfiguration(cs.Configuration.compile))
         } ++
         runMvnDeps().map(bindDependency()).map(_.dep).map { dep =>
           // Runtime dependencies, like above
           // We pull their runtime scope when our runtime scope is pulled
-          (
-            cs.Configuration.runtime,
-            dep.withConfiguration(cs.Configuration.runtime)
-          )
+          if (dep.isVariantAttributesBased)
+            (
+              cs.Configuration.runtime,
+              dep
+            )
+          else
+            (
+              cs.Configuration.runtime,
+              dep.withConfiguration(cs.Configuration.runtime)
+            )
         } ++
         allBomDeps().map { bomDep =>
           // BOM dependencies
@@ -921,7 +935,17 @@ trait JavaModule
       ),
       artifactTypes = Some(artifactTypes()),
       resolutionParamsMapOpt =
-        Some((_: ResolutionParams).withDefaultConfiguration(coursier.core.Configuration.compile))
+        Some { params =>
+          params
+            .withDefaultConfiguration(coursier.core.Configuration.compile)
+            .withDefaultVariantAttributes(
+              cs.VariantSelector.AttributesBased(
+                params.defaultVariantAttributes.map(_.matchers).getOrElse(Map()) ++ Seq(
+                  "org.gradle.usage" -> cs.VariantSelector.VariantMatcher.Api
+                )
+              )
+            )
+        }
     )
   }
 
@@ -950,7 +974,17 @@ trait JavaModule
       ),
       artifactTypes = Some(artifactTypes()),
       resolutionParamsMapOpt =
-        Some((_: ResolutionParams).withDefaultConfiguration(cs.Configuration.runtime))
+        Some { params =>
+          params
+            .withDefaultConfiguration(coursier.core.Configuration.runtime)
+            .withDefaultVariantAttributes(
+              cs.VariantSelector.AttributesBased(
+                params.defaultVariantAttributes.map(_.matchers).getOrElse(Map()) ++ Seq(
+                  "org.gradle.usage" -> cs.VariantSelector.VariantMatcher.Runtime
+                )
+              )
+            )
+        }
     )
   }
 
@@ -1010,7 +1044,7 @@ trait JavaModule
    * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
    * publishing to Maven Central
    */
-  def docJar: T[PathRef] = T[PathRef] {
+  def docJar: T[PathRef] = Task[PathRef] {
     val outDir = Task.dest
 
     val javadocDir = outDir / "javadoc"
@@ -1091,17 +1125,18 @@ trait JavaModule
    * @param whatDependsOn possible list of modules to target in the tree in order to see
    *                      where a dependency stems from.
    */
-  protected def printDepsTree(
+  private def renderDepsTree(
       inverse: Boolean,
       additionalDeps: Task[Seq[BoundDep]],
       whatDependsOn: List[JavaOrScalaModule]
-  ): Task[Unit] =
+  ): Task[String] =
     Task.Anon {
       val dependencies =
         (additionalDeps() ++ Seq(BoundDep(coursierDependency, force = false))).iterator.to(Seq)
       val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
         allRepositories(),
         dependencies,
+        checkGradleModules = checkGradleModules(),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
         resolutionParams = resolutionParams()
@@ -1111,7 +1146,7 @@ trait JavaModule
         case List() =>
           val mandatoryModules =
             mandatoryMvnDeps().map(bindDependency()).iterator.map(_.dep.module).toSet
-          val (mandatory, main) = resolution.dependenciesOf(coursierDependency)
+          val (mandatory, main) = resolution.dependenciesOf0(coursierDependency).toTry.get
             .partition(dep => mandatoryModules.contains(dep.module))
           additionalDeps().iterator.toSeq.map(_.dep) ++ main ++ mandatory
         case _ =>
@@ -1143,71 +1178,76 @@ trait JavaModule
         .replace(":0+mill-internal ", " ")
         .replace(":0+mill-internal" + System.lineSeparator(), System.lineSeparator())
 
-      println(processedTree)
-
-      ()
+      processedTree
     }
 
   /**
    * Command to print the transitive dependency tree to STDOUT.
    */
-  def mvnDepsTree(args: MvnDepsTreeArgs = MvnDepsTreeArgs()): Command[Unit] = {
+  def showMvnDepsTree(args: MvnDepsTreeArgs = MvnDepsTreeArgs()): Command[String] = {
+    val treeTask = mvnDepsTree(args)
+    Task.Command(exclusive = true) {
+      val rendered = treeTask()
+      Task.log.streams.out.println(rendered)
+      rendered
+    }
+  }
 
-    val (invalidModules, validModules) =
-      args.whatDependsOn.map(ModuleParser.javaOrScalaModule(_)).partitionMap(identity)
+  protected def mvnDepsTree(args: MvnDepsTreeArgs): Task[String] = {
+    val (invalidModules, modules) =
+      args.whatDependsOn.partitionMap(ModuleParser.javaOrScalaModule)
 
-    if (invalidModules.isEmpty) {
-      (args.withCompile, args.withRuntime) match {
-        case (Flag(true), Flag(true)) =>
-          Task.Command {
-            printDepsTree(
-              args.inverse.value,
-              Task.Anon {
-                Seq(
-                  coursierDependency.withConfiguration(cs.Configuration.provided),
-                  coursierDependency.withConfiguration(cs.Configuration.runtime)
-                ).map(BoundDep(_, force = false))
-              },
-              validModules
-            )()
-          }
-        case (Flag(true), Flag(false)) =>
-          Task.Command {
-            printDepsTree(
-              args.inverse.value,
-              Task.Anon {
-                Seq(BoundDep(
-                  coursierDependency.withConfiguration(cs.Configuration.provided),
-                  force = false
-                ))
-              },
-              validModules
-            )()
-          }
-        case (Flag(false), Flag(true)) =>
-          Task.Command {
-            printDepsTree(
-              args.inverse.value,
-              Task.Anon {
-                Seq(BoundDep(
-                  coursierDependency.withConfiguration(cs.Configuration.runtime),
-                  force = false
-                ))
-              },
-              validModules
-            )()
-          }
-        case _ =>
-          Task.Command {
-            printDepsTree(args.inverse.value, Task.Anon { Seq.empty[BoundDep] }, validModules)()
-          }
-      }
-    } else {
-      Task.Command {
+    if (invalidModules.nonEmpty) {
+      Task.Anon {
         val msg = invalidModules.mkString("\n")
         Task.fail(msg)
       }
+    } else {
+      (args.withCompile, args.withRuntime) match {
+        case (Flag(true), Flag(true)) =>
+          renderDepsTree(
+            args.inverse.value,
+            Task.Anon {
+              Seq(
+                coursierDependency.withConfiguration(cs.Configuration.provided),
+                coursierDependency.withConfiguration(cs.Configuration.runtime)
+              ).map(BoundDep(_, force = false))
+            },
+            modules
+          )
+        case (Flag(true), Flag(false)) =>
+          renderDepsTree(
+            args.inverse.value,
+            Task.Anon {
+              Seq(BoundDep(
+                coursierDependency.withConfiguration(cs.Configuration.provided),
+                force = false
+              ))
+            },
+            modules
+          )
+        case (Flag(false), Flag(true)) =>
+          renderDepsTree(
+            args.inverse.value,
+            Task.Anon {
+              Seq(BoundDep(
+                coursierDependency.withConfiguration(cs.Configuration.runtime),
+                force = false
+              ))
+            },
+            modules
+          )
+        case _ =>
+          renderDepsTree(
+            args.inverse.value,
+            Task.Anon {
+              Seq.empty[BoundDep]
+            },
+            modules
+          )
+      }
     }
+
   }
 
   /**

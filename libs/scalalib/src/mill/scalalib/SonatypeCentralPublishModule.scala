@@ -38,7 +38,7 @@ trait SonatypeCentralPublishModule extends PublishModule {
   def publishSonatypeCentral(
       username: String = defaultCredentials,
       password: String = defaultCredentials
-  ): define.Command[Unit] =
+  ): Task.Command[Unit] =
     Task.Command {
       val publishData = publishArtifacts()
       val fileMapping = publishData.withConcretePath._1
@@ -108,6 +108,7 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
       env = Task.env,
       awaitTimeout = awaitTimeout
     )
+    Task.ctx().log.info(s"artifacts ${pprint.apply(artifacts)}")
     publisher.publishAll(
       getPublishingTypeFromReleaseFlag(shouldRelease),
       finalBundleName,

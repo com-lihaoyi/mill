@@ -1,21 +1,21 @@
 package mill.client.lock;
 
-import mill.constants.ServerFiles;
+import mill.constants.DaemonFiles;
 
 public final class Locks implements AutoCloseable {
 
-  public final Lock clientLock;
-  public final Lock processLock;
+  public final Lock launcherLock;
+  public final Lock daemonLock;
 
-  public Locks(Lock clientLock, Lock processLock) {
-    this.clientLock = clientLock;
-    this.processLock = processLock;
+  public Locks(Lock launcherLock, Lock daemonLock) {
+    this.launcherLock = launcherLock;
+    this.daemonLock = daemonLock;
   }
 
-  public static Locks files(String serverDir) throws Exception {
+  public static Locks files(String daemonDir) throws Exception {
     return new Locks(
-        new FileLock(serverDir + "/" + ServerFiles.clientLock),
-        new FileLock(serverDir + "/" + ServerFiles.processLock));
+        new FileLock(daemonDir + "/" + DaemonFiles.launcherLock),
+        new FileLock(daemonDir + "/" + DaemonFiles.daemonLock));
   }
 
   public static Locks memory() {
@@ -24,7 +24,7 @@ public final class Locks implements AutoCloseable {
 
   @Override
   public void close() throws Exception {
-    clientLock.delete();
-    processLock.delete();
+    launcherLock.delete();
+    daemonLock.delete();
   }
 }

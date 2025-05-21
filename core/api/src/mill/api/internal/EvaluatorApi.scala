@@ -35,15 +35,6 @@ object EvaluatorApi {
     def selectedTasks: Seq[TaskApi[?]]
     def executionResults: ExecutionResultsApi
   }
-
-  /**
-   * Holds all [[Evaluator]]s needed to evaluate the targets of the project and all it's bootstrap projects.
-   */
-  case class AllBootstrapEvaluators(value: Seq[EvaluatorApi])
-
-  private[mill] val allBootstrapEvaluators =
-    new DynamicVariable[AllBootstrapEvaluators](null)
-
 }
 
 trait ExecutionResultsApi {

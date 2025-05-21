@@ -3,13 +3,13 @@ package scalalib
 
 import mill.api.ExecResult
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 import mill.define.Discover
 
 object HelloJavaTests extends TestSuite {
 
-  object HelloJava extends TestBaseModule {
+  object HelloJava extends TestRootModule {
     object core extends JavaModule {
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
@@ -32,22 +32,23 @@ object HelloJavaTests extends TestSuite {
   def testEval() = UnitTester(HelloJava, resourcePath)
   def tests: Tests = Tests {
     test("compile") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val Right(result1) = eval.apply(HelloJava.core.compile): @unchecked
-      val Right(result2) = eval.apply(HelloJava.core.compile): @unchecked
-      val Right(result3) = eval.apply(HelloJava.app.compile): @unchecked
+        val Right(result1) = eval.apply(HelloJava.core.compile): @unchecked
+        val Right(result2) = eval.apply(HelloJava.core.compile): @unchecked
+        val Right(result3) = eval.apply(HelloJava.app.compile): @unchecked
 
-      assert(
-        result1.value == result2.value,
-        result2.evalCount == 0,
-        result3.evalCount != 0,
-        result3.evalCount != 0,
-        os.walk(result1.value.classes.path).exists(_.last == "Core.class"),
-        !os.walk(result1.value.classes.path).exists(_.last == "Main.class"),
-        os.walk(result3.value.classes.path).exists(_.last == "Main.class"),
-        !os.walk(result3.value.classes.path).exists(_.last == "Core.class")
-      )
+        assert(
+          result1.value == result2.value,
+          result2.evalCount == 0,
+          result3.evalCount != 0,
+          result3.evalCount != 0,
+          os.walk(result1.value.classes.path).exists(_.last == "Core.class"),
+          !os.walk(result1.value.classes.path).exists(_.last == "Main.class"),
+          os.walk(result3.value.classes.path).exists(_.last == "Main.class"),
+          !os.walk(result3.value.classes.path).exists(_.last == "Core.class")
+        )
+      }
     }
 
     test("semanticDbData") {
@@ -55,162 +56,168 @@ object HelloJavaTests extends TestSuite {
         os.rel / "META-INF/semanticdb/core/src/Core.java.semanticdb"
 
       test("fromScratch") {
-        val eval = testEval()
-        val Right(result) = eval.apply(HelloJava.core.semanticDbData): @unchecked
+        testEval().scoped { eval =>
+          val Right(result) = eval.apply(HelloJava.core.semanticDbData): @unchecked
 
-        val outputFiles =
-          os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
-        val dataPath = eval.outPath / "core/semanticDbData.dest/data"
+          val outputFiles =
+            os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
+          val dataPath = eval.outPath / "core/semanticDbData.dest/data"
 
-        assert(
-          result.value.path == dataPath,
-          outputFiles.nonEmpty,
-          outputFiles == Seq(expectedFile1),
-          result.evalCount > 0
-        )
+          assert(
+            result.value.path == dataPath,
+            outputFiles.nonEmpty,
+            outputFiles == Seq(expectedFile1),
+            result.evalCount > 0
+          )
 
-        // don't recompile if nothing changed
-        val Right(result2) = eval.apply(HelloJava.core.semanticDbData): @unchecked
-        assert(result2.evalCount == 0)
+          // don't recompile if nothing changed
+          val Right(result2) = eval.apply(HelloJava.core.semanticDbData): @unchecked
+          assert(result2.evalCount == 0)
+        }
       }
       test("incremental") {
-        val eval = testEval()
+        testEval().scoped { eval =>
 
-        // create a second source file
-        val secondFile = eval.evaluator.workspace / "core/src/hello/Second.java"
-        os.write(
-          secondFile,
-          """package hello;
-            |
-            |public class Second {
-            |    public static String msg() {
-            |        return "Hello World";
-            |    }
-            |}
-            |""".stripMargin,
-          createFolders = true
-        )
-        val thirdFile = eval.evaluator.workspace / "core/src/hello/Third.java"
-        os.write(
-          thirdFile,
-          """package hello;
-            |
-            |public class Third {
-            |    public static String msg() {
-            |        return "Hello World";
-            |    }
-            |}
-            |""".stripMargin,
-          createFolders = true
-        )
-        val Right(result) = eval.apply(HelloJava.core.semanticDbData): @unchecked
+          // create a second source file
+          val secondFile = eval.evaluator.workspace / "core/src/hello/Second.java"
+          os.write(
+            secondFile,
+            """package hello;
+              |
+              |public class Second {
+              |    public static String msg() {
+              |        return "Hello World";
+              |    }
+              |}
+              |""".stripMargin,
+            createFolders = true
+          )
+          val thirdFile = eval.evaluator.workspace / "core/src/hello/Third.java"
+          os.write(
+            thirdFile,
+            """package hello;
+              |
+              |public class Third {
+              |    public static String msg() {
+              |        return "Hello World";
+              |    }
+              |}
+              |""".stripMargin,
+            createFolders = true
+          )
+          val Right(result) = eval.apply(HelloJava.core.semanticDbData): @unchecked
 
-        val dataPath = eval.outPath / "core/semanticDbData.dest/data"
-        val outputFiles =
-          os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
+          val dataPath = eval.outPath / "core/semanticDbData.dest/data"
+          val outputFiles =
+            os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
-        val expectedFile2 =
-          os.rel / "META-INF/semanticdb/core/src/hello/Second.java.semanticdb"
-        val expectedFile3 =
-          os.rel / "META-INF/semanticdb/core/src/hello/Third.java.semanticdb"
-        assert(
-          result.value.path == dataPath,
-          outputFiles.nonEmpty,
-          outputFiles.toSet == Set(expectedFile1, expectedFile2, expectedFile3),
-          result.evalCount > 0
-        )
+          val expectedFile2 =
+            os.rel / "META-INF/semanticdb/core/src/hello/Second.java.semanticdb"
+          val expectedFile3 =
+            os.rel / "META-INF/semanticdb/core/src/hello/Third.java.semanticdb"
+          assert(
+            result.value.path == dataPath,
+            outputFiles.nonEmpty,
+            outputFiles.toSet == Set(expectedFile1, expectedFile2, expectedFile3),
+            result.evalCount > 0
+          )
 
-        // delete one, keep one, change one
-        os.remove(secondFile)
-        os.write.append(thirdFile, "  ")
+          // delete one, keep one, change one
+          os.remove(secondFile)
+          os.write.append(thirdFile, "  ")
 
-        val Right(result2) = eval.apply(HelloJava.core.semanticDbData): @unchecked
-        val files2 =
-          os.walk(result2.value.path).filter(os.isFile).map(_.relativeTo(result2.value.path))
-        assert(
-          files2.toSet == Set(expectedFile1, expectedFile3),
-          result2.evalCount > 0
-        )
+          val Right(result2) = eval.apply(HelloJava.core.semanticDbData): @unchecked
+          val files2 =
+            os.walk(result2.value.path).filter(os.isFile).map(_.relativeTo(result2.value.path))
+          assert(
+            files2.toSet == Set(expectedFile1, expectedFile3),
+            result2.evalCount > 0
+          )
+        }
       }
     }
     test("docJar") {
       test("withoutArgsFile") {
-        val eval = testEval()
-        val Right(result) = eval.apply(HelloJava.core.docJar): @unchecked
-        assert(
-          os.proc("jar", "tf", result.value.path).call().out.lines().contains("hello/Core.html")
-        )
+        testEval().scoped { eval =>
+          val Right(result) = eval.apply(HelloJava.core.docJar): @unchecked
+          assert(
+            os.proc("jar", "tf", result.value.path).call().out.lines().contains("hello/Core.html")
+          )
+        }
       }
       test("withArgsFile") {
-        val eval = testEval()
-        val Right(result) = eval.apply(HelloJava.app.docJar): @unchecked
-        assert(
-          os.proc("jar", "tf", result.value.path).call().out.lines().contains("hello/Main.html")
-        )
+        testEval().scoped { eval =>
+          val Right(result) = eval.apply(HelloJava.app.docJar): @unchecked
+          assert(
+            os.proc("jar", "tf", result.value.path).call().out.lines().contains("hello/Main.html")
+          )
+        }
       }
     }
     test("test") - {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val Left(ExecResult.Failure(ref1)) =
-        eval.apply(HelloJava.core.test.testForked()): @unchecked
+        val Left(ExecResult.Failure(ref1)) =
+          eval.apply(HelloJava.core.test.testForked()): @unchecked
 
-//      assert(
-//        v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",
-//        v1._2(1).fullyQualifiedName == "hello.MyCoreTests.java17Test",
-//        v1._2(2).fullyQualifiedName == "hello.MyCoreTests.lengthTest",
-//        v1._2(2).status == "Success",
-//        v1._2(3).fullyQualifiedName == "hello.MyCoreTests.msgTest",
-//        v1._2(3).status == "Failure"
-//      )
+        //      assert(
+        //        v1._2(0).fullyQualifiedName == "hello.MyCoreTests.java11Test",
+        //        v1._2(1).fullyQualifiedName == "hello.MyCoreTests.java17Test",
+        //        v1._2(2).fullyQualifiedName == "hello.MyCoreTests.lengthTest",
+        //        v1._2(2).status == "Success",
+        //        v1._2(3).fullyQualifiedName == "hello.MyCoreTests.msgTest",
+        //        v1._2(3).status == "Failure"
+        //      )
 
-      val Right(result2) = eval.apply(HelloJava.app.test.testForked()): @unchecked
+        val Right(result2) = eval.apply(HelloJava.app.test.testForked()): @unchecked
 
-      assert(
-        result2.value._2(0).fullyQualifiedName == "hello.MyAppTests.appTest",
-        result2.value._2(0).status == "Success",
-        result2.value._2(1).fullyQualifiedName == "hello.MyAppTests.coreTest",
-        result2.value._2(1).status == "Success"
-      )
+        assert(
+          result2.value.results(0).fullyQualifiedName == "hello.MyAppTests.appTest",
+          result2.value.results(0).status == "Success",
+          result2.value.results(1).fullyQualifiedName == "hello.MyAppTests.coreTest",
+          result2.value.results(1).status == "Success"
+        )
 
-      val Right(result3) = eval.apply(HelloJava.app.testJunit5.testForked()): @unchecked
+        val Right(result3) = eval.apply(HelloJava.app.testJunit5.testForked()): @unchecked
 
-      val testResults =
-        result3.value._2.map(t => (t.fullyQualifiedName, t.selector, t.status)).sorted
-      val expected = Seq(
-        ("hello.Junit5TestsA", "coreTest()", "Success"),
-        ("hello.Junit5TestsA", "palindromes(String):1", "Success"),
-        ("hello.Junit5TestsA", "palindromes(String):2", "Success"),
-        ("hello.Junit5TestsA", "skippedTest()", "Skipped"),
-        ("hello.Junit5TestsB", "packagePrivateTest()", "Success")
-      )
+        val testResults =
+          result3.value.results.map(t => (t.fullyQualifiedName, t.selector, t.status)).sorted
+        val expected = Seq(
+          ("hello.Junit5TestsA", "coreTest()", "Success"),
+          ("hello.Junit5TestsA", "palindromes(String):1", "Success"),
+          ("hello.Junit5TestsA", "palindromes(String):2", "Success"),
+          ("hello.Junit5TestsA", "skippedTest()", "Skipped"),
+          ("hello.Junit5TestsB", "packagePrivateTest()", "Success")
+        )
 
-      assert(testResults == expected)
+        assert(testResults == expected)
+      }
     }
     test("failures") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val mainJava = HelloJava.moduleDir / "app/src/Main.java"
-      val coreJava = HelloJava.moduleDir / "core/src/Core.java"
+        val mainJava = HelloJava.moduleDir / "app/src/Main.java"
+        val coreJava = HelloJava.moduleDir / "core/src/Core.java"
 
-      val Right(_) = eval.apply(HelloJava.core.compile): @unchecked
-      val Right(_) = eval.apply(HelloJava.app.compile): @unchecked
+        val Right(_) = eval.apply(HelloJava.core.compile): @unchecked
+        val Right(_) = eval.apply(HelloJava.app.compile): @unchecked
 
-      os.write.over(mainJava, os.read(mainJava) + "}")
+        os.write.over(mainJava, os.read(mainJava) + "}")
 
-      val Right(_) = eval.apply(HelloJava.core.compile): @unchecked
-      val Left(_) = eval.apply(HelloJava.app.compile): @unchecked
+        val Right(_) = eval.apply(HelloJava.core.compile): @unchecked
+        val Left(_) = eval.apply(HelloJava.app.compile): @unchecked
 
-      os.write.over(coreJava, os.read(coreJava) + "}")
+        os.write.over(coreJava, os.read(coreJava) + "}")
 
-      val Left(_) = eval.apply(HelloJava.core.compile): @unchecked
-      val Left(_) = eval.apply(HelloJava.app.compile): @unchecked
+        val Left(_) = eval.apply(HelloJava.core.compile): @unchecked
+        val Left(_) = eval.apply(HelloJava.app.compile): @unchecked
 
-      os.write.over(mainJava, os.read(mainJava).dropRight(1))
-      os.write.over(coreJava, os.read(coreJava).dropRight(1))
+        os.write.over(mainJava, os.read(mainJava).dropRight(1))
+        os.write.over(coreJava, os.read(coreJava).dropRight(1))
 
-      val Right(_) = eval.apply(HelloJava.core.compile): @unchecked
-      val Right(_) = eval.apply(HelloJava.app.compile): @unchecked
+        val Right(_) = eval.apply(HelloJava.core.compile): @unchecked
+        val Right(_) = eval.apply(HelloJava.app.compile): @unchecked
+      }
     }
   }
 }

@@ -11,7 +11,7 @@ object ZincBuildCompilationTests extends UtestIntegrationTestSuite {
 
       val initial = eval(("dummy"))
 
-      assert(initial.err.contains("compiling 2 Scala sources"))
+      assert(initial.err.contains("compiling 5 Scala sources"))
 
       val cached = eval(("dummy"))
       assert(!cached.err.contains("compiling"))

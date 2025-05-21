@@ -17,19 +17,18 @@ import java.util.stream.Stream;
 import mill.client.ClientUtil;
 import mill.constants.BuildInfo;
 import mill.constants.CodeGenConstants;
+import mill.constants.DaemonFiles;
 import mill.constants.EnvVars;
-import mill.constants.ServerFiles;
 
 public class MillProcessLauncher {
 
   static int launchMillNoServer(String[] args) throws Exception {
-    final boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
-    final Path processDir = Paths.get(".").resolve(out).resolve(millNoServer).resolve(sig);
+    final Path processDir = Paths.get(".").resolve(out).resolve(millNoDaemon).resolve(sig);
 
     final List<String> l = new ArrayList<>();
-    l.addAll(millLaunchJvmCommand(setJnaNoSys));
-    l.add("mill.daemon.MillMain");
+    l.addAll(millLaunchJvmCommand());
+    l.add("mill.daemon.MillNoDaemonMain");
     l.add(processDir.toAbsolutePath().toString());
     l.addAll(millOpts());
     l.addAll(Arrays.asList(args));
@@ -57,23 +56,23 @@ public class MillProcessLauncher {
     }
   }
 
-  static void launchMillServer(Path serverDir, boolean setJnaNoSys) throws Exception {
+  static void launchMillServer(Path daemonDir) throws Exception {
     List<String> l = new ArrayList<>();
-    l.addAll(millLaunchJvmCommand(setJnaNoSys));
-    l.add("mill.daemon.MillServerMain");
-    l.add(serverDir.toFile().getCanonicalPath());
+    l.addAll(millLaunchJvmCommand());
+    l.add("mill.daemon.MillDaemonMain");
+    l.add(daemonDir.toFile().getCanonicalPath());
 
     ProcessBuilder builder = new ProcessBuilder()
         .command(l)
-        .redirectOutput(serverDir.resolve(ServerFiles.stdout).toFile())
-        .redirectError(serverDir.resolve(ServerFiles.stderr).toFile());
+        .redirectOutput(daemonDir.resolve(DaemonFiles.stdout).toFile())
+        .redirectError(daemonDir.resolve(DaemonFiles.stderr).toFile());
 
-    configureRunMillProcess(builder, serverDir);
+    configureRunMillProcess(builder, daemonDir);
   }
 
-  static Process configureRunMillProcess(ProcessBuilder builder, Path serverDir) throws Exception {
+  static Process configureRunMillProcess(ProcessBuilder builder, Path daemonDir) throws Exception {
 
-    Path sandbox = serverDir.resolve(ServerFiles.sandbox);
+    Path sandbox = daemonDir.resolve(DaemonFiles.sandbox);
     Files.createDirectories(sandbox);
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
     builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());
@@ -116,14 +115,16 @@ public class MillProcessLauncher {
               "yaml-config-" + key, mill.constants.Util.readYamlHeader(buildFile), () -> {
                 Object conf = mill.launcher.ConfigReader.readYaml(buildFile);
                 if (!(conf instanceof Map)) return new String[] {};
-                Map<String, List<String>> conf2 = (Map<String, List<String>>) conf;
+                Map<String, Object> conf2 = (Map<String, Object>) conf;
 
                 if (!conf2.containsKey(key)) return new String[] {};
                 if (conf2.get(key) instanceof List) {
-                  return (String[]) ((List) conf2.get(key))
-                      .stream()
-                          .map(x -> mill.constants.Util.interpolateEnvVars(x.toString(), env))
-                          .toArray(String[]::new);
+                  List<String> list = (List<String>) conf2.get(key);
+                  String[] arr = new String[list.size()];
+                  for (int i = 0; i < arr.length; i++) {
+                    arr[i] = mill.constants.Util.interpolateEnvVars(list.get(i), env);
+                  }
+                  return arr;
                 } else {
                   return new String[] {
                     mill.constants.Util.interpolateEnvVars(conf2.get(key).toString(), env)
@@ -202,16 +203,11 @@ public class MillProcessLauncher {
     }
   }
 
-  static List<String> millLaunchJvmCommand(boolean setJnaNoSys) throws Exception {
+  static List<String> millLaunchJvmCommand() throws Exception {
     final List<String> vmOptions = new ArrayList<>();
 
     // Java executable
     vmOptions.add(javaExe());
-
-    // jna
-    if (setJnaNoSys) {
-      vmOptions.add("-Djna.nosys=true");
-    }
 
     // sys props
     final Properties sysProps = System.getProperties();
@@ -222,7 +218,9 @@ public class MillProcessLauncher {
     }
 
     String serverTimeout = millServerTimeout();
-    if (serverTimeout != null) vmOptions.add("-D" + "mill.server_timeout" + "=" + serverTimeout);
+    if (serverTimeout != null) vmOptions.add("-Dmill.server_timeout=" + serverTimeout);
+    // https://github.com/com-lihaoyi/mill/issues/5083
+    vmOptions.add("-Dscalac.filebasedcache.defer.close.ms=0");
 
     // extra opts
     vmOptions.addAll(millJvmOpts());
@@ -230,10 +228,12 @@ public class MillProcessLauncher {
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
     String[] runnerClasspath = cachedComputedValue0(
-        "resolve-runner",
-        BuildInfo.millVersion,
-        () -> CoursierClient.resolveMillDaemon(),
-        arr -> Arrays.stream(arr).allMatch(s -> Files.exists(Paths.get(s))));
+        "resolve-runner", BuildInfo.millVersion, () -> CoursierClient.resolveMillDaemon(), arr -> {
+          for (String s : arr) {
+            if (!Files.exists(Paths.get(s))) return false;
+          }
+          return true;
+        });
     vmOptions.add(String.join(File.pathSeparator, runnerClasspath));
 
     return vmOptions;
@@ -314,7 +314,7 @@ public class MillProcessLauncher {
     canUseNativeTerminal = canUse;
   }
 
-  static void writeTerminalDims(boolean tputExists, Path serverDir) throws Exception {
+  static void writeTerminalDims(boolean tputExists, Path daemonDir) throws Exception {
     String str;
 
     try {
@@ -347,7 +347,7 @@ public class MillProcessLauncher {
     //
     String oldValue = memoizedTerminalDims.getAndSet(str);
     if ((oldValue == null) || !oldValue.equals(str)) {
-      Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
+      Files.write(daemonDir.resolve(DaemonFiles.terminfo), str.getBytes());
     }
   }
 
@@ -361,23 +361,21 @@ public class MillProcessLauncher {
     }
   }
 
-  public static void prepareMillRunFolder(Path serverDir) throws Exception {
+  public static void prepareMillRunFolder(Path daemonDir) throws Exception {
     // Clear out run-related files from the server folder to make sure we
     // never hit issues where we are reading the files from a previous run
-    Files.deleteIfExists(serverDir.resolve(ServerFiles.exitCode));
-    Files.deleteIfExists(serverDir.resolve(ServerFiles.terminfo));
-    Files.deleteIfExists(serverDir.resolve(ServerFiles.runArgs));
+    Files.deleteIfExists(daemonDir.resolve(DaemonFiles.terminfo));
 
-    Path sandbox = serverDir.resolve(ServerFiles.sandbox);
+    Path sandbox = daemonDir.resolve(DaemonFiles.sandbox);
     Files.createDirectories(sandbox);
     boolean tputExists = checkTputExists();
 
-    writeTerminalDims(tputExists, serverDir);
+    writeTerminalDims(tputExists, daemonDir);
     Thread termInfoPropagatorThread = new Thread(
         () -> {
           try {
             while (true) {
-              writeTerminalDims(tputExists, serverDir);
+              writeTerminalDims(tputExists, daemonDir);
               Thread.sleep(100);
             }
           } catch (Exception e) {

@@ -1,11 +1,12 @@
 package build.dist
-import build.MillJavaModule
+
 import mill.*
 import scalalib.*
 import publish.*
 import mill.define.ModuleRef
 import mill.util.Jvm
 //import de.tobiasroeser.mill.vcs.version.VcsVersion
+import millbuild.*
 
 import scala.util.Using
 
@@ -13,7 +14,7 @@ trait DistModule extends Module {
   // All modules that we want to aggregate as part of this `dev` assembly.
   // Excluding itself, and the `dist` module that uses it
   lazy val allPublishModules = build.moduleInternal.modules.collect {
-    case m: build.MillPublishJavaModule => m
+    case m: MillPublishJavaModule => m
   }
 
   def executableRaw: T[PathRef]
@@ -25,7 +26,7 @@ trait DistModule extends Module {
 
   def localBinName: String
 
-  def cacheBinarySuffix: String = ""
+  def cacheBinarySuffix: Task[String] = Task.Anon("")
 
   /**
    * Build and install Mill locally.
@@ -43,7 +44,7 @@ trait DistModule extends Module {
   def installLocalCache() = Task.Command {
     val path = installLocalTask(
       Task.Anon(
-        (os.home / ".cache/mill/download" / (build.millVersion() + cacheBinarySuffix + batExt)).toString()
+        (os.home / ".cache/mill/download" / (build.millVersion() + cacheBinarySuffix() + batExt)).toString()
       )
     )()
     Task.log.streams.out.println(path.toString())
@@ -62,10 +63,34 @@ trait DistModule extends Module {
   }
 
   def artifactName: T[String]
+  def artifact = Task { Artifact(Settings.pomOrg, artifactName(), build.millVersion()) }
+  def pomSettings = Task { MillPublishJavaModule.commonPomSettings(artifactName()) }
+
+  def artifactFileNamePrefix = Task { s"${artifactName()}-${build.millVersion()}" }
+  def pom: T[PathRef] = Task {
+    val pom = Pom(
+      artifact = artifact(),
+      dependencies = Nil,
+      name = artifactName(),
+      pomSettings = pomSettings(),
+      properties = Map(),
+      packagingType = "jar",
+      parentProject = None,
+      bomDependencies = Nil,
+      dependencyManagement = Nil
+    )
+    val pomPath = Task.dest / s"${artifactFileNamePrefix()}.pom"
+    os.write.over(pomPath, pom)
+    PathRef(pomPath)
+  }
+
   def publishArtifacts = Task {
     PublishModule.PublishData(
-      meta = Artifact(build.Settings.pomOrg, artifactName(), build.millVersion()),
-      payload = Seq(executableRaw() -> s"${artifactName()}-${build.millVersion()}.jar")
+      meta = artifact(),
+      payload = Seq(
+        executableRaw() -> s"${artifactFileNamePrefix()}.exe",
+        pom() -> s"${artifactFileNamePrefix()}.pom"
+      )
     )
   }
 }
@@ -75,7 +100,7 @@ object `package` extends MillJavaModule with DistModule {
   def moduleDeps = Seq(build.runner.launcher)
 
   def transitiveLocalTestOverrides = Map(
-    Task.traverse(allPublishModules)(_.localTestOverride)(): _*
+    Task.traverse(allPublishModules)(_.localTestOverride)()*
   )
 
   def localBinName = "mill-assembly.jar"
@@ -112,7 +137,7 @@ object `package` extends MillJavaModule with DistModule {
     val script = Jvm.launcherUniversalScript(
       mainClass = mainClass().get,
       shellClassPath = classpath,
-      cmdClassPath = Agg(classpathJar.toString()),
+      cmdClassPath = Seq(classpathJar.toString()),
       jvmArgs = jvmArgs
     )
 
@@ -212,7 +237,7 @@ object `package` extends MillJavaModule with DistModule {
       os.copy(examplePath.path, Task.dest / exampleStr, createFolders = true)
       val ignoreErrorsOnCI = Task.dest / exampleStr / "ignoreErrorsOnCI"
       if (os.exists(ignoreErrorsOnCI)) os.remove(ignoreErrorsOnCI)
-      os.write(Task.dest / exampleStr / ".mill-version", build.millLastTag())
+      os.write(Task.dest / exampleStr / ".mill-version", build.millVersion())
       os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
       os.copy(bootstrapLauncherBat().path, Task.dest / exampleStr / "mill.bat")
       val zip = Task.dest / s"$exampleStr.zip"
@@ -224,8 +249,11 @@ object `package` extends MillJavaModule with DistModule {
   def publishArtifacts = Task {
     super.publishArtifacts().copy(payload =
       super.publishArtifacts().payload ++
-        exampleZips().map(z => (z, z.path.last)) ++
-        Seq((bootstrapLauncher(), "mill"), (bootstrapLauncherBat(), "mill.bat"))
+        exampleZips().map(z => (z, s"${artifactFileNamePrefix()}-${z.path.last}")) ++
+        Seq(
+          (bootstrapLauncher(), s"${artifactFileNamePrefix()}-mill.sh"),
+          (bootstrapLauncherBat(), s"${artifactFileNamePrefix()}-mill.bat")
+        )
     )
   }
 
@@ -248,8 +276,9 @@ object `package` extends MillJavaModule with DistModule {
       }
     }
 
+    def nativeSuffix = Task { s"${artifactOsSuffix()}-${artifactCpuSuffix()}" }
     def artifactName = Task {
-      s"${build.dist.artifactName()}-native-${artifactOsSuffix()}-${artifactCpuSuffix()}"
+      s"${build.dist.artifactName()}-native-${nativeSuffix()}"
     }
 
     // Use assembly jar as the upstream ivy classpath rather than using runClasspath
@@ -261,7 +290,7 @@ object `package` extends MillJavaModule with DistModule {
 
     def localBinName = "mill-native"
 
-    def cacheBinarySuffix = "-native"
+    def cacheBinarySuffix = Task.Anon { s"-native-${artifactOsSuffix()}-${artifactCpuSuffix()}" }
 
     def executableRaw = nativeImage()
 
@@ -277,7 +306,7 @@ object `package` extends MillJavaModule with DistModule {
     def jvmWorker = ModuleRef(JvmWorkerGraalvm)
 
     object JvmWorkerGraalvm extends JvmWorkerModule {
-      def jvmId = build.Settings.graalvmJvmId
+      def jvmId = Settings.graalvmJvmId
     }
   }
 }

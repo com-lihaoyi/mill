@@ -5,7 +5,7 @@ import mill.define.ExecutionPaths
 import mill.T
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import os.FilePath
 import utest.*
 import mill.util.TokenReaders._
@@ -14,7 +14,7 @@ object BspModuleTests extends TestSuite {
 
   val testScalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
-  object MultiBase extends TestBaseModule {
+  object MultiBase extends TestRootModule {
     object HelloBsp extends ScalaModule {
       def scalaVersion = testScalaVersion
       override def mvnDeps = Seq(mvn"org.slf4j:slf4j-api:1.7.34")
@@ -27,7 +27,7 @@ object BspModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object InterDeps extends TestBaseModule {
+  object InterDeps extends TestRootModule {
     val maxCrossCount = 15
     val configs = 1.to(maxCrossCount)
     object Mod extends Cross[ModCross](configs)

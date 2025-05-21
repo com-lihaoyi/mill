@@ -7,7 +7,6 @@ import java.util.Collections;
 import mill.client.*;
 import mill.client.lock.Locks;
 import mill.constants.OutFiles;
-import mill.constants.Util;
 
 /**
  * This is a Java implementation to speed up repetitive starts.
@@ -18,9 +17,10 @@ public class MillLauncherMain {
     boolean runNoServer = false;
     if (args.length > 0) {
       String firstArg = args[0];
-      runNoServer = Arrays.asList("--interactive", "--no-server", "--repl", "--bsp", "--help")
-              .contains(firstArg)
-          || firstArg.startsWith("-i");
+      runNoServer =
+          Arrays.asList("--interactive", "--no-server", "--no-daemon", "--repl", "--bsp", "--help")
+                  .contains(firstArg)
+              || firstArg.startsWith("-i");
     }
     if (!runNoServer) {
       // WSL2 has the directory /run/WSL/ and WSL1 not.
@@ -50,35 +50,22 @@ public class MillLauncherMain {
                 optsArgs.toArray(new String[0]),
                 null,
                 -1) {
-              public void initServer(Path serverDir, boolean setJnaNoSys, Locks locks)
-                  throws Exception {
-                MillProcessLauncher.launchMillServer(serverDir, setJnaNoSys);
+              public void initServer(Path daemonDir, Locks locks) throws Exception {
+                MillProcessLauncher.launchMillServer(daemonDir);
               }
 
-              public void preRun(Path serverDir) throws Exception {
-                MillProcessLauncher.prepareMillRunFolder(serverDir);
+              public void preparedaemonDir(Path daemonDir) throws Exception {
+                MillProcessLauncher.prepareMillRunFolder(daemonDir);
               }
             };
 
-        final String versionAndJvmHomeEncoding =
-            Util.md5hex(mill.client.BuildInfo.millVersion + MillProcessLauncher.javaHome());
-        Path serverDir0 = Paths.get(OutFiles.out, OutFiles.millServer, versionAndJvmHomeEncoding);
-        int exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
+        Path daemonDir0 = Paths.get(OutFiles.out, OutFiles.millDaemon);
+        String javaHome = MillProcessLauncher.javaHome();
+        int exitCode = launcher.run(daemonDir0, javaHome).exitCode;
         if (exitCode == ClientUtil.ExitServerCodeWhenVersionMismatch()) {
-          exitCode = launcher.acquireLocksAndRun(serverDir0).exitCode;
+          exitCode = launcher.run(daemonDir0, javaHome).exitCode;
         }
         System.exit(exitCode);
-      } catch (ServerCouldNotBeStarted e) {
-        // TODO: try to run in-process
-        System.err.println("Could not start a Mill server process.\n"
-            + "This could be caused by too many already running Mill instances "
-            + "or by an unsupported platform.\n"
-            + e.getMessage() + "\n");
-
-        System.err.println(
-            "Loading Mill in-process isn't possible.\n" + "Please check your Mill installation!");
-        throw e;
-
       } catch (Exception e) {
         System.err.println("Mill client failed with unknown exception");
         e.printStackTrace();

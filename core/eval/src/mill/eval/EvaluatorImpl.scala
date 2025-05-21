@@ -64,7 +64,7 @@ final class EvaluatorImpl private[mill] (
   }
 
   /**
-   * Takes query selector tokens and resolves them to a list of [[NamedTask]]s
+   * Takes query selector tokens and resolves them to a list of [[Task.Named]]s
    * representing concrete tasks or modules that match that selector
    */
   def resolveTasks(
@@ -72,9 +72,9 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): mill.api.Result[List[NamedTask[?]]] = {
+  ): mill.api.Result[List[Task.Named[?]]] = {
     os.checker.withValue(ResolveChecker(workspace)) {
-      Evaluator.currentEvaluator0.withValue(this) {
+      Evaluator.withCurrentEvaluator(this) {
         Resolve.Tasks.resolve(
           rootModule,
           scriptArgs,
@@ -90,9 +90,9 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): mill.api.Result[List[Either[Module, NamedTask[?]]]] = {
+  ): mill.api.Result[List[Either[Module, Task.Named[?]]]] = {
     os.checker.withValue(ResolveChecker(workspace)) {
-      Evaluator.currentEvaluator0.withValue(this) {
+      Evaluator.withCurrentEvaluator(this) {
         Resolve.Inspect.resolve(
           rootModule,
           scriptArgs,
@@ -145,7 +145,7 @@ final class EvaluatorImpl private[mill] (
       if (!selectiveExecutionEnabled) (targets, Map.empty, None)
       else {
         val (named, unnamed) =
-          targets.partitionMap { case n: NamedTask[?] => Left(n); case t => Right(t) }
+          targets.partitionMap { case n: Task.Named[?] => Left(n); case t => Right(t) }
         val newComputedMetadata = SelectiveExecutionImpl.Metadata.compute(this, named)
 
         val selectiveExecutionStoredData = for {
@@ -184,11 +184,11 @@ final class EvaluatorImpl private[mill] (
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.transitiveResults.iterator ++ selectiveResults)
           .collect {
-            case (t: SourcesImpl, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
+            case (t: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
               ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
-            case (t: SourceImpl, ExecResult.Success(Val(p: PathRef))) =>
+            case (t: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
               Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
-            case (t: InputImpl[_], result) =>
+            case (t: Task.Input[_], result) =>
 
               val ctx = new mill.define.TaskCtx.Impl(
                 args = Vector(),
@@ -250,7 +250,7 @@ final class EvaluatorImpl private[mill] (
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
     val resolved = os.checker.withValue(ResolveChecker(workspace)) {
-      Evaluator.currentEvaluator0.withValue(this) {
+      Evaluator.withCurrentEvaluator(this) {
         Resolve.Tasks.resolve(
           rootModule,
           scriptArgs,

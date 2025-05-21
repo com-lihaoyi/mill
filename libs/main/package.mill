@@ -7,25 +7,26 @@ import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
 import mill.scalalib.api.JvmWorkerUtil
+import millbuild.*
 
 /**
  * This package encapsulates the entire classpath that is available within the `build.mill`
  * file, for use by build authors or plugin authors. All the various language `*lib` modules,
  * the available `core.*` modules, and builtin tasks defined on the top-level `build` object.
  */
-object `package` extends build.MillStableScalaModule {
+object `package` extends MillStableScalaModule {
 
   def moduleDeps = Seq(
     build.core.util,
     build.core.define,
     build.libs.init
   )
-  def mvnDeps = Agg(
-    build.Deps.nativeTerminal,
-    build.Deps.coursierInterface,
-    build.Deps.logback,
-    build.Deps.jgraphtCore,
-    build.Deps.millModuledefs,
+  def mvnDeps = Seq(
+    Deps.nativeTerminal,
+    Deps.coursierInterface,
+    Deps.logback,
+    Deps.jgraphtCore,
+    Deps.millModuledefs,
     mvn"guru.nidi:graphviz-java-min-deps:0.18.1"
       // We only need the in-memory library for some stuff, and don't
       // need the heavyweight v8 binary that comes bundled with it
@@ -36,8 +37,8 @@ object `package` extends build.MillStableScalaModule {
   )
 
   def compileMvnDeps = Task {
-    if (JvmWorkerUtil.isScala3(scalaVersion())) Agg.empty
-    else Agg(build.Deps.scalaReflect(scalaVersion()))
+    if (JvmWorkerUtil.isScala3(scalaVersion())) Seq.empty
+    else Seq(Deps.scalaReflect(scalaVersion()))
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)

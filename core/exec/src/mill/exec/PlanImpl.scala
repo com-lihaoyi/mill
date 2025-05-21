@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.define.{NamedTask, Task, Plan}
+import mill.define.{Task, Plan}
 import mill.define.MultiBiMap
 import mill.define.internal.TopoSorted
 
@@ -13,7 +13,7 @@ private[mill] object PlanImpl {
     val sortedGroups: MultiBiMap[Task[?], Task[?]] =
       PlanImpl.groupAroundImportantTargets(topoSorted) {
         // important: all named tasks and those explicitly requested
-        case t: NamedTask[Any] => t
+        case t: Task.Named[Any] => t
         case t if goalSet.contains(t) => t
       }
 
@@ -59,8 +59,8 @@ private[mill] object PlanImpl {
   def transitiveTargets(sourceTargets: Seq[Task[?]]): IndexedSeq[Task[?]] = {
     transitiveNodes(sourceTargets)(_.inputs)
   }
-  def transitiveNamed(sourceTargets: Seq[Task[?]]): Seq[NamedTask[?]] = {
-    transitiveTargets(sourceTargets).collect { case t: NamedTask[?] => t }
+  def transitiveNamed(sourceTargets: Seq[Task[?]]): Seq[Task.Named[?]] = {
+    transitiveTargets(sourceTargets).collect { case t: Task.Named[?] => t }
   }
 
   /**

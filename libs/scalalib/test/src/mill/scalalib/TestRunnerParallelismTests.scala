@@ -2,12 +2,12 @@ package mill.scalalib
 
 import mill.T
 import mill.define.Discover
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.util.TokenReaders.*
 
 object TestRunnerParallelismTests extends TestSuite {
-  object utestSingleTest extends TestBaseModule with ScalaModule with TestModule.Utest {
+  object utestSingleTest extends TestRootModule with ScalaModule with TestModule.Utest {
     override def scalaVersion: T[String] = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     override def utestVersion = sys.props.getOrElse("TEST_UTEST_VERSION", ???)

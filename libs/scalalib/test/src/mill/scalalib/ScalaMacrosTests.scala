@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.*
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
 import scala.util.Properties
@@ -9,7 +9,7 @@ import HelloWorldTests.*
 import mill.define.Discover
 object ScalaMacrosTests extends TestSuite {
 
-  object HelloWorldMacros212 extends TestBaseModule {
+  object HelloWorldMacros212 extends TestRootModule {
     object core extends ScalaModule {
       override def scalaVersion = scala212Version
       override def mvnDeps = Seq(
@@ -22,7 +22,7 @@ object ScalaMacrosTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object HelloWorldMacros213 extends TestBaseModule {
+  object HelloWorldMacros213 extends TestRootModule {
     object core extends ScalaModule {
       override def scalaVersion = scala213Version
       override def mvnDeps = Seq(mvn"com.github.julien-truffaut::monocle-macro::2.1.0")

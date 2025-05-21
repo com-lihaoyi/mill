@@ -1,13 +1,13 @@
 package mill.exec
 
-import mill.define.{Discover, TargetImpl, Task}
+import mill.define.{Discover, Task}
 import mill.util.TestGraphs
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.{PathRef, exec}
 import utest.*
 
 object ExecutionTests extends TestSuite {
-  object traverseBuild extends TestBaseModule {
+  object traverseBuild extends TestRootModule {
     trait TaskModule extends mill.Module {
       def x = 1
       def task = Task { x }
@@ -26,13 +26,13 @@ object ExecutionTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object anonTaskFailure extends TestBaseModule {
+  object anonTaskFailure extends TestRootModule {
     def anon = Task.Anon[Int] { throw new Exception("boom") }
 
     def task = Task[Int] { anon() }
     lazy val millDiscover = Discover[this.type]
   }
-  class Checker[T <: mill.testkit.TestBaseModule](module: T)
+  class Checker[T <: mill.testkit.TestRootModule](module: T)
       extends exec.Checker(module)
 
   val tests = Tests {
@@ -45,7 +45,7 @@ object ExecutionTests extends TestSuite {
     }
 
     test("source") {
-      object build extends TestBaseModule {
+      object build extends TestRootModule {
         def source = Task.Source { "hello/world.txt" }
         def task = Task { os.read(source().path) + " !" }
         lazy val millDiscover = Discover[this.type]
@@ -80,7 +80,7 @@ object ExecutionTests extends TestSuite {
       )
     }
     test("sources") {
-      object build extends TestBaseModule {
+      object build extends TestRootModule {
         def source = Task.Sources("hello/world.txt", "hello/world2.txt")
         def task = Task { source().map(pr => os.read(pr.path)).mkString + "!" }
         lazy val millDiscover = Discover[this.type]
@@ -126,7 +126,7 @@ object ExecutionTests extends TestSuite {
 
     test("input") {
       var x = 10
-      object build extends TestBaseModule {
+      object build extends TestRootModule {
         def input = Task.Input { x }
         def task = Task { input() + 1 }
         lazy val millDiscover = Discover[this.type]
@@ -150,7 +150,7 @@ object ExecutionTests extends TestSuite {
 
     test("dest") {
       var x = 10
-      object build extends TestBaseModule {
+      object build extends TestRootModule {
         def input = Task.Input { x }
         def task = Task {
           assert(!os.exists(Task.dest / "file.txt"))
@@ -182,7 +182,7 @@ object ExecutionTests extends TestSuite {
 
     test("persistent") {
       var x = 10
-      object build extends TestBaseModule {
+      object build extends TestRootModule {
         def input = Task.Input { x }
         def task = Task(persistent = true) {
           val file = Task.dest / "file.txt"
@@ -222,7 +222,7 @@ object ExecutionTests extends TestSuite {
         var closed = false
       }
 
-      object build extends TestBaseModule {
+      object build extends TestRootModule {
         def input = Task.Input { x }
         def worker = Task.Worker { new MyWorker(input()) }
         lazy val millDiscover = Discover[this.type]
@@ -246,7 +246,7 @@ object ExecutionTests extends TestSuite {
     test("command") {
       var x = 10
       var y = 0
-      object build extends TestBaseModule {
+      object build extends TestRootModule {
         def input = Task.Input { x }
         def command(n: Int) = Task.Command { y += input() + n }
         lazy val millDiscover = Discover[this.type]
@@ -268,7 +268,7 @@ object ExecutionTests extends TestSuite {
     test("anon") {
       var x = 10
       var y = 0
-      object build extends TestBaseModule {
+      object build extends TestRootModule {
         def input = Task.Input { x }
         def anon = Task.Anon { y += input() }
         lazy val millDiscover = Discover[this.type]
@@ -290,7 +290,7 @@ object ExecutionTests extends TestSuite {
     test("error") {
       var x = 10
       var y = 0
-      object build extends TestBaseModule {
+      object build extends TestRootModule {
         def input = Task.Input { x }
         def task = Task { y += 100 / input() }
         lazy val millDiscover = Discover[this.type]
@@ -307,7 +307,7 @@ object ExecutionTests extends TestSuite {
     }
 
     test("sequence") {
-      object build extends TestBaseModule {
+      object build extends TestRootModule {
         def task1 = Task { 1 }
         def task2 = Task { 10 }
         def task3 = Task { 100 }
@@ -325,7 +325,7 @@ object ExecutionTests extends TestSuite {
     }
 
     test("zip") {
-      object build extends TestBaseModule {
+      object build extends TestRootModule {
         def task1 = Task { 1 }
         def task2 = Task { 10 }
         def task4 = task1.zip(task2)
@@ -337,7 +337,7 @@ object ExecutionTests extends TestSuite {
     }
 
     test("map") {
-      object build extends TestBaseModule {
+      object build extends TestRootModule {
         def task1 = Task { 1 }
         def task2 = task1.map(_ + 10)
 
@@ -375,7 +375,7 @@ object ExecutionTests extends TestSuite {
 
     test("nullTasks") {
 
-      object nullTasks extends TestBaseModule {
+      object nullTasks extends TestRootModule {
         val nullString: String = null
         def nullTask1 = Task.Anon { nullString }
         def nullTask2 = Task.Anon { nullTask1() }

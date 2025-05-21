@@ -251,7 +251,7 @@ object hello extends ScalaModule with DockerNative {
   object dockerNative extends DockerNativeConfig {
     // Native Image parameters
     def nativeImageName         = "hello"
-    def nativeImageGraalVmJvmId = T("graalvm-java17:22.3.2")
+    def nativeImageGraalVmJvmId = Task {"graalvm-java17:22.3.2"}
     def nativeImageClassPath    = runClasspath()
     def nativeImageMainClass    = "com.domain.Hello.Hello"
     // GraalVM parameters depending on your application needs
