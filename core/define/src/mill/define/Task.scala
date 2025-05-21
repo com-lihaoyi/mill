@@ -151,14 +151,14 @@ object Task {
   inline def Sources(inline values: Result[os.Path]*)(implicit
       inline ctx: mill.define.ModuleCtx
   ): Cached[Seq[PathRef]] = ${
-    TaskMacros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx)
+    Macros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx)
   }
 
   inline def Sources(inline values: os.SubPath*)(implicit
       inline ctx: mill.define.ModuleCtx,
       dummy: Boolean = true
   ): Cached[Seq[PathRef]] = ${
-    TaskMacros.sourcesImpl(
+    Macros.sourcesImpl(
       '{ values.map(sub => PathRef(ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk(sub))) }
     )('ctx)
   }
@@ -170,12 +170,12 @@ object Task {
   inline def Source(inline value: Result[os.Path])(implicit
       inline ctx: mill.define.ModuleCtx
   ): Cached[PathRef] =
-    ${ TaskMacros.sourceImpl('{ value.map(PathRef(_)) })('ctx) }
+    ${ Macros.sourceImpl('{ value.map(PathRef(_)) })('ctx) }
 
   inline def Source(inline value: os.SubPath)(implicit
       inline ctx: mill.define.ModuleCtx
   ): Cached[PathRef] =
-    ${ TaskMacros.sourceImpl('{ PathRef(ctx.millSourcePath / os.up / value) })('ctx) }
+    ${ Macros.sourceImpl('{ PathRef(ctx.millSourcePath / os.up / value) })('ctx) }
 
   /**
    * [[Input]]s, normally defined using `Task.Input`, are [[Task.Named]]s that
@@ -197,7 +197,7 @@ object Task {
       inline w: Writer[T],
       inline ctx: ModuleCtx
   ): Cached[T] =
-    ${ TaskMacros.inputImpl[T]('value)('w, 'ctx) }
+    ${ Macros.inputImpl[T]('value)('w, 'ctx) }
 
   /**
    * [[Command]]s are only [[Task.Named]]s defined using
@@ -210,7 +210,7 @@ object Task {
       inline w: Writer[T],
       inline ctx: ModuleCtx
   ): Command[T] =
-    ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, persistent = '{ false }) }
+    ${ Macros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, persistent = '{ false }) }
 
   /**
    * @param exclusive Exclusive commands run serially at the end of an evaluation,
@@ -232,7 +232,7 @@ object Task {
         inline w: Writer[T],
         inline ctx: ModuleCtx
     ): Command[T] =
-      ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }, '{ this.persistent }) }
+      ${ Macros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }, '{ this.persistent }) }
   }
 
   /**
@@ -250,7 +250,7 @@ object Task {
    * what in-memory state the worker may have.
    */
   inline def Worker[T](inline t: Result[T])(implicit inline ctx: mill.define.ModuleCtx): Worker[T] =
-    ${ TaskMacros.workerImpl2[T]('t)('ctx) }
+    ${ Macros.workerImpl2[T]('t)('ctx) }
 
   /**
    * Creates an anonymous `Task`. These depend on other tasks and
@@ -261,13 +261,13 @@ object Task {
   inline def Anon[T](inline t: Result[T])(implicit
       inline enclosing: sourcecode.Enclosing
   ): Task[T] =
-    ${ TaskMacros.anonTaskImpl[T]('t, 'enclosing) }
+    ${ Macros.anonTaskImpl[T]('t, 'enclosing) }
 
   inline def apply[T](inline t: Result[T])(implicit
       inline rw: ReadWriter[T],
       inline ctx: mill.define.ModuleCtx
   ): Cached[T] =
-    ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
+    ${ Macros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
   /**
    * Persistent tasks are defined using
@@ -290,7 +290,7 @@ object Task {
     inline def apply[T](inline t: Result[T])(implicit
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
-    ): Cached[T] = ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
+    ): Cached[T] = ${ Macros.targetResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
   abstract class Ops[+T] { this: Task[T] =>
@@ -382,13 +382,13 @@ object Task {
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
     ): Cached[T] =
-      ${ TaskMacros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
+      ${ Macros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
     implicit inline def create[T](inline t: Result[T])(implicit
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
     ): Cached[T] =
-      ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
+      ${ Macros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
   }
 
@@ -403,7 +403,66 @@ object Task {
       s"Task.Anon@${System.identityHashCode(this).toHexString}(${enclosing.value})"
   }
 
-  private object TaskMacros {
+  class Command[+T](
+      val inputs: Seq[Task[Any]],
+      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+      val ctx0: mill.define.ModuleCtx,
+      val writer: Writer[?],
+      val isPrivate: Option[Boolean],
+      val exclusive: Boolean,
+      override val persistent: Boolean
+  ) extends Task.Named[T] {
+
+    override def asCommand: Some[Command[T]] = Some(this)
+    // FIXME: deprecated return type: Change to Option
+    override def writerOpt: Some[Writer[?]] = Some(writer)
+  }
+
+  class Worker[+T](
+      val inputs: Seq[Task[Any]],
+      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+      val ctx0: mill.define.ModuleCtx,
+      val isPrivate: Option[Boolean]
+  ) extends Task.Named[T] {
+    override def persistent = false
+    override def asWorker: Some[Worker[T]] = Some(this)
+  }
+
+  class Input[T](
+      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+      val ctx0: mill.define.ModuleCtx,
+      val writer: upickle.default.Writer[?],
+      val isPrivate: Option[Boolean]
+  ) extends Cached[T] {
+    val inputs = Nil
+    override def sideHash: Int = util.Random.nextInt()
+    // FIXME: deprecated return type: Change to Option
+    override def writerOpt: Some[Writer[?]] = Some(writer)
+  }
+
+  class Sources(
+      evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[Seq[PathRef]],
+      ctx0: mill.define.ModuleCtx,
+      isPrivate: Option[Boolean]
+  ) extends Input[Seq[PathRef]](
+        evaluate0,
+        ctx0,
+        upickle.default.readwriter[Seq[PathRef]],
+        isPrivate
+      ) {}
+
+  class Source(
+      evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[PathRef],
+      ctx0: mill.define.ModuleCtx,
+      isPrivate: Option[Boolean]
+  ) extends Input[PathRef](
+        evaluate0,
+        ctx0,
+        upickle.default.readwriter[PathRef],
+        isPrivate
+      ) {}
+
+  private object Macros {
     def appImpl[M[_]: Type, T: Type](using
         Quotes
     )(
@@ -529,63 +588,4 @@ object Task {
       Cacher.impl0(expr)
     }
   }
-
-  class Command[+T](
-      val inputs: Seq[Task[Any]],
-      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-      val ctx0: mill.define.ModuleCtx,
-      val writer: Writer[?],
-      val isPrivate: Option[Boolean],
-      val exclusive: Boolean,
-      override val persistent: Boolean
-  ) extends Task.Named[T] {
-
-    override def asCommand: Some[Command[T]] = Some(this)
-    // FIXME: deprecated return type: Change to Option
-    override def writerOpt: Some[Writer[?]] = Some(writer)
-  }
-
-  class Worker[+T](
-      val inputs: Seq[Task[Any]],
-      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-      val ctx0: mill.define.ModuleCtx,
-      val isPrivate: Option[Boolean]
-  ) extends Task.Named[T] {
-    override def persistent = false
-    override def asWorker: Some[Worker[T]] = Some(this)
-  }
-
-  class Input[T](
-      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-      val ctx0: mill.define.ModuleCtx,
-      val writer: upickle.default.Writer[?],
-      val isPrivate: Option[Boolean]
-  ) extends Cached[T] {
-    val inputs = Nil
-    override def sideHash: Int = util.Random.nextInt()
-    // FIXME: deprecated return type: Change to Option
-    override def writerOpt: Some[Writer[?]] = Some(writer)
-  }
-
-  class Sources(
-      evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[Seq[PathRef]],
-      ctx0: mill.define.ModuleCtx,
-      isPrivate: Option[Boolean]
-  ) extends Input[Seq[PathRef]](
-        evaluate0,
-        ctx0,
-        upickle.default.readwriter[Seq[PathRef]],
-        isPrivate
-      ) {}
-
-  class Source(
-      evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[PathRef],
-      ctx0: mill.define.ModuleCtx,
-      isPrivate: Option[Boolean]
-  ) extends Input[PathRef](
-        evaluate0,
-        ctx0,
-        upickle.default.readwriter[PathRef],
-        isPrivate
-      ) {}
 }
