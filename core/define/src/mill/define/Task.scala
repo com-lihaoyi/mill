@@ -32,7 +32,7 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
   def evaluate(args: mill.define.TaskCtx): Result[T]
 
   /**
-   * Even if this tasks's inputs did not change, does it need to re-evaluate
+   * Even if this task's inputs did not change, does it need to re-evaluate
    * anyway?
    */
   def sideHash: Int = 0
