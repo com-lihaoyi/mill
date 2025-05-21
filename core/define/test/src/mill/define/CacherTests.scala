@@ -1,7 +1,7 @@
 package mill.define
 
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import mill.Task
 import mill.api.Result.Success
 import utest._
@@ -11,7 +11,7 @@ object CacherTests extends TestSuite {
   object Base extends Base {
     lazy val millDiscover = Discover[this.type]
   }
-  trait Base extends TestBaseModule {
+  trait Base extends TestRootModule {
     def value = Task { 1 }
     def result = Task { Success(1) }
   }
@@ -30,9 +30,10 @@ object CacherTests extends TestSuite {
   }
 
   val tests = Tests {
-    def eval[T <: mill.testkit.TestBaseModule, V](mapping: T, v: Task[V])(implicit tp: TestPath) = {
-      val evaluator = UnitTester(mapping, null)
-      evaluator(v).toOption.get.value
+    def eval[T <: mill.testkit.TestRootModule, V](mapping: T, v: Task[V])(implicit tp: TestPath) = {
+      UnitTester(mapping, null).scoped { evaluator =>
+        evaluator(v).toOption.get.value
+      }
     }
 
     test("simpleDefIsCached") {

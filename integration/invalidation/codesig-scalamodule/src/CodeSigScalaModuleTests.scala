@@ -108,10 +108,10 @@ object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
           "\n\n\n" +
             s.replace("\n  def scalaVersion", "\n\n  def scalaVersion")
               .replace("\n  def sources = T{\n", "\n\n  def sources = T{\n\n")
-              .replace("\n  def compile = T {\n", "\n\n  def compile = T {\n\n")
+              .replace("\n  def compile = Task {\n", "\n\n  def compile = Task {\n\n")
               .replace(
-                "\n  def run(args: Task[Args] = T.task(Args())) = T.command {\n",
-                "\n\n  def run(args: Task[Args] = T.task(Args())) = T.command {\n\n"
+                "\n  def run(args: Task[Args] = Task.task(Args())) = Task.command {\n",
+                "\n\n  def run(args: Task[Args] = Task.task(Args())) = Task.command {\n\n"
               )
       )
       val mangledFoo6 = eval("foo.run")

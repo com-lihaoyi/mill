@@ -2,35 +2,32 @@ package build.core.define
 
 import mill._
 import mill.scalalib._
+import millbuild.*
 
 /**
  * This module contains the data types necessary for defining a Mill build:
  * defining Tasks, Modules, helper code, and other related data structures.
  */
-object `package` extends build.MillStableScalaModule {
+object `package` extends MillStableScalaModule {
   def moduleDeps = Seq(build.core.api)
 
   def compileMvnDeps = Task {
-    if (scalaVersion().startsWith("3.")) Agg(build.Deps.scalaCompiler(scalaVersion()))
-    else Agg(build.Deps.scalaReflect(scalaVersion()))
+    if (scalaVersion().startsWith("3.")) Seq(Deps.scalaCompiler(scalaVersion()))
+    else Seq(Deps.scalaReflect(scalaVersion()))
   }
 
-  def mvnDeps = Agg(
-    build.Deps.millModuledefs,
+  def mvnDeps = Seq(
+    Deps.millModuledefs,
     // TODO: somewhere sourcecode is included transitively,
     // but we need the latest version to bring the macro improvements.
-    build.Deps.sourcecode,
-    build.Deps.osLib,
-    build.Deps.mainargs,
-    build.Deps.upickle,
-    build.Deps.pprint,
-    build.Deps.fansi,
-    // Necessary so we can share the JNA classes throughout the build process
-    build.Deps.jna,
-    build.Deps.jnaPlatform,
-    build.Deps.jarjarabrams,
-    build.Deps.mainargs,
-    build.Deps.scalaparse,
-    mvn"org.apache.commons:commons-lang3:3.16.0"
+    Deps.sourcecode,
+    Deps.osLib,
+    Deps.mainargs,
+    Deps.upickle,
+    Deps.upickleNamedTuples,
+    Deps.pprint,
+    Deps.fansi,
+    Deps.mainargs,
+    Deps.fastparse
   )
 }

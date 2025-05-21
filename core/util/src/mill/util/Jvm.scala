@@ -1,16 +1,17 @@
 package mill.util
 
 import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
-import coursier.core.{BomDependency, Module}
-import mill.define.{PathRef, TaskCtx}
+import coursier.core.{BomDependency, Module, VariantSelector}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
+import coursier.maven.MavenRepositoryLike
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.*
+import mill.define.{PathRef, TaskCtx}
 
 import java.io.BufferedOutputStream
 import java.io.File
@@ -220,16 +221,15 @@ object Jvm {
       classPath: Iterable[os.Path],
       parent: ClassLoader = null,
       sharedLoader: ClassLoader = getClass.getClassLoader,
-      sharedPrefixes: Iterable[String] = Seq()
-  ): URLClassLoader =
-    new URLClassLoader(
-      classPath.iterator.map(_.toNIO.toUri.toURL).toArray,
-      refinePlatformParent(parent)
-    ) {
-      override def findClass(name: String): Class[?] =
-        if (sharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
-        else super.findClass(name)
-    }
+      sharedPrefixes: Iterable[String] = Seq(),
+      label: String = null
+  )(implicit e: sourcecode.Enclosing): MillURLClassLoader = new MillURLClassLoader(
+    classPath.map(_.toNIO),
+    parent,
+    sharedLoader,
+    sharedPrefixes,
+    Option(label).getOrElse(e.value)
+  )
 
   /**
    * @param classPath URLs from which to load classes and resources
@@ -242,11 +242,16 @@ object Jvm {
   def withClassLoader[T](
       classPath: Iterable[os.Path],
       parent: ClassLoader = null,
+      sharedLoader: ClassLoader = getClass.getClassLoader,
       sharedPrefixes: Seq[String] = Seq.empty
   )(f: ClassLoader => T): T = {
     val oldClassloader = Thread.currentThread().getContextClassLoader
-    val newClassloader =
-      createClassLoader(classPath = classPath, parent = parent, sharedPrefixes = sharedPrefixes)
+    val newClassloader = createClassLoader(
+      classPath = classPath,
+      parent = parent,
+      sharedLoader = sharedLoader,
+      sharedPrefixes = sharedPrefixes
+    )
     Thread.currentThread().setContextClassLoader(newClassloader)
     try {
       f(newClassloader)
@@ -436,46 +441,6 @@ object Jvm {
     PathRef(outputPath)
   }
 
-  /**
-   * Return `ClassLoader.getPlatformClassLoader` for java 9 and above, if parent class loader is null,
-   * otherwise return same parent class loader.
-   * More details: https://docs.oracle.com/javase/9/migrate/toc.htm#JSMIG-GUID-A868D0B9-026F-4D46-B979-901834343F9E
-   *
-   * `ClassLoader.getPlatformClassLoader` call is implemented via runtime reflection, cause otherwise
-   * mill could be compiled only with jdk 9 or above. We don't want to introduce this restriction now.
-   */
-  private def refinePlatformParent(parent: java.lang.ClassLoader): ClassLoader = {
-    if (parent != null) parent
-    else if (java9OrAbove) {
-      // Make sure when `parent == null`, we only delegate java.* classes
-      // to the parent getPlatformClassLoader. This is necessary because
-      // in Java 9+, somehow the getPlatformClassLoader ends up with all
-      // sorts of other non-java stuff on it's classpath, which is not what
-      // we want for an "isolated" classloader!
-      classOf[ClassLoader]
-        .getMethod("getPlatformClassLoader")
-        .invoke(null)
-        .asInstanceOf[ClassLoader]
-    } else {
-      // With Java 8 we want a clean classloader that still contains classes
-      // coming from com.sun.* etc.
-      // We get the application classloader parent which happens to be of
-      // type sun.misc.Launcher$ExtClassLoader
-      // We can't call the method directly since it would not compile on Java 9+
-      // So we load it via reflection to allow compilation in Java 9+ but only
-      // on Java 8
-      val launcherClass = getClass.getClassLoader().loadClass("sun.misc.Launcher")
-      val getLauncherMethod = launcherClass.getMethod("getLauncher")
-      val launcher = getLauncherMethod.invoke(null)
-      val getClassLoaderMethod = launcher.getClass().getMethod("getClassLoader")
-      val appClassLoader = getClassLoaderMethod.invoke(launcher).asInstanceOf[ClassLoader]
-      appClassLoader.getParent()
-    }
-  }
-
-  private val java9OrAbove: Boolean =
-    !System.getProperty("java.specification.version").startsWith("1.")
-
   private def coursierCache(
       ctx: Option[mill.define.TaskCtx],
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
@@ -499,6 +464,7 @@ object Jvm {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency] = Nil,
+      checkGradleModules: Boolean,
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
@@ -511,6 +477,7 @@ object Jvm {
       repositories,
       deps,
       force,
+      checkGradleModules,
       mapDependencies,
       customizer,
       ctx,
@@ -526,6 +493,10 @@ object Jvm {
         .withClassifiers(
           if (sources) Set(Classifier("sources"))
           else Set.empty
+        )
+        .withAttributes(
+          if (sources) Seq(VariantSelector.AttributesBased.sources)
+          else Nil
         )
         .withArtifactTypesOpt(artifactTypes)
         .eitherResult()
@@ -556,6 +527,7 @@ object Jvm {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
+      checkGradleModules: Boolean,
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
@@ -568,6 +540,7 @@ object Jvm {
       repositories,
       deps,
       force,
+      checkGradleModules,
       sources,
       mapDependencies,
       customizer,
@@ -576,9 +549,11 @@ object Jvm {
       artifactTypes,
       resolutionParams
     ).map { res =>
-      res.files
-        .map(os.Path(_))
-        .map(PathRef(_, quick = true))
+      mill.define.BuildCtx.withFilesystemCheckerDisabled {
+        res.files
+          .map(os.Path(_))
+          .map(PathRef(_, quick = true))
+      }
     }
 
   def jvmIndex(
@@ -654,6 +629,7 @@ object Jvm {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
+      checkGradleModules: Boolean,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.define.TaskCtx] = None,
@@ -680,11 +656,7 @@ object Jvm {
     val testOverridesClassloaders = System.getenv("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH") match {
       case null => Nil
       case cp =>
-        cp.split(';').map { s =>
-          val url = os.Path(s).toNIO.toUri.toURL
-          mill.constants.DebugLog.println("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH " + url)
-          new java.net.URLClassLoader(Array(url))
-        }.toList
+        cp.split(';').map { s => createClassLoader(Array(os.Path(s))) }.toList
     }
 
     try {
@@ -695,10 +667,20 @@ object Jvm {
       val resourceTestOverridesRepo =
         new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
 
+      val repositories0 =
+        if (checkGradleModules)
+          repositories.map {
+            case m: MavenRepositoryLike.WithModuleSupport =>
+              m.withCheckModule(true)
+            case other => other
+          }
+        else
+          repositories
+
       val resolve = Resolve()
         .withCache(coursierCache0)
         .withDependencies(rootDeps)
-        .withRepositories(Seq(resourceTestOverridesRepo) ++ envTestOverridesRepo ++ repositories)
+        .withRepositories(Seq(resourceTestOverridesRepo) ++ envTestOverridesRepo ++ repositories0)
         .withResolutionParams(resolutionParams0)
         .withMapDependenciesOpt(mapDependencies)
         .withBoms(boms.iterator.toSeq)

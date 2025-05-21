@@ -1,20 +1,21 @@
 package build.runner.bsp
-// imports
+
 import mill._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
+import millbuild.*
 
-object `package` extends build.MillPublishScalaModule with BuildInfo {
+object `package` extends MillPublishScalaModule with BuildInfo {
   def compileModuleDeps = Seq(build.libs.scalalib)
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
   def buildInfoPackageName = "mill.bsp"
 
   def buildInfoMembers = Task {
-    val workerDep = worker.publishSelfDependency()
+    val workerDep = worker.artifactMetadata()
     Seq(
       BuildInfo.Value(
         "bsp4jVersion",
-        build.Deps.bsp4j.version,
+        Deps.bsp4j.version,
         "BSP4j version (BSP Protocol version)."
       ),
       BuildInfo.Value("millVersion", build.millVersion(), "Mill version.")
@@ -29,20 +30,20 @@ object `package` extends build.MillPublishScalaModule with BuildInfo {
       super.forkEnv()
     }
 
-    def forkArgs = super.forkArgs() ++ Seq(s"-DBSP4J_VERSION=${build.Deps.bsp4j.version}")
+    def forkArgs = super.forkArgs() ++ Seq(s"-DBSP4J_VERSION=${Deps.bsp4j.version}")
   }
 
-  object worker extends build.MillPublishScalaModule {
+  object worker extends MillPublishScalaModule {
     def moduleDeps = Seq(build.runner.server)
     def compileModuleDeps = Seq(
       build.runner.bsp,
-      build.runner.server.client,
+      build.runner.client,
       build.core.api
     ) ++ build.libs.scalalib.compileModuleDeps
-    def mvnDeps = Agg(
-      build.Deps.bsp4j,
-      build.Deps.sbtTestInterface,
-      build.Deps.osLib
+    def mvnDeps = Seq(
+      Deps.bsp4j,
+      Deps.sbtTestInterface,
+      Deps.osLib
     )
   }
 }

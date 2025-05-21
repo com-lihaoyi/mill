@@ -23,7 +23,7 @@ object ExecutionPaths {
   }
   def resolve(
       outPath: os.Path,
-      task: NamedTask[?]
+      task: Task.Named[?]
   ): ExecutionPaths = resolve(outPath, task.ctx.segments)
 
   // case-insensitive match on reserved names

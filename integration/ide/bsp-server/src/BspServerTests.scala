@@ -43,7 +43,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         stdout = os.Inherit,
         stderr = os.Inherit,
         check = true,
-        env = Map("MILL_MAIN_CLI" -> tester.millExecutable.toString)
+        env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
       )
 
       withBspServer(

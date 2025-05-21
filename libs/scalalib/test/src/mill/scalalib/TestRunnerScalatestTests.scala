@@ -10,7 +10,7 @@ object TestRunnerScalatestTests extends TestSuite {
   override def tests: Tests = Tests {
     test("test") - UnitTester(testrunner, resourcePath).scoped { eval =>
       val Right(result) = eval(testrunner.scalatest.testForked()): @unchecked
-      assert(result.value._2.size == 9)
+      assert(result.value.results.size == 9)
       junitReportIn(eval.outPath, "scalatest").shouldHave(9 -> Status.Success)
     }
     test("discoveredTestClasses") - UnitTester(testrunner, resourcePath).scoped { eval =>

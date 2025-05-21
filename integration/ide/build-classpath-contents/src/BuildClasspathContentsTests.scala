@@ -1,6 +1,6 @@
-import mill.define.WorkspaceRoot.workspaceRoot
+import mill.define.BuildCtx.workspaceRoot
 import mill.testkit.UtestIntegrationTestSuite
-import utest.{assert, *}
+import utest.*
 
 object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
 
@@ -43,7 +43,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
           "mill-libs-testrunner-entrypoint.jar",
           "mill-libs-testrunner_3.jar",
           "mill-libs_3.jar",
-          "mill-moduledefs_3-0.11.3-M5.jar"
+          "mill-moduledefs_3-0.11.4.jar"
         )
 
         assert(millPublishedJars == expected)

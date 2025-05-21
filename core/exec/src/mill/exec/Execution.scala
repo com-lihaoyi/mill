@@ -281,13 +281,13 @@ private[mill] case class Execution(
     }
 
     val tasks0 = terminals0.filter {
-      case c: Command[_] => false
+      case c: Task.Command[_] => false
       case _ => true
     }
 
     val tasksTransitive = PlanImpl.transitiveTargets(Seq.from(tasks0)).toSet
     val (tasks, leafExclusiveCommands) = terminals0.partition {
-      case t: NamedTask[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
+      case t: Task.Named[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
       case _ => !serialCommandExec
     }
 

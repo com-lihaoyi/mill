@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import coursier.core.{Configuration, DependencyManagement}
-import mill.define.{Command, ExternalModule, Task, TaskModule}
+import mill.define.{ExternalModule, Task, TaskModule}
 import mill.define.PathRef
 import mill.api.Result
 import mill.util.JarManifest
@@ -79,10 +79,6 @@ trait PublishModule extends JavaModule { outer =>
    */
   def versionScheme: T[Option[VersionScheme]] = Task { None }
 
-  def publishSelfDependency: T[Artifact] = Task {
-    Artifact(pomSettings().organization, artifactId(), publishVersion())
-  }
-
   def publishMvnDeps
       : Task[(Map[coursier.core.Module, String], DependencyManagement.Map) => Seq[Dependency]] =
     Task.Anon {
@@ -119,13 +115,13 @@ trait PublishModule extends JavaModule { outer =>
           .filter(!ivyPomDeps.contains(_))
 
         val modulePomDeps = Task.sequence(moduleDepsChecked.collect {
-          case m: PublishModule => m.publishSelfDependency
+          case m: PublishModule => m.artifactMetadata
         })()
         val compileModulePomDeps = Task.sequence(compileModuleDepsChecked.collect {
-          case m: PublishModule => m.publishSelfDependency
+          case m: PublishModule => m.artifactMetadata
         })()
         val runModulePomDeps = Task.sequence(runModuleDepsChecked.collect {
-          case m: PublishModule => m.publishSelfDependency
+          case m: PublishModule => m.artifactMetadata
         })()
 
         ivyPomDeps ++
@@ -150,13 +146,13 @@ trait PublishModule extends JavaModule { outer =>
       .filter(!ivyPomDeps.contains(_))
 
     val modulePomDeps = Task.sequence(moduleDepsChecked.collect {
-      case m: PublishModule => m.publishSelfDependency
+      case m: PublishModule => m.artifactMetadata
     })()
     val compileModulePomDeps = Task.sequence(compileModuleDepsChecked.collect {
-      case m: PublishModule => m.publishSelfDependency
+      case m: PublishModule => m.artifactMetadata
     })()
     val runModulePomDeps = Task.sequence(runModuleDepsChecked.collect {
-      case m: PublishModule => m.publishSelfDependency
+      case m: PublishModule => m.artifactMetadata
     })()
 
     ivyPomDeps ++
@@ -344,7 +340,7 @@ trait PublishModule extends JavaModule { outer =>
       sources: Boolean = true,
       doc: Boolean = true,
       transitive: Boolean = false
-  ): define.Command[Unit] = Task.Command {
+  ): Task.Command[Unit] = Task.Command {
     publishLocalTask(
       Task.Anon {
         Option(localIvyRepo).map(os.Path(_, Task.workspace))
@@ -355,12 +351,6 @@ trait PublishModule extends JavaModule { outer =>
     )()
     ()
   }
-
-  // bin-compat shim
-  def publishLocal(
-      localIvyRepo: String
-  ): define.Command[Unit] =
-    publishLocal(localIvyRepo, sources = true, doc = true, transitive = false)
 
   /**
    * Publish artifacts the local ivy repository.
@@ -385,7 +375,7 @@ trait PublishModule extends JavaModule { outer =>
       val publishTransitiveModuleDeps = (transitiveModuleDeps ++ transitiveRunModuleDeps).collect {
         case p: PublishModule => p
       }
-      Target.traverse(publishTransitiveModuleDeps.distinct) { publishMod =>
+      Task.traverse(publishTransitiveModuleDeps.distinct) { publishMod =>
         publishMod.publishLocalTask(localIvyRepo, sources, doc, transitive = false)
       }.map(_.flatten)
     } else {
@@ -418,7 +408,7 @@ trait PublishModule extends JavaModule { outer =>
    *                   If not set, falls back to `maven.repo.local` system property or `~/.m2/repository`
    * @return [[PathRef]]s to published files.
    */
-  def publishM2Local(m2RepoPath: String = null): Command[Seq[PathRef]] = m2RepoPath match {
+  def publishM2Local(m2RepoPath: String = null): Task.Command[Seq[PathRef]] = m2RepoPath match {
     case null => Task.Command { publishM2LocalTask(Task.Anon { publishM2LocalRepoPath() })() }
     case p => Task.Command { publishM2LocalTask(Task.Anon { os.Path(p, Task.workspace) })() }
   }
@@ -516,7 +506,7 @@ trait PublishModule extends JavaModule { outer =>
       connectTimeout: Int = 30 * 60 * 1000,
       awaitTimeout: Int = 30 * 60 * 1000,
       stagingRelease: Boolean = true
-  ): define.Command[Unit] = Task.Command {
+  ): Task.Command[Unit] = Task.Command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     PublishModule.pgpImportSecretIfProvided(Task.env)
     new SonatypePublisher(
@@ -627,7 +617,7 @@ object PublishModule extends ExternalModule with TaskModule {
       connectTimeout: Int = 30 * 60 * 1000,
       awaitTimeout: Int = 30 * 60 * 1000,
       stagingRelease: Boolean = true
-  ): Command[Unit] = Task.Command {
+  ): Task.Command[Unit] = Task.Command {
     val x: Seq[(Seq[(os.Path, String)], Artifact)] = Task.sequence(publishArtifacts.value)().map {
       case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
     }

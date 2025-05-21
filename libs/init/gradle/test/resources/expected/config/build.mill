@@ -13,7 +13,7 @@ object Deps {
     mvn"org.junit.jupiter:junit-jupiter:5.10.3"
 }
 
-object `package` extends RootModule {
+object `package` extends mill.Module {
 
   def artifactName = "application-library"
 

@@ -3,7 +3,7 @@ package mill.server
 import mill.api.SystemStreams
 import mill.client.lock.Locks
 import mill.client.ServerLauncher
-import mill.constants.{ServerFiles, Util}
+import mill.constants.{DaemonFiles, Util}
 import utest.*
 
 import java.io.*
@@ -19,11 +19,16 @@ object ClientServerTests extends TestSuite {
   val ENDL = System.lineSeparator()
   class EchoServer(
       override val processId: String,
-      serverDir: os.Path,
+      daemonDir: os.Path,
       locks: Locks,
       testLogEvenWhenServerIdWrong: Boolean
-  ) extends Server[Option[Int]](serverDir, 1000, locks, testLogEvenWhenServerIdWrong)
+  ) extends Server[Option[Int]](daemonDir, 1000, locks, testLogEvenWhenServerIdWrong)
       with Runnable {
+
+    override def outLock = mill.client.lock.Lock.memory()
+
+    override def out = os.temp.dir()
+
     override def exitServer() = {
       serverLog("exiting server")
       super.exitServer()
@@ -76,7 +81,7 @@ object ClientServerTests extends TestSuite {
     os.makeDir.all(dest)
     val outDir = os.temp.dir(dest, deleteOnExit = false)
 
-    val memoryLocks = Array.fill(10)(Locks.memory());
+    val memoryLock = Locks.memory()
 
     def apply(
         env: Map[String, String] = Map(),
@@ -92,25 +97,25 @@ object ClientServerTests extends TestSuite {
         new PrintStream(err),
         env.asJava,
         args,
-        memoryLocks,
+        memoryLock,
         forceFailureForTestingMillisDelay
       ) {
-        def preRun(serverDir: Path) = { /*do nothing*/ }
-        def initServer(serverDir: Path, b: Boolean, locks: Locks) = {
+        def preparedaemonDir(daemonDir: Path) = { /*do nothing*/ }
+        def initServer(daemonDir: Path, locks: Locks) = {
           val processId = "server-" + nextServerId
           nextServerId += 1
           new Thread(new EchoServer(
             processId,
-            os.Path(serverDir, os.pwd),
+            os.Path(daemonDir, os.pwd),
             locks,
             testLogEvenWhenServerIdWrong
           )).start()
         }
-      }.acquireLocksAndRun((outDir / "server-0").relativeTo(os.pwd).toNIO)
+      }.run((outDir / "server-0").relativeTo(os.pwd).toNIO, "")
 
       ClientResult(
         result.exitCode,
-        os.Path(result.serverDir, os.pwd),
+        os.Path(result.daemonDir, os.pwd),
         outDir,
         out.toString,
         err.toString
@@ -121,21 +126,21 @@ object ClientServerTests extends TestSuite {
 
   case class ClientResult(
       exitCode: Int,
-      serverDir: os.Path,
+      daemonDir: os.Path,
       outDir: os.Path,
       out: String,
       err: String
   ) {
     def logsFor(suffix: String) = {
       os.read
-        .lines(serverDir / ServerFiles.serverLog)
+        .lines(daemonDir / DaemonFiles.serverLog)
         .collect { case s if s.endsWith(" " + suffix) => s.dropRight(1 + suffix.length) }
     }
   }
 
   def tests = Tests {
 
-    test("hello") - retry(3) {
+    test("hello") - {
       // Continue logging when out folder is deleted so we can see the logs
       // and ensure the correct code path is taken as the server exits
       val tester = new Tester(testLogEvenWhenServerIdWrong = true)
@@ -213,9 +218,9 @@ object ClientServerTests extends TestSuite {
       // Mutiple server processes live in same out folder
       assert(resF1.outDir == resF2.outDir)
       assert(resF2.outDir == resF3.outDir)
-      // but the serverDir is placed in different subfolders
-      assert(resF1.serverDir != resF2.serverDir)
-      assert(resF2.serverDir != resF3.serverDir)
+      // but the daemonDir is placed in different subfolders
+      assert(resF1.daemonDir == resF2.daemonDir)
+      assert(resF2.daemonDir == resF3.daemonDir)
 
       assert(resF1.out == s"hello World$ENDL")
       assert(resF2.out == s"hello WORLD$ENDL")
@@ -238,12 +243,9 @@ object ClientServerTests extends TestSuite {
       val logLines = os.read.lines(os.Path(pathStr, os.pwd) / "server.log")
 
       assert(
-        logLines.takeRight(5) ==
+        logLines.takeRight(2) ==
           Seq(
             "server-0 client interrupted while server was executing command",
-            "server-0 exiting server",
-            "server-0 server loop ended",
-            "server-0 finally exitServer",
             "server-0 exiting server"
           )
       )

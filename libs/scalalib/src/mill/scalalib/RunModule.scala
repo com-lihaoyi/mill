@@ -6,9 +6,9 @@ import mainargs.arg
 import mill.define.JsonFormatters.pathReadWrite
 import mill.api.Result
 import mill.api.internal.RunModuleApi
+import mill.constants.DaemonFiles
 import mill.define.{ModuleCtx, PathRef, TaskCtx}
-import mill.constants.ServerFiles
-import mill.define.{Command, ModuleRef, Task}
+import mill.define.{ModuleRef, Task}
 import mill.util.Jvm
 import mill.{Args, T}
 import os.{Path, ProcessOutput}
@@ -90,7 +90,7 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
   /**
    * Runs this module's code in a subprocess and waits for it to finish
    */
-  def run(args: Task[Args] = Task.Anon(Args())): Command[Unit] = Task.Command {
+  def run(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] = Task.Command {
     runForkedTask(finalMainClass, args)()
   }
 
@@ -100,14 +100,14 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    * since the code can dirty the parent Mill process and potentially leave it
    * in a bad state.
    */
-  def runLocal(args: Task[Args] = Task.Anon(Args())): Command[Unit] = Task.Command {
+  def runLocal(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] = Task.Command {
     runLocalTask(finalMainClass, args)()
   }
 
   /**
    * Same as `run`, but lets you specify a main class to run
    */
-  def runMain(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
+  def runMain(@arg(positional = true) mainClass: String, args: String*): Task.Command[Unit] = {
     val task = runForkedTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
     Task.Command { task() }
   }
@@ -115,15 +115,18 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
   /**
    * Same as `runBackground`, but lets you specify a main class to run
    */
-  def runMainBackground(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
+  def runMainBackground(
+      @arg(positional = true) mainClass: String,
+      args: String*
+  ): Task.Command[Unit] = {
     val task = runBackgroundTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
-    Task.Command { task() }
+    Task.Command(persistent = true) { task() }
   }
 
   /**
    * Same as `runLocal`, but lets you specify a main class to run
    */
-  def runMainLocal(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
+  def runMainLocal(@arg(positional = true) mainClass: String, args: String*): Task.Command[Unit] = {
     val task = runLocalTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
     Task.Command { task() }
   }
@@ -162,13 +165,9 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(Task.dest)
+      val dest = Task.dest
       runner().run(
-        args = Seq(
-          procUuidPath.toString,
-          procLockfile.toString,
-          procUuid,
-          runBackgroundRestartDelayMillis().toString,
+        args = RunModule.BackgroundPaths(dest).toArgs ++ Seq(
           mainClass()
         ) ++ args().value,
         mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
@@ -190,9 +189,9 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    * when ready. This is useful when working on long-running server processes
    * that would otherwise run forever
    */
-  def runBackground(args: String*): Command[Unit] = {
+  def runBackground(args: String*): Task.Command[Unit] = {
     val task = runBackgroundTask(finalMainClass, Task.Anon { Args(args) })
-    Task.Command { task() }
+    Task.Command(persistent = true) { task() }
   }
 
   /**
@@ -205,7 +204,6 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    */
   // TODO: make this a task, to be more dynamic
   def runBackgroundLogToConsole: Boolean = true
-  def runBackgroundRestartDelayMillis: T[Int] = 500
 
   private[mill] def launcher0 = Task.Anon {
     val launchClasspath =
@@ -245,13 +243,6 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
 }
 
 object RunModule {
-
-  private[mill] def backgroundSetup(dest: os.Path): (Path, Path, String) = {
-    val procUuid = java.util.UUID.randomUUID().toString
-    val procUuidPath = dest / ".mill-background-process-uuid"
-    val procLockfile = dest / ".mill-background-process-lock"
-    (procUuidPath, procLockfile, procUuid)
-  }
 
   private[mill] def getMainMethod(mainClassName: String, cl: ClassLoader) = {
     val mainClass = cl.loadClass(mainClassName)
@@ -312,7 +303,7 @@ object RunModule {
       }
       val env = Option(forkEnv).getOrElse(forkEnv0)
 
-      os.checker.withValue(os.Checker.Nop) {
+      mill.define.BuildCtx.withFilesystemCheckerDisabled {
         if (background) {
           val (stdout, stderr) = if (runBackgroundLogToConsole) {
             // Hack to forward the background subprocess output to the Mill server process
@@ -320,8 +311,8 @@ object RunModule {
             // and shown to any connected Mill client even if the current command has completed
             val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
             (
-              os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stdout),
-              os.PathAppendRedirect(pwd0 / ".." / ServerFiles.stderr)
+              os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stdout),
+              os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stderr)
             )
           } else {
             (dest / "stdout.log": os.ProcessOutput, dest / "stderr.log": os.ProcessOutput)
@@ -361,4 +352,19 @@ object RunModule {
     }
   }
 
+  /** @param destDir The `Task.dest`. Needs to be persistent for it to work properly. */
+  private[mill] class BackgroundPaths(val destDir: os.Path) {
+    def newestPidPath: os.Path = destDir / "newest-pid"
+    def currentlyRunningPidPath: os.Path = destDir / "currently-running-pid"
+    def lockPath: os.Path = destDir / "lock"
+    def logPath: os.Path = destDir / "log"
+
+    def toArgs: Seq[String] =
+      Seq(
+        newestPidPath.toString,
+        currentlyRunningPidPath.toString,
+        lockPath.toString,
+        logPath.toString
+      )
+  }
 }

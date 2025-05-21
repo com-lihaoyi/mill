@@ -1,6 +1,7 @@
 package mill.exec
 
-import mill.define.{NamedTask, Target, TargetImpl, Task}
+import mill.define.Task
+import mill.define.Task.Simple
 import mill.util.TestGraphs
 import utest.*
 
@@ -59,9 +60,9 @@ object PlanTests extends TestSuite {
       )
     }
     test("groupAroundNamedTargets") {
-      def check[T, R <: Target[Int]](base: T)(
+      def check[T, R <: Simple[Int]](base: T)(
           target: T => R,
-          important0: Seq[T => Target[?]],
+          important0: Seq[T => Simple[?]],
           expected: Seq[(R, Int)]
       ) = {
 
@@ -69,7 +70,7 @@ object PlanTests extends TestSuite {
 
         val important = important0.map(_(base))
         val grouped = PlanImpl.groupAroundImportantTargets(topoSorted) {
-          case t: TargetImpl[_] if important.contains(t) => t: Target[?]
+          case t: Task.Computed[_] if important.contains(t) => t: Simple[?]
         }
         val flattened = Seq.from(grouped.values().flatten)
 
@@ -78,7 +79,7 @@ object PlanTests extends TestSuite {
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.flatMap(_.asTarget: Option[Target[?]]).filter(important.contains) == Seq(
+            grouping.flatMap(_.asTarget: Option[Simple[?]]).filter(important.contains) == Seq(
               terminal
             )
           )
@@ -135,7 +136,7 @@ object PlanTests extends TestSuite {
           PlanImpl.transitiveTargets(Seq.from(goals))
         )
         val grouped = PlanImpl.groupAroundImportantTargets(topoSorted) {
-          case t: NamedTask[Any] => t
+          case t: Task.Named[Any] => t
           case t if goals.contains(t) => t
         }
         grouped.keyCount

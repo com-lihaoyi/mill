@@ -14,6 +14,17 @@ object BspModulesTests extends UtestIntegrationTestSuite {
         val res = eval("mill.bsp.BSP/install")
         assert(res.isSuccess)
         os.exists(workspacePath / Constants.bspDir / s"${Constants.serverName}.json") ==> true
+        val json = ujson.read(
+          os.read(workspacePath / Constants.bspDir / s"${Constants.serverName}.json")
+        )
+
+        eval("shutdown")
+        Thread.sleep(1000)
+        val executable = json("argv").arr(0).str
+        val checkRes = os.call((executable, "checkExecutable"), cwd = workspacePath)
+        assert(checkRes.exitCode == 0)
+        assert(checkRes.out.text().contains("checkExecutable succeeded"))
+        ()
       }
       test("ModuleUtils resolves all referenced transitive modules") - integrationTest { tester =>
         import tester._

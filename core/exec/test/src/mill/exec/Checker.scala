@@ -1,11 +1,11 @@
 package mill.exec
 
 import mill.define.Task
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 
 import utest.*
 
-class Checker[T <: mill.testkit.TestBaseModule](
+class Checker[T <: mill.testkit.TestRootModule](
     module: T,
     threadCount: Option[Int] = Some(1),
     sourceRoot: os.Path = null

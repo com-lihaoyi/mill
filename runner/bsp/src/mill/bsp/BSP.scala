@@ -1,7 +1,7 @@
 package mill.bsp
 
 import mill.util.BuildInfo
-import mill.define.WorkspaceRoot
+import mill.define.BuildCtx
 
 import java.io.PrintStream
 
@@ -23,7 +23,7 @@ private[mill] object BSP {
    */
   def install(jobs: Int, withDebug: Boolean, errStream: PrintStream): Unit = {
     // we create a json connection file
-    val bspFile = WorkspaceRoot.workspaceRoot / Constants.bspDir / s"${Constants.serverName}.json"
+    val bspFile = BuildCtx.workspaceRoot / Constants.bspDir / s"${Constants.serverName}.json"
     if (os.exists(bspFile)) errStream.println(s"Overwriting BSP connection file: ${bspFile}")
     else errStream.println(s"Creating BSP connection file: ${bspFile}")
     if (withDebug) errStream.println(
@@ -34,11 +34,8 @@ private[mill] object BSP {
   }
 
   private def bspConnectionJson(jobs: Int, debug: Boolean): String = {
-    val millPath = sys.env.get("MILL_MAIN_CLI")
-      .orElse(sys.props.get("mill.main.cli"))
-      // we assume, the classpath is an executable jar here
-      .orElse(sys.props.get("java.class.path"))
-      .getOrElse(throw new IllegalStateException("System property 'java.class.path' not set"))
+    val millPath = sys.env.get("MILL_EXECUTABLE_PATH")
+      .getOrElse(throw new IllegalStateException("Env 'MILL_EXECUTABLE_PATH' not set"))
 
     upickle.default.write(
       BspConfigJson(

@@ -10,7 +10,7 @@ import HelloWorldTests._
 
 object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {
-    def checkAppend[M <: mill.testkit.TestBaseModule](module: M, target: Target[PathRef]) =
+    def checkAppend[M <: mill.testkit.TestRootModule](module: M, target: Target[PathRef]) =
       UnitTester(module, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(target): @unchecked
 
@@ -34,7 +34,7 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
         }
       }
 
-    def checkAppendMulti[M <: mill.testkit.TestBaseModule](
+    def checkAppendMulti[M <: mill.testkit.TestRootModule](
         module: M,
         target: Target[PathRef]
     ): Unit = UnitTester(
@@ -60,7 +60,7 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
       }
     }
 
-    def checkAppendWithSeparator[M <: mill.testkit.TestBaseModule](
+    def checkAppendWithSeparator[M <: mill.testkit.TestRootModule](
         module: M,
         target: Target[PathRef]
     ): Unit = UnitTester(

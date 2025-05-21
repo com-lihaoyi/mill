@@ -10,7 +10,6 @@ object OsCheckerTests extends UtestIntegrationTestSuite {
       import tester._
       val res = tester.eval("foo.bar")
 
-      val sep = if (mill.constants.Util.isWindows) "\\" else "/"
       assert(res.isSuccess == false)
       assert(res.err.contains(
         s"Writing to foo not allowed during resolution phase"
@@ -29,6 +28,18 @@ object OsCheckerTests extends UtestIntegrationTestSuite {
       assert(res3.isSuccess == false)
       assert(res3.err.contains(
         s"Writing to  not allowed during resolution phase"
+      ))
+
+      tester.modifyFile(workspacePath / "build.mill", _.replace("if (true)", "if (false)"))
+      tester.modifyFile(
+        workspacePath / "build.mill",
+        _ + "\nprintln(os.read(mill.define.BuildCtx.workspaceRoot / \"build.mill\"))"
+      )
+      val res4 = tester.eval("baz")
+
+      assert(res4.isSuccess == false)
+      assert(res4.err.contains(
+        s"Reading from build.mill not allowed during resolution phase"
       ))
 
     }

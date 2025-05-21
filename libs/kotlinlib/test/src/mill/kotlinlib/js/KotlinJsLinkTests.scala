@@ -1,7 +1,7 @@
 package mill.kotlinlib.js
 
 import mill.define.Discover
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import mill.{Cross, T}
 import utest.{TestSuite, Tests, assert, test}
 import mill.util.TokenReaders._
@@ -20,7 +20,7 @@ object KotlinJsLinkTests extends TestSuite {
     override def artifactNameParts = super.artifactNameParts().dropRight(1)
   }
 
-  object module extends TestBaseModule {
+  object module extends TestRootModule {
 
     object bar extends KotlinJsModule {
       def kotlinVersion = KotlinJsLinkTests.kotlinVersion
@@ -35,37 +35,38 @@ object KotlinJsLinkTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("link { per module }") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val Right(result) = eval.apply(module.foo(true).linkBinary): @unchecked
+        val Right(result) = eval.apply(module.foo(true).linkBinary): @unchecked
 
-      val binariesDir = result.value.classes.path
-      assert(
-        os.isDir(binariesDir),
-        os.exists(binariesDir / "foo.js"),
-        os.exists(binariesDir / "foo.js.map"),
-        os.exists(binariesDir / "bar.js"),
-        os.exists(binariesDir / "bar.js.map"),
-        os.exists(binariesDir / "kotlin-kotlin-stdlib.js"),
-        os.exists(binariesDir / "kotlin-kotlin-stdlib.js.map")
-      )
+        val binariesDir = result.value.classes.path
+        assert(
+          os.isDir(binariesDir),
+          os.exists(binariesDir / "foo.js"),
+          os.exists(binariesDir / "foo.js.map"),
+          os.exists(binariesDir / "bar.js"),
+          os.exists(binariesDir / "bar.js.map"),
+          os.exists(binariesDir / "kotlin-kotlin-stdlib.js"),
+          os.exists(binariesDir / "kotlin-kotlin-stdlib.js.map")
+        )
+      }
     }
-
     test("link { fat }") {
-      val eval = testEval()
+      testEval().scoped { eval =>
 
-      val Right(result) = eval.apply(module.foo(false).linkBinary): @unchecked
+        val Right(result) = eval.apply(module.foo(false).linkBinary): @unchecked
 
-      val binariesDir = result.value.classes.path
-      assert(
-        os.isDir(binariesDir),
-        os.exists(binariesDir / "foo.js"),
-        os.exists(binariesDir / "foo.js.map"),
-        !os.exists(binariesDir / "bar.js"),
-        !os.exists(binariesDir / "bar.js.map"),
-        !os.exists(binariesDir / "kotlin-kotlin-stdlib.js"),
-        !os.exists(binariesDir / "kotlin-kotlin-stdlib.js.map")
-      )
+        val binariesDir = result.value.classes.path
+        assert(
+          os.isDir(binariesDir),
+          os.exists(binariesDir / "foo.js"),
+          os.exists(binariesDir / "foo.js.map"),
+          !os.exists(binariesDir / "bar.js"),
+          !os.exists(binariesDir / "bar.js.map"),
+          !os.exists(binariesDir / "kotlin-kotlin-stdlib.js"),
+          !os.exists(binariesDir / "kotlin-kotlin-stdlib.js.map")
+        )
+      }
     }
   }
 

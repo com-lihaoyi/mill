@@ -28,6 +28,7 @@ object Lib {
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
+      checkGradleModules: Boolean,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[TaskCtx] = None,
@@ -42,6 +43,7 @@ object Lib {
       repositories = repositories,
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
+      checkGradleModules = checkGradleModules,
       mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
@@ -61,6 +63,7 @@ object Lib {
   def resolveDependencies(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
+      checkGradleModules: Boolean,
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
@@ -76,6 +79,7 @@ object Lib {
       repositories = repositories,
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
+      checkGradleModules = checkGradleModules,
       sources = sources,
       artifactTypes = artifactTypes,
       mapDependencies = mapDependencies,
@@ -91,32 +95,32 @@ object Lib {
   def scalaCompilerMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion))
       Seq(
-        mvn"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization::dotty-compiler:$scalaVersion"
       )
     else if (JvmWorkerUtil.isScala3(scalaVersion))
       Seq(
-        mvn"$scalaOrganization::scala3-compiler:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization::scala3-compiler:$scalaVersion"
       )
     else
       Seq(
-        mvn"$scalaOrganization:scala-compiler:$scalaVersion".forceVersion(),
-        mvn"$scalaOrganization:scala-reflect:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization:scala-compiler:$scalaVersion",
+        mvn"$scalaOrganization:scala-reflect:$scalaVersion"
       )
 
   def scalaDocMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion))
       Seq(
-        mvn"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization::dotty-doc:$scalaVersion"
       )
     else if (JvmWorkerUtil.isScala3Milestone(scalaVersion))
       Seq(
         // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
-        mvn"$scalaOrganization::scala3-doc:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization::scala3-doc:$scalaVersion"
       )
     else if (JvmWorkerUtil.isScala3(scalaVersion))
       Seq(
         // scalaVersion >= 3.0.0-RC1 uses scaladoc
-        mvn"$scalaOrganization::scaladoc:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization::scaladoc:$scalaVersion"
       )
     else
       // in Scala <= 2.13, the scaladoc tool is included in the compiler
@@ -125,15 +129,15 @@ object Lib {
   def scalaRuntimeMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion)) {
       Seq(
-        mvn"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization::dotty-library:$scalaVersion"
       )
     } else if (JvmWorkerUtil.isScala3(scalaVersion))
       Seq(
-        mvn"$scalaOrganization::scala3-library:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization::scala3-library:$scalaVersion"
       )
     else
       Seq(
-        mvn"$scalaOrganization:scala-library:$scalaVersion".forceVersion()
+        mvn"$scalaOrganization:scala-library:$scalaVersion"
       )
 
   def findSourceFiles(sources: Seq[PathRef], extensions: Seq[String]): Seq[os.Path] = {

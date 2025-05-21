@@ -4,7 +4,7 @@ package javalib.palantirformat
 import mill.define.Discover
 import mill.util.Tasks
 import mill.scalalib.ScalaModule
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
 object PalantirFormatModuleTest extends TestSuite {
@@ -98,39 +98,41 @@ object PalantirFormatModuleTest extends TestSuite {
       sources: Seq[String] = Seq.empty
   ): Seq[os.Path] = {
 
-    object module extends TestBaseModule with ScalaModule with PalantirFormatModule {
+    object module extends TestRootModule with ScalaModule with PalantirFormatModule {
       override def palantirformatVersion: T[String] = version
       override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
       lazy val millDiscover = Discover[this.type]
     }
 
-    val eval = UnitTester(module, moduleRoot)
+    UnitTester(module, moduleRoot).scoped { eval =>
+      eval(module.palantirformat(mainargs.Flag(check), mainargs.Leftover(sources*))).fold(
+        _.throwException,
+        { _ =>
+          val Right(sources) = eval(module.sources): @unchecked
 
-    eval(module.palantirformat(mainargs.Flag(check), mainargs.Leftover(sources*))).fold(
-      _.throwException,
-      { _ =>
-        val Right(sources) = eval(module.sources): @unchecked
-
-        sources.value.flatMap(ref => walkFiles(ref.path))
-      }
-    )
+          sources.value.flatMap(ref => walkFiles(ref.path))
+        }
+      )
+    }
   }
 
   def afterFormatAll(modulesRoot: os.Path, check: Boolean = false): Seq[os.Path] = {
 
-    object module extends TestBaseModule with ScalaModule {
+    object module extends TestRootModule with ScalaModule {
       override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
+
       lazy val millDiscover = Discover[this.type]
     }
 
-    val eval = UnitTester(module, modulesRoot)
-    eval(PalantirFormatModule.formatAll(mainargs.Flag(check), Tasks(Seq(module.sources)))).fold(
-      _.throwException,
-      { _ =>
-        val Right(sources) = eval(module.sources): @unchecked
-        sources.value.map(_.path).flatMap(walkFiles(_))
-      }
-    )
+    UnitTester(module, modulesRoot).scoped { eval =>
+      eval(PalantirFormatModule.formatAll(mainargs.Flag(check), Tasks(Seq(module.sources)))).fold(
+        _.throwException,
+        { _ =>
+          val Right(sources) = eval(module.sources): @unchecked
+          sources.value.map(_.path).flatMap(walkFiles(_))
+        }
+      )
+    }
   }
 
   def walkFiles(root: os.Path): Seq[os.Path] = {

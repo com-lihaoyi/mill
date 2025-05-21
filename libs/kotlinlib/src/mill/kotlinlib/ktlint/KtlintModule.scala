@@ -5,7 +5,7 @@ import mill._
 import mill.define.{PathRef}
 import mill.define.{Discover, ExternalModule}
 import mill.javalib.JavaModule
-import mill.kotlinlib.DepSyntax
+import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.util.Tasks
 import mill.util.Jvm
 
@@ -32,7 +32,8 @@ trait KtlintModule extends JavaModule {
    */
   def ktlintClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Seq(mvn"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}")
+      Seq(mvn"com.pinterest.ktlint:ktlint-cli:${ktlintVersion()}"),
+      resolutionParamsMapOpt = Some(KotlinModule.addJvmVariantAttributes)
     )
   }
 
@@ -122,7 +123,7 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       .filter(f => os.exists(f) && (f.ext == "kt" || f.ext == "kts"))
       .map(_.toString())
 
-    val exitCode = os.checker.withValue(os.Checker.Nop) {
+    val exitCode = mill.define.BuildCtx.withFilesystemCheckerDisabled {
       Jvm.callProcess(
         mainClass = "com.pinterest.ktlint.Main",
         classPath = classPath.map(_.path).toVector,

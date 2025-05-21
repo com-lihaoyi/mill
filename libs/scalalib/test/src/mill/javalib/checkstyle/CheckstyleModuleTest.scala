@@ -4,7 +4,7 @@ import mill._
 import mainargs.Leftover
 import mill.define.Discover
 import mill.scalalib.{JavaModule, ScalaModule}
-import mill.testkit.{TestBaseModule, UnitTester}
+import mill.testkit.{TestRootModule, UnitTester}
 import utest._
 
 object CheckstyleModuleTest extends TestSuite {
@@ -136,7 +136,7 @@ object CheckstyleModuleTest extends TestSuite {
       sources: Seq[String] = Seq.empty
   ): Boolean = {
 
-    object module extends TestBaseModule with JavaModule with CheckstyleModule {
+    object module extends TestRootModule with JavaModule with CheckstyleModule {
       override def checkstyleFormat: T[String] = format
       override def checkstyleOptions: T[Seq[String]] = options
       override def checkstyleVersion: T[String] = version
@@ -162,7 +162,7 @@ object CheckstyleModuleTest extends TestSuite {
       sources: Seq[String] = Seq.empty
   ): Boolean = {
 
-    object module extends TestBaseModule with ScalaModule with CheckstyleModule {
+    object module extends TestRootModule with ScalaModule with CheckstyleModule {
       override def checkstyleFormat: T[String] = format
       override def checkstyleOptions: T[Seq[String]] = options
       override def checkstyleVersion: T[String] = version
@@ -179,29 +179,30 @@ object CheckstyleModuleTest extends TestSuite {
   }
 
   def testModule(
-      module: TestBaseModule & CheckstyleModule,
+      module: TestRootModule & CheckstyleModule,
       modulePath: os.Path,
       violations: Seq[String],
       args: CheckstyleArgs
   ): Boolean = {
-    val eval = UnitTester(module, modulePath)
-    eval(module.checkstyle(args)).fold(
-      _.throwException,
-      numViolations => {
+    UnitTester(module, modulePath).scoped { eval =>
+      eval(module.checkstyle(args)).fold(
+        _.throwException,
+        numViolations => {
 
-        numViolations.value == violations.length && {
+          numViolations.value == violations.length && {
 
-          val Right(report) = eval(module.checkstyleOutput): @unchecked
+            val Right(report) = eval(module.checkstyleOutput): @unchecked
 
-          if (os.exists(report.value.path)) {
-            violations.isEmpty || {
-              val lines = os.read.lines(report.value.path)
-              violations.forall(violation => lines.exists(_.contains(violation)))
-            }
-          } else
-            args.stdout
+            if (os.exists(report.value.path)) {
+              violations.isEmpty || {
+                val lines = os.read.lines(report.value.path)
+                violations.forall(violation => lines.exists(_.contains(violation)))
+              }
+            } else
+              args.stdout
+          }
         }
-      }
-    )
+      )
+    }
   }
 }

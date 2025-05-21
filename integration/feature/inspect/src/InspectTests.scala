@@ -85,12 +85,12 @@ object InspectTests extends UtestIntegrationTestSuite {
         run
       )
 
-      assert(eval(("inspect", "core.mvnDepsTree")).isSuccess)
+      assert(eval(("inspect", "core.showMvnDepsTree")).isSuccess)
 
       val mvnDepsTree = out("inspect").json.str
 
       assertGlobMatches(
-        """core.mvnDepsTree(JavaModule.scala:...)
+        """core.showMvnDepsTree(JavaModule.scala:...)
           |    Command to print the transitive dependency tree to STDOUT.
           |
           |    --inverse                Invert the tree representation, so that the root is on the bottom val
@@ -110,6 +110,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    core.bomMvnDeps
           |    core.depManagement
           |    core.repositories
+          |    core.checkGradleModules
           |""".stripMargin,
         mvnDepsTree
       )
@@ -130,8 +131,8 @@ object InspectTests extends UtestIntegrationTestSuite {
 
       // Make sure both kebab-case and camelCase flags work, even though the
       // docs from `inspect` only show the kebab-case version
-      assert(eval(("core.mvnDepsTree", "--withCompile", "--withRuntime")).isSuccess)
-      assert(eval(("core.mvnDepsTree", "--with-compile", "--with-runtime")).isSuccess)
+      assert(eval(("core.showMvnDepsTree", "--withCompile", "--withRuntime")).isSuccess)
+      assert(eval(("core.showMvnDepsTree", "--with-compile", "--with-runtime")).isSuccess)
 
       val basic = eval(("inspect", "basic"))
       assert(basic.isSuccess)

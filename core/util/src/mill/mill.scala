@@ -1,14 +1,14 @@
 package object mill extends mill.define.JsonFormatters with mill.util.TokenReaders0 {
-  val T = define.Target
-  type T[+T] = define.Target[T]
-  val Target = define.Target
-  type Target[+T] = define.Target[T]
+  type T[+T] = define.Task.Simple[T]
+  type Target[+T] = define.Task.Simple[T]
   val PathRef = mill.define.PathRef
   type PathRef = mill.define.PathRef
   type Module = define.Module
   type Cross[T <: Cross.Module[?]] = define.Cross[T]
   val Cross = define.Cross
+  @deprecated("Use Seq[T] instead", "Mill 0.13.0-M1")
   type Agg[T] = Seq[T]
+  @deprecated("Use Seq instead", "Mill 0.13.0-M1")
   val Agg = Seq
 
   type Args = define.Args
@@ -17,12 +17,10 @@ package object mill extends mill.define.JsonFormatters with mill.util.TokenReade
   val Task = define.Task
   type Task[+T] = define.Task[T]
 
-  type Command[+T] = define.Command[T]
-  type Worker[+T] = define.Worker[T]
-  type Input[T] = define.Target[T]
-  type Persistent[T] = define.Target[T]
-  type Source = define.Target[PathRef]
-  type Sources = define.Target[Seq[PathRef]]
+  type Command[+T] = define.Task.Command[T]
+  type Worker[+T] = define.Task.Worker[T]
+  type Source = define.Task.Simple[PathRef]
+  type Sources = define.Task.Simple[Seq[PathRef]]
 
   type TaskModule = define.TaskModule
 }

@@ -1,7 +1,7 @@
 package mill.resolve
 
 import mill.define.{Discover, ModuleRef}
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import mainargs.arg
 import mill.{Cross, Module, Task}
 import utest.*
@@ -10,7 +10,7 @@ import mill.api.Result
 object ErrorTests extends TestSuite {
   // Wrapper class so that module initialization errors are not fatal
   class ErrorGraphs {
-    object moduleInitError extends TestBaseModule {
+    object moduleInitError extends TestRootModule {
       def rootTarget = Task { println("Running rootTarget"); "rootTarget Result" }
       def rootCommand(@arg(positional = true) s: String) =
         Task.Command { println(s"Running rootCommand $s") }
@@ -38,7 +38,7 @@ object ErrorTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    object moduleDependencyInitError extends TestBaseModule {
+    object moduleDependencyInitError extends TestRootModule {
 
       object foo extends Module {
         def fooTarget = Task { println(s"Running fooTarget"); 123 }
@@ -61,7 +61,7 @@ object ErrorTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    object crossModuleSimpleInitError extends TestBaseModule {
+    object crossModuleSimpleInitError extends TestRootModule {
       object myCross extends Cross[MyCross](1, 2, 3, 4) {
         throw new Exception(s"MyCross Boom")
       }
@@ -71,7 +71,7 @@ object ErrorTests extends TestSuite {
 
       lazy val millDiscover = Discover[this.type]
     }
-    object crossModulePartialInitError extends TestBaseModule {
+    object crossModulePartialInitError extends TestRootModule {
       object myCross extends Cross[MyCross](1, 2, 3, 4)
       trait MyCross extends Cross.Module[Int] {
         if (crossValue > 2) throw new Exception(s"MyCross Boom $crossValue")
@@ -80,7 +80,7 @@ object ErrorTests extends TestSuite {
 
       lazy val millDiscover = Discover[this.type]
     }
-    object crossModuleSelfInitError extends TestBaseModule {
+    object crossModuleSelfInitError extends TestRootModule {
       object myCross extends Cross[MyCross](1, 2, 3, throw new Exception(s"MyCross Boom"))
       trait MyCross extends Cross.Module[Int] {
         def foo = Task { crossValue }
@@ -89,7 +89,7 @@ object ErrorTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    object crossModuleParentInitError extends TestBaseModule {
+    object crossModuleParentInitError extends TestRootModule {
       object parent extends Module {
         throw new Exception(s"Parent Boom")
         object myCross extends Cross[MyCross](1, 2, 3, 4)
@@ -102,7 +102,7 @@ object ErrorTests extends TestSuite {
     }
 
     // The module names repeat, but it's not actually cyclic and is meant to confuse the cycle detection.
-    object NonCyclicModules extends TestBaseModule {
+    object NonCyclicModules extends TestRootModule {
       def foo = Task { "foo" }
 
       object A extends Module {
@@ -126,7 +126,7 @@ object ErrorTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    object CyclicModuleRefInitError extends TestBaseModule {
+    object CyclicModuleRefInitError extends TestRootModule {
       def foo = Task { "foo" }
 
       // See issue: https://github.com/com-lihaoyi/mill/issues/3715
@@ -146,13 +146,13 @@ object ErrorTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    object CyclicModuleRefInitError2 extends TestBaseModule {
+    object CyclicModuleRefInitError2 extends TestRootModule {
       // The cycle is in the child
       def A = CyclicModuleRefInitError
       lazy val millDiscover = Discover[this.type]
     }
 
-    object CyclicModuleRefInitError3 extends TestBaseModule {
+    object CyclicModuleRefInitError3 extends TestRootModule {
       // The cycle is in directly here
       object A extends Module {
         def b = B
@@ -163,7 +163,7 @@ object ErrorTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    object CrossedCyclicModuleRefInitError extends TestBaseModule {
+    object CrossedCyclicModuleRefInitError extends TestRootModule {
       object cross extends mill.Cross[Cross]("210", "211", "212")
       trait Cross extends Cross.Module[String] {
         def suffix = Task { crossValue }
@@ -180,7 +180,7 @@ object ErrorTests extends TestSuite {
     }
 
     // This edge case shouldn't be an error
-    object ModuleRefWithNonModuleRefChild extends TestBaseModule {
+    object ModuleRefWithNonModuleRefChild extends TestRootModule {
       def foo = Task { "foo" }
 
       def aRef = A
@@ -191,7 +191,7 @@ object ErrorTests extends TestSuite {
       lazy val millDiscover = Discover[this.type]
     }
 
-    object ModuleRefCycle extends TestBaseModule {
+    object ModuleRefCycle extends TestRootModule {
       def foo = Task { "foo" }
 
       // The cycle is in directly here

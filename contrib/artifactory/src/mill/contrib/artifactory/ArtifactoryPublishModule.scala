@@ -5,7 +5,6 @@ import mill.api.Result
 import scalalib._
 import mill.contrib.artifactory.ArtifactoryPublishModule.checkArtifactoryCreds
 import mill.define.{ExternalModule, Task}
-import mill.define.Command
 
 trait ArtifactoryPublishModule extends PublishModule {
   def artifactoryUri: String
@@ -28,7 +27,7 @@ trait ArtifactoryPublishModule extends PublishModule {
       artifactorySnapshotUri: String = artifactorySnapshotUri,
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] = Task.Command {
+  ): Command[Unit] = Task.Command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     new ArtifactoryPublisher(
       artifactoryUri,

@@ -1,7 +1,7 @@
 package mill.scalalib.scalafmt
 
 import mill.*
-import mill.define.{Discover, ExternalModule, PathRef, TaskCtx, Worker}
+import mill.define.{Discover, ExternalModule, PathRef, TaskCtx}
 import mill.scalalib._
 
 import scala.collection.mutable

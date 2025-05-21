@@ -6,12 +6,14 @@ import com.google.gson.JsonObject
 import mill.api.*
 import mill.api.internal.{JvmBuildTarget, ScalaBuildTarget, *}
 import mill.api.Segment.Label
-import mill.bsp.{Constants}
+import mill.bsp.Constants
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
+import mill.client.lock.Lock
 import mill.server.Server
 
 import java.io.PrintStream
 import java.util.concurrent.CompletableFuture
+import java.util.concurrent.locks.ReentrantLock
 import scala.collection.mutable
 import scala.concurrent.Promise
 import scala.jdk.CollectionConverters.*
@@ -28,7 +30,8 @@ private class MillBuildServer(
     logStream: PrintStream,
     canReload: Boolean,
     debugMessages: Boolean,
-    onShutdown: () => Unit
+    onShutdown: () => Unit,
+    outLock: Lock
 )(implicit ec: scala.concurrent.ExecutionContext) extends BuildServer {
 
   import MillBuildServer._
@@ -714,17 +717,15 @@ private class MillBuildServer(
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = null
-  ): ExecutionResultsApi = {
+  )(implicit name: sourcecode.Name): ExecutionResultsApi = {
     val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
     Server.withOutLock(
       noBuildLock = false,
       noWaitForBuildLock = false,
       out = os.Path(evaluator.outPathJava),
-      targetsAndParams = goals.map {
-        case n: NamedTaskApi[_] => n.label
-        case t => t.toString
-      },
-      streams = logger0.streams
+      millActiveCommandMessage = "IDE-BSP:" + name.value,
+      streams = logger0.streams,
+      outLock = outLock
     ) {
       evaluator.executeApi(
         goals,

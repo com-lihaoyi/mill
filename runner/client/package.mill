@@ -1,39 +1,26 @@
 package build.runner.client
-
-import mill._
+import mill.*
 import mill.contrib.buildinfo.BuildInfo
+import mill.scalalib.*
+import millbuild.*
 
-object `package` extends build.MillPublishScalaModule with BuildInfo {
-  // Disable scalafix because it seems to misbehave and cause
-  // spurious errors when there are mixed Java/Scala sources
-  def fix(args: String*): Command[Unit] = Task.Command {}
+/**
+ * This module contains the core logic around the Mill command line client,
+ * along with basic constants and helpers shared between the client, server,
+ * and the rest of the Mill codebase.
+ */
+object `package` extends MillPublishJavaModule with BuildInfo {
+  def buildInfoPackageName = "mill.client"
+  def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
 
-  def buildInfoPackageName = "mill.runner.client"
-
-  def moduleDeps = Seq(build.runner.server.client)
-
-  def mvnDeps = Agg(
-    build.Deps.nativeTerminal,
-    build.Deps.coursier,
-    build.Deps.coursierInterface,
-    build.Deps.coursierJvm,
-    build.Deps.logback,
-    build.Deps.snakeyamlEngine,
-    build.Deps.osLib
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
+    BuildInfo.Value("defaultJvmId", os.read(millJvmVersion().path).trim())
   )
 
-  def buildInfoObjectName = "Versions"
+  def moduleDeps = Seq(build.core.constants)
 
-  def buildInfoMembers = Task {
-    val jlineNativeVersion = compileClasspath().map(_.path.last)
-      .find(name => name.startsWith("jline-native-") && name.endsWith(".jar"))
-      .map(_.stripPrefix("jline-native-").stripSuffix(".jar"))
-      .getOrElse {
-        sys.error("Cannot get jline-native version from compile class path")
-      }
-    Seq(
-      BuildInfo.Value("coursierJvmIndexVersion", build.Deps.coursierJvmIndexVersion),
-      BuildInfo.Value("jlineNativeVersion", jlineNativeVersion)
-    )
+  object test extends JavaTests with TestModule.Junit4 {
+    def mvnDeps = Seq(Deps.junitInterface, Deps.commonsIo)
   }
 }

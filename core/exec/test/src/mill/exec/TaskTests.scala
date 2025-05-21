@@ -1,16 +1,16 @@
 package mill.exec
 
 import utest.*
-import mill.Task
-import mill.define.{Discover, Module, Worker}
+import mill.{Task, Worker}
+import mill.define.{Discover, Module}
 import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.framework.TestPath
 import mill.api.ExecResult
 
 trait TaskTests extends TestSuite {
-  trait SuperBuild extends TestBaseModule {
+  trait SuperBuild extends TestRootModule {
 
     var superBuildInputCount = 0
 
@@ -298,8 +298,9 @@ object SeqTaskTests extends TaskTests {
     object build extends Build {
       lazy val millDiscover = Discover[this.type]
     }
-    val check = UnitTester(build, null, threads = Some(1))
-    f(build, check)
+    UnitTester(build, null, threads = Some(1)).scoped { check =>
+      f(build, check)
+    }
   }
 }
 object ParTaskTests extends TaskTests {
@@ -307,7 +308,8 @@ object ParTaskTests extends TaskTests {
     object build extends Build {
       lazy val millDiscover = Discover[this.type]
     }
-    val check = UnitTester(build, null, threads = Some(16))
-    f(build, check)
+    UnitTester(build, null, threads = Some(16)).scoped { check =>
+      f(build, check)
+    }
   }
 }

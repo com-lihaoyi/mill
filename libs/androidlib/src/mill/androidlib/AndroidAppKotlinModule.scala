@@ -1,14 +1,13 @@
 package mill.androidlib
 
-import coursier.Dependency
-import coursier.core.Reconciliation
+import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import coursier.util.ModuleMatchers
-import mill.define.{Command, ModuleRef, PathRef, Task}
+import mill.define.{ModuleRef, PathRef, Task}
 import mill.kotlinlib.{Dep, DepSyntax}
 import mill.scalalib.TestModule.Junit5
 import mill.scalalib.{JavaModule, TestModule}
-import mill.T
+import mill.*
+import upickle.implicits.namedTuples.default.given
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -25,13 +24,13 @@ import mill.T
  * [[https://developer.android.com/studio Android Studio Documentation]]
  */
 @mill.api.experimental
-trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule { outer =>
+trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule { outer =>
 
   def kotlinSources = Task.Sources("src/main/kotlin")
   override def sources: T[Seq[PathRef]] =
     super[AndroidAppModule].sources() ++ kotlinSources()
 
-  trait AndroidAppKotlinTests extends AndroidAppTests with KotlinTests {
+  trait AndroidAppKotlinTests extends KotlinTests with AndroidAppTests {
     def kotlinSources = Task.Sources("src/test/kotlin")
     override def sources: T[Seq[PathRef]] =
       super[AndroidAppTests].sources() ++ kotlinSources()
@@ -53,9 +52,6 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     /* There are no testclasses for screenshot tests, just the engine running a diff over the images */
     override def discoveredTestClasses: T[Seq[String]] = Task { Seq.empty[String] }
 
-    override def mapDependencies: Task[Dependency => Dependency] =
-      Task.Anon(outer.mapDependencies())
-
     override def androidApplicationId: String = outer.androidApplicationId
 
     /**
@@ -69,10 +65,13 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
 
     override def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
 
+    override def androidManifest: T[PathRef] = outer.androidManifest()
+    override def androidMergedManifest: T[PathRef] = outer.androidMergedManifest()
+
     // FIXME: avoid hardcoded version
-    def layoutLibVersion: String = "14.0.9"
+    def layoutLibVersion: String = "15.1.2"
     // FIXME: avoid hardcoded version
-    def composePreviewRendererVersion: String = "0.0.1-alpha08"
+    def composePreviewRendererVersion: String = "0.0.1-alpha09"
 
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
 
@@ -131,24 +130,15 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     // FIXME: avoid hardcoded version
     def uiToolingVersion: String = "1.7.6"
 
-    /*
-     * A relaxed resolution policy, as this module runs the tests
-     * on the host machine, outside of Android, but it still needs
-     * the android ui dependencies to work, so production wise this is
-     * low risk.
-     * @return
-     */
-    override def resolutionParams: Task[ResolutionParams] = Task.Anon {
-      val params = super.resolutionParams()
-      relaxedDependencyReconciliation(params)
-    }
-
-    private val relaxedDependencyReconciliation: ResolutionParams => ResolutionParams =
-      _.withReconciliation(Seq(ModuleMatchers.all -> Reconciliation.Relaxed))
-
     override def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
-    override def mandatoryMvnDeps: T[Seq[Dep]] = super.mandatoryMvnDeps() ++
+    override def resolvedMvnDeps: T[Seq[PathRef]] = Task {
+      defaultResolver().classpath(
+        outer.mvnDeps() ++ mvnDeps()
+      )
+    }
+
+    override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++
       Seq(
         mvn"androidx.compose.ui:ui:$uiToolingVersion",
         mvn"androidx.compose.ui:ui-tooling:$uiToolingVersion",
@@ -195,9 +185,13 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
         layoutlibPath = layoutLibRuntimePath().path.toString(),
         outputFolder = output.toString(),
         metaDataFolder = metadataFolder.toString(),
-        classPath = compileClasspath().map(_.path.toString()).toSeq,
-        projectClassPath = Seq(compile().classes.path.toString()),
-        screenshots = androidDiscoveredPreviews()._2,
+        classPath = compileClasspath().map(_.path.toString()),
+        projectClassPath = Seq(
+          compile().classes.path.toString(),
+          outer.compile().classes.path.toString(),
+          androidProcessedResources().path.toString
+        ),
+        screenshots = androidDiscoveredPreviews().screenshotConfigs,
         namespace = androidApplicationNamespace,
         resourceApkPath = resourceApkPath().path.toString(),
         resultsFilePath = resultsFilePath.toString()
@@ -209,7 +203,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     }
 
     private def resourceApkPath: Task[PathRef] = Task {
-      PathRef(outer.androidResources()._1.path / "res.apk")
+      outer.androidCompiledResources().resApkFile
     }
 
     // TODO previews must be source controlled to be used as a base
@@ -221,7 +215,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
      */
     def generatePreviews(): Command[Seq[PathRef]] = Task.Command(exclusive = true) {
       val previewGenCmd = mill.util.Jvm.callProcess(
-        mainClass = "com.android.tools.render.compose.MainKt",
+        mainClass = "com.android.tools.render.common.MainKt",
         classPath =
           composePreviewRenderer().map(_.path).toVector ++ layoutLibRenderer().map(_.path).toVector,
         jvmArgs = Seq(
@@ -260,7 +254,10 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     def androidScreenshotTestMethods: Seq[(String, Seq[String])]
 
     /* TODO enhance with hash (sha-1) and auto-detection/generation of methodFQN */
-    def androidDiscoveredPreviews: T[(PathRef, Seq[ComposeRenderer.Screenshot])] = Task {
+    def androidDiscoveredPreviews: T[(
+        previewsDiscoveredJsonFile: PathRef,
+        screenshotConfigs: Seq[ComposeRenderer.Screenshot]
+    )] = Task {
 
       val androidDiscoveredPreviewsPath = Task.dest / "previews_discovered.json"
 
@@ -278,7 +275,10 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
         upickle.default.write(Map("screenshots" -> screenshotConfigurations))
       )
 
-      PathRef(androidDiscoveredPreviewsPath) -> screenshotConfigurations
+      (
+        previewsDiscoveredJsonFile = PathRef(androidDiscoveredPreviewsPath),
+        screenshotConfigs = screenshotConfigurations
+      )
     }
 
     private def diffImageDirPath: Task[PathRef] = Task {
@@ -293,7 +293,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
     def androidPreviewScreenshotTestEngineClasspath: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha08"
+          mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
         )
       )
     }
@@ -310,7 +310,7 @@ trait AndroidAppKotlinModule extends AndroidAppModule with AndroidKotlinModule {
      */
     private def testJvmArgs: T[Seq[String]] = Task {
       val params = Map(
-        "previews-discovered" -> androidDiscoveredPreviews()._1.path.toString(),
+        "previews-discovered" -> androidDiscoveredPreviews().previewsDiscoveredJsonFile.path.toString(),
         "referenceImageDirPath" -> screenshotResults().path.toString(),
         "diffImageDirPath" -> diffImageDirPath().path.toString,
         "renderResultsFilePath" -> androidScreenshotGeneratedResults().path.toString,

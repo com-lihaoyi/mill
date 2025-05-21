@@ -47,7 +47,7 @@ trait BuildGenBase[M, D, I] {
     moduleOptionTree.map(optionalBuild =>
       optionalBuild.copy(value =
         optionalBuild.value.fold(
-          BuildObject(SortedSet("mill._"), SortedMap.empty, Seq("RootModule", "Module"), "", "")
+          BuildObject(SortedSet("mill._"), SortedMap.empty, Seq("Module"), "", "")
         )(moduleModel => {
           val name = getArtifactId(moduleModel)
           println(s"converting module $name")
