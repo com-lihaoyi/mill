@@ -58,6 +58,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase { outer =>
    */
   def scalaVersion: T[String]
 
+  override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] =
+    super.mapDependencies
+
   override def resolutionParams: Task[coursier.params.ResolutionParams] = Task.Anon {
     val isTypelevelScala = scalaOrganization() == "org.typelevel"
     val scalaModuleNames =
