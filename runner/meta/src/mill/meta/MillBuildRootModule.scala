@@ -145,7 +145,7 @@ trait MillBuildRootModule()(implicit
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
           def isSimpleTarget(desc: mill.codesig.JvmModel.Desc) =
-            (desc.ret.pretty == classOf[Task.Cached[?]].getName ||
+            (desc.ret.pretty == classOf[Task.Simple[?]].getName ||
               desc.ret.pretty == classOf[Worker[?]].getName) &&
               desc.args.isEmpty
 

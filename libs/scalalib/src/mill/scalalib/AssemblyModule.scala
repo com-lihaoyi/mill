@@ -4,7 +4,7 @@ import mill.define.PathRef
 import mill.api.Result
 import mill.util.JarManifest
 import mill.define.*
-import mill.define.Task.Cached as T
+import mill.define.Task.Simple as T
 import mill.scalalib.Assembly.UnopenedInputStream
 import mill.util.Jvm
 
