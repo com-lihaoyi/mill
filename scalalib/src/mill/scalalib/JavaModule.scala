@@ -5,7 +5,7 @@ import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolu
 import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
-import coursier.{Repository, Type, core as cs}
+import coursier.{Repository, Type, core => cs}
 import mainargs.{Flag, arg}
 import mill.Agg
 import mill.api.{Ctx, MillException, PathRef, Result, internal}
