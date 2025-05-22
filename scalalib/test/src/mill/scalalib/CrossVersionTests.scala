@@ -164,7 +164,6 @@ object CrossVersionTests extends TestSuite {
       expected.drop(actual.length).map(y => s"'$y' is expected but missing")
   }
 
-
   def tests: Tests = Tests {
 
     test("StandaloneScala213") {
