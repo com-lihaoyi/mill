@@ -426,7 +426,8 @@ object MillMain0 {
         logDir,
         true,
         outLock,
-        bspLogger
+        bspLogger,
+        wsRoot / OutFiles.out
       )
     }
 
