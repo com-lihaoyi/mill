@@ -4,12 +4,12 @@ import mill.api.{SystemStreams, Logger}
 
 import java.io.PrintStream
 
-private[mill] class SimplePrefixLogger(
+private[mill] class SimpleLogger(
     override val unprefixedStreams: SystemStreams,
     override val logKey: Seq[String],
     debugEnabled: Boolean
 ) extends Logger {
-  override def toString: String = s"SimplePrefixLogger($unprefixedStreams, $debugEnabled)"
+  override def toString: String = s"SimpleLogger($unprefixedStreams, $debugEnabled)"
 
   private val linePrefix: String =
     if (logKey.isEmpty) ""
@@ -34,17 +34,19 @@ private[mill] class SimplePrefixLogger(
     if (logKey.isEmpty) ""
     else logKey.mkString("[", "-", "] ")
 
-  def info(logKey: Seq[String], s: String): Unit =
-    log(logKey, s)
+  def info(s: String): Unit =
+    log(s)
 
-  def warn(logKey: Seq[String], s: String): Unit =
-    log(logKey, s)
+  def warn(s: String): Unit =
+    log(s)
 
-  def error(logKey: Seq[String], s: String): Unit =
-    log(logKey, s)
+  def error(s: String): Unit =
+    log(s)
 
-  private def log(logKey: Seq[String], s: String): Unit = {
-    val prefix0 = prefix(logKey)
+  private var currentKey = logKey
+
+  private def log(s: String): Unit = {
+    val prefix0 = prefix(currentKey)
     for (line <- s.linesWithSeparators) {
       unprefixedStreams.err.print(prefix0)
       unprefixedStreams.err.print(line)
@@ -54,10 +56,12 @@ private[mill] class SimplePrefixLogger(
 
   val prompt = new Logger.Prompt.NoOp {
     override def enableTicker = true
+    override def reportKey(key: Seq[String]): Unit =
+      currentKey = key
   }
   def ticker(s: String): Unit = ()
 
-  def debug(logKey: Seq[String], s: String): Unit =
+  def debug(s: String): Unit =
     if (debugEnabled)
-      log(logKey, s)
+      log(s)
 }

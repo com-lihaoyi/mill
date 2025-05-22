@@ -89,12 +89,12 @@ class UnitTester(
       if (idx > 0) fullName.value.substring(0, idx)
       else fullName.value
     }
-    override def error(logKey: Seq[String], s: String): Unit =
-      super.error(logKey, s"${prefix}: ${s}")
-    override def warn(logKey: Seq[String], s: String): Unit = super.warn(logKey, s"${prefix}: ${s}")
-    override def info(logKey: Seq[String], s: String): Unit = super.info(logKey, s"${prefix}: ${s}")
-    override def debug(logKey: Seq[String], s: String): Unit =
-      super.debug(logKey, s"${prefix}: ${s}")
+    override def error(s: String): Unit =
+      super.error(s"${prefix}: ${s}")
+    override def warn(s: String): Unit = super.warn(s"${prefix}: ${s}")
+    override def info(s: String): Unit = super.info(s"${prefix}: ${s}")
+    override def debug(s: String): Unit =
+      super.debug(s"${prefix}: ${s}")
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
 

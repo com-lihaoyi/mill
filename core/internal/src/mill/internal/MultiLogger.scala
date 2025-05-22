@@ -22,17 +22,17 @@ private[mill] class MultiLogger(
     inStream0
   )
 
-  def info(logKey: Seq[String], s: String): Unit = {
-    logger1.info(logKey, s)
-    logger2.info(logKey, s)
+  def info(s: String): Unit = {
+    logger1.info(s)
+    logger2.info(s)
   }
-  def warn(logKey: Seq[String], s: String): Unit = {
-    logger1.warn(logKey, s)
-    logger2.warn(logKey, s)
+  def warn(s: String): Unit = {
+    logger1.warn(s)
+    logger2.warn(s)
   }
-  def error(logKey: Seq[String], s: String): Unit = {
-    logger1.error(logKey, s)
-    logger2.error(logKey, s)
+  def error(s: String): Unit = {
+    logger1.error(s)
+    logger2.error(s)
   }
   def ticker(s: String): Unit = {
     logger1.ticker(s)
@@ -95,9 +95,9 @@ private[mill] class MultiLogger(
       logger1.prompt.errorColor(logger2.prompt.errorColor(s))
     override def colored: Boolean = logger1.prompt.colored || logger2.prompt.colored
   }
-  def debug(logKey: Seq[String], s: String): Unit = {
-    logger1.debug(logKey, s)
-    logger2.debug(logKey, s)
+  def debug(s: String): Unit = {
+    logger1.debug(s)
+    logger2.debug(s)
   }
 
   private[mill] override def logKey = logger1.logKey ++ logger2.logKey

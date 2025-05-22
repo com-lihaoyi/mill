@@ -11,11 +11,11 @@ private[mill] class ProxyLogger(logger: Logger) extends Logger {
 
   lazy val streams = logger.streams
 
-  def info(logKey: Seq[String], s: String): Unit = logger.info(logKey, s)
-  def warn(logKey: Seq[String], s: String): Unit = logger.warn(logKey, s)
-  def error(logKey: Seq[String], s: String): Unit = logger.error(logKey, s)
+  def info(s: String): Unit = logger.info(s)
+  def warn(s: String): Unit = logger.warn(s)
+  def error(s: String): Unit = logger.error(s)
   def ticker(s: String): Unit = logger.ticker(s)
-  def debug(logKey: Seq[String], s: String): Unit = logger.debug(logKey, s)
+  def debug(s: String): Unit = logger.debug(s)
 
   def prompt = logger.prompt
 

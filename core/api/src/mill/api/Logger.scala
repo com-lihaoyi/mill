@@ -29,37 +29,25 @@ trait Logger {
    * Prints miscellaneous logging output which isn't part of the main output
    * a user is looking for, but useful to provide context on what Mill is doing
    */
-  final def info(s: String): Unit =
-    info(logKey, s)
-
-  def info(logKey: Seq[String], s: String): Unit
+  def info(s: String): Unit
 
   /**
    * Prints internal debug messages normally not shown to the user;
    * mostly useful when debugging issues
    */
-  final def debug(s: String): Unit =
-    debug(logKey, s)
-
-  def debug(logKey: Seq[String], s: String): Unit
+  def debug(s: String): Unit
 
   /**
    * Prints logging output which represents warnings the user should care
    * about
    */
-  final def warn(s: String): Unit =
-    warn(logKey, s)
-
-  def warn(logKey: Seq[String], s: String): Unit
+  def warn(s: String): Unit
 
   /**
    * Prints logging output which represents problems the user should care
    * about
    */
-  final def error(s: String): Unit =
-    error(logKey, s)
-
-  def error(logKey: Seq[String], s: String): Unit
+  def error(s: String): Unit
 
   /**
    * Prints short-lived logging output where consecutive lines over-write

@@ -13,10 +13,10 @@ private[mill] object DummyLogger extends Logger {
     new ByteArrayInputStream(Array())
   )
 
-  def info(logKey: Seq[String], s: String) = ()
-  def warn(logKey: Seq[String], s: String) = ()
-  def error(logKey: Seq[String], s: String) = ()
+  def info(s: String) = ()
+  def warn(s: String) = ()
+  def error(s: String) = ()
   def ticker(s: String) = ()
-  def debug(logKey: Seq[String], s: String) = ()
+  def debug(s: String) = ()
   def prompt = new Logger.Prompt.NoOp
 }

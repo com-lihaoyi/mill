@@ -101,13 +101,13 @@ private[mill] class PromptLogger(
     if (!enableTicker || logKey.isEmpty) ""
     else logKey.mkString("[", "-", "] ")
 
-  def info(logKey: Seq[String], s: String): Unit =
+  def info(s: String): Unit =
     streams.err.println("" + prompt.infoColor(prefix(logKey)) + s)
 
-  def warn(logKey: Seq[String], s: String): Unit =
+  def warn(s: String): Unit =
     streams.err.println("" + prompt.infoColor(prefix(logKey)) + s)
 
-  def error(logKey: Seq[String], s: String): Unit =
+  def error(s: String): Unit =
     streams.err.println("" + prompt.infoColor(prefix(logKey)) + s)
 
   object prompt extends Logger.Prompt {
@@ -172,7 +172,7 @@ private[mill] class PromptLogger(
   private val seenIdentifiers = collection.mutable.Map.empty[Seq[String], (String, String)]
   private val reportedIdentifiers = collection.mutable.Set.empty[Seq[String]]
 
-  def debug(logKey: Seq[String], s: String): Unit =
+  def debug(s: String): Unit =
     if (debugEnabled) unprefixedStreams.err.println(s)
 
   override def close(): Unit = {

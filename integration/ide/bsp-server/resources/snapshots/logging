@@ -17,7 +17,7 @@
 [3-loggingTest-1] bspLoggingTest from System.err
 [3-loggingTest-1] bspLoggingTest from Console.out
 [3-loggingTest-1] bspLoggingTest from Console.err
-[3-loggingTest-1] bspLoggingTest from Task.log.info
+[3-loggingTest] bspLoggingTest from Task.log.info
 [3-loggingTest] Done
 [3-loggingTest] loggingTest took * msec
 [4-compile] Entered buildTargetCompile
@@ -33,5 +33,5 @@
 [4-compile] buildTargetCompile took * msec
 [5-buildShutdown] Entered buildShutdown
 [6-onBuildExit] Entered onBuildExit
-[bsp] BSP session returned with mill.api.internal.BspServerResult$Shutdown$@*
-[bsp] Exiting BSP runner loop. Stopping BSP server. Last result: Success(mill.api.internal.BspServerResult$Shutdown$@*)
+[6-onBuildExit] BSP session returned with mill.api.internal.BspServerResult$Shutdown$@*
+[6-onBuildExit] Exiting BSP runner loop. Stopping BSP server. Last result: Success(mill.api.internal.BspServerResult$Shutdown$@*)

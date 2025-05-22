@@ -6,7 +6,7 @@ import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
 import mill.constants.{DaemonFiles, OutFiles, Util}
 import mill.define.BuildCtx
-import mill.internal.{Colors, MultiStream, PrefixLogger, PromptLogger, SimplePrefixLogger}
+import mill.internal.{Colors, MultiStream, PrefixLogger, PromptLogger, SimpleLogger}
 import mill.server.Server
 import mill.util.BuildInfo
 import mill.{api, define}
@@ -520,7 +520,7 @@ object MillMain0 {
       streams: SystemStreams,
       config: MillCliConfig
   ): Logger =
-    new SimplePrefixLogger(
+    new SimpleLogger(
       streams,
       Seq("bsp"),
       debugEnabled = config.debugLog.value

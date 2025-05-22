@@ -23,6 +23,7 @@ import scala.reflect.ClassTag
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
+import mill.internal.PrefixLogger
 
 private class MillBuildServer(
     topLevelProjectRoot: os.Path,
@@ -754,17 +755,20 @@ private class MillBuildServer(
     new MillBspLogger(
       client,
       requestCount0,
-      new ProxyLogger(baseLogger) {
-        override val logKey = Seq(requestCount0.toString, name)
-      }
+      new PrefixLogger(
+        new ProxyLogger(baseLogger) {
+          override private[mill] def logKey: Seq[String] = {
+            val logKey0 = super.logKey
+            if (logKey0.startsWith(Seq("bsp"))) logKey0.drop(1)
+            else logKey0
+          }
+        },
+        Seq(requestCount0.toString, name),
+        "",
+        "",
+        false
+      )
     )
-  }
-
-  private def withLogger[T](f: Logger => T)(implicit enclosing: sourcecode.Enclosing): T = {
-    val logger = createLogger()
-    logger.withPromptLine {
-      f(logger)
-    }
   }
 
   private def evaluate(
