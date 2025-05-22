@@ -137,7 +137,7 @@ object CrossVersionTests extends TestSuite {
       testPath: TestPath
   ) = {
     val eval = init()
-    eval.apply(mod.ivyDepsTree(IvyDepsTreeArgs()))
+    val Right(result) = eval.apply(mod.ivyDepsTree(IvyDepsTreeArgs()))
 
     expectedIvyDepsTree.foreach { tree =>
       if (!scala.util.Properties.isWin) {
@@ -145,7 +145,8 @@ object CrossVersionTests extends TestSuite {
         val expectedDepsTree = tree
         val depsTree =
           os.read(eval.evaluator.pathsResolver.resolveDest(mod.ivyDepsTree(IvyDepsTreeArgs())).log)
-        assert(depsTree == expectedDepsTree)
+        val diffed = diff(depsTree.trim, tree.trim)
+        assert(diffed == Nil)
       }
     }
 
@@ -154,6 +155,15 @@ object CrossVersionTests extends TestSuite {
     val libNames = libs.value.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
     assert(libNames == expectedLibs.sorted)
   }
+
+  def diff(actual: String, expected: String): List[String] = {
+    actual.lazyZip(expected).collect {
+      case (x, y) if x != y => s"'$x' != '$y'"
+    }.toList ++
+      actual.drop(expected.length).map(x => s"'$x' is unexpected") ++
+      expected.drop(actual.length).map(y => s"'$y' is expected but missing")
+  }
+
 
   def tests: Tests = Tests {
 

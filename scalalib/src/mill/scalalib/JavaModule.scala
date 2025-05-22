@@ -1264,7 +1264,7 @@ trait JavaModule
       // Filter the output, so that the special organization and version used for Mill's own modules
       // don't appear in the output. This only leaves the modules' name built from millModuleSegments.
       val processedTree = tree
-        .replace(" " + JavaModule.internalOrg + ":", " ")
+        .replace(s" ${JavaModule.internalOrg.value}:", " ")
         .replaceAll(":" + Regex.quote(JavaModule.internalVersion) + "(\\w*$|\\n)", "$1")
 
       println(processedTree)
