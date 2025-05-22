@@ -12,7 +12,6 @@ import coursier.VersionConstraint
 import mill.main.VcsVersion
 //import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
-import mill.define.NamedTask
 import mill.main.Tasks
 import mill.scalalib._
 import mill.scalalib.api.JvmWorkerUtil

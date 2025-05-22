@@ -29,7 +29,6 @@ import mill.api.internal.JvmBuildTarget
 import mill.api.internal.ResolvedModule
 import mill.api.internal.Scoped
 import mill.api.internal.internal
-import mill.define.Command
 import mill.define.ModuleRef
 import mill.define.PathRef
 import mill.define.Segment
@@ -441,7 +440,7 @@ trait JavaModule
    * Show the module dependencies.
    * @param recursive If `true` include all recursive module dependencies, else only show direct dependencies.
    */
-  def showModuleDeps(recursive: Boolean = false): Command[Unit] = {
+  def showModuleDeps(recursive: Boolean = false): Task.Command[Unit] = {
     // This is exclusive to avoid scrambled output
     Task.Command(exclusive = true) {
       val asString = formatModuleDeps(recursive, true)()

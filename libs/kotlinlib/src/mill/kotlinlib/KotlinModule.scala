@@ -9,13 +9,13 @@ package kotlinlib
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.api.Result
-import mill.define.{Command, ModuleRef, PathRef, Task}
+import mill.define.ModuleRef
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.scalalib.api.{CompilationResult, JvmWorkerApi}
 import mill.api.internal.{BspBuildTarget, BspModuleApi, CompileProblemReporter, internal}
 import mill.scalalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
-import mill.T
+import mill.*
 import java.io.File
 
 import mainargs.Flag

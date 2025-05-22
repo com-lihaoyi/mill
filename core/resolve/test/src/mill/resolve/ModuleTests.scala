@@ -1,7 +1,7 @@
 package mill.resolve
 
 import mill.api.Result
-import mill.define.{Discover, ModuleRef, NamedTask, TaskModule}
+import mill.define.{Discover, ModuleRef, Task, TaskModule}
 import mill.testkit.TestRootModule
 import mill.define.DynamicModule
 import mill.util.TestGraphs
@@ -503,8 +503,8 @@ object ModuleTests extends TestSuite {
       val check = new Checker(duplicates)
 
       def segments(
-          found: Result[List[NamedTask[?]]],
-          expected: Result[List[NamedTask[?]]]
+          found: Result[List[Task.Named[?]]],
+          expected: Result[List[Task.Named[?]]]
       ) = {
         found.map(_.map(_.ctx.segments)) == expected.map(_.map(_.ctx.segments))
       }

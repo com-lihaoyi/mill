@@ -21,7 +21,7 @@ trait KoverReportBaseModule extends CoursierModule {
     Result.Success[String](Task.env.getOrElse("KOVER_VERSION", Versions.koverVersion))
   }
 
-  def koverCliDep: Target[Seq[Dep]] = Task {
+  def koverCliDep: T[Seq[Dep]] = Task {
     Seq(mvn"org.jetbrains.kotlinx:kover-cli:${koverVersion()}")
   }
 

@@ -6,12 +6,12 @@ import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import mill.util.TokenReaders._
 import mill.Task
+import mill.T
 import os.Path
 import sbt.testing.Status
 import utest.*
 
 import scala.xml.{Elem, NodeSeq, XML}
-import mill.define.Target
 
 object TestRunnerTestUtils {
   object testrunner extends TestRunnerTestModule {
@@ -78,7 +78,7 @@ object TestRunnerTestUtils {
     object ziotest extends ScalaTests with TestModule.ZioTest {
       override def testForkGrouping = computeTestForkGrouping(discoveredTestClasses())
       override def testParallelism = enableParallelism
-      override def zioTestVersion: Target[String] = sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)
+      override def zioTestVersion: T[String] = sys.props.getOrElse("TEST_ZIOTEST_VERSION", ???)
     }
   }
 

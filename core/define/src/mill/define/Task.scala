@@ -32,7 +32,7 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
   def evaluate(args: mill.define.TaskCtx): Result[T]
 
   /**
-   * Even if this tasks's inputs did not change, does it need to re-evaluate
+   * Even if this task's inputs did not change, does it need to re-evaluate
    * anyway?
    */
   def sideHash: Int = 0
@@ -42,11 +42,11 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
    */
   def persistent: Boolean = false
 
-  def asTarget: Option[Target[T]] = None
-  def asCommand: Option[Command[T]] = None
-  def asWorker: Option[Worker[T]] = None
+  def asTarget: Option[Task.Simple[T]] = None
+  def asCommand: Option[Task.Command[T]] = None
+  def asWorker: Option[Task.Worker[T]] = None
   def isExclusiveCommand: Boolean = this match {
-    case c: Command[_] if c.exclusive => true
+    case c: Task.Command[_] if c.exclusive => true
     case _ => false
   }
 }
@@ -139,26 +139,26 @@ object Task {
   }
 
   /**
-   * A specialization of [[InputImpl]] defined via `Task.Sources`, [[SourcesImpl]]
+   * A specialization of [[Input]] defined via `Task.Sources`, [[Sources]]
    * uses [[PathRef]]s to compute a signature for a set of source files and
    * folders.
    *
    * This is most used when detecting changes in source code: when you edit a
    * file and run `mill compile`, it is the `Task.Sources` that re-computes the
    * signature for you source files/folders and decides whether or not downstream
-   * [[TargetImpl]]s need to be invalidated and re-computed.
+   * [[Task.Computed]]s need to be invalidated and re-computed.
    */
   inline def Sources(inline values: Result[os.Path]*)(implicit
       inline ctx: mill.define.ModuleCtx
-  ): Target[Seq[PathRef]] = ${
-    TaskMacros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx)
+  ): Simple[Seq[PathRef]] = ${
+    Macros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx)
   }
 
   inline def Sources(inline values: os.SubPath*)(implicit
       inline ctx: mill.define.ModuleCtx,
       dummy: Boolean = true
-  ): Target[Seq[PathRef]] = ${
-    TaskMacros.sourcesImpl(
+  ): Simple[Seq[PathRef]] = ${
+    Macros.sourcesImpl(
       '{ values.map(sub => PathRef(ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk(sub))) }
     )('ctx)
   }
@@ -169,40 +169,40 @@ object Task {
    */
   inline def Source(inline value: Result[os.Path])(implicit
       inline ctx: mill.define.ModuleCtx
-  ): Target[PathRef] =
-    ${ TaskMacros.sourceImpl('{ value.map(PathRef(_)) })('ctx) }
+  ): Simple[PathRef] =
+    ${ Macros.sourceImpl('{ value.map(PathRef(_)) })('ctx) }
 
   inline def Source(inline value: os.SubPath)(implicit
       inline ctx: mill.define.ModuleCtx
-  ): Target[PathRef] =
-    ${ TaskMacros.sourceImpl('{ PathRef(ctx.millSourcePath / os.up / value) })('ctx) }
+  ): Simple[PathRef] =
+    ${ Macros.sourceImpl('{ PathRef(ctx.millSourcePath / os.up / value) })('ctx) }
 
   /**
-   * [[InputImpl]]s, normally defined using `Task.Input`, are [[NamedTask]]s that
-   * re-evaluate every time Mill is run. This is in contrast to [[TargetImpl]]s
+   * [[Input]]s, normally defined using `Task.Input`, are [[Task.Named]]s that
+   * re-evaluate every time Mill is run. This is in contrast to [[Task.Computed]]s
    * which only re-evaluate when upstream tasks change.
    *
-   * [[InputImpl]]s are useful when you want to capture some input to the Mill
+   * [[Input]]s are useful when you want to capture some input to the Mill
    * build graph that comes from outside: maybe from an environment variable, a
    * JVM system property, the hash returned by `git rev-parse HEAD`. Reading
-   * these external mutable variables inside a `Task{...}` [[TargetImpl]] will
+   * these external mutable variables inside a `Task{...}` [[Task.Computed]] will
    * incorrectly cache them forever. Reading them inside a `Task.Input{...}`
    * will re-compute them every time, and only if the value changes would it
-   * continue to invalidate downstream [[TargetImpl]]s
+   * continue to invalidate downstream [[Task.Computed]]s
    *
-   * The most common case of [[InputImpl]] is [[SourceImpl]] and [[SourcesImpl]],
+   * The most common case of [[Input]] is [[Source]] and [[Sources]],
    * used for detecting changes to source files.
    */
   inline def Input[T](inline value: Result[T])(implicit
       inline w: Writer[T],
       inline ctx: ModuleCtx
-  ): Target[T] =
-    ${ TaskMacros.inputImpl[T]('value)('w, 'ctx) }
+  ): Simple[T] =
+    ${ Macros.inputImpl[T]('value)('w, 'ctx) }
 
   /**
-   * [[Command]]s are only [[NamedTask]]s defined using
+   * [[Command]]s are only [[Task.Named]]s defined using
    * `def foo() = Task.Command{...}` and are typically called from the
-   * command-line. Unlike other [[NamedTask]]s, [[Command]]s can be defined to
+   * command-line. Unlike other [[Task.Named]]s, [[Command]]s can be defined to
    * take arguments that are automatically converted to command-line
    * arguments, as long as an implicit [[mainargs.TokensReader]] is available.
    */
@@ -210,7 +210,7 @@ object Task {
       inline w: Writer[T],
       inline ctx: ModuleCtx
   ): Command[T] =
-    ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, persistent = '{ false }) }
+    ${ Macros.commandImpl[T]('t)('w, 'ctx, exclusive = '{ false }, persistent = '{ false }) }
 
   /**
    * @param exclusive Exclusive commands run serially at the end of an evaluation,
@@ -232,11 +232,11 @@ object Task {
         inline w: Writer[T],
         inline ctx: ModuleCtx
     ): Command[T] =
-      ${ TaskMacros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }, '{ this.persistent }) }
+      ${ Macros.commandImpl[T]('t)('w, 'ctx, '{ this.exclusive }, '{ this.persistent }) }
   }
 
   /**
-   * [[Worker]] is a [[NamedTask]] that lives entirely in-memory, defined using
+   * [[Worker]] is a [[Task.Named]] that lives entirely in-memory, defined using
    * `Task.Worker{...}`. The value returned by `Task.Worker{...}` is long-lived,
    * persisting as long as the Mill process is kept alive (e.g. via `--watch`,
    * or via its default `MillDaemonMain` server process). This allows the user to
@@ -250,7 +250,7 @@ object Task {
    * what in-memory state the worker may have.
    */
   inline def Worker[T](inline t: Result[T])(implicit inline ctx: mill.define.ModuleCtx): Worker[T] =
-    ${ TaskMacros.workerImpl2[T]('t)('ctx) }
+    ${ Macros.workerImpl2[T]('t)('ctx) }
 
   /**
    * Creates an anonymous `Task`. These depend on other tasks and
@@ -261,18 +261,18 @@ object Task {
   inline def Anon[T](inline t: Result[T])(implicit
       inline enclosing: sourcecode.Enclosing
   ): Task[T] =
-    ${ TaskMacros.anonTaskImpl[T]('t, 'enclosing) }
+    ${ Macros.anonTaskImpl[T]('t, 'enclosing) }
 
   inline def apply[T](inline t: Result[T])(implicit
       inline rw: ReadWriter[T],
       inline ctx: mill.define.ModuleCtx
-  ): Target[T] =
-    ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
+  ): Simple[T] =
+    ${ Macros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
   /**
    * Persistent tasks are defined using
    * the `Task(persistent = true){...}` syntax. The main difference is that while
-   * [[TargetImpl]] deletes the `Task.dest` folder in between runs,
+   * [[Task.Computed]] deletes the `Task.dest` folder in between runs,
    * [[PersistentImpl]] preserves it. This lets the user make use of files on
    * disk that persistent between runs of the task, e.g. to implement their own
    * fine-grained caching beyond what Mill provides by default.
@@ -290,7 +290,7 @@ object Task {
     inline def apply[T](inline t: Result[T])(implicit
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
-    ): Target[T] = ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
+    ): Simple[T] = ${ Macros.targetResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
   abstract class Ops[+T] { this: Task[T] =>
@@ -318,364 +318,274 @@ object Task {
     def evaluate(ctx: mill.define.TaskCtx): Result[(T, V)] = (ctx.arg(0), ctx.arg(1))
     val inputs: Seq[Task[?]] = List(source1, source2)
   }
-}
-
-/**
- * Represents a task that can be referenced by its path segments. `Task{...}`
- * targets, `Task.Input`, `Task.Worker`, etc. but not including anonymous
- * `Task.Anon` or `Task.traverse` etc. instances
- */
-trait NamedTask[+T] extends Task[T] with NamedTaskApi[T] {
-
-  def ctx0: mill.define.ModuleCtx
-  def isPrivate: Option[Boolean]
-  def label: String = ctx.segments.value.last match {
-    case Segment.Label(v) => v
-    case Segment.Cross(_) => throw new IllegalArgumentException(
-        "NamedTask only support a ctx with a Label segment, but found a Cross."
-      )
-  }
-  override def toString = ctx.segments.render
-
-  def evaluate(ctx: mill.define.TaskCtx): Result[T] = evaluate0(ctx.args, ctx)
-
-  def evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T]
-
-  val ctx: ModuleCtx = ctx0
-
-  def readWriterOpt: Option[upickle.default.ReadWriter[?]] = None
-
-  def writerOpt: Option[upickle.default.Writer[?]] = readWriterOpt.orElse(None)
-}
-
-/**
- * A Target is a [[NamedTask]] that is cached on disk; either a
- * [[TargetImpl]] or an [[InputImpl]]
- */
-trait Target[+T] extends NamedTask[T]
-
-object Target {
 
   /**
-   * A target is the most common [[Task]] a user would encounter, commonly
-   * defined using the `def foo = Task {...}` syntax. [[TargetImpl]]s require that their
-   * return type is JSON serializable. In return they automatically caches their
-   * return value to disk, only re-computing if upstream [[Task]]s change
+   * Represents a task that can be referenced by its path segments. `Task{...}`
+   * targets, `Task.Input`, `Task.Worker`, etc. but not including anonymous
+   * `Task.Anon` or `Task.traverse` etc. instances
    */
-  implicit inline def create[T](inline t: T)(implicit
-      inline rw: ReadWriter[T],
-      inline ctx: ModuleCtx
-  ): Target[T] =
-    ${ TaskMacros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
+  trait Named[+T] extends Task[T] with NamedTaskApi[T] {
 
-  implicit inline def create[T](inline t: Result[T])(implicit
-      inline rw: ReadWriter[T],
-      inline ctx: ModuleCtx
-  ): Target[T] =
-    ${ TaskMacros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
+    def ctx0: mill.define.ModuleCtx
 
-}
+    def isPrivate: Option[Boolean]
 
-/**
- * The [[mill.define.Target]] companion object, usually aliased as [[T]],
- * provides most of the helper methods and macros used to build task graphs.
- * methods like `Task.`[[apply]], `Task.`[[sources]], `Task.`[[command]] allow you to
- * define the tasks, while methods like `Task.`[[dest]], `Task.`[[log]] or
- * `Task.`[[env]] provide the core APIs that are provided to a task implementation
- */
-class TaskBase {
-
-  /**
-   * Returns the [[mill.define.TaskCtx]] that is available within this task
-   */
-  def ctx()(implicit c: mill.define.TaskCtx): mill.define.TaskCtx = c
-
-  /**
-   * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
-   * that is assigned to every Target or Command. It is cleared before your
-   * task runs, and you can use it as a scratch space for temporary files or
-   * a place to put returned artifacts. This is guaranteed to be unique for
-   * every Target or Command, so you can be sure that you will not collide or
-   * interfere with anyone else writing to those same paths.
-   */
-  def dest(implicit ctx: mill.define.TaskCtx.Dest): os.Path = ctx.dest
-
-  /**
-   * `Task.log` is the default logger provided for every task. While your task is running,
-   * `System.out` and `System.in` are also redirected to this logger. The logs for a
-   * task are streamed to standard out/error as you would expect, but each task's
-   * specific output is also streamed to a log file on disk, e.g. `out/run.log` or
-   * `out/classFiles.log` for you to inspect later.
-   *
-   * Messages logged with `log.debug` appear by default only in the log files.
-   * You can use the `--debug` option when running mill to show them on the console too.
-   */
-  def log(implicit ctx: mill.define.TaskCtx.Log): Logger = ctx.log
-
-  /**
-   * `Task.env` is the environment variable map passed to the Mill command when
-   * it is run; typically used inside a `Task.Input` to ensure any changes in
-   * the env vars are properly detected.
-   *
-   * Note that you should not use `sys.env`, as Mill's long-lived server
-   * process means that `sys.env` variables may not be up to date.
-   */
-  def env(implicit ctx: mill.define.TaskCtx.Env): Map[String, String] = ctx.env
-
-  /**
-   * Returns the implicit [[mill.define.TaskCtx.Args.args]] in scope.
-   */
-  def args(implicit ctx: mill.define.TaskCtx.Args): IndexedSeq[?] = ctx.args
-
-  /**
-   * Report test results to BSP for IDE integration
-   */
-  def testReporter(implicit ctx: mill.define.TaskCtx): TestReporter = ctx.testReporter
-
-  /**
-   * Report build results to BSP for IDE integration
-   */
-  def reporter(implicit ctx: mill.define.TaskCtx): Int => Option[CompileProblemReporter] =
-    ctx.reporter
-
-  /**
-   * This is the `os.Path` pointing to the project root directory.
-   *
-   * This is the preferred access to the project directory, and should
-   * always be prefered over `os.pwd`* (which might also point to the
-   * project directory in classic cli scenarios, but might not in other
-   * use cases like BSP or LSP server usage).
-   */
-  def workspace(implicit ctx: mill.define.TaskCtx): os.Path = ctx.workspace
-
-  /**
-   * Provides the `.fork.async` and `.fork.await` APIs for spawning and joining
-   * async futures within your task in a Mill-friendly mannter
-   */
-  def fork(implicit ctx: mill.define.TaskCtx): mill.define.TaskCtx.Fork.Api = ctx.fork
-
-  def offline(implicit ctx: mill.define.TaskCtx): Boolean = ctx.offline
-
-  def fail(msg: String)(implicit ctx: mill.define.TaskCtx): Nothing = ctx.fail(msg)
-
-  /**
-   * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`
-   */
-  def sequence[T](source: Seq[Task[T]]): Task[Seq[T]] = new Task.Sequence[T](source)
-
-  /**
-   * Converts a `Seq[T]` into a `Task[Seq[V]]` using the given `f: T => Task[V]`
-   */
-  def traverse[T, V](source: Seq[T])(f: T => Task[V]): Task[Seq[V]] = {
-    new Task.Sequence[V](source.map(f))
-  }
-}
-
-class TargetImpl[+T](
-    val inputs: Seq[Task[Any]],
-    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-    val ctx0: mill.define.ModuleCtx,
-    val readWriter: ReadWriter[?],
-    val isPrivate: Option[Boolean],
-    override val persistent: Boolean
-) extends Target[T] {
-  override def asTarget: Option[Target[T]] = Some(this)
-  // FIXME: deprecated return type: Change to Option
-  override def readWriterOpt: Some[ReadWriter[?]] = Some(readWriter)
-}
-
-class Command[+T](
-    val inputs: Seq[Task[Any]],
-    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-    val ctx0: mill.define.ModuleCtx,
-    val writer: Writer[?],
-    val isPrivate: Option[Boolean],
-    val exclusive: Boolean,
-    override val persistent: Boolean
-) extends NamedTask[T] {
-
-  override def asCommand: Some[Command[T]] = Some(this)
-  // FIXME: deprecated return type: Change to Option
-  override def writerOpt: Some[Writer[?]] = Some(writer)
-}
-
-class Worker[+T](
-    val inputs: Seq[Task[Any]],
-    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-    val ctx0: mill.define.ModuleCtx,
-    val isPrivate: Option[Boolean]
-) extends NamedTask[T] {
-  override def persistent = false
-  override def asWorker: Some[Worker[T]] = Some(this)
-}
-
-class InputImpl[T](
-    val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-    val ctx0: mill.define.ModuleCtx,
-    val writer: upickle.default.Writer[?],
-    val isPrivate: Option[Boolean]
-) extends Target[T] {
-  val inputs = Nil
-  override def sideHash: Int = util.Random.nextInt()
-  // FIXME: deprecated return type: Change to Option
-  override def writerOpt: Some[Writer[?]] = Some(writer)
-}
-
-class SourcesImpl(
-    evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[Seq[PathRef]],
-    ctx0: mill.define.ModuleCtx,
-    isPrivate: Option[Boolean]
-) extends InputImpl[Seq[PathRef]](
-      evaluate0,
-      ctx0,
-      upickle.default.readwriter[Seq[PathRef]],
-      isPrivate
-    ) {}
-
-class SourceImpl(
-    evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[PathRef],
-    ctx0: mill.define.ModuleCtx,
-    isPrivate: Option[Boolean]
-) extends InputImpl[PathRef](
-      evaluate0,
-      ctx0,
-      upickle.default.readwriter[PathRef],
-      isPrivate
-    ) {}
-
-class AnonImpl[T](
-    val inputs: Seq[Task[_]],
-    evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
-    enclosing: sourcecode.Enclosing
-) extends Task[T] {
-  def evaluate(ctx: mill.define.TaskCtx) = evaluate0(ctx.args, ctx)
-
-  override def toString =
-    s"Task.Anon@${System.identityHashCode(this).toHexString}(${enclosing.value})"
-}
-
-private object TaskMacros {
-  def appImpl[M[_]: Type, T: Type](using
-      Quotes
-  )(
-      traverseCtx: (
-          Expr[Seq[Task[Any]]],
-          Expr[(Seq[Any], mill.define.TaskCtx) => Result[T]]
-      ) => Expr[M[T]],
-      t: Expr[Result[T]],
-      allowTaskReferences: Boolean = true
-  ): Expr[M[T]] =
-    Applicative.impl[M, Task, Result, T, mill.define.TaskCtx](traverseCtx, t, allowTaskReferences)
-
-  private def taskIsPrivate()(using Quotes): Expr[Option[Boolean]] =
-    Cacher.withMacroOwner {
-      owner =>
-        import quotes.reflect.*
-        if owner.flags.is(Flags.Private) then Expr(Some(true))
-        else Expr(Some(false))
+    def label: String = ctx.segments.value.last match {
+      case Segment.Label(v) => v
+      case Segment.Cross(_) => throw new IllegalArgumentException(
+          "Task.Named only support a ctx with a Label segment, but found a Cross."
+        )
     }
 
-  def anonTaskImpl[T: Type](t: Expr[Result[T]], enclosing: Expr[sourcecode.Enclosing])(using
-      Quotes
-  ): Expr[Task[T]] = {
-    appImpl[Task, T]((in, ev) => '{ AnonImpl($in, $ev, $enclosing) }, t)
+    override def toString = ctx.segments.render
+
+    def evaluate(ctx: mill.define.TaskCtx): Result[T] = evaluate0(ctx.args, ctx)
+
+    def evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T]
+
+    val ctx: ModuleCtx = ctx0
+
+    def readWriterOpt: Option[upickle.default.ReadWriter[?]] = None
+
+    def writerOpt: Option[upickle.default.Writer[?]] = readWriterOpt.orElse(None)
   }
 
-  def targetResultImpl[T: Type](using
-      Quotes
-  )(t: Expr[Result[T]])(
-      rw: Expr[ReadWriter[T]],
-      ctx: Expr[mill.define.ModuleCtx],
-      persistent: Expr[Boolean]
-  ): Expr[Target[T]] = {
-    val expr = appImpl[Target, T](
-      (in, ev) => '{ new TargetImpl[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
-      t
-    )
+  class Computed[+T](
+      val inputs: Seq[Task[Any]],
+      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+      val ctx0: mill.define.ModuleCtx,
+      val readWriter: ReadWriter[?],
+      val isPrivate: Option[Boolean],
+      override val persistent: Boolean
+  ) extends Simple[T] {
+    override def asTarget: Option[Simple[T]] = Some(this)
 
-    Cacher.impl0(expr)
+    // FIXME: deprecated return type: Change to Option
+    override def readWriterOpt: Some[ReadWriter[?]] = Some(readWriter)
   }
 
-  def sourcesImpl(using
-      Quotes
-  )(
-      values: Expr[Result[Seq[PathRef]]]
-  )(
-      ctx: Expr[mill.define.ModuleCtx]
-  ): Expr[Target[Seq[PathRef]]] = {
-    val expr = appImpl[Target, Seq[PathRef]](
-      (in, ev) => '{ new SourcesImpl($ev, $ctx, ${ taskIsPrivate() }) },
-      values,
-      allowTaskReferences = false
-    )
-    Cacher.impl0(expr)
-  }
+  /**
+   * A Target is a [[Task.Named]] that is cached on disk; either a
+   * [[Task.Computed]] or an [[Input]]
+   */
+  trait Simple[+T] extends Task.Named[T]
 
-  def sourceImpl(using
-      Quotes
-  )(value: Expr[Result[PathRef]])(
-      ctx: Expr[mill.define.ModuleCtx]
-  ): Expr[Target[PathRef]] = {
+  object Simple {
 
-    val expr = appImpl[Target, PathRef](
-      (in, ev) => '{ new SourceImpl($ev, $ctx, ${ taskIsPrivate() }) },
-      value,
-      allowTaskReferences = false
-    )
-    Cacher.impl0(expr)
+    /**
+     * A target is the most common [[Task]] a user would encounter, commonly
+     * defined using the `def foo = Task {...}` syntax. [[Task.Computed]]s require that their
+     * return type is JSON serializable. In return they automatically caches their
+     * return value to disk, only re-computing if upstream [[Task]]s change
+     */
+    implicit inline def create[T](inline t: T)(implicit
+        inline rw: ReadWriter[T],
+        inline ctx: ModuleCtx
+    ): Simple[T] =
+      ${ Macros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
+
+    implicit inline def create[T](inline t: Result[T])(implicit
+        inline rw: ReadWriter[T],
+        inline ctx: ModuleCtx
+    ): Simple[T] =
+      ${ Macros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
   }
 
-  def inputImpl[T: Type](using
-      Quotes
-  )(value: Expr[Result[T]])(
-      w: Expr[upickle.default.Writer[T]],
-      ctx: Expr[mill.define.ModuleCtx]
-  ): Expr[Target[T]] = {
+  class Anon[T](
+      val inputs: Seq[Task[_]],
+      evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+      enclosing: sourcecode.Enclosing
+  ) extends Task[T] {
+    def evaluate(ctx: mill.define.TaskCtx) = evaluate0(ctx.args, ctx)
 
-    val expr = appImpl[Target, T](
-      (in, ev) => '{ new InputImpl[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
-      value,
-      allowTaskReferences = false
-    )
-    Cacher.impl0(expr)
+    override def toString =
+      s"Task.Anon@${System.identityHashCode(this).toHexString}(${enclosing.value})"
   }
 
-  def commandImpl[T: Type](using
-      Quotes
-  )(t: Expr[Result[T]])(
-      w: Expr[Writer[T]],
-      ctx: Expr[mill.define.ModuleCtx],
-      exclusive: Expr[Boolean],
-      persistent: Expr[Boolean]
-  ): Expr[Command[T]] = {
-    appImpl[Command, T](
-      (in, ev) =>
-        '{
-          new Command[T](
-            $in,
-            $ev,
-            $ctx,
-            $w,
-            ${ taskIsPrivate() },
-            exclusive = $exclusive,
-            persistent = $persistent
-          )
-        },
-      t
-    )
+  class Command[+T](
+      val inputs: Seq[Task[Any]],
+      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+      val ctx0: mill.define.ModuleCtx,
+      val writer: Writer[?],
+      val isPrivate: Option[Boolean],
+      val exclusive: Boolean,
+      override val persistent: Boolean
+  ) extends Task.Named[T] {
+
+    override def asCommand: Some[Command[T]] = Some(this)
+    // FIXME: deprecated return type: Change to Option
+    override def writerOpt: Some[Writer[?]] = Some(writer)
   }
 
-  def workerImpl2[T: Type](using
-      Quotes
-  )(t: Expr[Result[T]])(
-      ctx: Expr[mill.define.ModuleCtx]
-  ): Expr[Worker[T]] = {
+  class Worker[+T](
+      val inputs: Seq[Task[Any]],
+      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+      val ctx0: mill.define.ModuleCtx,
+      val isPrivate: Option[Boolean]
+  ) extends Task.Named[T] {
+    override def persistent = false
+    override def asWorker: Some[Worker[T]] = Some(this)
+  }
 
-    val expr = appImpl[Worker, T](
-      (in, ev) => '{ new Worker[T]($in, $ev, $ctx, ${ taskIsPrivate() }) },
-      t
-    )
-    Cacher.impl0(expr)
+  class Input[T](
+      val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
+      val ctx0: mill.define.ModuleCtx,
+      val writer: upickle.default.Writer[?],
+      val isPrivate: Option[Boolean]
+  ) extends Simple[T] {
+    val inputs = Nil
+    override def sideHash: Int = util.Random.nextInt()
+    // FIXME: deprecated return type: Change to Option
+    override def writerOpt: Some[Writer[?]] = Some(writer)
+  }
+
+  class Sources(
+      evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[Seq[PathRef]],
+      ctx0: mill.define.ModuleCtx,
+      isPrivate: Option[Boolean]
+  ) extends Input[Seq[PathRef]](
+        evaluate0,
+        ctx0,
+        upickle.default.readwriter[Seq[PathRef]],
+        isPrivate
+      ) {}
+
+  class Source(
+      evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[PathRef],
+      ctx0: mill.define.ModuleCtx,
+      isPrivate: Option[Boolean]
+  ) extends Input[PathRef](
+        evaluate0,
+        ctx0,
+        upickle.default.readwriter[PathRef],
+        isPrivate
+      ) {}
+
+  private object Macros {
+    def appImpl[M[_]: Type, T: Type](using
+        Quotes
+    )(
+        traverseCtx: (
+            Expr[Seq[Task[Any]]],
+            Expr[(Seq[Any], mill.define.TaskCtx) => Result[T]]
+        ) => Expr[M[T]],
+        t: Expr[Result[T]],
+        allowTaskReferences: Boolean = true
+    ): Expr[M[T]] =
+      Applicative.impl[M, Task, Result, T, mill.define.TaskCtx](traverseCtx, t, allowTaskReferences)
+
+    private def taskIsPrivate()(using Quotes): Expr[Option[Boolean]] =
+      Cacher.withMacroOwner {
+        owner =>
+          import quotes.reflect.*
+          if owner.flags.is(Flags.Private) then Expr(Some(true))
+          else Expr(Some(false))
+      }
+
+    def anonTaskImpl[T: Type](t: Expr[Result[T]], enclosing: Expr[sourcecode.Enclosing])(using
+        Quotes
+    ): Expr[Task[T]] = {
+      appImpl[Task, T]((in, ev) => '{ new Anon($in, $ev, $enclosing) }, t)
+    }
+
+    def targetResultImpl[T: Type](using
+        Quotes
+    )(t: Expr[Result[T]])(
+        rw: Expr[ReadWriter[T]],
+        ctx: Expr[mill.define.ModuleCtx],
+        persistent: Expr[Boolean]
+    ): Expr[Simple[T]] = {
+      val expr = appImpl[Simple, T](
+        (in, ev) =>
+          '{ new Task.Computed[T]($in, $ev, $ctx, $rw, ${ taskIsPrivate() }, $persistent) },
+        t
+      )
+
+      Cacher.impl0(expr)
+    }
+
+    def sourcesImpl(using
+        Quotes
+    )(
+        values: Expr[Result[Seq[PathRef]]]
+    )(
+        ctx: Expr[mill.define.ModuleCtx]
+    ): Expr[Simple[Seq[PathRef]]] = {
+      val expr = appImpl[Simple, Seq[PathRef]](
+        (in, ev) => '{ new Sources($ev, $ctx, ${ taskIsPrivate() }) },
+        values,
+        allowTaskReferences = false
+      )
+      Cacher.impl0(expr)
+    }
+
+    def sourceImpl(using
+        Quotes
+    )(value: Expr[Result[PathRef]])(
+        ctx: Expr[mill.define.ModuleCtx]
+    ): Expr[Simple[PathRef]] = {
+
+      val expr = appImpl[Simple, PathRef](
+        (in, ev) => '{ new Source($ev, $ctx, ${ taskIsPrivate() }) },
+        value,
+        allowTaskReferences = false
+      )
+      Cacher.impl0(expr)
+
+    }
+
+    def inputImpl[T: Type](using
+        Quotes
+    )(value: Expr[Result[T]])(
+        w: Expr[upickle.default.Writer[T]],
+        ctx: Expr[mill.define.ModuleCtx]
+    ): Expr[Simple[T]] = {
+
+      val expr = appImpl[Simple, T](
+        (in, ev) => '{ new Input[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
+        value,
+        allowTaskReferences = false
+      )
+      Cacher.impl0(expr)
+    }
+
+    def commandImpl[T: Type](using
+        Quotes
+    )(t: Expr[Result[T]])(
+        w: Expr[Writer[T]],
+        ctx: Expr[mill.define.ModuleCtx],
+        exclusive: Expr[Boolean],
+        persistent: Expr[Boolean]
+    ): Expr[Command[T]] = {
+      appImpl[Command, T](
+        (in, ev) =>
+          '{
+            new Command[T](
+              $in,
+              $ev,
+              $ctx,
+              $w,
+              ${ taskIsPrivate() },
+              exclusive = $exclusive,
+              persistent = $persistent
+            )
+          },
+        t
+      )
+    }
+
+    def workerImpl2[T: Type](using
+        Quotes
+    )(t: Expr[Result[T]])(
+        ctx: Expr[mill.define.ModuleCtx]
+    ): Expr[Worker[T]] = {
+
+      val expr = appImpl[Worker, T](
+        (in, ev) => '{ new Worker[T]($in, $ev, $ctx, ${ taskIsPrivate() }) },
+        t
+      )
+      Cacher.impl0(expr)
+    }
   }
 }

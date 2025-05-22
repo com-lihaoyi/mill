@@ -4,7 +4,6 @@ import scala.util.chaining._
 
 import coursier.maven.MavenRepository
 import mill._
-import mill.define.NamedTask
 import mill.main.Tasks
 import mill.scalalib._
 import mill.scalalib.api.JvmWorkerUtil

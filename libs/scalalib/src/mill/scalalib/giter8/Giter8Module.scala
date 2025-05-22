@@ -1,7 +1,7 @@
 package mill.scalalib.giter8
 
 import mill.Task
-import mill.define.{Command, Discover, ExternalModule}
+import mill.define.{Discover, ExternalModule}
 import mill.util.Jvm
 import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib._
@@ -13,7 +13,7 @@ object Giter8Module extends ExternalModule with Giter8Module {
 
 trait Giter8Module extends CoursierModule {
 
-  def init(args: String*): Command[Unit] = Task.Command {
+  def init(args: String*): Task.Command[Unit] = Task.Command {
     Task.log.info("Creating a new project...")
 
     val giter8Dependencies =

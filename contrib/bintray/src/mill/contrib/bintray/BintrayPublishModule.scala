@@ -5,7 +5,6 @@ import mill.api.Result
 import scalalib._
 import mill.contrib.bintray.BintrayPublishModule.checkBintrayCreds
 import mill.define.{ExternalModule, Task}
-import mill.define.Command
 
 trait BintrayPublishModule extends PublishModule {
 
@@ -37,7 +36,7 @@ trait BintrayPublishModule extends PublishModule {
       release: Boolean = true,
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] = Task.Command {
+  ): Command[Unit] = Task.Command {
     new BintrayPublisher(
       bintrayOwner,
       bintrayRepo,
