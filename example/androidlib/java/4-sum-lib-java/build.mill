@@ -142,9 +142,9 @@ Publish ... to /home/.../.m2/repository/...
 
 > ./mill show app.test
 ...
-[
-  "",
-  [
+{
+  "msg": "",
+  "results": [
     {
       "fullyQualifiedName": "com.example.app.CalculatorUnitTest.textSize_isCorrect",
       "selector": "com.example.app.CalculatorUnitTest.textSize_isCorrect",
@@ -158,6 +158,6 @@ Publish ... to /home/.../.m2/repository/...
       "status": "Success"
     }
   ]
-]
+}
 ...
 */

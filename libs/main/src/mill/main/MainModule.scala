@@ -1,5 +1,6 @@
 package mill.main
 
+import mill.*
 import mill.api.*
 import mill.api.internal.{EvaluatorApi, MainModuleApi, TaskApi}
 import mill.define.*
@@ -94,7 +95,7 @@ trait MainModule extends BaseModule with MainModuleApi {
           found match {
             case None => Task.fail(s"No path found between $src and $dest")
             case Some(list) =>
-              val labels = list.collect { case n: NamedTask[_] => n.ctx.segments.render }
+              val labels = list.collect { case n: Task.Named[_] => n.ctx.segments.render }
               labels.foreach(println)
               labels
           }
@@ -117,7 +118,7 @@ trait MainModule extends BaseModule with MainModuleApi {
    */
   def show(evaluator: Evaluator, targets: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
-      MainModule.show0(evaluator, targets, Target.log, mill.define.BuildCtx.evalWatch0) { res =>
+      MainModule.show0(evaluator, targets, Task.log, mill.define.BuildCtx.evalWatch0) { res =>
         res.flatMap(_._2) match {
           case Seq((k, singleValue)) => singleValue
           case multiple => ujson.Obj.from(multiple)
@@ -131,7 +132,7 @@ trait MainModule extends BaseModule with MainModuleApi {
    */
   def showNamed(evaluator: Evaluator, targets: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
-      MainModule.show0(evaluator, targets, Target.log, mill.define.BuildCtx.evalWatch0) { res =>
+      MainModule.show0(evaluator, targets, Task.log, mill.define.BuildCtx.evalWatch0) { res =>
         ujson.Obj.from(res.flatMap(_._2))
       }
     }
@@ -191,7 +192,7 @@ trait MainModule extends BaseModule with MainModuleApi {
           }
 
           val existing = paths.filter(p => os.exists(p))
-          Target.log.debug(s"Cleaning ${existing.size} paths ...")
+          Task.log.debug(s"Cleaning ${existing.size} paths ...")
           existing.foreach(os.remove.all(_, ignoreErrors = true))
           existing.map(PathRef(_))
       }
@@ -205,7 +206,7 @@ trait MainModule extends BaseModule with MainModuleApi {
       VisualizeModule.visualize0(
         evaluator,
         targets,
-        Target.ctx(),
+        Task.ctx(),
         mill.main.VisualizeModule.worker()
       )
     }
@@ -220,7 +221,7 @@ trait MainModule extends BaseModule with MainModuleApi {
           VisualizeModule.visualize0(
             evaluator,
             targets,
-            Target.ctx(),
+            Task.ctx(),
             mill.main.VisualizeModule.worker(),
             Some(planResults.toList)
           )
@@ -231,8 +232,8 @@ trait MainModule extends BaseModule with MainModuleApi {
    * Shuts down mill's background daemon
    */
   def shutdown(): Command[Unit] = Task.Command(exclusive = true) {
-    Target.log.info("Shutting down Mill server...")
-    Target.ctx().systemExit(0)
+    Task.log.info("Shutting down Mill server...")
+    Task.ctx().systemExit(0)
     ()
   }
 
@@ -349,7 +350,7 @@ object MainModule {
         case Evaluator.Result(watched, Result.Success(res), selectedTasks, executionResults) =>
           val namesAndJson = for (t <- selectedTasks) yield {
             t match {
-              case t: mill.define.NamedTask[_] =>
+              case t: mill.define.Task.Named[_] =>
                 val jsonFile = ExecutionPaths.resolve(evaluator.outPath, t).meta
                 val metadata = upickle.default.read[Cached](ujson.read(jsonFile.toIO))
                 Some((t.toString, metadata.value))
@@ -366,11 +367,11 @@ object MainModule {
   def plan0(
       evaluator: Evaluator,
       tasks: Seq[String]
-  ): Result[Array[NamedTask[?]]] = {
+  ): Result[Array[Task.Named[?]]] = {
     evaluator.resolveTasks(tasks, SelectMode.Multi).map {
       rs =>
         val plan = evaluator.plan(rs)
-        plan.sortedGroups.keys().collect { case r: NamedTask[_] => r }.toArray
+        plan.sortedGroups.keys().collect { case r: Task.Named[_] => r }.toArray
     }
   }
 

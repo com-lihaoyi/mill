@@ -36,7 +36,7 @@ trait CoverageModule extends PythonModule {
    * intentionally does not return a PathRef, since it will be populated from
    * other places.
    */
-  def coverageDataFile: T[os.Path] = Task { T.dest / "coverage" }
+  def coverageDataFile: T[os.Path] = Task { Task.dest / "coverage" }
 
   /**
    * The task to run to generate the coverage report.

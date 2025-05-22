@@ -66,7 +66,7 @@ trait RuffModule extends PythonModule {
       (
         "-m", "ruff",
         "check",
-        "--cache-dir", T.dest / "cache",
+        "--cache-dir", Task.dest / "cache",
         configArgs(),
         ruffOptions(),
         args,
@@ -95,7 +95,7 @@ object RuffModule extends ExternalModule with RuffModule with TaskModule {
         configArgs(),
         ruffOptions(),
         ruffArgs.value,
-        T.sequence(sources.value)().flatten.map(_.path)
+        Task.sequence(sources.value)().flatten.map(_.path)
       ),
       // format: on
       workingDir = Task.dest
@@ -111,11 +111,11 @@ object RuffModule extends ExternalModule with RuffModule with TaskModule {
       (
         "-m", "ruff",
         "check",
-        "--cache-dir", T.dest / "cache",
+        "--cache-dir", Task.dest / "cache",
         configArgs(),
         ruffOptions(),
         ruffArgs.value,
-        T.sequence(sources.value)().flatten.map(_.path)
+        Task.sequence(sources.value)().flatten.map(_.path)
       ),
       // format: on
       workingDir = Task.dest

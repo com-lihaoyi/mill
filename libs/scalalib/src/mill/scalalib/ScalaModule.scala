@@ -8,7 +8,7 @@ import mill.util.Jvm
 import mill.util.Jvm.createJar
 import mill.scalalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mainargs.Flag
-import mill.define.{PathRef, Target, Task}
+import mill.define.{PathRef, Task}
 import mill.api.internal.{
   BspBuildTarget,
   BspModuleApi,
@@ -426,7 +426,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   /**
    * Command-line options to pass to the Scala console
    */
-  def consoleScalacOptions: T[Seq[String]] = T(Seq.empty[String])
+  def consoleScalacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Opens up a Scala console with your module and all dependencies present,
@@ -635,11 +635,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       if (isMixedProject) Seq.empty else Seq("-Ystop-after:semanticdb-typer")
 
     val additionalScalacOptions = if (JvmWorkerUtil.isScala3(sv)) {
-      Seq("-Xsemanticdb", s"-sourceroot:${T.workspace}")
+      Seq("-Xsemanticdb", s"-sourceroot:${Task.workspace}")
     } else {
       Seq(
         "-Yrangepos",
-        s"-P:semanticdb:sourceroot:${T.workspace}"
+        s"-P:semanticdb:sourceroot:${Task.workspace}"
       ) ++ stopAfterSemanticDbOpts
     }
 

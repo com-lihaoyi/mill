@@ -1,6 +1,6 @@
 package mill.javalib.errorprone
 
-import mill.T
+import mill.{T, Task}
 import mill.define.Discover
 import mill.scalalib.JavaModule
 import mill.testkit.{TestRootModule, UnitTester}
@@ -16,9 +16,9 @@ object ErrorProneTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
   object errorProneCustom extends TestRootModule with JavaModule with ErrorProneModule {
-    override def errorProneOptions: T[Seq[String]] = T(Seq(
-      "-XepAllErrorsAsWarnings"
-    ))
+    override def errorProneOptions: T[Seq[String]] = Task {
+      Seq("-XepAllErrorsAsWarnings")
+    }
     lazy val millDiscover = Discover[this.type]
   }
 

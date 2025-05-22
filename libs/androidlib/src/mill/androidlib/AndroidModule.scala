@@ -4,16 +4,16 @@ import coursier.Repository
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.T
-import mill.define.{ModuleRef, PathRef, Target, Task}
+import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.util.Jvm
+import upickle.implicits.namedTuples.default.given
 
 import scala.collection.immutable
 import scala.xml.XML
 
 trait AndroidModule extends JavaModule {
 
-  private val rClassDirName = "RClass"
   private val compiledResourcesDirName = "compiled-resources"
 
   // https://cs.android.com/android-studio/platform/tools/base/+/mirror-goog-studio-main:build-system/gradle-core/src/main/java/com/android/build/gradle/internal/tasks/D8BundleMainDexListTask.kt;l=210-223;drc=66ab6bccb85ce3ed7b371535929a69f494d807f0
@@ -113,7 +113,7 @@ trait AndroidModule extends JavaModule {
    * @return
    */
   def androidTransitiveResources: T[Seq[PathRef]] = Task {
-    T.traverse(transitiveModuleCompileModuleDeps) {
+    Task.traverse(transitiveModuleCompileModuleDeps) {
       case m: AndroidModule =>
         Task.Anon(m.androidResources())
       case _ =>
@@ -305,7 +305,7 @@ trait AndroidModule extends JavaModule {
    */
   def androidMergedManifest: T[PathRef] = Task {
     val libManifests = androidUnpackArchives().map(_.manifest.get)
-    val mergedManifestPath = T.dest / "AndroidManifest.xml"
+    val mergedManifestPath = Task.dest / "AndroidManifest.xml"
     // TODO put it to the dedicated worker if cost of classloading is too high
     Jvm.callProcess(
       mainClass = "com.android.manifmerger.Merger",
@@ -335,7 +335,7 @@ trait AndroidModule extends JavaModule {
     // But we also need to have R.java classes for libraries. The process below is quite hacky and inefficient, because:
     // * it will generate R.java for the library even library has no resources declared
     // * R.java will have not only resource ID from this library, but from other libraries as well. They should be stripped.
-    val rClassDir = androidCompiledResources()._1.path / rClassDirName
+    val rClassDir = androidCompiledResources().rClassDir.path
     val mainRClassPath = os.walk(rClassDir)
       .find(_.last == "R.java")
       .get
@@ -372,9 +372,18 @@ trait AndroidModule extends JavaModule {
    *         For more details on the aapt2 tool, refer to:
    *         [[https://developer.android.com/tools/aapt2 aapt Documentation]]
    */
-  def androidCompiledResources: T[(PathRef, Seq[PathRef])] = Task {
-    val rClassDir = T.dest / rClassDirName
-    val compiledResDir = T.dest / compiledResourcesDirName
+  def androidCompiledResources: T[(
+      resources: PathRef,
+      resApkFile: PathRef,
+      mainDexRulesProFile: PathRef,
+      rClassDir: PathRef,
+      zippedResources: Seq[PathRef]
+  )] = Task {
+    val rClassDir = Task.dest / "RClass"
+    val resApkFile = Task.dest / "res.apk"
+    val mainDexRulesProFile = Task.dest / "main-dex-rules.pro"
+
+    val compiledResDir = Task.dest / compiledResourcesDirName
     os.makeDir(compiledResDir)
     val compiledResources = collection.mutable.Buffer[os.Path]()
 
@@ -396,7 +405,7 @@ trait AndroidModule extends JavaModule {
 
       val libCompileArgsBuilder = Seq.newBuilder[String]
       libCompileArgsBuilder ++= Seq(androidSdkModule().aapt2Path().path.toString(), "compile")
-      if (T.log.debugEnabled) {
+      if (Task.log.debugEnabled) {
         libCompileArgsBuilder += "-v"
       }
       libCompileArgsBuilder ++= Seq(
@@ -415,7 +424,7 @@ trait AndroidModule extends JavaModule {
       }
 
       val libCompileArgs = libCompileArgsBuilder.result()
-      T.log.info(
+      Task.log.info(
         s"Compiling resources of $libraryName with the following command: ${libCompileArgs.mkString(" ")}"
       )
       os.call(libCompileArgs)
@@ -425,7 +434,7 @@ trait AndroidModule extends JavaModule {
     // TODO support stable IDs
     val appLinkArgsBuilder = Seq.newBuilder[String]
     appLinkArgsBuilder ++= Seq(androidSdkModule().aapt2Path().path.toString, "link")
-    if (T.log.debugEnabled) {
+    if (Task.log.debugEnabled) {
       appLinkArgsBuilder += "-v"
     }
     appLinkArgsBuilder ++= Seq(
@@ -446,10 +455,10 @@ trait AndroidModule extends JavaModule {
       "--version-name",
       androidVersionName(),
       "--proguard-main-dex",
-      (T.dest / "main-dex-rules.pro").toString,
+      mainDexRulesProFile.toString,
       "--proguard-conditional-keep-rules",
       "-o",
-      (T.dest / "res.apk").toString
+      resApkFile.toString
     )
 
     if (!androidIsDebug()) {
@@ -463,19 +472,25 @@ trait AndroidModule extends JavaModule {
 
     val appLinkArgs = appLinkArgsBuilder.result()
 
-    T.log.info(
+    Task.log.info(
       s"Linking application resources with the command: ${appLinkArgs.mkString(" ")}"
     )
 
     os.call(appLinkArgs)
 
-    (PathRef(T.dest), compiledResources.toSeq.map(PathRef(_)))
+    (
+      resources = PathRef(Task.dest),
+      resApkFile = PathRef(resApkFile),
+      mainDexRulesProFile = PathRef(mainDexRulesProFile),
+      rClassDir = PathRef(rClassDir),
+      zippedResources = compiledResources.toSeq.map(PathRef(_))
+    )
   }
 
   /**
    * Creates an intermediate R.jar that includes all the resources from the application and its dependencies.
    */
-  def androidProcessedResources: Target[PathRef] = Task {
+  def androidProcessedResources: T[PathRef] = Task {
 
     val sources = androidLibsRClasses()
 

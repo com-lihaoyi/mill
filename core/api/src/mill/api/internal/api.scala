@@ -60,8 +60,9 @@ trait ScalaModuleApi extends JavaModuleApi
 trait ScalaJSModuleApi extends JavaModuleApi
 trait ScalaNativeModuleApi extends JavaModuleApi
 trait TestModuleApi extends ModuleApi {
-  def testLocal(args: String*): TaskApi[(String, Seq[Any])]
-  private[mill] def bspBuildTargetScalaTestClasses: TaskApi[(String, Seq[String])]
+  def testLocal(args: String*): TaskApi[(msg: String, results: Seq[Any])]
+  private[mill] def bspBuildTargetScalaTestClasses
+      : TaskApi[(frameworkName: String, classes: Seq[String])]
 }
 trait MainModuleApi extends ModuleApi {
   private[mill] def bspClean(

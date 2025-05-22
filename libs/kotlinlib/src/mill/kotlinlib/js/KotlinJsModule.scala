@@ -5,7 +5,8 @@ import coursier.params.ResolutionParams
 import mainargs.arg
 import mill.define.PathRef
 import mill.api.Result
-import mill.define.{Command, Task}
+import mill.define.Task.Command
+import mill.define.Task
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 import mill.scalalib.Lib
@@ -14,6 +15,7 @@ import mill.testrunner.TestResult
 import mill.util.Jvm
 import mill.{Args, T}
 import sbt.testing.Status
+import upickle.implicits.namedTuples.default.given
 
 import java.io.{File, FileNotFoundException}
 import java.util.zip.ZipFile
@@ -539,7 +541,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
 
     override def kotlinJsSplitPerModule = false
 
-    override def testLocal(args: String*): Command[(String, Seq[TestResult])] =
+    override def testLocal(args: String*): Command[(msg: String, results: Seq[TestResult])] =
       Task.Command {
         this.testForked(args*)()
       }
@@ -549,7 +551,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     override protected def testTask(
         args: Task[Seq[String]],
         globSelectors: Task[Seq[String]]
-    ): Task[(String, Seq[TestResult])] = Task.Anon {
+    ): Task[(msg: String, results: Seq[TestResult])] = Task.Anon {
       val runTarget = kotlinJsRunTarget()
       if (runTarget.isEmpty) {
         throw new IllegalStateException(
@@ -616,7 +618,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
              |""".stripMargin
         Task.fail(failureMessage)
       } else {
-        (doneMessage, testResults)
+        (msg = doneMessage, results = testResults)
       }
     }
 

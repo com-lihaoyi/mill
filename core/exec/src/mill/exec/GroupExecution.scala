@@ -102,7 +102,7 @@ private trait GroupExecution {
       val scriptsHash = MurmurHash3.orderedHash(
         group
           .iterator
-          .collect { case namedTask: NamedTask[_] =>
+          .collect { case namedTask: Task.Named[_] =>
             CodeSigUtils.codeSigForTask(
               namedTask,
               classToTransitiveClasses,
@@ -120,7 +120,7 @@ private trait GroupExecution {
 
       terminal match {
 
-        case labelled: NamedTask[_] =>
+        case labelled: Task.Named[_] =>
           labelled.ctx.segments.value match {
             case Seq(Segment.Label(single)) if parsedHeaderData.contains(single) =>
               val jsonData = parsedHeaderData(single)
@@ -185,8 +185,8 @@ private trait GroupExecution {
                       logger = logger,
                       executionContext = executionContext,
                       exclusive = exclusive,
-                      isCommand = labelled.isInstanceOf[Command[?]],
-                      isInput = labelled.isInstanceOf[InputImpl[?]],
+                      isCommand = labelled.isInstanceOf[Task.Command[?]],
+                      isInput = labelled.isInstanceOf[Task.Input[?]],
                       deps = deps,
                       offline = offline,
                       upstreamPathRefs = upstreamPathRefs
@@ -211,7 +211,7 @@ private trait GroupExecution {
                   GroupExecution.Results(
                     newResults,
                     newEvaluated.toSeq,
-                    cached = if (labelled.isInstanceOf[InputImpl[?]]) null else false,
+                    cached = if (labelled.isInstanceOf[Task.Input[?]]) null else false,
                     inputsHash,
                     cached.map(_._1).getOrElse(-1),
                     !cached.map(_._3).contains(valueHash),
@@ -232,8 +232,8 @@ private trait GroupExecution {
             logger = logger,
             executionContext = executionContext,
             exclusive = exclusive,
-            isCommand = task.isInstanceOf[Command[?]],
-            isInput = task.isInstanceOf[InputImpl[?]],
+            isCommand = task.isInstanceOf[Task.Command[?]],
+            isInput = task.isInstanceOf[Task.Input[?]],
             deps = deps,
             offline = offline,
             upstreamPathRefs = upstreamPathRefs
@@ -306,7 +306,7 @@ private trait GroupExecution {
           // the point of workers is to manualy manage long-lived state which includes
           // state on disk.
           val validWriteDests =
-            deps.collect { case n: Worker[?] =>
+            deps.collect { case n: Task.Worker[?] =>
               ExecutionPaths.resolve(outPath, n.ctx.segments).dest
             } ++
               paths.map(_.dest)
@@ -380,7 +380,7 @@ private trait GroupExecution {
       hashCode: Int,
       metaPath: os.Path,
       inputsHash: Int,
-      labelled: NamedTask[?]
+      labelled: Task.Named[?]
   ): Seq[PathRef] = {
     for (w <- labelled.asWorker)
       workerCache.synchronized {
@@ -438,7 +438,7 @@ private trait GroupExecution {
   private def loadCachedJson(
       logger: Logger,
       inputsHash: Int,
-      labelled: NamedTask[?],
+      labelled: Task.Named[?],
       paths: ExecutionPaths
   ): Option[(Int, Option[(Val, Seq[PathRef])], Int)] = {
     for {
@@ -468,12 +468,12 @@ private trait GroupExecution {
   }
 
   def getValueHash(v: Val, task: Task[?], inputsHash: Int): Int = {
-    if (task.isInstanceOf[Worker[?]]) inputsHash else v.##
+    if (task.isInstanceOf[Task.Worker[?]]) inputsHash else v.##
   }
   private def loadUpToDateWorker(
       logger: Logger,
       inputsHash: Int,
-      labelled: NamedTask[?],
+      labelled: Task.Named[?],
       forceDiscard: Boolean
   ): Option[Val] = {
     labelled.asWorker

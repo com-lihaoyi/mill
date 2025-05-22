@@ -147,9 +147,9 @@ trait TypeScriptModule extends Module { outer =>
       }
 
   def tscCopySources: Task[Unit] = Task.Anon {
-    val coreTarget = T.dest / "src"
+    val coreTarget = Task.dest / "src"
 
-    if (!os.exists(T.dest)) os.makeDir.all(T.dest)
+    if (!os.exists(Task.dest)) os.makeDir.all(Task.dest)
 
     // Copy everything except "build.mill" and the "/out" directory from Task.workspace
     mill.define.BuildCtx.withFilesystemCheckerDisabled {
@@ -161,7 +161,7 @@ trait TypeScriptModule extends Module { outer =>
         .filter(_.last != "tsconfig.json")
         .foreach { path =>
           val relativePath = path.relativeTo(moduleDir)
-          val destination = T.dest / relativePath
+          val destination = Task.dest / relativePath
 
           if (os.isDir(path)) os.makeDir.all(destination)
           else os.copy.over(path, destination)
@@ -200,7 +200,7 @@ trait TypeScriptModule extends Module { outer =>
     // mod deps
     tscModDepsSources()
       .foreach { case (mod, sources_) =>
-        copyOutSources(sources_, T.dest / mod.relativeTo(Task.workspace) / "src")
+        copyOutSources(sources_, Task.dest / mod.relativeTo(Task.workspace) / "src")
       }
 
   }
@@ -210,7 +210,7 @@ trait TypeScriptModule extends Module { outer =>
       recModuleDeps.map { _.moduleDir.subRelativeTo(Task.workspace).segments.head }.distinct
 
     targets.foreach { target =>
-      val destination = T.dest / target
+      val destination = Task.dest / target
       os.makeDir.all(destination / os.up)
       mill.define.BuildCtx.withFilesystemCheckerDisabled {
         os.copy(
@@ -230,14 +230,14 @@ trait TypeScriptModule extends Module { outer =>
     }
 
     tscCoreGenSources().foreach { target =>
-      val destination = T.dest / "generatedSources" / target.path.last
+      val destination = Task.dest / "generatedSources" / target.path.last
       copyGeneratedSources(target.path, destination)
     }
 
     tscModDepsGenSources().foreach { case (mod, source_) =>
       source_.foreach { target =>
         val modDir = mod.relativeTo(Task.workspace)
-        val destination = T.dest / modDir / "generatedSources" / target.path.last
+        val destination = Task.dest / modDir / "generatedSources" / target.path.last
         copyGeneratedSources(target.path, destination)
       }
     }
@@ -248,7 +248,7 @@ trait TypeScriptModule extends Module { outer =>
    * to `moduleDir / src / resources`
    */
   private[javascriptlib] def tscLinkResources: Task[Unit] = Task.Anon {
-    val dest = T.dest / "resources"
+    val dest = Task.dest / "resources"
     if (!os.exists(dest)) os.makeDir.all(dest)
 
     val externalResource: PathRef => Boolean = p =>
@@ -267,7 +267,7 @@ trait TypeScriptModule extends Module { outer =>
 
     tscModDepsResources().foreach { case (mod, r) =>
       val modDir = mod.relativeTo(Task.workspace)
-      val modDest = T.dest / modDir / "resources"
+      val modDest = Task.dest / modDir / "resources"
       if (!os.exists(modDest)) os.makeDir.all(modDest)
       linkResource(r, modDest)
     }
@@ -461,13 +461,13 @@ trait TypeScriptModule extends Module { outer =>
    * import * as somepackage from "<some-package>"
    */
   def createNodeModulesSymlink: Task[Unit] = Task.Anon {
-    os.copy.over(npmInstall().path / "package.json", T.dest / "package.json")
+    os.copy.over(npmInstall().path / "package.json", Task.dest / "package.json")
 
-    if (!os.exists(T.dest / "node_modules"))
-      os.symlink(T.dest / "node_modules", npmInstall().path / "node_modules")
+    if (!os.exists(Task.dest / "node_modules"))
+      os.symlink(Task.dest / "node_modules", npmInstall().path / "node_modules")
 
-    if (!os.exists(T.dest / "package-lock.json"))
-      os.symlink(T.dest / "package-lock.json", npmInstall().path / "package-lock.json")
+    if (!os.exists(Task.dest / "package-lock.json"))
+      os.symlink(Task.dest / "package-lock.json", npmInstall().path / "package-lock.json")
   }
 
   /**
@@ -482,7 +482,7 @@ trait TypeScriptModule extends Module { outer =>
    * tsconfig, if you can not for some reason just not delete the local one.
    *
    * Regardless of the configuration, mill will auto gen a tsconfig
-   * if one does not exist in `T.workspace`.
+   * if one does not exist in `Task.workspace`.
    */
   def customTsConfig: T[Boolean] = Task { true }
 
@@ -495,7 +495,7 @@ trait TypeScriptModule extends Module { outer =>
     )
 
     os.write.over(
-      T.dest / "tsconfig.json",
+      Task.dest / "tsconfig.json",
       ujson.Obj.from(default.toSeq ++ options().toSeq)
     )
 
@@ -521,9 +521,9 @@ trait TypeScriptModule extends Module { outer =>
 
     // Run type check, build declarations
     if (runTypeCheck())
-      os.call("node_modules/typescript/bin/tsc", cwd = T.dest)
+      os.call("node_modules/typescript/bin/tsc", cwd = Task.dest)
 
-    PathRef(T.dest)
+    PathRef(Task.dest)
   }
 
   // compile
@@ -675,18 +675,18 @@ trait TypeScriptModule extends Module { outer =>
     val out = compile().path
 
     os.walk(out)
-      .foreach(p => os.copy.over(p, T.dest / p.relativeTo(out), createFolders = true))
+      .foreach(p => os.copy.over(p, Task.dest / p.relativeTo(out), createFolders = true))
 
     os.write(
-      T.dest / "build.ts",
+      Task.dest / "build.ts",
       bundleScriptBuilder()
     )
 
     os.call(
-      (tsnode, T.dest / "build.ts"),
+      (tsnode, Task.dest / "build.ts"),
       stdout = os.Inherit,
       env = env,
-      cwd = T.dest
+      cwd = Task.dest
     )
     PathRef(bundle)
   }
@@ -792,7 +792,7 @@ trait TypeScriptModule extends Module { outer =>
               item
             ))
         )
-        .foreach(item => os.copy.over(item, T.dest / item.last, createFolders = true))
+        .foreach(item => os.copy.over(item, Task.dest / item.last, createFolders = true))
 
       // inject test specific tsconfig into <outer> tsconfig
       os.write(
@@ -805,7 +805,7 @@ trait TypeScriptModule extends Module { outer =>
         )
       )
 
-      PathRef(T.dest)
+      PathRef(Task.dest)
     }
 
     override def npmInstall: T[PathRef] = Task {

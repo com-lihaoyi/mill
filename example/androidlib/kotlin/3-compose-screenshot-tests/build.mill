@@ -70,9 +70,9 @@ object app extends AndroidAppKotlinModule {
 
 > ./mill show app.screenshotTest.testForked
 ...
-[
-  "",
-  [
+{
+  "msg": "",
+  "results": [
     {
       "fullyQualifiedName": "com.example.screenshottest.ExampleMessageCardScreenshots",
       "selector": "oMessageCardScreenshot()",
@@ -80,7 +80,7 @@ object app extends AndroidAppKotlinModule {
       "status": "Success"
     }
   ]
-]
+}
 ...
 
 > cat out/app/screenshotTest/testForked.dest/test-report.xml
