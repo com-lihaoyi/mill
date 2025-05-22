@@ -150,8 +150,7 @@ trait KspModule extends KotlinModule { outer =>
 
     val pluginOpt = s"plugin:${kspPluginId}"
 
-    val apClasspath = (kotlinSymbolProcessorsResolved() ++ transitiveCompileClasspath())
-      .map(_.path).mkString(File.pathSeparator)
+    val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
 
     val kspProjectBasedDir = moduleDir
     val kspOutputDir = Task.dest / "generated/ksp/main"
