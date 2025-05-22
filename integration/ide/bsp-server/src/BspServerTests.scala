@@ -110,7 +110,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
-        val targetIds = buildTargets.getTargets.asScala.map(_.getId).asJava
+        val targetIds =
+          buildTargets.getTargets.asScala.filter(_.getDisplayName != "errored").map(_.getId).asJava
         val metaBuildTargetId = new b.BuildTargetIdentifier(
           (workspacePath / "mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
         )
@@ -209,14 +210,28 @@ object BspServerTests extends UtestIntegrationTestSuite {
         env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
       )
 
+      var messages = Seq.empty[b.ShowMessageParams]
+      val client: b.BuildClient = new DummyBuildClient {
+        override def onBuildShowMessage(params: b.ShowMessageParams): Unit = {
+          messages = messages :+ params
+        }
+      }
+
       val stderr = new ByteArrayOutputStream
       withBspServer(
         workspacePath,
         millTestSuiteEnv,
-        bspLog = Some((bytes, len) => stderr.write(bytes, 0, len))
+        bspLog = Some((bytes, len) => stderr.write(bytes, 0, len)),
+        client = client
       ) { (buildServer, _) =>
-        buildServer.workspaceBuildTargets().get()
+        val targets = buildServer.workspaceBuildTargets().get().getTargets.asScala
         buildServer.loggingTest().get()
+
+        buildServer.buildTargetCompile(
+          new b.CompileParams(
+            targets.filter(_.getDisplayName == "errored").map(_.getId).asJava
+          )
+        ).get()
       }
 
       val logs = stderr.toString
@@ -230,6 +245,14 @@ object BspServerTests extends UtestIntegrationTestSuite {
         // ignoring compilation warnings that might go away in the future
         ignoreLine = TestRunnerUtils.matchesGlob("[bsp-init-build.mill-*] [warn] *")
       )
+
+      val messages0 = messages.map { message =>
+        (message.getType, message.getMessage)
+      }
+      val expectedMessages = Seq(
+        (b.MessageType.ERROR, "Compiling errored failed, see Mill logs for more details")
+      )
+      assert(expectedMessages == messages0)
     }
   }
 }

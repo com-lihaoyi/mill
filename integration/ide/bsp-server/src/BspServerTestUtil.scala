@@ -136,7 +136,7 @@ object BspServerTestUtil {
     if (updateSnapshots) {
       if (!matches) {
         System.err.println(s"Updating $snapshotPath")
-        os.write.over(snapshotPath, log, createFolders = true)
+        os.write.over(snapshotPath, logLines.mkString(System.lineSeparator()), createFolders = true)
       }
     } else
       assert(matches)
@@ -162,7 +162,8 @@ object BspServerTestUtil {
   def withBspServer[T](
       workspacePath: os.Path,
       millTestSuiteEnv: Map[String, String],
-      bspLog: Option[(Array[Byte], Int) => Unit] = None
+      bspLog: Option[(Array[Byte], Int) => Unit] = None,
+      client: b.BuildClient = DummyBuildClient
   )(f: (MillBuildServer, b.InitializeBuildResult) => T): T = {
 
     val bspMetadataFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
@@ -193,8 +194,6 @@ object BspServerTestUtil {
         else os.Inherit,
       env = millTestSuiteEnv
     )
-
-    val client: b.BuildClient = DummyBuildClient
 
     var success = false
     try {

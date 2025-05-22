@@ -34,14 +34,23 @@ private[mill] class SimplePrefixLogger(
     if (logKey.isEmpty) ""
     else logKey.mkString("[", "-", "] ")
 
-  def info(logKey: Seq[String], s: String): Unit = {
-    unprefixedStreams.err.println(prefix(logKey) + s)
-  }
+  def info(logKey: Seq[String], s: String): Unit =
+    log(logKey, s)
 
-  def warn(logKey: Seq[String], s: String): Unit = unprefixedStreams.err.println(prefix(logKey) + s)
+  def warn(logKey: Seq[String], s: String): Unit =
+    log(logKey, s)
 
   def error(logKey: Seq[String], s: String): Unit =
-    unprefixedStreams.err.println(prefix(logKey) + s)
+    log(logKey, s)
+
+  private def log(logKey: Seq[String], s: String): Unit = {
+    val prefix0 = prefix(logKey)
+    for (line <- s.linesWithSeparators) {
+      unprefixedStreams.err.print(prefix0)
+      unprefixedStreams.err.print(line)
+    }
+    unprefixedStreams.err.println()
+  }
 
   val prompt = new Logger.Prompt.NoOp {
     override def enableTicker = true
@@ -49,5 +58,6 @@ private[mill] class SimplePrefixLogger(
   def ticker(s: String): Unit = ()
 
   def debug(logKey: Seq[String], s: String): Unit =
-    if (debugEnabled) unprefixedStreams.err.println(prefix(logKey) + s)
+    if (debugEnabled)
+      log(logKey, s)
 }

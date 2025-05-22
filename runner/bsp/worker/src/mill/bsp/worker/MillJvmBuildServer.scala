@@ -41,12 +41,10 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       targetIds: collection.Seq[BuildTargetIdentifier],
       agg: java.util.List[JvmEnvironmentItem] => V
   )(implicit name: sourcecode.Name): CompletableFuture[V] = {
-    val logger = createLogger()
     handlerTasks(
       targetIds = _ => targetIds,
       tasks = { case m: RunModuleApi => m.bspJvmRunTestEnvironment },
-      requestDescription = "jvmRunTestEnv",
-      logger = logger
+      requestDescription = "Getting JVM test environment of {}"
     ) {
       case (
             ev,
@@ -106,15 +104,13 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
   }
 
   override def buildTargetJvmCompileClasspath(params: JvmCompileClasspathParams)
-      : CompletableFuture[JvmCompileClasspathResult] = {
-    val logger = createLogger()
+      : CompletableFuture[JvmCompileClasspathResult] =
     handlerTasks(
       targetIds = _ => params.getTargets.asScala,
       tasks = {
         case m: JavaModuleApi => m.bspCompileClasspath
       },
-      requestDescription = "jvmCompCP",
-      logger = logger
+      requestDescription = "Getting JVM compile class path of {}"
     ) {
       case (ev, _, id, _: JavaModuleApi, compileClasspath) =>
         new JvmCompileClasspathItem(id, compileClasspath(ev).asJava)
@@ -122,5 +118,4 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
     } {
       new JvmCompileClasspathResult(_)
     }
-  }
 }
