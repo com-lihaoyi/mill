@@ -141,8 +141,16 @@ final class EvaluatorImpl private[mill] (
 
     val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
 
-    val selectedTasksOrErr =
-      if (!selectiveExecutionEnabled) (targets, Map.empty, None)
+    val selectedTasksOrErr: (
+        selectedTasks: Seq[Task[T]],
+        selectiveResults: Map[? <: Task[?], ExecResult[Val]],
+        maybeNewMetadata: Option[SelectiveExecution.Metadata]
+    ) =
+      if (!selectiveExecutionEnabled) (
+        selectedTasks = targets,
+        selectiveResults = Map.empty,
+        maybeNewMetadata = None
+      )
       else {
         val (named, unnamed) =
           targets.partitionMap { case n: Task.Named[?] => Left(n); case t => Right(t) }
@@ -162,17 +170,21 @@ final class EvaluatorImpl private[mill] (
             val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
 
             (
-              unnamed ++ named.filter(t =>
+              selectedTasks = unnamed ++ named.filter(t =>
                 t.isExclusiveCommand || selectedSet(t.ctx.segments.render)
               ),
-              newComputedMetadata.results,
-              Some(newComputedMetadata.metadata)
+              selectiveResults = newComputedMetadata.results,
+              maybeNewMetadata = Some(newComputedMetadata.metadata)
             )
         }
       }
 
     selectedTasksOrErr match {
-      case (selectedTasks, selectiveResults, maybeNewMetadata) =>
+      case (
+            selectedTasks = selectedTasks,
+            selectiveResults = selectiveResults,
+            maybeNewMetadata = maybeNewMetadata
+          ) =>
         val evaluated: ExecutionResults =
           execution.executeTasks(
             selectedTasks,

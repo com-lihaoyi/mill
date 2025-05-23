@@ -1,5 +1,6 @@
 package mill.exec
 
+import mill.api.Result
 import mill.define.{Discover, Task}
 import mill.util.TestGraphs
 import mill.testkit.{TestRootModule, UnitTester}
@@ -97,6 +98,7 @@ object ExecutionTests extends TestSuite {
         extraEvaled = -1,
         secondRunNoOp = false
       )
+      // second run should only re-run the source/input-tasks
       checker(
         build.task,
         "i am cow hear me moo !",
@@ -120,6 +122,65 @@ object ExecutionTests extends TestSuite {
         "I AM COW HEAR ME MOO !",
         Seq(build.source),
         extraEvaled = -1,
+        secondRunNoOp = false
+      )
+    }
+
+    test("sources-with-deps") {
+      object build extends TestRootModule {
+        def source = Task.Sources("hello/world.txt", "hello/world2.txt")
+
+        def sources2 = Task.Sources({
+          val res = (source().map(_.path) ++ Seq(moduleDir / "hello/world3.txt"))
+            .map(Result.create)
+//          println("res: " + res)
+          res
+        }*)
+
+        def task = Task {
+          sources2().map(pr => os.read(pr.path)).mkString + "!"
+        }
+
+        lazy val millDiscover = Discover[this.type]
+      }
+
+      val checker = new Checker(build)
+
+      os.write(build.moduleDir / "hello/world.txt", "i am cow ", createFolders = true)
+      os.write(build.moduleDir / "hello/world2.txt", "hear me moo ", createFolders = true)
+      os.write(build.moduleDir / "hello/world3.txt", "moo ", createFolders = true)
+      checker(
+        target = build.task,
+        expValue = "i am cow hear me moo moo !",
+        expEvaled = Seq(build.sources2, build.source, build.task),
+        extraEvaled = 0,
+        secondRunNoOp = false
+      )
+      // second run should only re-run the source/input-tasks
+      checker(
+        build.task,
+        "i am cow hear me moo moo !",
+        Seq(build.sources2, build.source),
+        extraEvaled = 0,
+        secondRunNoOp = false
+      )
+
+      os.write.over(build.moduleDir / "hello/world.txt", "I AM COW ")
+
+      checker(
+        build.task,
+        "I AM COW hear me moo moo !",
+        Seq(build.sources2, build.source, build.task),
+        extraEvaled = 0,
+        secondRunNoOp = false
+      )
+
+      os.write.over(build.moduleDir / "hello/world2.txt", "HEAR ME MOO ")
+      checker(
+        build.task,
+        "I AM COW HEAR ME MOO moo !",
+        Seq(build.sources2, build.source, build.task),
+        extraEvaled = 0,
         secondRunNoOp = false
       )
     }
