@@ -219,8 +219,6 @@ public class MillProcessLauncher {
 
     String serverTimeout = millServerTimeout();
     if (serverTimeout != null) vmOptions.add("-Dmill.server_timeout=" + serverTimeout);
-    // https://github.com/com-lihaoyi/mill/issues/5083
-    vmOptions.add("-Dscalac.filebasedcache.defer.close.ms=0");
 
     // extra opts
     vmOptions.addAll(millJvmOpts());
