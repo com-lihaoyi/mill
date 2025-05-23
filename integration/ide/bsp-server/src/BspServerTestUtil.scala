@@ -18,7 +18,7 @@ import scala.reflect.ClassTag
 
 object BspServerTestUtil {
 
-  val updateSnapshots = true
+  val updateSnapshots = false
 
   private[mill] def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
 
