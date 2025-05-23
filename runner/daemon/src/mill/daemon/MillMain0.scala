@@ -520,10 +520,13 @@ object MillMain0 {
       streams: SystemStreams,
       config: MillCliConfig
   ): Logger =
-    new SimpleLogger(
-      streams,
-      Seq("bsp"),
-      debugEnabled = config.debugLog.value
+    new PrefixLogger(
+      new SimpleLogger(
+        streams,
+        Seq("bsp"),
+        debugEnabled = config.debugLog.value
+      ),
+      Nil
     )
 
   /**
