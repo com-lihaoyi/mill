@@ -26,14 +26,14 @@ import upickle.implicits.namedTuples.default.given
 @mill.api.experimental
 trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule { outer =>
 
-  def kotlinSources: T[Seq[PathRef]] = Task.Sources("src/main/kotlin")
+  private def kotlinSources = Task.Sources("src/main/kotlin")
   override def sources: T[Seq[PathRef]] =
     super[AndroidAppModule].sources() ++ kotlinSources()
 
   trait AndroidAppKotlinTests extends AndroidAppKotlinModule with AndroidAppTests {
     override def kotlinVersion: T[String] = outer.kotlinVersion
 
-    override def kotlinSources: T[Seq[PathRef]] = Task.Sources("src/test/kotlin")
+    private def kotlinSources = Task.Sources("src/test/kotlin")
 
     override def sources: T[Seq[PathRef]] =
       super[AndroidAppTests].sources() ++ kotlinSources()
@@ -47,7 +47,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     override final def kotlinVersion: T[String] = outer.kotlinVersion
     override final def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
 
-    override def kotlinSources: T[Seq[PathRef]] = Task.Sources("src/androidTest/kotlin")
+    private def kotlinSources = Task.Sources("src/androidTest/kotlin")
 
     override def kotlincPluginMvnDeps: T[Seq[Dep]] = outer.kotlincPluginMvnDeps()
 
