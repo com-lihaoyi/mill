@@ -26,12 +26,16 @@ object Applicative {
   type Id[+T] = T
 
   enum TaskReferences {
+
     /** No tasks can be references. */
     case None
+
     /** Only `Task.Source` tasks can be references. */
     case Source
+
     /** Only `Task.Source` and `Task.Sources` tasks can be references. */
     case Sources
+
     /** All tasks can be references. */
     case All
   }
