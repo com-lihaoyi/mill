@@ -20,7 +20,7 @@ import scala.jdk.CollectionConverters.*
 class ToFormatterStep(charset: Charset, provisioner: Provisioner)
     extends (Step => FormatterStep):
 
-  def path(ref: WorkspacePathRef): Option[Path] =
+  def path(ref: SubPathRef): Option[Path] =
     Option.when(os.exists(ref.path))(ref.path)
 
   def read(cof: ContentOrFile): String =
@@ -30,17 +30,18 @@ class ToFormatterStep(charset: Charset, provisioner: Provisioner)
         .map(path => new String(os.read.bytes(path), charset)))
       .getOrElse(throw new Exception(s"one of content/file must be provided"))
 
-  def signature(ref: WorkspacePathRef): Option[FileSignature] =
+  def signature(ref: SubPathRef): Option[FileSignature] =
     path(ref).map(path => FileSignature.signAsList(path.toIO))
 
   def apply(format: Step): FormatterStep = format match
     case _: EndWithNewline =>
       EndWithNewlineStep.create()
-    case format: Fence =>
+    case format: Fence.ApplyWithin =>
       import format.*
-      val step = FenceStep.named(name).regex(regex)
-      val nested = steps.map(this).asJava
-      if preserve then step.preserveWithin(nested) else step.applyWithin(nested)
+      toFenceStep(fence).applyWithin(steps.map(this).asJava)
+    case format: Fence.PreserveWithin =>
+      import format.*
+      toFenceStep(fence).preserveWithin(steps.map(this).asJava)
     case format: Indent =>
       import format.*
       IndentStep.create(IndentStep.Type.valueOf(`type`), numSpacesPerTab)
@@ -167,6 +168,14 @@ def toLintSuppression(suppress: Suppress): LintSuppression = {
   if (null != shortCode) ls.setShortCode(shortCode)
   ls
 }
+
+def toFenceStep(fence: Format.Fence): FenceStep =
+  if null == fence then
+    import FenceStep.*
+    named(defaultToggleName()).openClose(defaultToggleOff(), defaultToggleOn())
+  else
+    import fence.*
+    FenceStep.named(name).openClose(open, close)
 
 def toDependencies(mavenCoordinates: java.util.Collection[String]): Seq[Dependency] =
   DependencyParser.dependencies(mavenCoordinates.asScala.toSeq, "")

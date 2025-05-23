@@ -5,23 +5,22 @@ import upickle.core.Visitor
 import upickle.default.*
 import upickle.implicits.serializeDefaults
 
-import java.util.regex.Pattern
 import scala.util.Using
 
 /**
  * Configuration for building a [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/Formatter.java Spotless formatter]].
+ * @param steps format steps to apply
  * @param includes [[https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String) path matchers]] for files to format
  * @param excludes [[https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String) path matchers]] for files not to format
- * @param steps format steps to apply
  * @param lineEnding name of file [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/LineEnding.java line endings]]
  * @param encoding name of file encoding charset
  * @param suppressions lints to suppress
  */
 @mill.api.experimental
 case class Format(
+    steps: Seq[Format.Step],
     includes: Seq[String],
     excludes: Seq[String] = Seq(),
-    steps: Seq[Format.Step],
     lineEnding: String = "GIT_ATTRIBUTES_FAST_ALLSAME",
     encoding: String = "UTF-8",
     suppressions: Seq[Format.Suppress] = Seq()
@@ -29,7 +28,7 @@ case class Format(
 @mill.api.experimental
 object Format {
 
-  def apply(includes: String*)(steps: Step*): Format = apply(includes, steps = steps)
+  def apply(includes: String*)(steps: Step*): Format = apply(steps, includes)
 
   def defaults: Seq[Format] = Seq(
     apply("glob:**.java")(PalantirJavaFormat()),
@@ -39,39 +38,6 @@ object Format {
 
   def readAll(formatsFile: os.Path): Seq[Format] =
     Using.resource(os.read.inputStream(formatsFile))(read[Seq[Format]](_))
-
-  /**
-   * Represents a string value that can be inlined as `content` or must be read from `file`.
-   */
-  case class ContentOrFile(
-      content: String = null,
-      @serializeDefaults(true) file: Option[WorkspacePathRef] = None
-  ) derives ReadWriter
-
-  /**
-   * A variant of [[PathRef]] meant for resolving an `os.SubPath` in JSON configuration file.
-   */
-  opaque type WorkspacePathRef <: PathRef = PathRef
-  object WorkspacePathRef {
-
-    def apply(ref: PathRef): WorkspacePathRef = ref
-
-    /** Resolves `sub` against the workspace root */
-    def apply(sub: os.SubPath): WorkspacePathRef = PathRef(BuildCtx.workspaceRoot / sub)
-
-    private def parse(s: String): WorkspacePathRef =
-      if s.startsWith("ref:") || s.startsWith("qref:") then upickle.default.read[PathRef](s)
-      else apply(os.SubPath(s))
-
-    given ReadWriter[WorkspacePathRef] =
-      new Visitor.MapReader[Any, String, WorkspacePathRef](readwriter[String])
-        with ReadWriter[WorkspacePathRef] {
-        def write0[V](out: Visitor[_, V], v: WorkspacePathRef) =
-          PathRef.jsonFormatter.write0(out, v)
-
-        def mapNonNullsFunction(t: String) = parse(t)
-      }
-  }
 
   /**
    * Configuration for creating a [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/FormatterStep.java formatter step]]
@@ -86,35 +52,18 @@ object Format {
   /**
    * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/generic/FenceStep.java]]
    */
-  case class Fence(
-      name: String,
-      regex: String,
-      preserve: Boolean,
-      steps: Seq[Step]
-  ) extends Step derives ReadWriter
+  case class Fence(name: String, open: String, close: String) derives ReadWriter
   object Fence {
-
-    def apply(name: String, open: String, close: String, preserve: Boolean)(
-        steps: Step*
-    ): Fence =
-      apply(
-        name = name,
-        regex = Pattern.quote(open) + "([\\s\\S]*?)" + Pattern.quote(close),
-        preserve = preserve,
-        steps = steps
-      )
-
-    /**
-     * @see [[https://github.com/diffplug/spotless/tree/main/plugin-gradle#spotlessoff-and-spotlesson]]
-     */
-    def toggle(steps: Step*): Fence =
-      apply("toggle", "spotless:off", "spotless:on", true)(steps*)
 
     /**
      * @see [[https://github.com/diffplug/spotless/tree/main/plugin-gradle#inception-languages-within-languages-within]]
      */
-    def within(name: String, open: String, close: String)(steps: Step*): Fence =
-      apply(name, open, close, false)(steps*)
+    case class ApplyWithin(fence: Fence, steps: Seq[Step]) extends Step derives ReadWriter
+
+    /**
+     * @see [[https://github.com/diffplug/spotless/tree/main/plugin-gradle#spotlessoff-and-spotlesson]]
+     */
+    case class PreserveWithin(steps: Seq[Step], fence: Fence = null) extends Step derives ReadWriter
   }
 
   /**
@@ -136,19 +85,13 @@ object Format {
   case class LicenseHeader(
       delimiter: String,
       @serializeDefaults(true) header: ContentOrFile =
-        ContentOrFile(file = Some(WorkspacePathRef("LICENSE"))),
+        ContentOrFile(file = Some(SubPathRef("LICENSE"))),
       name: String = null,
       contentPattern: String = null,
       yearSeparator: String = "-",
       yearMode: String = "PRESERVE",
       skipLinesMatching: String = null
   ) extends Step derives Reader
-
-  object LicenseHeader {
-    def of(lang: "java" | "kotlin"): LicenseHeader = apply(delimiter = lang match
-      case "java" => "(package|import|public|class|module) "
-      case "kotlin" => "(package |@file|import )")
-  }
 
   /**
    * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/generic/NativeCmdStep.java]]
@@ -238,8 +181,8 @@ object Format {
   case class Diktat(
       version: String = null,
       isScript: Boolean = false,
-      @serializeDefaults(true) configFile: WorkspacePathRef =
-        WorkspacePathRef("diktat-analysis.yml")
+      @serializeDefaults(true) configFile: SubPathRef =
+        SubPathRef("diktat-analysis.yml")
   ) extends Step derives ReadWriter
 
   /**
@@ -260,7 +203,7 @@ object Format {
    */
   case class KtLint(
       version: String = null,
-      @serializeDefaults(true) editorConfig: WorkspacePathRef = WorkspacePathRef(".editorconfig"),
+      @serializeDefaults(true) editorConfig: SubPathRef = SubPathRef(".editorconfig"),
       customRuleSets: Seq[String] = Seq()
   ) extends Step derives ReadWriter
 
@@ -270,7 +213,7 @@ object Format {
   case class ScalaFmt(
       version: String = null,
       scalaMajorVersion: String = null,
-      @serializeDefaults(true) configFile: WorkspacePathRef = WorkspacePathRef(".scalafmt.conf")
+      @serializeDefaults(true) configFile: SubPathRef = SubPathRef(".scalafmt.conf")
   ) extends Step derives ReadWriter
 
   /**
@@ -281,4 +224,34 @@ object Format {
       step: String = null,
       shortCode: String = null
   ) derives ReadWriter
+
+  /**
+   * Represents a string value that can be inlined as `content` or must be read from `file`.
+   */
+  case class ContentOrFile(
+      content: String = null,
+      @serializeDefaults(true) file: Option[SubPathRef] = None
+  ) derives ReadWriter
+
+  /**
+   * A variant of [[PathRef]] created from an `os.SubPath` resolved against the workspace root.
+   * This allows for usages, such as in configuration files,
+   * where it is preferred to omit the machine specific path prefix.
+   */
+  opaque type SubPathRef <: PathRef = PathRef
+  object SubPathRef {
+
+    def apply(sub: os.SubPath): SubPathRef = PathRef(BuildCtx.workspaceRoot / sub)
+
+    private def decode(s: String): SubPathRef =
+      if s.startsWith("ref:") then upickle.default.read[PathRef](s)
+      else apply(os.SubPath(s))
+
+    given ReadWriter[SubPathRef] =
+      new Visitor.MapReader[Any, String, SubPathRef](readwriter[String])
+        with ReadWriter[SubPathRef] {
+        def write0[V](out: Visitor[_, V], v: SubPathRef) = PathRef.jsonFormatter.write0(out, v)
+        def mapNonNullsFunction(t: String) = decode(t)
+      }
+  }
 }

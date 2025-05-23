@@ -19,20 +19,19 @@ class SpotlessWorkerImpl(runners: Seq[SpotlessWorkerImpl.Runner])
   def this(formats: Seq[Format], resolver: CoursierModule.Resolver, ctx: TaskCtx) =
     this(formats, toProvisioner(resolver)(using ctx))
 
-  private val formattedSig = mutable.Map.empty[os.Path, Int]
-  private val isFormatted = (ref: PathRef) => formattedSig.get(ref.path).contains(ref.sig)
-  private val onFormat = (path: os.Path) => formattedSig.update(path, PathRef(path).sig)
+  private val cleanCache = mutable.Map.empty[os.Path, Int]
+  private def isClean(ref: PathRef) = cleanCache.get(ref.path).contains(ref.sig)
+  private def onClean(ref: PathRef) = cleanCache.update(ref.path, ref.sig)
 
-  def format(files: Seq[PathRef], check: Boolean)(using ctx: TaskCtx) = {
-    val toConsider = files.collect:
-      case ref if !isFormatted(ref) => ref.path
-    if (toConsider.nonEmpty) {
-      val failedFileCount = runners.iterator
-        .map(_.format(toConsider, check, onFormat))
+  def format(targets: Seq[PathRef], check: Boolean)(using ctx: TaskCtx) = {
+    val unclean = targets.filterNot(isClean)
+    if (unclean.nonEmpty) {
+      val numFailed = runners.iterator
+        .map(_.format(unclean, check, onClean))
         .sum
-      if (failedFileCount > 0) {
+      if (numFailed > 0) {
         val prefix = if check then "format check" else "format"
-        ctx.fail(s"$prefix failed for $failedFileCount files")
+        ctx.fail(s"$prefix failed for $numFailed files")
       }
     } else ctx.log.info("everything is already formatted")
   }
@@ -68,74 +67,79 @@ object SpotlessWorkerImpl {
   }
 
   class Runner(
-      pathFilter: os.Path => Boolean,
+      pathFilter: java.nio.file.Path => Boolean,
       lineEnding: LineEnding,
       encoding: Charset,
       steps: util.List[FormatterStep],
       suppressions: util.List[LintSuppression]
   ) {
 
-    def format(files: Seq[os.Path], check: Boolean, onFormat: os.Path => Unit)(using
+    def format(targets: Seq[PathRef], check: Boolean, onClean: PathRef => Unit)(using
         ctx: TaskCtx.Log & TaskCtx.Workspace
     ): Int = {
-      val targets = files.filter(pathFilter)
-      if targets.isEmpty then 0
+      val files = targets.filter(ref => pathFilter(ref.path.toNIO))
+      if files.isEmpty then 0
       else {
-        val policy = lineEnding.createPolicy(ctx.workspace.toIO, () => targets.map(_.toIO).asJava)
+        val policy =
+          lineEnding.createPolicy(ctx.workspace.toIO, () => files.map(_.path.toIO).asJava)
         val formatter = Formatter.builder()
           .lineEndingsPolicy(policy)
           .encoding(encoding)
           .steps(steps)
           .build
-        val fileTypes = targets.iterator
-          .map: path =>
-            val ext = path.ext
-            if ext.isEmpty then path.baseName else ext
+        val fileTypes = files.iterator
+          .map: ref =>
+            val ext = ref.path.ext
+            if ext.isEmpty then ref.path.baseName else ext
           .distinct
           .toSeq
           .sorted
           .mkString(",")
-        var divergingFileCount = 0
-        var lintsFileCount = 0
-        var dirtyFileCount = 0
-        var cleanedFileCount = 0
-        ctx.log.info(s"checking format in ${targets.length} $fileTypes files")
-        for (path <- targets) {
-          val file = path.toIO
-          val rel = path.relativeTo(ctx.workspace)
-          val lintState = LintState.of(formatter, file)
-            .withRemovedSuppressions(formatter, rel.toString(), suppressions)
-          if (lintState.getDirtyState.didNotConverge()) {
-            ctx.log.warn(s"failed to converge $rel")
-            divergingFileCount += 1
-          } else if (lintState.isHasLints) {
-            ctx.log.warn(lintState.asStringDetailed(file, formatter))
-            lintsFileCount += 1
-          } else if (!lintState.getDirtyState.isClean) {
-            if (check) {
+        ctx.log.info(s"checking format in ${files.length} $fileTypes files")
+        var numDiverging = 0
+        var numHasLints = 0
+        var numDirty = 0
+        var numCleaned = 0
+
+        for
+          ref <- files
+          path = ref.path
+          file = path.toIO
+          rel = path.relativeTo(ctx.workspace)
+        do
+          LintState.of(
+            formatter,
+            file
+          ).withRemovedSuppressions(formatter, rel.toString(), suppressions) match
+            case ls if ls.getDirtyState.didNotConverge =>
+              ctx.log.warn(s"failed to converge $rel")
+              numDiverging += 1
+            case ls if ls.isHasLints =>
+              ctx.log.warn(ls.asStringDetailed(file, formatter))
+              numHasLints += 1
+            case ls if ls.getDirtyState.isClean =>
+              onClean(ref)
+            case _ if check =>
               ctx.log.info(s"format errors in $rel")
-              dirtyFileCount += 1
-            } else {
+              numDirty += 1
+            case ls =>
               ctx.log.info(s"formatting $rel")
-              lintState.getDirtyState.writeCanonicalTo(file)
-              onFormat(path)
-              cleanedFileCount += 1
-            }
-          }
-          if (cleanedFileCount > 0)
-            ctx.log.info(s"formatted $cleanedFileCount $fileTypes files")
-          if (dirtyFileCount > 0)
-            ctx.log.info(s"format errors in $dirtyFileCount $fileTypes files")
-          if (lintsFileCount > 0)
-            ctx.log.warn(
-              s"lint errors in $lintsFileCount $fileTypes files must be fixed/suppressed"
-            )
-          if (divergingFileCount > 0)
-            // https://github.com/diffplug/spotless/blob/main/PADDEDCELL.md#a-misbehaving-step
-            ctx.log.warn(s"failed to converge $divergingFileCount $fileTypes files with steps: " +
-              steps.iterator.asScala.map(_.getName).mkString(","))
-        }
-        dirtyFileCount + lintsFileCount + divergingFileCount
+              ls.getDirtyState.writeCanonicalTo(file)
+              onClean(PathRef(path))
+              numCleaned += 1
+          end match
+
+        if (numCleaned > 0) ctx.log.info(s"formatted $numCleaned $fileTypes files")
+        if (numDirty > 0) ctx.log.info(s"format errors in $numDirty $fileTypes files")
+        if (numHasLints > 0) ctx.log.warn(
+          s"lint errors in $numHasLints $fileTypes files must be fixed/suppressed"
+        )
+        // https://github.com/diffplug/spotless/blob/main/PADDEDCELL.md#a-misbehaving-step
+        if (numDiverging > 0) ctx.log.warn(
+          s"failed to converge $numDiverging $fileTypes files with " +
+            steps.iterator.asScala.map(_.getName).mkString(",")
+        )
+        numDirty + numHasLints + numDiverging
       }
     }
   }
@@ -148,9 +152,8 @@ object SpotlessWorkerImpl {
       val pathFilter = {
         val includeMatchers = includes.map(FileSystems.getDefault.getPathMatcher)
         val excludeMatchers = excludes.map(FileSystems.getDefault.getPathMatcher)
-        (path: os.Path) =>
-          includeMatchers.exists(_.matches(path.toNIO)) &&
-            !excludeMatchers.exists(_.matches(path.toNIO))
+        (path: java.nio.file.Path) =>
+          includeMatchers.exists(_.matches(path)) && !excludeMatchers.exists(_.matches(path))
       }
       Runner(
         pathFilter,

@@ -17,8 +17,6 @@ object `package` extends JavaModule
 > git commit -a -m "1"
 */
 
-//
-
 // Next, we create a new file with format errors.
 
 /** Usage
@@ -31,6 +29,9 @@ format errors in src/module-info.java
 format errors in 2 java files
 error: ...spotless format check failed for 2 files
 */
+
+// NOTE: Since no `spotless-formats.json` file is present, a default list of formatter steps is used.
+// The default is meant for use cases where some basic formatting is sufficient.
 
 // The `mill.scalalib.spotless/` command finds format errors in both files.
 // But we do not want to fix the formatting in `A.java` since it is part of the commit history.
@@ -52,10 +53,7 @@ formatted 1 java files
 
 // This demonstrates how to gradually enforce formatting in an existing Git project.
 
-// NOTE: Since no `spotless-formats.json` file is present, a default list of formatter steps are applied.
-// The default is meant for use cases where some basic formatting is sufficient.
-
-// The `mill.scalalib.git/ratchet` command can be used to determine changsets between a
+// The `mill.scalalib.git/ratchet` command can be used to determine changsets (excluding deletions) between a
 // https://javadoc.io/doc/org.eclipse.jgit/org.eclipse.jgit/latest/org.eclipse.jgit/org/eclipse/jgit/lib/Repository.html#resolve(java.lang.String)[revision]
 // and a subsequent revison or working directory tree.
 // This allows for racheting from any point in the commit history.
@@ -70,5 +68,5 @@ everything is already formatted
 
 // The last command can be adapted to set up actions on CI systems that check/fix formatting.
 
-// CAUTION: CI usage may require additional
+// CAUTION: CI actions may require additional
 // https://github.com/diffplug/spotless/tree/main/plugin-gradle#using-ratchetfrom-on-ci-systems[setup].

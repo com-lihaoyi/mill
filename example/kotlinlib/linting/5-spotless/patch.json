@@ -10,6 +10,12 @@
     ],
     "includes": [
       "glob:**.{kt,kts}"
+    ],
+    "suppressions": [
+      {
+        "step": "ktlint",
+        "shortCode": "standard:no-empty-file"
+      }
     ]
   },
   {

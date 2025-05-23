@@ -5,5 +5,5 @@ import mill.define.{PathRef, TaskCtx}
 
 @mill.api.experimental
 trait SpotlessWorker {
-  def format(files: Seq[PathRef], check: Boolean)(using TaskCtx): Result[Unit]
+  def format(targets: Seq[PathRef], check: Boolean)(using TaskCtx): Result[Unit]
 }

@@ -15,21 +15,22 @@ import mill.util.TokenReaders.given
 trait SpotlessModule extends CoursierModule, WithSpotlessWorker {
 
   /**
-   * Run Spotless formatters on [[spotlessSources]].
-   * @param check control flag for action to take when format errors are found
+   * Run Spotless formatters on [[spotlessTargets]].
+   *
+   * @param check control flag to determine the action to take when format errors are found
    *              - if set, the command fails
    *              - otherwise, formatting is fixed
    */
   def spotless(check: Flag): Task.Command[Unit] = Task.Command {
     spotlessWorker()
       .worker()
-      .format(filesToFormat(spotlessSources()), check.value)
+      .format(filesToFormat(spotlessTargets()), check.value)
   }
 
   /**
    * Files/folders to format using Spotless.
    */
-  def spotlessSources: Task[Seq[PathRef]]
+  def spotlessTargets: Task[Seq[PathRef]]
 }
 @mill.api.experimental
 object SpotlessModule extends ExternalModule, TaskModule, WithSpotlessWorker {
@@ -57,8 +58,8 @@ object SpotlessModule extends ExternalModule, TaskModule, WithSpotlessWorker {
   }
 }
 
-private def filesToFormat(sources: Seq[PathRef]): Seq[PathRef] = {
-  sources.flatMap { ref =>
+private def filesToFormat(targets: Seq[PathRef]): Seq[PathRef] = {
+  targets.flatMap { ref =>
     if os.isDir(ref.path) then
       os.walk.stream(ref.path)
         .collect:
