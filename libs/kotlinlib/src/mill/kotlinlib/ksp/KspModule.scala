@@ -111,7 +111,7 @@ trait KspModule extends KotlinModule { outer =>
     if (kotlinLanguageVersion().isBlank) {
       throw new RuntimeException("KSP needs a compatible language version to be set!")
     }
-    Seq(
+    kotlincOptions() ++ Seq(
       "-Xallow-unstable-dependencies",
       "-no-reflect",
       "-no-stdlib",

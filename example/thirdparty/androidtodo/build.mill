@@ -3,6 +3,15 @@ package build
 import mill._, androidlib._, kotlinlib._
 import hilt.AndroidHiltSupport
 
+object Versions {
+  val kotlinVersion = "2.0.21"
+  val kotlinLanguageVersion = "1.9"
+
+  val kspVersion = "1.0.28"
+  val androidCompileSdk = 35
+  val androidMinSdk = 26
+}
+
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
@@ -11,10 +20,9 @@ object androidSdkModule0 extends AndroidSdkModule {
 // Mill configuration for the Android Todo App project.
 object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHiltSupport {
 
-  def kotlinVersion = "2.0.21"
-  def kotlinLanguageVersion = "1.9"
-
-  def kspVersion = "1.0.28"
+  def kotlinVersion = Versions.kotlinVersion
+  def kotlinLanguageVersion = Versions.kotlinLanguageVersion
+  def kspVersion = Versions.kspVersion
 
   def androidApplicationNamespace = "com.example.android.architecture.blueprints.todoapp"
   // TODO change this to com.example.android.architecture.blueprints.main when mill supports build variants
@@ -22,9 +30,9 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
 
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
-  def androidCompileSdk = 35
+  def androidCompileSdk = Versions.androidCompileSdk
 
-  def androidMinSdk = 26
+  def androidMinSdk = Versions.androidMinSdk
 
   def androidEnableCompose = true
 
@@ -73,27 +81,91 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  def kotlincPluginMvnDeps: T[Seq[Dep]] = Task {
-    Seq(
-      mvn"org.jetbrains.kotlin:kotlin-compose-compiler-plugin-embeddable:${kotlinVersion()}"
-    )
-  }
+  object test extends AndroidAppKotlinTests with AndroidHiltSupport with TestModule.Junit4 {
 
-  object test extends AndroidAppKotlinTests with TestModule.Junit4 {
+    def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
+
+    def androidEnableCompose = true
+
+    override def kspVersion = Versions.kspVersion
+
+    def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
+      mvn"androidx.room:room-compiler:2.6.1",
+      mvn"com.google.dagger:hilt-android-compiler:2.56"
+    )
+
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"junit:junit:4.13.2"
+      mvn"junit:junit:4.13.2",
+      mvn"androidx.arch.core:core-testing:2.2.0",
+      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
+      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0",
+      mvn"androidx.navigation:navigation-testing:2.8.5",
+      mvn"androidx.test.espresso:espresso-core:3.6.1",
+      mvn"androidx.test.espresso:espresso-contrib:3.6.1",
+      mvn"androidx.test.espresso:espresso-intents:3.6.1",
+      mvn"com.google.truth:truth:1.4.4",
+      mvn"androidx.compose:compose-bom:2024.12.01",
+      mvn"androidx.compose.ui:ui-test-junit4:1.7.6",
+      mvn"com.google.dagger:hilt-android-testing:2.56"
     )
   }
 
   // TODO support instrumented tests on Hilt setups
   object androidTest extends AndroidAppKotlinInstrumentedTests
-      with AndroidTestModule.AndroidJUnit {}
+      with AndroidTestModule.AndroidJUnit with AndroidHiltSupport {
+    override def kspVersion = Versions.kspVersion
 
+  }
+
+}
+
+object `shared-test` extends AndroidKotlinModule with AndroidHiltSupport {
+
+  def moduleDeps = Seq(app)
+
+  def kotlinVersion = Versions.kotlinVersion
+  def kotlinLanguageVersion = Versions.kotlinLanguageVersion
+  def kspVersion = Versions.kspVersion
+  def androidIsDebug = true
+
+  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidCompileSdk = Versions.androidCompileSdk
+  def androidMinSdk = Versions.androidMinSdk
+
+  def androidEnableCompose = true
+
+  def androidNamespace = "com.example.android.architecture.blueprints.todoapp.shared.test"
+
+  def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
+    mvn"androidx.room:room-compiler:2.6.1",
+    mvn"com.google.dagger:hilt-android-compiler:2.56"
+  )
+
+  def mvnDeps = super.mvnDeps() ++ Seq(
+    mvn"junit:junit:4.13.2",
+    mvn"androidx.arch.core:core-testing:2.2.0",
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0",
+    mvn"androidx.test:core-ktx:1.6.1",
+    mvn"androidx.test.ext:junit-ktx:1.2.1",
+    mvn"androidx.test:rules:1.6.1",
+    mvn"com.google.dagger:hilt-android:2.56",
+    mvn"com.google.dagger:hilt-android-testing:2.56",
+    mvn"androidx.room:room-runtime:2.6.1",
+    mvn"androidx.room:room-ktx:2.6.1"
+  )
 }
 
 /** Usage
 
 > ./mill app.androidApk
+
+> ./mill app.test
+
+> cat out/app/test/testForked.dest/test-report.xml
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites tests="46" failures="0" errors="0" skipped="0" time="...">
+...
 
 > ./mill show app.createAndroidVirtualDevice
 ...Name: test, DeviceId: medium_phone...
