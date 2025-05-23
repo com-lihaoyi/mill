@@ -1,6 +1,9 @@
 package mill
 package scalalib
 
+import scala.util.chaining.scalaUtilChainingOps
+import scala.util.matching.Regex
+
 import coursier.Repository
 import coursier.Type
 import coursier.core as cs
@@ -1175,9 +1178,8 @@ trait JavaModule
       // Filter the output, so that the special organization and version used for Mill's own modules
       // don't appear in the output. This only leaves the modules' name built from millModuleSegments.
       val processedTree = tree
-        .replace(" mill-internal:", " ")
-        .replace(":0+mill-internal ", " ")
-        .replace(":0+mill-internal" + System.lineSeparator(), System.lineSeparator())
+        .replace(s"${JavaModule.internalOrg.value}:", "")
+        .pipe(JavaModule.removeInternalVersionRegex.replaceAllIn(_, "$1"))
 
       processedTree
     }
@@ -1619,6 +1621,9 @@ object JavaModule {
 
   private[mill] def internalOrg = coursier.core.Organization("mill-internal")
   private[mill] def internalVersion = "0+mill-internal"
+
+  private lazy val removeInternalVersionRegex =
+    (":" + Regex.quote(JavaModule.internalVersion) + "(\\w*$|\\n)").r
 
 }
 
