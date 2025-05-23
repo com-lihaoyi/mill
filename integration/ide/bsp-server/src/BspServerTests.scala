@@ -250,7 +250,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         (message.getType, message.getMessage)
       }
       val expectedMessages = Seq(
-        (b.MessageType.ERROR, "buildTargetCompile failed, see Mill logs for more details")
+        (b.MessageType.ERROR, "Compiling errored failed, see Mill logs for more details")
       )
       assert(expectedMessages == messages0)
     }
