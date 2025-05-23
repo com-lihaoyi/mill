@@ -741,6 +741,7 @@ trait JavaModule
    */
   def assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
 
+  @deprecated("FOR REMOVAL")
   def sourcesFolders: Seq[os.SubPath] = Seq("src")
 
   /**

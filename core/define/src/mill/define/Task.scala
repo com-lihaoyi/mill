@@ -471,9 +471,9 @@ object Task {
             Expr[(Seq[Any], mill.define.TaskCtx) => Result[T]]
         ) => Expr[M[T]],
         t: Expr[Result[T]],
-        allowTaskReferences: Boolean = true
+        allowedTaskReferences: Applicative.TaskReferences = Applicative.TaskReferences.All
     ): Expr[M[T]] =
-      Applicative.impl[M, Task, Result, T, mill.define.TaskCtx](traverseCtx, t, allowTaskReferences)
+      Applicative.impl[M, Task, Result, T, mill.define.TaskCtx](traverseCtx, t, allowedTaskReferences)
 
     private def taskIsPrivate()(using Quotes): Expr[Option[Boolean]] =
       Cacher.withMacroOwner {
@@ -515,7 +515,7 @@ object Task {
       val expr = appImpl[Simple, Seq[PathRef]](
         (in, ev) => '{ new Sources($ev, $ctx, ${ taskIsPrivate() }) },
         values,
-        allowTaskReferences = false
+        allowedTaskReferences = Applicative.TaskReferences.Sources
       )
       Cacher.impl0(expr)
     }
@@ -529,7 +529,7 @@ object Task {
       val expr = appImpl[Simple, PathRef](
         (in, ev) => '{ new Source($ev, $ctx, ${ taskIsPrivate() }) },
         value,
-        allowTaskReferences = false
+        allowedTaskReferences = Applicative.TaskReferences.Source
       )
       Cacher.impl0(expr)
 
@@ -545,7 +545,7 @@ object Task {
       val expr = appImpl[Simple, T](
         (in, ev) => '{ new Input[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
         value,
-        allowTaskReferences = false
+        allowedTaskReferences = Applicative.TaskReferences.None
       )
       Cacher.impl0(expr)
     }
