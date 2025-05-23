@@ -361,7 +361,7 @@ private class MillBuildServer(
             logger,
             Utils.getBspLoggedReporterPool(p.getOriginId, state.bspIdByModule, client),
             TestReporter.DummyTestReporter
-          )
+          )(using sourcecode.Name("buildTargetCompile"))
         }
         .toSeq
       val compileResult = new CompileResult(Utils.getStatusCode(result))
@@ -410,7 +410,7 @@ private class MillBuildServer(
         Seq(runTask),
         logger,
         Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client)
-      )
+      )(using sourcecode.Name("buildTargetRun"))
       val response = runResult.transitiveResultsApi(runTask) match {
         case r if r.asSuccess.isDefined => new RunResult(StatusCode.OK)
         case _ => new RunResult(StatusCode.ERROR)
@@ -480,7 +480,7 @@ private class MillBuildServer(
                   client
                 ),
                 testReporter
-              )
+              )(using sourcecode.Name("buildTargetTest"))
               val statusCode = Utils.getStatusCode(Seq(results))
 
               // Notifying the client that the testing of this build target ended
@@ -534,7 +534,7 @@ private class MillBuildServer(
               ev,
               Seq(cleanTask),
               logger = logger
-            )
+            )(using sourcecode.Name("buildTargetCleanCache"))
             val cleanedPaths =
               cleanResult.results.head.get.value.asInstanceOf[Seq[java.nio.file.Path]]
             if (cleanResult.transitiveFailingApi.size > 0) (
@@ -806,7 +806,7 @@ private class MillBuildServer(
             ev,
             ts.map(_._2),
             logger
-          )
+          )(using sourcecode.Name("loggingTest"))
         }
         .toSeq
       null
