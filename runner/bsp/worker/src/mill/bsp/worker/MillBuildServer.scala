@@ -701,7 +701,7 @@ private class MillBuildServer(
       logger: Logger,
       checkInitialized: Boolean,
       future0: scala.concurrent.Future[T]
-  )(block: T => V)(implicit name: sourcecode.Name): CompletableFuture[V] = logger.withPromptLine {
+  )(block: T => V)(implicit name: sourcecode.Name): CompletableFuture[V] = {
 
     val start = System.currentTimeMillis()
     val prefix = name.value
@@ -719,22 +719,20 @@ private class MillBuildServer(
     } else {
       future0.onComplete {
         case Success(state) =>
-          logger.withPromptLine {
-            try {
-              requestLock.lock()
-              val v = block(state)
+          try {
+            requestLock.lock()
+            val v = block(state)
+            logTiming()
+            logger.debug(s"${prefix} result: ${v}")
+            future.complete(v)
+          } catch {
+            case e: Exception =>
               logTiming()
-              logger.debug(s"${prefix} result: ${v}")
-              future.complete(v)
-            } catch {
-              case e: Exception =>
-                logTiming()
-                logger.error(s"${prefix} caught exception: ${e}")
-                e.printStackTrace(logger.streams.err)
-                future.completeExceptionally(e)
-            } finally {
-              requestLock.unlock()
-            }
+              logger.error(s"${prefix} caught exception: ${e}")
+              e.printStackTrace(logger.streams.err)
+              future.completeExceptionally(e)
+          } finally {
+            requestLock.unlock()
           }
         case Failure(exception) =>
           future.completeExceptionally(exception)
@@ -763,10 +761,7 @@ private class MillBuildServer(
             else logKey0
           }
         },
-        Seq(requestCount0.toString, name),
-        "",
-        "",
-        false
+        Seq(requestCount0.toString, name)
       )
     )
   }
