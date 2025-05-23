@@ -432,9 +432,9 @@ object Task {
       val evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[T],
       val ctx0: mill.define.ModuleCtx,
       val writer: upickle.default.Writer[?],
-      val isPrivate: Option[Boolean]
+      val isPrivate: Option[Boolean],
+      val inputs: Seq[Task[Any]] = Nil
   ) extends Simple[T] {
-    val inputs = Nil
     override def sideHash: Int = util.Random.nextInt()
     // FIXME: deprecated return type: Change to Option
     override def writerOpt: Some[Writer[?]] = Some(writer)
@@ -443,23 +443,27 @@ object Task {
   class Sources(
       evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[Seq[PathRef]],
       ctx0: mill.define.ModuleCtx,
-      isPrivate: Option[Boolean]
+      isPrivate: Option[Boolean],
+      inputs: Seq[Task[Any]]
   ) extends Input[Seq[PathRef]](
         evaluate0,
         ctx0,
         upickle.default.readwriter[Seq[PathRef]],
-        isPrivate
+        isPrivate,
+        inputs
       ) {}
 
   class Source(
       evaluate0: (Seq[Any], mill.define.TaskCtx) => Result[PathRef],
       ctx0: mill.define.ModuleCtx,
-      isPrivate: Option[Boolean]
+      isPrivate: Option[Boolean],
+      inputs: Seq[Task[Any]]
   ) extends Input[PathRef](
         evaluate0,
         ctx0,
         upickle.default.readwriter[PathRef],
-        isPrivate
+        isPrivate,
+        inputs
       ) {}
 
   private object Macros {
@@ -517,7 +521,7 @@ object Task {
         ctx: Expr[mill.define.ModuleCtx]
     ): Expr[Simple[Seq[PathRef]]] = {
       val expr = appImpl[Simple, Seq[PathRef]](
-        (in, ev) => '{ new Sources($ev, $ctx, ${ taskIsPrivate() }) },
+        (in, ev) => '{ new Sources($ev, $ctx, ${ taskIsPrivate() }, $in) },
         values,
         allowedTaskReferences = Applicative.TaskReferences.Sources
       )
@@ -531,7 +535,7 @@ object Task {
     ): Expr[Simple[PathRef]] = {
 
       val expr = appImpl[Simple, PathRef](
-        (in, ev) => '{ new Source($ev, $ctx, ${ taskIsPrivate() }) },
+        (in, ev) => '{ new Source($ev, $ctx, ${ taskIsPrivate() }, $in) },
         value,
         allowedTaskReferences = Applicative.TaskReferences.Source
       )
@@ -547,7 +551,7 @@ object Task {
     ): Expr[Simple[T]] = {
 
       val expr = appImpl[Simple, T](
-        (in, ev) => '{ new Input[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
+        (in, ev) => '{ new Input[T]($ev, $ctx, $w, ${ taskIsPrivate() }, $in) },
         value,
         allowedTaskReferences = Applicative.TaskReferences.None
       )
