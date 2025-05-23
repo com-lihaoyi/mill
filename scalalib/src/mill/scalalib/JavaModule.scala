@@ -1,26 +1,23 @@
 package mill
 package scalalib
 
-import coursier.{core => cs}
 import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
 import coursier.params.ResolutionParams
-import coursier.parse.JavaOrScalaModule
-import coursier.parse.ModuleParser
+import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
-import coursier.{Repository, Type}
+import coursier.{Repository, Type, core => cs}
 import mainargs.{Flag, arg}
 import mill.Agg
 import mill.api.{Ctx, MillException, PathRef, Result, internal}
 import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
-import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget}
+import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.publish.Artifact
 import mill.util.{JarManifest, Jvm}
 
-import os.{Path, ProcessOutput}
-
 import scala.annotation.nowarn
+import scala.util.matching.Regex
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -1267,9 +1264,8 @@ trait JavaModule
       // Filter the output, so that the special organization and version used for Mill's own modules
       // don't appear in the output. This only leaves the modules' name built from millModuleSegments.
       val processedTree = tree
-        .replace(" mill-internal:", " ")
-        .replace(":0+mill-internal ", " ")
-        .replace(":0+mill-internal" + System.lineSeparator(), System.lineSeparator())
+        .replace(s" ${JavaModule.internalOrg.value}:", " ")
+        .replaceAll(":" + Regex.quote(JavaModule.internalVersion) + "(\\w*$|\\n)", "$1")
 
       println(processedTree)
 
@@ -1355,15 +1351,15 @@ trait JavaModule
 
   @deprecated("Binary compat shim, use `.runner().run(..., background=true)`", "Mill 0.12.0")
   override protected def doRunBackground(
-      taskDest: Path,
+      taskDest: os.Path,
       runClasspath: Seq[PathRef],
       zwBackgroundWrapperClasspath: Agg[PathRef],
       forkArgs: Seq[String],
       forkEnv: Map[String, String],
       finalMainClass: String,
-      forkWorkingDir: Path,
+      forkWorkingDir: os.Path,
       runUseArgsFile: Boolean,
-      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]]
+      backgroundOutputs: Option[Tuple2[os.ProcessOutput, os.ProcessOutput]]
   )(args: String*): Ctx => Result[Unit] = {
     // overridden here for binary compatibility (0.11.x)
     super.doRunBackground(
@@ -1451,7 +1447,7 @@ trait JavaModule
    */
   def artifactSuffix: T[String] = platformSuffix()
 
-  override def forkWorkingDir: T[Path] = Task {
+  override def forkWorkingDir: T[os.Path] = Task {
     // overridden here for binary compatibility (0.11.x)
     super.forkWorkingDir()
   }
