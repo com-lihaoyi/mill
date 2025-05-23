@@ -1,0 +1,43 @@
+package build
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.15"
+  def mvnDeps = Seq(
+    mvn"org.apache.spark::spark-core:3.5.4",
+    mvn"org.apache.spark::spark-sql:3.5.4",
+    mvn"org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.4.3"
+  )
+
+  def forkArgs = Seq(
+    "--add-opens=java.base/java.nio=ALL-UNNAMED",
+    "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED"
+  )
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+
+    def forkArgs = Seq(
+      "--add-opens=java.base/java.nio=ALL-UNNAMED",
+      "--add-exports=java.base/sun.nio.ch=ALL-UNNAMED"
+    )
+  }
+
+}
+// This examples demonstrates running spark with ice-berg using mill.
+
+/** Usage
+
+> ./mill foo.run
++---------------+
+|        message|
++---------------+
+|Hello, Iceberg!|
++---------------+
+
+> ./mill foo.test
+...
++ foo.FooTests.Iceberg table should contain one row with 'Hello, Iceberg!'...
+...
+*/

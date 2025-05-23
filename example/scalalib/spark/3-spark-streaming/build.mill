@@ -1,0 +1,129 @@
+package build
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.15"
+  def mvnDeps = Seq(
+    mvn"org.apache.spark::spark-core:3.5.4",
+    mvn"org.apache.spark::spark-sql:3.5.4",
+    mvn"org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.4"
+  )
+
+  def forkArgs = Seq("--add-opens", "java.base/sun.nio.ch=ALL-UNNAMED")
+
+  def forkEnv: T[Map[String, String]] = Map("KAFKA_SERVER" -> "localhost:9092")
+
+  def createTopic(args: mill.define.Args) = Task.Command {
+    val topic = args.value.mkString(" ")
+    val server = forkEnv()("KAFKA_SERVER")
+    os.call(
+      (
+        "docker-compose",
+        "exec",
+        "kafka",
+        "kafka-topics",
+        "--create",
+        "--topic",
+        topic,
+        "--bootstrap-server",
+        server
+      ),
+      stdout = os.Inherit
+    )
+  }
+
+  def listTopics: T[Unit] = Task {
+    val server = forkEnv()("KAFKA_SERVER")
+    os.call(
+      Seq(
+        "docker-compose",
+        "exec",
+        "kafka",
+        "kafka-topics",
+        "--list",
+        "--bootstrap-server",
+        server
+      ),
+      stdout = os.Inherit
+    )
+  }
+
+  def describeTopic(args: mill.define.Args) = Task.Command {
+    val topic = args.value.mkString(" ")
+    val server = forkEnv()("KAFKA_SERVER")
+    os.call(
+      Seq(
+        "docker-compose",
+        "exec",
+        "kafka",
+        "kafka-topics",
+        "--describe",
+        "--topic",
+        topic,
+        "--bootstrap-server",
+        server
+      ),
+      stdout = os.Inherit
+    )
+  }
+
+  def readAllMessages(args: mill.define.Args) = Task.Command {
+    val topic = args.value.mkString(" ")
+    val server = forkEnv()("KAFKA_SERVER")
+    os.call(
+      Seq(
+        "docker-compose",
+        "exec",
+        "kafka",
+        "kafka-console-consumer",
+        "--bootstrap-server",
+        server,
+        "--topic",
+        topic,
+        "--from-beginning",
+        "--timeout-ms",
+        "1000"
+      ),
+      stdout = os.Inherit
+    )
+  }
+
+}
+
+object producer extends ScalaModule {
+  def scalaVersion = "2.12.15"
+  def mvnDeps = Seq(
+    mvn"org.apache.kafka:kafka-clients:3.7.0"
+  )
+}
+
+// This examples demonstrates using mill to manage a streaming provider like kafka.
+
+/** Usage
+
+> docker-compose up -d
+
+> ./mill foo.createTopic "test-topic" # Custom mill task to create topic.
+...
+Created topic test-topic.
+
+> ./mill foo.listTopics # Custom mill task to list all topics.
+...
+test-topic
+
+> ./mill foo.describeTopic "test-topic" # Custom mill task to describe a topic.
+...
+Topic: test-topic...
+
+> ./mill producer.run # Send message
+
+> ./mill foo.run # Consume message with spark.
+...
++-------------+
+|      message|
++-------------+
+|Hello, World!|
++-------------+
+
+> docker-compose down -v --remove-orphans
+*/

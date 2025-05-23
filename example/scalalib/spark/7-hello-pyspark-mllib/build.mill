@@ -1,0 +1,33 @@
+package build
+import mill._, pythonlib._
+
+object foo extends PythonModule {
+
+  def mainScript = Task.Source { "src/foo.py" }
+  def pythonDeps = Seq("pyspark==3.5.4", "numpy==1.24.4")
+
+  object test extends PythonTests with TestModule.Unittest
+
+}
+
+// This examples demonstrates running pyspark + mlib using mill.
+
+/** Usage
+
+> ./mill foo.run
+...
++--------------+
+|words         |
++--------------+
+|[hello, mllib]|
++--------------+
+
+> ./mill foo.test
+...
+test_tokenize...
+...
+Ran 1 test...
+...
+OK
+...
+*/
