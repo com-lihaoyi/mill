@@ -72,7 +72,7 @@ object WatchSourceTests extends WatchTests {
         expectedOut.append(
           "Setting up build.mill"
         )
-        expectedErr.append(
+        expectedErr.appendAll(
           "Running qux foo contents initial-foo1 initial-foo2",
           "Running qux bar contents initial-bar"
         )
@@ -82,7 +82,7 @@ object WatchSourceTests extends WatchTests {
 
         os.write.over(workspacePath / "foo1.txt", "edited-foo1")
         awaitCompletionMarker(tester, "quxRan1")
-        expectedErr.append(
+        expectedErr.appendAll(
           "Running qux foo contents edited-foo1 initial-foo2",
           "Running qux bar contents initial-bar"
         )
@@ -92,7 +92,7 @@ object WatchSourceTests extends WatchTests {
 
         os.write.over(workspacePath / "foo2.txt", "edited-foo2")
         awaitCompletionMarker(tester, "quxRan2")
-        expectedErr.append(
+        expectedErr.appendAll(
           "Running qux foo contents edited-foo1 edited-foo2",
           "Running qux bar contents initial-bar"
         )
@@ -102,7 +102,7 @@ object WatchSourceTests extends WatchTests {
 
         os.write.over(workspacePath / "bar.txt", "edited-bar")
         awaitCompletionMarker(tester, "quxRan3")
-        expectedErr.append(
+        expectedErr.appendAll(
           "Running qux foo contents edited-foo1 edited-foo2",
           "Running qux bar contents edited-bar"
         )
