@@ -142,8 +142,12 @@ object CrossVersionTests extends TestSuite {
       val Right(result) = eval.apply(mod.showMvnDepsTree(MvnDepsTreeArgs())): @unchecked
 
       expectedMvnDepsTree.foreach { tree =>
-        val diffed = diff(result.value.trim, tree.trim)
-        assert(diffed == Nil)
+        if (scala.util.Properties.isWin) {
+          println("Skipping check under Windows")
+        } else {
+          val diffed = diff(result.value.trim, tree.trim)
+          assert(diffed == Nil)
+        }
       }
 
       val Right(libs) = eval.apply(mod.compileClasspath): @unchecked

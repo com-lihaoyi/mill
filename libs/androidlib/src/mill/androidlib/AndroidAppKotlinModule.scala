@@ -30,21 +30,30 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
   override def sources: T[Seq[PathRef]] =
     super[AndroidAppModule].sources() ++ kotlinSources0()
 
-  trait AndroidAppKotlinTests extends KotlinTests with AndroidAppTests {
+  trait AndroidAppKotlinTests extends AndroidAppKotlinModule with AndroidAppTests {
+    override def kotlinVersion: T[String] = outer.kotlinVersion
+
     private def kotlinSources0 = Task.Sources("src/test/kotlin")
+
     override def sources: T[Seq[PathRef]] =
       super[AndroidAppTests].sources() ++ kotlinSources0()
+
+    override def kotlincPluginMvnDeps: T[Seq[Dep]] = outer.kotlincPluginMvnDeps()
   }
 
   trait AndroidAppKotlinInstrumentedTests extends AndroidAppKotlinModule
       with AndroidAppInstrumentedTests {
 
-    override final def kotlinVersion = outer.kotlinVersion
-    override final def androidSdkModule = outer.androidSdkModule
+    override final def kotlinVersion: T[String] = outer.kotlinVersion
+    override final def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
 
     private def kotlinSources0 = Task.Sources("src/androidTest/kotlin")
+
+    override def kotlincPluginMvnDeps: T[Seq[Dep]] = outer.kotlincPluginMvnDeps()
+
     override def sources: T[Seq[PathRef]] =
       super[AndroidAppInstrumentedTests].sources() ++ kotlinSources0()
+
   }
 
   trait AndroidAppKotlinScreenshotTests extends AndroidAppKotlinModule with TestModule with Junit5 {
