@@ -120,6 +120,7 @@ object Watching {
       doWatch(notifiablesChanged = () => watchedPathsSeq.exists(p => !haveNotChanged(p)))
 
     def doWatchFsNotify() = {
+      mill.constants.DebugLog("doWatchFsNotify")
       Using.resource(os.write.outputStream(watchArgs.daemonDir / "fsNotifyWatchLog")) { watchLog =>
         def writeToWatchLog(s: String): Unit = {
           try {
@@ -170,34 +171,55 @@ object Watching {
         }
         writeToWatchLog(s"[watched-paths:filtered] ${filterPaths.toSeq.sorted.mkString("\n")}")
 
+        mill.constants.DebugLog("doWatchFsNotify os.watch.watch " + workspaceRoot)
         Using.resource(os.watch.watch(
           // Just watch the root folder
           Seq(workspaceRoot),
           filter = path => {
-            val shouldBeWatched =
-              filterPaths.contains(path) || watchedPathsSet.exists(watchedPath =>
-                path.startsWith(watchedPath)
-              )
-            writeToWatchLog(s"[filter] (shouldBeWatched=$shouldBeWatched) $path")
-            shouldBeWatched
-          },
-          onEvent = changedPaths => {
-            // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
-            // same folder
-            val hasWatchedPath =
-              changedPaths.exists(p =>
-                watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath))
-              )
-            writeToWatchLog(
-              s"[changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
-            )
-            if (hasWatchedPath) {
-              pathChangesDetected = true
+            try {
+              mill.constants.DebugLog("doWatchFsNotify os.watch.watch filter " + path)
+              val shouldBeWatched =
+                filterPaths.contains(path) || watchedPathsSet.exists(watchedPath =>
+                  path.startsWith(watchedPath)
+                )
+              writeToWatchLog(s"[filter] (shouldBeWatched=$shouldBeWatched) $path")
+              shouldBeWatched
+            }catch{case ex =>
+              mill.constants.DebugLog("doWatchFsNotify os.watch.watch filter ex " + ex)
+              throw ex
             }
           },
-          logger = (eventType, data) =>
-            writeToWatchLog(s"[watch:event] $eventType: ${pprint.apply(data).plainText}")
+          onEvent = changedPaths => {
+            try {
+              mill.constants.DebugLog("doWatchFsNotify os.watch.watch onEvent " + changedPaths)
+              // Make sure that the changed paths are actually the ones in our watch list and not some adjacent files in the
+              // same folder
+              val hasWatchedPath =
+                changedPaths.exists(p =>
+                  watchedPathsSet.exists(watchedPath => p.startsWith(watchedPath))
+                )
+              writeToWatchLog(
+                s"[changed-paths] (hasWatchedPath=$hasWatchedPath) ${changedPaths.mkString("\n")}"
+              )
+              if (hasWatchedPath) {
+                pathChangesDetected = true
+              }
+            }catch{case ex =>
+              mill.constants.DebugLog("doWatchFsNotify os.watch.watch onEvent ex " + ex)
+              throw ex
+            }
+          },
+          logger = (eventType, data) => {
+            try {
+              mill.constants.DebugLog(s"doWatchFsNotify os.watch.watch logger $eventType " + pprint.apply(data).plainText)
+              writeToWatchLog(s"[watch:event] $eventType: ${pprint.apply(data).plainText}")
+            }catch{case ex =>
+              mill.constants.DebugLog("doWatchFsNotify os.watch.watch logger ex " + ex)
+              throw ex
+            }
+          }
         )) { _ =>
+
           // If already stale, re-evaluate instantly.
           //
           // We need to do this to prevent any changes from slipping through the gap between the last evaluation and
