@@ -54,7 +54,7 @@ trait WatchTests extends UtestIntegrationTestSuite {
     if (show) assert(err == expectedErr)
     else assert(err.isEmpty)
 
-    val expectedShows = expectedShows0.map('"' + _ + '"')
+    val expectedShows = expectedShows0.map("\"" + _ + "\"")
     if (show) assert(shows == expectedShows)
   }
 }
