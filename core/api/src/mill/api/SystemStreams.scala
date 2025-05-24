@@ -3,6 +3,8 @@ package mill.api
 import java.io.InputStream
 import java.io.PrintStream
 
+import scala.util.DynamicVariable
+
 /**
  * Represents a set of streams that look similar to those provided by the
  * operating system. These may internally be proxied/redirected/processed, but
@@ -14,3 +16,8 @@ class SystemStreams(
     val err: PrintStream,
     val in: InputStream
 )
+
+object SystemStreams {
+  val original = new SystemStreams(System.out, System.err, System.in)
+  val current = new DynamicVariable(original)
+}

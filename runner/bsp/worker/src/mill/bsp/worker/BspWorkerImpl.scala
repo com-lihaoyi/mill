@@ -4,7 +4,7 @@ import ch.epfl.scala.bsp4j.BuildClient
 import mill.bsp.BuildInfo
 import mill.api.internal.{BspServerHandle, BspServerResult, EvaluatorApi}
 import mill.bsp.Constants
-import mill.api.{Result, SystemStreams}
+import mill.api.{Logger, Result, SystemStreams}
 import mill.client.lock.Lock
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
@@ -19,7 +19,8 @@ object BspWorkerImpl {
       streams: SystemStreams,
       logDir: os.Path,
       canReload: Boolean,
-      outLock: Lock
+      outLock: Lock,
+      baseLogger: Logger
   ): mill.api.Result[BspServerHandle] = {
 
     try {
@@ -36,7 +37,8 @@ object BspWorkerImpl {
           canReload = canReload,
           debugMessages = Option(System.getenv("MILL_BSP_DEBUG")).contains("true"),
           onShutdown = () => listening.cancel(true),
-          outLock = outLock
+          outLock = outLock,
+          baseLogger = baseLogger
         ) with MillJvmBuildServer with MillJavaBuildServer with MillScalaBuildServer
 
       lazy val launcher = new Launcher.Builder[BuildClient]()

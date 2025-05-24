@@ -1454,6 +1454,14 @@ trait JavaModule
 
   private[mill] def bspBuildTargetCompile = Task.Anon { compile().classes.path.toNIO }
 
+  private[mill] def bspLoggingTest = Task.Anon {
+    System.out.println("bspLoggingTest from System.out")
+    System.err.println("bspLoggingTest from System.err")
+    Console.out.println("bspLoggingTest from Console.out")
+    Console.err.println("bspLoggingTest from Console.err")
+    Task.log.info("bspLoggingTest from Task.log.info")
+  }
+
   private[mill] def genIdeaMetadata(
       ideaConfigVersion: Int,
       evaluator: EvaluatorApi,

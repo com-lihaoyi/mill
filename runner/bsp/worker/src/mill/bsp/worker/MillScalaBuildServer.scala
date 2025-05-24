@@ -31,7 +31,8 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             sessionInfo.enableJvmCompileClasspathProvider,
             sessionInfo.clientWantsSemanticDb
           )
-      }
+      },
+      requestDescription = "Getting scalac options of {}"
     ) {
       // We ignore all non-JavaModule
       case (
@@ -56,7 +57,8 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       : CompletableFuture[ScalaMainClassesResult] =
     handlerTasks(
       targetIds = _ => p.getTargets.asScala.toSeq,
-      tasks = { case m: JavaModuleApi => m.bspBuildTargetScalaMainClasses }
+      tasks = { case m: JavaModuleApi => m.bspBuildTargetScalaMainClasses },
+      requestDescription = "Getting main classes of {}"
     ) {
       case (ev, state, id, m: JavaModuleApi, (classes, forkArgs, forkEnv)) =>
         // We find all main classes, although we could also find only the configured one
@@ -81,7 +83,8 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
         case m: TestModuleApi => m.bspBuildTargetScalaTestClasses
-      }
+      },
+      requestDescription = "Getting test classes of {}"
     ) {
       case (ev, state, id, m: TestModuleApi, (frameworkName, classes)) =>
         val item = new ScalaTestClassesItem(id, classes.asJava)

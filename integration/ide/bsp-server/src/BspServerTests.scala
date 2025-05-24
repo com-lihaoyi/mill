@@ -5,13 +5,18 @@ import mill.api.BuildInfo
 import mill.bsp.Constants
 import mill.integration.BspServerTestUtil._
 import mill.testkit.UtestIntegrationTestSuite
+import mill.testrunner.TestRunnerUtils
 import utest._
+
+import java.io.ByteArrayOutputStream
 
 import scala.jdk.CollectionConverters._
 
 object BspServerTests extends UtestIntegrationTestSuite {
   def snapshotsPath: os.Path =
     super.workspaceSourcePath / "snapshots"
+  def logsPath: os.Path =
+    super.workspaceSourcePath / "logs"
   override protected def workspaceSourcePath: os.Path =
     super.workspaceSourcePath / "project"
 
@@ -105,7 +110,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
-        val targetIds = buildTargets.getTargets.asScala.map(_.getId).asJava
+        val targetIds =
+          buildTargets.getTargets.asScala.filter(_.getDisplayName != "errored").map(_.getId).asJava
         val metaBuildTargetId = new b.BuildTargetIdentifier(
           (workspacePath / "mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
         )
@@ -192,6 +198,61 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
       }
+    }
+
+    test("logging") - integrationTest { tester =>
+      import tester._
+      eval(
+        "--bsp-install",
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
+      )
+
+      var messages = Seq.empty[b.ShowMessageParams]
+      val client: b.BuildClient = new DummyBuildClient {
+        override def onBuildShowMessage(params: b.ShowMessageParams): Unit = {
+          messages = messages :+ params
+        }
+      }
+
+      val stderr = new ByteArrayOutputStream
+      withBspServer(
+        workspacePath,
+        millTestSuiteEnv,
+        bspLog = Some((bytes, len) => stderr.write(bytes, 0, len)),
+        client = client
+      ) { (buildServer, _) =>
+        val targets = buildServer.workspaceBuildTargets().get().getTargets.asScala
+        buildServer.loggingTest().get()
+
+        buildServer.buildTargetCompile(
+          new b.CompileParams(
+            targets.filter(_.getDisplayName == "errored").map(_.getId).asJava
+          )
+        ).get()
+      }
+
+      val logs = stderr.toString
+        .linesWithSeparators
+        .filter(_.startsWith("["))
+        .mkString
+
+      compareLogWithSnapshot(
+        logs,
+        snapshotsPath / "logging",
+        // ignoring compilation warnings that might go away in the future
+        ignoreLine = TestRunnerUtils.matchesGlob("[bsp-init-build.mill-*] [warn] *")
+      )
+
+      val messages0 = messages.map { message =>
+        (message.getType, message.getMessage)
+      }
+      val expectedMessages = Seq(
+        (b.MessageType.ERROR, "Compiling errored failed, see Mill logs for more details")
+      )
+      assert(expectedMessages == messages0)
     }
   }
 }
