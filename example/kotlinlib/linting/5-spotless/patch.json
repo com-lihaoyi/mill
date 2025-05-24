@@ -1,0 +1,31 @@
+[
+  {
+    "steps": [
+      {
+        "$type": "Ktfmt"
+      },
+      {
+        "$type": "KtLint"
+      }
+    ],
+    "includes": [
+      "glob:**.{kt,kts}"
+    ],
+    "suppressions": [
+      {
+        "step": "ktlint",
+        "shortCode": "standard:no-empty-file"
+      }
+    ]
+  },
+  {
+    "steps": [
+      {
+        "$type": "PalantirJavaFormat"
+      }
+    ],
+    "includes": [
+      "glob:**.java"
+    ]
+  }
+]

@@ -1,0 +1,4 @@
+root = true
+
+[*.{kt,kts}]
+ktlint_code_style = intellij_idea

@@ -1,0 +1,72 @@
+// Similar to the Spotless Gradle and Maven plugins, Mill provides the ability to
+// enforce formatting gradually aka https://github.com/diffplug/spotless/tree/main/plugin-gradle#ratchet[ratchet].
+
+// Here, we see a module with an incorrectly formatted source file.
+
+package build
+
+import mill.javalib.JavaModule
+
+object `package` extends JavaModule
+
+// A Git repository is initialized and a base commit is created with the existing sources.
+
+/** Usage
+> git init . -b main
+> git add .gitignore build.mill src/A.java
+> git commit -a -m "1"
+*/
+
+// Next, we create a new file with format errors.
+
+/** Usage
+> echo " module hello {}" > src/module-info.java  # content has leading space at start
+
+> ./mill mill.scalalib.spotless/ --check
+checking format in 2 java files
+format errors in src/A.java
+format errors in src/module-info.java
+format errors in 2 java files
+error: ...spotless format check failed for 2 files
+*/
+
+// NOTE: Since no `spotless-formats.json` file is present, a default list of formatter steps is used.
+// The default is meant for use cases where some basic formatting is sufficient.
+
+// The `mill.scalalib.spotless/` command finds format errors in both files.
+// But we do not want to fix the formatting in `A.java` since it is part of the commit history.
+// Instead, we use the `mill.scalalib.git/ratchet` command
+// to identify the changes between the Git `HEAD` revision and working directory.
+// These files are fed in to the `mill.scalalib.spotless/` command to check/fix formatting.
+
+/** Usage
+> ./mill mill.scalalib.spotless/ --check mill.scalalib.git/ratchet
+checking format in 1 java files
+format errors in src/module-info.java
+format errors in 1 java files
+error: ...spotless format check failed for 1 files
+
+> ./mill mill.scalalib.spotless/ mill.scalalib.git/ratchet
+formatting src/module-info.java
+formatted 1 java files
+*/
+
+// This demonstrates how to gradually enforce formatting in an existing Git project.
+
+// The `mill.scalalib.git/ratchet` command can be used to determine changsets (excluding deletions) between a
+// https://javadoc.io/doc/org.eclipse.jgit/org.eclipse.jgit/latest/org.eclipse.jgit/org/eclipse/jgit/lib/Repository.html#resolve(java.lang.String)[revision]
+// and a subsequent revison or working directory tree.
+// This allows for racheting from any point in the commit history.
+
+/** Usage
+> git add src/module-info.java
+> git commit -a -m "2"
+
+> ./mill mill.scalalib.spotless/ --check mill.scalalib.git/ratchet HEAD^ # ratchet from base commit
+everything is already formatted
+*/
+
+// The last command can be adapted to set up actions on CI systems that check/fix formatting.
+
+// CAUTION: CI actions may require additional
+// https://github.com/diffplug/spotless/tree/main/plugin-gradle#using-ratchetfrom-on-ci-systems[setup].

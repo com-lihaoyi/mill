@@ -1,0 +1,26 @@
+[
+  {
+    "steps": [
+      {
+        "$type": "PalantirJavaFormat"
+      },
+      {
+        "$type": "LicenseHeader",
+        "delimiter": "(package|import|public|class|module) "
+      }
+    ],
+    "includes": [
+      "glob:**.java"
+    ]
+  },
+  {
+    "steps": [
+      {
+        "$type": "TrimTrailingWhitespace"
+      }
+    ],
+    "includes": [
+      "glob:**.properties"
+    ]
+  }
+]

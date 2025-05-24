@@ -1,0 +1,50 @@
+// If your project has polyglot sources, you may want to give Mill's
+// https://github.com/diffplug/spotless[Spotless] plugin a try.
+// It allows for formatting all files with a single command
+// as opposed to using a different plugin/command for each programming language.
+
+// We define a module that extends `SpotlessModule` and specify the formatter steps to be applied in a JSON file.
+
+// NOTE: The `.scalafmt.conf` file is referenced by the default value for `configFile` field in `ScalaFmt` step.
+
+package build
+
+import mill.Task
+import mill.scalalib.ScalaModule
+import mill.scalalib.spotless.SpotlessModule
+
+object `package` extends ScalaModule with SpotlessModule {
+  def scalaVersion = "2.13.16"
+  def spotlessTargets = Task { sources() }
+}
+
+/** See Also: spotless-formats.json */
+/** See Also: src/A.scala */
+/** See Also: src/B.java */
+
+// Next we run the inherited `spotless` command to check/fix formatting for different file types.
+
+/** Usage
+> ./mill spotless --check     # check fails initially
+checking format in 1 scala files
+format errors in src/A.scala
+format errors in 1 scala files
+checking format in 1 java files
+format errors in src/B.java
+format errors in 1 java files
+error: spotless format check failed for 2 files
+
+> ./mill spotless             # auto-fix format
+formatting src/A.scala
+formatted 1 scala files
+formatting src/B.java
+formatted 1 java files
+*/
+
+// You can also run `spotless` xref:fundamentals/modules.adoc#_external_modules[globally]
+// without having to extend the `SpotlessModule`.
+
+/** Usage
+> ./mill mill.scalalib.spotless/ --check  # fast incremental format
+everything is already formatted
+*/

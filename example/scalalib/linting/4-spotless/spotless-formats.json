@@ -1,0 +1,22 @@
+[
+  {
+    "steps": [
+      {
+        "$type": "ScalaFmt"
+      }
+    ],
+    "includes": [
+      "glob:**.scala"
+    ]
+  },
+  {
+    "steps": [
+      {
+        "$type": "PalantirJavaFormat"
+      }
+    ],
+    "includes": [
+      "glob:**.java"
+    ]
+  }
+]
