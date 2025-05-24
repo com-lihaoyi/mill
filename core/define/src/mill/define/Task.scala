@@ -537,7 +537,7 @@ object Task {
       val expr = appImpl[Simple, PathRef](
         (in, ev) => '{ new Source($ev, $ctx, ${ taskIsPrivate() }, $in) },
         value,
-        allowedTaskReferences = Applicative.TaskReferences.Source
+        allowedTaskReferences = Applicative.TaskReferences.Sources
       )
       Cacher.impl0(expr)
 

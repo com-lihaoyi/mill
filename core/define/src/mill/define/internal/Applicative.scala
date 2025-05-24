@@ -30,9 +30,6 @@ object Applicative {
     /** No tasks can be references. */
     case None
 
-    /** Only `Task.Source` tasks can be references. */
-    case Source
-
     /** Only `Task.Source` and `Task.Sources` tasks can be references. */
     case Sources
 
@@ -88,7 +85,8 @@ object Applicative {
           case t @ Apply(sel @ Select(fun, "apply"), Nil)
               if sel.symbol == targetApplySym && allowedTaskReferences != TaskReferences.None =>
             val localDefs = extractDefs(fun)
-            // TODO: Support TaskReferences.Sources and TaskReference.Source
+            // TODO: Support TaskReferences.Sources and TaskReference.Source by filtering by type:
+            //  We only want to accept tasks returning PathRef or Seq[PathRef]
             // it should already work, but we don't restrict it properly
             visitAllTrees(t) { x =>
               val sym = x.symbol
