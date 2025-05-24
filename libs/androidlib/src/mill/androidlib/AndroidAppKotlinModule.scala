@@ -26,17 +26,17 @@ import upickle.implicits.namedTuples.default.given
 @mill.api.experimental
 trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule { outer =>
 
-  private def kotlinSources = Task.Sources("src/main/kotlin")
+  private def kotlinSources0 = Task.Sources("src/main/kotlin")
   override def sources: T[Seq[PathRef]] =
-    super[AndroidAppModule].sources() ++ kotlinSources()
+    super[AndroidAppModule].sources() ++ kotlinSources0()
 
   trait AndroidAppKotlinTests extends AndroidAppKotlinModule with AndroidAppTests {
     override def kotlinVersion: T[String] = outer.kotlinVersion
 
-    private def kotlinSources = Task.Sources("src/test/kotlin")
+    private def kotlinSources0 = Task.Sources("src/test/kotlin")
 
     override def sources: T[Seq[PathRef]] =
-      super[AndroidAppTests].sources() ++ kotlinSources()
+      super[AndroidAppTests].sources() ++ kotlinSources0()
 
     override def kotlincPluginMvnDeps: T[Seq[Dep]] = outer.kotlincPluginMvnDeps()
   }
@@ -47,12 +47,12 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     override final def kotlinVersion: T[String] = outer.kotlinVersion
     override final def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
 
-    private def kotlinSources = Task.Sources("src/androidTest/kotlin")
+    private def kotlinSources0 = Task.Sources("src/androidTest/kotlin")
 
     override def kotlincPluginMvnDeps: T[Seq[Dep]] = outer.kotlincPluginMvnDeps()
 
     override def sources: T[Seq[PathRef]] =
-      super[AndroidAppInstrumentedTests].sources() ++ kotlinSources()
+      super[AndroidAppInstrumentedTests].sources() ++ kotlinSources0()
 
   }
 
