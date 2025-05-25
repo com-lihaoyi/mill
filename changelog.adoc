@@ -41,6 +41,20 @@ doc-site's `main-branch` tab:
 
 But for most people upgrading, the most relevant changes are listed in the changelog below:
 
+* NOTE: Mill 1.0.0-RC1 (and all other versions since 0.12.13) requires an updated bootstrap
+script in order to work, due to changes in Sonatype Central that forced a change in the
+download URLs for new releases going forward. To update your bootstrap script, you can use
+
+```
+# linux
+curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC1/mill-dist-1.0.0-RC1-mill.sh -o mill
+chmod +x mill
+echo 1.0.0-RC1 > .mill-version
+
+# windows
+curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC1/mill-dist-1.0.0-RC1-mill.bat -o mill.bat
+echo 1.0.0-RC1 > .mill-version
+```
 
 ==== Major Breaking Changes
 
