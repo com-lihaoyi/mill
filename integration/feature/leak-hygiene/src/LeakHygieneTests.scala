@@ -23,15 +23,19 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
     assert(read == expected)
   }
 
-  def checkThreads(tester: IntegrationTester, allowTimers: Boolean = false)(expected: String*) = {
+  def checkThreads(tester: IntegrationTester, allowTimers: Boolean = true)(expected: String*) = {
     val out = tester.eval(("show", "countThreads")).out
     val read = upickle.default.read[Seq[String]](out)
     val filtered = read.filter {
       case s"coursier-pool-$_" => false
       case s"scala-execution-context-$_" => false
+
+      // Timers are expected most of the time due to https://github.com/com-lihaoyi/mill/issues/5083,
+      // but sometimes 
       case s"Timer-$_" if allowTimers => false
       case _ => true
     }
+
     // pprint.log(read)
     // pprint.log(expected)
     assert(filtered == expected)
@@ -70,7 +74,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
             "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 2
           )
-          checkThreads(tester, allowTimers = true)(
+          checkThreads(tester)(
             "HandleRunThread",
             "MillServerActionRunner",
             "MillSocketTimeoutInterruptThread",
@@ -95,7 +99,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
             "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 2
           )
-          checkThreads(tester, allowTimers = true)(
+          checkThreads(tester)(
             "HandleRunThread",
             "MillServerActionRunner",
             "MillSocketTimeoutInterruptThread",
@@ -117,7 +121,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.scalalib.JvmWorkerModule#worker cl" -> 1
         )
-        checkThreads(tester)(
+        checkThreads(tester, allowTimers = false)(
           "HandleRunThread",
           "MillServerActionRunner",
           "MillSocketTimeoutInterruptThread",
@@ -140,7 +144,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
             "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
           )
-          checkThreads(tester, allowTimers = true)(
+          checkThreads(tester)(
             "HandleRunThread",
             "MillServerActionRunner",
             "MillSocketTimeoutInterruptThread",
@@ -165,7 +169,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
             "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
           )
-          checkThreads(tester, allowTimers = true)(
+          checkThreads(tester)(
             "HandleRunThread",
             "MillServerActionRunner",
             "MillSocketTimeoutInterruptThread",
@@ -192,7 +196,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
             "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
           )
-          checkThreads(tester, allowTimers = true)(
+          checkThreads(tester)(
             "HandleRunThread",
             "MillServerActionRunner",
             "MillSocketTimeoutInterruptThread",
@@ -216,7 +220,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
           "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
         )
-        checkThreads(tester, allowTimers = true)(
+        checkThreads(tester)(
           "HandleRunThread",
           "MillServerActionRunner",
           "MillSocketTimeoutInterruptThread",
