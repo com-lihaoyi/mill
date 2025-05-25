@@ -280,6 +280,16 @@ object `package` extends Cross[FooModule]("3.6.2", "2.13.16") {
   help mitigate problems we've seen in the past with long-lived Mill processes becoming
   unstable or unresponsive ({link-pr}/5079[#5079], {link-pr}/5080[#5080], {link-pr}/5082[#5082])
 
+* Mill now uses uPickle 4.2.1, providing support for
+  https://docs.scala-lang.org/sips/named-tuples.html[Scala 3.7.0 Named Tuples]:
+
+```scala
+import upickle.implicits.namedTuples.default.given
+def namedTupleTask = Task {
+  (hello = "world", i = Seq("am", "cow"))
+}
+```
+
 * Lots of miscellaneous improvements:
 
 ** BSP support and IDE integration ({link-pr}/4851[#4851],{link-pr}/4873[#4873],
