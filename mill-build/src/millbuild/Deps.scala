@@ -107,6 +107,13 @@ object Deps {
     mvn"org.webjars.npm:viz.js-graphviz-java:2.1.3",
     mvn"org.apache.xmlgraphics:batik-rasterizer:1.18"
   )
+  val graphvizWithExcludes = mvn"guru.nidi:graphviz-java-min-deps:0.18.1"
+    // We only need the in-memory library for some stuff, and don't
+    // need the heavyweight v8 binary that comes bundled with it
+    .exclude(
+      "guru.nidi.com.eclipsesource.j2v8" -> "j2v8_macosx_x86_64",
+      "guru.nidi.com.eclipsesource.j2v8" -> "j2v8_linux_x86_64"
+    )
 
   val jgraphtCore = mvn"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
   val javet = Seq(

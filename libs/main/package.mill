@@ -22,23 +22,20 @@ object `package` extends MillStableScalaModule {
     build.libs.init
   )
   def mvnDeps = Seq(
-    Deps.nativeTerminal,
-    Deps.logback,
-    Deps.jgraphtCore,
     Deps.millModuledefs,
-    mvn"guru.nidi:graphviz-java-min-deps:0.18.1"
-      // We only need the in-memory library for some stuff, and don't
-      // need the heavyweight v8 binary that comes bundled with it
-      .exclude(
-        "guru.nidi.com.eclipsesource.j2v8" -> "j2v8_macosx_x86_64",
-        "guru.nidi.com.eclipsesource.j2v8" -> "j2v8_linux_x86_64"
-      )
   )
 
-  def compileMvnDeps = Task {
-    if (JvmWorkerUtil.isScala3(scalaVersion())) Seq.empty
-    else Seq(Deps.scalaReflect(scalaVersion()))
-  }
+  def compileMvnDeps = Seq(
+    Deps.nativeTerminal,
+    Deps.jgraphtCore,
+    Deps.graphvizWithExcludes,
+  )
+  def runMvnDeps = Seq(
+    Deps.logback,
+    Deps.nativeTerminal,
+    Deps.jgraphtCore,
+    Deps.graphvizWithExcludes,
+  )
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
   def testMvnDeps = Seq(Deps.coursierInterface)
