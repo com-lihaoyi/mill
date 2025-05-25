@@ -92,7 +92,10 @@ trait CoursierModule extends mill.define.Module {
   private[mill] def internalRepositories: Task[Seq[Repository]] = Task.Anon(Nil)
 
   /**
-   * The repositories used to resolve dependencies with [[classpath()]].
+   * A more flexible version of [[repositories]], that allows custom repositories
+   * that are not definable by Coursier repository strings. This is a relatively
+   * advanced feature, and for most situations overriding [[repositories]] should
+   * be sufficient
    *
    * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
@@ -106,9 +109,28 @@ trait CoursierModule extends mill.define.Module {
   }
 
   /**
-   * The repositories used to resolve dependencies with [[classpath()]].
+   * The repositories used to resolve dependencies with [[classpath()]]. This
+   * takes Coursier repository strings as input which are defined here:
    *
-   * See [[allRepositories]] if you need to resolve Mill internal modules.
+   * - https://github.com/coursier/coursier/blob/main/docs/pages/reference-repositories.md
+   *
+   * For example:
+   *
+   * - https://repo1.maven.org/maven2
+   *   Maven Central which is the most commonly used Maven repository
+   *
+   * - file:///Users/alex/test-repo
+   *   A local repository cache on disk
+   *
+   * - file://${ivy.home-${user.home}/.ivy2}/local/[defaultPattern]
+   *   The local Ivy2 repository where Mill, Scala CLI,
+   *   or sbt publish to when asked to publish locally
+   *
+   * - file://${user.home}/.m2/repository
+   *   the local Maven repository. Use of this is not recommended for reasons explained in the link above
+   *
+   * - https://maven.google.com
+   *   Google-managed repository that distributes some Android artifacts in particular
    */
   def repositories: T[Seq[String]] = Task { Seq.empty[String] }
 

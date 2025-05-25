@@ -4,7 +4,7 @@ package contrib.scalapblib
 import java.io.File
 
 import mill.define.PathRef
-import mill.define.{Discover, ExternalModule, Worker}
+import mill.define.{Discover, ExternalModule}
 
 class ScalaPBWorker {
 

@@ -17,18 +17,18 @@ import java.util.stream.Stream;
 import mill.client.ClientUtil;
 import mill.constants.BuildInfo;
 import mill.constants.CodeGenConstants;
+import mill.constants.DaemonFiles;
 import mill.constants.EnvVars;
-import mill.constants.ServerFiles;
 
 public class MillProcessLauncher {
 
   static int launchMillNoServer(String[] args) throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
-    final Path processDir = Paths.get(".").resolve(out).resolve(millNoServer).resolve(sig);
+    final Path processDir = Paths.get(".").resolve(out).resolve(millNoDaemon).resolve(sig);
 
     final List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand());
-    l.add("mill.daemon.MillMain");
+    l.add("mill.daemon.MillNoDaemonMain");
     l.add(processDir.toAbsolutePath().toString());
     l.addAll(millOpts());
     l.addAll(Arrays.asList(args));
@@ -56,26 +56,27 @@ public class MillProcessLauncher {
     }
   }
 
-  static void launchMillServer(Path serverDir) throws Exception {
+  static void launchMillServer(Path daemonDir) throws Exception {
     List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand());
     l.add("mill.daemon.MillDaemonMain");
-    l.add(serverDir.toFile().getCanonicalPath());
+    l.add(daemonDir.toFile().getCanonicalPath());
 
     ProcessBuilder builder = new ProcessBuilder()
         .command(l)
-        .redirectOutput(serverDir.resolve(ServerFiles.stdout).toFile())
-        .redirectError(serverDir.resolve(ServerFiles.stderr).toFile());
+        .redirectOutput(daemonDir.resolve(DaemonFiles.stdout).toFile())
+        .redirectError(daemonDir.resolve(DaemonFiles.stderr).toFile());
 
-    configureRunMillProcess(builder, serverDir);
+    configureRunMillProcess(builder, daemonDir);
   }
 
-  static Process configureRunMillProcess(ProcessBuilder builder, Path serverDir) throws Exception {
+  static Process configureRunMillProcess(ProcessBuilder builder, Path daemonDir) throws Exception {
 
-    Path sandbox = serverDir.resolve(ServerFiles.sandbox);
+    Path sandbox = daemonDir.resolve(DaemonFiles.sandbox);
     Files.createDirectories(sandbox);
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
-    builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());
+    if (System.getenv(EnvVars.MILL_EXECUTABLE_PATH) == null)
+      builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());
 
     String jdkJavaOptions = System.getenv("JDK_JAVA_OPTIONS");
     if (jdkJavaOptions == null) jdkJavaOptions = "";
@@ -219,8 +220,6 @@ public class MillProcessLauncher {
 
     String serverTimeout = millServerTimeout();
     if (serverTimeout != null) vmOptions.add("-Dmill.server_timeout=" + serverTimeout);
-    // https://github.com/com-lihaoyi/mill/issues/5083
-    vmOptions.add("-Dscalac.filebasedcache.defer.close.ms=0");
 
     // extra opts
     vmOptions.addAll(millJvmOpts());
@@ -314,7 +313,7 @@ public class MillProcessLauncher {
     canUseNativeTerminal = canUse;
   }
 
-  static void writeTerminalDims(boolean tputExists, Path serverDir) throws Exception {
+  static void writeTerminalDims(boolean tputExists, Path daemonDir) throws Exception {
     String str;
 
     try {
@@ -347,7 +346,7 @@ public class MillProcessLauncher {
     //
     String oldValue = memoizedTerminalDims.getAndSet(str);
     if ((oldValue == null) || !oldValue.equals(str)) {
-      Files.write(serverDir.resolve(ServerFiles.terminfo), str.getBytes());
+      Files.write(daemonDir.resolve(DaemonFiles.terminfo), str.getBytes());
     }
   }
 
@@ -361,22 +360,21 @@ public class MillProcessLauncher {
     }
   }
 
-  public static void prepareMillRunFolder(Path serverDir) throws Exception {
+  public static void prepareMillRunFolder(Path daemonDir) throws Exception {
     // Clear out run-related files from the server folder to make sure we
     // never hit issues where we are reading the files from a previous run
-    Files.deleteIfExists(serverDir.resolve(ServerFiles.exitCode));
-    Files.deleteIfExists(serverDir.resolve(ServerFiles.terminfo));
+    Files.deleteIfExists(daemonDir.resolve(DaemonFiles.terminfo));
 
-    Path sandbox = serverDir.resolve(ServerFiles.sandbox);
+    Path sandbox = daemonDir.resolve(DaemonFiles.sandbox);
     Files.createDirectories(sandbox);
     boolean tputExists = checkTputExists();
 
-    writeTerminalDims(tputExists, serverDir);
+    writeTerminalDims(tputExists, daemonDir);
     Thread termInfoPropagatorThread = new Thread(
         () -> {
           try {
             while (true) {
-              writeTerminalDims(tputExists, serverDir);
+              writeTerminalDims(tputExists, daemonDir);
               Thread.sleep(100);
             }
           } catch (Exception e) {

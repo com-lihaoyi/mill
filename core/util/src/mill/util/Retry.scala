@@ -26,12 +26,12 @@ import scala.concurrent.{Await, Promise}
  *         [[t]] fails more than [[count]] times
  */
 case class Retry(
-    logger: String => Unit,
     count: Int = 5,
     backoffMillis: Long = 10,
     backoffMultiplier: Double = 2.0,
     timeoutMillis: Long = -1,
-    filter: (Int, Throwable) => Boolean = (_, _) => true
+    filter: (Int, Throwable) => Boolean = (_, _) => true,
+    logger: String => Unit = _ => ()
 ) {
 
   def apply[T](t: => T): T = {

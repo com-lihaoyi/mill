@@ -4,7 +4,6 @@ import mill.api.DummyInputStream
 import mill.constants.InputPumper
 
 import java.io.{InputStream, OutputStream, PrintStream}
-import scala.util.DynamicVariable
 
 object SystemStreams {
 
@@ -16,7 +15,7 @@ object SystemStreams {
    * That means that the logs may appear out of order, jumbling your logs and screwing up
    * your terminal
    */
-  val original = new mill.api.SystemStreams(System.out, System.err, System.in)
+  def original = mill.api.SystemStreams.original
 
   /**
    * Used to check whether the system streams are all "original", i,e. they
@@ -116,6 +115,7 @@ object SystemStreams {
     }
   }
   def setTopLevelSystemStreamProxy(): Unit = {
+    val _ = mill.api.SystemStreams.current
     // Make sure to initialize `Console` to cache references to the original
     // `System.{in,out,err}` streams before we redirect them
     val _ = Console.out
@@ -126,8 +126,11 @@ object SystemStreams {
     System.setErr(ThreadLocalStreams.Err)
   }
 
+  def current(): mill.api.SystemStreams =
+    ThreadLocalStreams.current.value
+
   private[mill] object ThreadLocalStreams {
-    val current = new DynamicVariable(original)
+    def current = mill.api.SystemStreams.current
 
     object Out extends PrintStream(new ProxyOutputStream { def delegate() = current.value.out })
     object Err extends PrintStream(new ProxyOutputStream { def delegate() = current.value.err })

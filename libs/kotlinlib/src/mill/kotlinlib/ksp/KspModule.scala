@@ -1,10 +1,9 @@
 package mill.kotlinlib.ksp
 
 import mill.*
-import mill.define.PathRef
 import mill.api.Result
-import mill.define.Task
-import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
+import mill.define.{PathRef, Task}
+import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 
 import java.io.File
@@ -112,7 +111,7 @@ trait KspModule extends KotlinModule { outer =>
     if (kotlinLanguageVersion().isBlank) {
       throw new RuntimeException("KSP needs a compatible language version to be set!")
     }
-    Seq(
+    kotlincOptions() ++ Seq(
       "-Xallow-unstable-dependencies",
       "-no-reflect",
       "-no-stdlib",
@@ -154,9 +153,9 @@ trait KspModule extends KotlinModule { outer =>
     val apClasspath = kotlinSymbolProcessorsResolved().map(_.path).mkString(File.pathSeparator)
 
     val kspProjectBasedDir = moduleDir
-    val kspOutputDir = T.dest / "generated/ksp/main"
+    val kspOutputDir = Task.dest / "generated/ksp/main"
 
-    val kspCachesDir = T.dest / "caches/main"
+    val kspCachesDir = Task.dest / "caches/main"
     val java = kspOutputDir / "java"
     val kotlin = kspOutputDir / "kotlin"
     val resources = kspOutputDir / "resources"
@@ -184,7 +183,7 @@ trait KspModule extends KotlinModule { outer =>
       s"Running Kotlin Symbol Processing for ${sourceFiles.size} Kotlin sources to ${kspOutputDir} ..."
     )
 
-    val compiledSources = T.dest / "compiled"
+    val compiledSources = Task.dest / "compiled"
     os.makeDir.all(compiledSources)
 
     val classpath = Seq(
@@ -198,7 +197,7 @@ trait KspModule extends KotlinModule { outer =>
 
     val compilerArgs: Seq[String] = classpath ++ kspCompilerArgs ++ sourceFiles.map(_.toString)
 
-    T.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
+    Task.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
 
     KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath().map(_.path)) {
       _._2.compile(KotlinWorkerTarget.Jvm, compilerArgs)

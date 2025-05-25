@@ -55,7 +55,7 @@ object TaskCtx {
   }
 
   @compileTimeOnly(
-    "Target.ctx() / Task.ctx() / Task.* APIs can only be used with a Task{...} block"
+    "Task.ctx() / Task.* APIs can only be used with a Task{...} block"
   )
   @ImplicitStub
   implicit def taskCtx: TaskCtx = ???

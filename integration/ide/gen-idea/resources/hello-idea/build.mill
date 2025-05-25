@@ -1,6 +1,5 @@
 package build
 
-import mill.define.Target
 import mill._
 import mill.scalajslib.ScalaJSModule
 import mill.scalalib.{Dep, DepSyntax, JavaModule, TestModule}

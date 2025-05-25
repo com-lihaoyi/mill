@@ -3,7 +3,7 @@ package mill.scalajslib
 import mill.api.ExecResult
 import mill.define.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest._
 import mill.scalajslib.api._
 import mill.T
@@ -11,7 +11,7 @@ import mill.T
 object WasmTests extends TestSuite {
   val remapTo = "https://cdn.jsdelivr.net/gh/stdlib-js/array-base-linspace@esm/index.mjs"
 
-  object Wasm extends TestBaseModule with ScalaJSModule {
+  object Wasm extends TestRootModule with ScalaJSModule {
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     override def scalaJSVersion = "1.17.0"
@@ -28,7 +28,7 @@ object WasmTests extends TestSuite {
     }
   }
 
-  object OldWasmModule extends TestBaseModule with ScalaJSModule {
+  object OldWasmModule extends TestRootModule with ScalaJSModule {
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
     override def scalaJSVersion = "1.16.0"
 

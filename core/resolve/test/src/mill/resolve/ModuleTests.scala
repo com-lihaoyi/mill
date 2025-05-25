@@ -1,8 +1,8 @@
 package mill.resolve
 
 import mill.api.Result
-import mill.define.{Discover, ModuleRef, NamedTask, TaskModule}
-import mill.testkit.TestBaseModule
+import mill.define.{Discover, ModuleRef, Task, TaskModule}
+import mill.testkit.TestRootModule
 import mill.define.DynamicModule
 import mill.util.TestGraphs
 import mill.util.TestGraphs.*
@@ -11,7 +11,7 @@ import utest.*
 
 object ModuleTests extends TestSuite {
 
-  object duplicates extends TestBaseModule {
+  object duplicates extends TestRootModule {
     object wrapper extends Module {
       object test1 extends Module {
         def test1 = Task {}
@@ -37,7 +37,7 @@ object ModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object TypedModules extends TestBaseModule {
+  object TypedModules extends TestRootModule {
     trait TypeA extends Module {
       def foo = Task { "foo" }
     }
@@ -58,7 +58,7 @@ object ModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object TypedCrossModules extends TestBaseModule {
+  object TypedCrossModules extends TestRootModule {
     trait TypeA extends Cross.Module[String] {
       def foo = Task { crossValue }
     }
@@ -84,7 +84,7 @@ object ModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object TypedInnerModules extends TestBaseModule {
+  object TypedInnerModules extends TestRootModule {
     trait TypeA extends Module {
       def foo = Task { "foo" }
     }
@@ -101,7 +101,7 @@ object ModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object AbstractModule extends TestBaseModule {
+  object AbstractModule extends TestRootModule {
     trait Abstract extends Module {
       lazy val tests: Tests = new Tests {}
       trait Tests extends Module {}
@@ -121,7 +121,7 @@ object ModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object overrideModule extends TestBaseModule {
+  object overrideModule extends TestRootModule {
     trait Base extends Module {
       lazy val inner: BaseInnerModule = new BaseInnerModule {}
       lazy val ignored: ModuleRef[BaseInnerModule] = ModuleRef(new BaseInnerModule {})
@@ -140,7 +140,7 @@ object ModuleTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object dynamicModule extends TestBaseModule {
+  object dynamicModule extends TestRootModule {
     object normal extends DynamicModule {
       object inner extends Module {
         def target = Task { 1 }
@@ -503,8 +503,8 @@ object ModuleTests extends TestSuite {
       val check = new Checker(duplicates)
 
       def segments(
-          found: Result[List[NamedTask[?]]],
-          expected: Result[List[NamedTask[?]]]
+          found: Result[List[Task.Named[?]]],
+          expected: Result[List[Task.Named[?]]]
       ) = {
         found.map(_.map(_.ctx.segments)) == expected.map(_.map(_.ctx.segments))
       }

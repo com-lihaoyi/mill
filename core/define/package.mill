@@ -24,6 +24,7 @@ object `package` extends MillStableScalaModule {
     Deps.osLib,
     Deps.mainargs,
     Deps.upickle,
+    Deps.upickleNamedTuples,
     Deps.pprint,
     Deps.fansi,
     Deps.mainargs,

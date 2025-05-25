@@ -1,19 +1,19 @@
 package mill.util
 import mainargs.arg
-import mill.testkit.TestBaseModule
-import mill.define.{Command, Cross, Discover, TaskModule}
-import mill.{Module, Task}
+import mill.testkit.TestRootModule
+import mill.define.{Cross, Discover, TaskModule}
+import mill.*
 
 /**
  * Example dependency graphs for us to use in our test suite.
  */
 
 object TestGraphs {
-  object singleton extends TestBaseModule {
+  object singleton extends TestRootModule {
     def single = Task { 123 }
     lazy val millDiscover = Discover[this.type]
   }
-  object bactickIdentifiers extends TestBaseModule {
+  object bactickIdentifiers extends TestRootModule {
     def `up-target` = Task { 1 }
     def `a-down-target` = Task { `up-target`() + 2 }
     def `invisible&` = Task { 3 }
@@ -26,14 +26,14 @@ object TestGraphs {
   }
 
   // up---down
-  object pair extends TestBaseModule {
+  object pair extends TestRootModule {
     def up = Task { 1 }
     def down = Task { up() + 10 }
     lazy val millDiscover = Discover[this.type]
   }
 
   // up---o---down
-  object anonTriple extends TestBaseModule {
+  object anonTriple extends TestRootModule {
     def up = Task { 1 }
     def anon = Task.Anon { up() + 10 }
     def down = Task { anon() + 100 }
@@ -45,7 +45,7 @@ object TestGraphs {
   // up    down
   //   \   /
   //   right
-  object diamond extends TestBaseModule {
+  object diamond extends TestRootModule {
     def up = Task { 1 }
     def left = Task { up() + 10 }
     def right = Task { up() + 100 }
@@ -58,7 +58,7 @@ object TestGraphs {
   // up   down
   //   \ /
   //    o
-  object anonDiamond extends TestBaseModule {
+  object anonDiamond extends TestRootModule {
     def up = Task { 1 }
     val left = Task.Anon { up() + 10 }
     val right = Task.Anon { up() + 100 }
@@ -70,7 +70,7 @@ object TestGraphs {
   //  task1 -------- right
   //               _/
   // change - task2
-  object separateGroups extends TestBaseModule {
+  object separateGroups extends TestRootModule {
     val task1 = Task.Anon { 1 }
     def left = Task { task1() + 10 }
     val change = Task.Anon { 100 }
@@ -83,7 +83,7 @@ object TestGraphs {
   //      _ left _
   //     /        \
   // task -------- right
-  object triangleTask extends TestBaseModule {
+  object triangleTask extends TestRootModule {
     val task = Task.Anon { 1 }
     def left = Task { task() }
     def right = Task { task() + left() + 1 }
@@ -93,7 +93,7 @@ object TestGraphs {
   //      _ left
   //     /
   // task -------- right
-  object multiTerminalGroup extends TestBaseModule {
+  object multiTerminalGroup extends TestRootModule {
     val task = Task.Anon { 1 }
     def left = Task { task() }
     def right = Task { task() }
@@ -103,7 +103,7 @@ object TestGraphs {
   //       _ left _____________
   //      /        \           \
   // task1 -------- right ----- task2
-  object multiTerminalBoundary extends TestBaseModule {
+  object multiTerminalBoundary extends TestRootModule {
     val task1 = Task.Anon { 1 }
     def left = Task { task1() }
     def right = Task { task1() + left() + 1 }
@@ -118,7 +118,7 @@ object TestGraphs {
     def invisible3: mill.define.Task[?] = Task { 4 }
   }
 
-  object nestedModule extends TestBaseModule {
+  object nestedModule extends TestRootModule {
     def single = Task { 5 }
     def invisible: Any = Task { 6 }
     object nested extends Module {
@@ -140,11 +140,11 @@ object TestGraphs {
   }
 
   // Make sure nested objects inherited from traits work
-  object TraitWithModuleObject extends TestBaseModule with TraitWithModule {
+  object TraitWithModuleObject extends TestRootModule with TraitWithModule {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object singleCross extends TestBaseModule {
+  object singleCross extends TestRootModule {
     object cross extends mill.Cross[Cross]("210", "211", "212")
     trait Cross extends Cross.Module[String] {
       def suffix = Task { crossValue }
@@ -158,7 +158,7 @@ object TestGraphs {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object nonStringCross extends TestBaseModule {
+  object nonStringCross extends TestRootModule {
     object cross extends mill.Cross[Cross](210, 211, 212)
     trait Cross extends Cross.Module[Int] {
       def suffix = Task { crossValue }
@@ -173,7 +173,7 @@ object TestGraphs {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object crossResolved extends TestBaseModule {
+  object crossResolved extends TestRootModule {
     trait MyModule extends Cross.Module[String] {
       implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
         def resolve[V <: MyModule](c: Cross[V]): V = c.valuesToModules(List(crossValue))
@@ -191,7 +191,7 @@ object TestGraphs {
     }
     lazy val millDiscover = Discover[this.type]
   }
-  object doubleCross extends TestBaseModule {
+  object doubleCross extends TestRootModule {
     val crossMatrix = for {
       scalaVersion <- Seq("210", "211", "212")
       platform <- Seq("jvm", "js", "native")
@@ -205,7 +205,7 @@ object TestGraphs {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object nestedCrosses extends TestBaseModule {
+  object nestedCrosses extends TestRootModule {
     object cross extends mill.Cross[Cross]("210", "211", "212") {
       override def defaultCrossSegments: Seq[String] = Seq("212")
     }
@@ -220,7 +220,7 @@ object TestGraphs {
     lazy val millDiscover = Discover[this.type]
   }
 
-  object nestedTaskCrosses extends TestBaseModule {
+  object nestedTaskCrosses extends TestRootModule {
     // this is somehow necessary to let Discover see our inner (default) commands
     // I expected, that the identical inherited `millDiscover` is enough, but it isn't
     lazy val millDiscover = Discover[this.type]

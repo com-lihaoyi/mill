@@ -1,16 +1,15 @@
 package mill.scalalib
 
 import mill.define.Discover
-import mill.define.ExecutionPaths
 import mill.util.TokenReaders.*
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.*
 import utest.framework.TestPath
 
 object CrossVersionTests extends TestSuite {
 
-  object TestCases extends TestBaseModule {
+  object TestCases extends TestRootModule {
 
     object StandaloneScala213 extends ScalaModule {
       val tree =
@@ -136,22 +135,18 @@ object CrossVersionTests extends TestSuite {
       expectedDeps: Seq[String],
       expectedLibs: Seq[String],
       expectedMvnDepsTree: Option[String] = None
-  )(implicit
+  )(using
       testPath: TestPath
   ) = {
     init().scoped { eval =>
-      eval.apply(mod.mvnDepsTree(MvnDepsTreeArgs()))
+      val Right(result) = eval.apply(mod.showMvnDepsTree(MvnDepsTreeArgs())): @unchecked
 
       expectedMvnDepsTree.foreach { tree =>
-        if (!scala.util.Properties.isWin) {
-          // Escape-sequence formatting isn't working under bare Windows
-          val expectedDepsTree = tree
-          val depsTree =
-            os.read(ExecutionPaths.resolve(
-              eval.outPath,
-              mod.mvnDepsTree(MvnDepsTreeArgs())
-            ).log)
-          assert(depsTree == expectedDepsTree)
+        if (scala.util.Properties.isWin) {
+          println("Skipping check under Windows")
+        } else {
+          val diffed = diff(result.value.trim, tree.trim)
+          assert(diffed == Nil)
         }
       }
 
@@ -160,6 +155,14 @@ object CrossVersionTests extends TestSuite {
       val libNames = libs.value.map(l => l.path.last).filter(_.endsWith(".jar")).toSeq.sorted
       assert(libNames == expectedLibs.sorted)
     }
+  }
+
+  def diff(actual: String, expected: String): List[String] = {
+    actual.lazyZip(expected).collect {
+      case (x, y) if x != y => s"'$x' != '$y'"
+    }.toList ++
+      actual.drop(expected.length).map(x => s"'$x' is unexpected") ++
+      expected.drop(actual.length).map(y => s"'$y' is expected but missing")
   }
 
   def tests: Tests = Tests {

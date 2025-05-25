@@ -3,7 +3,7 @@ package mill.contrib.gitlab
 import mill._
 import mill.api.Result.{Failure, Success}
 import mill.api.Result
-import mill.define.{Command, ExternalModule, Task}
+import mill.define.{ExternalModule, Task}
 import scalalib._
 
 trait GitlabPublishModule extends PublishModule { outer =>
@@ -30,7 +30,7 @@ trait GitlabPublishModule extends PublishModule { outer =>
   def publishGitlab(
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
-  ): define.Command[Unit] = Task.Command {
+  ): Command[Unit] = Task.Command {
 
     val gitlabRepo = publishRepository
 

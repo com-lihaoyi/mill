@@ -3,16 +3,16 @@ package mill.scalajslib
 import mill.api.ExecResult
 import mill.define.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest._
-import mill.define.Target
+import mill.define.Task.Simple
 import mill.T
 import mill.scalajslib.api._
 
 object EsModuleRemapTests extends TestSuite {
   val remapTo = "https://cdn.jsdelivr.net/gh/stdlib-js/array-base-linspace@esm/index.mjs"
 
-  object EsModuleRemap extends TestBaseModule with ScalaJSModule {
+  object EsModuleRemap extends TestRootModule with ScalaJSModule {
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
     override def scalaJSVersion = "1.16.0"
@@ -31,7 +31,7 @@ object EsModuleRemapTests extends TestSuite {
     }
   }
 
-  object OldJsModule extends TestBaseModule with ScalaJSModule {
+  object OldJsModule extends TestRootModule with ScalaJSModule {
     override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
     override def scalaJSVersion = "1.15.0"
     override def scalaJSSourceMap = false

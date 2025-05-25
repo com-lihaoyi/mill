@@ -85,8 +85,15 @@ object Deps {
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.179"
-  val coursierVersion = "2.1.25-M11"
+  val coursierVersion = "2.1.25-M13"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierCore =
+    mvn"io.get-coursier::coursier-core:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierCache =
+    mvn"io.get-coursier::coursier-cache:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierUtil =
+    mvn"io.get-coursier::coursier-util:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierVersions = mvn"io.get-coursier::versions:0.5.1".withDottyCompat(scalaVersion)
   val coursierInterface = mvn"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
@@ -100,6 +107,13 @@ object Deps {
     mvn"org.webjars.npm:viz.js-graphviz-java:2.1.3",
     mvn"org.apache.xmlgraphics:batik-rasterizer:1.18"
   )
+  val graphvizWithExcludes = mvn"guru.nidi:graphviz-java-min-deps:0.18.1"
+    // We only need the in-memory library for some stuff, and don't
+    // need the heavyweight v8 binary that comes bundled with it
+    .exclude(
+      "guru.nidi.com.eclipsesource.j2v8" -> "j2v8_macosx_x86_64",
+      "guru.nidi.com.eclipsesource.j2v8" -> "j2v8_linux_x86_64"
+    )
 
   val jgraphtCore = mvn"org.jgrapht:jgrapht-core:1.4.0" // 1.5.0+ dont support JDK8
   val javet = Seq(
@@ -117,7 +131,9 @@ object Deps {
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.18.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.24.3"
-  val osLib = mvn"com.lihaoyi::os-lib:0.11.5-M8"
+  val osLibVersion = "0.11.5-M9"
+  val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
+  val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.0"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.6"
   val millModuledefsVersion = "0.11.4"
@@ -145,13 +161,14 @@ object Deps {
     mvn"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = mvn"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
-  def scalaXml = mvn"org.scala-lang.modules::scala-xml:2.3.0"
+  val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.4"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.3-M5"
   val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.4.5"
-  val upickle = mvn"com.lihaoyi::upickle:4.1.0"
+  val upickle = mvn"com.lihaoyi::upickle:4.2.1"
+  val upickleNamedTuples = mvn"com.lihaoyi::upickle-implicits-named-tuples:4.2.1"
   // Using "native-terminal-no-ffm" rather than just "native-terminal", as the GraalVM releases currently
   // lacks support for FFM on Mac ARM. That should be fixed soon, see oracle/graal#8113.
   val nativeTerminal = mvn"io.github.alexarchambault.native-terminal:native-terminal-no-ffm:0.0.9.1"
@@ -179,7 +196,7 @@ object Deps {
     mvn"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
   val mavenResolverTransportWagon =
     mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
-  val coursierJvmIndexVersion = "0.0.4-84-f852c6"
+  val coursierJvmIndexVersion = "0.0.4-111-eb6e08"
   val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
   val androidTools = mvn"com.android.tools.build:gradle:8.9.1"

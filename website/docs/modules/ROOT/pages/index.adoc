@@ -1,7 +1,7 @@
 = Mill: A Better JVM Build Tool
 
 https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=stable-version&versionPrefix={mill-version}&versionSuffix={mill-version}[d]]
-https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=unstable-version&versionPrefix=0.12.[Maven Central Version]]
+https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=unstable-dev-version[Maven Central Version]]
 
 Mill is a JVM build tool that supports Java, Scala, and Kotlin:
 
@@ -18,6 +18,12 @@ Although the Java compiler is very fast and the Java language is easy to learn,
 JVM build tools have a reputation for being sluggish and confusing. Mill tries to
 offer a better alternative, letting your build system take full advantage of the
 Java platform's performance and usability.
+
+If you prefer a video introduction to Mill, see:
+
+* https://www.youtube.com/watch?v=3NllMpXMBT8[Video: Better Java Builds with the Mill Build Tool],
+GeeCon Krakow 16 May 2025
+* https://www.youtube.com/watch?v=fyf2AWUyq24[Video: Solving Scala's Build Problem with the Mill Build Tool], SF Scala Meetup 22 April 2025
 
 For more discussion on the motivation behind the project, see xref:comparisons/why-mill.adoc[Why Use Mill?]
 

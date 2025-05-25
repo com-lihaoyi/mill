@@ -37,3 +37,13 @@ object app extends scalalib.JavaModule {
     mvn"com.mysql:mysql-connector-j:9.1.0"
   )
 }
+
+object errored extends scalalib.ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+
+  def compile = Task {
+    val res = super.compile()
+    sys.error("nope")
+    res
+  }
+}

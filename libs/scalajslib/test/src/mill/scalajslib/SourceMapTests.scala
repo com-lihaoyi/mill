@@ -2,11 +2,11 @@ package mill.scalajslib
 
 import mill.define.Discover
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest._
 
 object SourceMapTests extends TestSuite {
-  object SourceMapModule extends TestBaseModule {
+  object SourceMapModule extends TestRootModule {
 
     object build extends ScalaJSModule {
       override def scalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)

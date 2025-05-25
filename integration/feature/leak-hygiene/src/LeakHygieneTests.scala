@@ -26,11 +26,19 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
   def checkThreads(tester: IntegrationTester)(expected: String*) = {
     val out = tester.eval(("show", "countThreads")).out
     val read = upickle.default.read[Seq[String]](out)
-    val filtered = read.filter {
-      case s"coursier-pool-$_" => false
-      case s"scala-execution-context-$_" => false
-      case _ => true
-    }
+    val filtered = read
+      .filter {
+        case s"coursier-pool-$_" => false
+        case s"scala-execution-context-$_" => false
+        case _ => true
+      }
+      .map {
+        // Timers have incrementing IDs, but we don't care what
+        // the ID is as long as it is a timer thread.
+        case s"Timer-$n" => "Timer"
+        case s => s
+      }
+
     // pprint.log(read)
     // pprint.log(expected)
     assert(filtered == expected)
@@ -38,7 +46,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
   val tests: Tests = Tests {
     test - integrationTest { tester =>
-      if (clientServerMode) {
+      if (daemonMode) {
+        mill.constants.DebugLog("\nstart")
         checkClassloaders(tester)(
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
@@ -76,6 +85,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Process ID Checker Thread",
             "Tail",
             "Tail",
+            "Timer",
             "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
@@ -101,6 +111,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Process ID Checker Thread",
             "Tail",
             "Tail",
+            "Timer",
             "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
@@ -146,6 +157,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Process ID Checker Thread",
             "Tail",
             "Tail",
+            "Timer",
             "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
@@ -171,6 +183,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Process ID Checker Thread",
             "Tail",
             "Tail",
+            "Timer",
             "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
@@ -198,6 +211,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Process ID Checker Thread",
             "Tail",
             "Tail",
+            "Timer",
             "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
@@ -222,6 +236,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           "Process ID Checker Thread",
           "Tail",
           "Tail",
+          "Timer",
           "execution-contexts-threadpool-thread",
           "leaked thread",
           "main",

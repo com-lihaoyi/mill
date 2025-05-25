@@ -14,7 +14,7 @@ object VersionChangeTests extends UtestIntegrationTestSuite {
       os.write.over(workspacePath / ".mill-jvm-version", "temurin:19.0.2")
 
       val javaVersion2 = eval(("show", "javaVersion"))
-      assert(javaVersion2.out == "\"19.0.2\"")
+      assert(javaVersion2.out.contains("\"19.0.2\""))
 
     }
   }

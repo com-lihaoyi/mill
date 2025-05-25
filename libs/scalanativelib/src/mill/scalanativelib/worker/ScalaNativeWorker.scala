@@ -1,8 +1,8 @@
 package mill.scalanativelib.worker
 
 import mill.define.TaskCtx
-import mill.define.{Discover, Worker}
-import mill.{PathRef, Task}
+import mill.define.{Discover}
+import mill.{PathRef, Task, Worker}
 import mill.scalanativelib.worker.{api => workerApi}
 import mill.util.CachedFactory
 

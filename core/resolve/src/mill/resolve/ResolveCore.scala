@@ -447,14 +447,14 @@ private object ResolveCore {
     }
 
     val namedTasks = Reflect
-      .reflect(cls, classOf[NamedTask[?]], namePred, noParams = true, cache.getMethods)
+      .reflect(cls, classOf[Task.Named[?]], namePred, noParams = true, cache.getMethods)
       .map { m =>
         Resolved.NamedTask(Segments.labels(cache.decode(m.getName))) ->
           None
       }
 
     val commands = Reflect
-      .reflect(cls, classOf[Command[?]], namePred, noParams = false, cache.getMethods)
+      .reflect(cls, classOf[Task.Command[?]], namePred, noParams = false, cache.getMethods)
       .map(m => cache.decode(m.getName))
       .map { name => Resolved.Command(Segments.labels(name)) -> None }
 

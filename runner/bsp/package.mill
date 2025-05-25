@@ -11,7 +11,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   def buildInfoPackageName = "mill.bsp"
 
   def buildInfoMembers = Task {
-    val workerDep = worker.publishSelfDependency()
+    val workerDep = worker.artifactMetadata()
     Seq(
       BuildInfo.Value(
         "bsp4jVersion",
@@ -38,7 +38,8 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     def compileModuleDeps = Seq(
       build.runner.bsp,
       build.runner.client,
-      build.core.api
+      build.core.api,
+      build.core.internal
     ) ++ build.libs.scalalib.compileModuleDeps
     def mvnDeps = Seq(
       Deps.bsp4j,

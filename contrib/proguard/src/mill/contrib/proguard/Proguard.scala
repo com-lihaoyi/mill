@@ -156,7 +156,7 @@ trait Proguard extends ScalaModule {
     Task.log.warn(
       "Proguard is set to not warn about message: can't find referenced method 'void invoke()' in library class java.lang.invoke.MethodHandle"
     )
-    T.log.warn(
+    Task.log.warn(
       """Proguard is set to not warn about message: "scala.quoted.Type: can't find referenced class scala.AnyKind""""
     )
     Seq[String](

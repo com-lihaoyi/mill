@@ -1,6 +1,6 @@
 package mill.androidlib.hilt
 
-import mill.androidlib.AndroidAppKotlinModule
+import mill.androidlib.AndroidKotlinModule
 import mill.define.{ModuleRef, PathRef}
 import mill.kotlinlib.DepSyntax
 import mill.kotlinlib.ksp.KspModule
@@ -18,10 +18,10 @@ import mill.{T, Task}
  * to achieve the compile time dependency injection!
  */
 @mill.api.experimental
-trait AndroidHiltSupport extends KspModule with AndroidAppKotlinModule {
+trait AndroidHiltSupport extends KspModule with AndroidKotlinModule {
 
   override def kspClasspath: T[Seq[PathRef]] =
-    Seq(androidProcessResources()) ++ super.kspClasspath()
+    Seq(androidProcessedResources()) ++ super.kspClasspath()
 
   def androidHiltProcessorPath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(

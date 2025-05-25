@@ -5,7 +5,7 @@ import mill.constants.OutFiles
 import mill.{Task, given}
 import mill.define.{PathRef, Cross, Discover, Module, TaskModule}
 import mill.testkit.UnitTester
-import mill.testkit.TestBaseModule
+import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, test}
 
 import java.io.{ByteArrayOutputStream, OutputStream, PrintStream}
@@ -15,7 +15,7 @@ import scala.util.Properties
 
 object MainModuleTests extends TestSuite {
 
-  object mainModule extends TestBaseModule with MainModule {
+  object mainModule extends TestRootModule with MainModule {
     def hello = Task {
       System.out.println("Hello System Stdout")
       System.err.println("Hello System Stderr")
@@ -59,7 +59,7 @@ object MainModuleTests extends TestSuite {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  object cleanModule extends TestBaseModule with MainModule {
+  object cleanModule extends TestRootModule with MainModule {
 
     trait Cleanable extends Module {
       def target = Task {
@@ -109,7 +109,7 @@ object MainModuleTests extends TestSuite {
       s"TestWorker($name)@${Integer.toHexString(System.identityHashCode(this))}"
   }
 
-  class WorkerModule(workers: mutable.HashSet[TestWorker]) extends TestBaseModule with MainModule {
+  class WorkerModule(workers: mutable.HashSet[TestWorker]) extends TestRootModule with MainModule {
 
     trait Cleanable extends Module {
       def theWorker = Task.Worker {

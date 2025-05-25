@@ -36,13 +36,13 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): mill.api.Result[List[NamedTask[?]]]
+  ): mill.api.Result[List[Task.Named[?]]]
   def resolveModulesOrTasks(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): mill.api.Result[List[Either[Module, NamedTask[?]]]]
+  ): mill.api.Result[List[Either[Module, Task.Named[?]]]]
 
   def plan(tasks: Seq[Task[?]]): Plan
 
@@ -91,7 +91,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
   ): EvaluatorApi.Result[T] = {
-    os.checker.withValue(os.Checker.Nop) {
+    mill.define.BuildCtx.withFilesystemCheckerDisabled {
       execute(
         targets.map(_.asInstanceOf[Task[T]]),
         reporter,

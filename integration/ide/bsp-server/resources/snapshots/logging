@@ -1,0 +1,37 @@
+[bsp] Trying to load BSP server...
+[bsp] BSP server started
+[1-buildInitialize] Entered buildInitialize
+[1-buildInitialize] buildInitialize took * msec
+[2-workspaceBuildTargets] Entered workspaceBuildTargets
+[bsp-init-build.mill-61] [info] compiling * Scala sources to * ...
+[bsp-init-build.mill-61] [info] done compiling
+[bsp-init] SNAPSHOT
+[2-workspaceBuildTargets] Evaluating * tasks
+[2-workspaceBuildTargets] Done
+[2-workspaceBuildTargets] Evaluating 1 task
+[2-workspaceBuildTargets] Done
+[2-workspaceBuildTargets] workspaceBuildTargets took * msec
+[3-loggingTest] Entered loggingTest
+[3-loggingTest] Evaluating 1 task
+[3-loggingTest-1] bspLoggingTest from System.out
+[3-loggingTest-1] bspLoggingTest from System.err
+[3-loggingTest-1] bspLoggingTest from Console.out
+[3-loggingTest-1] bspLoggingTest from Console.err
+[3-loggingTest-1] bspLoggingTest from Task.log.info
+[3-loggingTest] Done
+[3-loggingTest] loggingTest took * msec
+[4-compile] Entered buildTargetCompile
+[4-compile] Evaluating 1 task
+[4-compile] * tasks failed
+[4-compile] errored.compile java.lang.RuntimeException: nope
+[4-compile]     scala.sys.package$.error(package.scala:*)
+[4-compile]     build_.package_.build_$package_$errored$$$_$compile$$anonfun$1$$anonfun$1(build.mill:*)
+[4-compile]     mill.define.Task$Named.evaluate(Task.scala:*)
+[4-compile]     mill.define.Task$Named.evaluate$(Task.scala:*)
+[4-compile]     mill.define.Task$Computed.evaluate(Task.scala:*)
+[4-compile] Failed
+[4-compile] buildTargetCompile took * msec
+[5-buildShutdown] Entered buildShutdown
+[6-onBuildExit] Entered onBuildExit
+[bsp] BSP session returned with mill.api.internal.BspServerResult$Shutdown$@*
+[bsp] Exiting BSP runner loop. Stopping BSP server. Last result: Success(mill.api.internal.BspServerResult$Shutdown$@*)

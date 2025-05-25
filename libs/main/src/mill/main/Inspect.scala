@@ -47,7 +47,7 @@ private object Inspect {
     def renderFileName(ctx: mill.define.ModuleCtx) = {
       // handle both Windows or Unix separators
       val fullFileName = ctx.fileName.replaceAll(raw"\\", "/")
-      val basePath = WorkspaceRoot.workspaceRoot.toString.replaceAll(raw"\\", "/") + "/"
+      val basePath = BuildCtx.workspaceRoot.toString.replaceAll(raw"\\", "/") + "/"
       val name =
         if (fullFileName.startsWith(basePath)) {
           fullFileName.drop(basePath.length)
@@ -57,13 +57,13 @@ private object Inspect {
       s"${name}:${ctx.lineNum}"
     }
 
-    def pprintTask(t: NamedTask[?], evaluator: Evaluator): Tree.Lazy = {
+    def pprintTask(t: Task.Named[?], evaluator: Evaluator): Tree.Lazy = {
       val seen = mutable.Set.empty[Task[?]]
 
       def rec(t: Task[?]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: mill.define.Target[_]
+          case t: mill.define.Task.Simple[_]
               if evaluator.rootModule.moduleInternal.targets.contains(t) =>
             Seq(t.ctx.segments)
           case _ =>

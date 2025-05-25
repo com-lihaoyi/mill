@@ -115,6 +115,32 @@ class JvmWorkerImpl(
       import key._
       classloaderCache.updateWith(compilersSig) {
         case Some((cl, 1)) =>
+          // We try to find the timer created by scala.tools.nsc.classpath.FileBasedCache
+          // and cancel it, so that it shuts down its thread.
+          for {
+            cls <- {
+              try Some(cl.loadClass("scala.tools.nsc.classpath.FileBasedCache$"))
+              catch { case _: ClassNotFoundException => None }
+            }
+            moduleField <- {
+              try Some(cls.getField("MODULE$"))
+              catch { case _: NoSuchFieldException => None }
+            }
+            module = moduleField.get(null)
+            timerField <- {
+              try Some(cls.getDeclaredField("scala$tools$nsc$classpath$FileBasedCache$$timer"))
+              catch { case _: NoSuchFieldException => None }
+            }
+            _ = timerField.setAccessible(true)
+            timerOpt0 = timerField.get(module)
+            getOrElseMethod <- timerOpt0.getClass.getMethods.find(_.getName == "getOrElse")
+            timer <-
+              Option(getOrElseMethod.invoke(timerOpt0, null).asInstanceOf[java.util.Timer])
+          } {
+
+            timer.cancel()
+          }
+
           cl.close()
           None
         case Some((cl, n)) if n > 1 => Some((cl, n - 1))
@@ -233,7 +259,7 @@ class JvmWorkerImpl(
     ) { (compilers: Compilers) =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
       // https://github.com/com-lihaoyi/mill/issues/4556
-      mill.util.Retry(mill.util.Retry.ctxLogger, count = 2) {
+      mill.util.Retry(count = 2) {
         if (JvmWorkerUtil.isDotty(scalaVersion) || JvmWorkerUtil.isScala3Milestone(scalaVersion)) {
           // dotty 0.x and scala 3 milestones use the dotty-doc tool
           val dottydocClass =
@@ -657,13 +683,9 @@ class JvmWorkerImpl(
   }
 
   override def close(): Unit = {
-    val urlClassLoaders = classloaderCache
-      .map(_._2._1)
-      .collect { case v: AutoCloseable => v }
-
-    // pprint.log(classloaderCache.map(_._2._1))
-    // pprint.log(urlClassLoaders.map(_.getURLs))
-    urlClassLoaders.foreach(_.close())
+    scalaCompilerCache.close()
+    javaOnlyCompilerCache.close()
+    classloaderCache.foreach(_._2._1.close())
 
     classloaderCache.clear()
     close0()

@@ -32,6 +32,8 @@ trait JavaModuleApi extends ModuleApi {
 
   private[mill] def bspBuildTargetCompile: TaskApi[java.nio.file.Path]
 
+  private[mill] def bspLoggingTest: TaskApi[Unit]
+
   private[mill] def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean)
       : TaskApi[EvaluatorApi => (java.nio.file.Path, Seq[String], Seq[String])]
 
@@ -58,8 +60,9 @@ trait ScalaModuleApi extends JavaModuleApi
 trait ScalaJSModuleApi extends JavaModuleApi
 trait ScalaNativeModuleApi extends JavaModuleApi
 trait TestModuleApi extends ModuleApi {
-  def testLocal(args: String*): TaskApi[(String, Seq[Any])]
-  private[mill] def bspBuildTargetScalaTestClasses: TaskApi[(String, Seq[String])]
+  def testLocal(args: String*): TaskApi[(msg: String, results: Seq[Any])]
+  private[mill] def bspBuildTargetScalaTestClasses
+      : TaskApi[(frameworkName: String, classes: Seq[String])]
 }
 trait MainModuleApi extends ModuleApi {
   private[mill] def bspClean(
