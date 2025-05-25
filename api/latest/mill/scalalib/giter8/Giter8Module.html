@@ -784,7 +784,7 @@ node11 -> node0;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repositories used to resolve dependencies with [[classpath()]].\n *\n * See [[allRepositories]] if you need to resolve Mill internal modules.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repositories used to resolve dependencies with [[classpath()]]. This\n * takes Coursier repository strings as input which are defined here:\n *\n * - https://github.com/coursier/coursier/blob/main/docs/pages/reference-repositories.md\n *\n * For example:\n *\n * - https://repo1.maven.org/maven2\n * Maven Central which is the most commonly used Maven repository\n *\n * - file:///Users/alex/test-repo\n * A local repository cache on disk\n *\n * - file://${ivy.home-${user.home}/.ivy2}/local/[defaultPattern]\n * The local Ivy2 repository where Mill, Scala CLI,\n * or sbt publish to when asked to publish locally\n *\n * - file://${user.home}/.m2/repository\n * the local Maven repository. Use of this is not recommended for reasons explained in the link above\n *\n * - https://maven.google.com\n * Google-managed repository that distributes some Android artifacts in particular\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -798,12 +798,27 @@ node11 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The repositories used to resolve dependencies with <span data-unresolved-link="" title="Problem linking classpath(): Couldn't resolve a member for the given link query">classpath()</span>.</p>
+             <p>The repositories used to resolve dependencies with <span data-unresolved-link="" title="Problem linking classpath(): Couldn't resolve a member for the given link query">classpath()</span>. This takes Coursier repository strings as input which are defined here:</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The repositories used to resolve dependencies with <span data-unresolved-link="" title="Problem linking classpath(): Couldn't resolve a member for the given link query">classpath()</span>.</p>
-              <p>See <a href="../CoursierModule.html#allRepositories-0">allRepositories</a> if you need to resolve Mill internal modules.</p>
+              <p>The repositories used to resolve dependencies with <span data-unresolved-link="" title="Problem linking classpath(): Couldn't resolve a member for the given link query">classpath()</span>. This takes Coursier repository strings as input which are defined here:</p>
+              <ul>
+               <li><a href="https://github.com/coursier/coursier/blob/main/docs/pages/reference-repositories.md">https://github.com/coursier/coursier/blob/main/docs/pages/reference-repositories.md</a></li>
+              </ul>
+              <p>For example:</p>
+              <ul>
+               <li>
+                <p><a href="https://repo1.maven.org/maven2">https://repo1.maven.org/maven2</a> Maven Central which is the most commonly used Maven repository</p></li>
+               <li>
+                <p><a href="file:///Users/alex/test-repo">file:///Users/alex/test-repo</a> A local repository cache on disk</p></li>
+               <li>
+                <p><a href="file://${ivy.home-${user.home}/.ivy2}/local/">file://${ivy.home-${user.home}/.ivy2}/local/</a>[defaultPattern] The local Ivy2 repository where Mill, Scala CLI, or sbt publish to when asked to publish locally</p></li>
+               <li>
+                <p><a href="file://${user.home}/.m2/repository">file://${user.home}/.m2/repository</a> the local Maven repository. Use of this is not recommended for reasons explained in the link above</p></li>
+               <li>
+                <p><a href="https://maven.google.com">https://maven.google.com</a> Google-managed repository that distributes some Android artifacts in particular</p></li>
+              </ul>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -829,7 +844,7 @@ node11 -> node0;
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repositories used to resolve dependencies with [[classpath()]].\n *\n * See [[allRepositories]] if you need to resolve Mill internal modules.\n */") </span>
+           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A more flexible version of [[repositories]], that allows custom repositories\n * that are not definable by Coursier repository strings. This is a relatively\n * advanced feature, and for most situations overriding [[repositories]] should\n * be sufficient\n *\n * See [[allRepositories]] if you need to resolve Mill internal modules.\n */") </span>
           </div>
           <div class="header monospace mono-medium">
            <div class="signature">
@@ -843,11 +858,11 @@ node11 -> node0;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>The repositories used to resolve dependencies with <span data-unresolved-link="" title="Problem linking classpath(): Couldn't resolve a member for the given link query">classpath()</span>.</p>
+             <p>A more flexible version of <a href="../CoursierModule.html#repositories-0">repositories</a>, that allows custom repositories that are not definable by Coursier repository strings. This is a relatively advanced feature, and for most situations overriding <a href="../CoursierModule.html#repositories-0">repositories</a> should be sufficient</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>The repositories used to resolve dependencies with <span data-unresolved-link="" title="Problem linking classpath(): Couldn't resolve a member for the given link query">classpath()</span>.</p>
+              <p>A more flexible version of <a href="../CoursierModule.html#repositories-0">repositories</a>, that allows custom repositories that are not definable by Coursier repository strings. This is a relatively advanced feature, and for most situations overriding <a href="../CoursierModule.html#repositories-0">repositories</a> should be sufficient</p>
               <p>See <a href="../CoursierModule.html#allRepositories-0">allRepositories</a> if you need to resolve Mill internal modules.</p>
              </div>
              <h2 class="h200">Attributes</h2>

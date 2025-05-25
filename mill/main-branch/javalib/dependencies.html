@@ -670,7 +670,7 @@ for <code>JavaModule</code>.</p>
 <h2 id="_adding_ivy_dependencies"><a class="anchor" href="#_adding_ivy_dependencies"></a>Adding Ivy Dependencies</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-M1/mill-dist-1.0.0-M1-50-fa4a7c-example-javalib-dependencies-1-mvn-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-M1/example/javalib/dependencies/1-mvn-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-M1/mill-dist-1.0.0-M1-51-eb0851-example-javalib-dependencies-1-mvn-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-M1/example/javalib/dependencies/1-mvn-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -727,7 +727,7 @@ dependencies and their versions at runtime, you can do so with
 <code>runMvnDeps</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-M1/mill-dist-1.0.0-M1-50-fa4a7c-example-javalib-dependencies-2-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-M1/example/javalib/dependencies/2-run-compile-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-M1/mill-dist-1.0.0-M1-51-eb0851-example-javalib-dependencies-2-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-M1/example/javalib/dependencies/2-run-compile-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -818,7 +818,7 @@ from somewhere and need to include it in your project, <code>unmanagedClasspath<
 way to do it.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-M1/mill-dist-1.0.0-M1-50-fa4a7c-example-javalib-dependencies-3-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-M1/example/javalib/dependencies/3-unmanaged-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-M1/mill-dist-1.0.0-M1-51-eb0851-example-javalib-dependencies-3-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-M1/example/javalib/dependencies/3-unmanaged-jars">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -856,7 +856,7 @@ download from arbitrary URLs.
 library, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-M1/mill-dist-1.0.0-M1-50-fa4a7c-example-javalib-dependencies-4-downloading-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-M1/example/javalib/dependencies/4-downloading-unmanaged-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-M1/mill-dist-1.0.0-M1-51-eb0851-example-javalib-dependencies-4-downloading-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-M1/example/javalib/dependencies/4-downloading-unmanaged-jars">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -933,19 +933,14 @@ apply here as well.
 <div class="paragraph">
 <p>By default, dependencies are resolved from <a href="https://central.sonatype.com/">Maven Central</a>,
 the standard package repository for JVM languages like Java, Kotlin, or Scala. You
-can also add your own resolvers by overriding the <code>repositoriesTask</code> task in the module:</p>
+can also add your own resolvers by overriding the <code>repositories</code> task in the module:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-M1/mill-dist-1.0.0-M1-50-fa4a7c-example-javalib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-M1/example/javalib/dependencies/5-repository-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-M1/mill-dist-1.0.0-M1-51-eb0851-example-javalib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-M1/example/javalib/dependencies/5-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
 import mill.define.ModuleRef
-import coursier.maven.MavenRepository
-
-val sonatypeReleases = Seq(
-  MavenRepository(&quot;https://oss.sonatype.org/content/repositories/releases&quot;)
-)
 
 object foo extends JavaModule {
 
@@ -954,13 +949,26 @@ object foo extends JavaModule {
     mvn&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;
   )
 
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Seq(&quot;https://oss.sonatype.org/content/repositories/releases&quot;)
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Mill uses the <a href="https://get-coursier.io/">Coursier</a> dependency resolver, and reads
-Coursier config files automatically.</p>
+Coursier config files automatically. The list of valid repository strings is documented
+here:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/coursier/coursier/blob/main/docs/pages/reference-repositories.md" class="bare">https://github.com/coursier/coursier/blob/main/docs/pages/reference-repositories.md</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For more specialized custom repositories which do not follow the standard URL format,
+you can override <code>def repositoriesTask</code> to instantiate a custom <code>coursier.Repository</code>
+instance programmatically.</p>
 </div>
 <div class="paragraph">
 <p>You can configure Coursier to use an alternate download location for Maven Central
@@ -1000,14 +1008,14 @@ used to compile the <code>build.mill</code> files) and override the <code>jvmWor
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Seq(&quot;https://oss.sonatype.org/content/repositories/releases&quot;)
 }
 
 object bar extends JavaModule {
   def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Seq(&quot;https://oss.sonatype.org/content/repositories/releases&quot;)
 }</code></pre>
 </div>
 </div>
@@ -1017,6 +1025,11 @@ object bar extends JavaModule {
 
 &gt; ./mill bar.compile</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>To customize the repositories used to resolve the <code>//| mvnDeps:</code> dependencies used in your
+<code>build.mill</code> file, you can add <code>//| repositories:</code> to your YAML header which takes a
+list of strings of the same format.</p>
 </div>
 </div>
 </div>
