@@ -13,16 +13,30 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
-=== 1.0.0-RC1
+[#1-0-0-RC1]
+=== 1.0.0-RC1 - 2025-05-25
+:version: 1.0.0-RC1
+:milestone-name: 1.0.0-RC1
+:milestone: 115
+:prev-version: 0.12.14
 
 `1.0.0-RC1` is the first release candidate of the upcoming Mill 1.0.0 release. This is a major
 backwards incompatible release that aims to clean up years of technical debt, and build a strong
-technical foundation for the next few years of development. We expect it will take some work
-from projects on Mill 0.12.x or earlier to migrate to 1.0.0-RC1, and there may be issues in
-the release candidate that we hope to surface and fix before 1.0.0 final is released.
-Any Mill plugins will need to be re-published for Mill 1.0.0-RC1 if you would like to try them
-out in your builds, and re-published again for Mill 1.0.0 final (which may have further changes
-and be incompatible with the RC1)
+technical foundation for the next few years of development. Any breakages or problems surfaced
+by RC1 will be fixed in following RC releases, with the hope to release 1.0.0 final on 30 June
+2025. For any questions or discussion about `1.0.0-RC1`, please use the following thread:
+
+- https://github.com/com-lihaoyi/mill/discussions/5189
+
+Any Mill plugins you use will need to be re-published for Mill 1.0.0-RC1 if you would like to
+try out the RC out in your builds, and re-published again for Mill 1.0.0 final (which may
+have further changes and be incompatible with the RC1)
+
+We expect it will take some work from projects on Mill 0.12.x or earlier to migrate to 1.0.0-RC1.
+There are a lot of breaking changes in the release, but we hope that these breaking changes will
+greatly simplify the Mill user experience going forward, and allow it to remain stable for more
+years before further breaking changes are necessary.
+
 
 ==== Major Breaking Changes
 
@@ -67,16 +81,18 @@ package build
 
 * The YAML front-matter allows you to configure arbitrary tasks in the meta-build.
   Above we show how to configure the `def repositories` and `def mvnDeps` tasks for the
-  meta-build, but other meta-build tasks can be configured as well: `scalaVersion`,
-  `scalacOptions`, etc. using the JSON version of the in-memory data structures.
+  meta-build, but other meta-build tasks can be configured as well (e.g.
+  `scalacOptions`) using the JSON version of the in-memory data structures.
 
 
 * `ivyDeps` has been renamed to `mvnDeps`, along with all related tasks and methods
-  e.g. `compileIvyDeps` is now `compileMvnDeps` ({link-pr}/4930[#4930]).
+  e.g. `compileIvyDeps` is now `compileMvnDeps`, `runIvyDeps` is now `runMvnDeps`, etc.
+  ({link-pr}/4930[#4930]).
 
 
 * The `Agg()`/`Agg[T]` collection types have been removed and replaced by `Seq()`/`Seq[T]`
-  ({link-pr}/4525[#4525]).
+  ({link-pr}/4525[#4525]). Aliases were left in place to ease in the migration, but you
+  should replace all usage of `Agg` with `Seq` and use `Seq` going forward
 
 
 ```diff
@@ -98,13 +114,19 @@ package build
 ...Qux...
 ```
 
-* `interp.*` and `mill.api.Workspace.workspaceRoot` have been moved to a new `mill.define.BuildCtx` object ({link-pr}/5142[#5142])
+* `mill.api.Ctx` is now `mill.define.TaskCtx`, and `mill.define.Ctx` is now `mill.define.ModuleCtx`,
+  to avoid confusion over the name `Ctx` being overloaded to refer to two different classes
+
+* `interp.watch`, `interp.watchValue` and `mill.api.Workspace.workspaceRoot` have been moved
+  to a new `mill.define.BuildCtx` object that centralizes all these build-level APIs
+  ({link-pr}/5142[#5142])
 
 * Many Task-related renamings in `mill.define`: `Target` -> `Task.Simple`, `TargetImpl` -> `Task.Computed`, 
   `Worker` -> `Task.Worker`, `Command` -> `Task.Command`, `AnonImpl` -> `Task.Anon`, `InputImpl` -> `Task.Input`,
   `SourcesImpl` -> `Task.Sources`, `SourceImpl` -> `Task.Sources` ({link-pr}/5168[#5168]).
 
-* `mill.testkit.TestBaseModule` has been renamed `mill.testkit.TestRootModule` ({link-pr}/5143[#5143])
+* `mill.testkit.TestBaseModule` has been renamed `mill.testkit.TestRootModule` ({link-pr}/5143[#5143]),
+  to make it clear it is meant to be the root of the module hierarchy
 
 * The terms `client`/`server` throughout the codebase have been renamed to `launcher`/`daemon` ({link-pr}/5135[#5135])
 
@@ -116,7 +138,7 @@ package build
    to their own `.dest` folder, and only read from their own or upstream `.dest` folders
 
 ** During the Resolution phase, code running during module/task instantiation cannot
-   write to disk, and can only perform reads wrapped in `interp.watchValue` blocks
+   write to disk, and can only perform filesystem reads wrapped in `interp.watchValue` blocks
 
 ** These restrictions are best effort guardrails to guide users towards best practices, and
    are not intended to be a fully-hermetic sandbox. You can disable them via
