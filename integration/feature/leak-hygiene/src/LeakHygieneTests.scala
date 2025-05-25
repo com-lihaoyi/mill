@@ -32,12 +32,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         case s"scala-execution-context-$_" => false
         case _ => true
       }
-      .map {
-        // Timers have incrementing IDs, but we don't care what
-        // the ID is as long as it is a timer thread.
-        case s"Timer-$n" => "Timer"
-        case s => s
-      }
 
     // pprint.log(read)
     // pprint.log(expected)
@@ -85,7 +79,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Process ID Checker Thread",
             "Tail",
             "Tail",
-            "Timer",
             "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
@@ -111,7 +104,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Process ID Checker Thread",
             "Tail",
             "Tail",
-            "Timer",
             "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
@@ -157,7 +149,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Process ID Checker Thread",
             "Tail",
             "Tail",
-            "Timer",
             "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
@@ -183,7 +174,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Process ID Checker Thread",
             "Tail",
             "Tail",
-            "Timer",
             "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
@@ -211,7 +201,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Process ID Checker Thread",
             "Tail",
             "Tail",
-            "Timer",
             "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
@@ -236,7 +225,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           "Process ID Checker Thread",
           "Tail",
           "Tail",
-          "Timer",
           "execution-contexts-threadpool-thread",
           "leaked thread",
           "main",
