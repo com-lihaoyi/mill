@@ -87,6 +87,10 @@ object Deps {
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.179"
   val coursierVersion = "2.1.25-M13"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierCore = mvn"io.get-coursier::coursier-core:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierCache = mvn"io.get-coursier::coursier-cache:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierUtil = mvn"io.get-coursier::coursier-util:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierVersions = mvn"io.get-coursier::versions:0.5.1".withDottyCompat(scalaVersion)
   val coursierInterface = mvn"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
@@ -147,7 +151,7 @@ object Deps {
     mvn"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = mvn"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
-  def scalaXml = mvn"org.scala-lang.modules::scala-xml:2.3.0"
+  val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.4"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"

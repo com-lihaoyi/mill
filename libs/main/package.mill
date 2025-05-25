@@ -23,7 +23,6 @@ object `package` extends MillStableScalaModule {
   )
   def mvnDeps = Seq(
     Deps.nativeTerminal,
-    Deps.coursierInterface,
     Deps.logback,
     Deps.jgraphtCore,
     Deps.millModuledefs,
@@ -42,4 +41,5 @@ object `package` extends MillStableScalaModule {
   }
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
+  def testMvnDeps = Seq(Deps.coursierInterface)
 }

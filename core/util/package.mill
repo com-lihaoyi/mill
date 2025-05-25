@@ -13,12 +13,17 @@ object `package` extends MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.core.api, build.core.constants, build.core.define)
 
   def mvnDeps = Seq(
-    Deps.coursier,
-    Deps.coursierJvm,
+    Deps.coursier.exclude("*" -> "*"),
+    Deps.coursierCore.exclude("*" -> "*"),
+    Deps.coursierCache.exclude("*" -> "*"),
+    Deps.coursierUtil.exclude("*" -> "*"),
+    Deps.coursierVersions.exclude("*" -> "*"),
+    Deps.coursierJvm.exclude("*" -> "*"),
     Deps.jline,
     Deps.mainargs,
     Deps.requests
   )
+  def runMvnDeps = Seq(Deps.coursierJvm)
 
   def buildInfoPackageName = "mill.util"
 
