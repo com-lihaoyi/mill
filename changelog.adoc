@@ -304,6 +304,11 @@ def namedTupleTask = Task {
 }
 ```
 
+* `def repositories: T[Seq[String]]` is now provided as a simpler alternative to
+  `def repositoriesTask`, making it easier to add the most common URL/file-based repositories
+  to your project. `repositoriesTask` still exists, but is now only necessary for
+  more complex custom repository setups beyond the simple cases that `repositories` supports.
+
 * Lots of miscellaneous improvements:
 
 ** BSP support and IDE integration ({link-pr}/4851[#4851],{link-pr}/4873[#4873],
