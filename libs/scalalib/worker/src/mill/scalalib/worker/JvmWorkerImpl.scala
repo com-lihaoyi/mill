@@ -115,8 +115,6 @@ class JvmWorkerImpl(
       import key._
       classloaderCache.updateWith(compilersSig) {
         case Some((cl, 1)) =>
-          // We try to find the timer created by scala.tools.nsc.classpath.FileBasedCache
-          // and cancel it, so that it shuts down its thread.
           cl.close()
           None
         case Some((cl, n)) if n > 1 => Some((cl, n - 1))
