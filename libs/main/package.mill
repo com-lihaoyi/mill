@@ -22,19 +22,19 @@ object `package` extends MillStableScalaModule {
     build.libs.init
   )
   def mvnDeps = Seq(
-    Deps.millModuledefs,
+    Deps.millModuledefs
   )
 
   def compileMvnDeps = Seq(
     Deps.nativeTerminal,
     Deps.jgraphtCore,
-    Deps.graphvizWithExcludes,
+    Deps.graphvizWithExcludes
   )
   def runMvnDeps = Seq(
     Deps.logback,
     Deps.nativeTerminal,
     Deps.jgraphtCore,
-    Deps.graphvizWithExcludes,
+    Deps.graphvizWithExcludes
   )
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
