@@ -29,7 +29,6 @@ object Lib {
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
       checkGradleModules: Boolean,
-      mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[TaskCtx] = None,
       coursierCacheCustomizer: Option[
@@ -44,7 +43,6 @@ object Lib {
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
       checkGradleModules = checkGradleModules,
-      mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
@@ -65,7 +63,6 @@ object Lib {
       deps: IterableOnce[BoundDep],
       checkGradleModules: Boolean,
       sources: Boolean = false,
-      mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[TaskCtx] = None,
       coursierCacheCustomizer: Option[
@@ -82,7 +79,6 @@ object Lib {
       checkGradleModules = checkGradleModules,
       sources = sources,
       artifactTypes = artifactTypes,
-      mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,

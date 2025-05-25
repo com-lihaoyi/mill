@@ -466,7 +466,6 @@ object Jvm {
       force: IterableOnce[Dependency] = Nil,
       checkGradleModules: Boolean,
       sources: Boolean = false,
-      mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
@@ -478,7 +477,6 @@ object Jvm {
       deps,
       force,
       checkGradleModules,
-      mapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer,
@@ -529,7 +527,6 @@ object Jvm {
       force: IterableOnce[Dependency],
       checkGradleModules: Boolean,
       sources: Boolean = false,
-      mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
@@ -542,7 +539,6 @@ object Jvm {
       force,
       checkGradleModules,
       sources,
-      mapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer,
@@ -630,7 +626,6 @@ object Jvm {
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
       checkGradleModules: Boolean,
-      mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
@@ -638,12 +633,9 @@ object Jvm {
       boms: IterableOnce[BomDependency] = Nil
   ): Result[Resolution] = {
 
-    val rootDeps = deps.iterator
-      .map(d => mapDependencies.fold(d)(_.apply(d)))
-      .toSeq
+    val rootDeps = deps.iterator.toSeq
 
     val forceVersions = force.iterator
-      .map(mapDependencies.getOrElse(identity[Dependency](_)))
       .map { d => d.module -> d.version }
       .toMap
 
@@ -682,7 +674,6 @@ object Jvm {
         .withDependencies(rootDeps)
         .withRepositories(Seq(resourceTestOverridesRepo) ++ envTestOverridesRepo ++ repositories0)
         .withResolutionParams(resolutionParams0)
-        .withMapDependenciesOpt(mapDependencies)
         .withBoms(boms.iterator.toSeq)
 
       resolve.either() match {

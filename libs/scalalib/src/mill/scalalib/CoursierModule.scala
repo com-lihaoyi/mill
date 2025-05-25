@@ -47,7 +47,6 @@ trait CoursierModule extends mill.define.Module {
     new CoursierModule.Resolver(
       repositories = allRepositories(),
       bind = bindDependency(),
-      mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
       resolutionParams = resolutionParams(),
@@ -68,7 +67,6 @@ trait CoursierModule extends mill.define.Module {
     new CoursierModule.Resolver(
       repositories = repositoriesTask(),
       bind = bindDependency(),
-      mapDependencies = Some(mapDependencies()),
       customizer = resolutionCustomizer(),
       coursierCacheCustomizer = coursierCacheCustomizer(),
       resolutionParams = resolutionParams(),
@@ -76,12 +74,6 @@ trait CoursierModule extends mill.define.Module {
       checkGradleModules = checkGradleModules()
     )
   }
-
-  /**
-   * Map dependencies before resolving them.
-   * Override this to customize the set of dependencies.
-   */
-  def mapDependencies: Task[Dependency => Dependency] = Task.Anon { (d: Dependency) => d }
 
   /**
    * Mill internal repositories to be used during dependency resolution
@@ -203,7 +195,6 @@ object CoursierModule {
       repositories: Seq[Repository],
       bind: Dep => BoundDep,
       checkGradleModules: Boolean,
-      mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
@@ -222,8 +213,7 @@ object CoursierModule {
         deps: IterableOnce[T],
         sources: Boolean = false,
         artifactTypes: Option[Set[coursier.Type]] = None,
-        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
-        mapDependencies: Option[Dependency => Dependency] = null
+        resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None
     )(implicit ctx: mill.define.TaskCtx): Seq[PathRef] =
       Lib.resolveDependencies(
         repositories = repositories,
@@ -231,7 +221,6 @@ object CoursierModule {
         checkGradleModules = checkGradleModules,
         sources = sources,
         artifactTypes = artifactTypes,
-        mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = Some(ctx),
@@ -254,7 +243,6 @@ object CoursierModule {
         repositories = repositories,
         deps = deps0,
         checkGradleModules = checkGradleModules,
-        mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = Some(ctx),
