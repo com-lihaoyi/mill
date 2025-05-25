@@ -15,8 +15,6 @@ object `package` extends MillPublishScalaModule with BuildInfo {
 
   def mvnDeps = Seq(
     Deps.nativeTerminal,
-    Deps.coursier,
-    Deps.coursierInterface,
     Deps.coursierJvm,
     Deps.logback,
     Deps.snakeyamlEngine,
