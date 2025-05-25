@@ -265,6 +265,10 @@ object `package` extends Cross[FooModule]("3.6.2", "2.13.16") {
   but can be disabled by explicitly passing `--notify-watch false` to the Mill launcher or
   in the `.mill-opts` file if there are any issues with the new approach.
 
+* Mill is now a lot stricter about avoid classloader and thread leaks, which should
+  help mitigate problems we've seen in the past with long-lived Mill processes becoming
+  unstable or unresponsive ({link-pr}/5079[#5079], {link-pr}/5080[#5080], {link-pr}/5082[#5082])
+
 * Lots of miscellaneous improvements:
 
 ** BSP support and IDE integration ({link-pr}/4851[#4851],{link-pr}/4873[#4873],
