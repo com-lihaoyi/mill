@@ -87,9 +87,12 @@ object Deps {
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.179"
   val coursierVersion = "2.1.25-M13"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierCore = mvn"io.get-coursier::coursier-core:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierCache = mvn"io.get-coursier::coursier-cache:$coursierVersion".withDottyCompat(scalaVersion)
-  val coursierUtil = mvn"io.get-coursier::coursier-util:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierCore =
+    mvn"io.get-coursier::coursier-core:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierCache =
+    mvn"io.get-coursier::coursier-cache:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierUtil =
+    mvn"io.get-coursier::coursier-util:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierVersions = mvn"io.get-coursier::versions:0.5.1".withDottyCompat(scalaVersion)
   val coursierInterface = mvn"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm =
