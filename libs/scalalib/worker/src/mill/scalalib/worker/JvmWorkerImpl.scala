@@ -1,5 +1,6 @@
 package mill.scalalib.worker
 
+import coursier.version.Version
 import mill.util.CachedFactory
 import mill.api._
 import mill.api.internal.internal
@@ -44,8 +45,9 @@ import java.io.File
 import java.net.URLClassLoader
 import java.util.Optional
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.ListHasAsScala
+import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsScala}
 import scala.util.Properties.isWin
+import scala.util.{Failure, Success, Try}
 
 @internal
 class JvmWorkerImpl(
@@ -88,7 +90,7 @@ class JvmWorkerImpl(
         scalaOrganization,
         compilerClasspath
       )
-      val loader = getCachedClassLoader(compilersSig, combinedCompilerJars)
+      val loader = getCachedClassLoader(key.scalaVersion, compilersSig, combinedCompilerJars)
       val scalaInstance = new ScalaInstance(
         version = key.scalaVersion,
         loader = loader,
@@ -114,52 +116,68 @@ class JvmWorkerImpl(
     override def teardown(key: CompileCacheKey, value: (URLClassLoader, Compilers)): Unit = {
       import key._
       classloaderCache.updateWith(compilersSig) {
-        case Some((cl, 1)) =>
-          // We try to find the timer created by scala.tools.nsc.classpath.FileBasedCache
-          // and cancel it, so that it shuts down its thread.
-          for {
-            cls <- {
-              try Some(cl.loadClass("scala.tools.nsc.classpath.FileBasedCache$"))
-              catch { case _: ClassNotFoundException => None }
-            }
-            moduleField <- {
-              try Some(cls.getField("MODULE$"))
-              catch { case _: NoSuchFieldException => None }
-            }
-            module = moduleField.get(null)
-            timerField <- {
-              try Some(cls.getDeclaredField("scala$tools$nsc$classpath$FileBasedCache$$timer"))
-              catch { case _: NoSuchFieldException => None }
-            }
-            _ = timerField.setAccessible(true)
-            timerOpt0 = timerField.get(module)
-            getOrElseMethod <- timerOpt0.getClass.getMethods.find(_.getName == "getOrElse")
-            timer <-
-              Option(getOrElseMethod.invoke(timerOpt0, null).asInstanceOf[java.util.Timer])
-          } {
+        case Some((cl, groupOpt, 1)) =>
+          for (group <- groupOpt) {
+            // Trying to find the timer created by scala.tools.nsc.classpath.FileBasedCache
+            // and its thread. We cancel the timer and interrupt the thread, so that
+            // the thread cleanly exits, and doesn't keep hanging around.
 
-            timer.cancel()
+            val threadOpt = Thread.getAllStackTraces()
+              .asScala
+              .keysIterator
+              .find { t =>
+                t.getClass.getName == "java.util.TimerThread" &&
+                t.getThreadGroup == group
+              }
+
+            for (thread <- threadOpt) {
+              val timerOpt = for {
+                cls <- {
+                  try Some(cl.loadClass("scala.tools.nsc.classpath.FileBasedCache$"))
+                  catch { case _: ClassNotFoundException => None }
+                }
+                moduleField <- {
+                  try Some(cls.getField("MODULE$"))
+                  catch { case _: NoSuchFieldException => None }
+                }
+                module = moduleField.get(null)
+                timerField <- {
+                  try Some(cls.getDeclaredField("scala$tools$nsc$classpath$FileBasedCache$$timer"))
+                  catch { case _: NoSuchFieldException => None }
+                }
+                _ = timerField.setAccessible(true)
+                timerOpt0 = timerField.get(module)
+                getOrElseMethod <- timerOpt0.getClass.getMethods.find(_.getName == "getOrElse")
+                timer <-
+                  Option(getOrElseMethod.invoke(timerOpt0, null).asInstanceOf[java.util.Timer])
+              } yield timer
+              // interrupt effectively exits the thread only if the timer has been cancelled
+              for (timer <- timerOpt)
+                timer.cancel()
+              thread.interrupt()
+            }
           }
 
           cl.close()
           None
-        case Some((cl, n)) if n > 1 => Some((cl, n - 1))
+        case Some((cl, groupOpt, n)) if n > 1 => Some((cl, groupOpt, n - 1))
         case _ => ??? // No other cases; n should never be zero or negative
       }
     }
   }
 
   private val classloaderCache =
-    collection.mutable.LinkedHashMap.empty[Long, (URLClassLoader, Int)]
+    collection.mutable.LinkedHashMap.empty[Long, (URLClassLoader, Option[ThreadGroup], Int)]
 
   def getCachedClassLoader(
+      scalaVersion: String,
       compilersSig: Long,
       combinedCompilerJars: Array[java.io.File]
   ): URLClassLoader = {
     classloaderCache.synchronized {
       classloaderCache.get(compilersSig) match {
-        case Some((cl, i)) =>
-          classloaderCache(compilersSig) = (cl, i + 1)
+        case Some((cl, groupOpt, i)) =>
+          classloaderCache(compilersSig) = (cl, groupOpt, i + 1)
           cl
         case _ =>
           // the Scala compiler must load the `xsbti.*` classes from the same loader as `JvmWorkerImpl`
@@ -169,7 +187,40 @@ class JvmWorkerImpl(
             sharedLoader = getClass.getClassLoader,
             sharedPrefixes = Seq("xsbti")
           )
-          classloaderCache.update(compilersSig, (cl, 1))
+          val groupOpt = Option.when(
+            scalaVersion.startsWith("2.") && Version(scalaVersion) >= Version("2.12.9")
+          ) {
+            val group = new ThreadGroup("mill-jvm-worker-impl")
+            var result: Try[Boolean] = null
+
+            // Making sure scala.tools.nsc.classpath.FileBasedCache is initialized from
+            // a thread with a specific thread group, so that the java.util.Timer it creates
+            // starts its thread in this thread group, and we can find it back and interrupt it
+            // later on.
+            val tmpThread = new Thread(group, "mill-jvm-worker-impl") {
+              setDaemon(true)
+              override def run(): Unit = {
+                result =
+                  try {
+                    val cls = cl.loadClass("scala.tools.nsc.classpath.FileBasedCache$")
+                    val fld = cls.getField("MODULE$")
+                    fld.get(null)
+                    Success(true)
+                  } catch {
+                    case _: ClassNotFoundException =>
+                      Success(false)
+                    case _: NoSuchFieldError =>
+                      Success(false)
+                    case err: Throwable =>
+                      Failure(err)
+                  }
+              }
+            }
+            tmpThread.start()
+            tmpThread.join()
+            Option.when(result.get)(group)
+          }.flatten
+          classloaderCache.update(compilersSig, (cl, groupOpt, 1))
           cl
       }
     }
