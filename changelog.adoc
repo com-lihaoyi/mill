@@ -13,7 +13,8 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 [#1-0-0-RC1]
-=== 1.0.0-RC1 - 2025-05-25
+=== 1.0.0-RC1
+_2025-05-25_
 :version: 1.0.0-RC1
 :milestone-name: 1.0.0-RC1
 :milestone: 115
@@ -325,7 +326,8 @@ def namedTupleTask = Task {
    {link-pr}/4779[#4779], {link-pr}/4797[#4797], {link-pr}/4963[#4963])
 
 [#0-12-14]
-=== 0.12.14 - 2025-05-20
+=== 0.12.14
+_2025-05-20_
 :version: 0.12.14
 :milestone-name: 0.12.14
 :milestone: 116
@@ -340,7 +342,8 @@ def namedTupleTask = Task {
   but no builds are being run ({link-pr}/5073[#5073])
 
 [#0-12-13]
-=== 0.12.13 - 2025-05-18
+=== 0.12.13
+_2025-05-18_
 :version: 0.12.13
 :milestone-name: 0.12.13
 :milestone: 115
@@ -407,7 +410,8 @@ prepended assembly jars to be published with the `.jar` suffix, and they must in
 published with some other suffix via `def extraPublish`
 
 [#0-12-11]
-=== 0.12.11 - 2025-05-10
+=== 0.12.11
+_2025-05-10_
 :version: 0.12.11
 :milestone-name: 0.12.11
 :milestone: 114
@@ -423,7 +427,8 @@ published with some other suffix via `def extraPublish`
 
 
 [#0-12-10]
-=== 0.12.10 - 2025-04-01
+=== 0.12.10
+_2025-04-01_
 :version: 0.12.10
 :milestone-name: 0.12.10
 :milestone: 113
@@ -443,7 +448,8 @@ published with some other suffix via `def extraPublish`
 
 
 [#0-12-9]
-=== 0.12.9 - 2025-03-17
+=== 0.12.9
+_2025-03-17_
 :version: 0.12.9
 :milestone-name: 0.12.9
 :milestone: 112
@@ -471,7 +477,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-12-8]
-=== 0.12.8 - 2025-02-16
+=== 0.12.8
+_2025-02-16_
 :version: 0.12.8
 :milestone-name: 0.12.8
 :milestone: 111
@@ -489,7 +496,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-12-7]
-=== 0.12.7 - 2025-02-01
+=== 0.12.7
+_2025-02-01_
 :version: 0.12.7
 :milestone-name: 0.12.7
 :milestone: 110
@@ -504,7 +512,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-12-6]
-=== 0.12.6 - 2025-01-31
+=== 0.12.6
+_2025-01-31_
 :version: 0.12.6
 :milestone-name: 0.12.6
 :milestone: 109
@@ -581,7 +590,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-12-5]
-=== 0.12.5 - 2025-01-01
+=== 0.12.5
+_2025-01-01_
 :version: 0.12.5
 :milestone-name: 0.12.5
 :milestone: 108
@@ -626,7 +636,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-12-4]
-=== 0.12.4 - 2024-12-16
+=== 0.12.4
+_2024-12-16_
 :version: 0.12.4
 :milestone-name: 0.12.4
 :milestone: 107
@@ -670,7 +681,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-12-3]
-=== 0.12.3 - 2024-11-24
+=== 0.12.3
+_2024-11-24_
 :version: 0.12.3
 :milestone-name: 0.12.3
 :milestone: 106
@@ -699,7 +711,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-12-2]
-=== 0.12.2 - 2024-11-11
+=== 0.12.2
+_2024-11-11_
 :version: 0.12.2
 :milestone-name: 0.12.2
 :milestone: 105
@@ -734,7 +747,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-12-1]
-=== 0.12.1 - 2024-10-27
+=== 0.12.1
+_2024-10-27_
 :version: 0.12.1
 :milestone-name: 0.12.1
 :milestone: 104
@@ -751,7 +765,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-12-0]
-=== 0.12.0 - 2024-10-23
+=== 0.12.0
+_2024-10-23_
 
 The Mill 0.12.0 release focuses on improving the scalability of Mill builds: in terms
 of performance, code organization, adherence to best practices, and community.
@@ -840,7 +855,8 @@ https://github.com/com-lihaoyi/scalasql/pull/30, https://github.com/com-lihaoyi/
 to try and match the semantics of runtime deps in Maven{link-pr}/3774[#3774]
 
 [#0-12-0-RC3]
-==== 0.12.0-RC3 - 2024-10-04
+==== 0.12.0-RC3
+_2024-10-04_
 
 Changes since 0.12.0-RC2
 
@@ -934,7 +950,8 @@ and unpacks the example into the current folder rather than a subfolder {link-pr
 environment variable names {link-pr}/3637[#3637]
 
 [#0-12-0-RC2]
-==== 0.12.0-RC2 - 2024-09-16
+==== 0.12.0-RC2
+_2024-09-16_
 
 Changes since 0.12.0-RC1
 
@@ -977,7 +994,8 @@ or `/publishAll __.publishArtifacts` suffix
 * Move `.mill.sc` alternate file extension to `.mill.scala` {link-pr}/3521[#3521]
 
 [#0-12-0-RC1]
-==== 0.12.0-RC1 - 2024-09-09
+==== 0.12.0-RC1
+_2024-09-09_
 
 * *Breaking Changes*
 
@@ -1079,7 +1097,8 @@ prefixed with `show` and no longer need a separate `graphviz`/`dot` install on M
 {link-pr}/3438[#3438]
 
 [#0-11-13]
-=== 0.11.13 - 2024-01-14
+=== 0.11.13
+_2024-01-14_
 :version: 0.11.13
 :milestone-name: 0.11.13
 :milestone: 100
@@ -1100,7 +1119,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-11-12]
-=== 0.11.12 - 2024-08-20
+=== 0.11.12
+_2024-08-20_
 :version: 0.11.12
 :milestone-name: 0.11.12
 :milestone: 99
@@ -1122,7 +1142,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-11]
-=== 0.11.11 - 2024-08-05
+=== 0.11.11
+_2024-08-05_
 :version: 0.11.11
 :milestone-name: 0.11.11
 :milestone: 98
@@ -1149,7 +1170,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-10]
-=== 0.11.10 - 2024-07-23
+=== 0.11.10
+_2024-07-23_
 :version: 0.11.10
 :milestone-name: 0.11.10
 :milestone: 95
@@ -1169,7 +1191,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-11-9]
-=== 0.11.9 - 2024-07-18
+=== 0.11.9
+_2024-07-18_
 :version: 0.11.9
 :milestone-name: 0.11.9
 :milestone: 94
@@ -1190,7 +1213,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-8]
-=== 0.11.8 - 2024-06-21
+=== 0.11.8
+_2024-06-21_
 :version: 0.11.8
 :milestone-name: 0.11.8
 :milestone: 93
@@ -1279,7 +1303,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-11-7]
-=== 0.11.7 - 2024-02-05
+=== 0.11.7
+_2024-02-05_
 :version: 0.11.7
 :milestone-name: 0.11.7
 :milestone: 91
@@ -1334,7 +1359,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-11-6]
-=== 0.11.6 - 2023-11-21
+=== 0.11.6
+_2023-11-21_
 :version: 0.11.6
 :milestone-name: 0.11.6
 :milestone: 90
@@ -1365,7 +1391,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-11-5]
-=== 0.11.5 - 2023-10-04
+=== 0.11.5
+_2023-10-04_
 :version: 0.11.5
 :milestone-name: 0.11.5
 :milestone: 89
@@ -1403,7 +1430,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-11-4]
-=== 0.11.4 - 2023-09-19
+=== 0.11.4
+_2023-09-19_
 :version: 0.11.4
 :milestone-name: 0.11.4
 :milestone: 88
@@ -1419,7 +1447,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-3]
-=== 0.11.3 - 2023-09-17
+=== 0.11.3
+_2023-09-17_
 :version: 0.11.3
 :milestone-name: 0.11.3
 :milestone: 87
@@ -1443,7 +1472,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-11-2]
-=== 0.11.2 - 2023-08-28
+=== 0.11.2
+_2023-08-28_
 :version: 0.11.2
 :milestone-name: 0.11.2
 :milestone: 86
@@ -1475,7 +1505,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-1]
-=== 0.11.1 - 2023-06-23
+=== 0.11.1
+_2023-06-23_
 :version: 0.11.1
 :milestone-name: 0.11.1
 :milestone: 85
@@ -1500,7 +1531,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0]
-=== 0.11.0 - 2023-06-06
+=== 0.11.0
+_2023-06-06_
 :version: 0.11.0
 :milestone-name: 0.11.0
 :milestone: 84
@@ -1525,7 +1557,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 // tag::changelogOld[]
 
 [#0-11-0-M11]
-=== 0.11.0-M11 - 2023-06-04
+=== 0.11.0-M11
+_2023-06-04_
 :version: 0.11.0-M11
 :milestone-name: 0.11.0-M11
 :milestone: 83
@@ -1553,7 +1586,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M10]
-=== 0.11.0-M10 - 2023-05-24
+=== 0.11.0-M10
+_2023-05-24_
 :version: 0.11.0-M10
 :milestone-name: 0.11.0-M10
 :milestone: 82
@@ -1583,7 +1617,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M9]
-=== 0.11.0-M9 - 2023-05-18
+=== 0.11.0-M9
+_2023-05-18_
 :version: 0.11.0-M9
 :milestone-name: 0.11.0-M9
 :milestone: 80
@@ -1624,7 +1659,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M8]
-=== 0.11.0-M8 - 2023-04-24
+=== 0.11.0-M8
+_2023-04-24_
 :version: 0.11.0-M8
 :milestone-name: 0.11.0-M8
 :milestone: 79
@@ -1667,7 +1703,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M7]
-=== 0.11.0-M7 - 2023-03-30
+=== 0.11.0-M7
+_2023-03-30_
 :version: 0.11.0-M7
 :milestone-name: 0.11.0-M7
 :milestone: 78
@@ -1693,7 +1730,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M6]
-=== 0.11.0-M6 - 2023-03-09
+=== 0.11.0-M6
+_2023-03-09_
 :version: 0.11.0-M6
 :milestone-name: 0.11.0-M6
 :milestone: 77
@@ -1710,7 +1748,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M5]
-=== 0.11.0-M5 - 2023-03-09
+=== 0.11.0-M5
+_2023-03-09_
 :version: 0.11.0-M5
 :milestone-name: 0.11.0-M5
 :milestone: 76
@@ -1737,7 +1776,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M4]
-=== 0.11.0-M4 - 2023-02-10
+=== 0.11.0-M4
+_2023-02-10_
 :version: 0.11.0-M4
 :milestone-name: 0.11.0-M4
 :milestone: 74
@@ -1762,7 +1802,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M3]
-=== 0.11.0-M3 - 2023-01-23
+=== 0.11.0-M3
+_2023-01-23_
 :version: 0.11.0-M3
 :milestone-name: 0.11.0-M3
 :milestone: 73
@@ -1788,7 +1829,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M2]
-=== 0.11.0-M2 - 2023-01-13
+=== 0.11.0-M2
+_2023-01-13_
 :version: 0.11.0-M2
 :milestone-name: 0.11.0-M2
 :milestone: 72
@@ -1812,7 +1854,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-11-0-M1]
-=== 0.11.0-M1 - 2022-12-17
+=== 0.11.0-M1
+_2022-12-17_
 :version: 0.11.0-M1
 :prev-version: 0.10.10
 :milestone: 70
@@ -1839,7 +1882,8 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 [#0-10-15]
-=== 0.10.15 - 2024-01-07
+=== 0.10.15
+_2024-01-07_
 :version: 0.10.15
 :milestone-name: 0.10.15
 :milestone: 92
@@ -1855,7 +1899,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-13]
-=== 0.10.13 - 2023-11-12
+=== 0.10.13
+_2023-11-12_
 :version: 0.10.13
 :milestone-name: 0.10.13
 :milestone: 81
@@ -1877,7 +1922,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-12]
-=== 0.10.12 - 2023-03-20
+=== 0.10.12
+_2023-03-20_
 :version: 0.10.12
 :milestone-name: 0.10.12
 :milestone: 75
@@ -1896,7 +1942,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-11]
-=== 0.10.11 - 2023-01-24
+=== 0.10.11
+_2023-01-24_
 :version: 0.10.11
 :milestone-name: 0.10.11
 :milestone: 71
@@ -1918,7 +1965,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-10]
-=== 0.10.10 - 2022-12-06
+=== 0.10.10
+_2022-12-06_
 :version: 0.10.10
 :prev-version: 0.10.9
 :milestone: 69
@@ -1949,7 +1997,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-9]
-=== 0.10.9 - 2022-11-10
+=== 0.10.9
+_2022-11-10_
 :version: 0.10.9
 :prev-version: 0.10.8
 :milestone: 68
@@ -1971,7 +2020,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-8]
-=== 0.10.8 - 2022-10-10
+=== 0.10.8
+_2022-10-10_
 :version: 0.10.8
 :prev-version: 0.10.7
 :milestone: 67
@@ -1995,7 +2045,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-7]
-=== 0.10.7 - 2022-08-24
+=== 0.10.7
+_2022-08-24_
 :version: 0.10.7
 :prev-version: 0.10.6
 :milestone: 66
@@ -2011,7 +2062,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-6]
-=== 0.10.6 - 2022-08-24
+=== 0.10.6
+_2022-08-24_
 :version: 0.10.6
 :prev-version: 0.10.5
 :milestone: 64
@@ -2035,7 +2087,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-5]
-=== 0.10.5 - 2022-07-01
+=== 0.10.5
+_2022-07-01_
 :version: 0.10.5
 :prev-version: 0.10.4
 :milestone: 63
@@ -2065,7 +2118,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-4]
-=== 0.10.4 - 2022-05-06
+=== 0.10.4
+_2022-05-06_
 :version: 0.10.4
 :prev-version: 0.10.3
 :milestone: 62
@@ -2093,7 +2147,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-3]
-=== 0.10.3 - 2022-04-11
+=== 0.10.3
+_2022-04-11_
 :version: 0.10.3
 :prev-version: 0.10.2
 :milestone: 61
@@ -2122,7 +2177,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-2]
-=== 0.10.2 - 2022-03-18
+=== 0.10.2
+_2022-03-18_
 :version: 0.10.2
 :prev-version: 0.10.1
 :milestone: 60
@@ -2143,7 +2199,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-1]
-=== 0.10.1 - 2022-03-08
+=== 0.10.1
+_2022-03-08_
 :version: 0.10.1
 :prev-version: 0.10.0
 :milestone: 59
@@ -2176,7 +2233,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-0]
-=== 0.10.0 - 2022-01-14
+=== 0.10.0
+_2022-01-14_
 :version: 0.10.0
 :prev-version: 0.10.0-M5
 :milestone: 57
@@ -2199,7 +2257,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-0-M5]
-=== 0.10.0-M5 - 2021-12-18
+=== 0.10.0-M5
+_2021-12-18_
 :version: main
 :prev-version: 0.10.0-M4
 :milestone: 55
@@ -2227,7 +2286,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-0-M4]
-=== 0.10.0-M4 - 2021-11-08
+=== 0.10.0-M4
+_2021-11-08_
 :version: 0.10.0-M4
 :prev-version: 0.10.0-M3
 :milestone: 54
@@ -2250,7 +2310,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-1-0-M3]
-=== 0.10.0-M3 - 2021-09-29
+=== 0.10.0-M3
+_2021-09-29_
 :version: 0.10.0-M3
 :prev-version: 0.10.0-M2
 :milestone: 53
@@ -2276,7 +2337,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-10-0-M2]
-=== 0.10.0-M2 - 2021-09-17
+=== 0.10.0-M2
+_2021-09-17_
 :version: 0.10.0-M2
 :prev-version: 0.9.9
 :milestone: 51
@@ -2301,7 +2363,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-9-12]
-=== 0.9.12 - 2022-01-07
+=== 0.9.12
+_2022-01-07_
 :version: 0.9.12
 :prev-version: 0.9.11
 :milestone: 58
@@ -2316,7 +2379,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-9-11]
-=== 0.9.11 - 2021-12-15
+=== 0.9.11
+_2021-12-15_
 :version: 0.9.11
 :prev-version: 0.9.10
 :milestone: 56
@@ -2330,7 +2394,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-9-10]
-=== 0.9.10 - 2021-11-13
+=== 0.9.10
+_2021-11-13_
 :version: 0.9.10
 :prev-version: 0.9.9
 :milestone: 52
@@ -2347,7 +2412,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-9-9]
-=== 0.9.9 - 2021-07-15
+=== 0.9.9
+_2021-07-15_
 :version: 0.9.9
 :prev-version: 0.9.8
 :milestone: 50
@@ -2366,7 +2432,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-9-8]
-=== 0.9.8 - 2021-05-27
+=== 0.9.8
+_2021-05-27_
 :version: 0.9.8
 :prev-version: 0.9.7
 :milestone: 49
@@ -2388,7 +2455,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-9-7]
-=== 0.9.7 - 2021-05-14
+=== 0.9.7
+_2021-05-14_
 :version: 0.9.7
 :prev-version: 0.9.6
 :milestone: 48
@@ -2413,7 +2481,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 [#0-9-6]
-=== 0.9.6 - 2021-04-03
+=== 0.9.6
+_2021-04-03_
 
 _The mill project home and repository has been moved to https://github.com/com-lihaoyi/mill._
 
@@ -2433,7 +2502,8 @@ and the {link-compare}/0.9.5\...0.9.6[list of commits]._
 
 
 [#0-9-5]
-=== 0.9.5 - 2021-01-26
+=== 0.9.5
+_2021-01-26_
 
 * Updated zinc to 1.4.4
 * Support for Scala Native 0.4.0
@@ -2447,7 +2517,8 @@ and the link:{link-compare}/0.9.4\...0.9.5[list of commits]._
 
 
 [#0-9-4]
-=== 0.9.4 - 2020-12-21
+=== 0.9.4
+_2020-12-21_
 
 * Implemented more BSP protocol commands and fixed some glitches with IntelliJ
 * Stabilized CI builds
@@ -2459,7 +2530,8 @@ and the {link-compare}/0.9.3\...0.9.4[list of commits]._
 
 
 [#0-9-3]
-=== 0.9.3 - 2020-11-26
+=== 0.9.3
+_2020-11-26_
 
 _(We also tagged `0.9.0`, `0.9.1`, and `0.9.2`, but due to release difficulties, we ask you not to use them.)_
 
@@ -2486,7 +2558,8 @@ and the {link-compare}/0.8.0\...0.9.3[list of commits]._
 
 
 [#0-8-0]
-=== 0.8.0 - 2020-07-20
+=== 0.8.0
+_2020-07-20_
 
 * Bump external dependencies: uPickle 1.2.0, Ammonite 2.2.0, etc.
 * Use default coursier repos (#931)
@@ -2498,7 +2571,8 @@ and the {link-compare}/0.7.4\...0.8.0[list of commits]._
 
 
 [#0-7-4]
-=== 0.7.4 - 2020-07-03
+=== 0.7.4
+_2020-07-03_
 
 * new command line options `--repl` and `--no-server`, deprecated `--interactive` option
 * Support for Scala.js 1.1
@@ -2517,7 +2591,8 @@ and the {link-compare}/0.7.2\...0.7.3[list of commits]._
 
 
 [#0-7-2]
-=== 0.7.2 - 2020-05-19
+=== 0.7.2
+_2020-05-19_
 
 
 _For details refer to {link-milestone}/40?closed=1[milestone 0.7.2]
@@ -2525,14 +2600,16 @@ and the {link-compare}/0.7.1\...0.7.2[list of commits]._
 
 
 [#0-7-1]
-=== 0.7.1 - 2020-05-17
+=== 0.7.1
+_2020-05-17_
 
 _For details refer to {link-milestone}/39?closed=1[milestone 0.7.1]
 and the {link-compare}/0.7.0\...0.7.1[list of commits]._
 
 
 [#0-7-0]
-=== 0.7.0 - 2020-05-15
+=== 0.7.0
+_2020-05-15_
 
 * Greatly improved parallel builds via `-j &lt;n&gt;`/`--jobs &lt;n&gt;`, with better scheduling and utilization of multiple cores
 * `build.sc` files now uses Scala 2.13.2
@@ -2545,7 +2622,8 @@ and the {link-compare}/0.6.3\...0.7.0[list of commits]._
 
 
 [#0-6-3]
-=== 0.6.3 - 2020-05-10
+=== 0.6.3
+_2020-05-10_
 
 * Finished incomplete support to publish extra artifacts to IVY repositories (`publishLocal`)
 * Improved Sonatype uploads
@@ -2558,7 +2636,8 @@ and the {link-compare}/0.6.2\...0.6.3[list of commits]._
 
 
 [#0-6-2]
-=== 0.6.2 - 2020-04-22
+=== 0.6.2
+_2020-04-22_
 
 * Mill can now execute targets in parallel.
 This is experimental and need to be enabled with `--jobs &lt;n&gt;` option.
@@ -2578,7 +2657,8 @@ and the {link-compare}/0.6.1\...0.6.2[list of commits]._
 
 
 [#0-6-1]
-=== 0.6.1 - 2020-02-24
+=== 0.6.1
+_2020-02-24_
 
 * Bugfix: Mill now no longer leaks open files (version bump to uPickle 1.0.0)
 * New `--version` option
@@ -2596,7 +2676,8 @@ and the {link-compare}/0.6.0\...0.6.1[list of commits]._
 
 
 [#0-6-0]
-=== 0.6.0 - 2020-01-20
+=== 0.6.0
+_2020-01-20_
 
 * Support for METALS 0.8.0 in VSCode
 
@@ -2605,7 +2686,8 @@ and the {link-compare}/0.5.9\...0.6.0[list of commits]._
 
 
 [#0-5-9]
-=== 0.5.9 - 2020-01-14
+=== 0.5.9
+_2020-01-14_
 
 * Bump library versions again
 * Alias `T.ctx.*` functions to `T.*`: `T.dest`, `T.log`, etc.
@@ -2615,7 +2697,8 @@ _For details refer to the {link-compare}/0.5.7\...0.5.9[list of commits]._
 
 *Version 0.5.8 has some binary compatibility issues in requests-scala/geny and should not be used.*
 
-=== 0.5.7 - 2019-12-28
+=== 0.5.7
+_2019-12-28_
 
 * Bump library versions: Ammonite 2.0.1, uPickle 0.9.6, Scalatags 0.8.3, OS-Lib 0.6.2, Requests 0.4.7, Geny 0.4.2
 
@@ -2639,7 +2722,8 @@ _For details refer to {link-milestone}/32?closed=1[milestone 0.5.5]
 and the {link-compare}/0.5.3\...0.5.5[list of commits]._
 
 [#0-5-3]
-=== 0.5.3 - 2019-12-07
+=== 0.5.3
+_2019-12-07_
 
 * `GenIdea/idea`: improved support for generated sources and use/download sources in more cases
 * ScalaJS: improvements and support for ScalaJS 0.6.29+ and 1.0.1.RC1
@@ -2652,7 +2736,8 @@ _For details refer to {link-milestone}/31?closed=1[milestone 0.5.3]
 and the {link-compare}/0.5.2\...0.5.3[list of commits]._
 
 [#0-5-2]
-=== 0.5.2 - 2019-10-17
+=== 0.5.2
+_2019-10-17_
 
 * `TestModule`: new `testCached`target, which only re-runs tests after relevant changes
 * `TestModule.test`: fixed issue when stacktraces have no filename info
@@ -2668,7 +2753,8 @@ _For details refer to {link-milestone}/30?closed=1[milestone 0.5.2]
 and the {link-compare}/0.5.1\...0.5.2[list of commits]._
 
 [#0-5-1]
-=== 0.5.1 - 2019-09-05
+=== 0.5.1
+_2019-09-05_
 
 * GenIdea: Bug fixes
 * GenIdea: Support for module specific extensions (Facets) and additional config files
@@ -2687,7 +2773,8 @@ _For details refer to {link-milestone}/29?closed=1[milestone 0.5.1]
 and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 
 [#0-5-0]
-=== 0.5.0 - 2019-08-08
+=== 0.5.0
+_2019-08-08_
 
 * Mill now supports a `./mill`
 {link-current-doc-site}/#bootstrap-scripts-linuxos-x-only[bootstrap script], allowing a project to pin the version of Mill it requires, as well as letting contributors use `./mill ...` to begin development without needing to install Mill beforehand.
@@ -2698,14 +2785,16 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 * Fix scoverage: inherit repositories from outer project {link-pr}/645[#645]
 
 [#0-4-2]
-=== 0.4.2 - 2019-06-30
+=== 0.4.2
+_2019-06-30_
 
 * Improvements to IntelliJ project generation {link-pr}/616[#616]
 
 * Allow configuration of Scala.js' JsEnv {link-pr}/628[#628]
 
 [#0-4-1]
-=== 0.4.1 - 2019-06-13
+=== 0.4.1
+_2019-06-13_
 
 * Fixes for scala native test suites without test frameworks {link-issue}/627[#627]
 
@@ -2714,7 +2803,8 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 * Bug fixes for Scoverage integration {link-issue}/623[#623]
 
 [#0-4-0]
-=== 0.4.0 - 2019-05-20
+=== 0.4.0
+_2019-05-20_
 
 * Publish `compileMvnDeps` as provided scope ({link-issue}/535[535])
 
@@ -2734,7 +2824,8 @@ https://github.com/lihaoyi/requests-scala[Requests-Scala] available to use in yo
 * ScalaFmt support now uses the version specified in `.scalafmt.conf`
 
 [#0-3-6]
-=== 0.3.6 - 2019-01-17
+=== 0.3.6
+_2019-01-17_
 
 * Started to splitting out mill.api from mill.core
 
@@ -2757,17 +2848,20 @@ https://github.com/lihaoyi/requests-scala[Requests-Scala] available to use in yo
 * Added new `-k`/`--keep-going` commandline option to disable fail fast behaviour and continue build as long as possible in case of a failure
 
 [#0-3-5]
-=== 0.3.5 - 2018-11-18
+=== 0.3.5
+_2018-11-18_
 
 * Bump uPickle to 0.7.1
 
 [#0-3-4]
-=== 0.3.4 - 2018-11-06
+=== 0.3.4
+_2018-11-06_
 
 * Mill is now bundled with https://github.com/lihaoyi/os-lib[OS-Lib], providing a simpler way of dealing with filesystem APIs and subprocesses
 
 [#0-3-3]
-=== 0.3.3 - 2018-11-02
+=== 0.3.3
+_2018-11-02_
 
 * Added new `debug` method to context logger, to log additional debug info into the task specific output dir (`out/&lt;task&gt;/log`)
 
@@ -2776,12 +2870,14 @@ https://github.com/lihaoyi/requests-scala[Requests-Scala] available to use in yo
 * Fix `ScalaModule#docJar` task when Scala minor versions differ {link-issue}/475[475]
 
 [#0-3-2]
-=== 0.3.2 - 2018-10-19
+=== 0.3.2
+_2018-10-19_
 
 * Automatically detect main class to make `ScalaModule#assembly` self-executable
 
 [#0-3-0]
-=== 0.3.0 - 2018-10-19
+=== 0.3.0
+_2018-10-19_
 
 * Bump Ammonite to 1.3.2, Fastparse to 2.0.4
 
@@ -2792,7 +2888,8 @@ https://github.com/lihaoyi/requests-scala[Requests-Scala] available to use in yo
 * Allow sub-domains when publishing {link-pr}/441[#441]
 
 [#0-2-8]
-=== 0.2.8 - 2018-09-21
+=== 0.2.8
+_2018-09-21_
 
 * `mill inspect` now displays out the doc-comment documentation for a task.
 
@@ -2803,7 +2900,8 @@ https://github.com/lihaoyi/requests-scala[Requests-Scala] available to use in yo
 * Don't compile hidden files {link-pr}/428[#428]
 
 [#0-2-7]
-=== 0.2.7 - 2018-08-27
+=== 0.2.7
+_2018-08-27_
 
 * Add `visualizePlan` command
 
@@ -2823,7 +2921,8 @@ https://github.com/lihaoyi/requests-scala[Requests-Scala] available to use in yo
 {link-pr}/414[#414]
 
 [#0-2-6]
-=== 0.2.6 - 2018-07-30
+=== 0.2.6
+_2018-07-30_
 
 * Improve incremental compilation to work with transitive module dependencies
 
@@ -2832,7 +2931,8 @@ https://github.com/lihaoyi/requests-scala[Requests-Scala] available to use in yo
 * Speed up compilation time of `build.sc` files by removing duplicate macro generated routing code
 
 [#0-2-5]
-=== 0.2.5 - 2018-07-22
+=== 0.2.5
+_2018-07-22_
 
 * Add `.runBackground` and `.runMainBackground` commands, to run something in the background without waiting for it to return.
 The process will keep running until it exits normally, or until the same `.runBackground` command is run a second time to spawn a new version of the process.
@@ -2846,7 +2946,8 @@ Try it out!
 * Fix propagation of `--color` flag
 
 [#0-2-4]
-=== 0.2.4 - 2018-07-07
+=== 0.2.4
+_2018-07-07_
 
 * Fix resolution of `scala-{library,compiler,reflect}` in case of conflict
 
@@ -2857,7 +2958,8 @@ Try it out!
 * Fix publishing of ScalaJS modules to properly handle upstream ScalaJS dependencies
 
 [#0-2-3]
-=== 0.2.3 - 2018-06-03
+=== 0.2.3
+_2018-06-03_
 
 * Added the {link-current-doc-site}/#visualize[mill visualize]
 command, making it easy to visualize the relationships between various tasks and modules in your Mill build.
@@ -2875,7 +2977,8 @@ better jump-to-definition for third-party libraries, no longer stomping over man
 ({link-pr}/309[309])
 
 [#0-2-2]
-=== 0.2.2 - 2018-05-20
+=== 0.2.2
+_2018-05-20_
 
 * Preserve caches when transitioning between `-i`/`--interactive` and the fast client/server mode ({link-issue}/329[329])
 
@@ -2899,7 +3002,8 @@ better jump-to-definition for third-party libraries, no longer stomping over man
 * Allow `ScalaModule#generatedSources` to allow single files (previous you could only pass in directories)
 
 [#0-2-0]
-=== 0.2.0 - 2018-04-10
+=== 0.2.0
+_2018-04-10_
 
 * Universal (combined batch/sh) script generation for launcher, assembly, and release ({link-issue}/264[#264])
 
@@ -2932,7 +3036,8 @@ better jump-to-definition for third-party libraries, no longer stomping over man
 * If a module depends on multiple submodules with different versions of an ivy dependency, only one version is resolved ({link-issue}/273[#273])
 
 [#0-1-7]
-=== 0.1.7 - 2018-03-26
+=== 0.1.7
+_2018-03-26_
 
 * Support for non-interactive (client/server) mode on Windows.
 
@@ -2954,14 +3059,16 @@ better jump-to-definition for third-party libraries, no longer stomping over man
 * Bumped underlying Ammonite version to http://ammonite.io/#1.1.0[1.1.0], which provides the improved Windows and Java 9 support
 
 [0-1-6]
-=== 0.1.6 - 2018-03-13
+=== 0.1.6
+_2018-03-13_
 
 * Fixes for non-interactive (client/server) mode on Java 9
 
 * Windows batch (.bat) generation for launcher, assembly, and release
 
 [#0-1-5]
-=== 0.1.5 - 2018-03-13
+=== 0.1.5
+_2018-03-13_
 
 * Introduced the `mill plan foo.bar` command, which shows you what the execution plan of running the `foo.bar` task looks like without actually evaluating it.
 
@@ -2994,7 +3101,8 @@ better jump-to-definition for third-party libraries, no longer stomping over man
 * `out/{module_name}` now added as a content root in generated IntelliJ project
 
 [#0-1-4]
-=== 0.1.4 - 2018-03-04
+=== 0.1.4
+_2018-03-04_
 
 * Speed up Mill client initialization by another 50-100ms
 
@@ -3011,7 +3119,8 @@ better jump-to-definition for third-party libraries, no longer stomping over man
 * Log a message when Mill is initializing the Zinc compiler interface
 
 [#0-1-3]
-=== 0.1.3 - 2018-02-26
+=== 0.1.3
+_2018-02-26_
 
 * Greatly reduced the overhead of evaluating Mill tasks, with a warm already-cached `mill dev.launcher` now taking ~450ms instead of ~1000ms
 
@@ -3020,7 +3129,8 @@ better jump-to-definition for third-party libraries, no longer stomping over man
 * Fixed linking of multi-module Scala.js projects
 
 [#0-1-2]
-=== 0.1.2 - 2018-02-25
+=== 0.1.2
+_2018-02-25_
 
 * Mill now keeps a long-lived work-daemon around in between commands; this should improve performance of things like `compile` which benefit from the warm JVM.
 You can use `-i`/`--interactive` for interactive consoles/REPLs and for running commands without the daemon
@@ -3032,13 +3142,15 @@ You can use `-i`/`--interactive` for interactive consoles/REPLs and for running 
 * Support for multiple `testFrameworks` in a test module.
 
 [#0-1-1]
-=== 0.1.1 - 2018-02-19
+=== 0.1.1
+_2018-02-19_
 
 * Fixes for `foo.console`
 * Enable Ammonite REPL integration via `foo.repl`
 
 [#0-1-0]
-=== 0.1.0 - 2018-02-18
+=== 0.1.0
+_2018-02-18_
 
 * First public release
 
