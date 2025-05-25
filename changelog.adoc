@@ -132,6 +132,17 @@ package build
 * `mill.testkit.TestBaseModule` has been renamed `mill.testkit.TestRootModule` ({link-pr}/5143[#5143]),
   to make it clear it is meant to be the root of the module hierarchy
 
+* The `T.*` methods have been removed. These were replaced by `Task.*` equivalents in 0.12.x.
+
+```diff
+- def foo = T {
+-   ...T.dest...
+- }
++ def foo = Task{
++   ...Task.dest...
++ }
+```
+
 * The terms `client`/`server` throughout the codebase have been renamed to `launcher`/`daemon` ({link-pr}/5135[#5135])
 
 * Removed `PublishModule.publishSelfDependency` in favor of `artifactMetadata` ({link-pr}/5118[#5118])
