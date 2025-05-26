@@ -337,9 +337,10 @@ object `package` extends mill.Module {
       os.proc("git", "clone", Task.workspace / ".git", checkout).call(stdout = os.Inherit)
 
       try os.proc("git", "checkout", gitVersion).call(cwd = checkout, stdout = os.Inherit)
-      catch{case e: os.SubprocessException =>
-        // When there are no unstable releases, the latest unstable version is the millVersion
-        os.proc("git", "checkout", millVersion).call(cwd = checkout, stdout = os.Inherit)
+      catch {
+        case e: os.SubprocessException =>
+          // When there are no unstable releases, the latest unstable version is the millVersion
+          os.proc("git", "checkout", millVersion).call(cwd = checkout, stdout = os.Inherit)
       }
 
       val outputFolder = if (newWebsiteTask) {
