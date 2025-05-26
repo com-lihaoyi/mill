@@ -13,42 +13,16 @@ import java.util.concurrent.ConcurrentHashMap
  * come from the build and not from remote repositories or ~/.ivy2/local. See
  * `MillJavaModule#{testTransitiveDeps,writeLocalTestOverrides}` in the Mill build.
  */
-private final class TestOverridesRepo(root: os.ResourcePath) extends Repository {
-
-  private val map = new ConcurrentHashMap[Module, Option[String]]
-
-  private def listFor(mod: Module): Either[os.ResourceNotFoundException, String] = {
-
-    def entryPath = root / s"${mod.organization.value}-${mod.name.value}"
-
-    val inCacheOpt = Option(map.get(mod))
-
-    inCacheOpt
-      .getOrElse {
-
-        val computedOpt =
-          try Some(os.read(entryPath))
-          catch {
-            case _: os.ResourceNotFoundException =>
-              None
-          }
-        val concurrentOpt = Option(map.putIfAbsent(mod, computedOpt))
-        concurrentOpt.getOrElse(computedOpt)
-      }
-      .toRight {
-        new os.ResourceNotFoundException(entryPath)
-      }
-  }
-
+private final class TestOverridesRepo() extends Repository {
   def find[F[_]: Monad](
       module: Module,
       version: String,
       fetch: Repository.Fetch[F]
   ): EitherT[F, String, (ArtifactSource, Project)] =
     EitherT.fromEither[F] {
-      listFor(module)
-        .left.map(e => s"No test override found at ${e.path}")
-        .map { _ =>
+      sys.env.get(s"MILL_LOCAL_TEST_OVERRIDE_${module.organization.value}-${module.name.value}") match{
+        case None => Left(s"No test override found for $module")
+        case Some(v) =>
           val proj = Project(
             module,
             version,
@@ -66,8 +40,8 @@ private final class TestOverridesRepo(root: os.ResourcePath) extends Repository 
             publications = Nil,
             info = Info.empty
           )
-          (this, proj)
-        }
+          Right((this, proj))
+      }
     }
 
   def artifacts(
@@ -75,8 +49,7 @@ private final class TestOverridesRepo(root: os.ResourcePath) extends Repository 
       project: Project,
       overrideClassifiers: Option[Seq[Classifier]]
   ): Seq[(Publication, Artifact)] =
-    listFor(project.module)
-      .toTry.get
+    sys.env(s"MILL_LOCAL_TEST_OVERRIDE_${dependency.module.organization.value}-${dependency.module.name.value}")
       .linesIterator
       .map(os.Path(_))
       .filter(os.exists)

@@ -175,9 +175,7 @@ object `package` extends MillJavaModule with DistModule {
         try {
           os.call(
             cmd = (launcher().path.toString, rest),
-            env = forkEnv() ++ Map(
-              "MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" -> build.dist.localTestOverridesClasspath().path.toString
-            ),
+            env = forkEnv() ++ build.dist.localTestOverridesEnv(),
             cwd = wd,
             stdout = os.Inherit
           )

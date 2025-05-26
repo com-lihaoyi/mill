@@ -16,8 +16,6 @@ object `package` extends MillPublishScalaModule {
 
   def forkEnv =
     super.forkEnv() ++
-      Map(
-        "MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString(),
-        "MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" -> build.dist.localTestOverridesClasspath().path.toString
-      )
+      Map("MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString()) ++
+      build.dist.localTestOverridesEnv()
 }
