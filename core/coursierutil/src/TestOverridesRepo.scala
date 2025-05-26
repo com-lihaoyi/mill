@@ -14,15 +14,19 @@ import java.util.concurrent.ConcurrentHashMap
  * `MillJavaModule#{testTransitiveDeps,writeLocalTestOverrides}` in the Mill build.
  */
 final class TestOverridesRepo() extends Repository {
+  private def envFor(mod: Module): Option[String] = {
+    val key = s"MILL_LOCAL_TEST_OVERRIDE_${mod.organization.value}-${mod.name.value}"
+      .replaceAll("[.-]", "_")
+    sys.env.get(key)
+  }
+
   def find[F[_]: Monad](
       module: Module,
       version: String,
       fetch: Repository.Fetch[F]
   ): EitherT[F, String, (ArtifactSource, Project)] =
     EitherT.fromEither[F] {
-      sys.env.get(
-        s"MILL_LOCAL_TEST_OVERRIDE_${module.organization.value}-${module.name.value}"
-      ) match {
+      envFor(module) match {
         case None => Left(s"No test override found for $module")
         case Some(v) =>
           val proj = Project(
@@ -51,9 +55,8 @@ final class TestOverridesRepo() extends Repository {
       project: Project,
       overrideClassifiers: Option[Seq[Classifier]]
   ): Seq[(Publication, Artifact)] =
-    sys.env(
-      s"MILL_LOCAL_TEST_OVERRIDE_${dependency.module.organization.value}-${dependency.module.name.value}"
-    )
+    envFor(dependency.module)
+      .get
       .linesIterator
       .map(os.Path(_))
       .filter(os.exists)
