@@ -12,8 +12,6 @@ import utest.*
 import mill.util.TokenReaders.*
 
 object BspModuleTests extends TestSuite {
-  val bspClientType = BspClientType.Other("tests")
-
   val testScalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
   object MultiBase extends TestRootModule {
@@ -48,7 +46,7 @@ object BspModuleTests extends TestSuite {
     test("bspCompileClasspath") {
       test("single module") - UnitTester(MultiBase, null).scoped { eval =>
         val Right(result) = eval.apply(
-          MultiBase.HelloBsp.bspCompileClasspath(bspClientType)
+          MultiBase.HelloBsp.bspCompileClasspath
         ): @unchecked
 
         val relResult =
@@ -66,7 +64,7 @@ object BspModuleTests extends TestSuite {
       }
       test("dependent module") - UnitTester(MultiBase, null).scoped { eval =>
         val Right(result) = eval.apply(
-          MultiBase.HelloBsp2.bspCompileClasspath(bspClientType)
+          MultiBase.HelloBsp2.bspCompileClasspath
         ): @unchecked
 
         val relResults: Seq[FilePath] = result.value(eval.evaluator).iterator.map { p =>
@@ -111,7 +109,7 @@ object BspModuleTests extends TestSuite {
           UnitTester(InterDeps, null).scoped { eval =>
             val start = System.currentTimeMillis()
             val Right(_) = eval.apply(
-              InterDeps.Mod(entry).bspCompileClasspath(bspClientType)
+              InterDeps.Mod(entry).bspCompileClasspath
             ): @unchecked
             val timeSpent = System.currentTimeMillis() - start
             assert(timeSpent < maxTime)

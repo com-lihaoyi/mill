@@ -21,7 +21,8 @@ import mill.api.MillException
 import mill.api.Result
 import mill.api.Segments
 import mill.api.internal.{BspBuildTarget, BspClientType, BspModuleApi, BspUri, EvaluatorApi, IdeaConfigFile, JavaFacet, JavaModuleApi, JvmBuildTarget, ResolvedModule, Scoped, internal}
-import mill.define.{BuildCtx, ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
+import mill.constants.DebugLog
+import mill.define.{BuildCtx, ExecutionPaths, ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.BspModule
 import mill.scalalib.internal.ModuleUtils
@@ -695,14 +696,25 @@ trait JavaModule
    * Keep in sync with [[transitiveCompileClasspath]]
    */
   @internal
-  private[mill] def bspTransitiveCompileClasspath(clientType: BspClientType): Task[Seq[UnresolvedPath]] = Task.Anon {
-    Task.traverse(transitiveModuleCompileModuleDeps)(m =>
+  private[mill] def bspTransitiveCompileClasspath: T[Seq[UnresolvedPath]] = Task {
+    DebugLog(s"bspTransitiveCompileClasspath: transitiveModuleCompileModuleDeps=$transitiveModuleCompileModuleDeps")
+
+    val result = Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
-        m.localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
-          Seq(m.bspCompileClassesPath(clientType)())
+        val localCompileClasspath = m.localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path))
+        val compileClassesPath = UnresolvedPath.ResolvedPath(m.compileClassesPath)
+        DebugLog(
+          s"""bspTransitiveCompileClasspath[$m]:
+             |  localCompileClasspath=$localCompileClasspath
+             |  compileClassesPath=$compileClassesPath
+             |""".stripMargin)
+        localCompileClasspath ++ Seq(compileClassesPath)
       }
     )()
       .flatten
+
+    DebugLog(s"bspTransitiveCompileClasspath: result=$result")
+    result
   }
 
   /**
@@ -793,31 +805,28 @@ trait JavaModule
       )
   }
 
+  /** The path where the compiled classes produced by [[compile]] are stored. */
+  @internal
+  private[mill] def compileClassesPath: os.Path =
+    ExecutionPaths.resolveRelativeToOut(compile).dest / "classes"
+
   /**
    * TODO: !!! update docs
    * The path to the compiled classes by [[compile]] without forcing to actually run the compilation.
    * This is safe in an BSP context, as the compilation done later will use the
    * exact same compilation settings, so we can safely use the same path.
    *
-   * Keep in sync with [[compile]]
+   * Keep in sync with [[compile]] and [[bspBuildTargetCompile]].
    */
   @internal
-  private[mill] def bspCompileClassesPath(clientType: BspClientType): Task[UnresolvedPath] = clientType match {
-    case BspClientType.IntellijBSP => Task.Anon {
-      val paths = mill.define.ExecutionPaths.resolve(
-        BuildCtx.workspaceRoot / os.SubPath(mill.constants.OutFiles.out),
-        bspBuildTargetCompileMerged
-      )
-      UnresolvedPath.ResolvedPath(paths.dest)
-    }
+  private[mill] def bspCompileClassesPath(clientType: BspClientType): Task[UnresolvedPath] = Task.Anon {
+    val path = UnresolvedPath.ResolvedPath(clientType match {
+      case BspClientType.IntellijBSP => ExecutionPaths.resolveRelativeToOut(bspBuildTargetCompileMerged).dest
+      case BspClientType.Other(_) => compileClassesPath
+    })
 
-    case BspClientType.Other(_) => Task.Anon {
-      val paths = mill.define.ExecutionPaths.resolve(
-        BuildCtx.workspaceRoot / os.SubPath(mill.constants.OutFiles.out),
-        compile
-      )
-      UnresolvedPath.ResolvedPath(paths.dest)
-    }
+    DebugLog(s"bspCompileClassesPath: $clientType -> $path")
+    path
   }
 
   /**
@@ -826,8 +835,9 @@ trait JavaModule
    * Keep in sync with [[bspLocalRunClasspath]]
    */
   override def localRunClasspath: T[Seq[PathRef]] = Task {
-    super.localRunClasspath() ++ resources() ++
-      Seq(compile().classes)
+    val result = super.localRunClasspath() ++ resources() ++ Seq(compile().classes)
+    DebugLog(s"localRunClasspath: $result")
+    result
   }
 
   /**
@@ -882,10 +892,10 @@ trait JavaModule
    * Keep in sync with [[compileClasspath]]
    */
   @internal
-  private[mill] def bspCompileClasspath(clientType: BspClientType): Task[EvaluatorApi => Seq[String]] = Task.Anon {
+  private[mill] def bspCompileClasspath: Task[EvaluatorApi => Seq[String]] = Task.Anon {
     (ev: EvaluatorApi) =>
       (resolvedMvnDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
-        bspTransitiveCompileClasspath(clientType)() ++
+        bspTransitiveCompileClasspath() ++
         localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path))).map(_.resolve(
         os.Path(ev.outPathJava)
       )).map(sanitizeUri)
@@ -1335,10 +1345,10 @@ trait JavaModule
       if (enableJvmCompileClasspathProvider) {
         // We have a dedicated request for it
         Task.Anon {
-          (e: EvaluatorApi) => Seq.empty[String]
+          (_: EvaluatorApi) => Seq.empty[String]
         }
       } else {
-        bspCompileClasspath(clientType)
+        bspCompileClasspath
       }
 
     val classesPathTask =
@@ -1367,7 +1377,7 @@ trait JavaModule
       (
         classesPathTask().resolve(os.Path(ev.outPathJava)).toNIO,
         javacOptions() ++ mandatoryJavacOptions(),
-        bspCompileClasspath(clientType).apply().apply(ev)
+        bspCompileClasspath.apply().apply(ev)
       )
     }
   }

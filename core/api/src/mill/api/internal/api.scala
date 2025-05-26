@@ -37,7 +37,7 @@ trait JavaModuleApi extends ModuleApi {
   private[mill] def bspBuildTargetJavacOptions(clientType: BspClientType, clientWantsSemanticDb: Boolean)
       : TaskApi[EvaluatorApi => (java.nio.file.Path, Seq[String], Seq[String])]
 
-  private[mill] def bspCompileClasspath(clientType: BspClientType): TaskApi[EvaluatorApi => Seq[String]]
+  private[mill] def bspCompileClasspath: TaskApi[EvaluatorApi => Seq[String]]
 
   private[mill] def bspBuildTargetScalacOptions(
       clientType: BspClientType,

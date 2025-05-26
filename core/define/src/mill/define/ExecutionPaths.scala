@@ -21,10 +21,15 @@ object ExecutionPaths {
       targetPath / os.up / s"${targetPath.last}.log"
     )
   }
+
   def resolve(
       outPath: os.Path,
       task: Task.Named[?]
   ): ExecutionPaths = resolve(outPath, task.ctx.segments)
+
+  /** Resolves paths relative to the `out` folder. */
+  def resolveRelativeToOut(task: Task.Named[?]): ExecutionPaths =
+    resolve(BuildCtx.workspaceRoot / os.SubPath(mill.constants.OutFiles.out), task)
 
   // case-insensitive match on reserved names
   private val ReservedWinNames =
