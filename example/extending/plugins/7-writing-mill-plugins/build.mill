@@ -20,10 +20,11 @@ object myplugin extends ScalaModule with PublishModule {
   object test extends ScalaTests with TestModule.Utest {
     def mvnDeps = Seq(mvn"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Task {
+      val artifact = s"${myplugin.pomSettings().organization}-${myplugin.artifactId()}"
+      val localClasspathString = myplugin.localClasspath().map(_.path).mkString("\n")
       Map(
         "MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString,
-        s"MILL_LOCAL_TEST_OVERRIDE_${myplugin.pomSettings().organization}-${myplugin.artifactId()}" ->
-          myplugin.localClasspath().map(_.path).mkString("\n")
+        s"MILL_LOCAL_TEST_OVERRIDE_$artifact" -> localClasspathString
       )
     }
 

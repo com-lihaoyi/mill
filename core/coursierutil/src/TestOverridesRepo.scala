@@ -1,4 +1,4 @@
-package mill.util
+package mill.coursierutil
 
 import coursier.core.{ArtifactSource, Extension, Info, Module, Project, Publication}
 import coursier.util.{Artifact, EitherT, Monad}
@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap
  * come from the build and not from remote repositories or ~/.ivy2/local. See
  * `MillJavaModule#{testTransitiveDeps,writeLocalTestOverrides}` in the Mill build.
  */
-private final class TestOverridesRepo() extends Repository {
+final class TestOverridesRepo() extends Repository {
   def find[F[_]: Monad](
       module: Module,
       version: String,

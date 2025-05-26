@@ -651,8 +651,8 @@ object Jvm {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
     val resolutionParams0 = resolutionParams.addForceVersion(forceVersions.toSeq*)
-    
-    val testOverridesRepo = new TestOverridesRepo()
+
+    val testOverridesRepo = new mill.coursierutil.TestOverridesRepo()
 
     val repositories0 =
       if (checkGradleModules)
