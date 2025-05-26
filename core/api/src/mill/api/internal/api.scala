@@ -34,10 +34,14 @@ trait JavaModuleApi extends ModuleApi {
 
   private[mill] def bspLoggingTest: TaskApi[Unit]
 
-  private[mill] def bspBuildTargetJavacOptions(clientType: BspClientType, clientWantsSemanticDb: Boolean)
+  private[mill] def bspBuildTargetJavacOptions(
+      clientType: BspClientType,
+      clientWantsSemanticDb: Boolean
+  )
       : TaskApi[EvaluatorApi => (java.nio.file.Path, Seq[String], Seq[String])]
 
-  private[mill] def bspCompileClasspath(clientType: BspClientType): TaskApi[EvaluatorApi => Seq[String]]
+  private[mill] def bspCompileClasspath(clientType: BspClientType)
+      : TaskApi[EvaluatorApi => Seq[String]]
 
   private[mill] def bspBuildTargetScalacOptions(
       clientType: BspClientType,
@@ -187,6 +191,7 @@ trait PathRefApi {
 
 /** Used to handle edge cases for specific BSP clients. */
 private[mill] enum BspClientType {
+
   /** Intellij IDEA */
   case IntellijBSP
 
@@ -203,7 +208,7 @@ private[mill] enum BspClientType {
    * seems like a hack, this seems to be a working solution.
    *
    * @see https://github.com/com-lihaoyi/mill/issues/4427#issuecomment-2908889481
-   **/
+   */
   def needsToMergeResourcesIntoCompileDest: Boolean = this match {
     case IntellijBSP => true
     case Other(_) => false

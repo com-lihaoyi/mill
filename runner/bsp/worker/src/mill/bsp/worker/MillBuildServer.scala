@@ -89,7 +89,9 @@ private class MillBuildServer(
       }
       // Not sure why we need to set this early, but we do
       sessionInfo = SessionInfo(
-        clientType, clientWantsSemanticDb = false, enableJvmCompileClasspathProvider = enableJvmCompileClasspathProvider
+        clientType,
+        clientWantsSemanticDb = false,
+        enableJvmCompileClasspathProvider = enableJvmCompileClasspathProvider
       )
       // TODO: scan BspModules and infer their capabilities
 
@@ -139,7 +141,8 @@ private class MillBuildServer(
       }
 
       sessionInfo = SessionInfo(
-        clientType, clientWantsSemanticDb = clientWantsSemanticDb,
+        clientType,
+        clientWantsSemanticDb = clientWantsSemanticDb,
         enableJvmCompileClasspathProvider = enableJvmCompileClasspathProvider
       )
       new InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
