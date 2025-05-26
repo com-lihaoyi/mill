@@ -114,7 +114,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
         val targetIds = buildTargets
           .getTargets
           .asScala
-          .filter(_.getDisplayName != "errored")
+          .filter(_.getDisplayName != "errored.exception")
+          .filter(_.getDisplayName != "errored.compilation-error")
           .filter(_.getDisplayName != "delayed")
           .map(_.getId)
           .asJava
@@ -296,7 +297,13 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         buildServer.buildTargetCompile(
           new b.CompileParams(
-            targets.filter(_.getDisplayName == "errored").map(_.getId).asJava
+            targets.filter(_.getDisplayName == "errored.exception").map(_.getId).asJava
+          )
+        ).get()
+
+        buildServer.buildTargetCompile(
+          new b.CompileParams(
+            targets.filter(_.getDisplayName == "errored.compilation-error").map(_.getId).asJava
           )
         ).get()
 
@@ -311,7 +318,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
         val erroredCompileFuture = buildServer.buildTargetCompile(
           new b.CompileParams(
-            targets.filter(_.getDisplayName == "errored").map(_.getId).asJava
+            targets.filter(_.getDisplayName == "errored.exception").map(_.getId).asJava
           )
         )
         erroredCompileFuture.cancel(true)
@@ -323,7 +330,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         .filter(_.startsWith("["))
         .mkString
 
-      val expectedCancelledLine = "[6-compile] buildTargetCompile was cancelled"
+      val expectedCancelledLine = "[7-compile] buildTargetCompile was cancelled"
 
       assert(logs.linesIterator.contains(expectedCancelledLine))
 
@@ -347,7 +354,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
         (message.getType, message.getMessage)
       }
       val expectedMessages = Seq(
-        (b.MessageType.ERROR, "Compiling errored failed, see Mill logs for more details")
+        // no message for errored.compilation-error, compilation diagnostics are enough
+        (b.MessageType.ERROR, "Compiling errored.exception failed, see Mill logs for more details")
       )
       assert(expectedMessages == messages0)
     }
