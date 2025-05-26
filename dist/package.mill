@@ -219,14 +219,15 @@ object `package` extends MillJavaModule with DistModule {
     prepareBootstrapLauncher(millBootstrapBat().path, Task.dest, build.millVersion(), "mill.bat")
   }
 
-  def examplePathsWithArtifactName: Task[Seq[(PathRef, String)]] = Task.Input {
-    for {
-      exampleMod <- build.example.exampleModules
-      path = exampleMod.moduleDir
-    } yield {
-      val example = path.subRelativeTo(Task.workspace)
+  def examplePathsWithArtifactName0: Task[Seq[PathRef]] = Task.Input {
+    for (exampleMod <- build.example.exampleModules) yield PathRef(exampleMod.moduleDir)
+  }
+
+  def examplePathsWithArtifactName = Task {
+    for (pr <- examplePathsWithArtifactName0()) yield {
+      val example = pr.path.subRelativeTo(Task.workspace)
       val artifactName = example.segments.mkString("-")
-      (PathRef(path), artifactName)
+      (pr, s"${build.dist.artifactFileNamePrefix()}-$artifactName")
     }
   }
 
