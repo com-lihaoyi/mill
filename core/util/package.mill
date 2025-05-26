@@ -45,6 +45,6 @@ object `package` extends MillStableScalaModule with BuildInfo {
     ),
     BuildInfo.Value("scalaVersion", scalaVersion(), "Scala version used to compile mill core."),
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
-    BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version."),
+    BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version.")
   )
 }
