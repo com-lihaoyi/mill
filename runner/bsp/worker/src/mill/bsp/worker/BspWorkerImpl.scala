@@ -10,7 +10,7 @@ import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.PrintWriter
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{Executors, ThreadFactory}
+import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
 import scala.concurrent.{Await, CancellationException, Promise}
 import scala.concurrent.duration.Duration
 
@@ -27,17 +27,7 @@ object BspWorkerImpl {
   ): mill.api.Result[BspServerHandle] = {
 
     try {
-      // manage that from mill.exec.ExecutionContexts?
-      val executor = Executors.newCachedThreadPool(
-        new ThreadFactory {
-          val counter = new AtomicInteger
-          def newThread(runnable: Runnable): Thread = {
-            val t = new Thread(runnable, s"mill-bsp-jsonrpc-${counter.incrementAndGet()}")
-            t.setDaemon(true)
-            t
-          }
-        }
-      )
+      val executor = createJsonrpcExecutor()
       lazy val millServer
           : MillBuildServer & MillJvmBuildServer & MillJavaBuildServer & MillScalaBuildServer =
         new MillBuildServer(
@@ -106,4 +96,21 @@ object BspWorkerImpl {
         )
     }
   }
+
+  private val executorCounter = new AtomicInteger
+  private def createJsonrpcExecutor(): ExecutorService =
+    Executors.newCachedThreadPool(
+      new ThreadFactory {
+        val executorCount = executorCounter.incrementAndGet()
+        val counter = new AtomicInteger
+        def newThread(runnable: Runnable): Thread = {
+          val t = new Thread(
+            runnable,
+            s"mill-bsp-jsonrpc-$executorCount-thread-${counter.incrementAndGet()}"
+          )
+          t.setDaemon(true)
+          t
+        }
+      }
+    )
 }
