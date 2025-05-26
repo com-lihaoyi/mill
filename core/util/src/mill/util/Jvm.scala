@@ -667,7 +667,7 @@ object Jvm {
     val resolve = Resolve()
       .withCache(coursierCache0)
       .withDependencies(rootDeps)
-      .withRepositories(Seq(testOverridesRepo) ++ repositories0)
+      .withRepositories(repositories0 ++ Seq(testOverridesRepo))
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
       .withBoms(boms.iterator.toSeq)

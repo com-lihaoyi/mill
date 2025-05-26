@@ -50,6 +50,7 @@
         <orderEntry type="library" name="mainargs_3-0.7.6.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-constants.jar" level="project"/>
+        <orderEntry type="library" name="mill-core-coursierutil_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-define_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-eval_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-exec_3.jar" level="project"/>
