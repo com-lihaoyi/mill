@@ -18,7 +18,7 @@ _2025-05-25_
 
 :version: 1.0.0-RC1
 :milestone-name: 1.0.0-RC1
-:milestone: 115
+:milestone: 118
 :prev-version: 0.12.14
 
 `1.0.0-RC1` is the first release candidate of the upcoming Mill 1.0.0 release. This is a major
@@ -87,7 +87,7 @@ object foo extends JavaModule:
   the `import $ivy...` syntax and allows external configuration files like `.mill-version`,
   `.mill-jvm-version`, etc. to be configured together e.g.
 
-```
+```scala
 //| mill-version: 1.0.0
 //| mill-jvm-version: 17
 //| repositories: [$PWD_URI/custom-repo]
