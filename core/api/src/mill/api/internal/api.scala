@@ -30,16 +30,17 @@ trait JavaModuleApi extends ModuleApi {
 
   private[mill] def bspBuildTargetResources: TaskApi[Seq[java.nio.file.Path]]
 
-  private[mill] def bspBuildTargetCompile: TaskApi[java.nio.file.Path]
+  private[mill] def bspBuildTargetCompile(clientType: BspClientType): TaskApi[java.nio.file.Path]
 
   private[mill] def bspLoggingTest: TaskApi[Unit]
 
-  private[mill] def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean)
+  private[mill] def bspBuildTargetJavacOptions(clientType: BspClientType, clientWantsSemanticDb: Boolean)
       : TaskApi[EvaluatorApi => (java.nio.file.Path, Seq[String], Seq[String])]
 
-  private[mill] def bspCompileClasspath: TaskApi[EvaluatorApi => Seq[String]]
+  private[mill] def bspCompileClasspath(clientType: BspClientType): TaskApi[EvaluatorApi => Seq[String]]
 
   private[mill] def bspBuildTargetScalacOptions(
+      clientType: BspClientType,
       enableJvmCompileClasspathProvider: Boolean,
       clientWantsSemanticDb: Boolean
   ): TaskApi[(Seq[String], EvaluatorApi => Seq[String], EvaluatorApi => java.nio.file.Path)]
@@ -182,4 +183,12 @@ trait PathRefApi {
   private[mill] def javaPath: java.nio.file.Path
   def quick: Boolean
   def sig: Int
+}
+
+/** Used to handle edge cases for specific BSP clients. */
+private[mill] enum BspClientType {
+  /** Intellij IDEA */
+  case IntellijBSP
+
+  case Other(displayName: String)
 }

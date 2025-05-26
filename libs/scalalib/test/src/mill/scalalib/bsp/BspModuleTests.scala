@@ -3,14 +3,16 @@ package mill.scalalib.bsp
 import mill.define.{Cross, Discover}
 import mill.define.ExecutionPaths
 import mill.T
+import mill.api.internal.BspClientType
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import os.FilePath
 import utest.*
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 
 object BspModuleTests extends TestSuite {
+  val bspClientType = BspClientType.Other("tests")
 
   val testScalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
@@ -46,7 +48,7 @@ object BspModuleTests extends TestSuite {
     test("bspCompileClasspath") {
       test("single module") - UnitTester(MultiBase, null).scoped { eval =>
         val Right(result) = eval.apply(
-          MultiBase.HelloBsp.bspCompileClasspath
+          MultiBase.HelloBsp.bspCompileClasspath(bspClientType)
         ): @unchecked
 
         val relResult =
@@ -64,7 +66,7 @@ object BspModuleTests extends TestSuite {
       }
       test("dependent module") - UnitTester(MultiBase, null).scoped { eval =>
         val Right(result) = eval.apply(
-          MultiBase.HelloBsp2.bspCompileClasspath
+          MultiBase.HelloBsp2.bspCompileClasspath(bspClientType)
         ): @unchecked
 
         val relResults: Seq[FilePath] = result.value(eval.evaluator).iterator.map { p =>
@@ -109,7 +111,7 @@ object BspModuleTests extends TestSuite {
           UnitTester(InterDeps, null).scoped { eval =>
             val start = System.currentTimeMillis()
             val Right(_) = eval.apply(
-              InterDeps.Mod(entry).bspCompileClasspath
+              InterDeps.Mod(entry).bspCompileClasspath(bspClientType)
             ): @unchecked
             val timeSpent = System.currentTimeMillis() - start
             assert(timeSpent < maxTime)

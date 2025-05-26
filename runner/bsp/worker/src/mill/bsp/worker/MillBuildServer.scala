@@ -41,6 +41,7 @@ private class MillBuildServer(
   import MillBuildServer._
 
   class SessionInfo(
+      val clientType: BspClientType,
       val clientWantsSemanticDb: Boolean,
       /** `true` when client and server support the `JvmCompileClasspathProvider` request. */
       val enableJvmCompileClasspathProvider: Boolean
@@ -82,8 +83,14 @@ private class MillBuildServer(
 
       val clientCapabilities = request.getCapabilities()
       val enableJvmCompileClasspathProvider = clientCapabilities.getJvmCompileClasspathReceiver
+      val clientType = request.getDisplayName match {
+        case "IntelliJ-BSP" => BspClientType.IntellijBSP
+        case other => BspClientType.Other(other)
+      }
       // Not sure why we need to set this early, but we do
-      sessionInfo = SessionInfo(false, enableJvmCompileClasspathProvider)
+      sessionInfo = SessionInfo(
+        clientType, clientWantsSemanticDb = false, enableJvmCompileClasspathProvider = enableJvmCompileClasspathProvider
+      )
       // TODO: scan BspModules and infer their capabilities
 
       val supportedLangs = Constants.languages.asJava
@@ -131,7 +138,10 @@ private class MillBuildServer(
         case _ => // no op
       }
 
-      sessionInfo = SessionInfo(clientWantsSemanticDb, enableJvmCompileClasspathProvider)
+      sessionInfo = SessionInfo(
+        clientType, clientWantsSemanticDb = clientWantsSemanticDb,
+        enableJvmCompileClasspathProvider = enableJvmCompileClasspathProvider
+      )
       new InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
     }
 
@@ -356,7 +366,7 @@ private class MillBuildServer(
       val compileTasksEvs = params.getTargets.distinct.map(state.bspModulesById).collect {
         case (m: SemanticDbJavaModuleApi, ev) if sessionInfo.clientWantsSemanticDb =>
           ((m, m.bspBuildTargetCompileSemanticDb), ev)
-        case (m: JavaModuleApi, ev) => ((m, m.bspBuildTargetCompile), ev)
+        case (m: JavaModuleApi, ev) => ((m, m.bspBuildTargetCompile(sessionInfo.clientType)), ev)
       }
 
       val result = compileTasksEvs
