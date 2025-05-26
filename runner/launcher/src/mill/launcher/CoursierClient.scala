@@ -59,7 +59,6 @@ object CoursierClient {
       }
     }
 
-
     artifactsResultOrError.artifacts.map(_._2.toString).toArray
   }
 

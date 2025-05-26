@@ -20,7 +20,9 @@ final class TestOverridesRepo() extends Repository {
       fetch: Repository.Fetch[F]
   ): EitherT[F, String, (ArtifactSource, Project)] =
     EitherT.fromEither[F] {
-      sys.env.get(s"MILL_LOCAL_TEST_OVERRIDE_${module.organization.value}-${module.name.value}") match{
+      sys.env.get(
+        s"MILL_LOCAL_TEST_OVERRIDE_${module.organization.value}-${module.name.value}"
+      ) match {
         case None => Left(s"No test override found for $module")
         case Some(v) =>
           val proj = Project(
@@ -49,7 +51,9 @@ final class TestOverridesRepo() extends Repository {
       project: Project,
       overrideClassifiers: Option[Seq[Classifier]]
   ): Seq[(Publication, Artifact)] =
-    sys.env(s"MILL_LOCAL_TEST_OVERRIDE_${dependency.module.organization.value}-${dependency.module.name.value}")
+    sys.env(
+      s"MILL_LOCAL_TEST_OVERRIDE_${dependency.module.organization.value}-${dependency.module.name.value}"
+    )
       .linesIterator
       .map(os.Path(_))
       .filter(os.exists)

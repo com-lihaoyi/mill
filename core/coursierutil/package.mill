@@ -15,6 +15,6 @@ object `package` extends MillStableScalaModule {
     Deps.coursier.exclude("*" -> "*"),
     Deps.coursierCore.exclude("*" -> "*"),
     Deps.coursierUtil.exclude("*" -> "*"),
-    Deps.coursierVersions.exclude("*" -> "*"),
+    Deps.coursierVersions.exclude("*" -> "*")
   )
 }
