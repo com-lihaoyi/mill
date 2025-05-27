@@ -9,7 +9,7 @@ import mill.util.Jvm.createJar
 import mill.scalalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mainargs.Flag
 import mill.api.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
-import mill.define.{PathRef, Task}
+import mill.define.{BuildCtx, PathRef, Task}
 import mill.api.internal.{ScalaModuleApi, ScalaPlatform, internal}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
@@ -647,12 +647,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         incrementalCompilation = zincIncrementalCompilation(),
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
       )
-      .map(compileRes =>
-        SemanticDbJavaModule.copySemanticdbFiles(
-          compileRes.classes.path,
-          Task.workspace,
-          Task.dest / "data"
-        )
-      )
+      .map { compileRes =>
+        BuildCtx.withFilesystemCheckerDisabled {
+          SemanticDbJavaModule.copySemanticdbFiles(
+            compileRes.classes.path,
+            Task.workspace,
+            Task.dest / "data"
+          )
+        }
+      }
   }
 }

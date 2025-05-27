@@ -1,14 +1,17 @@
 package mill.scalalib
 
 import mill.api.{Result, experimental}
-import mill.define.PathRef
+import mill.define.{BuildCtx, PathRef}
 import mill.api.internal.SemanticDbJavaModuleApi
+import mill.constants.CodeGenConstants
 import mill.define.ModuleRef
 import mill.util.BuildInfo
 import mill.scalalib.api.{CompilationResult, JvmWorkerUtil}
+import mill.scalalib.internal.SemanticdbProcessor
 import mill.util.Version
 import mill.{T, Task}
 
+import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.api.internal.bsp.BspBuildTarget
 
@@ -121,9 +124,16 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
         reporter = None,
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation()
-      ).map(r =>
-        SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, Task.workspace, Task.dest / "data")
       )
+      .map { r =>
+        BuildCtx.withFilesystemCheckerDisabled {
+          SemanticDbJavaModule.copySemanticdbFiles(
+            r.classes.path,
+            Task.workspace,
+            Task.dest / "data"
+          )
+        }
+      }
   }
 
   // keep in sync with bspCompiledClassesAndSemanticDbFiles
@@ -195,6 +205,45 @@ object SemanticDbJavaModule {
     ) ++ extracJavacExports
   }
 
+  private val userCodeStartMarker = "//SOURCECODE_ORIGINAL_CODE_START_MARKER"
+
+  private def postProcessed(
+      generatedSourceSemdb: os.Path,
+      sourceroot: os.Path,
+      semdbRoot: os.Path
+  ): Option[(Array[Byte], os.SubPath)] = {
+    val baseName = generatedSourceSemdb.last.stripSuffix(".semanticdb")
+    val isGenerated = CodeGenConstants.buildFileExtensions.asScala
+      .exists(ext => baseName.endsWith("." + ext))
+    Option.when(isGenerated) {
+      val generatedSourceSubPath = {
+        val subPath = generatedSourceSemdb.relativeTo(semdbRoot).asSubPath
+        subPath / os.up / subPath.last.stripSuffix(".semanticdb")
+      }
+      val generatedSource = sourceroot / generatedSourceSubPath
+      val generatedSourceLines = os.read.lines(generatedSource)
+      val source = generatedSourceLines
+        .collectFirst { case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => os.Path(rest.trim) }
+        .getOrElse {
+          sys.error(s"Cannot get original source from generated source $generatedSource")
+        }
+
+      val firstLineIdx = generatedSourceLines.indexWhere(_.startsWith(userCodeStartMarker)) + 1
+
+      val res = SemanticdbProcessor.postProcess(
+        os.read(source),
+        source.relativeTo(sourceroot),
+        adjust = lineIdx => Some(lineIdx - firstLineIdx).filter(_ >= 0),
+        generatedSourceSemdb
+      )
+      val sourceSemdbSubPath = {
+        val sourceSubPath = source.relativeTo(sourceroot).asSubPath
+        sourceSubPath / os.up / s"${sourceSubPath.last}.semanticdb"
+      }
+      (res, sourceSemdbSubPath)
+    }
+  }
+
   // The semanticdb-javac plugin has issues with the -sourceroot setting, so we correct this on the fly
   def copySemanticdbFiles(
       classesDir: os.Path,
@@ -222,6 +271,8 @@ object SemanticDbJavaModule {
               targetDir / p.relativeTo(classesDir)
             }
           os.copy(p, target, createFolders = true)
+          for ((data, dest) <- postProcessed(p, sourceroot, classesDir / semanticPath))
+            os.write.over(targetDir / semanticPath / dest, data, createFolders = true)
         }
       }
     PathRef(targetDir)
