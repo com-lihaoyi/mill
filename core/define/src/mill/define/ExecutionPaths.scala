@@ -27,10 +27,6 @@ object ExecutionPaths {
       task: Task.Named[?]
   ): ExecutionPaths = resolve(outPath, task.ctx.segments)
 
-  /** Resolves paths relative to the `out` folder. */
-  def resolveRelativeToOut(task: Task.Named[?]): ExecutionPaths =
-    resolve(BuildCtx.workspaceRoot / os.SubPath(mill.constants.OutFiles.out), task)
-
   // case-insensitive match on reserved names
   private val ReservedWinNames =
     raw"^([cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][0-9¹²³]|[lL][pP][tT][0-9¹²³])($$|[.].*$$)".r

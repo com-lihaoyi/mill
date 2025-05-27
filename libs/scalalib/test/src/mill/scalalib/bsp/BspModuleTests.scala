@@ -124,3 +124,20 @@ object BspModuleTests extends TestSuite {
     }
   }
 }
+
+//[1294]   relResults: Seq[os.FilePath] =
+// List(/home/arturaz/work/mill-main/out/HelloBsp/compile.dest/classes
+// /home/arturaz/work/mill-main/out/libs/scalalib/test/testForked.dest/sandbox/out/mill-test-base-module/3133020541798195976/HelloBsp/compile-resources
+// /home/arturaz/work/mill-main/out/libs/scalalib/test/testForked.dest/sandbox/out/mill-test-base-module/3133020541798195976/HelloBsp2/compile-resources
+// logback-classic-1.1.10.jar
+// logback-core-1.1.10.jar
+// scala-library-2.13.16.jar
+// slf4j-api-1.7.34.jar)
+//[1294]   expected: Seq[os.FilePath] =
+// List(/home/arturaz/work/mill-main/out/libs/scalalib/test/testForked.dest/sandbox/out/mill-test-base-module/3133020541798195976/HelloBsp/compile-resources
+// /home/arturaz/work/mill-main/out/libs/scalalib/test/testForked.dest/sandbox/out/mill-test-base-module/3133020541798195976/HelloBsp2/compile-resources
+// /home/arturaz/work/mill-main/out/libs/scalalib/test/testForked.dest/sandbox/out/mill-test-base-module/3133020541798195976/out/HelloBsp/compile.dest/classes
+// logback-classic-1.1.10.jar
+// logback-core-1.1.10.jar
+// scala-library-2.13.16.jar
+// slf4j-api-1.7.34.jar)

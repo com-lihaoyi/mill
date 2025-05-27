@@ -22,7 +22,7 @@ import mill.api.internal.{
   Scoped,
   internal
 }
-import mill.define.{ExecutionPaths, ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
+import mill.define.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.BspModule
 import mill.scalalib.internal.ModuleUtils
@@ -799,10 +799,17 @@ trait JavaModule
       )
   }
 
+  /** Resolves paths relative to the `out` folder. */
+  @internal
+  private[mill] def resolveRelativeToOut(
+    task: Task.Named[?], mkPath: os.SubPath => os.SubPath = identity
+  ): UnresolvedPath.DestPath =
+    UnresolvedPath.DestPath(mkPath(os.sub), task.ctx.segments)
+
   /** The path where the compiled classes produced by [[compile]] are stored. */
   @internal
-  private[mill] def compileClassesPath: os.Path =
-    ExecutionPaths.resolveRelativeToOut(compile).dest / "classes"
+  private[mill] def compileClassesPath: UnresolvedPath.DestPath =
+    resolveRelativeToOut(compile, _ / "classes")
 
   /**
    * The path to the compiled classes by [[compile]] without forcing to actually run the compilation.
@@ -814,11 +821,8 @@ trait JavaModule
   @internal
   private[mill] def bspCompileClassesPath(clientType: BspClientType): Task[UnresolvedPath] =
     Task.Anon {
-      UnresolvedPath.ResolvedPath(
-        if (clientType.needsToMergeResourcesIntoCompileDest)
-          ExecutionPaths.resolveRelativeToOut(bspBuildTargetCompileMerged).dest
-        else compileClassesPath
-      )
+      if (clientType.needsToMergeResourcesIntoCompileDest) resolveRelativeToOut(bspBuildTargetCompileMerged)
+      else compileClassesPath
     }
 
   /**
