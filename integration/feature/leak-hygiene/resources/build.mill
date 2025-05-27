@@ -49,7 +49,12 @@ def countThreads() = Task.Command {
     .keySet
     .asScala
     .toSeq
-    .collect { case t if t.getThreadGroup.getName == "main" => t.getName }
+    .collect {
+      case t if t.getThreadGroup.getName == "main" =>
+        // Mark the current thread with a '!' prefix
+        val prefix = if (t == Thread.currentThread()) "!" else ""
+        prefix + t.getName
+    }
     .sorted
 }
 

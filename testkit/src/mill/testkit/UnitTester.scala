@@ -9,6 +9,7 @@ import mill.exec.JsonArrayLogger
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
 
 import java.io.{InputStream, PrintStream}
+import java.util.concurrent.ThreadPoolExecutor
 
 object UnitTester {
   case class Result[T](value: T, evalCount: Int)
@@ -96,6 +97,12 @@ class UnitTester(
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
 
+  val effectiveThreadCount: Int =
+    threads.getOrElse(Runtime.getRuntime().availableProcessors())
+  val ec: Option[ThreadPoolExecutor] =
+    if (effectiveThreadCount == 1) None
+    else Some(mill.exec.ExecutionContexts.createExecutor(effectiveThreadCount))
+
   val execution = new mill.exec.Execution(
     baseLogger = logger,
     chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
@@ -109,7 +116,7 @@ class UnitTester(
     workerCache = collection.mutable.Map.empty,
     env = env,
     failFast = failFast,
-    threadCount = threads,
+    ec = ec,
     codeSignatures = Map(),
     systemExit = _ => ???,
     exclusiveSystemStreams = new SystemStreams(outStream, errStream, inStream),

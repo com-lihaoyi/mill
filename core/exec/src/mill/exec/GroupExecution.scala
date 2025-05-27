@@ -8,6 +8,7 @@ import mill.internal.MultiLogger
 import mill.internal.FileLogger
 
 import java.lang.reflect.Method
+import java.util.concurrent.ThreadPoolExecutor
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
@@ -27,7 +28,7 @@ private trait GroupExecution {
   def workerCache: mutable.Map[String, (Int, Val)]
   def env: Map[String, String]
   def failFast: Boolean
-  def threadCount: Option[Int]
+  def ec: Option[ThreadPoolExecutor]
   def codeSignatures: Map[String, Int]
   def systemExit: Int => Nothing
   def exclusiveSystemStreams: SystemStreams
@@ -72,7 +73,7 @@ private trait GroupExecution {
     CodeSigUtils.constructorHashSignatures(codeSignatures)
 
   val effectiveThreadCount: Int =
-    this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
+    ec.map(_.getMaximumPoolSize).getOrElse(1)
 
   // those result which are inputs but not contained in this terminal group
   def executeGroupCached(
