@@ -802,7 +802,8 @@ trait JavaModule
   /** Resolves paths relative to the `out` folder. */
   @internal
   private[mill] def resolveRelativeToOut(
-    task: Task.Named[?], mkPath: os.SubPath => os.SubPath = identity
+      task: Task.Named[?],
+      mkPath: os.SubPath => os.SubPath = identity
   ): UnresolvedPath.DestPath =
     UnresolvedPath.DestPath(mkPath(os.sub), task.ctx.segments)
 
@@ -821,7 +822,8 @@ trait JavaModule
   @internal
   private[mill] def bspCompileClassesPath(clientType: BspClientType): Task[UnresolvedPath] =
     Task.Anon {
-      if (clientType.needsToMergeResourcesIntoCompileDest) resolveRelativeToOut(bspBuildTargetCompileMerged)
+      if (clientType.needsToMergeResourcesIntoCompileDest)
+        resolveRelativeToOut(bspBuildTargetCompileMerged)
       else compileClassesPath
     }
 
