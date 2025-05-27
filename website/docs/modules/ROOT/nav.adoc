@@ -104,6 +104,7 @@
 ** xref:extending/meta-build.adoc[]
 ** xref:extending/example-typescript-support.adoc[]
 ** xref:extending/example-python-support.adoc[]
+** xref:extending/evaluator.adoc[]
 * xref:large/large.adoc[]
 ** xref:large/selective-execution.adoc[]
 ** xref:large/multi-file-builds.adoc[]
