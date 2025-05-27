@@ -13,6 +13,7 @@ import mill.util.BuildInfo
 
 import java.io.File
 import java.net.URLClassLoader
+import java.util.concurrent.ThreadPoolExecutor
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
 import scala.collection.mutable.Buffer
@@ -39,7 +40,7 @@ class MillBuildBootstrap(
     keepGoing: Boolean,
     imports: Seq[String],
     env: Map[String, String],
-    threadCount: Option[Int],
+    ec: Option[ThreadPoolExecutor],
     targetsAndParams: Seq[String],
     prevRunnerState: RunnerState,
     logger: Logger,
@@ -167,7 +168,7 @@ class MillBuildBootstrap(
               keepGoing,
               env,
               logger,
-              threadCount,
+              ec,
               allowPositionalCommandArgs,
               systemExit,
               streams0,
@@ -354,7 +355,7 @@ object MillBuildBootstrap {
       keepGoing: Boolean,
       env: Map[String, String],
       logger: Logger,
-      threadCount: Option[Int],
+      ec: Option[ThreadPoolExecutor],
       allowPositionalCommandArgs: Boolean,
       systemExit: Int => Nothing,
       streams0: SystemStreams,
@@ -398,7 +399,7 @@ object MillBuildBootstrap {
         workerCache.to(collection.mutable.Map),
         env,
         !keepGoing,
-        threadCount,
+        ec,
         codeSignatures,
         systemExit,
         streams0,
