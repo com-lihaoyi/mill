@@ -80,7 +80,7 @@ both scenarios above, along with the time taken for Mill commands. Mill does not
 distinction, and can only be run directly from the command line. The Hot `sbt` mode only
 reports timings to the nearest second, so that is the number used in this comparison.
 
-The Mill build benchmarks for Gatling is generally much snappier than the Cold `sbt` benchmark,
+The Mill build benchmarks for Gatling is generally much snappier than the cold `sbt` benchmark,
 and comparable to that Hot `sbt` benchmark. Mill is marginally faster in the
 `Parallel Clean Compile All` benchmark (10s vs 14s), but more importantly does not have the same
 _Cold vs Hot_ distinction that `sbt` has: as Mill is always run "cold" from the command line and
