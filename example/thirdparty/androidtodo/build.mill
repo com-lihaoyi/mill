@@ -26,7 +26,7 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
 
   def androidApplicationNamespace = "com.example.android.architecture.blueprints.todoapp"
   // TODO change this to com.example.android.architecture.blueprints.main when mill supports build variants
-  def androidApplicationId = "com.example.android.architecture.blueprints.todoapp"
+  def androidApplicationId = "com.example.android.architecture.blueprints.main"
 
   def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
 
@@ -177,10 +177,10 @@ object `shared-test` extends AndroidKotlinModule with AndroidHiltSupport {
 
 > ./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
 [
-  "Starting: Intent { cmp=com.example.android.architecture.blueprints.todoapp/.TodoActivity }",
+  "Starting: Intent { cmp=com.example.android.architecture.blueprints.main/com.example.android.architecture.blueprints.todoapp.TodoActivity }",
   "Status: ok",
   "LaunchState: COLD",
-  "Activity: com.example.android.architecture.blueprints.todoapp/.TodoActivity",
+  "Activity: com.example.android.architecture.blueprints.main/com.example.android.architecture.blueprints.todoapp.TodoActivity",
   "TotalTime: ...",
   "WaitTime: ...",
   "Complete"

@@ -60,10 +60,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
   protected val debugKeyPass = "mill-android"
 
   /**
-   * The namespace of the android application which is used
-   * to specify the fully qualified classpath of the activity.
+   *   Every Android module has a namespace,
+   *   which is used as the Kotlin or Java package name for its generated R and BuildConfig classes.
    *
-   * For instance, it is used as the package name in Android Manifest
+   * See more in [[https://developer.android.com/build/configure-app-module#set-namespace]]
    */
   def androidApplicationNamespace: String
 
@@ -74,10 +74,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
   override final def androidNamespace: String = androidApplicationNamespace
 
   /**
-   * Android Application Id which is typically package.main .
-   * Can be used for build variants.
-   *
-   * Build variant feature is not yet implemented!
+   * Android Application Id unique to every android application.
+   * See more in [[https://developer.android.com/build/configure-app-module#set-application-id]]
    */
   def androidApplicationId: String
 
@@ -92,19 +90,15 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * TODO dynamically add android:debuggable
    */
   override def androidManifest: T[PathRef] = Task {
-    val manifestFromSourcePath = moduleDir / "src/main/AndroidManifest.xml"
+    val manifestFromSourcePath = androidManifestLocation().path
 
     val manifestElem = XML.loadFile(manifestFromSourcePath.toString())
     // add the application package
     val manifestWithPackage =
-      manifestElem % Attribute(None, "package", Text(androidApplicationNamespace), Null)
-
-    val manifestWithUsesSdk = manifestWithPackage.copy(
-      child = androidManifestUsesSdkSection() ++ manifestWithPackage.child
-    )
+      manifestElem % Attribute(None, "package", Text(androidNamespace), Null)
 
     val generatedManifestPath = Task.dest / "AndroidManifest.xml"
-    os.write(generatedManifestPath, manifestWithUsesSdk.mkString)
+    os.write(generatedManifestPath, manifestWithPackage.mkString)
 
     PathRef(generatedManifestPath)
   }
@@ -294,6 +288,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
         s"version_code=${androidVersionCode()}",
         "--property",
         s"version_name=${androidVersionName()}",
+        "--property",
+        s"package=${androidApplicationId}",
+        "--manifest-placeholders",
+        s"applicationId=${androidApplicationId}",
         "--out",
         mergedManifestPath.toString()
       ) ++ libManifests.flatMap(m => Seq("--libs", m.path.toString())),
@@ -671,7 +669,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         "am",
         "start",
         "-n",
-        s"${androidApplicationNamespace}/${activity}",
+        s"${androidApplicationId}/${activity}",
         "-W"
       )
     ).out.lines()
@@ -683,7 +681,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def androidReleaseKeyPath: T[Seq[PathRef]] = {
     val subPaths = androidReleaseKeyName.map(os.sub / _).toSeq
-    Task.Sources(subPaths: _*)
+    Task.Sources(subPaths*)
   }
 
   /*
@@ -1057,7 +1055,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
     override def androidManifest: T[PathRef] = outer.androidManifest()
 
-    override def androidApplicationId: String = outer.androidApplicationId
+    override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
 
     override def androidApplicationNamespace: String = s"${outer.androidApplicationNamespace}.test"
 
@@ -1086,7 +1084,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer.resolutionParams())
 
-    override def androidApplicationId: String = s"${outer.androidApplicationId}"
+    override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
     override def androidApplicationNamespace: String = s"${outer.androidApplicationNamespace}.test"
 
     override def androidReleaseKeyAlias: T[Option[String]] = outer.androidReleaseKeyAlias()
@@ -1105,7 +1103,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     private def androidInstrumentedTestsBaseManifest: Task[Elem] = Task.Anon {
       <manifest xmlns:android="http://schemas.android.com/apk/res/android" package={
-        androidApplicationNamespace
+        androidApplicationId
       }>
         {androidManifestUsesSdkSection()}
       </manifest>
@@ -1129,7 +1127,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
       val destManifest = Task.dest / "AndroidManifest.xml"
       os.write(destManifest, manifestWithInstrumentation.toString)
       PathRef(destManifest)
-
     }
 
     override def androidVirtualDeviceIdentifier: String = outer.androidVirtualDeviceIdentifier
