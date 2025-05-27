@@ -19,7 +19,7 @@ object `package` extends MillPublishScalaModule {
     val data: Seq[(os.SubPath, String)] =
       build.dist.examplePathsWithArtifactName().map { case (pathRef, str) =>
         val downloadUrl =
-          s"${build.millDownloadUrl()}/${build.dist.artifactFileNamePrefix()}-$str.zip"
+          s"${build.millDownloadUrl()}/$str.zip"
         val subPath = pathRef.path.subRelativeTo(Task.workspace / "example")
         (subPath, downloadUrl)
       }
@@ -118,8 +118,7 @@ object `package` extends MillPublishScalaModule {
     )
 
     // An `sbt` plugin is built with Scala 2.12. See https://www.scala-sbt.org/1.x/docs/Plugins.html#Creating+an+auto+plugin.
-    object models
-        extends Cross[ModelsModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
+    object models extends Cross[ModelsModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
     trait ModelsModule extends MillPublishCrossScalaModule {
       // def moduleDeps = Seq(buildgen.tree())
       def mvnDeps = Seq(Deps.upickle)
