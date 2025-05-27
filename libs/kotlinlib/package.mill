@@ -18,9 +18,6 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   def buildInfoObjectName = "Versions"
   def buildInfoMembers = Seq(
     BuildInfo.Value("kotlinVersion", Deps.kotlinVersion, "Version of Kotlin"),
-    BuildInfo.Value("kotlinVersion2", Deps.kotlinVersion, "Version of Kotlin"),
-    BuildInfo.Value("kotlinVersion3", Deps.kotlinVersion, "Version of Kotlin"),
-    BuildInfo.Value("kotlinVersion4", Deps.kotlinVersion, "Version of Kotlin"),
     BuildInfo.Value("koverVersion", Deps.RuntimeDeps.koverVersion, "Version of Kover."),
     BuildInfo.Value("ktfmtVersion", Deps.RuntimeDeps.ktfmt.version, "Version of Ktfmt."),
     BuildInfo.Value("ktlintVersion", Deps.RuntimeDeps.ktlint.version, "Version of ktlint."),

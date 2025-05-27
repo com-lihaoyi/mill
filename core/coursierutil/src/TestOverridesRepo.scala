@@ -1,4 +1,4 @@
-package mill.util
+package mill.coursierutil
 
 import coursier.core.{ArtifactSource, Extension, Info, Module, Project, Publication}
 import coursier.util.{Artifact, EitherT, Monad}
@@ -13,31 +13,12 @@ import java.util.concurrent.ConcurrentHashMap
  * come from the build and not from remote repositories or ~/.ivy2/local. See
  * `MillJavaModule#{testTransitiveDeps,writeLocalTestOverrides}` in the Mill build.
  */
-private final class TestOverridesRepo(root: os.ResourcePath) extends Repository {
+final class TestOverridesRepo() extends Repository {
+  private def envFor(mod: Module): Option[String] = {
+    val key = s"MILL_LOCAL_TEST_OVERRIDE_${mod.organization.value}-${mod.name.value}"
+      .replaceAll("[.-]", "_")
 
-  private val map = new ConcurrentHashMap[Module, Option[String]]
-
-  private def listFor(mod: Module): Either[os.ResourceNotFoundException, String] = {
-
-    def entryPath = root / s"${mod.organization.value}-${mod.name.value}"
-
-    val inCacheOpt = Option(map.get(mod))
-
-    inCacheOpt
-      .getOrElse {
-
-        val computedOpt =
-          try Some(os.read(entryPath))
-          catch {
-            case _: os.ResourceNotFoundException =>
-              None
-          }
-        val concurrentOpt = Option(map.putIfAbsent(mod, computedOpt))
-        concurrentOpt.getOrElse(computedOpt)
-      }
-      .toRight {
-        new os.ResourceNotFoundException(entryPath)
-      }
+    sys.env.get(key)
   }
 
   def find[F[_]: Monad](
@@ -46,9 +27,9 @@ private final class TestOverridesRepo(root: os.ResourcePath) extends Repository 
       fetch: Repository.Fetch[F]
   ): EitherT[F, String, (ArtifactSource, Project)] =
     EitherT.fromEither[F] {
-      listFor(module)
-        .left.map(e => s"No test override found at ${e.path}")
-        .map { _ =>
+      envFor(module) match {
+        case None => Left(s"No test override found for $module")
+        case Some(v) =>
           val proj = Project(
             module,
             version,
@@ -66,8 +47,8 @@ private final class TestOverridesRepo(root: os.ResourcePath) extends Repository 
             publications = Nil,
             info = Info.empty
           )
-          (this, proj)
-        }
+          Right((this, proj))
+      }
     }
 
   def artifacts(
@@ -75,8 +56,8 @@ private final class TestOverridesRepo(root: os.ResourcePath) extends Repository 
       project: Project,
       overrideClassifiers: Option[Seq[Classifier]]
   ): Seq[(Publication, Artifact)] =
-    listFor(project.module)
-      .toTry.get
+    envFor(dependency.module)
+      .get
       .linesIterator
       .map(os.Path(_))
       .filter(os.exists)
