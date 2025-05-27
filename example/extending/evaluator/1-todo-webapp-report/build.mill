@@ -1,0 +1,115 @@
+package build
+import mill.*, scalalib.*
+
+import mill.define._
+import mill.define.SelectMode
+import mill.api.Result.create
+import mill.api.Result
+
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
+object `package` extends ScalaModule {
+  def scalaVersion = "2.13.8"
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::cask:0.9.1",
+    mvn"com.lihaoyi::scalatags:0.13.1"
+  )
+
+  object test extends ScalaTests with TestModule.Utest {
+    def mvnDeps = Seq(
+      mvn"com.lihaoyi::utest::0.8.5",
+      mvn"com.lihaoyi::requests::0.6.9"
+    )
+  }
+
+  // Helper function to format bytes into a human-readable string (KB, MB, GB)
+  def formatBytes(bytes: Long): String = {
+    if (bytes < 1024) s"$bytes B"
+    else {
+      val kilobyte = 1024.0
+      val megabyte = kilobyte * 1024
+      val gigabyte = megabyte * 1024
+
+      if (bytes < megabyte) f"${bytes / kilobyte}%.1f KB"
+      else if (bytes < gigabyte) f"${bytes / megabyte}%.1f MB"
+      else f"${bytes / gigabyte}%.1f GB"
+    }
+  }
+
+  val bundleArgs: Seq[String] = Seq("assembly", "test.assembly")
+  val buildArgs: Seq[String] = Seq("compile", "test.compile")
+
+  def buildReport(evaluator: Evaluator) = Task.Command(exclusive = true) {
+
+    println("=== Build Report ===")
+    val now = LocalDateTime.now()
+    val formatted = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+    println(s"Build Report started at: $formatted")
+    println("=================")
+
+    println(s"\nBundle Size Analysis:")
+    println(s"---------------------")
+
+    val resolvedBundleTasks = evaluator.resolveTasks(bundleArgs, SelectMode.Multi).get
+
+    val execBundleResults = evaluator.execute(resolvedBundleTasks).values.get
+
+    execBundleResults.foreach { bundleResult =>
+      val jarPathStr = bundleResult.toString.split(":", 4).last
+      val jarPath = os.Path(jarPathStr)
+
+      println(s"Checking JAR file: ${jarPath}")
+      println(s"JAR size is ${formatBytes(os.size(jarPath))}")
+    }
+
+    println(s"\nBuild Performance Profile:")
+    println(s"---------------------")
+
+    val planStartTime = System.currentTimeMillis()
+
+    println(s"\n--- Resolution and Planning Phase ---")
+    println(s"Resolved tasks (for planning): ${resolvedBundleTasks}")
+
+    val plan = evaluator.plan(resolvedBundleTasks)
+      .sortedGroups
+      .keys()
+      .map(_.toString)
+      .toArray
+
+    val planEndTime = System.currentTimeMillis()
+
+    println(s"Planning time: ${planEndTime - planStartTime} ms")
+    println(s"Total planned tasks: ${plan.length}")
+
+    val execStartTime = System.currentTimeMillis()
+    val resolvedSegmentResults = evaluator.resolveSegments(buildArgs, SelectMode.Multi).get
+
+    println(s"\n--- Execution Phase ---")
+
+    val labelNames = resolvedSegmentResults.flatMap(_.parts) // Extract names for evaluate
+    println(s"Resolved segments label names (for execution): ${labelNames}")
+
+    val evalResults = evaluator.evaluate(labelNames, SelectMode.Multi)
+    val execEndTime = System.currentTimeMillis()
+
+    println(s"Execution time: ${execEndTime - execStartTime} ms")
+    println(s"Total command time: ${execEndTime - planStartTime} ms") // Overall time
+
+    ()
+  }
+
+}
+
+// This build file defines a simple web application using Cask and Scalatags.
+// It includes a build report that analyzes the bundle size and build performance.
+// The report includes the size of the generated JAR files and the time taken for resolution, planning, and execution phases.
+// The build report can be executed with the command `mill buildReport`.
+
+/** Usage
+
+> ./mill buildReport
+
+=== Build Report ===
+
+*/
