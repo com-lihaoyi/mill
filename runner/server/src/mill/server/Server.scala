@@ -223,12 +223,12 @@ abstract class Server[T](
         ) {
           if (millVersionChanged) {
             stderr.println(
-              s"Mill version changed ($lastMillVersion -> $clientMillVersion), re-starting server"
+              s"Mill version changed (${lastMillVersion.orNull} -> $clientMillVersion), re-starting server"
             )
           }
           if (javaVersionChanged) {
             stderr.println(
-              s"Java version changed ($lastJavaVersion -> $clientJavaVersion), re-starting server"
+              s"Java version changed (${lastJavaVersion.orNull} -> $clientJavaVersion), re-starting server"
             )
           }
 
