@@ -16,7 +16,8 @@ import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 import java.util.concurrent.{CompletableFuture, LinkedBlockingQueue, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
-import scala.concurrent.Promise
+import scala.concurrent.{Await, Promise}
+import scala.concurrent.duration.Duration
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
@@ -54,7 +55,8 @@ private class MillBuildServer(
   protected var client: BuildClient = scala.compiletime.uninitialized
   // Set when the `buildInitialize` message comes in
   protected var sessionInfo: SessionInfo = scala.compiletime.uninitialized
-  private var bspEvaluatorsOpt: Option[BspEvaluators] = None
+  // Set when the `MillBuildBootstrap` completes and the evaluators are available
+  private var bspEvaluators: Promise[BspEvaluators] = Promise[BspEvaluators]()
   // Set when a session is completed, either due to reload or shutdown
   private[worker] var sessionResult: Promise[BspServerResult] = Promise()
 
@@ -64,14 +66,13 @@ private class MillBuildServer(
 
   def updateEvaluator(evaluatorsOpt: Option[Seq[EvaluatorApi]]): Unit = {
     baseLogger.debug(s"Updating Evaluator: $evaluatorsOpt")
-    bspEvaluatorsOpt = None
+    if (bspEvaluators.isCompleted) bspEvaluators = Promise[BspEvaluators]() // replace the promise
     evaluatorsOpt.foreach { evaluators =>
-      val evaluators0 = new BspEvaluators(
+      bspEvaluators.success(new BspEvaluators(
         topLevelProjectRoot,
         evaluators,
         s => baseLogger.debug(s())
-      )
-      bspEvaluatorsOpt = Some(evaluators0)
+      ))
     }
   }
 
@@ -666,13 +667,8 @@ private class MillBuildServer(
   private val evaluatorRequestsThread: Thread =
     new Thread("mill-bsp-evaluator") {
       setDaemon(true)
-      def waitForEvaluators(): BspEvaluators =
-        bspEvaluatorsOpt match {
-          case Some(ev) => ev
-          case None =>
-            Thread.sleep(1000L)
-            waitForEvaluators()
-        }
+      def waitForEvaluators(): Unit =
+        Await.result(bspEvaluators.future, Duration.Inf)
       override def run(): Unit =
         try {
           var elemOpt = Option.empty[(BspEvaluators => Unit, Logger, String)]
@@ -689,7 +685,7 @@ private class MillBuildServer(
                 streams = logger.streams,
                 outLock = outLock
               ) {
-                for (evaluator <- bspEvaluatorsOpt) {
+                for (evaluator <- bspEvaluators.future.value.flatMap(_.toOption)) {
                   elemOpt = None
                   try block(evaluator)
                   catch {
