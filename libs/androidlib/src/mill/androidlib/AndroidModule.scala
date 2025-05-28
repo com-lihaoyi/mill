@@ -47,18 +47,14 @@ trait AndroidModule extends JavaModule {
    */
   def androidSdkModule: ModuleRef[AndroidSdkModule]
 
-  private def androidManifestUsesSdkSection: Task[Elem] = Task.Anon {
-    val minSdkVersion = androidMinSdk().toString
-    val targetSdkVersion = androidTargetSdk().toString
-    <uses-sdk android:minSdkVersion={minSdkVersion} />
-  }
+  def androidManifestLocation: T[PathRef] = Task.Source("src/main/AndroidManifest.xml")
 
   /**
    * Provides os.Path to an XML file containing configuration and metadata about your android application.
    * TODO dynamically add android:debuggable
    */
   def androidManifest: T[PathRef] = Task {
-    val manifestFromSourcePath = moduleDir / "src/main/AndroidManifest.xml"
+    val manifestFromSourcePath = androidManifestLocation().path
 
     val manifestElem = XML.loadFile(manifestFromSourcePath.toString()) %
       Attribute(None, "xmlns:android", Text("http://schemas.android.com/apk/res/android"), Null)
@@ -66,12 +62,8 @@ trait AndroidModule extends JavaModule {
     val manifestWithPackage =
       manifestElem % Attribute(None, "package", Text(androidNamespace), Null)
 
-    val manifestWithUsesSdk = manifestWithPackage.copy(
-      child = androidManifestUsesSdkSection() ++ manifestWithPackage.child
-    )
-
     val generatedManifestPath = Task.dest / "AndroidManifest.xml"
-    os.write(generatedManifestPath, manifestWithUsesSdk.mkString)
+    os.write(generatedManifestPath, manifestWithPackage.mkString)
 
     PathRef(generatedManifestPath)
   }
