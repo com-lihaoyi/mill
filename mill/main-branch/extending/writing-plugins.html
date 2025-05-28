@@ -671,7 +671,7 @@ via <a href="import-mvn-plugins.html" class="xref page">import $ivy</a>.</p>
 <h2 id="_project_configuration"><a class="anchor" href="#_project_configuration"></a>Project Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC1/mill-dist-1.0.0-RC1-19-9f0c95-example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC1/example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC1/mill-dist-1.0.0-RC1-20-8b2c95-example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC1/example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, publish._
@@ -690,8 +690,10 @@ object myplugin extends ScalaModule with PublishModule {
   object test extends ScalaTests with TestModule.Utest {
     def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-testkit:$millVersion&quot;)
     def forkEnv = Task {
-      val artifact =
-        s&quot;${myplugin.pomSettings().organization}-${myplugin.artifactId()}&quot;.replaceAll(&quot;[.-]&quot;, &quot;_&quot;)
+      val artifact = s&quot;${myplugin.pomSettings().organization}-${myplugin.artifactId()}&quot;
+        .replaceAll(&quot;[.-]&quot;, &quot;_&quot;)
+        .toUpperCase
+
       val localClasspathString = myplugin.localClasspath().map(_.path).mkString(&quot;\n&quot;)
       Map(
         &quot;MILL_EXECUTABLE_PATH&quot; -&gt; millExecutable.assembly().path.toString,
