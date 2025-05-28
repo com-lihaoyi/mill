@@ -52,7 +52,13 @@ object FileImportGraph {
 
         val content = if (useDummy) "" else os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
-        MillScalaParser.current.value.splitScript(content, fileName) match {
+        val yamlHeaderError =
+          try Right(mill.constants.Util.readYamlHeader(s.toNIO, s.last))
+          catch { case e: RuntimeException => Left(e.getMessage) }
+
+        yamlHeaderError.flatMap(_ =>
+          MillScalaParser.current.value.splitScript(content, fileName)
+        ) match {
           case Right(splitted) =>
             val (pkgs, stmts) = splitted
             val importSegments = pkgs.mkString(".")
@@ -94,7 +100,10 @@ object FileImportGraph {
 
     val headerData =
       if (!os.exists(projectRoot / foundRootBuildFileName)) ""
-      else mill.constants.Util.readYamlHeader((projectRoot / foundRootBuildFileName).toNIO)
+      else mill.constants.Util.readYamlHeader(
+        (projectRoot / foundRootBuildFileName).toNIO,
+        foundRootBuildFileName
+      )
 
     new FileImportGraph(
       seenScripts.toMap,

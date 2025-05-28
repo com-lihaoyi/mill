@@ -78,24 +78,41 @@ public class Util {
     return hasConsole0;
   }
 
-  public static String readYamlHeader(java.nio.file.Path buildFile) {
+  private static String throwYamlHeaderError(
+      String errorFileName, int lineNumber, String line, String msg) {
+    throw new RuntimeException("Invalid YAML header comment at " + errorFileName + ":" + lineNumber
+        + ": " + line + "\n" + msg);
+  }
+
+  public static String readYamlHeader(java.nio.file.Path buildFile, String errorFileName) {
     try {
       java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
       boolean readingYamlHeader = true;
       java.util.List<String> output = new ArrayList<>();
-      for(int i = 0; i < lines.size(); i++) {
+      for (int i = 0; i < lines.size(); i++) {
         String line = lines.get(i);
+
         if (!line.startsWith("//|")) readingYamlHeader = false;
-        else if (!readingYamlHeader) {
-          String errorMsg =
-            "Invalid YAML header comment on line " + i + ": " + line +
-            "\nYAML header comments can only occur at the start of the file";
-          throw new RuntimeException(errorMsg);
-        } else if (line.length() >= 4 && !line.startsWith("//| ")){
-          String errorMsg =
-            "Invalid YAML header comment on line " + i + ": " + line +
-              "\nYAML header comments must start with `//| ` with a newline separating the `|` and the data on the right";
-          throw new RuntimeException(errorMsg);
+        else if (!buildFile.getFileName().toString().startsWith("build.")) {
+          throwYamlHeaderError(
+              errorFileName,
+              i,
+              line,
+              "YAML header can only be defined in the `build.mill` file, not `" + errorFileName
+                  + "`");
+        } else if (!readingYamlHeader) {
+          throwYamlHeaderError(
+              errorFileName,
+              i,
+              line,
+              "YAML header comments can only occur at the start of the file");
+        } else if (line.length() >= 4 && !line.startsWith("//| ")) {
+          throwYamlHeaderError(
+              errorFileName,
+              i,
+              line,
+              "YAML header comments must start with `//| ` with a newline separating the `|` and"
+                  + " the data on the right");
         } else output.add(line.substring(4));
       }
       return String.join("\n", output);
