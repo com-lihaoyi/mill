@@ -48,9 +48,9 @@ trait JavaModuleApi extends ModuleApi {
   @deprecated("Move to BSP context")
   private[mill] def bspLoggingTest: TaskApi[Unit]
 
-  @deprecated("Move to BSP context")
-  private[mill] def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean)
-      : TaskApi[EvaluatorApi => (java.nio.file.Path, Seq[String], Seq[String])]
+//  @deprecated("Move to BSP context")
+//  private[mill] def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean)
+//      : TaskApi[EvaluatorApi => (java.nio.file.Path, Seq[String], Seq[String])]
 
   @deprecated("Move to BSP context")
   private[mill] def bspCompileClasspath: TaskApi[EvaluatorApi => Seq[String]]

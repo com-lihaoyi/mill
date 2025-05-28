@@ -1381,20 +1381,20 @@ trait JavaModule
     }
   }
 
-  override private[mill] def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean) = {
-    val classesPathTask = this match {
-      case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
-        sem.bspCompiledClassesAndSemanticDbFiles
-      case _ => bspCompileClassesPath
-    }
-    Task.Anon { (ev: EvaluatorApi) =>
-      (
-        classesPathTask().resolve(os.Path(ev.outPathJava)).toNIO,
-        javacOptions() ++ mandatoryJavacOptions(),
-        bspCompileClasspath.apply().apply(ev)
-      )
-    }
-  }
+//  override private[mill] def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean) = {
+//    val classesPathTask = this match {
+//      case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
+//        sem.bspCompiledClassesAndSemanticDbFiles
+//      case _ => bspCompileClassesPath
+//    }
+//    Task.Anon { (ev: EvaluatorApi) =>
+//      (
+//        classesPathTask().resolve(os.Path(ev.outPathJava)).toNIO,
+//        javacOptions() ++ mandatoryJavacOptions(),
+//        bspCompileClasspath.apply().apply(ev)
+//      )
+//    }
+//  }
 
   override private[mill] def bspBuildTargetSources = Task.Anon {
     Tuple2(sources().map(_.path.toNIO), generatedSources().map(_.path.toNIO))
