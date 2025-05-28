@@ -12,33 +12,50 @@ trait ModuleApi {
   def moduleSegments: Segments
 }
 trait JavaModuleApi extends ModuleApi {
+
+  @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetScalaMainClasses
       : TaskApi[(Seq[String], Seq[String], Map[String, String])]
+
   def recursiveModuleDeps: Seq[JavaModuleApi]
+
   def compileModuleDepsChecked: Seq[JavaModuleApi]
+
+  @deprecated("Move to BSP context")
   private[mill] def bspRun(args: Seq[String]): TaskApi[Unit]
+
+  @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetSources
       : TaskApi[(Seq[java.nio.file.Path], Seq[java.nio.file.Path])]
 
+  @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetInverseSources[T](id: T, uri: String): TaskApi[Seq[T]]
 
+  @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetDependencySources
       : TaskApi[(Seq[java.nio.file.Path], Seq[java.nio.file.Path])]
 
+  @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetDependencyModules
       : TaskApi[(Seq[(String, String, String)], Seq[java.nio.file.Path])]
 
+  @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetResources: TaskApi[Seq[java.nio.file.Path]]
 
+  @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetCompile: TaskApi[java.nio.file.Path]
 
+  @deprecated("Move to BSP context")
   private[mill] def bspLoggingTest: TaskApi[Unit]
 
+  @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean)
       : TaskApi[EvaluatorApi => (java.nio.file.Path, Seq[String], Seq[String])]
 
+  @deprecated("Move to BSP context")
   private[mill] def bspCompileClasspath: TaskApi[EvaluatorApi => Seq[String]]
 
+  @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetScalacOptions(
       enableJvmCompileClasspathProvider: Boolean,
       clientWantsSemanticDb: Boolean
@@ -71,11 +88,15 @@ trait MainModuleApi extends ModuleApi {
   ): TaskApi[Seq[java.nio.file.Path]]
 }
 trait BspModuleApi extends ModuleApi {
+  @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetData: TaskApi[Option[(String, AnyRef)]]
+  @deprecated("Move to BSP context")
   private[mill] def bspBuildTarget: BspBuildTarget
+  @deprecated("Move to BSP context")
   private[mill] def bspDisplayName: String
 }
 trait RunModuleApi extends ModuleApi {
+  @deprecated("Move to BSP context")
   private[mill] def bspJvmRunTestEnvironment: TaskApi[(
       Seq[java.nio.file.Path],
       Seq[String],
