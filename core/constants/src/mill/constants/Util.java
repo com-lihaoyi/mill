@@ -7,6 +7,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Function;
@@ -80,12 +81,20 @@ public class Util {
   public static String readYamlHeader(java.nio.file.Path buildFile) {
     try {
       java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
-      String yamlString = lines.stream()
-          .takeWhile(line -> line.startsWith("//|"))
-          .map(line -> line.substring(4)) // Remove the `//|` prefix
-          .collect(java.util.stream.Collectors.joining("\n"));
-
-      return yamlString;
+      boolean readingYamlHeader = true;
+      java.util.List<String> output = new ArrayList<>();
+      for(int i = 0; i < lines.size(); i++) {
+        String line = lines.get(i);
+        if (!line.startsWith("//|")) readingYamlHeader = false;
+        else if (!readingYamlHeader) {
+          String errorMsg =
+            "Invalid YAML header comment detected on line " + i + ": " + line +
+            "\nYAML header comments can only occur at the start of the file";
+          throw new RuntimeException(errorMsg);
+        }
+        else output.add(line.substring(4));
+      }
+      return String.join("\n", output);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
