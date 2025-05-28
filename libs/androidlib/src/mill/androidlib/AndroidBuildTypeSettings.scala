@@ -13,7 +13,8 @@ import mill.define.JsonFormatters.pathReadWrite
 case class AndroidBuildTypeSettings(
     isMinifyEnabled: Boolean = false,
     isShrinkEnabled: Boolean = false,
-    enableDesugaring: Boolean = false,
+    enableDesugaring: Boolean = true,
+    useR8: Boolean = false,
     proguardFiles: ProguardFiles = ProguardFiles()
 ) {
   def withProguardLocalFiles(localFiles: Seq[os.Path]): AndroidBuildTypeSettings =

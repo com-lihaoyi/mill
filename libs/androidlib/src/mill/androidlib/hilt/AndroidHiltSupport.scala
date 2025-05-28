@@ -21,7 +21,7 @@ import mill.{T, Task}
 trait AndroidHiltSupport extends KspModule with AndroidKotlinModule {
 
   override def kspClasspath: T[Seq[PathRef]] =
-    Seq(androidProcessedResources()) ++ super.kspClasspath()
+    super.kspClasspath()
 
   def androidHiltProcessorPath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(

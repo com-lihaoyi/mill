@@ -85,6 +85,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
     <uses-sdk android:minSdkVersion={minSdkVersion} android:targetSdkVersion={targetSdkVersion}/>
   }
 
+  def androidDebugManifestLocation: T[PathRef] = Task.Source {
+    "src/debug/AndroidManifest.xml"
+  }
+
   /**
    * Provides os.Path to an XML file containing configuration and metadata about your android application.
    * TODO dynamically add android:debuggable
@@ -214,6 +218,29 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] =
     Task { Seq.empty[AndroidPackageableExtraFile] }
 
+  def androidPackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
+
+    if (androidBuildSettings().useR8)
+      Seq.empty[AndroidPackageableExtraFile]
+    else {
+      def metaInfRoot(p: os.Path): os.Path = {
+        var current = p
+        while (!current.endsWith(os.rel / "META-INF")) {
+          current = current / os.up
+        }
+        current / os.up
+      }
+
+      androidLibsClassesJarMetaInf()
+        .map(ref =>
+          AndroidPackageableExtraFile(
+            PathRef(ref.path),
+            ref.path.subRelativeTo(metaInfRoot(ref.path))
+          )
+        )
+    }
+  }
+
   /**
    * Packages DEX files and Android resources into an unsigned APK.
    *
@@ -226,20 +253,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val dexFiles = os.walk(androidDex().path)
       .filter(_.ext == "dex")
       .map(os.zip.ZipSource.fromPath)
-    // TODO probably need to merge all content, not only in META-INF of classes.jar, but also outside it
-    val metaInf = androidLibsClassesJarMetaInf()
-      .map(ref => {
-        def metaInfRoot(p: os.Path): os.Path = {
-          var current = p
-          while (!current.endsWith(os.rel / "META-INF")) {
-            current = current / os.up
-          }
-          current / os.up
-        }
-        val path = ref.path
-        os.zip.ZipSource.fromPathTuple((path, path.subRelativeTo(metaInfRoot(path))))
-      })
-      .distinctBy(_.dest.get)
+
+    val metaInf = androidPackageMetaInfoFiles().map(extraFile =>
+      os.zip.ZipSource.fromPathTuple((extraFile.source.path, extraFile.destination.asSubPath))
+    )
 
     // add all the extra files to the APK
     val extraFiles: Seq[zip.ZipSource] = androidPackageableExtraFiles().map(extraFile =>
@@ -271,7 +288,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * See [[https://developer.android.com/build/manage-manifests]] for more details.
    */
   def androidMergedManifest: T[PathRef] = Task {
-    val libManifests = androidUnpackArchives().flatMap(_.manifest)
+    val debugManifest = Seq(androidDebugManifestLocation().path).filter(os.exists)
+    val libManifests = androidUnpackArchives().flatMap(_.manifest.map(_.path))
+    val allManifests = debugManifest ++ libManifests
     val mergedManifestPath = Task.dest / "AndroidManifest.xml"
     // TODO put it to the dedicated worker if cost of classloading is too high
     Jvm.callProcess(
@@ -294,7 +313,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         s"applicationId=${androidApplicationId}",
         "--out",
         mergedManifestPath.toString()
-      ) ++ libManifests.flatMap(m => Seq("--libs", m.path.toString())),
+      ) ++ allManifests.flatMap(m => Seq("--libs", m.toString)),
       classPath = manifestMergerClasspath().map(_.path).toVector,
       stdin = os.Inherit,
       stdout = os.Inherit
@@ -791,55 +810,37 @@ trait AndroidAppModule extends AndroidModule { outer =>
       throw new Exception("Device failed to boot")
   }
 
-  def androidModuleGeneratedDexVariants: Task[AndroidModuleGeneratedDexVariants] = Task {
-    val androidDebugDex = Task.dest / "androidDebugDex.dest"
-    os.makeDir(androidDebugDex)
-    val androidReleaseDex = Task.dest / "androidReleaseDex.dest"
-    os.makeDir(androidReleaseDex)
-    val mainDexListOutput = Task.dest / "main-dex-list-output.txt"
-
-    val proguardFileDebug = androidDebugDex / "proguard-rules.pro"
-
-    val knownProguardRulesDebug = androidUnpackArchives()
+  def androidLibraryProguardConfigs: Task[Seq[PathRef]] = Task {
+    androidUnpackArchives()
       // TODO need also collect rules from other modules,
       // but Android lib module doesn't yet exist
       .flatMap(_.proguardRules)
-      .map(p => os.read(p.path))
-      .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidCompiledResources().mainDexRulesProFile.path))
-      .mkString("\n")
-    os.write(proguardFileDebug, knownProguardRulesDebug)
-
-    val proguardFileRelease = androidReleaseDex / "proguard-rules.pro"
-
-    val knownProguardRulesRelease = androidUnpackArchives()
-      // TODO need also collect rules from other modules,
-      // but Android lib module doesn't yet exist
-      .flatMap(_.proguardRules)
-      .map(p => os.read(p.path))
-      .appendedAll(mainDexPlatformRules)
-      .appended(os.read(androidCompiledResources().mainDexRulesProFile.path))
-      .mkString("\n")
-    os.write(proguardFileRelease, knownProguardRulesRelease)
-
-    AndroidModuleGeneratedDexVariants(
-      androidDebugDex = PathRef(androidDebugDex),
-      androidReleaseDex = PathRef(androidReleaseDex),
-      mainDexListOutput = PathRef(mainDexListOutput)
-    )
   }
 
   /** ProGuard/R8 rules configuration files for release target (user-provided and generated) */
-  def androidProguardReleaseConfigs: T[Seq[PathRef]] = Task {
-    val proguardFilesFromReleaseSettings = androidReleaseSettings().proguardFiles
+  def androidProguardConfigs: Task[Seq[PathRef]] = Task {
+    val proguardFilesFromBuildSettings = androidBuildSettings().proguardFiles
     val androidProguardPath = androidSdkModule().androidProguardPath().path
-    val defaultProguardFile = proguardFilesFromReleaseSettings.defaultProguardFile.map {
+    val defaultProguardFile = proguardFilesFromBuildSettings.defaultProguardFile.map {
       pf => androidProguardPath / pf
     }
-    val userProguardFiles = proguardFilesFromReleaseSettings.localFiles
+    val userProguardFiles = proguardFilesFromBuildSettings.localFiles
     mill.define.BuildCtx.withFilesystemCheckerDisabled {
-      (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(_))
+      (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(
+        _
+      )) ++ androidLibraryProguardConfigs()
     }
+  }
+
+  /** Concatenates all rules into one file */
+  def androidProguard: T[PathRef] = Task {
+    val globalProguard = Task.dest / "global-proguard.pro"
+    val files = androidProguardConfigs()
+    os.write(globalProguard, "")
+    files.foreach(pg =>
+      os.write.append(globalProguard, os.read(pg.path))
+    )
+    PathRef(globalProguard)
   }
 
   /**
@@ -886,7 +887,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     val buildSettings: AndroidBuildTypeSettings = androidBuildSettings()
 
     val dex =
-      if (buildSettings.isMinifyEnabled)
+      if (buildSettings.useR8)
         androidR8Dex()
       else
         androidD8Dex()
@@ -984,7 +985,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
       .filter(_.path.ext == "class")
       .map(_.path.toString)
 
-    val allClassFiles = classpathClassFiles ++ appCompiledFiles
+    val allClassFiles =
+      classpathClassFiles ++ appCompiledFiles ++ androidPackagedDeps().map(_.path.toString)
 
     val r8ArgsBuilder = Seq.newBuilder[String]
 
@@ -1035,8 +1037,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     r8ArgsBuilder ++= libArgs
 
     // ProGuard configuration files: add our extra rules file and all provided config files.
-    val pgArgs = Seq("--pg-conf", extraRulesFile.toString) ++
-      androidProguardReleaseConfigs().flatMap(cfg => Seq("--pg-conf", cfg.path.toString))
+    val pgArgs = Seq("--pg-conf", androidProguard().path.toString)
 
     r8ArgsBuilder ++= pgArgs
 
@@ -1102,10 +1103,22 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def generatedSources: T[Seq[PathRef]] = Task.Sources()
 
     private def androidInstrumentedTestsBaseManifest: Task[Elem] = Task.Anon {
-      <manifest xmlns:android="http://schemas.android.com/apk/res/android" package={
+      val label = s"Tests for ${outer.androidApplicationId}"
+      val instrumentationName = testFramework()
+
+      <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+                package={
         androidApplicationId
       }>
-        {androidManifestUsesSdkSection()}
+
+        <application>
+          <uses-library android:name="android.test.runner"/>
+        </application>
+
+        <instrumentation android:name= {instrumentationName}
+                         android:handleProfiling="false"
+                         android:functionalTest="false"
+                         android:label={label}/>
       </manifest>
     }
 
@@ -1115,18 +1128,69 @@ trait AndroidAppModule extends AndroidModule { outer =>
      * @return
      */
     override def androidManifest: T[PathRef] = Task {
-      val baseManifestElem = androidInstrumentedTestsBaseManifest()
-      val testFrameworkName = testFramework()
-      val manifestWithInstrumentation = {
-        val instrumentation =
-          <instrumentation android:name={testFrameworkName} android:targetPackage={
-            outer.androidApplicationNamespace
-          }/>
-        baseManifestElem.copy(child = baseManifestElem.child ++ instrumentation)
-      }
       val destManifest = Task.dest / "AndroidManifest.xml"
-      os.write(destManifest, manifestWithInstrumentation.toString)
+      os.write(destManifest, androidInstrumentedTestsBaseManifest().toString)
       PathRef(destManifest)
+    }
+
+    override def androidPackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
+      Seq.empty[AndroidPackageableExtraFile]
+    }
+
+    private def androidxTestManifests: Task[Seq[PathRef]] = Task {
+      androidUnpackArchives().flatMap {
+        unpackedArchive =>
+          unpackedArchive.manifest.map(_.path)
+      }.filter {
+        case manifest: os.Path =>
+          val manifestXML = XML.loadFile(manifest.toString)
+          (manifestXML \\ "manifest")
+            .map(_ \ "@package").map(_.text).exists(_.startsWith("androidx.test"))
+      }.map(PathRef(_))
+    }
+
+    override def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
+      val root = androidDex().path
+      val nonDexFiles = os.walk(root).filter(os.isFile).filterNot(_.ext == "dex")
+
+      nonDexFiles.map(nonDex =>
+        AndroidPackageableExtraFile(PathRef(nonDex), nonDex.relativeTo(root))
+      )
+    }
+
+    /**
+     * Creates a merged manifest for instrumented tests.
+     *
+     * See [[https://developer.android.com/build/manage-manifests]] for more details.
+     */
+    def androidMergedManifest: T[PathRef] = Task {
+      val debugManifest = Seq(outer.androidDebugManifestLocation().path).filter(os.exists)
+      val androidxManifests = androidxTestManifests().map(_.path)
+      val libManifests = (debugManifest ++ androidxManifests)
+      val mergedManifestPath = Task.dest / "AndroidManifest.xml"
+      // TODO put it to the dedicated worker if cost of classloading is too high
+      Jvm.callProcess(
+        mainClass = "com.android.manifmerger.Merger",
+        mainArgs = Seq(
+          "--main",
+          androidManifest().path.toString(),
+          "--remove-tools-declarations",
+          "--property",
+          s"min_sdk_version=${androidMinSdk()}",
+          "--property",
+          s"target_sdk_version=${androidTargetSdk()}",
+          "--property",
+          s"version_code=${androidVersionCode()}",
+          "--property",
+          s"target_package=${outer.androidApplicationId}",
+          "--property",
+          s"version_name=${androidVersionName()}",
+          "--out",
+          mergedManifestPath.toString()
+        ) ++ libManifests.flatMap(m => Seq("--libs", m.toString())),
+        classPath = manifestMergerClasspath().map(_.path)
+      )
+      PathRef(mergedManifestPath)
     }
 
     override def androidVirtualDeviceIdentifier: String = outer.androidVirtualDeviceIdentifier
@@ -1178,7 +1242,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
           "instrument",
           "-w",
           "-r",
-          s"${androidApplicationNamespace}/${testFramework()}"
+          s"${androidApplicationId}/${testFramework()}"
         )
       ).spawn()
 
@@ -1191,9 +1255,21 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     }
 
+    /**
+     * The androidTestClasspath dictates what we are going to package
+     * in the test apk. This should have all moduleDeps except the main AndroidAppModule
+     * as its apk is installed separately
+     */
+    def androidTransitiveTestClasspath: T[Seq[PathRef]] = Task {
+      Task.traverse(transitiveModuleCompileModuleDeps) {
+        m =>
+          Task.Anon(m.localRunClasspath())
+      }().flatten
+    }
+
     /** The instrumented dex should just contain the test dependencies and locally tested files */
     override def androidPackagedClassfiles: T[Seq[PathRef]] = Task {
-      testClasspath()
+      (testClasspath() ++ androidTransitiveTestClasspath())
         .map(_.path).filter(os.isDir)
         .flatMap(os.walk(_))
         .filter(os.isFile)
@@ -1202,7 +1278,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     }
 
     override def androidPackagedDeps: T[Seq[PathRef]] = Task {
-      androidResolvedRunMvnDeps()
+      androidResolvedMvnDeps()
     }
 
     /**
