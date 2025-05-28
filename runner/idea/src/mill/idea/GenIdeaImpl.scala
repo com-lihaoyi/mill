@@ -97,10 +97,10 @@ class GenIdeaImpl(
         t.transitive.collect {
           case m: ModuleApi =>
             val rootSegs = os.Path(t.rootModule.moduleDirJava).relativeTo(workDir).segments
-            val modSegs = m.moduleSegments.parts
-            val segments: Seq[String] = rootSegs ++ modSegs
+            val modSegs = m.moduleSegments
+            val segments = Segments(rootSegs.map(Segment.Label)) ++ modSegs
             (
-              segments = Segments(segments.map(Segment.Label(_))),
+              segments = segments,
               module = m,
               evaluator = t.evaluator
             )
