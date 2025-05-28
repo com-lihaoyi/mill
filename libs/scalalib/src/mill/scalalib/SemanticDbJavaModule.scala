@@ -137,7 +137,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
   }
 
   // keep in sync with compiledClassesAndSemanticDbFiles
-  private[mill] def bspCompiledClassesAndSemanticDbFiles: T[UnresolvedPath] = {
+  override private[mill] def bspCompiledClassesAndSemanticDbFiles: T[UnresolvedPath] = {
     if (
       compiledClassesAndSemanticDbFiles.ctx.enclosing == s"${classOf[SemanticDbJavaModule].getName}#compiledClassesAndSemanticDbFiles"
     ) {
@@ -160,7 +160,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
     }
   }
 
-  private[mill] def bspBuildTargetCompileSemanticDb = Task.Anon {
+  override private[mill] def bspBuildTargetCompileSemanticDb = Task.Anon {
     compiledClassesAndSemanticDbFiles().path.toNIO
   }
 }

@@ -2,7 +2,9 @@ package mill.api.internal
 
 import mill.api.*
 
-trait TaskApi[+T]
+trait TaskApi[+T] {
+  def apply(): T
+}
 trait NamedTaskApi[+T] extends TaskApi[T] {
   def label: String
 }
@@ -70,8 +72,17 @@ trait JavaModuleApi extends ModuleApi {
   def transitiveModuleCompileModuleDeps: Seq[JavaModuleApi]
   def skipIdea: Boolean
   private[mill] def intellijModulePathJava: java.nio.file.Path
+
+  def javacOptions: TaskApi[Seq[String]]
+  def mandatoryJavacOptions: TaskApi[Seq[String]]
+
+  private[mill] def bspCompileClassesPath: TaskApi[UnresolvedPathApi[?]]
 }
 object JavaModuleApi
+
+trait UnresolvedPathApi[P] {
+  def resolve(outPath: P): P
+}
 
 trait ScalaModuleApi extends JavaModuleApi
 trait ScalaJSModuleApi extends JavaModuleApi

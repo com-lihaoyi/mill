@@ -266,12 +266,12 @@ trait JavaModule
   /**
    * Options to pass to the java compiler
    */
-  def javacOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  override def javacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Additional options for the java compiler derived from other module settings.
    */
-  def mandatoryJavacOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  override def mandatoryJavacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    *  The direct dependencies of this module.
@@ -828,7 +828,7 @@ trait JavaModule
    * Keep in sync with [[compile]]
    */
   @internal
-  private[mill] def bspCompileClassesPath: T[UnresolvedPath] =
+  override private[mill] def bspCompileClassesPath: T[UnresolvedPath] =
     if (compile.ctx.enclosing == s"${classOf[JavaModule].getName}#compile") {
       Task {
         Task.log.debug(
@@ -897,7 +897,7 @@ trait JavaModule
    *
    * Keep in sync with [[bspCompileClasspath]]
    */
-  def compileClasspath: T[Seq[PathRef]] = Task {
+  override def compileClasspath: T[Seq[PathRef]] = Task {
     resolvedMvnDeps() ++ transitiveCompileClasspath() ++ localCompileClasspath()
   }
 
@@ -907,7 +907,7 @@ trait JavaModule
    * Keep in sync with [[compileClasspath]]
    */
   @internal
-  private[mill] def bspCompileClasspath: Task[EvaluatorApi => Seq[String]] = Task.Anon {
+  override private[mill] def bspCompileClasspath: Task[EvaluatorApi => Seq[String]] = Task.Anon {
     (ev: EvaluatorApi) =>
       (resolvedMvnDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
         bspTransitiveCompileClasspath() ++
@@ -952,10 +952,10 @@ trait JavaModule
     )
   }
 
-  def upstreamIvyAssemblyClasspath: T[Seq[PathRef]] = Task {
+  override def upstreamIvyAssemblyClasspath: T[Seq[PathRef]] = Task {
     resolvedRunMvnDeps()
   }
-  def upstreamLocalAssemblyClasspath: T[Seq[PathRef]] = Task {
+  override def upstreamLocalAssemblyClasspath: T[Seq[PathRef]] = Task {
     transitiveLocalClasspath()
   }
 
