@@ -53,8 +53,10 @@ object FileImportGraph {
         val content = if (useDummy) "" else os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
         val yamlHeaderError =
-          try Right(mill.constants.Util.readYamlHeader(s.toNIO, s.last))
-          catch { case e: RuntimeException => Left(e.getMessage) }
+          if (useDummy) Right(())
+          else
+            try Right(mill.constants.Util.readYamlHeader(s.toNIO, s.last))
+            catch { case e: RuntimeException => Left(e.getMessage) }
 
         yamlHeaderError.flatMap(_ =>
           MillScalaParser.current.value.splitScript(content, fileName)
