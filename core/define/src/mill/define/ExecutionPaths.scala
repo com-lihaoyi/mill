@@ -21,6 +21,7 @@ object ExecutionPaths {
       targetPath / os.up / s"${targetPath.last}.log"
     )
   }
+
   def resolve(
       outPath: os.Path,
       task: Task.Named[?]

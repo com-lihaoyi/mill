@@ -3,7 +3,7 @@ package mill.androidlib
 import coursier.params.ResolutionParams
 import mill.*
 import mill.api.Logger
-import mill.api.internal.{BspBuildTarget, EvaluatorApi, internal}
+import mill.api.internal.{BspBuildTarget, BspClientType, EvaluatorApi, internal}
 import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.testrunner.TestResult
@@ -139,7 +139,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidLintArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
   @internal
-  override def bspCompileClasspath = Task.Anon { (ev: EvaluatorApi) =>
+  override def bspCompileClasspath(clientType: BspClientType) = Task.Anon { (ev: EvaluatorApi) =>
     compileClasspath().map(
       _.path
     ).map(UnresolvedPath.ResolvedPath(_)).map(_.resolve(os.Path(ev.outPathJava))).map(sanitizeUri)
