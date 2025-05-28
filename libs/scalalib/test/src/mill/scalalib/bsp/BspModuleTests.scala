@@ -3,7 +3,7 @@ package mill.scalalib.bsp
 import mill.define.{Cross, Discover}
 import mill.define.ExecutionPaths
 import mill.T
-import mill.api.internal.{BspClientNeedsToMergeResourcesIntoCompileDest, BspClientType}
+import mill.api.internal.{MergeResourcesIntoClasses, BspClientType}
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule

@@ -31,24 +31,24 @@ trait JavaModuleApi extends ModuleApi {
   private[mill] def bspBuildTargetResources: TaskApi[Seq[java.nio.file.Path]]
 
   private[mill] def bspBuildTargetCompile(
-      needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest
+      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses
   ): TaskApi[java.nio.file.Path]
 
   private[mill] def bspLoggingTest: TaskApi[Unit]
 
   private[mill] def bspBuildTargetJavacOptions(
-      needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest,
+      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses,
       clientWantsSemanticDb: Boolean
   )
       : TaskApi[EvaluatorApi => (java.nio.file.Path, Seq[String], Seq[String])]
 
   private[mill] def bspCompileClasspath(
-      needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest
+      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses
   )
       : TaskApi[EvaluatorApi => Seq[String]]
 
   private[mill] def bspBuildTargetScalacOptions(
-      needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest,
+      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses,
       enableJvmCompileClasspathProvider: Boolean,
       clientWantsSemanticDb: Boolean
   ): TaskApi[(Seq[String], EvaluatorApi => Seq[String], EvaluatorApi => java.nio.file.Path)]
@@ -204,11 +204,11 @@ trait PathRefApi {
  *
  * @see https://github.com/com-lihaoyi/mill/issues/4427#issuecomment-2908889481
  */
-private[mill] opaque type BspClientNeedsToMergeResourcesIntoCompileDest = Boolean
+private[mill] opaque type MergeResourcesIntoClasses = Boolean
 private[mill] object BspClientNeedsToMergeResourcesIntoCompileDest {
-  def apply(value: Boolean): BspClientNeedsToMergeResourcesIntoCompileDest = value
+  def apply(value: Boolean): MergeResourcesIntoClasses = value
 
-  given Conversion[BspClientNeedsToMergeResourcesIntoCompileDest, Boolean] = v => v
+  given Conversion[MergeResourcesIntoClasses, Boolean] = v => v
 }
 
 /** Used to handle edge cases for specific BSP clients. */
@@ -220,7 +220,7 @@ private[mill] enum BspClientType {
   /** Any other BSP client */
   case Other(displayName: String)
 
-  def needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest =
+  def mergeResourcesIntoClasses: MergeResourcesIntoClasses =
     BspClientNeedsToMergeResourcesIntoCompileDest(this match {
       case IntellijBSP => true
       case Other(_) => false

@@ -374,7 +374,7 @@ private class MillBuildServer(
         case (m: JavaModuleApi, ev) => (
             (
               m,
-              m.bspBuildTargetCompile(sessionInfo.clientType.needsToMergeResourcesIntoCompileDest)
+              m.bspBuildTargetCompile(sessionInfo.clientType.mergeResourcesIntoClasses)
             ),
             ev
           )
