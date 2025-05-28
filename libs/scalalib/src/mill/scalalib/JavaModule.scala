@@ -1344,7 +1344,7 @@ trait JavaModule
     Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
   }
 
-  private[mill] def bspBuildTargetScalacOptions(
+  override private[mill] def bspBuildTargetScalacOptions(
       enableJvmCompileClasspathProvider: Boolean,
       clientWantsSemanticDb: Boolean
   ) = {
@@ -1381,7 +1381,7 @@ trait JavaModule
     }
   }
 
-  private[mill] def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean) = {
+  override private[mill] def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean) = {
     val classesPathTask = this match {
       case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
         sem.bspCompiledClassesAndSemanticDbFiles
@@ -1396,7 +1396,7 @@ trait JavaModule
     }
   }
 
-  private[mill] def bspBuildTargetSources = Task.Anon {
+  override private[mill] def bspBuildTargetSources = Task.Anon {
     Tuple2(sources().map(_.path.toNIO), generatedSources().map(_.path.toNIO))
   }
 
@@ -1407,14 +1407,14 @@ trait JavaModule
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 
-  private[mill] def bspBuildTargetInverseSources[T](id: T, searched: String): Task[Seq[T]] =
+  override private[mill] def bspBuildTargetInverseSources[T](id: T, searched: String): Task[Seq[T]] =
     Task.Anon {
       val src = allSourceFiles()
       val found = src.map(sanitizeUri).contains(searched)
       if (found) Seq(id) else Seq()
     }
 
-  private[mill] def bspBuildTargetDependencySources = Task.Anon {
+  override private[mill] def bspBuildTargetDependencySources = Task.Anon {
     (
       millResolver().classpath(
         Seq(
