@@ -28,7 +28,10 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
     AndroidBuildTypeSettings(
       isMinifyEnabled = false,
       isShrinkEnabled = false,
-      useR8 = true
+      useR8 = true,
+      proguardFiles = ProguardFiles(
+        defaultProguardFile = Some("proguard-android.txt")
+      )
     ).withProguardLocalFiles(
       Seq(
         moduleDir / "proguard-rules.pro"
@@ -145,7 +148,8 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false,
-        useR8 = true proguardFiles = ProguardFiles(
+        useR8 = true,
+        proguardFiles = ProguardFiles(
           defaultProguardFile = Some("proguard-android.txt")
         )
       ).withProguardLocalFiles(
@@ -247,13 +251,6 @@ object `shared-test` extends AndroidKotlinModule with AndroidHiltSupport {
 > ./mill show app.androidInstall
 ...All files should be loaded. Notifying the device...
 
-> ./mill app.androidTest
-
-> cat out/app/androidTest/testForked.dest/test-report.xml
-<?xml version='1.0' encoding='UTF-8'?>
-<testsuites tests="38" failures="0" errors="0" skipped="0" time="0.005">
-...
-
 > ./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
 [
   "Starting: Intent { cmp=com.example.android.architecture.blueprints.main/com.example.android.architecture.blueprints.todoapp.TodoActivity }",
@@ -264,6 +261,13 @@ object `shared-test` extends AndroidKotlinModule with AndroidHiltSupport {
   "WaitTime: ...",
   "Complete"
 ]
+
+> ./mill app.androidTest
+
+> cat out/app/androidTest/testForked.dest/test-report.xml
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites tests="38" failures="0" errors="0" skipped="0" time="...">
+...
 
 > ./mill show app.stopAndroidEmulator
 

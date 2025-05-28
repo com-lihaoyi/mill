@@ -218,10 +218,33 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] =
     Task { Seq.empty[AndroidPackageableExtraFile] }
 
+  /**
+   * Selects the meta info and metadata files to package. These are being extracted
+   * and output by R8 from the dependency jars.
+   * @return A list of files to package into the apk
+   */
+  def androidR8PackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
+    val root = androidDex().path
+    val metaInfoFiles = os.walk(root / "META-INF")
+      .filter(os.isFile).filterNot(_.ext == "dex")
+
+    val kotlinMetadataFiles = if (os.exists(root / "kotlin"))
+      os.walk(root / "kotlin").filter(os.isFile)
+    else
+      Seq.empty[os.Path]
+
+    val includedFiles = (metaInfoFiles ++ kotlinMetadataFiles)
+
+    includedFiles.map(nonDex =>
+      AndroidPackageableExtraFile(PathRef(nonDex), nonDex.relativeTo(root))
+    )
+
+  }
+
   def androidPackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
 
     if (androidBuildSettings().useR8)
-      Seq.empty[AndroidPackageableExtraFile]
+      androidR8PackageMetaInfoFiles()
     else {
       def metaInfRoot(p: os.Path): os.Path = {
         var current = p
