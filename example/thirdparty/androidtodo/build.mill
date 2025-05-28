@@ -36,6 +36,8 @@ object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBu
         )
       )
   }
+
+  // TODO consider using a debug module
   def debugSources = Task.Sources("src/debug/java")
 
   override def sources = super.sources() ++ debugSources()

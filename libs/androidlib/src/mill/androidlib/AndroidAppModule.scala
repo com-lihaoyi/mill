@@ -233,7 +233,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
           PathRef(ref.path),
           ref.path.subRelativeTo(metaInfRoot(ref.path))
         )
-      )
+      ).distinctBy(_.destination)
+
   }
 
   /**
@@ -1023,10 +1024,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
       val destManifest = Task.dest / "AndroidManifest.xml"
       os.write(destManifest, androidInstrumentedTestsBaseManifest().toString)
       PathRef(destManifest)
-    }
-
-    override def androidPackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
-      Seq.empty[AndroidPackageableExtraFile]
     }
 
     private def androidxTestManifests: Task[Seq[PathRef]] = Task {
