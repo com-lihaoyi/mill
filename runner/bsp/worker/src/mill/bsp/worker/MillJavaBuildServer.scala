@@ -26,12 +26,12 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
     ) {
       // We ignore all non-JavaModule
       case (ev, state, id, m: JavaModuleApi, f) =>
-        val (classesPath, javacOptions, classpath) = f(ev)
+        val res = f(ev)
         new JavacOptionsItem(
           id,
-          javacOptions.asJava,
-          classpath.asJava,
-          sanitizeUri(classesPath)
+          res.javacOptions.asJava,
+          res.classpath.asJava,
+          sanitizeUri(res.classesPath)
         )
 
       case _ => ???
@@ -39,3 +39,4 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
       new JavacOptionsResult(_)
     }
 }
+
