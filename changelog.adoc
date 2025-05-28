@@ -159,6 +159,8 @@ package build
 + }
 ```
 
+* `def zincWorker` and `ZincWorkerModule` have been renamed to `jvmWorker` and `JvmWorkerModule` {link-pr}/4834[#4834])
+
 * The terms `client`/`server` throughout the codebase have been renamed to `launcher`/`daemon` ({link-pr}/5135[#5135])
 
 * Removed `PublishModule.publishSelfDependency` in favor of `artifactMetadata` ({link-pr}/5118[#5118])
