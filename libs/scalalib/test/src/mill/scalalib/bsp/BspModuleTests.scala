@@ -3,7 +3,7 @@ package mill.scalalib.bsp
 import mill.define.{Cross, Discover}
 import mill.define.ExecutionPaths
 import mill.T
-import mill.api.internal.BspClientType
+import mill.api.internal.{BspClientNeedsToMergeResourcesIntoCompileDest, BspClientType}
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
@@ -12,7 +12,6 @@ import utest.*
 import mill.util.TokenReaders.*
 
 object BspModuleTests extends TestSuite {
-  val clientType = BspClientType.Other("tests")
   val testScalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
   object MultiBase extends TestRootModule {
@@ -44,10 +43,12 @@ object BspModuleTests extends TestSuite {
   }
 
   override def tests: Tests = Tests {
+    val needsToMerge = BspClientNeedsToMergeResourcesIntoCompileDest(false)
+
     test("bspCompileClasspath") {
       test("single module") - UnitTester(MultiBase, null).scoped { eval =>
         val Right(result) = eval.apply(
-          MultiBase.HelloBsp.bspCompileClasspath(clientType)
+          MultiBase.HelloBsp.bspCompileClasspath(needsToMerge)
         ): @unchecked
 
         val relResult =
@@ -65,7 +66,7 @@ object BspModuleTests extends TestSuite {
       }
       test("dependent module") - UnitTester(MultiBase, null).scoped { eval =>
         val Right(result) = eval.apply(
-          MultiBase.HelloBsp2.bspCompileClasspath(clientType)
+          MultiBase.HelloBsp2.bspCompileClasspath(needsToMerge)
         ): @unchecked
 
         val relResults: Seq[FilePath] = result.value(eval.evaluator).iterator.map { p =>
@@ -110,7 +111,7 @@ object BspModuleTests extends TestSuite {
           UnitTester(InterDeps, null).scoped { eval =>
             val start = System.currentTimeMillis()
             val Right(_) = eval.apply(
-              InterDeps.Mod(entry).bspCompileClasspath(clientType)
+              InterDeps.Mod(entry).bspCompileClasspath(needsToMerge)
             ): @unchecked
             val timeSpent = System.currentTimeMillis() - start
             assert(timeSpent < maxTime)
