@@ -205,7 +205,7 @@ trait PathRefApi {
  * @see https://github.com/com-lihaoyi/mill/issues/4427#issuecomment-2908889481
  */
 private[mill] opaque type MergeResourcesIntoClasses = Boolean
-private[mill] object BspClientNeedsToMergeResourcesIntoCompileDest {
+private[mill] object MergeResourcesIntoClasses {
   def apply(value: Boolean): MergeResourcesIntoClasses = value
 
   given Conversion[MergeResourcesIntoClasses, Boolean] = v => v
@@ -221,7 +221,7 @@ private[mill] enum BspClientType {
   case Other(displayName: String)
 
   def mergeResourcesIntoClasses: MergeResourcesIntoClasses =
-    BspClientNeedsToMergeResourcesIntoCompileDest(this match {
+    MergeResourcesIntoClasses(this match {
       case IntellijBSP => true
       case Other(_) => false
     })

@@ -43,7 +43,7 @@ object BspModuleTests extends TestSuite {
   }
 
   override def tests: Tests = Tests {
-    val needsToMerge = BspClientNeedsToMergeResourcesIntoCompileDest(false)
+    val needsToMerge = MergeResourcesIntoClasses(false)
 
     test("bspCompileClasspath") {
       test("single module") - UnitTester(MultiBase, null).scoped { eval =>
