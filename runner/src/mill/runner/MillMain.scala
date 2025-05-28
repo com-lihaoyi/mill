@@ -177,12 +177,12 @@ object MillMain {
 
             if (config.disableTicker.value) {
               streams.err.println(
-                "--disable-ticker will be removed in Mill 0.13.0, use `--ticker false`"
+                "--disable-ticker will be removed in Mill 1.0.0, use `--ticker false`"
               )
             }
             config.enableTicker.foreach { value =>
               streams.err.println(
-                s"--enable-ticker will be removed in Mill 0.13.0, use `--ticker $value`"
+                s"--enable-ticker will be removed in Mill 1.0.0, use `--ticker $value`"
               )
             }
 
