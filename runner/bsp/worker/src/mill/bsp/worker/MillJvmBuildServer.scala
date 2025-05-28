@@ -108,7 +108,8 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
     handlerTasks(
       targetIds = _ => params.getTargets.asScala,
       tasks = {
-        case m: JavaModuleApi => m.bspCompileClasspath(sessionInfo.clientType.needsToMergeResourcesIntoCompileDest)
+        case m: JavaModuleApi =>
+          m.bspCompileClasspath(sessionInfo.clientType.needsToMergeResourcesIntoCompileDest)
       },
       requestDescription = "Getting JVM compile class path of {}"
     ) {

@@ -8,7 +8,21 @@ import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
 import mill.api.{MillException, Result, Segments}
-import mill.api.internal.{BspBuildTarget, BspClientNeedsToMergeResourcesIntoCompileDest, BspClientType, BspModuleApi, BspUri, EvaluatorApi, IdeaConfigFile, JavaFacet, JavaModuleApi, JvmBuildTarget, ResolvedModule, Scoped, internal}
+import mill.api.internal.{
+  BspBuildTarget,
+  BspClientNeedsToMergeResourcesIntoCompileDest,
+  BspClientType,
+  BspModuleApi,
+  BspUri,
+  EvaluatorApi,
+  IdeaConfigFile,
+  JavaFacet,
+  JavaModuleApi,
+  JvmBuildTarget,
+  ResolvedModule,
+  Scoped,
+  internal
+}
 import mill.define.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.BspModule
@@ -686,7 +700,7 @@ trait JavaModule
    */
   @internal
   private[mill] def bspTransitiveCompileClasspath(
-    needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest
+      needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest
   ): Task[Seq[UnresolvedPath]] = Task.Anon {
     Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
@@ -809,7 +823,7 @@ trait JavaModule
    */
   @internal
   private[mill] def bspCompileClassesPath(
-    needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest
+      needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest
   ): Task[UnresolvedPath] =
     Task.Anon {
       if (needsToMergeResourcesIntoCompileDest) resolveRelativeToOut(bspBuildTargetCompileMerged)
@@ -832,7 +846,7 @@ trait JavaModule
    */
   @internal
   private[mill] def bspLocalRunClasspath(
-    needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest
+      needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest
   ): Task[Seq[UnresolvedPath]] =
     Task.Anon {
       Seq.from(super.localRunClasspath() ++ resources())
@@ -860,7 +874,9 @@ trait JavaModule
    * Keep in sync with [[localClasspath]]
    */
   @internal
-  private[mill] def bspLocalClasspath(needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest): Task[Seq[UnresolvedPath]] =
+  private[mill] def bspLocalClasspath(
+      needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest
+  ): Task[Seq[UnresolvedPath]] =
     Task.Anon {
       localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
         bspLocalRunClasspath(needsToMergeResourcesIntoCompileDest)()
@@ -882,7 +898,9 @@ trait JavaModule
    * Keep in sync with [[compileClasspath]]
    */
   @internal
-  private[mill] def bspCompileClasspath(needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest)
+  private[mill] def bspCompileClasspath(
+      needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest
+  )
       : Task[EvaluatorApi => Seq[String]] = Task.Anon {
     (ev: EvaluatorApi) =>
       (resolvedMvnDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
@@ -1350,7 +1368,9 @@ trait JavaModule
         )
       } else {
         Task.Anon((e: EvaluatorApi) =>
-          bspCompileClassesPath(needsToMergeResourcesIntoCompileDest)().resolve(os.Path(e.outPathJava)).toNIO
+          bspCompileClassesPath(
+            needsToMergeResourcesIntoCompileDest
+          )().resolve(os.Path(e.outPathJava)).toNIO
         )
       }
 
@@ -1460,7 +1480,7 @@ trait JavaModule
 
   @internal
   private[mill] def bspBuildTargetCompile(
-    needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest
+      needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest
   ): Task[java.nio.file.Path] = {
     if (needsToMergeResourcesIntoCompileDest) Task.Anon { bspBuildTargetCompileMerged().path.toNIO }
     else Task.Anon { compile().classes.path.toNIO }
