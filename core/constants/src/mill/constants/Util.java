@@ -88,11 +88,15 @@ public class Util {
         if (!line.startsWith("//|")) readingYamlHeader = false;
         else if (!readingYamlHeader) {
           String errorMsg =
-            "Invalid YAML header comment detected on line " + i + ": " + line +
+            "Invalid YAML header comment on line " + i + ": " + line +
             "\nYAML header comments can only occur at the start of the file";
           throw new RuntimeException(errorMsg);
-        }
-        else output.add(line.substring(4));
+        } else if (line.length() >= 4 && !line.startsWith("//| ")){
+          String errorMsg =
+            "Invalid YAML header comment on line " + i + ": " + line +
+              "\nYAML header comments must start with `//| ` with a newline separating the `|` and the data on the right";
+          throw new RuntimeException(errorMsg);
+        } else output.add(line.substring(4));
       }
       return String.join("\n", output);
     } catch (IOException e) {

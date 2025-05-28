@@ -4,7 +4,7 @@ import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object InvalidYamlHeaderTests extends UtestIntegrationTestSuite {
+object InvalidYamlHeader2Tests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
       import tester._
@@ -12,8 +12,8 @@ object InvalidYamlHeaderTests extends UtestIntegrationTestSuite {
 
       assert(res.isSuccess == false)
       val expectedError =
-        "Invalid YAML header comment on line 2: //| mill-version: 1.0.0-RC1\n" +
-          "YAML header comments can only occur at the start of the file"
+        "Invalid YAML header comment on line 0: //|mill-version: 1.0.0-RC1\n" +
+          "YAML header comments must start with `//| ` with a newline separating the `|` and the data on the right"
       assert(res.err.contains(expectedError))
     }
   }
