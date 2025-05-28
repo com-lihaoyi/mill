@@ -18,7 +18,8 @@ object androidSdkModule0 extends AndroidSdkModule {
 }
 
 // Mill configuration for the Android Todo App project.
-object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHiltSupport {
+object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBuildConfig
+    with AndroidHiltSupport {
 
   def kotlinVersion = Versions.kotlinVersion
   def kotlinLanguageVersion = Versions.kotlinLanguageVersion
@@ -27,16 +28,13 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
   override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings(
       isMinifyEnabled = false,
-      isShrinkEnabled = false,
-      useR8 = true,
-      proguardFiles = ProguardFiles(
-        defaultProguardFile = Some("proguard-android.txt")
+      isShrinkEnabled = false
+    ).withDefaultProguardFile("proguard-android.txt")
+      .withProguardLocalFiles(
+        Seq(
+          moduleDir / "proguard-rules.pro"
+        )
       )
-    ).withProguardLocalFiles(
-      Seq(
-        moduleDir / "proguard-rules.pro"
-      )
-    )
   }
   def debugSources = Task.Sources("src/debug/java")
 
@@ -132,7 +130,8 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
     )
   }
 
-  object androidTest extends AndroidAppKotlinInstrumentedTests with AndroidHiltSupport {
+  object androidTest extends AndroidAppKotlinInstrumentedTests with AndroidR8AppModule
+      with AndroidHiltSupport {
 
     override def kotlinLanguageVersion = Versions.kotlinLanguageVersion
 
@@ -147,17 +146,14 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
     override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
-        isShrinkEnabled = false,
-        useR8 = true,
-        proguardFiles = ProguardFiles(
-          defaultProguardFile = Some("proguard-android.txt")
+        isShrinkEnabled = false
+      ).withDefaultProguardFile("proguard-android.txt")
+        .withProguardLocalFiles(
+          Seq(
+            moduleDir / "proguardTest-rules.pro",
+            moduleDir / "proguard-rules.pro"
+          )
         )
-      ).withProguardLocalFiles(
-        Seq(
-          moduleDir / "proguardTest-rules.pro",
-          moduleDir / "proguard-rules.pro"
-        )
-      )
     }
 
     def mvnDeps = super.mvnDeps() ++ Seq(

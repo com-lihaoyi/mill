@@ -218,50 +218,22 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] =
     Task { Seq.empty[AndroidPackageableExtraFile] }
 
-  /**
-   * Selects the meta info and metadata files to package. These are being extracted
-   * and output by R8 from the dependency jars.
-   * @return A list of files to package into the apk
-   */
-  def androidR8PackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
-    val root = androidDex().path
-    val metaInfoFiles = os.walk(root / "META-INF")
-      .filter(os.isFile).filterNot(_.ext == "dex")
-
-    val kotlinMetadataFiles = if (os.exists(root / "kotlin"))
-      os.walk(root / "kotlin").filter(os.isFile)
-    else
-      Seq.empty[os.Path]
-
-    val includedFiles = (metaInfoFiles ++ kotlinMetadataFiles)
-
-    includedFiles.map(nonDex =>
-      AndroidPackageableExtraFile(PathRef(nonDex), nonDex.relativeTo(root))
-    )
-
-  }
-
   def androidPackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
-
-    if (androidBuildSettings().useR8)
-      androidR8PackageMetaInfoFiles()
-    else {
-      def metaInfRoot(p: os.Path): os.Path = {
-        var current = p
-        while (!current.endsWith(os.rel / "META-INF")) {
-          current = current / os.up
-        }
-        current / os.up
+    def metaInfRoot(p: os.Path): os.Path = {
+      var current = p
+      while (!current.endsWith(os.rel / "META-INF")) {
+        current = current / os.up
       }
-
-      androidLibsClassesJarMetaInf()
-        .map(ref =>
-          AndroidPackageableExtraFile(
-            PathRef(ref.path),
-            ref.path.subRelativeTo(metaInfRoot(ref.path))
-          )
-        )
+      current / os.up
     }
+
+    androidLibsClassesJarMetaInf()
+      .map(ref =>
+        AndroidPackageableExtraFile(
+          PathRef(ref.path),
+          ref.path.subRelativeTo(metaInfRoot(ref.path))
+        )
+      )
   }
 
   /**
@@ -900,20 +872,14 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
-   * Converts the generated JAR file into a DEX file using the `d8` or the r8 tool if minification is enabled
+   * Converts the generated JAR file into a DEX file using the `d8`
    * through the [[androidBuildSettings]].
    *
    * @return os.Path to the Generated DEX File Directory
    */
   def androidDex: T[PathRef] = Task {
 
-    val buildSettings: AndroidBuildTypeSettings = androidBuildSettings()
-
-    val dex =
-      if (buildSettings.useR8)
-        androidR8Dex()
-      else
-        androidD8Dex()
+    val dex = androidD8Dex()
 
     Task.log.debug("Building dex with command: " + dex.dexCliArgs.mkString(" "))
 
@@ -972,103 +938,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
 
     PathRef(outPath) -> d8Args
-  }
-
-  // uses the R8 tool to generate the dex (to shrink and obfuscate)
-  private def androidR8Dex: Task[(outPath: PathRef, dexCliArgs: Seq[String])] = Task {
-    val destDir = Task.dest / "minify"
-    os.makeDir.all(destDir)
-
-    val outputPath = destDir
-
-    Task.log.debug("outptuPath: " + outputPath)
-
-    // Define diagnostic output file paths
-    val mappingOut = destDir / "mapping.txt"
-    val seedsOut = destDir / "seeds.txt"
-    val usageOut = destDir / "usage.txt"
-    val configOut = destDir / "configuration.txt"
-    destDir / "missing_rules.txt"
-    val baselineOutOpt = destDir / "baseline-profile-rewritten.txt"
-    destDir / "res"
-
-    // Create an extra ProGuard config file that instructs R8 to print seeds and usage.
-    val extraRulesFile = destDir / "extra-rules.pro"
-    val extraRulesContent =
-      s"""-printseeds ${seedsOut.toString}
-         |-printusage ${usageOut.toString}
-         |""".stripMargin.trim
-    os.write.over(extraRulesFile, extraRulesContent)
-
-    val classpathClassFiles: Seq[String] = androidPackagedClassfiles()
-      .filter(_.path.ext == "class")
-      .map(_.path.toString)
-
-    val appCompiledFiles: Seq[String] = androidPackagedCompiledClasses()
-      .filter(_.path.ext == "class")
-      .map(_.path.toString)
-
-    val allClassFiles =
-      classpathClassFiles ++ appCompiledFiles ++ androidPackagedDeps().map(_.path.toString)
-
-    val r8ArgsBuilder = Seq.newBuilder[String]
-
-    r8ArgsBuilder += androidSdkModule().r8Exe().path.toString
-
-    if (androidIsDebug())
-      r8ArgsBuilder += "--debug"
-    else
-      r8ArgsBuilder += "--release"
-
-    r8ArgsBuilder ++= Seq(
-      "--output",
-      outputPath.toString,
-      "--pg-map-output",
-      mappingOut.toString,
-      "--pg-conf-output",
-      configOut.toString
-    )
-
-    if (!androidBuildSettings().enableDesugaring) {
-      r8ArgsBuilder += "--no-desugaring"
-    }
-
-    if (!androidBuildSettings().isMinifyEnabled) {
-      r8ArgsBuilder += "--no-minification"
-    }
-
-    if (!androidBuildSettings().isShrinkEnabled) {
-      r8ArgsBuilder += "--no-tree-shaking"
-    }
-
-    r8ArgsBuilder ++= Seq(
-      "--min-api",
-      androidMinSdk().toString,
-      "--dex"
-    )
-
-    // Baseline profile rewriting arguments, if a baseline profile is provided.
-    val baselineArgs = baselineProfile().map { bp =>
-      Seq("--art-profile", bp.path.toString, baselineOutOpt.toString)
-    }.getOrElse(Seq.empty)
-
-    r8ArgsBuilder ++= baselineArgs
-
-    // Library arguments: pass each bootclasspath and any additional library classes as --lib.
-    val libArgs = libraryClassesPaths().flatMap(ref => Seq("--lib", ref.path.toString))
-
-    r8ArgsBuilder ++= libArgs
-
-    // ProGuard configuration files: add our extra rules file and all provided config files.
-    val pgArgs = Seq("--pg-conf", androidProguard().path.toString)
-
-    r8ArgsBuilder ++= pgArgs
-
-    r8ArgsBuilder ++= allClassFiles
-
-    val r8Args = r8ArgsBuilder.result()
-
-    PathRef(outputPath) -> r8Args
   }
 
   trait AndroidAppTests extends AndroidAppModule with JavaTests {
@@ -1170,15 +1039,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
           (manifestXML \\ "manifest")
             .map(_ \ "@package").map(_.text).exists(_.startsWith("androidx.test"))
       }.map(PathRef(_))
-    }
-
-    override def androidPackageableExtraFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
-      val root = androidDex().path
-      val nonDexFiles = os.walk(root).filter(os.isFile).filterNot(_.ext == "dex")
-
-      nonDexFiles.map(nonDex =>
-        AndroidPackageableExtraFile(PathRef(nonDex), nonDex.relativeTo(root))
-      )
     }
 
     /**
