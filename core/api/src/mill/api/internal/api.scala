@@ -30,21 +30,25 @@ trait JavaModuleApi extends ModuleApi {
 
   private[mill] def bspBuildTargetResources: TaskApi[Seq[java.nio.file.Path]]
 
-  private[mill] def bspBuildTargetCompile(clientType: BspClientType): TaskApi[java.nio.file.Path]
+  private[mill] def bspBuildTargetCompile(
+      needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest
+  ): TaskApi[java.nio.file.Path]
 
   private[mill] def bspLoggingTest: TaskApi[Unit]
 
   private[mill] def bspBuildTargetJavacOptions(
-      clientType: BspClientType,
+      needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest,
       clientWantsSemanticDb: Boolean
   )
       : TaskApi[EvaluatorApi => (java.nio.file.Path, Seq[String], Seq[String])]
 
-  private[mill] def bspCompileClasspath(clientType: BspClientType)
+  private[mill] def bspCompileClasspath(
+      needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest
+  )
       : TaskApi[EvaluatorApi => Seq[String]]
 
   private[mill] def bspBuildTargetScalacOptions(
-      clientType: BspClientType,
+      needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest,
       enableJvmCompileClasspathProvider: Boolean,
       clientWantsSemanticDb: Boolean
   ): TaskApi[(Seq[String], EvaluatorApi => Seq[String], EvaluatorApi => java.nio.file.Path)]
@@ -189,6 +193,24 @@ trait PathRefApi {
   def sig: Int
 }
 
+/**
+ * Whether we should copy resources into the compile destination directory.
+ *
+ * This is needed because some BSP clients (e.g. Intellij) ignore the resources classpath that we supply for it
+ * when running tests.
+ *
+ * Both sbt and maven (and presumably gradle) copy the resources into the compile destination directory, so while it
+ * seems like a hack, this seems to be a working solution.
+ *
+ * @see https://github.com/com-lihaoyi/mill/issues/4427#issuecomment-2908889481
+ */
+private[mill] opaque type BspClientNeedsToMergeResourcesIntoCompileDest = Boolean
+private[mill] object BspClientNeedsToMergeResourcesIntoCompileDest {
+  def apply(value: Boolean): BspClientNeedsToMergeResourcesIntoCompileDest = value
+
+  given Conversion[BspClientNeedsToMergeResourcesIntoCompileDest, Boolean] = v => v
+}
+
 /** Used to handle edge cases for specific BSP clients. */
 private[mill] enum BspClientType {
 
@@ -198,19 +220,9 @@ private[mill] enum BspClientType {
   /** Any other BSP client */
   case Other(displayName: String)
 
-  /**
-   * Whether we should copy resources into the compile destination directory.
-   *
-   * This is needed because some BSP clients (e.g. Intellij) ignore the resources classpath that we supply for it
-   * when running tests.
-   *
-   * Both sbt and maven (and presumably gradle) copy the resources into the compile destination directory, so while it
-   * seems like a hack, this seems to be a working solution.
-   *
-   * @see https://github.com/com-lihaoyi/mill/issues/4427#issuecomment-2908889481
-   */
-  def needsToMergeResourcesIntoCompileDest: Boolean = this match {
-    case IntellijBSP => true
-    case Other(_) => false
-  }
+  def needsToMergeResourcesIntoCompileDest: BspClientNeedsToMergeResourcesIntoCompileDest =
+    BspClientNeedsToMergeResourcesIntoCompileDest(this match {
+      case IntellijBSP => true
+      case Other(_) => false
+    })
 }

@@ -28,7 +28,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       tasks = {
         case m: JavaModuleApi =>
           m.bspBuildTargetScalacOptions(
-            sessionInfo.clientType,
+            sessionInfo.clientType.needsToMergeResourcesIntoCompileDest,
             enableJvmCompileClasspathProvider = sessionInfo.enableJvmCompileClasspathProvider,
             clientWantsSemanticDb = sessionInfo.clientWantsSemanticDb
           )
