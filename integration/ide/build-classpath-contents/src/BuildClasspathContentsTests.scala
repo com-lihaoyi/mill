@@ -25,6 +25,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
         val expected = List(
           "mill-core-api_3.jar",
           "mill-core-constants.jar",
+          "mill-core-coursierutil_3.jar",
           "mill-core-define_3.jar",
           "mill-core-util_3.jar",
           "mill-libs-androidlib_3.jar",

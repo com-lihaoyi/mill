@@ -2,10 +2,10 @@
 [bsp] BSP server started
 [1-buildInitialize] Entered buildInitialize
 [1-buildInitialize] buildInitialize took * msec
-[2-workspaceBuildTargets] Entered workspaceBuildTargets
 [bsp-init-build.mill-61] [info] compiling * Scala sources to * ...
 [bsp-init-build.mill-61] [info] done compiling
 [bsp-init] SNAPSHOT
+[2-workspaceBuildTargets] Entered workspaceBuildTargets
 [2-workspaceBuildTargets] Evaluating * tasks
 [2-workspaceBuildTargets] Done
 [2-workspaceBuildTargets] Evaluating 1 task
@@ -31,7 +31,11 @@
 [4-compile]     mill.define.Task$Computed.evaluate(Task.scala:*)
 [4-compile] Failed
 [4-compile] buildTargetCompile took * msec
-[5-buildShutdown] Entered buildShutdown
-[6-onBuildExit] Entered onBuildExit
+[5-compile] Entered buildTargetCompile
+[5-compile] Evaluating 1 task
+[5-compile] Done
+[5-compile] buildTargetCompile took * msec
+[7-buildShutdown] Entered buildShutdown
+[8-onBuildExit] Entered onBuildExit
 [bsp] BSP session returned with mill.api.internal.BspServerResult$Shutdown$@*
 [bsp] Exiting BSP runner loop. Stopping BSP server. Last result: Success(mill.api.internal.BspServerResult$Shutdown$@*)

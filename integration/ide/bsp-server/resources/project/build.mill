@@ -47,3 +47,13 @@ object errored extends scalalib.ScalaModule {
     res
   }
 }
+
+object delayed extends scalalib.ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+
+  def compile = Task {
+    val res = super.compile()
+    Thread.sleep(5000L)
+    res
+  }
+}

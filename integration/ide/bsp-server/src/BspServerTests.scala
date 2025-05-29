@@ -110,8 +110,13 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
-        val targetIds =
-          buildTargets.getTargets.asScala.filter(_.getDisplayName != "errored").map(_.getId).asJava
+        val targetIds = buildTargets
+          .getTargets
+          .asScala
+          .filter(_.getDisplayName != "errored")
+          .filter(_.getDisplayName != "delayed")
+          .map(_.getId)
+          .asJava
         val metaBuildTargetId = new b.BuildTargetIdentifier(
           (workspacePath / "mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
         )
@@ -232,6 +237,23 @@ object BspServerTests extends UtestIntegrationTestSuite {
             targets.filter(_.getDisplayName == "errored").map(_.getId).asJava
           )
         ).get()
+
+        // Submitting two compilation requests in a row, and cancelling
+        // the second one.
+        // We shouldn't get any log from the cancelled one, apart from
+        // a "… was cancelled" message.
+        val delayedCompileFuture = buildServer.buildTargetCompile(
+          new b.CompileParams(
+            targets.filter(_.getDisplayName == "delayed").map(_.getId).asJava
+          )
+        )
+        val erroredCompileFuture = buildServer.buildTargetCompile(
+          new b.CompileParams(
+            targets.filter(_.getDisplayName == "errored").map(_.getId).asJava
+          )
+        )
+        erroredCompileFuture.cancel(true)
+        delayedCompileFuture.get()
       }
 
       val logs = stderr.toString
@@ -239,11 +261,24 @@ object BspServerTests extends UtestIntegrationTestSuite {
         .filter(_.startsWith("["))
         .mkString
 
+      val expectedCancelledLine = "[6-compile] buildTargetCompile was cancelled"
+
+      assert(logs.linesIterator.contains(expectedCancelledLine))
+
       compareLogWithSnapshot(
         logs,
         snapshotsPath / "logging",
         // ignoring compilation warnings that might go away in the future
-        ignoreLine = TestRunnerUtils.matchesGlob("[bsp-init-build.mill-*] [warn] *")
+        ignoreLine = {
+          val warnGlob = TestRunnerUtils.matchesGlob("[bsp-init-build.mill-*] [warn] *")
+          val waitingGlob = TestRunnerUtils.matchesGlob("[*] Another Mill process is running *")
+          s =>
+            warnGlob(s) || waitingGlob(s) ||
+              // Ignoring this one, that sometimes comes out of order.
+              // If the request hasn't been cancelled, we'd see extra lines making the
+              // test fail anyway.
+              s == expectedCancelledLine
+        }
       )
 
       val messages0 = messages.map { message =>

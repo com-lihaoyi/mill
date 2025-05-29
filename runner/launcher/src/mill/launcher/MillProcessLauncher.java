@@ -113,8 +113,12 @@ public class MillProcessLauncher {
         Path buildFile = Paths.get(rootBuildFileName);
         if (Files.exists(buildFile)) {
           String[] config = cachedComputedValue(
-              "yaml-config-" + key, mill.constants.Util.readYamlHeader(buildFile), () -> {
-                Object conf = mill.launcher.ConfigReader.readYaml(buildFile);
+              "yaml-config-" + key,
+              mill.constants.Util.readYamlHeader(
+                  buildFile, buildFile.getFileName().toString()),
+              () -> {
+                Object conf = mill.launcher.ConfigReader.readYaml(
+                    buildFile, buildFile.getFileName().toString());
                 if (!(conf instanceof Map)) return new String[] {};
                 Map<String, Object> conf2 = (Map<String, Object>) conf;
 

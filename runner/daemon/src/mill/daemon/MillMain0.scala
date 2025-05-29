@@ -14,6 +14,7 @@ import mill.{api, define}
 import java.io.{InputStream, PipedInputStream, PrintStream}
 import java.lang.reflect.InvocationTargetException
 import java.util.Locale
+import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
 import java.util.concurrent.locks.ReentrantLock
 import scala.collection.immutable
 import scala.jdk.CollectionConverters.*
@@ -257,10 +258,14 @@ object MillMain0 {
                   val userSpecifiedProperties =
                     userSpecifiedProperties0 ++ config.extraSystemProperties
 
-                  val threadCount = Some(maybeThreadCount.toOption.get)
+                  val threadCount = maybeThreadCount.toOption.get
+
+                  def createEc(): Option[ThreadPoolExecutor] =
+                    if (threadCount == 1) None
+                    else Some(mill.exec.ExecutionContexts.createExecutor(threadCount))
 
                   val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
-                  Using.resource(new TailManager(daemonDir)) { tailManager =>
+                  Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                     def runMillBootstrap(
                         enterKeyPressed: Boolean,
                         prevState: Option[RunnerState],
@@ -289,7 +294,7 @@ object MillMain0 {
                               keepGoing = config.keepGoing.value,
                               imports = config.imports,
                               env = env,
-                              threadCount = threadCount,
+                              ec = ec,
                               targetsAndParams = targetsAndParams,
                               prevRunnerState = prevState.getOrElse(stateCache),
                               logger = logger,
@@ -426,7 +431,8 @@ object MillMain0 {
         logDir,
         true,
         outLock,
-        bspLogger
+        bspLogger,
+        wsRoot / OutFiles.out
       )
     }
 
@@ -589,4 +595,14 @@ object MillMain0 {
     for (k <- systemPropertiesToUnset) System.clearProperty(k)
     for ((k, v) <- desiredProps) System.setProperty(k, v)
   }
+
+  private implicit lazy val threadPoolExecutorOptionReleasable
+      : Using.Releasable[Option[ThreadPoolExecutor]] =
+    new Using.Releasable[Option[ThreadPoolExecutor]] {
+      def release(resource: Option[ThreadPoolExecutor]): Unit =
+        for (t <- resource) {
+          t.shutdown()
+          t.awaitTermination(Long.MaxValue, TimeUnit.SECONDS)
+        }
+    }
 }

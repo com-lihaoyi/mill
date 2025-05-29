@@ -10,10 +10,7 @@ trait IntegrationTesterBase {
   def propagateJavaHome: Boolean
 
   def millTestSuiteEnv: Map[String, String] = (
-    Option(System.getenv("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH")).flatMap(s =>
-      Option("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" -> s)
-    ) ++
-      Option.when(propagateJavaHome)("JAVA_HOME" -> sys.props("java.home"))
+    Option.when(propagateJavaHome)("JAVA_HOME" -> sys.props("java.home"))
   ).toMap
 
   /**
