@@ -3,6 +3,7 @@ package mill.androidlib
 import mill.*
 import mill.define.{PathRef, Task}
 
+@mill.api.experimental
 trait AndroidR8AppModule extends AndroidAppModule {
 
   override def androidPackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] =
