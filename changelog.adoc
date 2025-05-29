@@ -161,7 +161,8 @@ package build
 + }
 ```
 
-* `def zincWorker` and `ZincWorkerModule` have been renamed to `jvmWorker` and `JvmWorkerModule` {link-pr}/4834[#4834])
+* `def zincWorker`, `ZincWorkerModule`, and `ZincWorkerUtil` have been renamed to 
+  `jvmWorker`, `JvmWorkerModule`, and `JvmWorkerUtil` {link-pr}/4834[#4834])
 
 * `millSourcePath` has been renamed to `moduleDir`
 
@@ -251,6 +252,9 @@ package build
   documentation for how plugins are currently defined and published at
   https://mill-build.org/mill/main-branch/extending/writing-plugins.html[Writing Mill Plugins]
 
+* Mill's uPickle dependency has been updated from 3.3.1 to 4.2.1, which introduces some backwards
+  incompatible changes to the serialized JSON output. This should only affect you if you are 
+  processing Mill's `out` folder `.json` files via external tools
 
 ==== Other Changes
 
