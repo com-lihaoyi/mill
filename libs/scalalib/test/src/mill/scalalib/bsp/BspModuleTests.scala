@@ -94,15 +94,21 @@ object BspModuleTests extends TestSuite {
 
       test("dependent module") - UnitTester(MultiBase, null).scoped { eval =>
         testDependentModule(
-          eval, needsToMerge = false,
-          expectedPath = ExecutionPaths.resolve(eval.outPath, MultiBase.HelloBsp.compile).dest / "classes"
+          eval,
+          needsToMerge = false,
+          expectedPath =
+            ExecutionPaths.resolve(eval.outPath, MultiBase.HelloBsp.compile).dest / "classes"
         )
       }
 
       test("dependent module (needs to merge)") - UnitTester(MultiBase, null).scoped { eval =>
         testDependentModule(
-          eval, needsToMerge = true,
-          expectedPath = ExecutionPaths.resolve(eval.outPath, MultiBase.HelloBsp.bspBuildTargetCompileMerged).dest
+          eval,
+          needsToMerge = true,
+          expectedPath = ExecutionPaths.resolve(
+            eval.outPath,
+            MultiBase.HelloBsp.bspBuildTargetCompileMerged
+          ).dest
         )
       }
 
