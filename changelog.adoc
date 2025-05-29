@@ -134,6 +134,8 @@ package build
 ...Qux...
 ```
 
+* `import $packages` and `import $meta` are no longer necessary and have been removed
+
 * `mill.api.Ctx` is now `mill.define.TaskCtx`, and `mill.define.Ctx` is now `mill.define.ModuleCtx`,
   to avoid confusion over the name `Ctx` being overloaded to refer to two different classes
 
@@ -160,6 +162,8 @@ package build
 ```
 
 * `def zincWorker` and `ZincWorkerModule` have been renamed to `jvmWorker` and `JvmWorkerModule` {link-pr}/4834[#4834])
+
+* `millSourcePath` has been renamed to `moduleDir`
 
 * The terms `client`/`server` throughout the codebase have been renamed to `launcher`/`daemon` ({link-pr}/5135[#5135])
 
