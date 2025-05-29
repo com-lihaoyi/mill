@@ -31,24 +31,24 @@ trait JavaModuleApi extends ModuleApi {
   private[mill] def bspBuildTargetResources: TaskApi[Seq[java.nio.file.Path]]
 
   private[mill] def bspBuildTargetCompile(
-      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses
+      needsToMergeResourcesIntoCompileDest: Boolean
   ): TaskApi[java.nio.file.Path]
 
   private[mill] def bspLoggingTest: TaskApi[Unit]
 
   private[mill] def bspBuildTargetJavacOptions(
-      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses,
+      needsToMergeResourcesIntoCompileDest: Boolean,
       clientWantsSemanticDb: Boolean
   )
       : TaskApi[EvaluatorApi => (java.nio.file.Path, Seq[String], Seq[String])]
 
   private[mill] def bspCompileClasspath(
-      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses
+      needsToMergeResourcesIntoCompileDest: Boolean
   )
       : TaskApi[EvaluatorApi => Seq[String]]
 
   private[mill] def bspBuildTargetScalacOptions(
-      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses,
+      needsToMergeResourcesIntoCompileDest: Boolean,
       enableJvmCompileClasspathProvider: Boolean,
       clientWantsSemanticDb: Boolean
   ): TaskApi[(Seq[String], EvaluatorApi => Seq[String], EvaluatorApi => java.nio.file.Path)]
@@ -193,24 +193,6 @@ trait PathRefApi {
   def sig: Int
 }
 
-/**
- * Whether we should copy resources into the compile destination directory.
- *
- * This is needed because some BSP clients (e.g. Intellij) ignore the resources classpath that we supply for it
- * when running tests.
- *
- * Both sbt and maven (and presumably gradle) copy the resources into the compile destination directory, so while it
- * seems like a hack, this seems to be a working solution.
- *
- * @see https://github.com/com-lihaoyi/mill/issues/4427#issuecomment-2908889481
- */
-private[mill] opaque type MergeResourcesIntoClasses = Boolean
-private[mill] object MergeResourcesIntoClasses {
-  def apply(value: Boolean): MergeResourcesIntoClasses = value
-
-  given Conversion[MergeResourcesIntoClasses, Boolean] = v => v
-}
-
 /** Used to handle edge cases for specific BSP clients. */
 private[mill] enum BspClientType {
 
@@ -220,9 +202,9 @@ private[mill] enum BspClientType {
   /** Any other BSP client */
   case Other(displayName: String)
 
-  def mergeResourcesIntoClasses: MergeResourcesIntoClasses =
-    MergeResourcesIntoClasses(this match {
+  def mergeResourcesIntoClasses: Boolean =
+    this match {
       case IntellijBSP => true
       case Other(_) => false
-    })
+    }
 }

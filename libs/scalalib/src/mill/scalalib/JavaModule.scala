@@ -10,8 +10,6 @@ import mainargs.Flag
 import mill.api.{MillException, Result, Segments}
 import mill.api.internal.{
   BspBuildTarget,
-  MergeResourcesIntoClasses,
-  BspClientType,
   BspModuleApi,
   BspUri,
   EvaluatorApi,
@@ -700,7 +698,7 @@ trait JavaModule
    */
   @internal
   private[mill] def bspTransitiveCompileClasspath(
-      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses
+      needsToMergeResourcesIntoCompileDest: Boolean
   ): Task[Seq[UnresolvedPath]] = Task.Anon {
     Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
@@ -820,10 +818,21 @@ trait JavaModule
    * exact same compilation settings, so we can safely use the same path.
    *
    * Keep in sync with [[compile]] and [[bspBuildTargetCompile]].
+   *
+   * @param needsToMergeResourcesIntoCompileDest
+   *   Whether we should copy resources into the compile destination directory.
+   *
+   *   This is needed because some BSP clients (e.g. Intellij) ignore the resources classpath that we supply for it
+   *   when running tests.
+   *
+   *   Both sbt and maven (and presumably gradle) copy the resources into the compile destination directory, so while it
+   *   seems like a hack, this seems to be a working solution.
+   *
+   *   See also: https://github.com/com-lihaoyi/mill/issues/4427#issuecomment-2908889481
    */
   @internal
   private[mill] def bspCompileClassesPath(
-      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses
+      needsToMergeResourcesIntoCompileDest: Boolean
   ): Task[UnresolvedPath] =
     Task.Anon {
       if (needsToMergeResourcesIntoCompileDest) resolveRelativeToOut(bspBuildTargetCompileMerged)
@@ -846,7 +855,7 @@ trait JavaModule
    */
   @internal
   private[mill] def bspLocalRunClasspath(
-      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses
+      needsToMergeResourcesIntoCompileDest: Boolean
   ): Task[Seq[UnresolvedPath]] =
     Task.Anon {
       Seq.from(super.localRunClasspath() ++ resources())
@@ -875,7 +884,7 @@ trait JavaModule
    */
   @internal
   private[mill] def bspLocalClasspath(
-      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses
+      needsToMergeResourcesIntoCompileDest: Boolean
   ): Task[Seq[UnresolvedPath]] =
     Task.Anon {
       localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
@@ -899,7 +908,7 @@ trait JavaModule
    */
   @internal
   private[mill] def bspCompileClasspath(
-      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses
+      needsToMergeResourcesIntoCompileDest: Boolean
   )
       : Task[EvaluatorApi => Seq[String]] = Task.Anon {
     (ev: EvaluatorApi) =>
@@ -1340,7 +1349,7 @@ trait JavaModule
 
   @internal
   private[mill] def bspBuildTargetScalacOptions(
-      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses,
+      needsToMergeResourcesIntoCompileDest: Boolean,
       enableJvmCompileClasspathProvider: Boolean,
       clientWantsSemanticDb: Boolean
   ) = {
@@ -1381,7 +1390,7 @@ trait JavaModule
 
   @internal
   private[mill] def bspBuildTargetJavacOptions(
-      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses,
+      needsToMergeResourcesIntoCompileDest: Boolean,
       clientWantsSemanticDb: Boolean
   ) = {
     val classesPathTask = this match {
@@ -1480,7 +1489,7 @@ trait JavaModule
 
   @internal
   private[mill] def bspBuildTargetCompile(
-      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses
+      needsToMergeResourcesIntoCompileDest: Boolean
   ): Task[java.nio.file.Path] = {
     if (needsToMergeResourcesIntoCompileDest) Task.Anon { bspBuildTargetCompileMerged().path.toNIO }
     else Task.Anon { compile().classes.path.toNIO }

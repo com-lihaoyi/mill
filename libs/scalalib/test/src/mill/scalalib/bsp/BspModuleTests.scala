@@ -3,7 +3,6 @@ package mill.scalalib.bsp
 import mill.define.{Cross, Discover}
 import mill.define.ExecutionPaths
 import mill.T
-import mill.api.internal.{MergeResourcesIntoClasses, BspClientType}
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
@@ -43,7 +42,7 @@ object BspModuleTests extends TestSuite {
   }
 
   override def tests: Tests = Tests {
-    val needsToMerge = MergeResourcesIntoClasses(false)
+    val needsToMerge = false
 
     test("bspCompileClasspath") {
       test("single module") - UnitTester(MultiBase, null).scoped { eval =>

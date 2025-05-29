@@ -133,7 +133,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
   @internal
   override def bspCompileClasspath(
-      needsToMergeResourcesIntoCompileDest: MergeResourcesIntoClasses
+      needsToMergeResourcesIntoCompileDest: Boolean
   ) = Task.Anon { (ev: EvaluatorApi) =>
     compileClasspath().map(
       _.path
