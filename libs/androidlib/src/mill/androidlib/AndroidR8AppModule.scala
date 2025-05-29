@@ -1,7 +1,7 @@
 package mill.androidlib
 
 import mill.*
-import mill.define.PathRef
+import mill.define.{PathRef, Task}
 
 trait AndroidR8AppModule extends AndroidAppModule {
 
@@ -34,19 +34,89 @@ trait AndroidR8AppModule extends AndroidAppModule {
    */
   def androidR8PackageMetaInfoFiles: T[Seq[AndroidPackageableExtraFile]] = Task {
     val root = androidDex().path
-    val metaInfoFiles = os.walk(root / "META-INF")
-      .filter(os.isFile).filterNot(_.ext == "dex")
 
-    val kotlinMetadataFiles = if (os.exists(root / "kotlin"))
-      os.walk(root / "kotlin").filter(os.isFile)
+    def directoryFiles(dir: os.Path): Seq[os.Path] = if (os.exists(dir))
+      os.walk(dir).filter(os.isFile)
     else
       Seq.empty[os.Path]
+
+    val metaInfoFiles = directoryFiles(root / "META-INF")
+
+    val kotlinMetadataFiles = directoryFiles(root / "kotlin")
 
     val includedFiles = (metaInfoFiles ++ kotlinMetadataFiles)
 
     includedFiles.map(nonDex =>
       AndroidPackageableExtraFile(PathRef(nonDex), nonDex.relativeTo(root))
     )
+  }
+
+  def androidLibraryProguardConfigs: Task[Seq[PathRef]] = Task {
+    androidUnpackArchives()
+      // TODO need also collect rules from other modules,
+      // but Android lib module doesn't yet exist
+      .flatMap(_.proguardRules)
+  }
+
+  /** ProGuard/R8 rules configuration files for release target (user-provided and generated) */
+  def androidProguardConfigs: Task[Seq[PathRef]] = Task {
+    val proguardFilesFromBuildSettings = androidBuildSettings().proguardFiles
+    val androidProguardPath = androidSdkModule().androidProguardPath().path
+    val defaultProguardFile = proguardFilesFromBuildSettings.defaultProguardFile.map {
+      pf => androidProguardPath / pf
+    }
+    val userProguardFiles = proguardFilesFromBuildSettings.localFiles
+    mill.define.BuildCtx.withFilesystemCheckerDisabled {
+      (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(
+        _
+      )) ++ androidLibraryProguardConfigs()
+    }
+  }
+
+  /** Concatenates all rules into one file */
+  def androidProguard: T[PathRef] = Task {
+    val globalProguard = Task.dest / "global-proguard.pro"
+    val files = androidProguardConfigs()
+    os.write(globalProguard, "")
+    files.foreach(pg =>
+      os.write.append(globalProguard, os.read(pg.path))
+    )
+    PathRef(globalProguard)
+  }
+
+  /**
+   * The default release settings with the following settings:
+   * - minifyEnabled=true
+   * - shrinkEnabled=true
+   * - proguardFiles=proguard-android-optimize.txt
+   *
+   * @return
+   */
+  def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
+    AndroidBuildTypeSettings(
+      isMinifyEnabled = true,
+      isShrinkEnabled = true,
+      proguardFiles = ProguardFiles(
+        defaultProguardFile = Some("proguard-android-optimize.txt")
+      )
+    )
+  }
+
+  def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+    AndroidBuildTypeSettings()
+  }
+
+  /**
+   * Gives the android build type settings for debug or release.
+   * Controlled by [[androidIsDebug]] flag!
+   *
+   * @return
+   */
+  def androidBuildSettings: T[AndroidBuildTypeSettings] = Task {
+    if (androidIsDebug())
+      androidDebugSettings()
+    else
+      androidReleaseSettings()
   }
 
   /**
