@@ -109,7 +109,6 @@ object `package` extends ScalaModule {
 /** Usage
 
 > ./mill buildReport
-
 === Build Report ===
 
 */
