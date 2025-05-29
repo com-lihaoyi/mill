@@ -42,7 +42,7 @@ object BspModuleTests extends TestSuite {
   }
 
   override def tests: Tests = Tests {
-    val needsToMerge = false
+    val needsToMerge = true
 
     test("bspCompileClasspath") {
       test("single module") - UnitTester(MultiBase, null).scoped { eval =>
@@ -63,7 +63,8 @@ object BspModuleTests extends TestSuite {
           result.evalCount > 0
         )
       }
-      test("dependent module") - UnitTester(MultiBase, null).scoped { eval =>
+
+      def testDependentModule(eval: UnitTester, needsToMerge: Boolean, expectedPath: os.Path) = {
         val Right(result) = eval.apply(
           MultiBase.HelloBsp2.bspCompileClasspath(needsToMerge)
         ): @unchecked
@@ -78,8 +79,7 @@ object BspModuleTests extends TestSuite {
         val expected: Seq[FilePath] = Seq(
           MultiBase.HelloBsp.moduleDir / "compile-resources",
           MultiBase.HelloBsp2.moduleDir / "compile-resources",
-          ExecutionPaths.resolve(eval.outPath, MultiBase.HelloBsp.compile)
-            .dest / "classes",
+          expectedPath,
           os.rel / "slf4j-api-1.7.34.jar",
           os.rel / "logback-core-1.1.10.jar",
           os.rel / "logback-classic-1.1.10.jar",
@@ -91,6 +91,21 @@ object BspModuleTests extends TestSuite {
           result.evalCount > 0
         )
       }
+
+      test("dependent module") - UnitTester(MultiBase, null).scoped { eval =>
+        testDependentModule(
+          eval, needsToMerge = false,
+          expectedPath = ExecutionPaths.resolve(eval.outPath, MultiBase.HelloBsp.compile).dest / "classes"
+        )
+      }
+
+      test("dependent module (needs to merge)") - UnitTester(MultiBase, null).scoped { eval =>
+        testDependentModule(
+          eval, needsToMerge = true,
+          expectedPath = ExecutionPaths.resolve(eval.outPath, MultiBase.HelloBsp.bspBuildTargetCompileMerged).dest
+        )
+      }
+
       test("interdependencies are fast") {
         test("reference (no BSP)") {
           def runNoBsp(entry: Int, maxTime: Int) = UnitTester(InterDeps, null).scoped { eval =>
