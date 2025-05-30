@@ -9,7 +9,7 @@ import coursier.maven.MavenRepositoryLike
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.util.Task
-import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
+import coursier.{Artifacts, Classifier, Dependency, Fetch, Repository, Resolution, Resolve, Type}
 import mill.api.*
 import mill.define.{PathRef, TaskCtx}
 
@@ -460,7 +460,7 @@ object Jvm {
   /**
    * Resolve dependencies using Coursier, and return very detailed info about their artifacts.
    */
-  def getArtifacts(
+  def fetchArtifacts(
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency] = Nil,
@@ -472,7 +472,7 @@ object Jvm {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
-  ): Result[coursier.Artifacts.Result] = {
+  ): Result[Fetch.Result] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       deps,
@@ -510,8 +510,12 @@ object Jvm {
           Result.Failure(
             s"Failed to load ${if (sources) "source " else ""}dependencies" + errorDetails
           )
-        case Right(res) =>
-          Result.Success(res)
+        case Right(artifacts) =>
+          Result.Success(Fetch.Result(
+            resolution,
+            artifacts.fullDetailedArtifacts0,
+            artifacts.fullExtraArtifacts
+          ))
       }
     }
   }
@@ -536,7 +540,7 @@ object Jvm {
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams()
   ): Result[Seq[PathRef]] =
-    getArtifacts(
+    fetchArtifacts(
       repositories,
       deps,
       force,
@@ -548,9 +552,9 @@ object Jvm {
       coursierCacheCustomizer,
       artifactTypes,
       resolutionParams
-    ).map { res =>
+    ).map { artifacts =>
       mill.define.BuildCtx.withFilesystemCheckerDisabled {
-        res.files
+        artifacts.files
           .map(os.Path(_))
           .map(PathRef(_, quick = true))
       }
