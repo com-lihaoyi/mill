@@ -39,20 +39,27 @@ object app extends AndroidAppKotlinModule {
   )
 
   // This is a temporary fix
-  def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
-    super.mapDependencies().andThen { (d: coursier.Dependency) =>
-      // otherwise there are some resolution problems (version conflicts), because Coursier is using pom files only,
-      // but Gradle is working with .module files if available
-      if (d.module.organization.value == "androidx.collection") {
-        d.withVersion("1.4.4")
-      } else if (d.module.organization.value == "androidx.lifecycle") {
-        d.withVersion("2.8.3")
-      } else if (d.module.organization.value == "androidx.compose.runtime") {
-        d.withVersion("1.7.5")
-      } else {
-        d
-      }
-    }
+  def resolutionParams: Task[coursier.params.ResolutionParams] = Task.Anon {
+    super.resolutionParams().addForceVersion0(
+      coursier.Module(
+        coursier.Organization("androidx.collection"),
+        coursier.ModuleName("*"),
+        Map.empty
+      ) ->
+        coursier.version.VersionConstraint("1.4.4"),
+      coursier.Module(
+        coursier.Organization("androidx.lifecycle"),
+        coursier.ModuleName("*"),
+        Map.empty
+      ) ->
+        coursier.version.VersionConstraint("2.8.3"),
+      coursier.Module(
+        coursier.Organization("androidx.compose.runtime"),
+        coursier.ModuleName("*"),
+        Map.empty
+      ) ->
+        coursier.version.VersionConstraint("1.7.5")
+    )
   }
 
   object screenshotTest extends AndroidAppKotlinScreenshotTests {

@@ -119,7 +119,7 @@ object Deps {
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
   val classgraph = ivy"io.github.classgraph:classgraph:4.8.179"
-  val coursierVersion = "2.1.25-M2"
+  val coursierVersion = "2.1.25-M13"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion"
@@ -397,22 +397,12 @@ trait MillJavaModule extends JavaModule {
       Seq(MavenRepository("https://oss.sonatype.org/content/repositories/releases"))
   }
 
-  def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = Task.Anon {
-    super.mapDependencies().andThen { dep =>
-      forcedVersions.find(f =>
-        f.dep.module.organization.value == dep.module.organization.value &&
-          f.dep.module.name.value == dep.module.name.value
-      ).map { forced =>
-        val newDep = dep.withVersion(forced.dep.version)
-        Task.log.debug(s"Forcing version of ${dep.module} from ${dep.version} to ${newDep.version}")
-        newDep
-      }.getOrElse(dep)
-    }
+  def resolutionParams: Task[coursier.params.ResolutionParams] = Task.Anon {
+    super.resolutionParams().addForceVersion0(
+      Deps.jline.dep.module -> Deps.jline.dep.versionConstraint,
+      Deps.jna.dep.module -> Deps.jna.dep.versionConstraint
+    )
   }
-  val forcedVersions: Seq[Dep] = Deps.transitiveDeps ++ Seq(
-    Deps.jline,
-    Deps.jna
-  )
 
   def javadocOptions = super.javadocOptions() ++ Seq(
     // Disable warnings for missing documentation comments or tags (for example,
@@ -533,6 +523,10 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
     ProblemFilter.exclude[Problem]("mill.eval.Tarjans*"),
     ProblemFilter.exclude[Problem]("mill.define.Ctx#Impl*"),
     ProblemFilter.exclude[Problem]("mill.resolve.ResolveNotFoundHandler*"),
+    // added an override in ScalaModule
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.scalalib.ScalaModule.mill$scalalib$ScalaModule$$super$resolutionParams"
+    ),
     // (4x) See https://github.com/com-lihaoyi/mill/pull/2739
     ProblemFilter.exclude[ReversedMissingMethodProblem](
       "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$scalaLibraryIvyDeps"
