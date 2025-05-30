@@ -1,5 +1,6 @@
 package mill.exec
 
+import mill.api.Result
 import mill.define.{Discover, Task}
 import mill.util.TestGraphs
 import mill.testkit.{TestRootModule, UnitTester}
@@ -97,6 +98,7 @@ object ExecutionTests extends TestSuite {
         extraEvaled = -1,
         secondRunNoOp = false
       )
+      // second run should only re-run the source/input-tasks
       checker(
         build.task,
         "i am cow hear me moo !",
@@ -120,6 +122,65 @@ object ExecutionTests extends TestSuite {
         "I AM COW HEAR ME MOO !",
         Seq(build.source),
         extraEvaled = -1,
+        secondRunNoOp = false
+      )
+    }
+
+    test("sources-with-deps") {
+      object build extends TestRootModule {
+        def source = Task.Sources("hello/world.txt", "hello/world2.txt")
+
+        def sources2 = Task.Sources({
+          val res = (source().map(_.path) ++ Seq(moduleDir / "hello/world3.txt"))
+            .map(Result.create)
+//          println("res: " + res)
+          res
+        }*)
+
+        def task = Task {
+          sources2().map(pr => os.read(pr.path)).mkString + "!"
+        }
+
+        lazy val millDiscover = Discover[this.type]
+      }
+
+      val checker = new Checker(build)
+
+      os.write(build.moduleDir / "hello/world.txt", "i am cow ", createFolders = true)
+      os.write(build.moduleDir / "hello/world2.txt", "hear me moo ", createFolders = true)
+      os.write(build.moduleDir / "hello/world3.txt", "moo ", createFolders = true)
+      checker(
+        target = build.task,
+        expValue = "i am cow hear me moo moo !",
+        expEvaled = Seq(build.sources2, build.source, build.task),
+        extraEvaled = 0,
+        secondRunNoOp = false
+      )
+      // second run should only re-run the source/input-tasks
+      checker(
+        build.task,
+        "i am cow hear me moo moo !",
+        Seq(build.sources2, build.source),
+        extraEvaled = 0,
+        secondRunNoOp = false
+      )
+
+      os.write.over(build.moduleDir / "hello/world.txt", "I AM COW ")
+
+      checker(
+        build.task,
+        "I AM COW hear me moo moo !",
+        Seq(build.sources2, build.source, build.task),
+        extraEvaled = 0,
+        secondRunNoOp = false
+      )
+
+      os.write.over(build.moduleDir / "hello/world2.txt", "HEAR ME MOO ")
+      checker(
+        build.task,
+        "I AM COW HEAR ME MOO moo !",
+        Seq(build.sources2, build.source, build.task),
+        extraEvaled = 0,
         secondRunNoOp = false
       )
     }
@@ -229,13 +290,13 @@ object ExecutionTests extends TestSuite {
       }
 
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result(worker1, _)) = tester.apply(build.worker)
-        val Right(UnitTester.Result(worker2, _)) = tester.apply(build.worker)
+        val Right(UnitTester.Result(worker1, _)) = tester.apply(build.worker): @unchecked
+        val Right(UnitTester.Result(worker2, _)) = tester.apply(build.worker): @unchecked
         assert(worker1 == worker2)
         assert(worker1.n == 10)
         assert(!worker1.closed)
         x = 11
-        val Right(UnitTester.Result(worker3, _)) = tester.apply(build.worker)
+        val Right(UnitTester.Result(worker3, _)) = tester.apply(build.worker): @unchecked
         assert(worker3 != worker2)
         assert(worker3.n == 11)
         assert(!worker3.closed)
@@ -298,10 +359,10 @@ object ExecutionTests extends TestSuite {
 
       UnitTester(build, null).scoped { tester =>
         assert(y == 0)
-        val Right(_) = tester.apply(build.task)
+        val Right(_) = tester.apply(build.task): @unchecked
         assert(y == 10)
         x = 0
-        val Left(_) = tester.apply(build.task)
+        val Left(_) = tester.apply(build.task): @unchecked
         assert(y == 10)
       }
     }
@@ -315,12 +376,13 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result(Seq(1, 10, 100), _)) = tester.apply(build.task4)
+        val Right(UnitTester.Result(Seq(1, 10, 100), _)) = tester.apply(build.task4): @unchecked
       }
     }
     test("traverse") {
       UnitTester(traverseBuild, null).scoped { tester =>
-        val Right(UnitTester.Result(Seq(1, 10, 100), _)) = tester.apply(traverseBuild.task4)
+        val Right(UnitTester.Result(Seq(1, 10, 100), _)) =
+          tester.apply(traverseBuild.task4): @unchecked
       }
     }
 
@@ -332,7 +394,7 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result((1, 10), _)) = tester.apply(build.task4)
+        val Right(UnitTester.Result((1, 10), _)) = tester.apply(build.task4): @unchecked
       }
     }
 
@@ -344,7 +406,7 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result(11, _)) = tester.apply(build.task2)
+        val Right(UnitTester.Result(11, _)) = tester.apply(build.task2): @unchecked
       }
     }
 
@@ -421,11 +483,14 @@ object ExecutionTests extends TestSuite {
 
     test("backticked") {
       UnitTester(bactickIdentifiers, null).scoped { tester =>
-        val Right(UnitTester.Result(1, _)) = tester.apply(bactickIdentifiers.`up-target`)
-        val Right(UnitTester.Result(3, _)) = tester.apply(bactickIdentifiers.`a-down-target`)
-        val Right(UnitTester.Result(3, _)) = tester.apply(bactickIdentifiers.`invisible&`)
+        val Right(UnitTester.Result(1, _)) =
+          tester.apply(bactickIdentifiers.`up-target`): @unchecked
+        val Right(UnitTester.Result(3, _)) =
+          tester.apply(bactickIdentifiers.`a-down-target`): @unchecked
+        val Right(UnitTester.Result(3, _)) =
+          tester.apply(bactickIdentifiers.`invisible&`): @unchecked
         val Right(UnitTester.Result(4, _)) =
-          tester.apply(bactickIdentifiers.`nested-module`.`nested-target`)
+          tester.apply(bactickIdentifiers.`nested-module`.`nested-target`): @unchecked
       }
     }
     test("anonTaskFailure") {

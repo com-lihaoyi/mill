@@ -2,8 +2,9 @@ package mill.define.internal
 
 import mill.api.internal.internal
 import scala.annotation.compileTimeOnly
-
 import scala.quoted.*
+
+import mill.define.internal.Applicative.TaskReferences.All
 
 /**
  * A generic Applicative-functor macro: translates calls to
@@ -24,12 +25,24 @@ object Applicative {
 
   type Id[+T] = T
 
+  enum TaskReferences {
+
+    /** No tasks can be references. */
+    case None
+
+    /** Only `Task.Source` and `Task.Sources` tasks can be references. */
+    case Sources
+
+    /** All tasks can be references. */
+    case All
+  }
+
   def impl[M[_]: Type, W[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using
       Quotes
   )(
       traverseCtx: (Expr[Seq[W[Any]]], Expr[(Seq[Any], Ctx) => Z[T]]) => Expr[M[T]],
       t: Expr[Z[T]],
-      allowTaskReferences: Boolean = true
+      allowedTaskReferences: TaskReferences = All
   ): Expr[M[T]] = {
     import quotes.reflect.*
 
@@ -70,8 +83,11 @@ object Applicative {
 
         override def transformTerm(tree: Term)(owner: Symbol): Term = tree match
           case t @ Apply(sel @ Select(fun, "apply"), Nil)
-              if sel.symbol == targetApplySym && allowTaskReferences =>
+              if sel.symbol == targetApplySym && allowedTaskReferences != TaskReferences.None =>
             val localDefs = extractDefs(fun)
+            // TODO: Support TaskReferences.Sources and TaskReference.Source by filtering by type:
+            //  We only want to accept tasks returning PathRef or Seq[PathRef]
+            // it should already work, but we don't restrict it properly
             visitAllTrees(t) { x =>
               val sym = x.symbol
               if (sym != Symbol.noSymbol && defs(sym) && !localDefs(sym)) {
