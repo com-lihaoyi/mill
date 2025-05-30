@@ -10,6 +10,8 @@ object foo extends PythonModule {
 
 }
 
+// This examples demonstrates running pyspark using mill.
+
 /** Usage
 
 > ./mill foo.run
