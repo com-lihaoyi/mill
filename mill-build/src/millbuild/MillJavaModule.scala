@@ -47,7 +47,9 @@ trait MillJavaModule extends JavaModule {
 
   def localTestOverridesEnv = Task {
     transitiveLocalTestOverrides()
-      .map { case (k, v) => ("MILL_LOCAL_TEST_OVERRIDE_" + k.replaceAll("[.-]", "_"), v) }
+      .map { case (k, v) =>
+        ("MILL_LOCAL_TEST_OVERRIDE_" + k.replaceAll("[.-]", "_").toUpperCase, v)
+      }
   }
 
   def repositoriesTask = Task.Anon {
