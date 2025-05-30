@@ -19,7 +19,7 @@ object foo extends ScalaModule {
   }
 
 }
-// This examples demonstrates running spark with delta using mill.
+// This examples demonstrates running spark with delta.
 
 /** Usage
 
