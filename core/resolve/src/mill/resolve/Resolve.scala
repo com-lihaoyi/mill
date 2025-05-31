@@ -195,6 +195,7 @@ private[mill] object Resolve {
       val invoked = invokeCommand0(
         p,
         r.segments.last.value,
+        r.cls,
         rootModule.moduleCtx.discover,
         args,
         nullCommandDefaults,
@@ -208,12 +209,13 @@ private[mill] object Resolve {
   private def invokeCommand0(
       target: mill.define.Module,
       name: String,
+      commandCls: Class[?],
       discover: Discover,
       rest: Seq[String],
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
   ): Option[Result[Task.Command[?]]] = for {
-    ep <- discover.resolveEntrypoint(target.getClass, name)
+    ep <- discover.resolveEntrypoint(commandCls, name)
   } yield {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a
@@ -308,7 +310,7 @@ private[mill] trait Resolve[T] {
           val result = for{
             (scopedSel, sel) <- ParseArgs.extractSegments(first)
             rootModuleSels <- resolveRootModule(rootModule, scopedSel)
-            (items, foundCommand0) <- resolveNonEmptyAndHandle(
+            (items, foundCommands) <- resolveNonEmptyAndHandle(
               Nil,
               rootModuleSels,
               sel.getOrElse(Segments()),
@@ -317,7 +319,13 @@ private[mill] trait Resolve[T] {
               resolveToModuleTasks
             )
             result0 <- {
-              if (!foundCommand0) Result.Success(Left(items))
+              val foundPositionalCommands = foundCommands.exists(c =>
+                allowPositionalCommandArgs ||
+                  rootModule.millDiscover2
+                    .resolveEntrypoint(c.cls, c.segments.last.value)
+                    .exists(_.argSigs0.exists(sig => sig.positional || sig.reader.isLeftover))
+                )
+              if (!foundPositionalCommands) Result.Success(Left(items))
               else {
                 resolveNonEmptyAndHandle(
                   rest,
@@ -326,7 +334,9 @@ private[mill] trait Resolve[T] {
                   nullCommandDefaults,
                   allowPositionalCommandArgs,
                   resolveToModuleTasks
-                ).map(t => Right(t._1.toList))
+                ).map{t =>
+                  Right(t._1.toList)
+                }
               }
             }
           } yield result0
@@ -350,7 +360,7 @@ private[mill] trait Resolve[T] {
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean,
       resolveToModuleTasks: Boolean
-  ): Result[(Seq[T], Boolean)] = {
+  ): Result[(Seq[T], Seq[Resolved.Command])] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val cache = new ResolveCore.Cache()
     val resolved =
@@ -395,7 +405,9 @@ private[mill] trait Resolve[T] {
           allowPositionalCommandArgs,
           resolveToModuleTasks,
           cache = cache
-        ).map(_ -> r.exists(_.isInstanceOf[Resolved.Command]))
+        ).map{r2 =>
+          r2 -> r.collect{case c: Resolved.Command => c}
+        }
       )
   }
 

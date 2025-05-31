@@ -29,7 +29,7 @@ private object ResolveCore {
   object Resolved {
     case class Module(segments: Segments, cls: Class[?]) extends Resolved
     case class NamedTask(segments: Segments) extends Resolved
-    case class Command(segments: Segments) extends Resolved
+    case class Command(segments: Segments, cls: Class[?]) extends Resolved
   }
 
   sealed trait Result
@@ -394,7 +394,7 @@ private object ResolveCore {
       direct.map {
         case (Resolved.Module(s, cls), _) => Resolved.Module(segments ++ s, cls)
         case (Resolved.NamedTask(s), _) => Resolved.NamedTask(segments ++ s)
-        case (Resolved.Command(s), _) => Resolved.Command(segments ++ s)
+        case (Resolved.Command(s, cls), _) => Resolved.Command(segments ++ s, cls)
       }
     }
 
@@ -448,7 +448,7 @@ private object ResolveCore {
 
     val namedTasks = Reflect
       .reflect(cls, classOf[Task.Named[?]], namePred, noParams = true, cache.getMethods)
-      .map { m =>
+      .collect { case m if !classOf[Task.Command[?]].isAssignableFrom(m.getReturnType) =>
         Resolved.NamedTask(Segments.labels(cache.decode(m.getName))) ->
           None
       }
@@ -456,7 +456,7 @@ private object ResolveCore {
     val commands = Reflect
       .reflect(cls, classOf[Task.Command[?]], namePred, noParams = false, cache.getMethods)
       .map(m => cache.decode(m.getName))
-      .map { name => Resolved.Command(Segments.labels(name)) -> None }
+      .map { name => Resolved.Command(Segments.labels(name), cls) -> None }
 
     modulesOrErr.map(_ ++ namedTasks ++ commands)
   }

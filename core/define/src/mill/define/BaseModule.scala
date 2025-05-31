@@ -27,6 +27,7 @@ abstract class BaseModule(
   // `Discover` needs to be defined by every concrete `BaseModule` object, to gather
   // compile-time metadata about the tasks and commands at for use at runtime
   protected def millDiscover: Discover
+  def millDiscover2: Discover = millDiscover
 
   // We need to propagate the `Discover` object implicitly throughout the module tree
   // so it can be used for override detection
