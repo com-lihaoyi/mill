@@ -781,19 +781,23 @@ class GenIdeaImpl(
   }
 
   def scalaCompilerTemplate(
-      settings: Map[(Seq[os.Path], Seq[String]), Seq[JavaModuleApi]]
+      settings: Map[(Seq[os.Path], Seq[String]), Vector[JavaModuleApi]]
   ) = {
     def modulesString(mods: Seq[ModuleApi]) =
       mods.map(m => moduleName(m.moduleSegments)).mkString(",")
 
+    val orderedSettings = settings.toSeq.map {
+      case ((plugins, params), mods) => ((plugins, params), modulesString(mods))
+    }.sortBy(_._2).zipWithIndex
+
     <project version={"" + ideaConfigVersion}>
       <component name="ScalaCompilerConfiguration">
         {
-      for ((((plugins, params), mods), i) <- settings.toSeq.zipWithIndex)
-        yield <profile name={s"mill ${i + 1}"} modules={modulesString(mods)}>
-            <parameters>{for (param <- params) yield <parameter value={param} />}</parameters>
-            <plugins>{for (plugin <- plugins) yield <plugin path={plugin.toString} />}</plugins>
-          </profile>
+      for ((((plugins, params), modsString), i) <- orderedSettings)
+        yield <profile name={s"mill ${i + 1}"} modules={modsString}>
+          <parameters>{for (param <- params) yield <parameter value={param} />}</parameters>
+          <plugins>{for (plugin <- plugins) yield <plugin path={plugin.toString} />}</plugins>
+        </profile>
     }
       </component>
     </project>
