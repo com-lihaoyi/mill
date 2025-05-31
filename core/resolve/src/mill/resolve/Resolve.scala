@@ -2,7 +2,17 @@ package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
 import mill.define.internal.Reflect
-import mill.define.{BaseModule, Discover, Module, Segment, Segments, SelectMode, SimpleTaskTokenReader, Task, TaskModule}
+import mill.define.{
+  BaseModule,
+  Discover,
+  Module,
+  Segment,
+  Segments,
+  SelectMode,
+  SimpleTaskTokenReader,
+  Task,
+  TaskModule
+}
 import mill.api.Result
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 
@@ -315,15 +325,19 @@ private[mill] trait Resolve[T] {
         )
     }
 
-    def isSingleTokenTask(found: Seq[Resolved], rest: Seq[String], scopedSel: Option[Segments]): Result[Boolean] = {
+    def isSingleTokenTask(
+        found: Seq[Resolved],
+        rest: Seq[String],
+        scopedSel: Option[Segments]
+    ): Result[Boolean] = {
       val cache = new ResolveCore.Cache()
-      for{
+      for {
         resolvedRoot <- resolveRootModule(rootModule, scopedSel)
         foundCommands0 <- Result.sequence(
           found.collect {
             case r: Resolved.Command => Result.Success(Seq(r))
             case r: Resolved.Module if classOf[TaskModule].isAssignableFrom(r.cls) =>
-              ResolveCore.instantiateModule(resolvedRoot, r.segments, cache).flatMap{
+              ResolveCore.instantiateModule(resolvedRoot, r.segments, cache).flatMap {
                 case m: TaskModule =>
                   resolveNonEmptyAndHandle(
                     args = Nil,
@@ -331,15 +345,15 @@ private[mill] trait Resolve[T] {
                     sel = r.segments ++ Segment.Label(m.defaultCommandName()),
                     nullCommandDefaults = true,
                     allowPositionalCommandArgs = false,
-                    resolveToModuleTasks = false,
-                  ).map{
-                    case (values, resolved) => resolved.collect{case r: Resolved.Command => r}
+                    resolveToModuleTasks = false
+                  ).map {
+                    case (values, resolved) => resolved.collect { case r: Resolved.Command => r }
                   }
                 case m => sys.error(s"$m ${m.getClass} ${r.cls}")
               }
           }
         )
-      }  yield {
+      } yield {
         val foundCommands = foundCommands0.flatten
         val foundPositionalCommands = foundCommands.exists(c =>
           allowPositionalCommandArgs ||
@@ -352,7 +366,7 @@ private[mill] trait Resolve[T] {
         // starts with a `-` and cannot be passed to those commands, then we can safely
         // say that only a single token is relevant
         foundCommands.isEmpty ||
-          (!foundPositionalCommands && rest.headOption.exists(!_.startsWith("-")))
+        (!foundPositionalCommands && rest.headOption.exists(!_.startsWith("-")))
       }
     }
 
