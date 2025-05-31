@@ -325,8 +325,9 @@ private[mill] trait Resolve[T] {
                     .resolveEntrypoint(c.cls, c.segments.last.value)
                     .exists(_.argSigs0.exists(sig => sig.positional || sig.reader.isLeftover))
               )
-              if (!foundPositionalCommands) Result.Success(Left(items))
-              else {
+              if (foundCommands.isEmpty || !foundPositionalCommands && rest.headOption.exists(_.startsWith("-"))) {
+                Result.Success(Left(items))
+              } else {
                 resolveNonEmptyAndHandle(
                   rest,
                   rootModuleSels,
