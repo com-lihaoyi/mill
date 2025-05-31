@@ -2,16 +2,7 @@ package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
 import mill.define.internal.Reflect
-import mill.define.{
-  BaseModule,
-  Discover,
-  Module,
-  Segments,
-  SelectMode,
-  SimpleTaskTokenReader,
-  Task,
-  TaskModule
-}
+import mill.define.{BaseModule, Discover, Module, Segment, Segments, SelectMode, SimpleTaskTokenReader, Task, TaskModule}
 import mill.api.Result
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 
@@ -324,20 +315,45 @@ private[mill] trait Resolve[T] {
         )
     }
 
-    def isSingleTokenTask(found: Seq[Resolved], rest: Seq[String]) = {
-      val foundCommands = found.collect { case r: Resolved.Command => r }
-      val foundPositionalCommands = foundCommands.exists(c =>
-        allowPositionalCommandArgs ||
-          rootModule.millDiscover2
-            .resolveEntrypoint(c.cls, c.segments.last.value)
-            .exists(_.argSigs0.exists(sig => sig.positional || sig.reader.isLeftover))
-      )
+    def isSingleTokenTask(found: Seq[Resolved], rest: Seq[String], scopedSel: Option[Segments]): Result[Boolean] = {
+      val cache = new ResolveCore.Cache()
+      for{
+        resolvedRoot <- resolveRootModule(rootModule, scopedSel)
+        foundCommands0 <- Result.sequence(
+          found.collect {
+            case r: Resolved.Command => Result.Success(Seq(r))
+            case r: Resolved.Module if classOf[TaskModule].isAssignableFrom(r.cls) =>
+              ResolveCore.instantiateModule(resolvedRoot, r.segments, cache).flatMap{
+                case m: TaskModule =>
+                  resolveNonEmptyAndHandle(
+                    args = Nil,
+                    rootModule = resolvedRoot,
+                    sel = r.segments ++ Segment.Label(m.defaultCommandName()),
+                    nullCommandDefaults = true,
+                    allowPositionalCommandArgs = false,
+                    resolveToModuleTasks = false,
+                  ).map{
+                    case (values, resolved) => resolved.collect{case r: Resolved.Command => r}
+                  }
+                case m => sys.error(s"$m ${m.getClass} ${r.cls}")
+              }
+          }
+        )
+      }  yield {
+        val foundCommands = foundCommands0.flatten
+        val foundPositionalCommands = foundCommands.exists(c =>
+          allowPositionalCommandArgs ||
+            rootModule.millDiscover2
+              .resolveEntrypoint(c.cls, c.segments.last.value)
+              .exists(_.argSigs0.exists(sig => sig.positional || sig.reader.isLeftover))
+        )
 
-      // If there are no commands, or there are non-positional commands the next token
-      // starts with a `-` and cannot be passed to those commands, then we can safely
-      // say that only a single token is relevant
-      foundCommands.isEmpty ||
-      (!foundPositionalCommands && rest.headOption.exists(!_.startsWith("-")))
+        // If there are no commands, or there are non-positional commands the next token
+        // starts with a `-` and cannot be passed to those commands, then we can safely
+        // say that only a single token is relevant
+        foundCommands.isEmpty ||
+          (!foundPositionalCommands && rest.headOption.exists(!_.startsWith("-")))
+      }
     }
 
     @tailrec def recurse(
@@ -368,9 +384,9 @@ private[mill] trait Resolve[T] {
               allowPositionalCommandArgs,
               resolveToModuleTasks
             )
+            singleTokenTask <- isSingleTokenTask(found, rest, scopedSel)
             result0 <- {
-
-              if (isSingleTokenTask(found, rest)) Result.Success(Left(items))
+              if (singleTokenTask) Result.Success(Left(items))
               else {
                 resolveNonEmptyAndHandle(
                   rest ++ remainingArgs,
