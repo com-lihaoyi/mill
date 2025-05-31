@@ -36,7 +36,7 @@ object CoursierClient {
           Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), Map()),
           VersionConstraint(mill.client.BuildInfo.millVersion)
         )))
-        .withRepositories(TestOverridesRepo.repos ++ repositories)
+        .withRepositories(Seq(TestOverridesRepo) ++ repositories)
 
       resolve.either() match {
         case Left(err) => sys.error(err.toString)
