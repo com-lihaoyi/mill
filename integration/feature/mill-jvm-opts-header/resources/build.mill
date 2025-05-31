@@ -3,6 +3,8 @@
 //| - "-Dproperty.properly.set.via.jvm.opts=value-from-file"
 //| - "-Dproperty.with.interpolated.working.dir=value-with-${PWD}"
 //| - "-Xss120m"
+//| # empty line
+//|
 //| # comment after an empty line
 //| mill-opts: ["--jobs=17"]
 

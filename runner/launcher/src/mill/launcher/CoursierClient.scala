@@ -7,13 +7,13 @@ import coursier.{
   Artifacts,
   Classifier,
   Dependency,
-  Organization,
   ModuleName,
-  VersionConstraint,
+  Organization,
   Repository,
   Resolution,
   Resolve,
-  Type
+  Type,
+  VersionConstraint
 }
 import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
 import coursier.core.{BomDependency, Module}
@@ -23,12 +23,14 @@ import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.params.ResolutionParams
 import coursier.parse.RepositoryParser
 import coursier.util.Task
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import coursier.core.{ArtifactSource, Extension, Info, Module, Project, Publication}
 import coursier.util.{Artifact, EitherT, Monad}
 import coursier.{Classifier, Dependency, Repository, Type}
+import mill.coursierutil.TestOverridesRepo
 
 import java.util.concurrent.ConcurrentHashMap
 object CoursierClient {
@@ -39,15 +41,13 @@ object CoursierClient {
 
     val artifactsResultOrError = {
 
-      val testOverridesRepo = new mill.coursierutil.TestOverridesRepo()
-
       val resolve = Resolve()
         .withCache(coursierCache0)
         .withDependencies(Seq(Dependency(
           Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), Map()),
           VersionConstraint(mill.client.BuildInfo.millVersion)
         )))
-        .withRepositories(repositories ++ Seq(testOverridesRepo))
+        .withRepositories(Seq(TestOverridesRepo) ++ repositories)
 
       resolve.either() match {
         case Left(err) => sys.error(err.toString)

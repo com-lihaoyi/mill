@@ -3,7 +3,6 @@ package mill.scalalib.bsp
 import mill.define.{Cross, Discover}
 import mill.define.ExecutionPaths
 import mill.T
-import mill.api.internal.BspClientType
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
@@ -12,7 +11,6 @@ import utest.*
 import mill.util.TokenReaders.*
 
 object BspModuleTests extends TestSuite {
-  val clientType = BspClientType.Other("tests")
   val testScalaVersion = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
 
   object MultiBase extends TestRootModule {
@@ -44,10 +42,12 @@ object BspModuleTests extends TestSuite {
   }
 
   override def tests: Tests = Tests {
+    val needsToMerge = true
+
     test("bspCompileClasspath") {
       test("single module") - UnitTester(MultiBase, null).scoped { eval =>
         val Right(result) = eval.apply(
-          MultiBase.HelloBsp.bspCompileClasspath(clientType)
+          MultiBase.HelloBsp.bspCompileClasspath(needsToMerge)
         ): @unchecked
 
         val relResult =
@@ -63,9 +63,10 @@ object BspModuleTests extends TestSuite {
           result.evalCount > 0
         )
       }
-      test("dependent module") - UnitTester(MultiBase, null).scoped { eval =>
+
+      def testDependentModule(eval: UnitTester, needsToMerge: Boolean, expectedPath: os.Path) = {
         val Right(result) = eval.apply(
-          MultiBase.HelloBsp2.bspCompileClasspath(clientType)
+          MultiBase.HelloBsp2.bspCompileClasspath(needsToMerge)
         ): @unchecked
 
         val relResults: Seq[FilePath] = result.value(eval.evaluator).iterator.map { p =>
@@ -78,8 +79,7 @@ object BspModuleTests extends TestSuite {
         val expected: Seq[FilePath] = Seq(
           MultiBase.HelloBsp.moduleDir / "compile-resources",
           MultiBase.HelloBsp2.moduleDir / "compile-resources",
-          ExecutionPaths.resolve(eval.outPath, MultiBase.HelloBsp.compile)
-            .dest / "classes",
+          expectedPath,
           os.rel / "slf4j-api-1.7.34.jar",
           os.rel / "logback-core-1.1.10.jar",
           os.rel / "logback-classic-1.1.10.jar",
@@ -91,6 +91,27 @@ object BspModuleTests extends TestSuite {
           result.evalCount > 0
         )
       }
+
+      test("dependent module") - UnitTester(MultiBase, null).scoped { eval =>
+        testDependentModule(
+          eval,
+          needsToMerge = false,
+          expectedPath =
+            ExecutionPaths.resolve(eval.outPath, MultiBase.HelloBsp.compile).dest / "classes"
+        )
+      }
+
+      test("dependent module (needs to merge)") - UnitTester(MultiBase, null).scoped { eval =>
+        testDependentModule(
+          eval,
+          needsToMerge = true,
+          expectedPath = ExecutionPaths.resolve(
+            eval.outPath,
+            MultiBase.HelloBsp.bspBuildTargetCompileMerged
+          ).dest
+        )
+      }
+
       test("interdependencies are fast") {
         test("reference (no BSP)") {
           def runNoBsp(entry: Int, maxTime: Int) = UnitTester(InterDeps, null).scoped { eval =>
@@ -110,7 +131,7 @@ object BspModuleTests extends TestSuite {
           UnitTester(InterDeps, null).scoped { eval =>
             val start = System.currentTimeMillis()
             val Right(_) = eval.apply(
-              InterDeps.Mod(entry).bspCompileClasspath(clientType)
+              InterDeps.Mod(entry).bspCompileClasspath(needsToMerge)
             ): @unchecked
             val timeSpent = System.currentTimeMillis() - start
             assert(timeSpent < maxTime)
