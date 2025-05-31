@@ -302,39 +302,42 @@ private[mill] trait Resolve[T] {
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
 
-    @tailrec def recurse(remainingArgs: List[String], result: List[T]): Result[List[T]] =
+    @tailrec def recurse(remainingArgs: List[String], allResults: List[T]): Result[List[T]] =
       remainingArgs match {
         case first :: rest =>
-          ParseArgs.extractSegments(first).flatMap { case (scopedSel, sel) =>
-            resolveRootModule(rootModule, scopedSel).flatMap { rootModuleSels =>
-              resolveNonEmptyAndHandle(
-                Nil,
-                rootModuleSels,
-                sel.getOrElse(Segments()),
-                nullCommandDefaults = true,
-                allowPositionalCommandArgs,
-                resolveToModuleTasks
-              ).flatMap { case (items, foundCommand0) =>
-                if (!foundCommand0) Result.Success(Left(items))
-                else {
-                  resolveNonEmptyAndHandle(
-                    first :: rest,
-                    rootModuleSels,
-                    sel.getOrElse(Segments()),
-                    nullCommandDefaults,
-                    allowPositionalCommandArgs,
-                    resolveToModuleTasks
-                  ).map(t => Right(t._1.toList ::: result))
-                }
+          val result = for{
+            (scopedSel, sel) <- ParseArgs.extractSegments(first)
+            rootModuleSels <- resolveRootModule(rootModule, scopedSel)
+            (items, foundCommand0) <- resolveNonEmptyAndHandle(
+              Nil,
+              rootModuleSels,
+              sel.getOrElse(Segments()),
+              nullCommandDefaults = true,
+              allowPositionalCommandArgs,
+              resolveToModuleTasks
+            )
+            result0 <- {
+              if (!foundCommand0) Result.Success(Left(items))
+              else {
+                resolveNonEmptyAndHandle(
+                  first :: rest,
+                  rootModuleSels,
+                  sel.getOrElse(Segments()),
+                  nullCommandDefaults,
+                  allowPositionalCommandArgs,
+                  resolveToModuleTasks
+                ).map(t => Right(t._1.toList))
               }
             }
-          } match {
-            case Result.Success(Left(items)) => recurse(rest, result ::: items.toList)
-            case Result.Success(Right(cmds)) => Result.Success(result ::: cmds)
+          } yield result0
+
+          result match {
+            case Result.Success(Left(items)) => recurse(rest, allResults ::: items.toList)
+            case Result.Success(Right(cmds)) => Result.Success(allResults ::: cmds)
             case Result.Failure(msg) => Result.Failure(msg)
           }
 
-        case _ => result
+        case _ => allResults
       }
 
     recurse(scriptArgs.toList, Nil)
