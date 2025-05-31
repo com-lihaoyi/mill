@@ -304,6 +304,25 @@ private[mill] trait Resolve[T] {
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
 
+    val MaskPattern = """\\+\Q+\E""".r
+    /**
+     * Partition the arguments in groups using a separator.
+     * To also use the separator as argument, masking it with a backslash (`\`) is supported.
+     */
+    @tailrec
+    def separated(result: Seq[Seq[String]], rest: Seq[String]): Seq[Seq[String]] = rest match {
+      case Seq() => if (result.nonEmpty) result else Seq(Seq())
+      case r =>
+        val (next, r2) = r.span(_ != "+")
+        separated(
+          result ++ Seq(next.map {
+            case x@MaskPattern(_*) => x.drop(1)
+            case x => x
+          }),
+          r2.drop(1)
+        )
+    }
+
     @tailrec def recurse(remainingArgs: List[String], allResults: List[T]): Result[List[T]] =
       remainingArgs match {
         case first :: rest =>
@@ -354,7 +373,9 @@ private[mill] trait Resolve[T] {
         case _ => allResults
       }
 
-    recurse(scriptArgs.toList, Nil)
+    Result.sequence(separated(Nil, scriptArgs).flatten.map(ExpandBraces.expandBraces))
+      .map(_.flatten)
+      .flatMap(args => recurse(args.toList, Nil))
   }
 
   private[mill] def resolveNonEmptyAndHandle(
