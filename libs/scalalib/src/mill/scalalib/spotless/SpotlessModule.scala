@@ -1,8 +1,8 @@
 package mill.scalalib.spotless
 
-import mainargs.{Flag, Leftover}
-import mill.api.SelectMode
+import mainargs.Flag
 import mill.define.*
+import mill.util.Tasks
 import mill.util.TokenReaders.given
 
 /**
@@ -17,7 +17,6 @@ trait SpotlessModule extends WithSpotlessWorker {
 
   /**
    * Applies [[SpotlessWorkerModule.formats]] on [[spotlessTargets]].
-   *
    * @param check If set, the command fails on format errors. Otherwise, formatting is fixed.
    */
   def spotless(check: Flag) = Task.Command {
@@ -30,26 +29,38 @@ object SpotlessModule extends ExternalModule, TaskModule, WithSpotlessWorker {
 
   lazy val millDiscover = Discover[this.type]
 
-  def defaultCommandName() = "spotless"
+  def defaultCommandName() = "format"
 
   /**
-   * Applies [[SpotlessWorkerModule.formats]] on dynamically evaluated `sources`.
+   * Applies [[SpotlessWorkerModule.formats]] on `targets`.
+   * @param targets Files/folders to format.
    * @param check If set, the command fails on format errors. Otherwise, formatting is fixed.
    */
-  def spotless(
-      check: Flag,
-      evaluator: Evaluator,
-      sources: Leftover[String]
-  ): Task.Command[Unit] = {
-    val tasks = evaluator.resolveTasks(
-      scriptArgs = if sources.value.isEmpty then Seq("__.sources") else sources.value,
-      selectMode = SelectMode.Separated,
-      allowPositionalCommandArgs = true
-    ).get.asInstanceOf[Seq[Task[Seq[PathRef]]]]
-    Task.Command() {
-      spotlessWorker().worker()
-        .format(files(Task.sequence(tasks)().flatten), check.value)
-    }
+  def format(
+      @mainargs.arg(positional = true)
+      targets: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources"),
+      check: Flag
+  ) = Task.Command() {
+    spotlessWorker().worker()
+      .format(files(Task.sequence(targets.value)().flatten), check.value)
+  }
+
+  /**
+   * Checks/fixes formatting in files that differ in 2 Git trees.
+   * @param fromRev Revision to compare from.
+   * @param toRev Revision to compare. When empty, the working tree is compared.
+   * @param check If set, an error is raised on format errors. Otherwise, formatting is fixed.
+   */
+  def ratchet(
+      @mainargs.arg(positional = true)
+      fromRev: String = "HEAD",
+      @mainargs.arg(positional = true)
+      toRev: Option[String],
+      check: Flag
+  ) = Task.Command {
+    spotlessWorker().worker()
+      .ratchet(fromRev, toRev, check.value)
+
   }
 }
 
