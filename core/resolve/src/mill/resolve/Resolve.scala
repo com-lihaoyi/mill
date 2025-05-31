@@ -340,9 +340,21 @@ private[mill] trait Resolve[T] {
       (!foundPositionalCommands && rest.headOption.exists(!_.startsWith("-")))
     }
 
-    @tailrec def recurse(remainingArgs: List[String], allResults: List[T]): Result[List[T]] =
-      remainingArgs match {
+    @tailrec def recurse(remainingArgs: List[String],
+                         expanded: List[String],
+                         allResults: List[T]): Result[List[T]] = {
+      expanded match{
+        case Nil =>
+          remainingArgs match{
+            case first :: rest =>
+              ExpandBraces.expandBraces(first) match{
+                case Result.Success(expanded) => recurse(rest, expanded.toList, allResults)
+                case Result.Failure(err) => Result.Failure(err)
+              }
+            case Nil => allResults
+          }
         case first :: rest =>
+
           val result = for {
             (scopedSel, sel) <- ParseArgs.extractSegments(first)
             rootModuleSels <- resolveRootModule(rootModule, scopedSel)
@@ -356,10 +368,10 @@ private[mill] trait Resolve[T] {
             )
             result0 <- {
 
-              if (isSingleTokenTask(found, rest)) Result.Success(Left(items -> found))
+              if (isSingleTokenTask(found, rest)) Result.Success(Left(items))
               else {
                 resolveNonEmptyAndHandle(
-                  rest,
+                  rest ++ remainingArgs,
                   rootModuleSels,
                   sel.getOrElse(Segments()),
                   nullCommandDefaults,
@@ -373,18 +385,16 @@ private[mill] trait Resolve[T] {
           } yield result0
 
           result match {
-            case Result.Success(Left((items, _))) => recurse(rest, allResults ::: items.toList)
+            case Result.Success(Left(items)) => recurse(remainingArgs, rest, allResults ::: items.toList)
             case Result.Success(Right(cmds)) => Result.Success(allResults ::: cmds)
             case Result.Failure(msg) => Result.Failure(msg)
           }
-
-        case _ => allResults
       }
+    }
 
-    Result.sequence(separated(Nil, scriptArgs).flatten.map(ExpandBraces.expandBraces))
-      .map(_.flatten)
-      .flatMap(args => recurse(args.toList, Nil))
-      .map(deduplicate)
+    Result
+      .sequence(separated(Nil, scriptArgs).map(args => recurse(args.toList, Nil, Nil)))
+      .map(x => deduplicate(x.toList.flatten))
   }
 
   private[mill] def resolveNonEmptyAndHandle(
