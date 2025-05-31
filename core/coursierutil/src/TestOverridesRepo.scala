@@ -17,6 +17,7 @@ final class TestOverridesRepo() extends Repository {
   private def envFor(mod: Module): Option[String] = {
     val key = s"MILL_LOCAL_TEST_OVERRIDE_${mod.organization.value}-${mod.name.value}"
       .replaceAll("[.-]", "_")
+      .toUpperCase
 
     sys.env.get(key)
   }

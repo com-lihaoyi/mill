@@ -20,8 +20,10 @@ object myplugin extends ScalaModule with PublishModule {
   object test extends ScalaTests with TestModule.Utest {
     def mvnDeps = Seq(mvn"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Task {
-      val artifact =
-        s"${myplugin.pomSettings().organization}-${myplugin.artifactId()}".replaceAll("[.-]", "_")
+      val artifact = s"${myplugin.pomSettings().organization}-${myplugin.artifactId()}"
+        .replaceAll("[.-]", "_")
+        .toUpperCase
+
       val localClasspathString = myplugin.localClasspath().map(_.path).mkString("\n")
       Map(
         "MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString,

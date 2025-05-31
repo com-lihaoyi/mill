@@ -36,7 +36,9 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     Task { JvmWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(Seq(
+    // Use the global jvmWorker's resolver rather than this module's resolver so
+    // we don't incorrectly override the worker classpath's scala-library version
+    jvmWorker().defaultResolver().classpath(Seq(
       Dep.millProjectModule(s"mill-libs-scalanativelib-worker-${scalaNativeWorkerVersion()}")
     ))
   }
