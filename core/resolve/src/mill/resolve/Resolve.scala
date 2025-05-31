@@ -6,14 +6,16 @@ import mill.define.{
   BaseModule,
   Discover,
   Module,
-  Task,
   Segments,
   SelectMode,
-  TaskModule,
-  SimpleTaskTokenReader
+  SimpleTaskTokenReader,
+  Task,
+  TaskModule
 }
 import mill.api.Result
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
+
+import scala.annotation.tailrec
 
 private[mill] object Resolve {
   object Segments extends Resolve[Segments] {
@@ -193,6 +195,7 @@ private[mill] object Resolve {
       val invoked = invokeCommand0(
         p,
         r.segments.last.value,
+        r.cls,
         rootModule.moduleCtx.discover,
         args,
         nullCommandDefaults,
@@ -206,12 +209,13 @@ private[mill] object Resolve {
   private def invokeCommand0(
       target: mill.define.Module,
       name: String,
+      commandCls: Class[?],
       discover: Discover,
       rest: Seq[String],
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
   ): Option[Result[Task.Command[?]]] = for {
-    ep <- discover.resolveEntrypoint(target.getClass, name)
+    entryPoint <- discover.resolveEntrypoint(commandCls, name)
   } yield {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a
@@ -224,19 +228,19 @@ private[mill] object Resolve {
       } else a
     }
 
-    val flattenedArgSigsWithDefaults = ep
+    val flattenedArgSigsWithDefaults = entryPoint
       .flattenedArgSigs
       .map { case (arg, term) => (withNullDefault(arg), term) }
 
-    mainargs.TokenGrouping.groupArgs(
+    val result = mainargs.TokenGrouping.groupArgs(
       rest,
       flattenedArgSigsWithDefaults,
       allowPositional = allowPositionalCommandArgs,
       allowRepeats = false,
-      allowLeftover = ep.argSigs0.exists(_.reader.isLeftover),
+      allowLeftover = entryPoint.argSigs0.exists(_.reader.isLeftover),
       nameMapper = mainargs.Util.kebabCaseNameMapper
     ).flatMap { (grouped: TokenGrouping[Any]) =>
-      val mainData = ep.asInstanceOf[MainData[Any, Any]]
+      val mainData = entryPoint.asInstanceOf[MainData[Any, Any]]
       val mainDataWithDefaults = mainData
         .copy(argSigs0 = mainData.argSigs0.map(withNullDefault))
 
@@ -245,14 +249,15 @@ private[mill] object Resolve {
         mainDataWithDefaults,
         grouped
       )
-    } match {
+    }
+    result match {
       case mainargs.Result.Success(v: Task.Command[_]) => Result.Success(v)
       case mainargs.Result.Failure.Exception(e) =>
         Result.Failure(makeResultException(e, new Exception()).left.get)
       case f: mainargs.Result.Failure =>
         Result.Failure(
           mainargs.Renderer.renderResult(
-            ep,
+            entryPoint,
             f,
             totalWidth = 100,
             printHelpOnError = true,
@@ -298,31 +303,88 @@ private[mill] trait Resolve[T] {
       resolveToModuleTasks: Boolean
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
-    val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
-      val resolved = groups.map { case (selectors, args) =>
-        val selected = selectors.map { case (scopedSel, sel) =>
-          resolveRootModule(rootModule, scopedSel).map { rootModuleSels =>
-            resolveNonEmptyAndHandle(
-              args,
+
+    val MaskPattern = """\\+\Q+\E""".r
+
+    /**
+     * Partition the arguments in groups using a separator.
+     * To also use the separator as argument, masking it with a backslash (`\`) is supported.
+     */
+    @tailrec
+    def separated(result: Seq[Seq[String]], rest: Seq[String]): Seq[Seq[String]] = rest match {
+      case Seq() => if (result.nonEmpty) result else Seq(Seq())
+      case r =>
+        val (next, r2) = r.span(_ != "+")
+        separated(
+          result ++ Seq(next.map {
+            case x @ MaskPattern(_*) => x.drop(1)
+            case x => x
+          }),
+          r2.drop(1)
+        )
+    }
+
+    def isSingleTokenTask(found: Seq[Resolved], rest: Seq[String]) = {
+      val foundCommands = found.collect { case r: Resolved.Command => r }
+      val foundPositionalCommands = foundCommands.exists(c =>
+        allowPositionalCommandArgs ||
+          rootModule.millDiscover2
+            .resolveEntrypoint(c.cls, c.segments.last.value)
+            .exists(_.argSigs0.exists(sig => sig.positional || sig.reader.isLeftover))
+      )
+
+      // If there are no commands, or there are non-positional commands the next token
+      // starts with a `-` and cannot be passed to those commands, then we can safely
+      // say that only a single token is relevant
+      foundCommands.isEmpty ||
+      (!foundPositionalCommands && rest.headOption.exists(!_.startsWith("-")))
+    }
+
+    @tailrec def recurse(remainingArgs: List[String], allResults: List[T]): Result[List[T]] =
+      remainingArgs match {
+        case first :: rest =>
+          val result = for {
+            (scopedSel, sel) <- ParseArgs.extractSegments(first)
+            rootModuleSels <- resolveRootModule(rootModule, scopedSel)
+            (items, found) <- resolveNonEmptyAndHandle(
+              Nil,
               rootModuleSels,
               sel.getOrElse(Segments()),
-              nullCommandDefaults,
+              nullCommandDefaults = true,
               allowPositionalCommandArgs,
               resolveToModuleTasks
             )
-          }
-        }
+            result0 <- {
 
-        Result
-          .sequence(selected)
-          .flatMap(Result.sequence(_))
-          .map(_.flatten)
+              if (isSingleTokenTask(found, rest)) Result.Success(Left(items -> found))
+              else {
+                resolveNonEmptyAndHandle(
+                  rest,
+                  rootModuleSels,
+                  sel.getOrElse(Segments()),
+                  nullCommandDefaults,
+                  allowPositionalCommandArgs,
+                  resolveToModuleTasks
+                ).map { t =>
+                  Right(t._1.toList)
+                }
+              }
+            }
+          } yield result0
+
+          result match {
+            case Result.Success(Left((items, _))) => recurse(rest, allResults ::: items.toList)
+            case Result.Success(Right(cmds)) => Result.Success(allResults ::: cmds)
+            case Result.Failure(msg) => Result.Failure(msg)
+          }
+
+        case _ => allResults
       }
 
-      Result.sequence(resolved)
-    }
-
-    resolvedGroups.map(_.flatten.toList).map(deduplicate)
+    Result.sequence(separated(Nil, scriptArgs).flatten.map(ExpandBraces.expandBraces))
+      .map(_.flatten)
+      .flatMap(args => recurse(args.toList, Nil))
+      .map(deduplicate)
   }
 
   private[mill] def resolveNonEmptyAndHandle(
@@ -332,7 +394,7 @@ private[mill] trait Resolve[T] {
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean,
       resolveToModuleTasks: Boolean
-  ): Result[Seq[T]] = {
+  ): Result[(Seq[T], Seq[Resolved])] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val cache = new ResolveCore.Cache()
     val resolved =
@@ -367,18 +429,20 @@ private[mill] trait Resolve[T] {
       }
 
     resolved
-      .flatMap(r =>
+      .flatMap { rs =>
         handleResolved(
           rootModule,
-          r.sortBy(_.segments),
+          rs.sortBy(_.segments),
           args,
           sel,
           nullCommandDefaults,
           allowPositionalCommandArgs,
           resolveToModuleTasks,
           cache = cache
-        )
-      )
+        ).map {
+          _ -> rs
+        }
+      }
   }
 
   private[mill] def deduplicate(items: List[T]): List[T] = items

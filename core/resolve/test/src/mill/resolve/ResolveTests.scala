@@ -55,7 +55,7 @@ object ResolveTests extends TestSuite {
       test("neg7") - check(
         "",
         Result.Failure(
-          "Target selector must not be empty. Try `mill resolve _` to see what's available."
+          "Parsing exception Position 1:1, found \"\""
         )
       )
     }
@@ -84,7 +84,7 @@ object ResolveTests extends TestSuite {
       test("neg4") - check(
         "",
         Result.Failure(
-          "Target selector must not be empty. Try `mill resolve _` to see what's available."
+          "Parsing exception Position 1:1, found \"\""
         )
       )
       test("neg5") - check(

@@ -100,7 +100,13 @@ object ExecResult {
       }
       current.reverse
         .flatMap { ex =>
-          val elements = ex.getStackTrace.dropRight(outerStack.value.length)
+          val elements = ex.getStackTrace.dropRight(outerStack.value.length) match {
+            // Leave at least one stack frame, so if something top-level fails
+            // at least we get 1 file-name/line-number to help with debugging
+            case Array() => ex.getStackTrace.take(1)
+            case remaining => remaining
+          }
+
           val formatted =
             // for some reason .map without the explicit ArrayOps conversion doesn't work,
             // and results in `ExecResult[String]` instead of `Array[String]`
