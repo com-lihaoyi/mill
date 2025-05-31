@@ -240,26 +240,13 @@ trait MillBuildRootModule()(implicit
   def compileMvnDeps = Seq(
     mvn"com.lihaoyi::sourcecode:0.4.3-M5"
   )
+
   override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
       .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 
-  override def scalacOptions: T[Seq[String]] = Task {
-    super.scalacOptions() ++
-      Seq("-deprecation")
-  }
-
-  override def scalacPluginClasspath: T[Seq[PathRef]] =
-    super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
-
-  override protected def semanticDbPluginClasspath: T[Seq[PathRef]] =
-    super.semanticDbPluginClasspath() ++ lineNumberPluginClasspath()
-
-  def lineNumberPluginClasspath: T[Seq[PathRef]] = Task {
-    // millProjectModule("mill-runner-linenumbers", repositoriesTask())
-    Seq.empty
-  }
+  override def scalacOptions: T[Seq[String]] = Task { super.scalacOptions() ++ Seq("-deprecation") }
 
   /** Used in BSP IntelliJ, which can only work with directories */
   def dummySources: Sources = Task.Sources(Task.dest)
@@ -312,6 +299,7 @@ object MillBuildRootModule {
   class BootstrapModule()(implicit
       rootModuleInfo: RootModule0.Info
   ) extends mill.main.MainRootModule() with MillBuildRootModule() {
+    mill.constants.DebugLog.println("MillBuildRootModule.BootstrapModule")
     override lazy val millDiscover = Discover[this.type]
   }
 

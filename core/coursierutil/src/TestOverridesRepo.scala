@@ -12,6 +12,8 @@ object TestOverridesRepo {
       TestOverridesRepo()
     )
     .toSeq
+
+  mill.constants.DebugLog.println("repos.size " + repos.size)
 }
 /**
  * A `coursier.Repository` that exposes modules with hard-coded artifact list
