@@ -168,6 +168,10 @@ package build
 
 * The terms `client`/`server` throughout the codebase have been renamed to `launcher`/`daemon` ({link-pr}/5135[#5135])
 
+* `def test` has been renamed `def testForked` ({link-pr}/4577[#4577]). This allows you to distinguish
+  between running all modules named `test` (`./mill __.test`) and running all modules which are test suites
+  (`./mill __.testForked`) that may include `integration` tests modules or modules with other names
+
 * Removed `PublishModule.publishSelfDependency` in favor of `artifactMetadata` ({link-pr}/5118[#5118])
 
 * `os.*` filesystem operations are now restricted by default: 

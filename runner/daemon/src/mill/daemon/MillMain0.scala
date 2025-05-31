@@ -11,7 +11,7 @@ import mill.server.Server
 import mill.util.BuildInfo
 import mill.{api, define}
 
-import java.io.{InputStream, PipedInputStream, PrintStream}
+import java.io.{InputStream, PipedInputStream, PrintStream, PrintWriter, StringWriter}
 import java.lang.reflect.InvocationTargetException
 import java.util.Locale
 import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
@@ -35,53 +35,11 @@ object MillMain0 {
         if e.getCause != null && e.getCause.isInstanceOf[MillException] =>
       err.println(e.getCause.getMessage())
       (false, onError)
-    case NonFatal(e) =>
-      err.println("An unexpected error occurred " + e + "\n" + e.getStackTrace.mkString("\n"))
+    case e =>
+      val str = new StringWriter
+      e.printStackTrace(new PrintWriter(str))
+      err.println(str)
       throw e
-      (false, onError)
-  }
-
-  def main(args: Array[String]): Unit = mill.define.SystemStreams.withTopLevelSystemStreamProxy {
-    val initialSystemStreams = mill.define.SystemStreams.original
-
-    if (Properties.isWin && Util.hasConsole())
-      io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
-
-    val processId = Server.computeProcessId()
-    val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
-    Server.watchProcessIdFile(
-      out / OutFiles.millNoDaemon / processId / DaemonFiles.processId,
-      processId,
-      running = () => true,
-      exit = msg => {
-        System.err.println(msg)
-        System.exit(0)
-      }
-    )
-
-    val outLock = new DoubleLock(
-      outMemoryLock,
-      Lock.file((out / OutFiles.millOutLock).toString)
-    )
-
-    val daemonDir = os.Path(args.head)
-    val (result, _) =
-      try main0(
-          args = args.tail,
-          stateCache = RunnerState.empty,
-          mainInteractive = mill.constants.Util.hasConsole(),
-          streams0 = initialSystemStreams,
-          env = System.getenv().asScala.toMap,
-          setIdle = _ => (),
-          userSpecifiedProperties0 = Map(),
-          initialSystemProperties = sys.props.toMap,
-          systemExit = i => sys.exit(i),
-          daemonDir = daemonDir,
-          outLock = outLock
-        )
-      catch handleMillException(initialSystemStreams.err, ())
-
-    System.exit(if (result) 0 else 1)
   }
 
   val outMemoryLock = Lock.memory()

@@ -59,6 +59,10 @@ trait IntegrationTesterBase {
         }
       )
       .foreach(os.copy.into(_, workspacePath))
+
+    // In case someone manually ran stuff in the integration test workspace earlier,
+    // remove any leftover `out/` folder so it does not interfere with the test
+    os.remove.all(workspacePath / "out")
   }
 
   /**
