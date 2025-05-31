@@ -1,0 +1,12 @@
+import mylib.UsedA;
+import mylib.UsedB;
+
+public class Java {
+    public static void main(String[] args) {
+        // spotless:off
+        System.out.println("A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.");
+        // spotless:on
+        UsedB.someMethod();
+        UsedA.someMethod();
+    }
+}
