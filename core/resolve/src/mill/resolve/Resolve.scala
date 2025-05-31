@@ -325,6 +325,9 @@ private[mill] trait Resolve[T] {
                     .resolveEntrypoint(c.cls, c.segments.last.value)
                     .exists(_.argSigs0.exists(sig => sig.positional || sig.reader.isLeftover))
               )
+              // If there are no commands, or there are non-positional commands the next token
+              // starts with a `-` and cannot be passed to those commands, then we can safely
+              // say that only a single token is relevant
               if (foundCommands.isEmpty || !foundPositionalCommands && rest.headOption.exists(_.startsWith("-"))) {
                 Result.Success(Left(items))
               } else {
