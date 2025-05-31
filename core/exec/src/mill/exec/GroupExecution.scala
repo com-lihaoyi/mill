@@ -289,7 +289,7 @@ private trait GroupExecution {
       val res = {
         if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
         else {
-          val args = new mill.define.TaskCtx.Impl(
+          val ctx = new mill.define.TaskCtx.Impl(
             args = targetInputValues.map(_.value).toIndexedSeq,
             dest0 = () => destCreator.makeDest(),
             log = multiLogger,
@@ -329,7 +329,7 @@ private trait GroupExecution {
             getEvaluator().asInstanceOf[Evaluator]
           ) {
             try {
-              task.evaluate(args) match {
+              task.evaluate(ctx) match {
                 case Result.Success(v) => ExecResult.Success(Val(v))
                 case Result.Failure(err) => ExecResult.Failure(err)
               }

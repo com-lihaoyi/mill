@@ -173,14 +173,9 @@ final class EvaluatorImpl private[mill] (
 
     selectedTasksOrErr match {
       case (selectedTasks, selectiveResults, maybeNewMetadata) =>
-        val evaluated: ExecutionResults =
-          execution.executeTasks(
-            selectedTasks,
-            reporter,
-            testReporter,
-            logger,
-            serialCommandExec
-          )
+        val evaluated: ExecutionResults = execution
+          .executeTasks(selectedTasks, reporter, testReporter, logger, serialCommandExec)
+
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.transitiveResults.iterator ++ selectiveResults)
           .collect {

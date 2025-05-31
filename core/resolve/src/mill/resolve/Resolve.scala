@@ -215,7 +215,7 @@ private[mill] object Resolve {
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
   ): Option[Result[Task.Command[?]]] = for {
-    ep <- discover.resolveEntrypoint(commandCls, name)
+    entryPoint <- discover.resolveEntrypoint(commandCls, name)
   } yield {
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a
@@ -228,19 +228,19 @@ private[mill] object Resolve {
       } else a
     }
 
-    val flattenedArgSigsWithDefaults = ep
+    val flattenedArgSigsWithDefaults = entryPoint
       .flattenedArgSigs
       .map { case (arg, term) => (withNullDefault(arg), term) }
 
-    mainargs.TokenGrouping.groupArgs(
+    val result = mainargs.TokenGrouping.groupArgs(
       rest,
       flattenedArgSigsWithDefaults,
       allowPositional = allowPositionalCommandArgs,
       allowRepeats = false,
-      allowLeftover = ep.argSigs0.exists(_.reader.isLeftover),
+      allowLeftover = entryPoint.argSigs0.exists(_.reader.isLeftover),
       nameMapper = mainargs.Util.kebabCaseNameMapper
     ).flatMap { (grouped: TokenGrouping[Any]) =>
-      val mainData = ep.asInstanceOf[MainData[Any, Any]]
+      val mainData = entryPoint.asInstanceOf[MainData[Any, Any]]
       val mainDataWithDefaults = mainData
         .copy(argSigs0 = mainData.argSigs0.map(withNullDefault))
 
@@ -249,14 +249,15 @@ private[mill] object Resolve {
         mainDataWithDefaults,
         grouped
       )
-    } match {
+    }
+    result match {
       case mainargs.Result.Success(v: Task.Command[_]) => Result.Success(v)
       case mainargs.Result.Failure.Exception(e) =>
         Result.Failure(makeResultException(e, new Exception()).left.get)
       case f: mainargs.Result.Failure =>
         Result.Failure(
           mainargs.Renderer.renderResult(
-            ep,
+            entryPoint,
             f,
             totalWidth = 100,
             printHelpOnError = true,
@@ -336,7 +337,7 @@ private[mill] trait Resolve[T] {
       // starts with a `-` and cannot be passed to those commands, then we can safely
       // say that only a single token is relevant
       foundCommands.isEmpty ||
-      (!foundPositionalCommands && !rest.headOption.exists(_.startsWith("-")))
+      (!foundPositionalCommands && rest.headOption.exists(!_.startsWith("-")))
     }
 
     @tailrec def recurse(remainingArgs: List[String], allResults: List[T]): Result[List[T]] =
@@ -372,8 +373,7 @@ private[mill] trait Resolve[T] {
           } yield result0
 
           result match {
-            case Result.Success(Left((items, found))) =>
-              recurse(rest, allResults ::: items.toList)
+            case Result.Success(Left((items, _))) => recurse(rest, allResults ::: items.toList)
             case Result.Success(Right(cmds)) => Result.Success(allResults ::: cmds)
             case Result.Failure(msg) => Result.Failure(msg)
           }
