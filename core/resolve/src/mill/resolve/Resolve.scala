@@ -280,6 +280,7 @@ private[mill] trait Resolve[T] {
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): Result[List[T]] = {
+    mill.constants.DebugLog.println("Resolve#resolve")
     resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
 
@@ -295,26 +296,27 @@ private[mill] trait Resolve[T] {
     @tailrec def rec(remainingArgs: List[String],
                      result: List[T]): Result[List[T]] = remainingArgs match {
       case first :: rest =>
-        val (scopedSel, sel) = ParseArgs.extractSegments(first).get
-        resolveRootModule(rootModule, scopedSel).flatMap { rootModuleSels =>
-          resolveNonEmptyAndHandle(
-            Seq(first),
-            rootModuleSels,
-            sel.getOrElse(Segments()),
-            nullCommandDefaults = true,
-            allowPositionalCommandArgs,
-            resolveToModuleTasks
-          ).flatMap{case (items, foundCommand0) =>
-            if (!foundCommand0) Result.Success(Left(items))
-            else {
-              resolveNonEmptyAndHandle(
-                first :: rest,
-                rootModuleSels,
-                sel.getOrElse(Segments()),
-                nullCommandDefaults,
-                allowPositionalCommandArgs,
-                resolveToModuleTasks
-              ).map(t => Right(t._1.toList ::: result))
+        ParseArgs.extractSegments(first).flatMap{case (scopedSel, sel) =>
+          resolveRootModule(rootModule, scopedSel).flatMap { rootModuleSels =>
+            resolveNonEmptyAndHandle(
+              Nil,
+              rootModuleSels,
+              sel.getOrElse(Segments()),
+              nullCommandDefaults = true,
+              allowPositionalCommandArgs,
+              resolveToModuleTasks
+            ).flatMap { case (items, foundCommand0) =>
+              if (!foundCommand0) Result.Success(Left(items))
+              else {
+                resolveNonEmptyAndHandle(
+                  first :: rest,
+                  rootModuleSels,
+                  sel.getOrElse(Segments()),
+                  nullCommandDefaults,
+                  allowPositionalCommandArgs,
+                  resolveToModuleTasks
+                ).map(t => Right(t._1.toList ::: result))
+              }
             }
           }
         } match {
