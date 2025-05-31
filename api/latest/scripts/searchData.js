@@ -101,7 +101,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/internal/MainModuleApi.html#","e":false,"i":"","n":"MainModuleApi","t":"MainModuleApi extends ModuleApi","d":"mill.api.internal","k":"trait","x":""},
 {"l":"mill/api/internal/MillScalaParser.html#","e":false,"i":"","n":"MillScalaParser","t":"MillScalaParser","d":"mill.api.internal","k":"trait","x":""},
 {"l":"mill/api/internal/MillScalaParser.html#parseObjectData-1d0","e":false,"i":"","n":"parseObjectData","t":"parseObjectData(rawCode: String): Seq[ObjectData]","d":"mill.api.internal.MillScalaParser","k":"def","x":""},
-{"l":"mill/api/internal/MillScalaParser.html#splitScript-fffff61f","e":false,"i":"","n":"splitScript","t":"splitScript(rawCode: String, fileName: String): Either[String, (Seq[String], Seq[String])]","d":"mill.api.internal.MillScalaParser","k":"def","x":""},
+{"l":"mill/api/internal/MillScalaParser.html#splitScript-fffff61f","e":false,"i":"","n":"splitScript","t":"splitScript(rawCode: String, fileName: String): Either[String, (String, Seq[String], Seq[String])]","d":"mill.api.internal.MillScalaParser","k":"def","x":""},
 {"l":"mill/api/internal/MillScalaParser$.html#","e":false,"i":"","n":"MillScalaParser","t":"MillScalaParser","d":"mill.api.internal","k":"object","x":""},
 {"l":"mill/api/internal/MillScalaParser$.html#current-0","e":false,"i":"","n":"current","t":"current: DynamicVariable[MillScalaParser]","d":"mill.api.internal.MillScalaParser","k":"val","x":""},
 {"l":"mill/api/internal/MillScalaParser$$ObjectData.html#","e":false,"i":"","n":"ObjectData","t":"ObjectData","d":"mill.api.internal.MillScalaParser","k":"trait","x":""},
