@@ -16,6 +16,8 @@
             <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/moduled.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/moduled.iml"/>
             <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/modulee.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/modulee.iml"/>
             <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/modulef.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/modulef.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/moduleg-2.12.5.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/moduleg-2.12.5.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/moduleg-2.13.6.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/moduleg-2.13.6.iml"/>
         </modules>
     </component>
 </project>
