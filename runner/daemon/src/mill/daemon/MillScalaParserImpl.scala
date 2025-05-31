@@ -49,7 +49,10 @@ object MillScalaParserImpl extends MillScalaParser {
       trees <- liftErrors(MillParsers.outlineCompilationUnit(source))
       (pkgs, stmts) <- liftErrors(splitTrees(trees))
     yield {
-      val prefix = new String(source.file.toByteArray).take(trees.head.startPos.start)
+      val prefix =
+        if (!trees.head.startPos.exists) ""
+        else new String(source.file.toByteArray).take(trees.head.startPos.start)
+
       (prefix, pkgs, stmts)
     }
   }
