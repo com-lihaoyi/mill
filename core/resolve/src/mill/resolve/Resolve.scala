@@ -324,7 +324,7 @@ private[mill] trait Resolve[T] {
         )
     }
 
-    def isSingleTokenTask(foundCommands: Resolved.Command) = {
+    def isSingleTokenTask(foundCommands: Seq[Resolved.Command], rest: Seq[String]) = {
       val foundPositionalCommands = foundCommands.exists(c =>
         allowPositionalCommandArgs ||
           rootModule.millDiscover2
@@ -355,7 +355,7 @@ private[mill] trait Resolve[T] {
             )
             result0 <- {
 
-              if (isSingleTokenTask(foundCommands)) Result.Success(Left(items))
+              if (isSingleTokenTask(foundCommands, rest)) Result.Success(Left(items))
               else {
                 resolveNonEmptyAndHandle(
                   rest,
