@@ -30,7 +30,7 @@ object Format {
   def defaults: Seq[Format] = Seq(
     apply("glob:**.java")(PalantirJavaFormat()),
     apply("glob:**.{kt,kts}")(Ktfmt()),
-    apply("glob:**.scala")(ScalaFmt())
+    apply("glob:**.{scala,sc,mill}")(ScalaFmt())
   )
 
   def readAll(formatsFile: os.Path)(using ctx: TaskCtx.Workspace): Seq[Format] =
@@ -72,7 +72,7 @@ object Format {
    * @param type `TAB` | `SPACE`
    * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/generic/IndentStep.java]]
    */
-  case class Indent(`type`: String = "TAB", numSpacesPerTab: Int = 4) extends Step
+  case class Indent(`type`: String = "TAB", numSpacesPerTab: Option[Int] = None) extends Step
       derives ReadWriter
 
   /**
@@ -180,7 +180,7 @@ object Format {
   /**
    * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/java/RemoveUnusedImportsStep.java]]
    */
-  case class RemoveUnusedImports(remover: String = "google-java-format") extends Step
+  case class RemoveUnusedImports(formatter: Option[String] = None) extends Step
       derives ReadWriter
 
   /**

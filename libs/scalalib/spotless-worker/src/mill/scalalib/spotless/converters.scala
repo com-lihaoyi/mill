@@ -42,7 +42,10 @@ class ToFormatterStep(charset: Charset, provisioner: Provisioner)
       toFenceStep(fence).applyWithin(steps.map(this).asJava)
     case format: Indent =>
       import format.*
-      IndentStep.create(IndentStep.Type.valueOf(`type`), numSpacesPerTab)
+      IndentStep.create(
+        IndentStep.Type.valueOf(`type`),
+        numSpacesPerTab.getOrElse(IndentStep.defaultNumSpacesPerTab())
+      )
     case format: Jsr223 =>
       import format.*
       Jsr223Step.create(
@@ -117,7 +120,10 @@ class ToFormatterStep(charset: Charset, provisioner: Provisioner)
       )
     case format: RemoveUnusedImports =>
       import format.*
-      RemoveUnusedImportsStep.create(remover, provisioner)
+      RemoveUnusedImportsStep.create(
+        formatter.getOrElse(RemoveUnusedImportsStep.defaultFormatter()),
+        provisioner
+      )
     case format: Diktat =>
       import format.*
       DiktatStep.create(

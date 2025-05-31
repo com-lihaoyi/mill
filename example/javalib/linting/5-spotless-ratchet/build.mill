@@ -37,25 +37,23 @@ error: ...format check failed for 2 files
 
 // The `mill.scalalib.spotless/` command finds format errors in both files.
 // But we do not want to fix the formatting in `A.java` since it is part of the commit history.
-// Instead, we use the `mill.scalalib.git.GitModule/ratchet` command
-// to identify the changes using Git.
-// These changes can be piped in to the `mill.scalalib.spotless/` command to check/fix formatting.
+// Instead, we use the `mill.scalalib.spotless/ratchet` command to identify and format files that differ between Git trees.
 
 /** Usage
-> ./mill mill.scalalib.spotless/ --check mill.scalalib.git.GitModule/ratchet # check changes in working tree
+> ./mill mill.scalalib.spotless/ratchet --check # check changes in working tree since HEAD
 checking format in 1 java files
 format errors in src/module-info.java
 format errors in 1 files
 error: ...format check failed for 1 files
 
-> ./mill mill.scalalib.spotless/ mill.scalalib.git.GitModule/ratchet # fix formatting in changeset
+> ./mill mill.scalalib.spotless/ratchet         # fix formatting in changeset
 formatting src/module-info.java
 formatted 1 files
 
 > git add src/module-info.java    # stage and
 > git commit -a -m "2"            # commit changes
 
-> ./mill mill.scalalib.spotless/ --check mill.scalalib.git.GitModule/ratchet HEAD^ HEAD # check changes between last 2 commits
+> ./mill mill.scalalib.spotless/ratchet --check HEAD^ HEAD # check changes between last 2 commits
 everything is already formatted
 */
 

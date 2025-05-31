@@ -5,6 +5,9 @@ import mill.define.*
 import mill.scalalib.{CoursierModule, Dep, OfflineSupportModule}
 import mill.util.Jvm
 
+/**
+ * Implementations can override [[repositoriesTask]] to resolve artifacts required by a [[Format.Step]].
+ */
 trait SpotlessWorkerModule extends CoursierModule, OfflineSupportModule {
 
   /**
