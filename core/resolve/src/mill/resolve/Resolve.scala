@@ -324,6 +324,21 @@ private[mill] trait Resolve[T] {
         )
     }
 
+    def isSingleTokenTask(foundCommands: Resolved.Command) = {
+      val foundPositionalCommands = foundCommands.exists(c =>
+        allowPositionalCommandArgs ||
+          rootModule.millDiscover2
+            .resolveEntrypoint(c.cls, c.segments.last.value)
+            .exists(_.argSigs0.exists(sig => sig.positional || sig.reader.isLeftover))
+      )
+
+      // If there are no commands, or there are non-positional commands the next token
+      // starts with a `-` and cannot be passed to those commands, then we can safely
+      // say that only a single token is relevant
+      foundCommands.isEmpty ||
+      (!foundPositionalCommands && rest.headOption.exists(_.startsWith("-")))
+    }
+
     @tailrec def recurse(remainingArgs: List[String], allResults: List[T]): Result[List[T]] =
       remainingArgs match {
         case first :: rest =>
@@ -339,21 +354,8 @@ private[mill] trait Resolve[T] {
               resolveToModuleTasks
             )
             result0 <- {
-              val foundPositionalCommands = foundCommands.exists(c =>
-                allowPositionalCommandArgs ||
-                  rootModule.millDiscover2
-                    .resolveEntrypoint(c.cls, c.segments.last.value)
-                    .exists(_.argSigs0.exists(sig => sig.positional || sig.reader.isLeftover))
-              )
 
-              // If there are no commands, or there are non-positional commands the next token
-              // starts with a `-` and cannot be passed to those commands, then we can safely
-              // say that only a single token is relevant
-              val singleTokenTask =
-                foundCommands.isEmpty ||
-                  (!foundPositionalCommands && rest.headOption.exists(_.startsWith("-")))
-
-              if (singleTokenTask) Result.Success(Left(items))
+              if (isSingleTokenTask(foundCommands)) Result.Success(Left(items))
               else {
                 resolveNonEmptyAndHandle(
                   rest,
