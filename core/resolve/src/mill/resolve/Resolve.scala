@@ -383,6 +383,7 @@ private[mill] trait Resolve[T] {
     Result.sequence(separated(Nil, scriptArgs).flatten.map(ExpandBraces.expandBraces))
       .map(_.flatten)
       .flatMap(args => recurse(args.toList, Nil))
+      .map(_.distinct)
   }
 
   private[mill] def resolveNonEmptyAndHandle(
