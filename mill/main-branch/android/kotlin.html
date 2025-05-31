@@ -700,7 +700,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC1/mill-dist-1.0.0-RC1-28-be9212-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC1/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC1/mill-dist-1.0.0-RC1-29-716622-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC1/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -748,16 +748,6 @@ import coursier.maven.MavenRepository</code></pre>
 
   override def androidIsDebug: T[Boolean] = Task { false }
 
-  override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
-    super.androidReleaseSettings()
-      .withDefaultProguardFile(&quot;proguard-android.txt&quot;)
-      .withProguardLocalFiles(
-        Seq(
-          moduleDir / &quot;proguard-rules.pro&quot;
-        )
-      )
-  }
-
   object test extends AndroidAppKotlinTests with TestModule.Junit4 {
     def junit4Version = &quot;4.13.2&quot;
   }
@@ -773,14 +763,6 @@ import coursier.maven.MavenRepository</code></pre>
       false
     }
 
-    override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
-      AndroidBuildTypeSettings(isMinifyEnabled = false)
-    }
-
-    /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
-     * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
-     * resolution resolves conflicts between androidJvm and jvm platform types
-     */
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn&quot;androidx.test.ext:junit:1.2.1&quot;,
       mvn&quot;androidx.test:runner:1.6.2&quot;,
