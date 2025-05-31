@@ -340,14 +340,16 @@ private[mill] trait Resolve[T] {
       (!foundPositionalCommands && rest.headOption.exists(!_.startsWith("-")))
     }
 
-    @tailrec def recurse(remainingArgs: List[String],
-                         expanded: List[String],
-                         allResults: List[T]): Result[List[T]] = {
-      expanded match{
+    @tailrec def recurse(
+        remainingArgs: List[String],
+        expanded: List[String],
+        allResults: List[T]
+    ): Result[List[T]] = {
+      expanded match {
         case Nil =>
-          remainingArgs match{
+          remainingArgs match {
             case first :: rest =>
-              ExpandBraces.expandBraces(first) match{
+              ExpandBraces.expandBraces(first) match {
                 case Result.Success(expanded) => recurse(rest, expanded.toList, allResults)
                 case Result.Failure(err) => Result.Failure(err)
               }
@@ -385,7 +387,8 @@ private[mill] trait Resolve[T] {
           } yield result0
 
           result match {
-            case Result.Success(Left(items)) => recurse(remainingArgs, rest, allResults ::: items.toList)
+            case Result.Success(Left(items)) =>
+              recurse(remainingArgs, rest, allResults ::: items.toList)
             case Result.Success(Right(cmds)) => Result.Success(allResults ::: cmds)
             case Result.Failure(msg) => Result.Failure(msg)
           }
