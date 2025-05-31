@@ -371,7 +371,13 @@ private class MillBuildServer(
       val compileTasksEvs = params.getTargets.distinct.map(state.bspModulesById).collect {
         case (m: SemanticDbJavaModuleApi, ev) if sessionInfo.clientWantsSemanticDb =>
           ((m, m.bspBuildTargetCompileSemanticDb), ev)
-        case (m: JavaModuleApi, ev) => ((m, m.bspBuildTargetCompile(sessionInfo.clientType)), ev)
+        case (m: JavaModuleApi, ev) => (
+            (
+              m,
+              m.bspBuildTargetCompile(sessionInfo.clientType.mergeResourcesIntoClasses)
+            ),
+            ev
+          )
       }
 
       val result = compileTasksEvs
