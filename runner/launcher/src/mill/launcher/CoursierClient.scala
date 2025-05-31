@@ -3,7 +3,18 @@ package mill.launcher
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.util.Task
-import coursier.{Artifacts, Classifier, Dependency, ModuleName, Organization, Repository, Resolution, Resolve, Type, VersionConstraint}
+import coursier.{
+  Artifacts,
+  Classifier,
+  Dependency,
+  ModuleName,
+  Organization,
+  Repository,
+  Resolution,
+  Resolve,
+  Type,
+  VersionConstraint
+}
 import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
 import coursier.core.{BomDependency, Module}
 import coursier.error.FetchError.DownloadingArtifacts
