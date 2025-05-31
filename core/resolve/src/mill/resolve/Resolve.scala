@@ -2,7 +2,16 @@ package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
 import mill.define.internal.Reflect
-import mill.define.{BaseModule, Discover, Module, Segments, SelectMode, SimpleTaskTokenReader, Task, TaskModule}
+import mill.define.{
+  BaseModule,
+  Discover,
+  Module,
+  Segments,
+  SelectMode,
+  SimpleTaskTokenReader,
+  Task,
+  TaskModule
+}
 import mill.api.Result
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 
@@ -293,42 +302,42 @@ private[mill] trait Resolve[T] {
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
 
-    @tailrec def rec(remainingArgs: List[String],
-                     result: List[T]): Result[List[T]] = remainingArgs match {
-      case first :: rest =>
-        ParseArgs.extractSegments(first).flatMap{case (scopedSel, sel) =>
-          resolveRootModule(rootModule, scopedSel).flatMap { rootModuleSels =>
-            resolveNonEmptyAndHandle(
-              Nil,
-              rootModuleSels,
-              sel.getOrElse(Segments()),
-              nullCommandDefaults = true,
-              allowPositionalCommandArgs,
-              resolveToModuleTasks
-            ).flatMap { case (items, foundCommand0) =>
-              if (!foundCommand0) Result.Success(Left(items))
-              else {
-                resolveNonEmptyAndHandle(
-                  first :: rest,
-                  rootModuleSels,
-                  sel.getOrElse(Segments()),
-                  nullCommandDefaults,
-                  allowPositionalCommandArgs,
-                  resolveToModuleTasks
-                ).map(t => Right(t._1.toList ::: result))
+    @tailrec def recurse(remainingArgs: List[String], result: List[T]): Result[List[T]] =
+      remainingArgs match {
+        case first :: rest =>
+          ParseArgs.extractSegments(first).flatMap { case (scopedSel, sel) =>
+            resolveRootModule(rootModule, scopedSel).flatMap { rootModuleSels =>
+              resolveNonEmptyAndHandle(
+                Nil,
+                rootModuleSels,
+                sel.getOrElse(Segments()),
+                nullCommandDefaults = true,
+                allowPositionalCommandArgs,
+                resolveToModuleTasks
+              ).flatMap { case (items, foundCommand0) =>
+                if (!foundCommand0) Result.Success(Left(items))
+                else {
+                  resolveNonEmptyAndHandle(
+                    first :: rest,
+                    rootModuleSels,
+                    sel.getOrElse(Segments()),
+                    nullCommandDefaults,
+                    allowPositionalCommandArgs,
+                    resolveToModuleTasks
+                  ).map(t => Right(t._1.toList ::: result))
+                }
               }
             }
+          } match {
+            case Result.Success(Left(items)) => recurse(rest, result ::: items.toList)
+            case Result.Success(Right(cmds)) => Result.Success(result ::: cmds)
+            case Result.Failure(msg) => Result.Failure(msg)
           }
-        } match {
-          case Result.Success(Left(items)) => rec(rest, result ::: items.toList)
-          case Result.Success(Right(cmds)) => Result.Success(result ::: cmds)
-          case Result.Failure(msg) => Result.Failure(msg)
-        }
 
-      case _ => result
-    }
+        case _ => result
+      }
 
-    rec(scriptArgs.toList, Nil)
+    recurse(scriptArgs.toList, Nil)
   }
 
   private[mill] def resolveNonEmptyAndHandle(
