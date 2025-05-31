@@ -305,6 +305,7 @@ private[mill] trait Resolve[T] {
     val nullCommandDefaults = selectMode == SelectMode.Multi
 
     val MaskPattern = """\\+\Q+\E""".r
+
     /**
      * Partition the arguments in groups using a separator.
      * To also use the separator as argument, masking it with a backslash (`\`) is supported.
@@ -316,7 +317,7 @@ private[mill] trait Resolve[T] {
         val (next, r2) = r.span(_ != "+")
         separated(
           result ++ Seq(next.map {
-            case x@MaskPattern(_*) => x.drop(1)
+            case x @ MaskPattern(_*) => x.drop(1)
             case x => x
           }),
           r2.drop(1)
@@ -344,12 +345,16 @@ private[mill] trait Resolve[T] {
                     .resolveEntrypoint(c.cls, c.segments.last.value)
                     .exists(_.argSigs0.exists(sig => sig.positional || sig.reader.isLeftover))
               )
+
               // If there are no commands, or there are non-positional commands the next token
               // starts with a `-` and cannot be passed to those commands, then we can safely
               // say that only a single token is relevant
-              if (foundCommands.isEmpty || !foundPositionalCommands && rest.headOption.exists(_.startsWith("-"))) {
-                Result.Success(Left(items))
-              } else {
+              val singleTokenTask =
+                foundCommands.isEmpty ||
+                  (!foundPositionalCommands && rest.headOption.exists(_.startsWith("-")))
+
+              if (singleTokenTask) Result.Success(Left(items))
+              else {
                 resolveNonEmptyAndHandle(
                   rest,
                   rootModuleSels,
