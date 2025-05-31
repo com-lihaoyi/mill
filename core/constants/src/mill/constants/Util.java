@@ -91,7 +91,6 @@ public class Util {
       java.util.List<String> output = new ArrayList<>();
       for (int i = 0; i < lines.size(); i++) {
         String line = lines.get(i);
-
         if (!line.startsWith("//|")) readingYamlHeader = false;
         else if (!buildFile.getFileName().toString().startsWith("build.")) {
           throwYamlHeaderError(
@@ -113,7 +112,8 @@ public class Util {
               line,
               "YAML header comments must start with `//| ` with a newline separating the `|` and"
                   + " the data on the right");
-        } else output.add(line.substring(4));
+        } else if (line.equals("//|")) output.add("");
+        else output.add(line.substring(4));
       }
       return String.join("\n", output);
     } catch (IOException e) {

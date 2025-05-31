@@ -49,7 +49,7 @@ object `package` extends mill.Module {
             "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
           ) ++
-          build.dist.localTestOverridesEnv()
+          (if (millIntegrationIsPackagedLauncher()) Map() else build.dist.localTestOverridesEnv())
 
       def millIntegrationLauncher: T[PathRef]
 

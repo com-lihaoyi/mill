@@ -3,17 +3,16 @@ package mill.androidlib
 import coursier.params.ResolutionParams
 import mill.*
 import mill.api.Logger
-import mill.api.internal.{BspBuildTarget, BspClientType, EvaluatorApi, internal}
+import mill.api.internal.{internal, *}
 import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.testrunner.TestResult
 import mill.util.Jvm
 import os.{Path, RelPath, zip}
 import upickle.default.*
-import upickle.implicits.namedTuples.default.given
 
 import scala.jdk.OptionConverters.RichOptional
-import scala.xml.{Attribute, Elem, NodeBuffer, Null, Text, XML}
+import scala.xml.*
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -133,7 +132,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
   def androidLintArgs: T[Seq[String]] = Task { Seq.empty[String] }
 
   @internal
-  override def bspCompileClasspath(clientType: BspClientType) = Task.Anon { (ev: EvaluatorApi) =>
+  override def bspCompileClasspath(
+      needsToMergeResourcesIntoCompileDest: Boolean
+  ) = Task.Anon { (ev: EvaluatorApi) =>
     compileClasspath().map(
       _.path
     ).map(UnresolvedPath.ResolvedPath(_)).map(_.resolve(os.Path(ev.outPathJava))).map(sanitizeUri)
