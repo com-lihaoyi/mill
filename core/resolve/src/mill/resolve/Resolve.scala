@@ -320,7 +320,7 @@ private[mill] trait Resolve[T] {
               if (!foundCommand0) Result.Success(Left(items))
               else {
                 resolveNonEmptyAndHandle(
-                  first :: rest,
+                  rest,
                   rootModuleSels,
                   sel.getOrElse(Segments()),
                   nullCommandDefaults,
