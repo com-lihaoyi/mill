@@ -4,6 +4,7 @@ import mill.constants.OutFiles
 import mill.define.Segments
 import mill.define.Cached
 import mill.define.SelectMode
+import mill.resolve.ParseArgs
 import ujson.Value
 
 /**
@@ -108,10 +109,9 @@ object IntegrationTester {
        * Returns the raw text of the `.json` metadata file
        */
       def text: String = {
-        val Seq((Seq(selector), _)) =
-          mill.resolve.ParseArgs.apply(Seq(selector0), SelectMode.Separated).get
+        val (s1, s2) = ParseArgs.extractSegments(selector0).get
 
-        val segments = selector._2.getOrElse(Segments()).value.flatMap(_.pathSegments)
+        val segments = (s1.getOrElse(Segments()) ++ s2.getOrElse(Segments())).value.flatMap(_.pathSegments)
         os.read(workspacePath / OutFiles.out / segments.init / s"${segments.last}.json")
       }
 
