@@ -61,8 +61,9 @@ object FileImportGraph {
         yamlHeaderError.flatMap(_ =>
           MillScalaParser.current.value.splitScript(content, fileName)
         ) match {
-          case Right(splitted) =>
-            val (pkgs, stmts) = splitted
+          case Right((prefix, pkgs, stmts)) =>
+            mill.constants.DebugLog.println("pkgs" + pprint.apply(pkgs).toString)
+            mill.constants.DebugLog.println("stmts " + pprint.apply(stmts).toString)
             val importSegments = pkgs.mkString(".")
 
             val expectedImportSegments0 =
@@ -83,7 +84,7 @@ object FileImportGraph {
                   s"folder structure. Expected: $expectedImport"
               )
             }
-            seenScripts(s) = stmts.mkString
+            seenScripts(s) = prefix + stmts.mkString
           case Left(error) =>
             seenScripts(s) = ""
             errors.append(error)

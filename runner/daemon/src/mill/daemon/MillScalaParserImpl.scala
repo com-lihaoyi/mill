@@ -32,7 +32,10 @@ import mill.api.internal.MillScalaParser.{ObjectData, Snip}
 
 object MillScalaParserImpl extends MillScalaParser {
 
-  def splitScript(rawCode: String, fileName: String): Either[String, (Seq[String], Seq[String])] = {
+  def splitScript(
+      rawCode: String,
+      fileName: String
+  ): Either[String, (String, Seq[String], Seq[String])] = {
     val source = SourceFile.virtual(fileName, rawCode)
     def mergeErrors(errors: List[String]): String =
       s"$fileName failed to parse:" + System.lineSeparator + errors.mkString(System.lineSeparator)
@@ -41,11 +44,14 @@ object MillScalaParserImpl extends MillScalaParser {
 
   def splitScriptSource(
       source: SourceFile
-  ): Either[List[String], (Seq[String], Seq[String])] = MillDriver.unitContext(source) {
+  ): Either[List[String], (String, Seq[String], Seq[String])] = MillDriver.unitContext(source) {
     for
       trees <- liftErrors(MillParsers.outlineCompilationUnit(source))
-      split <- liftErrors(splitTrees(trees))
-    yield split
+      (pkgs, stmts) <- liftErrors(splitTrees(trees))
+    yield {
+      val prefix = new String(source.file.toByteArray).take(trees.head.startPos.start)
+      (prefix, pkgs, stmts)
+    }
   }
 
   def liftErrors[T](op: Context ?=> T)(using Context): Either[List[String], T] = {
