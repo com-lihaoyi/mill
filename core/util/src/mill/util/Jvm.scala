@@ -11,6 +11,7 @@ import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.*
+import mill.coursierutil.TestOverridesRepo
 import mill.define.{PathRef, TaskCtx}
 
 import java.io.BufferedOutputStream
@@ -652,8 +653,6 @@ object Jvm {
 
     val resolutionParams0 = resolutionParams.addForceVersion(forceVersions.toSeq*)
 
-    val testOverridesRepo = new mill.coursierutil.TestOverridesRepo()
-
     val repositories0 =
       if (checkGradleModules)
         repositories.map {
@@ -667,7 +666,7 @@ object Jvm {
     val resolve = Resolve()
       .withCache(coursierCache0)
       .withDependencies(rootDeps)
-      .withRepositories(repositories0 ++ Seq(testOverridesRepo))
+      .withRepositories(TestOverridesRepo.repos ++ repositories0)
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
       .withBoms(boms.iterator.toSeq)
