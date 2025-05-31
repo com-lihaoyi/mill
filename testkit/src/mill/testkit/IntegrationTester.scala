@@ -111,7 +111,8 @@ object IntegrationTester {
       def text: String = {
         val (s1, s2) = ParseArgs.extractSegments(selector0).get
 
-        val segments = (s1.getOrElse(Segments()) ++ s2.getOrElse(Segments())).value.flatMap(_.pathSegments)
+        val segments =
+          (s1.getOrElse(Segments()) ++ s2.getOrElse(Segments())).value.flatMap(_.pathSegments)
         os.read(workspacePath / OutFiles.out / segments.init / s"${segments.last}.json")
       }
 

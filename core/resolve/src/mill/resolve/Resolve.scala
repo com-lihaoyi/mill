@@ -307,7 +307,7 @@ private[mill] trait Resolve[T] {
     @tailrec def recurse(remainingArgs: List[String], allResults: List[T]): Result[List[T]] =
       remainingArgs match {
         case first :: rest =>
-          val result = for{
+          val result = for {
             (scopedSel, sel) <- ParseArgs.extractSegments(first)
             rootModuleSels <- resolveRootModule(rootModule, scopedSel)
             (items, foundCommands) <- resolveNonEmptyAndHandle(
@@ -324,7 +324,7 @@ private[mill] trait Resolve[T] {
                   rootModule.millDiscover2
                     .resolveEntrypoint(c.cls, c.segments.last.value)
                     .exists(_.argSigs0.exists(sig => sig.positional || sig.reader.isLeftover))
-                )
+              )
               if (!foundPositionalCommands) Result.Success(Left(items))
               else {
                 resolveNonEmptyAndHandle(
@@ -334,7 +334,7 @@ private[mill] trait Resolve[T] {
                   nullCommandDefaults,
                   allowPositionalCommandArgs,
                   resolveToModuleTasks
-                ).map{t =>
+                ).map { t =>
                   Right(t._1.toList)
                 }
               }
@@ -405,8 +405,8 @@ private[mill] trait Resolve[T] {
           allowPositionalCommandArgs,
           resolveToModuleTasks,
           cache = cache
-        ).map{r2 =>
-          r2 -> r.collect{case c: Resolved.Command => c}
+        ).map { r2 =>
+          r2 -> r.collect { case c: Resolved.Command => c }
         }
       )
   }

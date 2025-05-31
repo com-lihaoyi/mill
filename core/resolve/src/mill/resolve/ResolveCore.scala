@@ -448,9 +448,9 @@ private object ResolveCore {
 
     val namedTasks = Reflect
       .reflect(cls, classOf[Task.Named[?]], namePred, noParams = true, cache.getMethods)
-      .collect { case m if !classOf[Task.Command[?]].isAssignableFrom(m.getReturnType) =>
-        Resolved.NamedTask(Segments.labels(cache.decode(m.getName))) ->
-          None
+      .collect {
+        case m if !classOf[Task.Command[?]].isAssignableFrom(m.getReturnType) =>
+          Resolved.NamedTask(Segments.labels(cache.decode(m.getName))) -> None
       }
 
     val commands = Reflect
