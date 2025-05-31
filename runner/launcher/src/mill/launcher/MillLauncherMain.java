@@ -14,7 +14,6 @@ import mill.constants.OutFiles;
  */
 public class MillLauncherMain {
   public static void main(String[] args) throws Exception {
-    mill.constants.DebugLog.println("MillLauncherMain.main");
     boolean runNoServer = false;
     if (args.length > 0) {
       String firstArg = args[0];

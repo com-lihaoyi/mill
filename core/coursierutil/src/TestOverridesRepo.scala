@@ -7,13 +7,7 @@ import coursier.{Classifier, Dependency, Repository, Type}
 import java.util.concurrent.ConcurrentHashMap
 
 object TestOverridesRepo {
-  val repos = Option
-    .when (sys.env.get("MILL_INTEGRATION_IS_PACKAGED_LAUNCHER").contains("false"))(
-      TestOverridesRepo()
-    )
-    .toSeq
-
-  mill.constants.DebugLog.println("repos.size " + repos.size)
+  val repos = Seq(TestOverridesRepo())
 }
 /**
  * A `coursier.Repository` that exposes modules with hard-coded artifact list

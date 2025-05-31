@@ -11,7 +11,6 @@ import scala.util.Try
 
 object MillDaemonMain {
   def main(args0: Array[String]): Unit = mill.define.SystemStreams.withTopLevelSystemStreamProxy {
-    mill.constants.DebugLog.println("MillDaemonMain.main")
     // Disable SIGINT interrupt signal in the Mill server.
     //
     // This gets passed through from the client to server whenever the user
