@@ -291,7 +291,6 @@ private[mill] trait Resolve[T] {
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): Result[List[T]] = {
-    mill.constants.DebugLog.println("Resolve#resolve")
     resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
   }
 
@@ -324,7 +323,8 @@ private[mill] trait Resolve[T] {
         )
     }
 
-    def isSingleTokenTask(foundCommands: Seq[Resolved.Command], rest: Seq[String]) = {
+    def isSingleTokenTask(found: Seq[Resolved], rest: Seq[String]) = {
+      val foundCommands = found.collect { case r: Resolved.Command => r }
       val foundPositionalCommands = foundCommands.exists(c =>
         allowPositionalCommandArgs ||
           rootModule.millDiscover2
@@ -336,7 +336,7 @@ private[mill] trait Resolve[T] {
       // starts with a `-` and cannot be passed to those commands, then we can safely
       // say that only a single token is relevant
       foundCommands.isEmpty ||
-      (!foundPositionalCommands && rest.headOption.exists(_.startsWith("-")))
+      (!foundPositionalCommands && !rest.headOption.exists(_.startsWith("-")))
     }
 
     @tailrec def recurse(remainingArgs: List[String], allResults: List[T]): Result[List[T]] =
@@ -345,7 +345,7 @@ private[mill] trait Resolve[T] {
           val result = for {
             (scopedSel, sel) <- ParseArgs.extractSegments(first)
             rootModuleSels <- resolveRootModule(rootModule, scopedSel)
-            (items, foundCommands) <- resolveNonEmptyAndHandle(
+            (items, found) <- resolveNonEmptyAndHandle(
               Nil,
               rootModuleSels,
               sel.getOrElse(Segments()),
@@ -355,7 +355,7 @@ private[mill] trait Resolve[T] {
             )
             result0 <- {
 
-              if (isSingleTokenTask(foundCommands, rest)) Result.Success(Left(items))
+              if (isSingleTokenTask(found, rest)) Result.Success(Left(items -> found))
               else {
                 resolveNonEmptyAndHandle(
                   rest,
@@ -372,7 +372,8 @@ private[mill] trait Resolve[T] {
           } yield result0
 
           result match {
-            case Result.Success(Left(items)) => recurse(rest, allResults ::: items.toList)
+            case Result.Success(Left((items, found))) =>
+              recurse(rest, allResults ::: items.toList)
             case Result.Success(Right(cmds)) => Result.Success(allResults ::: cmds)
             case Result.Failure(msg) => Result.Failure(msg)
           }
@@ -383,7 +384,7 @@ private[mill] trait Resolve[T] {
     Result.sequence(separated(Nil, scriptArgs).flatten.map(ExpandBraces.expandBraces))
       .map(_.flatten)
       .flatMap(args => recurse(args.toList, Nil))
-      .map(_.distinct)
+      .map(deduplicate)
   }
 
   private[mill] def resolveNonEmptyAndHandle(
@@ -393,7 +394,7 @@ private[mill] trait Resolve[T] {
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean,
       resolveToModuleTasks: Boolean
-  ): Result[(Seq[T], Seq[Resolved.Command])] = {
+  ): Result[(Seq[T], Seq[Resolved])] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val cache = new ResolveCore.Cache()
     val resolved =
@@ -428,20 +429,20 @@ private[mill] trait Resolve[T] {
       }
 
     resolved
-      .flatMap(r =>
+      .flatMap { rs =>
         handleResolved(
           rootModule,
-          r.sortBy(_.segments),
+          rs.sortBy(_.segments),
           args,
           sel,
           nullCommandDefaults,
           allowPositionalCommandArgs,
           resolveToModuleTasks,
           cache = cache
-        ).map { r2 =>
-          r2 -> r.collect { case c: Resolved.Command => c }
+        ).map {
+          _ -> rs
         }
-      )
+      }
   }
 
   private[mill] def deduplicate(items: List[T]): List[T] = items
