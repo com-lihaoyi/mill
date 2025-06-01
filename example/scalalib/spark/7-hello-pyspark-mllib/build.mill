@@ -4,7 +4,7 @@ import mill._, pythonlib._
 object foo extends PythonModule {
 
   def mainScript = Task.Source { "src/foo.py" }
-  def pythonDeps = Seq("pyspark==3.5.4", "numpy==2.1.2")
+  def pythonDeps = Seq("pyspark==3.5.4", "numpy==2.1.2", "packaging")
 
   object test extends PythonTests with TestModule.Unittest
 
@@ -13,10 +13,6 @@ object foo extends PythonModule {
 // This example demonstrates running a PySpark application with MLlib using Mill
 
 /** Usage
-
-> pyenv install 3.11.0
-
-> pyenv global 3.11.0 # use 3.11.0 to fix `ModuleNotFoundError`
 
 > ./mill foo.run
 ...
