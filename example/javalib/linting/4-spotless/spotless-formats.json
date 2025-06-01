@@ -8,8 +8,7 @@
         "$type": "PalantirJavaFormat"
       },
       {
-        "$type": "LicenseHeader",
-        "delimiter": "(package|import|public|class|module) "
+        "$type": "LicenseHeader"
       }
     ]
   },

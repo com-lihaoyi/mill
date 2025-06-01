@@ -1,6 +1,7 @@
 package mill.scalalib.spotless
 
 import mainargs.Flag
+import mill.constants.OutFiles
 import mill.define.*
 import mill.util.Tasks
 import mill.util.TokenReaders.given
@@ -8,23 +9,23 @@ import mill.util.TokenReaders.given
 /**
  * Enables support for formatting files using [[https://github.com/diffplug/spotless Spotless]].
  */
+@mill.api.experimental // see notes in package object
 trait SpotlessModule extends WithSpotlessWorker {
 
   /**
-   * Files/folders to format using Spotless.
+   * Files/folders to format using Spotless.  Defaults to "src" sub-folder.
    */
-  def spotlessTargets: Task[Seq[PathRef]]
+  def spotlessTargets: Task[Seq[PathRef]] = Task.Sources("src")
 
   /**
-   * Applies [[SpotlessWorkerModule.formats]] on [[spotlessTargets]].
+   * Checks/fixes formatting in [[spotlessTargets]].
    * @param check If set, the command fails on format errors. Otherwise, formatting is fixed.
    */
   def spotless(check: Flag) = Task.Command {
-    spotlessWorker()
-      .worker()
-      .format(files(spotlessTargets()), check.value)
+    spotlessWorker().worker().format(files(spotlessTargets()), check.value)
   }
 }
+@mill.api.experimental // see notes in package object
 object SpotlessModule extends ExternalModule, TaskModule, WithSpotlessWorker {
 
   lazy val millDiscover = Discover[this.type]
@@ -32,7 +33,8 @@ object SpotlessModule extends ExternalModule, TaskModule, WithSpotlessWorker {
   def defaultCommandName() = "format"
 
   /**
-   * Applies [[SpotlessWorkerModule.formats]] on `targets`.
+   * Checks/fixes formatting in `targets`.
+   *
    * @param targets Files/folders to format.
    * @param check If set, the command fails on format errors. Otherwise, formatting is fixed.
    */
@@ -41,8 +43,23 @@ object SpotlessModule extends ExternalModule, TaskModule, WithSpotlessWorker {
       targets: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources"),
       check: Flag
   ) = Task.Command() {
-    spotlessWorker().worker()
-      .format(files(Task.sequence(targets.value)().flatten), check.value)
+    spotlessWorker().worker().format(files(Task.sequence(targets.value)().flatten), check.value)
+  }
+
+  /**
+   * Checks/fixes formatting in all files in the workspace.
+   *
+   * @param check If set, the command fails on format errors. Otherwise, formatting is fixed.
+   * @param skip Additional paths to skip. Mill `out` and ".git" are always skipped and can be omitted.
+   */
+  def formatAll(check: Flag, skip: Seq[String]) = Task.Command {
+    spotlessWorker().worker().format(
+      files(
+        Seq(PathRef(Task.workspace)),
+        (Seq(OutFiles.out, ".git") ++ skip).map(s => Task.workspace / os.SubPath(s))
+      ),
+      check.value
+    )
   }
 
   /**
@@ -58,16 +75,14 @@ object SpotlessModule extends ExternalModule, TaskModule, WithSpotlessWorker {
       toRev: Option[String],
       check: Flag
   ) = Task.Command {
-    spotlessWorker().worker()
-      .ratchet(fromRev, toRev, check.value)
-
+    spotlessWorker().worker().ratchet(fromRev, toRev, check.value)
   }
 }
 
-private def files(targets: Seq[PathRef]): Seq[PathRef] = {
+private def files(targets: Seq[PathRef], skip: Seq[os.Path] = Seq()): Seq[PathRef] = {
   targets.flatMap { ref =>
     if os.isDir(ref.path) then
-      os.walk.stream(ref.path)
+      os.walk.stream(ref.path, skip = skip.contains)
         .collect:
           case path if os.isFile(path) => PathRef(path)
         .toSeq

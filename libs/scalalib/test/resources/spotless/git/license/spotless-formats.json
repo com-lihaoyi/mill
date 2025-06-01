@@ -1,0 +1,10 @@
+[
+  {
+    "steps": [
+      {
+        "$type": "LicenseHeader",
+        "yearMode": "SET_FROM_GIT"
+      }
+    ]
+  }
+]

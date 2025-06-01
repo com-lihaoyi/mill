@@ -1,0 +1,12 @@
+[
+  {
+    "excludes": [
+      "glob:**/legacy/**"
+    ],
+    "steps": [
+      {
+        "$type": "EndWithNewline"
+      }
+    ]
+  }
+]

@@ -46,8 +46,7 @@ class SpotlessWorkerImpl(formats: Seq[Format], provisioner: Provisioner)
           val include = includes.map(FileSystems.getDefault.getPathMatcher)
           val exclude = excludes.map(FileSystems.getDefault.getPathMatcher)
           (ref: PathRef) =>
-            include.exists(_.matches(ref.path.toNIO)) &&
-              !exclude.exists(_.matches(ref.path.toNIO))
+            include.exists(_.matches(ref.path.toNIO)) && !exclude.exists(_.matches(ref.path.toNIO))
         val suspects = suspects0.filter(isMatch)
         if (suspects.nonEmpty) {
           val policy = LineEnding.valueOf(lineEnding)
@@ -133,6 +132,9 @@ class SpotlessWorkerImpl(formats: Seq[Format], provisioner: Provisioner)
     artifacts.result()
   }
 
+  // The implementation uses git-diff to identify the changes between 2 Git trees. This differs
+  // from the Spotless implementation that walks the trees for each input file to check if it is
+  // clean. Consequently, this functionality should be limited to global use.
   def ratchet(fromRev: String, toRev: Option[String], check: Boolean)(using ctx: TaskCtx) = {
     val files = Using.resource(Git.open(ctx.workspace.toIO)) { git =>
       def commitTree(rev: String) = {

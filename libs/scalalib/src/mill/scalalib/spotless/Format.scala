@@ -15,23 +15,28 @@ import scala.util.{DynamicVariable, Using}
  * @param encoding name of file [[https://github.com/diffplug/spotless/tree/main/plugin-gradle#line-endings-and-encodings-invisible-stuff encoding charset]]
  * @param suppressions lints to suppress
  */
+@mill.api.experimental // see notes in package object
 case class Format(
     steps: Seq[Format.Step],
-    includes: Seq[String],
+    includes: Seq[String] = Seq("glob:**"),
     excludes: Seq[String] = Seq(),
     lineEnding: String = "GIT_ATTRIBUTES_FAST_ALLSAME",
     encoding: String = "UTF-8",
     suppressions: Seq[Format.Suppress] = Seq()
 ) derives ReadWriter
+@mill.api.experimental // see notes in package object
 object Format {
 
   def apply(includes: String*)(steps: Step*): Format = apply(steps, includes)
 
-  def defaults: Seq[Format] = Seq(
-    apply("glob:**.java")(PalantirJavaFormat()),
-    apply("glob:**.{kt,kts}")(Ktfmt()),
-    apply("glob:**.{scala,sc,mill}")(ScalaFmt())
-  )
+  def defaults(using ctx: TaskCtx.Workspace): Seq[Format] =
+    SubPathRef.dynamicWorkspace.withValue(ctx.workspace) {
+      Seq(
+        apply("glob:**.java")(PalantirJavaFormat()),
+        apply("glob:**.{kt,kts}")(Ktfmt()),
+        apply("glob:**.{scala,sc,mill}")(ScalaFmt())
+      )
+    }
 
   def readAll(formatsFile: os.Path)(using ctx: TaskCtx.Workspace): Seq[Format] =
     BuildCtx.withFilesystemCheckerDisabled {

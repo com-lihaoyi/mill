@@ -8,16 +8,16 @@ import mill.util.Jvm
 /**
  * Implementations can override [[repositoriesTask]] to resolve artifacts required by a [[Format.Step]].
  */
+@mill.api.experimental // see notes in package object
 trait SpotlessWorkerModule extends CoursierModule, OfflineSupportModule {
 
   /**
-   * Formats to be applied, typically one per programming language.
-   * Defaults to value in workspace file `spotless-formats.json`, if it exists,
-   * else [[Format.defaults]].
+   * Formats to be applied, typically one per programming language. Defaults to value encoded as
+   * `upickle` "spotless-formats.json" if it exists. Otherwise, [[Format.defaults]].
    */
   def formats = Task {
-    val file = Task.workspace / "spotless-formats.json"
-    if os.exists(file) then Format.readAll(file) else Format.defaults
+    val path = Task.workspace / "spotless-formats.json"
+    if os.exists(path) then Format.readAll(path) else Format.defaults
   }
 
   def workerClasspath = Task {
@@ -42,6 +42,7 @@ trait SpotlessWorkerModule extends CoursierModule, OfflineSupportModule {
     (super.prepareOffline(all)() ++ workerClasspath() ++ worker().provision).distinct
   }
 }
+@mill.api.experimental // see notes in package object
 object SpotlessWorkerModule extends ExternalModule, SpotlessWorkerModule {
   lazy val millDiscover = Discover[this.type]
 }
