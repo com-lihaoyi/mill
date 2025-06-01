@@ -307,6 +307,24 @@ private[mill] trait Resolve[T] {
 
     val MaskPattern = """\\+\Q+\E""".r
 
+    /**
+     * Partition the arguments in groups using a separator.
+     * To also use the separator as argument, masking it with a backslash (`\`) is supported.
+     */
+    @tailrec
+    def separated(result: Seq[Seq[String]], rest: Seq[String]): Seq[Seq[String]] = rest match {
+      case Seq() => if (result.nonEmpty) result else Seq(Seq())
+      case r =>
+        val (next, r2) = r.span(_ != "+")
+        separated(
+          result ++ Seq(next.map {
+            case x @ MaskPattern(_*) => x.drop(1)
+            case x => x
+          }),
+          r2.drop(1)
+        )
+    }
+
     def isSingleTokenTask(
         found: Seq[Resolved],
         rest: Seq[String],
@@ -352,7 +370,7 @@ private[mill] trait Resolve[T] {
       }
     }
 
-    @tailrec def tailRecurse(
+    @tailrec def recurse(
         remainingArgs: List[String],
         allResults: List[T]
     ): Result[List[T]] = {
@@ -413,7 +431,7 @@ private[mill] trait Resolve[T] {
           } yield result0
 
           result match {
-            case Result.Success(Left(items)) => tailRecurse(rest, allResults ::: items.toList)
+            case Result.Success(Left(items)) => recurse(rest, allResults ::: items.toList)
             case Result.Success(Right(cmds)) => Result.Success(allResults ::: cmds)
             case Result.Failure(msg) => Result.Failure(msg)
           }
@@ -421,7 +439,9 @@ private[mill] trait Resolve[T] {
       }
     }
 
-    tailRecurse(scriptArgs.toList, Nil).map(x => deduplicate(x))
+    Result
+      .sequence(separated(Nil, scriptArgs).map(args => recurse(args.toList, Nil)))
+      .map(x => deduplicate(x.toList.flatten))
   }
 
   private[mill] def resolveNonEmptyAndHandle(
