@@ -3,11 +3,6 @@ package build
 import mill._, kotlinlib._
 import mill.javalib.{JvmWorkerModule, CoursierModule}
 import mill.define.ModuleRef
-import coursier.maven.MavenRepository
-
-val sonatypeReleases = Seq(
-  MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-)
 
 object foo extends KotlinModule {
 
@@ -18,13 +13,13 @@ object foo extends KotlinModule {
     mvn"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
   )
 
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 
 //// SNIPPET:BUILD2
 
 object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 
 object bar extends KotlinModule {
@@ -34,5 +29,5 @@ object bar extends KotlinModule {
   def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }

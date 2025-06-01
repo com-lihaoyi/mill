@@ -1,16 +1,11 @@
 // By default, dependencies are resolved from https://central.sonatype.com/[Maven Central],
 // the standard package repository for JVM languages like Java, Kotlin, or Scala. You
-// can also add your own resolvers by overriding the `repositoriesTask` task in the module:
+// can also add your own resolvers by overriding the `repositories` task in the module:
 
 //// SNIPPET:BUILD1
 package build
 import mill._, scalalib._
 import mill.define.ModuleRef
-import coursier.maven.MavenRepository
-
-val sonatypeReleases = Seq(
-  MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-)
 
 object foo extends ScalaModule {
   def scalaVersion = "2.13.8"
@@ -20,15 +15,20 @@ object foo extends ScalaModule {
     mvn"com.lihaoyi::mainargs:0.6.2"
   )
 
-  def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ sonatypeReleases
-  }
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 
 //// SNIPPET:END
 
 // Mill uses the https://get-coursier.io/[Coursier] dependency resolver, and reads
-// Coursier config files automatically.
+// Coursier config files automatically. The list of valid repository strings is documented
+// here:
+//
+// - https://github.com/coursier/coursier/blob/main/docs/pages/reference-repositories.md
+//
+// For more specialized custom repositories which do not follow the standard URL format,
+// you can override `def repositoriesTask` to instantiate a custom `coursier.Repository`
+// instance programmatically.
 //
 // You can configure Coursier to use an alternate download location for Maven Central
 // artifacts via a `mirror.properties` file:
@@ -55,7 +55,7 @@ object foo extends ScalaModule {
 //// SNIPPET:BUILD2
 
 object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 
 object bar extends ScalaModule {
@@ -63,7 +63,7 @@ object bar extends ScalaModule {
   def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 
 //// SNIPPET:END
@@ -75,3 +75,7 @@ object bar extends ScalaModule {
 > ./mill bar.compile
 
 */
+
+// To customize the repositories used to resolve the `//| mvnDeps:` dependencies used in your
+// `build.mill` file, you can add `//| repositories:` to your YAML header which takes a
+// list of strings of the same format.

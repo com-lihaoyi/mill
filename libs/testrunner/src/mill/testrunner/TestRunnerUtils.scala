@@ -378,22 +378,22 @@ import scala.math.Ordering.Implicits._
     tasksArr.flatten.map(_.taskDef().fullyQualifiedName())
   }
 
-  def globFilter(selectors: Seq[String]): String => Boolean = {
-    val filters = selectors.map { str =>
-      if (str == "*") (_: String) => true
-      else if (str.indexOf('*') == -1) (s: String) => s == str
-      else {
-        val parts = str.split("\\*", -1)
-        parts match {
-          case Array("", suffix) => (s: String) => s.endsWith(suffix)
-          case Array(prefix, "") => (s: String) => s.startsWith(prefix)
-          case _ =>
-            val pattern = Pattern.compile(parts.map(Pattern.quote).mkString(".*"))
-            (s: String) => pattern.matcher(s).matches()
-        }
+  def matchesGlob(glob: String): String => Boolean =
+    if (glob == "*") (_: String) => true
+    else if (glob.indexOf('*') == -1) (s: String) => s == glob
+    else {
+      val parts = glob.split("\\*", -1)
+      parts match {
+        case Array("", suffix) => (s: String) => s.endsWith(suffix)
+        case Array(prefix, "") => (s: String) => s.startsWith(prefix)
+        case _ =>
+          val pattern = Pattern.compile(parts.map(Pattern.quote).mkString(".*"))
+          (s: String) => pattern.matcher(s).matches()
       }
     }
 
+  def globFilter(selectors: Seq[String]): String => Boolean = {
+    val filters = selectors.map(matchesGlob)
     if (filters.isEmpty) _ => true
     else { className =>
       val name = className.stripSuffix("$")

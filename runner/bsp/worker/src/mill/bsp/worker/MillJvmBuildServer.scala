@@ -43,7 +43,8 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
   )(implicit name: sourcecode.Name): CompletableFuture[V] = {
     handlerTasks(
       targetIds = _ => targetIds,
-      tasks = { case m: RunModuleApi => m.bspJvmRunTestEnvironment }
+      tasks = { case m: RunModuleApi => m.bspJvmRunTestEnvironment },
+      requestDescription = "Getting JVM test environment of {}"
     ) {
       case (
             ev,
@@ -107,8 +108,10 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
     handlerTasks(
       targetIds = _ => params.getTargets.asScala,
       tasks = {
-        case m: JavaModuleApi => m.bspCompileClasspath
-      }
+        case m: JavaModuleApi =>
+          m.bspCompileClasspath(sessionInfo.clientType.mergeResourcesIntoClasses)
+      },
+      requestDescription = "Getting JVM compile class path of {}"
     ) {
       case (ev, _, id, _: JavaModuleApi, compileClasspath) =>
         new JvmCompileClasspathItem(id, compileClasspath(ev).asJava)

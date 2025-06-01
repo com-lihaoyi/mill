@@ -10,10 +10,7 @@ trait IntegrationTesterBase {
   def propagateJavaHome: Boolean
 
   def millTestSuiteEnv: Map[String, String] = (
-    Option(System.getenv("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH")).flatMap(s =>
-      Option("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH" -> s)
-    ) ++
-      Option.when(propagateJavaHome)("JAVA_HOME" -> sys.props("java.home"))
+    Option.when(propagateJavaHome)("JAVA_HOME" -> sys.props("java.home"))
   ).toMap
 
   /**
@@ -62,6 +59,10 @@ trait IntegrationTesterBase {
         }
       )
       .foreach(os.copy.into(_, workspacePath))
+
+    // In case someone manually ran stuff in the integration test workspace earlier,
+    // remove any leftover `out/` folder so it does not interfere with the test
+    os.remove.all(workspacePath / "out")
   }
 
   /**

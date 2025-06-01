@@ -11,12 +11,10 @@ object `package` extends MillPublishScalaModule with BuildInfo {
 
   def buildInfoPackageName = "mill.client"
 
-  def moduleDeps = Seq(build.runner.client)
+  def moduleDeps = Seq(build.runner.client, build.core.coursierutil)
 
   def mvnDeps = Seq(
     Deps.nativeTerminal,
-    Deps.coursier,
-    Deps.coursierInterface,
     Deps.coursierJvm,
     Deps.logback,
     Deps.snakeyamlEngine,

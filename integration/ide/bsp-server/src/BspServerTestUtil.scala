@@ -5,11 +5,13 @@ import com.google.gson.{Gson, GsonBuilder}
 import coursier.cache.CacheDefaults
 import mill.api.BuildInfo
 import mill.bsp.Constants
+import mill.testrunner.TestRunnerUtils
 import org.eclipse.{lsp4j => l}
+import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
 import java.io.ByteArrayOutputStream
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
+import java.util.concurrent.{CompletableFuture, ExecutorService, Executors, ThreadFactory}
 
 import scala.jdk.CollectionConverters._
 import scala.reflect.ClassTag
@@ -96,6 +98,50 @@ object BspServerTestUtil {
     }
   }
 
+  def compareLogWithSnapshot(
+      log: String,
+      snapshotPath: os.Path,
+      ignoreLine: String => Boolean = _ => false
+  ): Unit = {
+
+    val logLines = log.linesIterator.filterNot(ignoreLine).toVector
+    val snapshotLinesOpt = Option.when(os.exists(snapshotPath))(os.read.lines(snapshotPath))
+
+    val matches = snapshotLinesOpt match {
+      case Some(snapshotLines) =>
+        if (snapshotLines.length == logLines.length)
+          snapshotLines.iterator
+            .zip(logLines.iterator)
+            .zipWithIndex
+            .map {
+              case ((snapshotLine, logLine), lineIdx) =>
+                val cmp = TestRunnerUtils.matchesGlob(snapshotLine)
+                cmp(logLine) || {
+                  System.err.println(s"Line ${lineIdx + 1} differs:")
+                  System.err.println(s"  Expected: $snapshotLine")
+                  System.err.println(s"  Got: $logLine")
+                  false
+                }
+            }
+            .foldLeft(true)(_ && _)
+        else {
+          System.err.println(s"Expected ${snapshotLines.length} lines, got ${logLines.length}")
+          false
+        }
+      case None =>
+        System.err.println(s"$snapshotPath not found")
+        false
+    }
+
+    if (updateSnapshots) {
+      if (!matches) {
+        System.err.println(s"Updating $snapshotPath")
+        os.write.over(snapshotPath, logLines.mkString(System.lineSeparator()), createFolders = true)
+      }
+    } else
+      assert(matches)
+  }
+
   val bspJsonrpcPool: ExecutorService = Executors.newCachedThreadPool(
     new ThreadFactory {
       val counter = new AtomicInteger
@@ -108,11 +154,16 @@ object BspServerTestUtil {
   )
 
   trait MillBuildServer extends b.BuildServer with b.JvmBuildServer
-      with b.JavaBuildServer with b.ScalaBuildServer
+      with b.JavaBuildServer with b.ScalaBuildServer {
+    @JsonRequest("millTest/loggingTest")
+    def loggingTest(): CompletableFuture[Object]
+  }
 
   def withBspServer[T](
       workspacePath: os.Path,
-      millTestSuiteEnv: Map[String, String]
+      millTestSuiteEnv: Map[String, String],
+      bspLog: Option[(Array[Byte], Int) => Unit] = None,
+      client: b.BuildClient = DummyBuildClient
   )(f: (MillBuildServer, b.InitializeBuildResult) => T): T = {
 
     val bspMetadataFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
@@ -131,15 +182,18 @@ object BspServerTestUtil {
     val proc = os.proc(bspCommand).spawn(
       cwd = workspacePath,
       stderr =
-        if (outputOnErrorOnly)
+        if (bspLog.isDefined || outputOnErrorOnly)
           os.ProcessOutput { (bytes, len) =>
-            stderr.write(bytes, 0, len)
+            if (outputOnErrorOnly)
+              stderr.write(bytes, 0, len)
+            else
+              System.err.write(bytes, 0, len)
+            for (f <- bspLog)
+              f(bytes, len)
           }
         else os.Inherit,
       env = millTestSuiteEnv
     )
-
-    val client: b.BuildClient = DummyBuildClient
 
     var success = false
     try {

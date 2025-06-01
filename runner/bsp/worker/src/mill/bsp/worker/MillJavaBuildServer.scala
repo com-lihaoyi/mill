@@ -19,8 +19,12 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
     handlerTasks(
       targetIds = _ => javacOptionsParams.getTargets.asScala,
       tasks = { case m: JavaModuleApi =>
-        m.bspBuildTargetJavacOptions(sessionInfo.clientWantsSemanticDb)
-      }
+        m.bspBuildTargetJavacOptions(
+          sessionInfo.clientType.mergeResourcesIntoClasses,
+          sessionInfo.clientWantsSemanticDb
+        )
+      },
+      requestDescription = "Getting javac options of {}"
     ) {
       // We ignore all non-JavaModule
       case (ev, state, id, m: JavaModuleApi, f) =>

@@ -18,16 +18,18 @@ import millbuild.*
 object `package` extends MillStableScalaModule {
 
   def moduleDeps = Seq(build.core.util, build.libs.scalalib.api, build.libs.testrunner)
-  def mvnDeps = {
-    Seq(Deps.scalaXml) ++ {
+  def mvnDeps =
+    Seq(Deps.scalaXml) ++
       // despite compiling with Scala 3, we need to include scala-reflect
       // for the scala.reflect.internal.util.ScalaClassLoader
       // used in ScalaModule.scalacHelp,
       // (also transitively included by com.eed3si9n.jarjarabrams:jarjar-abrams-core)
       // perhaps the class can be copied here?
-      Seq(Deps.scalaReflect(scalaVersion())) ++ Seq(Deps.sonatypeCentralClient)
-    }
-  }
+      Seq(Deps.scalaReflect(scalaVersion()))
+
+  def compileMvnDeps = Seq(Deps.sonatypeCentralClient)
+  def runMvnDeps = Seq(Deps.sonatypeCentralClient)
+
   def testMvnDeps = super.testMvnDeps() ++ Seq(Deps.TestDeps.scalaCheck)
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(

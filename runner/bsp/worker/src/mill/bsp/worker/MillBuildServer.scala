@@ -9,15 +9,16 @@ import mill.api.Segment.Label
 import mill.bsp.Constants
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.client.lock.Lock
+import mill.internal.PrefixLogger
 import mill.server.Server
+import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
-import java.io.PrintStream
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.{CompletableFuture, LinkedBlockingQueue, TimeUnit}
+import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
-import scala.concurrent.Promise
+import scala.concurrent.{Await, Promise}
+import scala.concurrent.duration.Duration
 import scala.jdk.CollectionConverters.*
-import scala.reflect.ClassTag
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
@@ -27,16 +28,22 @@ private class MillBuildServer(
     bspVersion: String,
     serverVersion: String,
     serverName: String,
-    logStream: PrintStream,
     canReload: Boolean,
-    debugMessages: Boolean,
     onShutdown: () => Unit,
-    outLock: Lock
-)(implicit ec: scala.concurrent.ExecutionContext) extends BuildServer {
+    outLock: Lock,
+    baseLogger: Logger,
+    out: os.Path
+) extends BuildServer with AutoCloseable {
 
   import MillBuildServer._
 
+  def close(): Unit = {
+    stopped = true
+    evaluatorRequestsThread.interrupt()
+  }
+
   class SessionInfo(
+      val clientType: BspClientType,
       val clientWantsSemanticDb: Boolean,
       /** `true` when client and server support the `JvmCompileClasspathProvider` request. */
       val enableJvmCompileClasspathProvider: Boolean
@@ -52,31 +59,42 @@ private class MillBuildServer(
   // Set when the `MillBuildBootstrap` completes and the evaluators are available
   private var bspEvaluators: Promise[BspEvaluators] = Promise[BspEvaluators]()
   // Set when a session is completed, either due to reload or shutdown
-  private[worker] var sessionResult: Option[BspServerResult] = None
+  private[worker] var sessionResult: Promise[BspServerResult] = Promise()
+
+  private val requestCount = new AtomicInteger
 
   def initialized = sessionInfo != null
 
   def updateEvaluator(evaluatorsOpt: Option[Seq[EvaluatorApi]]): Unit = {
-    debug(s"Updating Evaluator: $evaluatorsOpt")
+    baseLogger.debug(s"Updating Evaluator: $evaluatorsOpt")
     if (bspEvaluators.isCompleted) bspEvaluators = Promise[BspEvaluators]() // replace the promise
     evaluatorsOpt.foreach { evaluators =>
-      bspEvaluators.success(new BspEvaluators(topLevelProjectRoot, evaluators, s => debug(s())))
+      bspEvaluators.success(new BspEvaluators(
+        topLevelProjectRoot,
+        evaluators,
+        s => baseLogger.debug(s())
+      ))
     }
   }
-
-  def print(msg: String): Unit = logStream.println(msg)
-  def debug(msg: => String): Unit = if (debugMessages) logStream.println("[debug] " + msg)
 
   def onConnectWithClient(buildClient: BuildClient): Unit = client = buildClient
 
   override def buildInitialize(request: InitializeBuildParams)
       : CompletableFuture[InitializeBuildResult] =
-    handlerRaw(checkInitialized = false) {
+    handlerRaw { logger =>
 
       val clientCapabilities = request.getCapabilities()
       val enableJvmCompileClasspathProvider = clientCapabilities.getJvmCompileClasspathReceiver
+      val clientType = request.getDisplayName match {
+        case "IntelliJ-BSP" => BspClientType.IntellijBSP
+        case other => BspClientType.Other(other)
+      }
       // Not sure why we need to set this early, but we do
-      sessionInfo = SessionInfo(false, enableJvmCompileClasspathProvider)
+      sessionInfo = SessionInfo(
+        clientType,
+        clientWantsSemanticDb = false,
+        enableJvmCompileClasspathProvider = enableJvmCompileClasspathProvider
+      )
       // TODO: scan BspModules and infer their capabilities
 
       val supportedLangs = Constants.languages.asJava
@@ -102,7 +120,7 @@ private class MillBuildServer(
           val rawValue = json.get(name)
           if (rawValue.isJsonPrimitive) {
             val version = Try(rawValue.getAsJsonPrimitive.getAsString).toOption.filter(_.nonEmpty)
-            debug(s"Got json value for ${name}=${version}")
+            logger.debug(s"Got json value for ${name}=${version}")
             version
           } else None
         } else None
@@ -110,9 +128,9 @@ private class MillBuildServer(
       var clientWantsSemanticDb = false
       request.getData match {
         case d: JsonObject =>
-          debug(s"extra data: ${d} of type ${d.getClass}")
+          logger.debug(s"extra data: ${d} of type ${d.getClass}")
           readVersion(d, "semanticdbVersion").foreach { version =>
-            print(
+            logger.info(
               s"Got client semanticdbVersion: ${version}. Enabling SemanticDB support."
             )
             clientWantsSemanticDb = true
@@ -124,30 +142,38 @@ private class MillBuildServer(
         case _ => // no op
       }
 
-      sessionInfo = SessionInfo(clientWantsSemanticDb, enableJvmCompileClasspathProvider)
+      sessionInfo = SessionInfo(
+        clientType,
+        clientWantsSemanticDb = clientWantsSemanticDb,
+        enableJvmCompileClasspathProvider = enableJvmCompileClasspathProvider
+      )
       new InitializeBuildResult(serverName, serverVersion, bspVersion, capabilities)
     }
 
   override def onBuildInitialized(): Unit = {
-    print("Build initialized")
+    val logger = createLogger()
+    logger.info("Build initialized")
   }
 
   override def buildShutdown(): CompletableFuture[Object] = {
-    print("Entered buildShutdown")
+    val logger = createLogger()
+    logger.info("Entered buildShutdown")
     SemanticDbJavaModuleApi.resetContext()
     CompletableFuture.completedFuture(null.asInstanceOf[Object])
   }
   override def onBuildExit(): Unit = {
-    print("Entered onBuildExit")
+    val logger = createLogger()
+    logger.info("Entered onBuildExit")
     SemanticDbJavaModuleApi.resetContext()
-    sessionResult = Some(BspServerResult.Shutdown)
+    sessionResult.trySuccess(BspServerResult.Shutdown)
     onShutdown()
   }
 
   override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] =
     handlerTasksEvaluators(
       targetIds = _.bspModulesIdList.map(_._1),
-      tasks = { case m: BspModuleApi => m.bspBuildTargetData }
+      tasks = { case m: BspModuleApi => m.bspBuildTargetData },
+      requestDescription = "Listing build targets"
     ) { (ev, state, id, m: BspModuleApi, bspBuildTargetData) =>
       val depsIds = m match {
         case jm: JavaModuleApi =>
@@ -173,7 +199,7 @@ private class MillBuildServer(
           Some((dataKind, jvmBuildTarget(d)))
 
         case Some((dataKind, d)) =>
-          debug(s"Unsupported dataKind=${dataKind} with value=${d}")
+          ev.baseLogger.debug(s"Unsupported dataKind=${dataKind} with value=${d}")
           None // unsupported data kind
         case None => None
       }
@@ -190,10 +216,10 @@ private class MillBuildServer(
     }
 
   override def workspaceReload(): CompletableFuture[Object] =
-    handlerRaw(checkInitialized = false) {
+    handlerRaw { _ =>
       // Instead stop and restart the command
       // BSP.install(evaluator)
-      sessionResult = Some(BspServerResult.ReloadWorkspace)
+      sessionResult.trySuccess(BspServerResult.ReloadWorkspace)
       ().asInstanceOf[Object]
     }
 
@@ -214,7 +240,9 @@ private class MillBuildServer(
 
     handlerTasksEvaluators(
       targetIds = _ => sourcesParams.getTargets.asScala,
-      tasks = { case module: JavaModuleApi => module.bspBuildTargetSources }
+      tasks = { case module: JavaModuleApi => module.bspBuildTargetSources },
+      requestDescription =
+        s"Getting sources of ${sourcesParams.getTargets.asScala.map(_.getUri).mkString(", ")}"
     ) {
       case (ev, state, id, module, items) => new SourcesItem(
           id,
@@ -234,7 +262,7 @@ private class MillBuildServer(
 
   override def buildTargetInverseSources(p: InverseSourcesParams)
       : CompletableFuture[InverseSourcesResult] = {
-    handlerEvaluators() { state =>
+    handlerEvaluators() { (state, _) =>
       val tasksEvaluators = state.bspModulesIdList.collect {
         case (id, (m: JavaModuleApi, ev)) =>
           m.bspBuildTargetInverseSources(id, p.getTextDocument.getUri) -> ev
@@ -265,7 +293,9 @@ private class MillBuildServer(
       : CompletableFuture[DependencySourcesResult] =
     handlerTasks(
       targetIds = _ => p.getTargets.asScala,
-      tasks = { case m: JavaModuleApi => m.bspBuildTargetDependencySources }
+      tasks = { case m: JavaModuleApi => m.bspBuildTargetDependencySources },
+      requestDescription =
+        s"Getting dependency sources of ${p.getTargets.asScala.map(_.getUri).mkString(", ")}"
     ) {
       case (
             ev,
@@ -293,7 +323,8 @@ private class MillBuildServer(
       : CompletableFuture[DependencyModulesResult] =
     handlerTasks(
       targetIds = _ => params.getTargets.asScala,
-      tasks = { case m: JavaModuleApi => m.bspBuildTargetDependencyModules }
+      tasks = { case m: JavaModuleApi => m.bspBuildTargetDependencyModules },
+      requestDescription = "Getting external dependencies of {}"
     ) {
       case (
             ev,
@@ -319,7 +350,8 @@ private class MillBuildServer(
   override def buildTargetResources(p: ResourcesParams): CompletableFuture[ResourcesResult] =
     handlerTasks(
       targetIds = _ => p.getTargets.asScala,
-      tasks = { case m: JavaModuleApi => m.bspBuildTargetResources }
+      tasks = { case m: JavaModuleApi => m.bspBuildTargetResources },
+      requestDescription = "Getting resources of {}"
     ) {
       case (ev, state, id, m, resources) =>
         val resourcesUrls =
@@ -333,14 +365,19 @@ private class MillBuildServer(
   // TODO: if the client wants to give compilation arguments and the module
   // already has some from the build file, what to do?
   override def buildTargetCompile(p: CompileParams): CompletableFuture[CompileResult] =
-    handlerEvaluators() { state =>
+    handlerEvaluators() { (state, logger) =>
       p.setTargets(state.filterNonSynthetic(p.getTargets))
       val params = TaskParameters.fromCompileParams(p)
-      val taskId = params.hashCode()
       val compileTasksEvs = params.getTargets.distinct.map(state.bspModulesById).collect {
         case (m: SemanticDbJavaModuleApi, ev) if sessionInfo.clientWantsSemanticDb =>
-          (m.bspBuildTargetCompileSemanticDb, ev)
-        case (m: JavaModuleApi, ev) => (m.bspBuildTargetCompile, ev)
+          ((m, m.bspBuildTargetCompileSemanticDb), ev)
+        case (m: JavaModuleApi, ev) => (
+            (
+              m,
+              m.bspBuildTargetCompile(sessionInfo.clientType.mergeResourcesIntoClasses)
+            ),
+            ev
+          )
       }
 
       val result = compileTasksEvs
@@ -348,10 +385,11 @@ private class MillBuildServer(
         .map { case (ev, ts) =>
           evaluate(
             ev,
-            ts,
+            s"Compiling ${ts.map(_._1.bspDisplayName).mkString(", ")}",
+            ts.map(_._2),
+            logger,
             Utils.getBspLoggedReporterPool(p.getOriginId, state.bspIdByModule, client),
-            TestReporter.DummyTestReporter,
-            new MillBspLogger(client, taskId, ev.baseLogger)
+            TestReporter.DummyTestReporter
           )
         }
         .toSeq
@@ -362,7 +400,7 @@ private class MillBuildServer(
 
   override def buildTargetOutputPaths(params: OutputPathsParams)
       : CompletableFuture[OutputPathsResult] =
-    handlerEvaluators() { state =>
+    handlerEvaluators() { (state, _) =>
       val synthOutpaths = for {
         synthTarget <- state.syntheticRootBspBuildTarget
         if params.getTargets.contains(synthTarget.id)
@@ -388,7 +426,7 @@ private class MillBuildServer(
     }
 
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] =
-    handlerEvaluators() { state =>
+    handlerEvaluators() { (state, logger) =>
       val params = TaskParameters.fromRunParams(runParams)
       val (module, ev) = params.getTargets.map(state.bspModulesById).collectFirst {
         case (m: JavaModuleApi, ev) => (m, ev)
@@ -398,9 +436,10 @@ private class MillBuildServer(
       val runTask = module.bspRun(args)
       val runResult = evaluate(
         ev,
+        s"Running ${module.bspDisplayName}",
         Seq(runTask),
-        Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client),
-        logger = new MillBspLogger(client, runTask.hashCode(), ev.baseLogger)
+        logger,
+        Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client)
       )
       val response = runResult.transitiveResultsApi(runTask) match {
         case r if r.asSuccess.isDefined => new RunResult(StatusCode.OK)
@@ -415,7 +454,7 @@ private class MillBuildServer(
     }
 
   override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] =
-    handlerEvaluators() { state =>
+    handlerEvaluators() { (state, logger) =>
       testParams.setTargets(state.filterNonSynthetic(testParams.getTargets))
       val millBuildTargetIds = state
         .rootModules
@@ -463,14 +502,15 @@ private class MillBuildServer(
 
               val results = evaluate(
                 ev,
+                s"Running tests for ${testModule.bspDisplayName}",
                 Seq(testTask),
+                logger,
                 Utils.getBspLoggedReporterPool(
                   testParams.getOriginId,
                   state.bspIdByModule,
                   client
                 ),
-                testReporter,
-                new MillBspLogger(client, testTask.hashCode, ev.baseLogger)
+                testReporter
               )
               val statusCode = Utils.getStatusCode(Seq(results))
 
@@ -507,7 +547,7 @@ private class MillBuildServer(
 
   override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams)
       : CompletableFuture[CleanCacheResult] =
-    handlerEvaluators() { state =>
+    handlerEvaluators() { (state, logger) =>
       cleanCacheParams.setTargets(state.filterNonSynthetic(cleanCacheParams.getTargets))
 
       val (msg, cleaned) =
@@ -519,12 +559,13 @@ private class MillBuildServer(
             val (module, ev) = state.bspModulesById(targetId)
             val mainModule = ev.rootModule.asInstanceOf[mill.api.internal.MainModuleApi]
             val compileTargetName = (module.moduleSegments ++ Label("compile")).render
-            debug(s"about to clean: ${compileTargetName}")
+            logger.debug(s"about to clean: ${compileTargetName}")
             val cleanTask = mainModule.bspClean(ev, Seq(compileTargetName)*)
             val cleanResult = evaluate(
               ev,
+              s"Cleaning cache of ${module.bspDisplayName}",
               Seq(cleanTask),
-              logger = new MillBspLogger(client, cleanTask.hashCode, ev.baseLogger)
+              logger = logger
             )
             val cleanedPaths =
               cleanResult.results.head.get.value.asInstanceOf[Seq[java.nio.file.Path]]
@@ -552,7 +593,7 @@ private class MillBuildServer(
 
   override def debugSessionStart(debugParams: DebugSessionParams)
       : CompletableFuture[DebugSessionAddress] =
-    handlerEvaluators() { state =>
+    handlerEvaluators() { (state, _) =>
       debugParams.setTargets(state.filterNonSynthetic(debugParams.getTargets))
       throw new NotImplementedError("debugSessionStart endpoint is not implemented")
     }
@@ -561,9 +602,10 @@ private class MillBuildServer(
    * @params tasks A partial function
    * @param block The function must accept the same modules as the partial function given by `tasks`.
    */
-  def handlerTasks[T, V, W: ClassTag](
+  def handlerTasks[T, V, W](
       targetIds: BspEvaluators => collection.Seq[BuildTargetIdentifier],
-      tasks: PartialFunction[BspModuleApi, TaskApi[W]]
+      tasks: PartialFunction[BspModuleApi, TaskApi[W]],
+      requestDescription: String
   )(block: (
       EvaluatorApi,
       BspEvaluators,
@@ -574,57 +616,54 @@ private class MillBuildServer(
       name: sourcecode.Name
   )
       : CompletableFuture[V] =
-    handlerTasksEvaluators[T, V, W](targetIds, tasks)(block)((l, _) => agg(l))
+    handlerTasksEvaluators[T, V, W](targetIds, tasks, requestDescription)(block)((l, _) =>
+      agg(l)
+    )
 
   /**
    * @params tasks A partial function
    * @param block The function must accept the same modules as the partial function given by `tasks`.
    */
-  def handlerTasksEvaluators[T, V, W: ClassTag](
+  def handlerTasksEvaluators[T, V, W](
       targetIds: BspEvaluators => collection.Seq[BuildTargetIdentifier],
-      tasks: PartialFunction[BspModuleApi, TaskApi[W]]
+      tasks: PartialFunction[BspModuleApi, TaskApi[W]],
+      requestDescription: String
   )(block: (EvaluatorApi, BspEvaluators, BuildTargetIdentifier, BspModuleApi, W) => T)(agg: (
       java.util.List[T],
       BspEvaluators
-  ) => V)(implicit name: sourcecode.Name): CompletableFuture[V] = {
+  ) => V)(implicit name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V] = {
     val prefix = name.value
-    handlerEvaluators() { (state: BspEvaluators) =>
+    handlerEvaluators() { (state, logger) =>
       val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
       val tasksSeq = ids.flatMap { id =>
         val (m, ev) = state.bspModulesById(id)
-        tasks.lift.apply(m).map(ts => (ts, (ev, id)))
+        tasks.lift.apply(m).map(ts => (ts, (ev, id, m.bspDisplayName)))
       }
 
       // group by evaluator (different root module)
       val groups0 = groupList(tasksSeq)(_._2._1) {
-        case (tasks, (_, id)) => (id, tasks)
+        case (tasks, (_, id, displayName)) => (id, displayName, tasks)
       }
 
       val evaluated = groups0.flatMap {
         case (ev, targetIdTasks) =>
-          val results = evaluate(ev, targetIdTasks.map(_._2))
-          val idByTasks = targetIdTasks.map { case (id, task) => (task: TaskApi[_], id) }.toMap
-          val failures = results.transitiveResultsApi.toSeq.collect {
-            case (task, res: ExecResult.Failing[_]) if idByTasks.contains(task) =>
-              (idByTasks(task), res)
-          }
-
-          def logError(id: BuildTargetIdentifier, errorMsg: String): Unit = {
-            val msg = s"Request '$prefix' failed for ${id.getUri}: ${errorMsg}"
-            print(msg)
-            client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, msg))
-          }
-
-          if (failures.nonEmpty)
-            for ((id, failure) <- failures)
-              logError(id, failure.toString)
-
+          val requestDescription0 = requestDescription.replace(
+            "{}",
+            targetIdTasks.map(_._2).mkString(", ")
+          )
+          val results = evaluate(ev, requestDescription0, targetIdTasks.map(_._3), logger = logger)
           val resultsById = targetIdTasks.flatMap {
-            case (id, task) =>
+            case (id, _, task) =>
               results.transitiveResultsApi(task)
                 .asSuccess
                 .map(_.value.value.asInstanceOf[W])
                 .map((id, _))
+          }
+
+          def logError(id: BuildTargetIdentifier, errorMsg: String): Unit = {
+            val msg = s"Request '$prefix' failed for ${id.getUri}: ${errorMsg}"
+            logger.error(msg)
+            client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, msg))
           }
 
           resultsById.flatMap {
@@ -639,101 +678,209 @@ private class MillBuildServer(
       }
 
       agg(evaluated.asJava, state)
-    }(name)
+    }
   }
 
-  val requestLock = new java.util.concurrent.locks.ReentrantLock()
+  private val queue = new LinkedBlockingQueue[(BspEvaluators => Unit, Logger, String)]
+  private var stopped = false
+  private val evaluatorRequestsThread: Thread =
+    new Thread("mill-bsp-evaluator") {
+      setDaemon(true)
+      def waitForEvaluators(): Unit =
+        Await.result(bspEvaluators.future, Duration.Inf)
+      override def run(): Unit =
+        try {
+          var elemOpt = Option.empty[(BspEvaluators => Unit, Logger, String)]
+          while (!stopped) {
+            if (elemOpt.isEmpty)
+              elemOpt = Option(queue.poll(1L, TimeUnit.SECONDS))
+            for ((block, logger, name) <- elemOpt) {
+              waitForEvaluators()
+              Server.withOutLock(
+                noBuildLock = false,
+                noWaitForBuildLock = false,
+                out = out,
+                millActiveCommandMessage = s"IDE:$name",
+                streams = logger.streams,
+                outLock = outLock
+              ) {
+                for (evaluator <- bspEvaluators.future.value.flatMap(_.toOption)) {
+                  elemOpt = None
+                  try block(evaluator)
+                  catch {
+                    case t: Throwable =>
+                      logger.error(s"Could not process request: $t")
+                      t.printStackTrace(logger.streams.err)
+                  }
+                }
+              }
+            }
+          }
+        } catch {
+          case _: InterruptedException =>
+          // ignored, normal exit
+        }
+    }
+
+  evaluatorRequestsThread.start()
 
   protected def handlerEvaluators[V](
       checkInitialized: Boolean = true
-  )(block: BspEvaluators => V)(implicit name: sourcecode.Name): CompletableFuture[V] = {
-    handler0[BspEvaluators, V](checkInitialized, bspEvaluators.future)(block)(name)
+  )(block: (BspEvaluators, Logger) => V)(implicit
+      name: sourcecode.Name,
+      enclosing: sourcecode.Enclosing
+  ): CompletableFuture[V] = {
+    val prefix = name.value
+    val logger = createLogger()
+
+    val future = new CompletableFuture[V]
+
+    if (checkInitialized && !initialized) {
+      val msg = s"Can not respond to $prefix request before receiving the `initialize` request."
+      logger.error(msg)
+      future.completeExceptionally(new Exception(msg))
+    } else {
+      val proceed: BspEvaluators => Unit = { evaluators =>
+        if (future.isCancelled())
+          logger.info(s"$prefix was cancelled")
+        else {
+
+          val start = System.currentTimeMillis()
+          logger.info(s"Entered $prefix")
+
+          val res =
+            try Success(block(evaluators, logger))
+            catch {
+              case t: Throwable => Failure(t)
+            }
+
+          logger.info(s"$prefix took ${System.currentTimeMillis() - start} msec")
+
+          res match {
+            case Success(v) =>
+              logger.debug(s"$prefix result: $v")
+              future.complete(v)
+            case Failure(err) =>
+              logger.error(s"$prefix caught exception: $err")
+              err.printStackTrace(logger.streams.err)
+              future.completeExceptionally(err)
+          }
+        }
+      }
+      queue.put((proceed, logger, name.value))
+    }
+
+    future
   }
 
-  protected def handlerRaw[V](
-      checkInitialized: Boolean = true
-  )(block: => V)(implicit name: sourcecode.Name): CompletableFuture[V] = {
-    handler0[Unit, V](checkInitialized, scala.concurrent.Future.successful(()))(_ => block)(name)
-  }
-
-  /**
-   * Given a function that take input of type T and return output of type V,
-   * apply the function on the given inputs and return a completable future of
-   * the result. If the execution of the function raises an Exception, complete
-   * the future exceptionally. Also complete exceptionally if the server was not
-   * yet initialized.
-   */
-  protected def handler0[T, V](
-      checkInitialized: Boolean,
-      future0: scala.concurrent.Future[T]
-  )(block: T => V)(implicit name: sourcecode.Name): CompletableFuture[V] = {
-
+  protected def handlerRaw[V](block: Logger => V)(implicit
+      name: sourcecode.Name,
+      enclosing: sourcecode.Enclosing
+  ): CompletableFuture[V] = {
+    val logger = createLogger()
     val start = System.currentTimeMillis()
     val prefix = name.value
-    print(s"Entered ${prefix}")
+    logger.info(s"Entered $prefix")
     def logTiming() =
-      print(s"${prefix} took ${System.currentTimeMillis() - start} msec")
+      logger.info(s"$prefix took ${System.currentTimeMillis() - start} msec")
 
-    val future = new CompletableFuture[V]()
-    if (checkInitialized && !initialized) {
-      future.completeExceptionally(
-        new Exception(
-          s"Can not respond to ${prefix} request before receiving the `initialize` request."
-        )
-      )
-    } else {
-      future0.onComplete {
-        case Success(state) =>
-          try {
-            requestLock.lock()
-            val v = block(state)
-            logTiming()
-            debug(s"${prefix} result: ${v}")
-            future.complete(v)
-          } catch {
-            case e: Exception =>
-              logTiming()
-              logStream.println(s"${prefix} caught exception: ${e}")
-              e.printStackTrace(logStream)
-              future.completeExceptionally(e)
-          } finally {
-            requestLock.unlock()
-          }
-        case Failure(exception) =>
-          future.completeExceptionally(exception)
-      }
+    val future = new CompletableFuture[V]
+    try {
+      val v = block(logger)
+      logTiming()
+      logger.debug(s"$prefix result: $v")
+      future.complete(v)
+    } catch {
+      case e: Exception =>
+        logTiming()
+        logger.error(s"$prefix caught exception: $e")
+        e.printStackTrace(logger.streams.err)
+        future.completeExceptionally(e)
     }
 
     future
   }
 
   override def onRunReadStdin(params: ReadParams): Unit = {
-    debug("onRunReadStdin is current unsupported")
+    val logger = createLogger()
+    logger.debug("onRunReadStdin is current unsupported")
+  }
+
+  protected def createLogger()(implicit enclosing: sourcecode.Enclosing): Logger = {
+    val requestCount0 = requestCount.incrementAndGet()
+    val name = enclosingRequestName
+    new MillBspLogger(
+      client,
+      requestCount0,
+      new PrefixLogger(
+        new ProxyLogger(baseLogger) {
+          override private[mill] def logKey: Seq[String] = {
+            val logKey0 = super.logKey
+            if (logKey0.startsWith(Seq("bsp"))) logKey0.drop(1)
+            else logKey0
+          }
+        },
+        Seq(requestCount0.toString, name)
+      )
+    )
   }
 
   private def evaluate(
       evaluator: EvaluatorApi,
+      requestDescription: String,
       goals: Seq[TaskApi[?]],
+      logger: Logger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = TestReporter.DummyTestReporter,
-      logger: Logger = null
-  )(implicit name: sourcecode.Name): ExecutionResultsApi = {
-    val logger0 = Option(logger).getOrElse(evaluator.baseLogger)
-    Server.withOutLock(
-      noBuildLock = false,
-      noWaitForBuildLock = false,
-      out = os.Path(evaluator.outPathJava),
-      millActiveCommandMessage = "IDE-BSP:" + name.value,
-      streams = logger0.streams,
-      outLock = outLock
-    ) {
-      evaluator.executeApi(
-        goals,
-        reporter,
-        testReporter,
-        logger0,
-        serialCommandExec = false
-      ).executionResults
+      testReporter: TestReporter = TestReporter.DummyTestReporter
+  ): ExecutionResultsApi = {
+    val goalCount = goals.length
+    logger.info(s"Evaluating $goalCount ${if (goalCount > 1) "tasks" else "task"}")
+    val result = evaluator.executeApi(
+      goals,
+      reporter,
+      testReporter,
+      logger,
+      serialCommandExec = false
+    )
+    result.values.toEither.left.toOption match {
+      case None =>
+        logger.info("Done")
+      case Some(error) =>
+        logger.error(error)
+        logger.info("Failed")
+        client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, error))
+        client.onBuildShowMessage(new ShowMessageParams(
+          MessageType.ERROR,
+          s"$requestDescription failed, see Mill logs for more details"
+        ))
+    }
+    result.executionResults
+  }
+
+  @JsonRequest("millTest/loggingTest")
+  def loggingTest(): CompletableFuture[Object] = {
+    handlerEvaluators() { (state, logger) =>
+      val tasksEvs = state.bspModulesIdList
+        .collectFirst {
+          case (_, (m: JavaModuleApi, ev)) =>
+            Seq(((m, m.bspLoggingTest), ev))
+        }
+        .getOrElse {
+          sys.error("No BSP build target available")
+        }
+
+      tasksEvs
+        .groupMap(_._2)(_._1)
+        .map { case (ev, ts) =>
+          evaluate(
+            ev,
+            s"Checking logging for ${ts.map(_._1.bspDisplayName).mkString(", ")}",
+            ts.map(_._2),
+            logger
+          )
+        }
+        .toSeq
+      null
     }
   }
 
@@ -772,4 +919,27 @@ private object MillBuildServer {
       d.javaHome.foreach(jh => it.setJavaHome(jh.uri))
       d.javaVersion.foreach(jv => it.setJavaVersion(jv))
     }
+
+  private[mill] def enclosingRequestName(implicit enclosing: sourcecode.Enclosing): String = {
+    // enclosing.value typically looks like "mill.bsp.worker.MillBuildServer#buildTargetCompile logger"
+    // First, try to isolate the part with the BSP request name
+    var name0 = enclosing.value.split(" ") match {
+      case Array(elem) => elem
+      case other => other(other.length - 2)
+    }
+
+    // In "mill.bsp.worker.MillBuildServer#buildTargetCompile", keep only "buildTargetCompile"
+    val sharpIdx = name0.lastIndexOf('#')
+    if (sharpIdx > 0)
+      name0 = name0.drop(sharpIdx + 1)
+
+    // Drop "buildTarget" from "buildTargetCompile",
+    // and change the resulting "Compile" to "compile"
+    if (name0.startsWith("buildTarget")) {
+      val stripped = name0.stripPrefix("buildTarget")
+      if (stripped.headOption.exists(_.isUpper))
+        name0 = stripped.head.toLower +: stripped.tail
+    }
+    name0
+  }
 }

@@ -75,7 +75,8 @@ public class MillProcessLauncher {
     Path sandbox = daemonDir.resolve(DaemonFiles.sandbox);
     Files.createDirectories(sandbox);
     builder.environment().put(EnvVars.MILL_WORKSPACE_ROOT, new File("").getCanonicalPath());
-    builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());
+    if (System.getenv(EnvVars.MILL_EXECUTABLE_PATH) == null)
+      builder.environment().put(EnvVars.MILL_EXECUTABLE_PATH, getExecutablePath());
 
     String jdkJavaOptions = System.getenv("JDK_JAVA_OPTIONS");
     if (jdkJavaOptions == null) jdkJavaOptions = "";
@@ -112,8 +113,12 @@ public class MillProcessLauncher {
         Path buildFile = Paths.get(rootBuildFileName);
         if (Files.exists(buildFile)) {
           String[] config = cachedComputedValue(
-              "yaml-config-" + key, mill.constants.Util.readYamlHeader(buildFile), () -> {
-                Object conf = mill.launcher.ConfigReader.readYaml(buildFile);
+              "yaml-config-" + key,
+              mill.constants.Util.readYamlHeader(
+                  buildFile, buildFile.getFileName().toString()),
+              () -> {
+                Object conf = mill.launcher.ConfigReader.readYaml(
+                    buildFile, buildFile.getFileName().toString());
                 if (!(conf instanceof Map)) return new String[] {};
                 Map<String, Object> conf2 = (Map<String, Object>) conf;
 
@@ -219,8 +224,6 @@ public class MillProcessLauncher {
 
     String serverTimeout = millServerTimeout();
     if (serverTimeout != null) vmOptions.add("-Dmill.server_timeout=" + serverTimeout);
-    // https://github.com/com-lihaoyi/mill/issues/5083
-    vmOptions.add("-Dscalac.filebasedcache.defer.close.ms=0");
 
     // extra opts
     vmOptions.addAll(millJvmOpts());

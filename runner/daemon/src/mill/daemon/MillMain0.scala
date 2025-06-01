@@ -6,14 +6,15 @@ import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
 import mill.constants.{DaemonFiles, OutFiles, Util}
 import mill.define.BuildCtx
-import mill.internal.{Colors, MultiStream, PromptLogger}
+import mill.internal.{Colors, MultiStream, PrefixLogger, PromptLogger, SimpleLogger}
 import mill.server.Server
 import mill.util.BuildInfo
 import mill.{api, define}
 
-import java.io.{InputStream, PipedInputStream, PrintStream}
+import java.io.{InputStream, PipedInputStream, PrintStream, PrintWriter, StringWriter}
 import java.lang.reflect.InvocationTargetException
 import java.util.Locale
+import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
 import java.util.concurrent.locks.ReentrantLock
 import scala.collection.immutable
 import scala.jdk.CollectionConverters.*
@@ -34,53 +35,11 @@ object MillMain0 {
         if e.getCause != null && e.getCause.isInstanceOf[MillException] =>
       err.println(e.getCause.getMessage())
       (false, onError)
-    case NonFatal(e) =>
-      err.println("An unexpected error occurred " + e + "\n" + e.getStackTrace.mkString("\n"))
+    case e =>
+      val str = new StringWriter
+      e.printStackTrace(new PrintWriter(str))
+      err.println(str)
       throw e
-      (false, onError)
-  }
-
-  def main(args: Array[String]): Unit = mill.define.SystemStreams.withTopLevelSystemStreamProxy {
-    val initialSystemStreams = mill.define.SystemStreams.original
-
-    if (Properties.isWin && Util.hasConsole())
-      io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
-
-    val processId = Server.computeProcessId()
-    val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
-    Server.watchProcessIdFile(
-      out / OutFiles.millNoDaemon / processId / DaemonFiles.processId,
-      processId,
-      running = () => true,
-      exit = msg => {
-        System.err.println(msg)
-        System.exit(0)
-      }
-    )
-
-    val outLock = new DoubleLock(
-      outMemoryLock,
-      Lock.file((out / OutFiles.millOutLock).toString)
-    )
-
-    val daemonDir = os.Path(args.head)
-    val (result, _) =
-      try main0(
-          args = args.tail,
-          stateCache = RunnerState.empty,
-          mainInteractive = mill.constants.Util.hasConsole(),
-          streams0 = initialSystemStreams,
-          env = System.getenv().asScala.toMap,
-          setIdle = _ => (),
-          userSpecifiedProperties0 = Map(),
-          initialSystemProperties = sys.props.toMap,
-          systemExit = i => sys.exit(i),
-          daemonDir = daemonDir,
-          outLock = outLock
-        )
-      catch handleMillException(initialSystemStreams.err, ())
-
-    System.exit(if (result) 0 else 1)
   }
 
   val outMemoryLock = Lock.memory()
@@ -257,16 +216,21 @@ object MillMain0 {
                   val userSpecifiedProperties =
                     userSpecifiedProperties0 ++ config.extraSystemProperties
 
-                  val threadCount = Some(maybeThreadCount.toOption.get)
+                  val threadCount = maybeThreadCount.toOption.get
+
+                  def createEc(): Option[ThreadPoolExecutor] =
+                    if (threadCount == 1) None
+                    else Some(mill.exec.ExecutionContexts.createExecutor(threadCount))
 
                   val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
-                  Using.resource(new TailManager(daemonDir)) { tailManager =>
+                  Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                     def runMillBootstrap(
                         enterKeyPressed: Boolean,
                         prevState: Option[RunnerState],
                         targetsAndParams: Seq[String],
                         streams: SystemStreams,
-                        millActiveCommandMessage: String
+                        millActiveCommandMessage: String,
+                        loggerOpt: Option[Logger] = None
                     ) = Server.withOutLock(
                       config.noBuildLock.value,
                       config.noWaitForBuildLock.value,
@@ -275,18 +239,7 @@ object MillMain0 {
                       streams,
                       outLock
                     ) {
-                      Using.resource(getLogger(
-                        streams,
-                        config,
-                        enableTicker =
-                          if (bspMode) Some(false)
-                          else config.ticker
-                            .orElse(config.enableTicker)
-                            .orElse(Option.when(config.disableTicker.value)(false)),
-                        daemonDir,
-                        colored = colored,
-                        colors = colors
-                      )) { logger =>
+                      def proceed(logger: Logger): Watching.Result[RunnerState] = {
                         // Enter key pressed, removing mill-selective-execution.json to
                         // ensure all tasks re-run even though no inputs may have changed
                         if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
@@ -299,7 +252,7 @@ object MillMain0 {
                               keepGoing = config.keepGoing.value,
                               imports = config.imports,
                               env = env,
-                              threadCount = threadCount,
+                              ec = ec,
                               targetsAndParams = targetsAndParams,
                               prevRunnerState = prevState.getOrElse(stateCache),
                               logger = logger,
@@ -315,22 +268,44 @@ object MillMain0 {
 
                         }
                       }
+
+                      loggerOpt match {
+                        case Some(logger) =>
+                          proceed(logger)
+                        case None =>
+                          Using.resource(getLogger(
+                            streams,
+                            config,
+                            enableTicker = config.ticker
+                              .orElse(config.enableTicker)
+                              .orElse(Option.when(config.disableTicker.value)(false)),
+                            daemonDir,
+                            colored = colored,
+                            colors = colors
+                          )) { logger =>
+                            proceed(logger)
+                          }
+                      }
                     }
 
                     if (bspMode) {
-
+                      val bspLogger = getBspLogger(streams, config)
                       runBspSession(
                         streams0,
                         streams,
-                        prevRunnerState =>
+                        prevRunnerState => {
+                          val initCommandLogger = new PrefixLogger(bspLogger, Seq("init"))
                           runMillBootstrap(
                             false,
                             prevRunnerState,
                             Seq("version"),
-                            streams,
-                            "BSP:initialize"
-                          ).result,
-                        outLock
+                            initCommandLogger.streams,
+                            "BSP:initialize",
+                            loggerOpt = Some(initCommandLogger)
+                          ).result
+                        },
+                        outLock,
+                        bspLogger
                       )
 
                       (true, RunnerState(None, Nil, None))
@@ -399,9 +374,10 @@ object MillMain0 {
       bspStreams: SystemStreams,
       logStreams: SystemStreams,
       runMillBootstrap: Option[RunnerState] => RunnerState,
-      outLock: Lock
+      outLock: Lock,
+      bspLogger: Logger
   ): Result[BspServerResult] = {
-    logStreams.err.println("Trying to load BSP server...")
+    bspLogger.info("Trying to load BSP server...")
 
     val wsRoot = BuildCtx.workspaceRoot
     val logDir = wsRoot / OutFiles.out / "mill-bsp"
@@ -412,11 +388,13 @@ object MillMain0 {
         bspStreams,
         logDir,
         true,
-        outLock
+        outLock,
+        bspLogger,
+        wsRoot / OutFiles.out
       )
     }
 
-    logStreams.err.println("BSP server started")
+    bspLogger.info("BSP server started")
 
     val runSessionRes = bspServerHandleRes.flatMap { bspServerHandle =>
       try {
@@ -431,7 +409,7 @@ object MillMain0 {
           prevRunnerState = Some(runnerState)
           repeatForBsp = runSessionRes == BspServerResult.ReloadWorkspace
           bspRes = Some(runSessionRes)
-          logStreams.err.println(s"BSP session returned with $runSessionRes")
+          bspLogger.info(s"BSP session returned with $runSessionRes")
         }
 
         // should make the lsp4j-managed BSP server exit
@@ -441,7 +419,7 @@ object MillMain0 {
       } finally bspServerHandle.close()
     }
 
-    logStreams.err.println(
+    bspLogger.info(
       s"Exiting BSP runner loop. Stopping BSP server. Last result: $runSessionRes"
     )
     runSessionRes
@@ -489,6 +467,19 @@ object MillMain0 {
       currentTimeMillis = () => System.currentTimeMillis()
     )
   }
+
+  def getBspLogger(
+      streams: SystemStreams,
+      config: MillCliConfig
+  ): Logger =
+    new PrefixLogger(
+      new SimpleLogger(
+        streams,
+        Seq("bsp"),
+        debugEnabled = config.debugLog.value
+      ),
+      Nil
+    )
 
   /**
    * Determine, whether we need a `build.mill` or not.
@@ -562,4 +553,14 @@ object MillMain0 {
     for (k <- systemPropertiesToUnset) System.clearProperty(k)
     for ((k, v) <- desiredProps) System.setProperty(k, v)
   }
+
+  private implicit lazy val threadPoolExecutorOptionReleasable
+      : Using.Releasable[Option[ThreadPoolExecutor]] =
+    new Using.Releasable[Option[ThreadPoolExecutor]] {
+      def release(resource: Option[ThreadPoolExecutor]): Unit =
+        for (t <- resource) {
+          t.shutdown()
+          t.awaitTermination(Long.MaxValue, TimeUnit.SECONDS)
+        }
+    }
 }

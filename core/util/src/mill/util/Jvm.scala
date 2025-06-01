@@ -11,6 +11,7 @@ import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.*
+import mill.coursierutil.TestOverridesRepo
 import mill.define.{PathRef, TaskCtx}
 
 import java.io.BufferedOutputStream
@@ -527,7 +528,7 @@ object Jvm {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
-      checkGradleModules: Boolean,
+      checkGradleModules: Boolean = false,
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
@@ -629,7 +630,7 @@ object Jvm {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
-      checkGradleModules: Boolean,
+      checkGradleModules: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.define.TaskCtx] = None,
@@ -650,89 +651,71 @@ object Jvm {
     val offlineMode = ctx.fold(false)(_.offline)
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
-    val resolutionParams0 = resolutionParams
-      .addForceVersion(forceVersions.toSeq*)
+    val resolutionParams0 = resolutionParams.addForceVersion(forceVersions.toSeq*)
 
-    val testOverridesClassloaders = System.getenv("MILL_LOCAL_TEST_OVERRIDE_CLASSPATH") match {
-      case null => Nil
-      case cp =>
-        cp.split(';').map { s => createClassLoader(Array(os.Path(s))) }.toList
-    }
+    val repositories0 =
+      if (checkGradleModules)
+        repositories.map {
+          case m: MavenRepositoryLike.WithModuleSupport =>
+            m.withCheckModule(true)
+          case other => other
+        }
+      else
+        repositories
 
-    try {
-      val envTestOverridesRepo = testOverridesClassloaders.map(cl =>
-        new TestOverridesRepo(os.resource(cl) / "mill/local-test-overrides")
-      )
+    val resolve = Resolve()
+      .withCache(coursierCache0)
+      .withDependencies(rootDeps)
+      .withRepositories(Seq(TestOverridesRepo) ++ repositories0)
+      .withResolutionParams(resolutionParams0)
+      .withMapDependenciesOpt(mapDependencies)
+      .withBoms(boms.iterator.toSeq)
 
-      val resourceTestOverridesRepo =
-        new TestOverridesRepo(os.resource(getClass.getClassLoader) / "mill/local-test-overrides")
+    resolve.either() match {
+      case Left(error) =>
+        val cantDownloadErrors = error.errors.collect {
+          case cantDownload: CantDownloadModule => cantDownload
+        }
+        if (error.errors.length == cantDownloadErrors.length) {
+          val extraHeader =
+            if (offlineMode)
+              """
+                |*** Mill is in offline mode (--offline) ***
+                |It can not download new dependencies from remote repositories.
+                |You may need to run Mill without the `--offline` option at least once
+                |to download required remote dependencies.
+                |Run `mill __.prepareOffline` to fetch most remote resources at once.
+                |
+                |""".stripMargin
+            else ""
 
-      val repositories0 =
-        if (checkGradleModules)
-          repositories.map {
-            case m: MavenRepositoryLike.WithModuleSupport =>
-              m.withCheckModule(true)
-            case other => other
-          }
-        else
-          repositories
+          val header =
+            s"""|
+                |${extraHeader}Resolution failed for ${cantDownloadErrors.length} modules:
+                |--------------------------------------------
+                |""".stripMargin
 
-      val resolve = Resolve()
-        .withCache(coursierCache0)
-        .withDependencies(rootDeps)
-        .withRepositories(Seq(resourceTestOverridesRepo) ++ envTestOverridesRepo ++ repositories0)
-        .withResolutionParams(resolutionParams0)
-        .withMapDependenciesOpt(mapDependencies)
-        .withBoms(boms.iterator.toSeq)
+          val helpMessage =
+            s"""|
+                |--------------------------------------------
+                |
+                |For additional information on library dependencies, see the docs at
+                |${mill.api.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
 
-      resolve.either() match {
-        case Left(error) =>
-          val cantDownloadErrors = error.errors.collect {
-            case cantDownload: CantDownloadModule => cantDownload
-          }
-          if (error.errors.length == cantDownloadErrors.length) {
-            val extraHeader =
-              if (offlineMode)
-                """
-                  |*** Mill is in offline mode (--offline) ***
-                  |It can not download new dependencies from remote repositories.
-                  |You may need to run Mill without the `--offline` option at least once
-                  |to download required remote dependencies.
-                  |Run `mill __.prepareOffline` to fetch most remote resources at once.
-                  |
-                  |""".stripMargin
-              else ""
-
-            val header =
-              s"""|
-                  |${extraHeader}Resolution failed for ${cantDownloadErrors.length} modules:
-                  |--------------------------------------------
-                  |""".stripMargin
-
-            val helpMessage =
-              s"""|
-                  |--------------------------------------------
-                  |
-                  |For additional information on library dependencies, see the docs at
-                  |${mill.api.BuildInfo.millDocUrl}/mill/Library_Dependencies.html""".stripMargin
-
-            val errLines = cantDownloadErrors
-              .map { err =>
-                s"  ${err.module.trim}:${err.versionConstraint.asString} \n\t" +
-                  err.perRepositoryErrors.mkString("\n\t")
-              }
-              .mkString("\n")
-            val msg = header + errLines + "\n" + helpMessage + "\n"
-            Result.Failure(msg)
-          } else {
-            throw error
-          }
-        case Right(resolution0) =>
-          val resolution = customizer.fold(resolution0)(_.apply(resolution0))
-          Result.Success(resolution)
-      }
-    } finally {
-      testOverridesClassloaders.foreach(_.close())
+          val errLines = cantDownloadErrors
+            .map { err =>
+              s"  ${err.module.trim}:${err.versionConstraint.asString} \n\t" +
+                err.perRepositoryErrors.mkString("\n\t")
+            }
+            .mkString("\n")
+          val msg = header + errLines + "\n" + helpMessage + "\n"
+          Result.Failure(msg)
+        } else {
+          throw error
+        }
+      case Right(resolution0) =>
+        val resolution = customizer.fold(resolution0)(_.apply(resolution0))
+        Result.Success(resolution)
     }
   }
 
