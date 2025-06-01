@@ -13,7 +13,6 @@ import mill.scalalib.spotless.SpotlessModule
 
 object `package` extends ScalaModule with SpotlessModule {
   def scalaVersion = "2.13.16"
-  def spotlessTargets = Task { sources() }
 }
 
 /** See Also: src/A.scala */
@@ -46,6 +45,8 @@ formatted 2 files
 /** Usage
 > ./mill mill.scalalib.spotless/ --check  # fast incremental format
 everything is already formatted
+
+> ./mill mill.scalalib.spotless/formatAll --check --skip .idea # format all files in workspace
 */
 
 // NOTE: The cache for incremental format is invalidated automatically when the `spotless-formats.json`, or a referenced file like `.scalafmt.conf`, is changed.
