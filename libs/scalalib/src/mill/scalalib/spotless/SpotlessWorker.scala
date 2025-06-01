@@ -3,6 +3,7 @@ package mill.scalalib.spotless
 import mill.api.Result
 import mill.define.{PathRef, TaskCtx}
 
+@mill.api.experimental // see notes in package object
 trait SpotlessWorker extends AutoCloseable {
 
   /**
