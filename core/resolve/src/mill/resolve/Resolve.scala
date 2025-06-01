@@ -372,61 +372,75 @@ private[mill] trait Resolve[T] {
 
     @tailrec def recurse(
         remainingArgs: List[String],
-        expanded: List[String],
         allResults: List[T]
     ): Result[List[T]] = {
-      expanded match {
-        case Nil =>
-          remainingArgs match {
-            case first :: rest =>
-              ExpandBraces.expandBraces(first) match {
-                case Result.Success(expanded) => recurse(rest, expanded.toList, allResults)
-                case Result.Failure(err) => Result.Failure(err)
-              }
-            case Nil => allResults
-          }
+      remainingArgs match {
         case first :: rest =>
-
-          val result = for {
-            (scopedSel, sel) <- ParseArgs.extractSegments(first)
-            rootModuleSels <- resolveRootModule(rootModule, scopedSel)
-            (items, found) <- resolveNonEmptyAndHandle(
-              Nil,
-              rootModuleSels,
-              sel.getOrElse(Segments()),
-              nullCommandDefaults = true,
-              allowPositionalCommandArgs,
-              resolveToModuleTasks
-            )
-            singleTokenTask <- isSingleTokenTask(found, rest, scopedSel)
-            result0 <- {
-              if (singleTokenTask) Result.Success(Left(items))
-              else {
-                resolveNonEmptyAndHandle(
-                  rest ++ remainingArgs,
-                  rootModuleSels,
-                  sel.getOrElse(Segments()),
-                  nullCommandDefaults,
-                  allowPositionalCommandArgs,
-                  resolveToModuleTasks
-                ).map { t =>
-                  Right(t._1.toList)
+          val preResolved0: Result[Seq[(Option[Segments], Option[Segments], Seq[T], Seq[Resolved])]] =
+            ExpandBraces.expandBraces(first).flatMap{ allExpanded =>
+              Result.sequence(
+                allExpanded.map{ expanded =>
+                  for {
+                    (scopedSel, sel) <- ParseArgs.extractSegments(expanded)
+                    rootModuleSels <- resolveRootModule(rootModule, scopedSel)
+                    (items, found) <- resolveNonEmptyAndHandle(
+                      Nil,
+                      rootModuleSels,
+                      sel.getOrElse(Segments()),
+                      nullCommandDefaults = true,
+                      allowPositionalCommandArgs,
+                      resolveToModuleTasks
+                    )
+                  }yield (scopedSel, sel, items, found)
                 }
+              )
+            }
+
+          val result = for{
+            preResolved <- preResolved0
+            singleTokenTask <- Result.sequence(
+              preResolved.map { case (scopedSel, sel, items, found) =>
+                isSingleTokenTask(found, rest, scopedSel)
+              }
+            )
+            result0 <- {
+              if (singleTokenTask.exists(identity)) {
+                Result.Success(
+                  Left(preResolved.flatMap { case (scopedSel, sel, items, found) => items })
+                )
+              }
+              else {
+                Result.sequence(
+                  preResolved.map { case (scopedSel, sel, items, found) =>
+                    for{
+                      rootModuleSels <- resolveRootModule(rootModule, scopedSel)
+                      t <- resolveNonEmptyAndHandle(
+                        rest,
+                        rootModuleSels,
+                        sel.getOrElse(Segments()),
+                        nullCommandDefaults,
+                        allowPositionalCommandArgs,
+                        resolveToModuleTasks
+                      )
+                    } yield (t._1.toList)
+
+                  }
+                ).map(xss => Right(xss.toList.flatten))
               }
             }
           } yield result0
 
           result match {
-            case Result.Success(Left(items)) =>
-              recurse(remainingArgs, rest, allResults ::: items.toList)
+            case Result.Success(Left(items)) => recurse(rest, allResults ::: items.toList)
             case Result.Success(Right(cmds)) => Result.Success(allResults ::: cmds)
             case Result.Failure(msg) => Result.Failure(msg)
           }
+        case Nil => allResults
       }
     }
 
     Result
-      .sequence(separated(Nil, scriptArgs).map(args => recurse(args.toList, Nil, Nil)))
+      .sequence(separated(Nil, scriptArgs).map(args => recurse(args.toList, Nil)))
       .map(x => deduplicate(x.toList.flatten))
   }
 

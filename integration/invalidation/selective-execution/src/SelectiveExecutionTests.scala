@@ -34,7 +34,7 @@ object SelectiveExecutionTests extends UtestIntegrationTestSuite {
         import tester._
 
         val cached = eval(
-          ("selective.run", "foo.fooCommand", "+", "bar.barCommand"),
+          ("selective.run", "{foo.fooCommand,bar.barCommand}"),
           check = false,
           stderr = os.Pipe
         )
@@ -67,14 +67,14 @@ object SelectiveExecutionChangedInputsTests extends UtestIntegrationTestSuite {
       import tester._
 
       eval(
-        ("selective.prepare", "foo.fooCommand", "+", "bar.barCommand"),
+        ("selective.prepare", "{foo.fooCommand,bar.barCommand}"),
         check = true,
         stderr = os.Inherit
       )
 
       // no op
       val noOp = eval(
-        ("selective.run", "foo.fooCommand", "+", "bar.barCommand"),
+        ("selective.run", "{foo.fooCommand,bar.barCommand}"),
         check = true,
         stderr = os.Inherit
       )
@@ -85,11 +85,11 @@ object SelectiveExecutionChangedInputsTests extends UtestIntegrationTestSuite {
       // After one input changed
       modifyFile(workspacePath / "bar/bar.txt", _ + "!")
 
-      val resolve = eval(("selective.resolve", "foo.fooCommand", "+", "bar.barCommand"), check = true)
+      val resolve = eval(("selective.resolve", "{foo.fooCommand,bar.barCommand}"), check = true)
       assert(resolve.out == "bar.barCommand")
 
       val cached = eval(
-        ("selective.run", "foo.fooCommand", "+", "bar.barCommand"),
+        ("selective.run", "{foo.fooCommand,bar.barCommand}"),
         check = true,
         stderr = os.Inherit
       )
@@ -100,7 +100,7 @@ object SelectiveExecutionChangedInputsTests extends UtestIntegrationTestSuite {
       // zero out the `mill-selective-execution.json` file to run all tasks
       os.write.over(workspacePath / "out/mill-selective-execution.json", "")
       val runAll = eval(
-        ("selective.run", "foo.fooCommand", "+", "bar.barCommand"),
+        ("selective.run", "{foo.fooCommand,bar.barCommand}"),
         check = true,
         stderr = os.Inherit
       )
@@ -144,14 +144,14 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
 
       // Check method body code changes correctly trigger downstream evaluation
       eval(
-        ("selective.prepare", "foo.fooCommand", "+", "bar.barCommand"),
+        ("selective.prepare", "{foo.fooCommand,bar.barCommand}"),
         check = true,
         stderr = os.Inherit
       )
       modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
       val cached1 =
         eval(
-          ("selective.run", "foo.fooCommand", "+", "bar.barCommand"),
+          ("selective.run", "{foo.fooCommand,bar.barCommand}"),
           check = true,
           stderr = os.Inherit
         )
@@ -161,7 +161,7 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
 
       // Check module body code changes correctly trigger downstream evaluation
       eval(
-        ("selective.prepare", "foo.fooCommand", "+", "bar.barCommand"),
+        ("selective.prepare", "{foo.fooCommand,bar.barCommand}"),
         check = true,
         stderr = os.Inherit
       )
@@ -171,7 +171,7 @@ object SelectiveExecutionChangedCodeTests extends UtestIntegrationTestSuite {
       )
       val cached2 =
         eval(
-          ("selective.run", "foo.fooCommand", "+", "bar.barCommand"),
+          ("selective.run", "{foo.fooCommand,bar.barCommand}"),
           check = true,
           stderr = os.Inherit
         )
@@ -198,7 +198,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
 
           Future {
             eval(
-              ("--watch", "foo.fooCommand", "+", "bar.barCommand"),
+              ("--watch", "{foo.fooCommand,bar.barCommand}"),
               check = true,
               stdout = os.ProcessOutput.Readlines { line =>
                 println("stdout " + line)
@@ -244,7 +244,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           def output = output0.mkString("\n")
           Future {
             eval(
-              ("--watch", "show", "foo.fooCommand", "+", "bar.barCommand"),
+              ("--watch", "show", "{foo.fooCommand,bar.barCommand}"),
               check = true,
               stderr = os.ProcessOutput.Readlines(line => output0 = output0 :+ line),
               stdout = os.ProcessOutput.Readlines(line => output0 = output0 :+ line)
@@ -277,7 +277,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           def output = output0.mkString("\n")
           Future {
             eval(
-              ("--watch", "foo.fooCommand", "+", "bar.barCommand"),
+              ("--watch", "{foo.fooCommand,bar.barCommand}"),
               check = true,
               stdout = os.ProcessOutput.Readlines { line => output0 = output0 :+ line },
               stderr = os.ProcessOutput.Readlines { line => System.err.println(line) }

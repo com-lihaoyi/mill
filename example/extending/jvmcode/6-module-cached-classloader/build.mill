@@ -56,7 +56,7 @@ object bar extends JavaModule
 
 /** Usage
 
-> mill foo1.run + foo2.run + foo3.run  # 3 classloaders are setup, one is torn down due to maxCacheSize
+> mill '{foo1,foo2,foo3}.run' # 3 classloaders are setup, one is torn down due to maxCacheSize
 Setting up Classloader
 Setting up Classloader
 Setting up Classloader
