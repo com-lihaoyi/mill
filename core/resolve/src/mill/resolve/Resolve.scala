@@ -376,10 +376,11 @@ private[mill] trait Resolve[T] {
     ): Result[List[T]] = {
       remainingArgs match {
         case first :: rest =>
-          val preResolved0: Result[Seq[(Option[Segments], Option[Segments], Seq[T], Seq[Resolved])]] =
-            ExpandBraces.expandBraces(first).flatMap{ allExpanded =>
+          val preResolved0
+              : Result[Seq[(Option[Segments], Option[Segments], Seq[T], Seq[Resolved])]] =
+            ExpandBraces.expandBraces(first).flatMap { allExpanded =>
               Result.sequence(
-                allExpanded.map{ expanded =>
+                allExpanded.map { expanded =>
                   for {
                     (scopedSel, sel) <- ParseArgs.extractSegments(expanded)
                     rootModuleSels <- resolveRootModule(rootModule, scopedSel)
@@ -391,12 +392,12 @@ private[mill] trait Resolve[T] {
                       allowPositionalCommandArgs,
                       resolveToModuleTasks
                     )
-                  }yield (scopedSel, sel, items, found)
+                  } yield (scopedSel, sel, items, found)
                 }
               )
             }
 
-          val result = for{
+          val result = for {
             preResolved <- preResolved0
             singleTokenTask <- Result.sequence(
               preResolved.map { case (scopedSel, sel, items, found) =>
@@ -408,11 +409,10 @@ private[mill] trait Resolve[T] {
                 Result.Success(
                   Left(preResolved.flatMap { case (scopedSel, sel, items, found) => items })
                 )
-              }
-              else {
+              } else {
                 Result.sequence(
                   preResolved.map { case (scopedSel, sel, items, found) =>
-                    for{
+                    for {
                       rootModuleSels <- resolveRootModule(rootModule, scopedSel)
                       t <- resolveNonEmptyAndHandle(
                         rest,
