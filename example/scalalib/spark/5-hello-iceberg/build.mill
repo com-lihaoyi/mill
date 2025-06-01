@@ -25,7 +25,8 @@ object foo extends ScalaModule {
   }
 
 }
-// This examples demonstrates running spark with ice-berg.
+
+// This example demonstrates running a Spark application with Ice-Berg as the storage layer, using Mill.
 
 /** Usage
 

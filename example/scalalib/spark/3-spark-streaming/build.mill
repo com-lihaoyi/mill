@@ -97,10 +97,10 @@ object producer extends ScalaModule {
   )
 }
 
-// This examples demonstrates running a spark-streamiing application using mill.
-// In this, we demonstrate using mill to manage a data source like kafka, by defining
-// custom mill tasks to run adminstrative kafka commands, allowing us to intuitively
-// call said comnmands using mill.
+// This example demonstrates how to run a Spark Streaming application using Mill.
+// It showcases how Mill can be used to manage a data source like Kafka by defining
+// custom Mill tasks to execute administrative Kafka commands. This allows for intuitive,
+// scriptable management of Kafka directly through Mill.
 
 /** Usage
 

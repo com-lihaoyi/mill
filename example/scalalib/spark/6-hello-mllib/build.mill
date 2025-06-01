@@ -19,7 +19,7 @@ object foo extends ScalaModule {
   }
 
 }
-// This examples demonstrates running spark with MLlib using mill.
+// This example demonstrates running a Spark application with MLlib using Mill.
 
 /** Usage
 
