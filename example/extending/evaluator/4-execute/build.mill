@@ -39,6 +39,6 @@ object `package` extends ScalaModule {
 /** Usage
 
 > ./mill customExecuteCommand assembly
-.../assembly.dest/out.jar))
+.../assembly.dest/out.jar...
 
 */

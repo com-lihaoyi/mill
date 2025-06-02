@@ -1,5 +1,8 @@
 = Evaluator API Commands
 
+The Mill `Evaluator` API provides programmatic access to Mill's core functionalities, allowing you to resolve, plan, and execute build tasks directly.
+This API is essential for extending Mill built-in features through interaction and control of the build process.
+
 == `resolveSegments`
 
 Resolves a sequence of Mill selector strings (such as task or module names) into a list of fully-qualified segment paths matching tasks or modules in the build.
@@ -12,6 +15,10 @@ Resolves a sequence of Mill selector strings (such as task or module names) into
 
 === Returns:
 - `mill.api.Result[List[Segments]]` - A result wrapping the list of resolved segment paths (`Segments`).
+
+=== Use Case:
+Use this when you want to resolve a list of query selector into a list of `mill.api.Segments`.
+`Segments` represent the "path" or selector for tasks or modules, but not the tasks themselves. 
 
 === Example Usage:
 
@@ -31,6 +38,10 @@ Resolves a sequence of selector strings into a list of concrete Mill tasks (`Tas
 === Returns
 - `mill.api.Result[List[Task.Named[?]]]` - List of resolved named tasks.
 
+=== Use Case:
+Use this when you want to resolve the same query selector strings into actual `Task.Named` instances.
+These represent concrete tasks or modules that will be executed or inspected
+
 === Example Usage:
 
 include::partial$example/extending/evaluator/2-resolve-tasks.adoc[]
@@ -44,7 +55,10 @@ Computes and returns the execution plan (ordered task list) for a set of resolve
 - `tasks: Seq[Task.Named[?]]` - List of tasks to plan.
 
 === Returns:
-- `Plan` - A type with execution plan details (including all transitive tasks and their sorted grouping).
+- `Plan` - An object containing execution plan details (including all transitive tasks and their sorted grouping).
+
+=== Use Case:
+Use this when you need to inspect the sequence of tasks Mill would execute for a given set of targets, without actually performing the execution. This is useful for debugging or understanding dependencies.
 
 === Example Usage:
 
@@ -66,6 +80,10 @@ Executes a list of tasks and returns the results of their evaluation.
 === Returns:
 - `Evaluator.Result[T]` - Contains results of tasks executed, any watched files, and success/failure info for each task.
 
+=== Use Case: 
+Choose `execute` when you needs to programmatically run one or more specific Mill tasks and you require access to their execution results, such as the output values, or success/failure status.
+This is central for implementing conditional build logic, integrating with external tools, or collecting custom build metrics after tasks have completed.
+
 === Example Usage:
 
 include::partial$example/extending/evaluator/4-execute.adoc[]
@@ -82,6 +100,9 @@ Evaluates tasks given as selector strings, resolving them first.
 
 === Returns:
 - `mill.api.Result[Evaluator.Result[Any]]` - The result of evaluating the tasks (including outputs, watched files, etc).
+
+=== Use Case:
+Use this when you need to quickly evaluate tasks with a single command specified by selector strings without needing to explicitly resolve them first.
 
 === Example Usage:
 
