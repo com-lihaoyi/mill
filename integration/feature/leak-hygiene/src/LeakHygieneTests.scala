@@ -173,7 +173,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
         // Exercise modifying build.mill
         for (i <- Range(0, 2)) {
-          tester.modifyFile(tester.workspacePath / "build.mill", "\n" + _)
+          tester.modifyFile(tester.workspacePath / "build.mill", _ + "\n")
 
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(

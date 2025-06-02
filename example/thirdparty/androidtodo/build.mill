@@ -18,11 +18,29 @@ object androidSdkModule0 extends AndroidSdkModule {
 }
 
 // Mill configuration for the Android Todo App project.
-object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHiltSupport {
+object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBuildConfig
+    with AndroidHiltSupport {
 
   def kotlinVersion = Versions.kotlinVersion
   def kotlinLanguageVersion = Versions.kotlinLanguageVersion
   def kspVersion = Versions.kspVersion
+
+  override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+    AndroidBuildTypeSettings(
+      isMinifyEnabled = false,
+      isShrinkEnabled = false
+    ).withDefaultProguardFile("proguard-android.txt")
+      .withProguardLocalFiles(
+        Seq(
+          moduleDir / "proguard-rules.pro"
+        )
+      )
+  }
+
+  // TODO consider using a debug module
+  def debugSources = Task.Sources("src/debug/java")
+
+  override def sources = super.sources() ++ debugSources()
 
   def androidApplicationNamespace = "com.example.android.architecture.blueprints.todoapp"
   // TODO change this to com.example.android.architecture.blueprints.main when mill supports build variants
@@ -42,6 +60,7 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
     mvn"androidx.core:core-ktx:1.15.0",
     mvn"androidx.appcompat:appcompat:1.7.0",
     mvn"androidx.annotation:annotation:1.9.1",
+    mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
     mvn"com.jakewharton.timber:timber:5.0.1",
     mvn"androidx.test.espresso:espresso-idling-resource:3.6.1",
     mvn"androidx.room:room-runtime:2.6.1",
@@ -73,7 +92,10 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
     mvn"androidx.hilt:hilt-navigation-compose:1.2.0",
     mvn"com.google.accompanist:accompanist-swiperefresh:0.36.0",
     mvn"androidx.customview:customview-poolingcontainer:1.0.0",
-    mvn"androidx.tracing:tracing:1.2.0"
+    mvn"androidx.tracing:tracing:1.2.0",
+    // debug
+    mvn"androidx.compose.ui:ui-tooling:1.7.6",
+    mvn"androidx.compose.ui:ui-test-manifest:1.7.6"
   )
 
   def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
@@ -110,10 +132,62 @@ object app extends AndroidAppKotlinModule with AndroidBuildConfig with AndroidHi
     )
   }
 
-  // TODO support instrumented tests on Hilt setups
-  object androidTest extends AndroidAppKotlinInstrumentedTests
-      with AndroidTestModule.AndroidJUnit with AndroidHiltSupport {
+  object androidTest extends AndroidAppKotlinInstrumentedTests with AndroidR8AppModule
+      with AndroidHiltSupport {
+
+    override def kotlinLanguageVersion = Versions.kotlinLanguageVersion
+
+    def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
+
+    def testFramework = "com.example.android.architecture.blueprints.todoapp.CustomTestRunner"
+
+    def androidEnableCompose = true
+
     override def kspVersion = Versions.kspVersion
+
+    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+      AndroidBuildTypeSettings(
+        isMinifyEnabled = false,
+        isShrinkEnabled = false
+      ).withDefaultProguardFile("proguard-android.txt")
+        .withProguardLocalFiles(
+          Seq(
+            moduleDir / "proguardTest-rules.pro",
+            moduleDir / "proguard-rules.pro"
+          )
+        )
+    }
+
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      // Dependencies for Android unit tests
+      mvn"androidx.compose:compose-bom:2024.12.01",
+      mvn"junit:junit:4.13.2",
+      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0",
+      mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
+      mvn"androidx.compose.ui:ui-test-junit4:1.7.6",
+      // AndroidX Test - Instrumented testing
+      mvn"androidx.test:core-ktx:1.6.1",
+      mvn"androidx.test.ext:junit-ktx:1.2.1",
+      mvn"androidx.test:rules:1.6.1",
+      mvn"androidx.room:room-testing:2.6.1",
+      mvn"androidx.arch.core:core-testing:2.2.0",
+      mvn"androidx.navigation:navigation-testing:2.8.5",
+      mvn"androidx.test.espresso:espresso-core:3.6.1",
+      mvn"androidx.test.espresso:espresso-contrib:3.6.1",
+      mvn"androidx.test.espresso:espresso-intents:3.6.1",
+      mvn"androidx.test.espresso:espresso-idling-resource:3.6.1",
+      mvn"androidx.test.espresso.idling:idling-concurrent:3.6.1",
+      // AndroidX Test - Hilt testing
+      mvn"com.google.dagger:hilt-android-testing:2.56",
+      // debug
+      mvn"androidx.compose.ui:ui-tooling:1.7.6",
+      mvn"androidx.compose.ui:ui-test-manifest:1.7.6"
+    )
+
+    def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
+      mvn"androidx.room:room-compiler:2.6.1",
+      mvn"com.google.dagger:hilt-android-compiler:2.56"
+    )
 
   }
 
@@ -185,6 +259,13 @@ object `shared-test` extends AndroidKotlinModule with AndroidHiltSupport {
   "WaitTime: ...",
   "Complete"
 ]
+
+> ./mill app.androidTest
+
+> cat out/app/androidTest/testForked.dest/test-report.xml
+<?xml version='1.0' encoding='UTF-8'?>
+<testsuites tests="38" failures="0" errors="0" skipped="0" time="...">
+...
 
 > ./mill show app.stopAndroidEmulator
 
