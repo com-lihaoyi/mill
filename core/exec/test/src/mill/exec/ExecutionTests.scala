@@ -32,6 +32,25 @@ object ExecutionTests extends TestSuite {
     def task = Task[Int] { anon() }
     lazy val millDiscover = Discover[this.type]
   }
+
+  object sourceBuild extends TestRootModule {
+    def source = Task.Source { "hello/world.txt" }
+    def task = Task { os.read(source().path) + " !" }
+    object sub extends mill.define.Module {
+      def sameDir = Task.Source(".")
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
+
+  object sourcesBuild extends TestRootModule {
+    def source = Task.Sources("hello/world.txt", "hello/world2.txt")
+    def task = Task { source().map(pr => os.read(pr.path)).mkString + "!" }
+    object sub extends mill.define.Module {
+      def sameDirs = Task.Sources(".")
+    }
+    lazy val millDiscover = Discover[this.type]
+  }
+
   class Checker[T <: mill.testkit.TestRootModule](module: T)
       extends exec.Checker(module)
 
@@ -45,12 +64,7 @@ object ExecutionTests extends TestSuite {
     }
 
     test("source") {
-      object build extends TestRootModule {
-        def source = Task.Source { "hello/world.txt" }
-        def task = Task { os.read(source().path) + " !" }
-        lazy val millDiscover = Discover[this.type]
-      }
-
+      val build = sourceBuild
       val checker = new Checker(build)
 
       os.write(build.moduleDir / "hello/world.txt", "i am cow", createFolders = true)
@@ -61,7 +75,13 @@ object ExecutionTests extends TestSuite {
         extraEvaled = -1,
         secondRunNoOp = false
       )
-      checker(build.task, "i am cow !", Seq(build.source), extraEvaled = -1, secondRunNoOp = false)
+      checker(
+        build.task,
+        "i am cow !",
+        Seq(build.source),
+        extraEvaled = -1,
+        secondRunNoOp = false
+      )
       os.write.over(build.moduleDir / "hello/world.txt", "hear me moo")
 
       checker(
@@ -78,14 +98,17 @@ object ExecutionTests extends TestSuite {
         extraEvaled = -1,
         secondRunNoOp = false
       )
+
+      checker(
+        build.sub.sameDir,
+        PathRef(build.sub.moduleDir),
+        Seq(build.sub.sameDir),
+        extraEvaled = 0,
+        secondRunNoOp = false
+      )
     }
     test("sources") {
-      object build extends TestRootModule {
-        def source = Task.Sources("hello/world.txt", "hello/world2.txt")
-        def task = Task { source().map(pr => os.read(pr.path)).mkString + "!" }
-        lazy val millDiscover = Discover[this.type]
-      }
-
+      val build = sourcesBuild
       val checker = new Checker(build)
 
       os.write(build.moduleDir / "hello/world.txt", "i am cow ", createFolders = true)
@@ -120,6 +143,14 @@ object ExecutionTests extends TestSuite {
         "I AM COW HEAR ME MOO !",
         Seq(build.source),
         extraEvaled = -1,
+        secondRunNoOp = false
+      )
+
+      checker(
+        build.sub.sameDirs,
+        Seq(PathRef(build.sub.moduleDir)),
+        Seq(build.sub.sameDirs),
+        extraEvaled = 0,
         secondRunNoOp = false
       )
     }

@@ -48,7 +48,7 @@ trait MillBuildRootModule()(implicit
    * @see [[generatedSources]]
    */
   def scriptSources: T[Seq[PathRef]] = Task.Sources(
-    scriptSourcesPaths.map(Result.Success(_))* // Ensure ordering is deterministic
+    scriptSourcesPaths* // Ensure ordering is deterministic
   )
 
   def parseBuildFiles: T[FileImportGraph] = Task {
