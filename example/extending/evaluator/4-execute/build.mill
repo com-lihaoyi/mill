@@ -1,0 +1,44 @@
+//// SNIPPET:BUILD
+
+package build
+import mill.*, scalalib.*
+
+import mill.define._
+import mill.define.SelectMode
+import mill.api.Result.create
+import mill.api.Result
+
+object `package` extends ScalaModule {
+  def scalaVersion = "2.13.11"
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::scalatags:0.13.1",
+    mvn"com.lihaoyi::mainargs:0.6.2"
+  )
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+  }
+
+  def customExecuteCommand(evaluator: Evaluator, tasks: String*) = Task.Command(exclusive = true) {
+    val resolvedTasks = evaluator
+      .resolveTasks(tasks, SelectMode.Multi)
+      .get
+
+    val executeRes = evaluator
+      .execute(resolvedTasks)
+      .executionResults
+
+    println(s"Executed tasks result: ${executeRes.values}")
+    ()
+  }
+}
+// This command executes the given tasks and prints the results of the execution.
+// It uses the `execute` method of the `Evaluator` to run the tasks and then prints the results.
+
+/** Usage
+
+> ./mill customExecuteCommand assembly
+.../assembly.dest/out.jar))
+
+*/
