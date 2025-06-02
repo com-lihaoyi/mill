@@ -24,7 +24,7 @@ object `package` extends ScalaModule {
       .get
 
     segmentsResult.foreach { segment =>
-      println(s"Segment: ${segment.parts.mkString(", ")}")
+      println(s"Segment: ${segment.render}")
     }
     ()
   }
