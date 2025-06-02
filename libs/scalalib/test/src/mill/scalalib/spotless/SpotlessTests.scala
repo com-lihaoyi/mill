@@ -20,7 +20,6 @@ object SpotlessTests extends TestSuite {
       UnitTester(
         testModule,
         resources / "dirty",
-        outStream = PrintStream(logStream, true),
         errStream = PrintStream(logStream, true)
       ).scoped { eval =>
         val Left(_) = eval("spotless", "--check")
@@ -43,7 +42,6 @@ object SpotlessTests extends TestSuite {
       UnitTester(
         testModule,
         resources / "suppress",
-        outStream = PrintStream(logStream, true),
         errStream = PrintStream(logStream, true)
       ).scoped { eval =>
         val Left(_) = eval("spotless")
@@ -75,7 +73,6 @@ object SpotlessTests extends TestSuite {
       UnitTester(
         testModule,
         resources / "invalidation",
-        outStream = PrintStream(logStream, true),
         errStream = PrintStream(logStream, true)
       ).scoped { eval =>
         val moduleDir = testModule.moduleDir
@@ -105,7 +102,6 @@ object SpotlessTests extends TestSuite {
       UnitTester(
         testModule,
         resources / "matchers",
-        outStream = PrintStream(logStream, true),
         errStream = PrintStream(logStream, true)
       ).scoped { eval =>
         val Right(_) = eval("spotless")
