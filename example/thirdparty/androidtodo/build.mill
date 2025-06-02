@@ -62,19 +62,23 @@ object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBu
 
   // versions are resolved with compose-bom
   def composeDeps = Seq(
-    mvn"androidx.compose.foundation:foundation:_",
-    mvn"androidx.compose.foundation:foundation-layout:_",
-    mvn"androidx.compose.animation:animation:_",
-    mvn"androidx.compose.material3:material3:_",
-    mvn"androidx.compose.material:material:_",
-    mvn"androidx.compose.material:material-icons-extended:_",
-    mvn"androidx.compose.ui:ui-tooling-preview:_",
+    mvn"androidx.compose.foundation:foundation",
+    mvn"androidx.compose.foundation:foundation-layout",
+    mvn"androidx.compose.animation:animation",
+    mvn"androidx.compose.material3:material3",
+    mvn"androidx.compose.material:material",
+    mvn"androidx.compose.material:material-icons-extended",
+    mvn"androidx.compose.ui:ui-tooling-preview",
+    mvn"androidx.compose.ui:ui",
+    mvn"androidx.compose.ui:ui-unit",
+    mvn"androidx.compose.ui:ui-text",
+    mvn"androidx.compose.ui:ui-graphics",
     // debug
-    mvn"androidx.compose.ui:ui-tooling:_",
-    mvn"androidx.compose.ui:ui-test-manifest:_"
+    mvn"androidx.compose.ui:ui-tooling",
+    mvn"androidx.compose.ui:ui-test-manifest"
   )
 
-  def mvnDeps: T[Seq[Dep]] = Seq(
+  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ composeDeps ++ Seq(
     mvn"androidx.core:core-ktx:1.15.0",
     mvn"androidx.appcompat:appcompat:1.7.0",
     mvn"androidx.annotation:annotation:1.9.1",
@@ -85,11 +89,7 @@ object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBu
     mvn"androidx.room:room-ktx:2.6.1",
     mvn"androidx.activity:activity-compose:1.10.0",
     mvn"androidx.navigation:navigation-compose:2.8.5",
-    mvn"androidx.compose.ui:ui:1.7.6",
-    mvn"androidx.compose.ui:ui-unit:1.7.6",
-    mvn"androidx.compose.ui:ui-text:1.7.6",
     mvn"androidx.emoji2:emoji2:1.3.0",
-    mvn"androidx.compose.ui:ui-graphics:1.7.6",
     mvn"androidx.lifecycle:lifecycle-common:2.8.7",
     mvn"androidx.lifecycle:lifecycle-process:2.8.7",
     mvn"androidx.lifecycle:lifecycle-runtime-compose:2.8.7",
@@ -101,7 +101,7 @@ object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBu
     mvn"com.google.accompanist:accompanist-swiperefresh:0.36.0",
     mvn"androidx.customview:customview-poolingcontainer:1.0.0",
     mvn"androidx.tracing:tracing:1.2.0"
-  ) ++ composeDeps
+  )
 
   def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
     mvn"androidx.room:room-compiler:2.6.1",
@@ -125,7 +125,12 @@ object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBu
       mvn"androidx.compose:compose-bom:2024.12.01"
     )
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    // versions resolved from compose-bom
+    def composeDeps = Seq(
+      mvn"androidx.compose.ui:ui-test-junit4"
+    )
+
+    def mvnDeps = super.mvnDeps() ++ composeDeps ++ Seq(
       mvn"junit:junit:4.13.2",
       mvn"androidx.arch.core:core-testing:2.2.0",
       mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
@@ -135,7 +140,6 @@ object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBu
       mvn"androidx.test.espresso:espresso-contrib:3.6.1",
       mvn"androidx.test.espresso:espresso-intents:3.6.1",
       mvn"com.google.truth:truth:1.4.4",
-      mvn"androidx.compose.ui:ui-test-junit4:1.7.6",
       mvn"com.google.dagger:hilt-android-testing:2.56"
     )
   }
@@ -166,13 +170,20 @@ object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBu
         )
     }
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def bomMvnDeps = Seq(
+      mvn"androidx.compose:compose-bom:2024.12.01"
+    )
+
+    // versions resolved from compose-bom
+    def composeDeps = Seq(
+      mvn"androidx.compose.ui:ui-test-junit4"
+    )
+
+    def mvnDeps = super.mvnDeps() ++ composeDeps ++ Seq(
       // Dependencies for Android unit tests
-      mvn"androidx.compose:compose-bom:2024.12.01",
       mvn"junit:junit:4.13.2",
       mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0",
       mvn"org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0",
-      mvn"androidx.compose.ui:ui-test-junit4:1.7.6",
       // AndroidX Test - Instrumented testing
       mvn"androidx.test:core-ktx:1.6.1",
       mvn"androidx.test.ext:junit-ktx:1.2.1",
