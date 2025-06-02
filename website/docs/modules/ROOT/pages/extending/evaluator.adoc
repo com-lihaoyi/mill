@@ -1,5 +1,88 @@
-= Examples Documentation of  usong Evaluator API Commands
+= Evaluator API Commands
 
-== TodoMVC WebApp Build Report
+== `resolveSegments`
 
-include::partial$example/extending/evaluator/1-todo-webapp-report.adoc[]
+Resolves a sequence of Mill selector strings (such as task or module names) into a list of fully-qualified segment paths matching tasks or modules in the build.
+
+=== Parameters:
+- `scriptArgs: Seq[String]` - The list of selector strings to resolve (e.g., `Seq("foo.bar")`).
+- `selectMode: SelectMode` - Selection mode. Either `SelectMode.Multi` or `SelectMode.Separated`
+- `allowPositionalCommandArgs: Boolean` (default: `false`) - Whether to allow positional command arguments.
+- `resolveToModuleTasks: Boolean` (default: `false`) - Whether to resolve to module-level tasks if the selector points to a module.
+
+=== Returns:
+- `mill.api.Result[List[Segments]]` - A result wrapping the list of resolved segment paths (`Segments`).
+
+=== Example Usage:
+
+include::partial$example/extending/evaluator/1-resolve-segments.adoc[]
+
+
+== `resolveTasks`
+
+Resolves a sequence of selector strings into a list of concrete Mill tasks (`Task.Named`) matching those selectors.
+
+=== Parameters:
+- `scriptArgs: Seq[String]` - Selector strings to resolve (e.g., `Seq("foo.assembly", "test.run")`)
+- `selectMode: SelectMode` - Selection mode. Either `SelectMode.Multi` or `SelectMode.Separated`
+- `allowPositionalCommandArgs: Boolean` (default: `false`) - Allow positional command arguments.
+- `resolveToModuleTasks: Boolean` (default: `false`) - Resolve to module-level tasks if applicable.
+
+=== Returns
+- `mill.api.Result[List[Task.Named[?]]]` - List of resolved named tasks.
+
+=== Example Usage:
+
+include::partial$example/extending/evaluator/2-resolve-tasks.adoc[]
+
+
+== `plan`
+
+Computes and returns the execution plan (ordered task list) for a set of resolved tasks, without running them.
+
+=== Parameters:
+- `tasks: Seq[Task.Named[?]]` - List of tasks to plan.
+
+=== Returns:
+- `Plan` - A type with execution plan details (including all transitive tasks and their sorted grouping).
+
+=== Example Usage:
+
+include::partial$example/extending/evaluator/3-plan.adoc[]
+
+
+== `execute`
+
+Executes a list of tasks and returns the results of their evaluation.
+
+=== Parameters:
+- `targets: Seq[Task[T]]` - Tasks to execute.
+- `reporter: Int` - It reports executions for targets specified in the `targets` parameter.
+- `testReporter: TestReporter` (default: `TestReporter.DummyTestReporter`) - It reports executions for tests
+- `logger: Logger` (default: `mill.api.Logger`) - Mill built-in logger to output build messages, task progress, errors and other information during execution.
+- `serialCommandExec: Boolean` (default: `false`) - It execute targets one after another rather than in parallel if set to `true`.
+- `selectiveExecution: Boolean` (default: `false`) - It enables selective execution mode, where only the tasks affected by recent changes( or their dependencies) are executed.
+
+=== Returns:
+- `Evaluator.Result[T]` - Contains results of tasks executed, any watched files, and success/failure info for each task.
+
+=== Example Usage:
+
+include::partial$example/extending/evaluator/4-execute.adoc[]
+
+
+== `evaluate`
+
+Evaluates tasks given as selector strings, resolving them first.
+
+=== Parameters:
+- `scriptArgs: Seq[String]` - List of selector strings for tasks to evaluate.
+- `selectMode: SelectMode` - Selection mode. Either `SelectMode.Multi` or `SelectMode.Separated`
+- `selectiveExecution: Boolean` (default: `false`) - It enables selective execution mode, where only the tasks affected by recent changes( or their dependencies) are executed.
+
+=== Returns:
+- `mill.api.Result[Evaluator.Result[Any]]` - The result of evaluating the tasks (including outputs, watched files, etc).
+
+=== Example Usage:
+
+include::partial$example/extending/evaluator/5-evaluate.adoc[]

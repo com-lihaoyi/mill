@@ -1,0 +1,43 @@
+package build
+import mill.*, scalalib.*
+
+import mill.define._
+import mill.define.SelectMode
+import mill.api.Result.create
+import mill.api.Result
+
+object `package` extends ScalaModule {
+  def scalaVersion = "2.13.11"
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::scalatags:0.13.1",
+    mvn"com.lihaoyi::mainargs:0.6.2"
+  )
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+  }
+
+  def customSegmentCommand(evaluator: Evaluator, tasks: String*) = Task.Command(exclusive = true) {
+    val segmentsResult = evaluator
+      .resolveSegments(tasks, SelectMode.Multi)
+      .get
+
+    segmentsResult.foreach { segment =>
+      println(s"Segment: ${segment.parts.mkString(", ")}")
+    }
+    ()
+  }
+
+}
+
+// This command resolves the segments of the given tasks and prints them.
+// The segments are the parts of the task names that are used to group tasks.
+
+/** Usage
+
+> ./mill customSegmentCommand compile test
+Segment: compile
+Segment: test
+
+*/
