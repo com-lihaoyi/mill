@@ -68,6 +68,12 @@ object ResolveDepsTests extends TestSuite {
       def mvnDeps = Seq(
         mvn"io.get-coursier:interface:1.0.29-M1".optional()
       )
+      def compileMvnDeps = Seq(
+        mvn"com.lihaoyi:sourcecode_3:0.4.3-M5".optional()
+      )
+      def runMvnDeps = Seq(
+        mvn"ch.qos.logback:logback-core:1.5.18".optional()
+      )
 
       object dependsOnOptional extends JavaModule {
         def moduleDeps = Seq(optional)
@@ -195,12 +201,32 @@ object ResolveDepsTests extends TestSuite {
         val dependsOnOptionalRunCp = eval(TestCase.optional.dependsOnOptional.runClasspath)
           .fold(_.get, _.value).map(_.path)
 
+        // optional dependencies in mvnDeps should be added to the current module class path,
+        // but not to the class path of its dependees
         assert(optionalCompileCp.exists(_.last == "interface-1.0.29-M1.jar"))
         assert(optionalRuntimeCp.exists(_.last == "interface-1.0.29-M1.jar"))
         assert(optionalRunCp.exists(_.last == "interface-1.0.29-M1.jar"))
         assert(!dependsOnOptionalCompileCp.exists(_.last == "interface-1.0.29-M1.jar"))
         assert(!dependsOnOptionalRuntimeCp.exists(_.last == "interface-1.0.29-M1.jar"))
         assert(!dependsOnOptionalRunCp.exists(_.last == "interface-1.0.29-M1.jar"))
+
+        // optional dependencies in compileMvnDeps should be added to the current module compile class path,
+        // but not to the runtime class path or to the class path of its dependees
+        assert(optionalCompileCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
+        assert(!optionalRuntimeCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
+        assert(!optionalRunCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
+        assert(!dependsOnOptionalCompileCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
+        assert(!dependsOnOptionalRuntimeCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
+        assert(!dependsOnOptionalRunCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
+
+        // optional dependencies in runMvnDeps should be added to the current module run class path,
+        // but not to the compile class path or to the class path of its dependees
+        assert(!optionalCompileCp.exists(_.last == "logback-core-1.5.18.jar"))
+        assert(optionalRuntimeCp.exists(_.last == "logback-core-1.5.18.jar"))
+        assert(optionalRunCp.exists(_.last == "logback-core-1.5.18.jar"))
+        assert(!dependsOnOptionalCompileCp.exists(_.last == "logback-core-1.5.18.jar"))
+        assert(!dependsOnOptionalRuntimeCp.exists(_.last == "logback-core-1.5.18.jar"))
+        assert(!dependsOnOptionalRunCp.exists(_.last == "logback-core-1.5.18.jar"))
       }
     }
   }

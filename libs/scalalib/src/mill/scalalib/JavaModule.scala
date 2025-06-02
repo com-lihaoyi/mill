@@ -619,7 +619,7 @@ trait JavaModule
   }
 
   /**
-   * Coursier projects all the transitive module dependencies of this module
+   * Coursier projects of all the transitive module dependencies of this module
    *
    * Doesn't include the coursier project of the current module, see [[coursierProject]] for that.
    */
@@ -654,10 +654,11 @@ trait JavaModule
     // standard mvnDeps / moduleDeps.
     //
     val project = coursierProject()
+    // Mark optional direct dependencies as non-optional, so that these are included in the
+    // class paths of this module
     val project0 = project.withDependencies0(
       project.dependencies0.map {
-        case (conf: cs.Variant.Configuration, dep)
-            if conf.configuration == cs.Configuration.compile && dep.optional =>
+        case (conf, dep) if dep.optional =>
           (conf, dep.withOptional(false))
         case other =>
           other
