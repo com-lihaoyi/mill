@@ -158,7 +158,7 @@ trait AndroidModule extends JavaModule {
           VariantMatcher.Equals("androidJvm"),
           VariantMatcher.Equals("jvm")
         ))
-    )
+    ).withForceDepMgmtVersions(Some(true))
   }
 
   /**
