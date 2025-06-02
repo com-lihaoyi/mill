@@ -85,7 +85,7 @@ object Deps {
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.179"
-  val coursierVersion = "2.1.25-M13"
+  val coursierVersion = "2.1.25-M13-4-8e4294117-SNAPSHOT"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierCore =
     mvn"io.get-coursier::coursier-core:$coursierVersion".withDottyCompat(scalaVersion)

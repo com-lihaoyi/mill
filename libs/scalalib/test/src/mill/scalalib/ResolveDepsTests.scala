@@ -64,6 +64,16 @@ object ResolveDepsTests extends TestSuite {
       }
     }
 
+    object optional extends JavaModule {
+      def mvnDeps = Seq(
+        mvn"io.get-coursier:interface:1.0.29-M1".optional()
+      )
+
+      object dependsOnOptional extends JavaModule {
+        def moduleDeps = Seq(optional)
+      }
+    }
+
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -166,6 +176,31 @@ object ResolveDepsTests extends TestSuite {
           assert(runtimeCp.exists(_.last == runtimeOnlyJar))
           assert(runCp.exists(_.last == runtimeOnlyJar))
         }
+      }
+    }
+
+    test("optional") {
+      UnitTester(TestCase, null).scoped { eval =>
+        val optionalCompileCp = eval(TestCase.optional.compileClasspath)
+          .fold(_.get, _.value).map(_.path)
+        val optionalRuntimeCp = eval(TestCase.optional.upstreamAssemblyClasspath)
+          .fold(_.get, _.value).map(_.path)
+        val optionalRunCp = eval(TestCase.optional.runClasspath)
+          .fold(_.get, _.value).map(_.path)
+        val dependsOnOptionalCompileCp = eval(TestCase.optional.dependsOnOptional.compileClasspath)
+          .fold(_.get, _.value).map(_.path)
+        val dependsOnOptionalRuntimeCp =
+          eval(TestCase.optional.dependsOnOptional.upstreamAssemblyClasspath)
+            .fold(_.get, _.value).map(_.path)
+        val dependsOnOptionalRunCp = eval(TestCase.optional.dependsOnOptional.runClasspath)
+          .fold(_.get, _.value).map(_.path)
+
+        assert(optionalCompileCp.exists(_.last == "interface-1.0.29-M1.jar"))
+        assert(optionalRuntimeCp.exists(_.last == "interface-1.0.29-M1.jar"))
+        assert(optionalRunCp.exists(_.last == "interface-1.0.29-M1.jar"))
+        assert(!dependsOnOptionalCompileCp.exists(_.last == "interface-1.0.29-M1.jar"))
+        assert(!dependsOnOptionalRuntimeCp.exists(_.last == "interface-1.0.29-M1.jar"))
+        assert(!dependsOnOptionalRunCp.exists(_.last == "interface-1.0.29-M1.jar"))
       }
     }
   }
