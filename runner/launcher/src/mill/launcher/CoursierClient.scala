@@ -7,13 +7,10 @@ import coursier.util.Task
 import coursier.core.Module
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 import mill.coursierutil.TestOverridesRepo
 
 object CoursierClient {
   def resolveMillDaemon() = {
-    val repositories = Await.result(Resolve().finalRepositories.future(), Duration.Inf)
     val coursierCache0 = FileCache[Task]()
       .withLogger(coursier.cache.loggers.RefreshLogger.create())
 
@@ -25,7 +22,7 @@ object CoursierClient {
           Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), Map()),
           VersionConstraint(mill.client.BuildInfo.millVersion)
         )))
-        .withRepositories(Seq(TestOverridesRepo) ++ repositories)
+        .withRepositories(Seq(TestOverridesRepo) ++ Resolve.defaultRepositories)
 
       resolve.either() match {
         case Left(err) => sys.error(err.toString)
@@ -48,7 +45,7 @@ object CoursierClient {
       .withIndex(
         JvmIndex.load(
           cache = coursierCache0,
-          repositories = Resolve().repositories,
+          repositories = Resolve.defaultRepositories,
           indexChannel = JvmChannel.module(
             JvmChannel.centralModule(),
             version = mill.client.Versions.coursierJvmIndexVersion

@@ -100,12 +100,7 @@ trait CoursierModule extends mill.define.Module {
    * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
   def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-    val resolve = Resolve()
-    val repos = Await.result(
-      resolve.finalRepositories.future()(using resolve.cache.ec),
-      Duration.Inf
-    )
-    Jvm.reposFromStrings(repositories()).map(_ ++ repos)
+    Jvm.reposFromStrings(repositories(), Resolve.defaultRepositories)
   }
 
   /**
@@ -131,8 +126,12 @@ trait CoursierModule extends mill.define.Module {
    *
    * - https://maven.google.com
    *   Google-managed repository that distributes some Android artifacts in particular
+   *
+   * - default
+   *   The default repositories, that might have been changed via COURSIER_REPOSITORIES in the environment,
+   *   the coursier.repositories Java property, or the Scala CLI configuration file
    */
-  def repositories: T[Seq[String]] = Task { Seq.empty[String] }
+  def repositories: T[Seq[String]] = Task { Seq("default") }
 
   /**
    * The repositories used to resolve dependencies
