@@ -45,10 +45,10 @@ formatted 2 files
 // if you prefer not to extend the `SpotlessModule`.
 
 /** Usage
-> ./mill mill.scalalib.spotless/ --check   # fast incremental format
+> ./mill mill.scalalib.spotless/ --check                # fast incremental format
 everything is already formatted
 
-> ./mill mill.scalalib.spotless/formatAll --check --skip .idea # format all files in workspace
+> ./mill mill.scalalib.spotless/formatAll --skip .idea  # format all files in workspace
 */
 
 // NOTE: The cache for incremental format is invalidated automatically when the `spotless-formats.json`, or a referenced file like `LICENSE`, is changed.

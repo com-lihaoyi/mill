@@ -26,7 +26,7 @@ class ToFormatterStep(charset: Charset, provisioner: Provisioner)
   def read(cof: ContentOrFile): String =
     Option(cof.content)
       .orElse(path(cof.file).map(path => String(os.read.bytes(path), charset)))
-      .getOrElse(throw Exception(s"one of content/file must be provided"))
+      .getOrElse(sys.error(s"one of content/file must be provided"))
 
   def signature(ref: SubPathRef): Option[FileSignature] =
     path(ref).map(path => FileSignature.signAsList(path.toIO))
@@ -181,12 +181,12 @@ def toFenceStep(fence: Format.Fence): FenceStep =
     import fence.*
     pattern match
       case Seq(regex) => FenceStep.named(name).regex(regex)
-      case Seq(open, close) => FenceStep.named(name).openClose(open, close)
-      case _ => throw new Exception(s"unsupported Fence.pattern: $pattern")
+      case Seq(open, close, _*) => FenceStep.named(name).openClose(open, close)
+      case Seq() => sys.error(s"Fence.pattern must be specified as [regex] or [open,close]")
 
 def toDependencies(mavenCoordinates: java.util.Collection[String]): Seq[Dependency] =
   DependencyParser.dependencies(mavenCoordinates.asScala.toSeq, "")
-    .either.fold(errs => throw Exception(errs.mkString(", ")), identity)
+    .either.fold(errs => sys.error(errs.mkString(", ")), identity)
 
 def toProvisioner(resolver: CoursierModule.Resolver)(using TaskCtx): Provisioner =
   (_, mavenCoordinates) => resolver.artifacts(toDependencies(mavenCoordinates)).files.toSet.asJava

@@ -78,7 +78,6 @@ object GitTests extends TestSuite {
       UnitTester(
         testModule,
         resources / "ratchet",
-        outStream = PrintStream(logStream, true),
         errStream = PrintStream(logStream, true)
       ).scoped { eval =>
         def call(cmd: os.Shellable*) =
