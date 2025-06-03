@@ -329,10 +329,10 @@ object ExecutionTests extends TestSuite {
 
       UnitTester(build, null).scoped { tester =>
         assert(y == 0)
-        val Right(_) = tester.apply(build.task)
+        val Right(_) = tester.apply(build.task): @unchecked
         assert(y == 10)
         x = 0
-        val Left(_) = tester.apply(build.task)
+        val Left(_) = tester.apply(build.task): @unchecked
         assert(y == 10)
       }
     }
@@ -346,12 +346,13 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result(Seq(1, 10, 100), _)) = tester.apply(build.task4)
+        val Right(UnitTester.Result(Seq(1, 10, 100), _)) = tester.apply(build.task4): @unchecked
       }
     }
     test("traverse") {
       UnitTester(traverseBuild, null).scoped { tester =>
-        val Right(UnitTester.Result(Seq(1, 10, 100), _)) = tester.apply(traverseBuild.task4)
+        val Right(UnitTester.Result(Seq(1, 10, 100), _)) =
+          tester.apply(traverseBuild.task4): @unchecked
       }
     }
 
@@ -363,7 +364,7 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result((1, 10), _)) = tester.apply(build.task4)
+        val Right(UnitTester.Result((1, 10), _)) = tester.apply(build.task4): @unchecked
       }
     }
 
@@ -375,7 +376,7 @@ object ExecutionTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result(11, _)) = tester.apply(build.task2)
+        val Right(UnitTester.Result(11, _)) = tester.apply(build.task2): @unchecked
       }
     }
 
@@ -452,13 +453,17 @@ object ExecutionTests extends TestSuite {
 
     test("backticked") {
       UnitTester(bactickIdentifiers, null).scoped { tester =>
-        val Right(UnitTester.Result(1, _)) = tester.apply(bactickIdentifiers.`up-target`)
-        val Right(UnitTester.Result(3, _)) = tester.apply(bactickIdentifiers.`a-down-target`)
-        val Right(UnitTester.Result(3, _)) = tester.apply(bactickIdentifiers.`invisible&`)
+        val Right(UnitTester.Result(1, _)) =
+          tester.apply(bactickIdentifiers.`up-target`): @unchecked
+        val Right(UnitTester.Result(3, _)) =
+          tester.apply(bactickIdentifiers.`a-down-target`): @unchecked
+        val Right(UnitTester.Result(3, _)) =
+          tester.apply(bactickIdentifiers.`invisible&`): @unchecked
         val Right(UnitTester.Result(4, _)) =
-          tester.apply(bactickIdentifiers.`nested-module`.`nested-target`)
+          tester.apply(bactickIdentifiers.`nested-module`.`nested-target`): @unchecked
       }
     }
+
     test("anonTaskFailure") {
       UnitTester(anonTaskFailure, null).scoped { tester =>
         val res = tester.evaluator.execute(Seq(anonTaskFailure.task))
