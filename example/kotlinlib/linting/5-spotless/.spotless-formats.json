@@ -1,0 +1,40 @@
+[
+  {
+    "includes": [
+      "glob:build.mill"
+    ],
+    "steps": [
+      {
+        "$type": "ScalaFmt"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**.java"
+    ],
+    "steps": [
+      {
+        "$type": "PalantirJavaFormat"
+      },
+      {
+        "$type": "LicenseHeader",
+        "delimiter": "(package|import|public|class|module) "
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**.{kt,kts}"
+    ],
+    "steps": [
+      {
+        "$type": "Ktfmt"
+      },
+      {
+        "$type": "LicenseHeader",
+        "delimiter": "(package |@file|import )"
+      }
+    ]
+  }
+]

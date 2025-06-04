@@ -1,4 +1,3 @@
-
 import mylib.Unused;
 import mylib.UsedB;
 import mylib.UsedA;
