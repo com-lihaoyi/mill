@@ -23,7 +23,7 @@ import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-import mill.api.internal.bsp.{BspModuleApi, BspServerResult, JvmBuildTarget, ScalaBuildTarget}
+import mill.api.internal.bsp.{BspJavaModuleApi, BspModuleApi, BspServerResult, JvmBuildTarget, ScalaBuildTarget}
 
 private class MillBuildServer(
     topLevelProjectRoot: os.Path,
@@ -298,18 +298,18 @@ private class MillBuildServer(
       : CompletableFuture[DependencySourcesResult] =
     handlerTasks(
       targetIds = _ => p.getTargets.asScala,
-      tasks = { case m: JavaModuleApi => m.bspBuildTargetDependencySources },
+      tasks = { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetDependencySources },
       requestDescription =
         s"Getting dependency sources of ${p.getTargets.asScala.map(_.getUri).mkString(", ")}"
     ) {
       case (
-            ev,
-            state,
+            _,
+            _,
             id,
-            m: JavaModuleApi,
-            (resolveDepsSources, unmanagedClasspath)
+            _: JavaModuleApi,
+            result
           ) =>
-        val cp = (resolveDepsSources ++ unmanagedClasspath).map(sanitizeUri)
+        val cp = (result.resolvedDepsSources ++ result.unmanagedClasspath).map(sanitizeUri)
         new DependencySourcesItem(id, cp.asJava)
       case _ => ???
     } { values =>
@@ -328,22 +328,22 @@ private class MillBuildServer(
       : CompletableFuture[DependencyModulesResult] =
     handlerTasks(
       targetIds = _ => params.getTargets.asScala,
-      tasks = { case m: JavaModuleApi => m.bspBuildTargetDependencyModules },
+      tasks = { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetDependencyModules },
       requestDescription = "Getting external dependencies of {}"
     ) {
       case (
-            ev,
-            state,
+            _,
+            _,
             id,
-            m: JavaModuleApi,
-            (mvnDeps, unmanagedClasspath)
+            _: JavaModuleApi,
+            result
           ) =>
-        val deps = mvnDeps.collect {
+        val deps = result.mvnDeps.collect {
           case (org, repr, version) if org != "mill-internal" =>
             new DependencyModule(repr, version)
         }
 
-        val unmanaged = unmanagedClasspath.map { dep =>
+        val unmanaged = result.unmanagedClasspath.map { dep =>
           new DependencyModule(s"unmanaged-${dep.getFileName}", "")
         }
         new DependencyModulesItem(id, (deps ++ unmanaged).asJava)
@@ -358,7 +358,7 @@ private class MillBuildServer(
       tasks = { case m: JavaModuleApi => m.bspBuildTargetResources },
       requestDescription = "Getting resources of {}"
     ) {
-      case (ev, state, id, m, resources) =>
+      case (ev, state, id, m: JavaModuleApi, resources) =>
         val resourcesUrls =
           resources.map(os.Path(_)).filter(os.exists).map(p => sanitizeUri(p.toNIO))
         new ResourcesItem(id, resourcesUrls.asJava)
@@ -612,11 +612,11 @@ private class MillBuildServer(
       tasks: PartialFunction[BspModuleApi, TaskApi[W]],
       requestDescription: String
   )(block: (
-      EvaluatorApi,
-      BspEvaluators,
-      BuildTargetIdentifier,
-      BspModuleApi,
-      W
+      evaluator: EvaluatorApi,
+      bspEvaluators: BspEvaluators,
+      buildTargetIdentifier: BuildTargetIdentifier,
+      moduleApi: BspModuleApi,
+      result: W
   ) => T)(agg: java.util.List[T] => V)(implicit
       name: sourcecode.Name
   )

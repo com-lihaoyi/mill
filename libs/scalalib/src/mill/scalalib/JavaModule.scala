@@ -1377,35 +1377,6 @@ trait JavaModule
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 
-  override private[mill] def bspBuildTargetDependencySources = Task.Anon {
-    (
-      millResolver().classpath(
-        Seq(
-          coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-          coursierDependency
-        ),
-        sources = true
-      ).map(_.path.toNIO),
-      unmanagedClasspath().map(_.path.toNIO)
-    )
-  }
-
-  private[mill] def bspBuildTargetDependencyModules = Task.Anon {
-    (
-      // full list of dependencies, including transitive ones
-      millResolver()
-        .resolution(
-          Seq(
-            coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-            coursierDependency
-          )
-        )
-        .orderedDependencies
-        .map { d => (d.module.organization.value, d.module.repr, d.version) },
-      unmanagedClasspath().map(_.path.toNIO)
-    )
-  }
-
   private[mill] def bspBuildTargetScalaMainClasses =
     Task.Anon((allLocalMainClasses(), forkArgs(), forkEnv()))
 

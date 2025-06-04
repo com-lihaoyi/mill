@@ -1,10 +1,10 @@
 package mill.scalalib.bsp
 
 import java.nio.file.Path
-import mill.api.internal.bsp.BspJavaModuleApi
 
+import mill.api.internal.bsp.BspJavaModuleApi
 import mill.{Args, Task}
-import mill.api.internal.{EvaluatorApi, internal}
+import mill.api.internal.{EvaluatorApi, TaskApi, internal}
 import mill.define.{Discover, ExternalModule, ModuleCtx}
 import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule}
 
@@ -60,6 +60,44 @@ object BspJavaModule extends ExternalModule {
           )
         }
       }
+
+      override private[mill] def bspBuildTargetDependencySources
+          : Task[(
+              resolvedDepsSources: Seq[Path],
+              unmanagedClasspath: Seq[Path]
+          )] = Task.Anon {
+        (
+          resolvedDepsSources = jm.millResolver().classpath(
+            Seq(
+              jm.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+              jm.coursierDependency
+            ),
+            sources = true
+          ).map(_.path.toNIO),
+          unmanagedClasspath = jm.unmanagedClasspath().map(_.path.toNIO)
+        )
+      }
+
+      private[mill] def bspBuildTargetDependencyModules
+          : Task[(
+              mvnDeps: Seq[(String, String, String)],
+              unmanagedClasspath: Seq[Path]
+          )] =
+        Task.Anon {
+          (
+            // full list of dependencies, including transitive ones
+            jm.millResolver()
+              .resolution(
+                Seq(
+                  jm.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+                  jm.coursierDependency
+                )
+              )
+              .orderedDependencies
+              .map { d => (d.module.organization.value, d.module.repr, d.version) },
+            jm.unmanagedClasspath().map(_.path.toNIO)
+          )
+        }
 
       override private[mill] def bspBuildTargetScalacOptions(
           needsToMergeResourcesIntoCompileDest: Boolean,
