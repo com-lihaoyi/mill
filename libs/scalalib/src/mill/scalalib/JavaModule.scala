@@ -19,7 +19,13 @@ import mill.util.{JarManifest, Jvm}
 import os.Path
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
-import mill.api.internal.bsp.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, JvmBuildTarget}
+import mill.api.internal.bsp.{
+  BspBuildTarget,
+  BspJavaModuleApi,
+  BspModuleApi,
+  BspUri,
+  JvmBuildTarget
+}
 import mill.api.internal.idea.{IdeaConfigFile, JavaFacet, Scoped}
 
 /**

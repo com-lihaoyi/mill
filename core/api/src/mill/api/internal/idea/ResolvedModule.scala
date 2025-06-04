@@ -19,5 +19,3 @@ final case class ResolvedModule(
     generatedSources: Seq[java.nio.file.Path],
     allSources: Seq[java.nio.file.Path]
 )
-
-
