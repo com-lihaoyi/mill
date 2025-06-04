@@ -58,16 +58,16 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       : CompletableFuture[ScalaMainClassesResult] =
     handlerTasks(
       targetIds = _ => p.getTargets.asScala.toSeq,
-      tasks = { case m: JavaModuleApi => m.bspBuildTargetScalaMainClasses },
+      tasks = { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetScalaMainClasses },
       requestDescription = "Getting main classes of {}"
     ) {
-      case (ev, state, id, m: JavaModuleApi, (classes, forkArgs, forkEnv)) =>
+      case (_, _, id, _: JavaModuleApi, res) =>
         // We find all main classes, although we could also find only the configured one
-        val mainClasses = classes
+        val mainClasses = res.classes
         // val mainMain = m.mainClass().orElse(if(mainClasses.size == 1) mainClasses.headOption else None)
         val items = mainClasses.map { mc =>
-          val scalaMc = new ScalaMainClass(mc, Seq().asJava, forkArgs.asJava)
-          scalaMc.setEnvironmentVariables(forkEnv.map(e => s"${e._1}=${e._2}").toSeq.asJava)
+          val scalaMc = new ScalaMainClass(mc, Seq().asJava, res.forkArgs.asJava)
+          scalaMc.setEnvironmentVariables(res.forkEnv.map(e => s"${e._1}=${e._2}").toSeq.asJava)
           scalaMc
         }
         new ScalaMainClassesItem(id, items.asJava)

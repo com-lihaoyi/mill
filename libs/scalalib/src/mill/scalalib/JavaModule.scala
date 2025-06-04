@@ -1373,9 +1373,6 @@ trait JavaModule
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 
-  private[mill] def bspBuildTargetScalaMainClasses =
-    Task.Anon((allLocalMainClasses(), forkArgs(), forkEnv()))
-
   private[mill] def bspRun(args: Seq[String]): Task[Unit] = Task.Anon {
     run(Task.Anon(Args(args)))()
   }

@@ -46,6 +46,13 @@ trait BspJavaModuleApi extends ModuleApi {
       clientWantsSemanticDb: Boolean
   ): TaskApi[(Seq[String], EvaluatorApi => Seq[String], EvaluatorApi => java.nio.file.Path)]
 
+  private[mill] def bspBuildTargetScalaMainClasses
+      : TaskApi[(
+          classes: Seq[String],
+          forkArgs: Seq[String],
+          forkEnv: Map[String, String]
+      )]
+
   private[mill] def bspLoggingTest: TaskApi[Unit]
 
 }

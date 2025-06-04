@@ -148,6 +148,14 @@ object BspJavaModule extends ExternalModule {
         }
       }
 
+      override private[mill] def bspBuildTargetScalaMainClasses
+          : Task[(
+              classes: Seq[String],
+              forkArgs: Seq[String],
+              forkEnv: Map[String, String]
+          )] =
+        Task.Anon((jm.allLocalMainClasses(), jm.forkArgs(), jm.forkEnv()))
+
       override private[mill] def bspLoggingTest = Task.Anon {
         System.out.println("bspLoggingTest from System.out")
         System.err.println("bspLoggingTest from System.err")

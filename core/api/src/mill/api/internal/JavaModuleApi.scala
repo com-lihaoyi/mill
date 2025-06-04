@@ -6,15 +6,10 @@ import mill.api.internal.{EvaluatorApi, ModuleApi, TaskApi, UnresolvedPathApi}
 
 trait JavaModuleApi extends ModuleApi {
 
-  @deprecated("Move to BSP context")
-  private[mill] def bspBuildTargetScalaMainClasses
-      : TaskApi[(Seq[String], Seq[String], Map[String, String])]
-
   def recursiveModuleDeps: Seq[JavaModuleApi]
 
   def compileModuleDepsChecked: Seq[JavaModuleApi]
 
-  @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetCompile(
       needsToMergeResourcesIntoCompileDest: Boolean
   ): TaskApi[java.nio.file.Path]
@@ -37,7 +32,6 @@ trait JavaModuleApi extends ModuleApi {
   def javacOptions: TaskApi[Seq[String]]
   def mandatoryJavacOptions: TaskApi[Seq[String]]
 
-  @deprecated("Move to BSP context")
   private[mill] def bspCompileClassesPath(needsToMergeResourcesIntoCompileDest: Boolean)
       : TaskApi[UnresolvedPathApi[?]]
 
