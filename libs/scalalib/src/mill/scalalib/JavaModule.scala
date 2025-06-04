@@ -8,19 +8,7 @@ import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
 import mill.api.{MillException, Result, Segments}
-import mill.api.internal.{
-  BspBuildTarget,
-  BspModuleApi,
-  BspUri,
-  EvaluatorApi,
-  IdeaConfigFile,
-  JavaFacet,
-  JavaModuleApi,
-  JvmBuildTarget,
-  ResolvedModule,
-  Scoped,
-  internal
-}
+import mill.api.internal.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, EvaluatorApi, IdeaConfigFile, JavaFacet, JavaModuleApi, JvmBuildTarget, ResolvedModule, Scoped, internal}
 import mill.define.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspJavaModule, BspModule}
@@ -28,7 +16,6 @@ import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.publish.Artifact
 import mill.util.{JarManifest, Jvm}
 import os.Path
-
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
 
@@ -834,7 +821,7 @@ trait JavaModule
    *   See also: https://github.com/com-lihaoyi/mill/issues/4427#issuecomment-2908889481
    */
   @internal
-  override private[mill] def bspCompileClassesPath(
+  private[mill] def bspCompileClassesPath(
       needsToMergeResourcesIntoCompileDest: Boolean
   ): Task[UnresolvedPath] =
     Task.Anon {

@@ -87,15 +87,20 @@ trait JavaModuleApi extends ModuleApi {
   def javacOptions: TaskApi[Seq[String]]
   def mandatoryJavacOptions: TaskApi[Seq[String]]
 
-  private[mill] def bspCompileClassesPath: TaskApi[UnresolvedPathApi[?]]
+  @deprecated("Move to BSP context")
+  private[mill] def bspCompileClassesPath(needsToMergeResourcesIntoCompileDest: Boolean)
+      : TaskApi[UnresolvedPathApi[?]]
 
-  private[mill] def bspJavaModule: Function0[BspJavaModuleApi]
+  private[mill] def bspJavaModule: () => BspJavaModuleApi
 }
 
 object JavaModuleApi
 
 trait BspJavaModuleApi extends ModuleApi {
-  def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean)
+  def bspBuildTargetJavacOptions(
+      needsToMergeResourcesIntoCompileDest: Boolean,
+      clientWantsSemanticDb: Boolean
+  )
       : TaskApi[EvaluatorApi => (
           classesPath: Path,
           javacOptions: Seq[String],
