@@ -98,6 +98,12 @@ object BspJavaModule extends ExternalModule {
         )
       }
 
+      override private[mill] def bspBuildTargetSources
+          : TaskApi[(sources: Seq[Path], generatedSources: Seq[Path])] =
+        Task.Anon {
+          (jm.sources().map(_.path.toNIO), jm.generatedSources().map(_.path.toNIO))
+        }
+
       override private[mill] def bspBuildTargetResources = Task.Anon {
         jm.resources().map(_.path.toNIO)
       }

@@ -1366,10 +1366,6 @@ trait JavaModule
 //    }
 //  }
 
-  override private[mill] def bspBuildTargetSources = Task.Anon {
-    Tuple2(sources().map(_.path.toNIO), generatedSources().map(_.path.toNIO))
-  }
-
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
 

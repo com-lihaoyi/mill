@@ -15,10 +15,6 @@ trait JavaModuleApi extends ModuleApi {
   def compileModuleDepsChecked: Seq[JavaModuleApi]
 
   @deprecated("Move to BSP context")
-  private[mill] def bspBuildTargetSources
-      : TaskApi[(Seq[java.nio.file.Path], Seq[java.nio.file.Path])]
-
-  @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetCompile(
       needsToMergeResourcesIntoCompileDest: Boolean
   ): TaskApi[java.nio.file.Path]

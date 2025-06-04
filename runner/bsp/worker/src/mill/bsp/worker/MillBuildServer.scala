@@ -248,15 +248,16 @@ private class MillBuildServer(
 
     handlerTasksEvaluators(
       targetIds = _ => sourcesParams.getTargets.asScala,
-      tasks = { case module: JavaModuleApi => module.bspBuildTargetSources },
+      tasks = { case module: JavaModuleApi => module.bspJavaModule().bspBuildTargetSources },
       requestDescription =
         s"Getting sources of ${sourcesParams.getTargets.asScala.map(_.getUri).mkString(", ")}"
     ) {
-      case (ev, state, id, module, items) => new SourcesItem(
+      case (ev, state, id, _: JavaModuleApi, result) => new SourcesItem(
           id,
-          (items._1.map(p => sourceItem(os.Path(p), false)) ++ items._2.map(p =>
-            sourceItem(os.Path(p), true)
-          )).asJava
+          (
+            result.sources.map(p => sourceItem(os.Path(p), false)) ++
+              result.generatedSources.map(p => sourceItem(os.Path(p), true))
+          ).asJava
         )
     } { (sourceItems, state) =>
       new SourcesResult(
