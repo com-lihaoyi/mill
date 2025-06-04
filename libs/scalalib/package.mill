@@ -137,6 +137,6 @@ object `package` extends MillStableScalaModule {
 
   object `spotless-worker` extends MillPublishScalaModule {
     def moduleDeps = Seq(build.libs.scalalib)
-    def mvnDeps = Seq(Deps.jgit, Deps.spotlessLibExtra)
+    def mvnDeps = Seq(Deps.spotlessLibExtra, Deps.jgit)
   }
 }

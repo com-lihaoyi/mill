@@ -11,37 +11,14 @@
   },
   {
     "includes": [
-      "glob:**/FenceWithin"
+      "glob:**/FenceToggle"
     ],
     "steps": [
       {
-        "$type": "FenceWithin",
-        "fence": {
-          "name": "java template",
-          "pattern": [
-            "<java>",
-            "</java>"
-          ]
-        },
+        "$type": "Fence",
         "steps": [
           {
             "$type": "PalantirJavaFormat"
-          }
-        ]
-      },
-      {
-        "$type": "FenceWithin",
-        "fence": {
-          "name": "scala template",
-          "pattern": [
-            "<scala>",
-            "</scala>"
-          ]
-        },
-        "steps": [
-          {
-            "$type": "ScalaFmt",
-            "configFile": null
           }
         ]
       }
@@ -49,14 +26,35 @@
   },
   {
     "includes": [
-      "glob:**/FenceToggle"
+      "glob:**/FenceWithin"
     ],
     "steps": [
       {
-        "$type": "FenceToggle",
+        "$type": "Fence",
+        "name": "java template",
+        "regex": [
+          "<java>",
+          "</java>"
+        ],
+        "preserve": false,
         "steps": [
           {
             "$type": "PalantirJavaFormat"
+          }
+        ]
+      },
+      {
+        "$type": "Fence",
+        "name": "scala template",
+        "regex": [
+          "<scala>",
+          "</scala>"
+        ],
+        "preserve": false,
+        "steps": [
+          {
+            "$type": "ScalaFmt",
+            "configFile": null
           }
         ]
       }
@@ -78,7 +76,8 @@
     ],
     "steps": [
       {
-        "$type": "LicenseHeader"
+        "$type": "LicenseHeader",
+        "delimiter": "(package|import|public|class|module) "
       }
     ]
   },

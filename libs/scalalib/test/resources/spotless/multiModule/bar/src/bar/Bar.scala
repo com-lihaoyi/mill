@@ -1,3 +1,5 @@
+package spotless.multiModule.bar.src.bar
+
 @foobar ("annot", {
   val x = 2
   val y = 2 // y=2

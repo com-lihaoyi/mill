@@ -1,0 +1,36 @@
+[
+  {
+    "includes": [
+      "glob:**.java"
+    ],
+    "steps": [
+      {
+        "$type": "PalantirJavaFormat"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**.scala"
+    ],
+    "excludes": [
+      "glob:**/src-3**"
+    ],
+    "steps": [
+      {
+        "$type": "ScalaFmt"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/src-3**"
+    ],
+    "steps": [
+      {
+        "$type": "ScalaFmt",
+        "configFile": ".scalafmt3.conf"
+      }
+    ]
+  }
+]
