@@ -8,7 +8,20 @@ import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
 import mill.api.{MillException, Result, Segments}
-import mill.api.internal.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, EvaluatorApi, IdeaConfigFile, JavaFacet, JavaModuleApi, JvmBuildTarget, ResolvedModule, Scoped, internal}
+import mill.api.internal.{
+  BspBuildTarget,
+  BspJavaModuleApi,
+  BspModuleApi,
+  BspUri,
+  EvaluatorApi,
+  IdeaConfigFile,
+  JavaFacet,
+  JavaModuleApi,
+  JvmBuildTarget,
+  ResolvedModule,
+  Scoped,
+  internal
+}
 import mill.define.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspJavaModule, BspModule}
