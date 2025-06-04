@@ -1,5 +1,7 @@
 package mill.api.internal
 
+import java.nio.file.Path
+
 import mill.api.*
 
 trait TaskApi[+T] {
@@ -77,8 +79,20 @@ trait JavaModuleApi extends ModuleApi {
   def mandatoryJavacOptions: TaskApi[Seq[String]]
 
   private[mill] def bspCompileClassesPath: TaskApi[UnresolvedPathApi[?]]
+
+  private[mill] def bspJavaModule: Function0[BspJavaModuleApi]
 }
+
 object JavaModuleApi
+
+trait BspJavaModuleApi extends ModuleApi {
+  def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean)
+      : TaskApi[EvaluatorApi => (
+          classesPath: Path,
+          javacOptions: Seq[String],
+          classpath: Seq[String]
+      )]
+}
 
 trait UnresolvedPathApi[P] {
   def resolve(outPath: P): P
@@ -92,12 +106,14 @@ trait TestModuleApi extends ModuleApi {
   private[mill] def bspBuildTargetScalaTestClasses
       : TaskApi[(frameworkName: String, classes: Seq[String])]
 }
+
 trait MainModuleApi extends ModuleApi {
   private[mill] def bspClean(
       evaluator: EvaluatorApi,
       targets: String*
   ): TaskApi[Seq[java.nio.file.Path]]
 }
+
 trait BspModuleApi extends ModuleApi {
   @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetData: TaskApi[Option[(String, AnyRef)]]

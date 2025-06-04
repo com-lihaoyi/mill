@@ -21,17 +21,20 @@ import mainargs.Flag
 import mill.api.MillException
 import mill.api.Result
 import mill.api.Segments
-import mill.api.internal.BspBuildTarget
-import mill.api.internal.BspModuleApi
-import mill.api.internal.BspUri
-import mill.api.internal.EvaluatorApi
-import mill.api.internal.IdeaConfigFile
-import mill.api.internal.JavaFacet
-import mill.api.internal.JavaModuleApi
-import mill.api.internal.JvmBuildTarget
-import mill.api.internal.ResolvedModule
-import mill.api.internal.Scoped
-import mill.api.internal.internal
+import mill.api.internal.{
+  BspBuildTarget,
+  BspJavaModuleApi,
+  BspModuleApi,
+  BspUri,
+  EvaluatorApi,
+  IdeaConfigFile,
+  JavaFacet,
+  JavaModuleApi,
+  JvmBuildTarget,
+  ResolvedModule,
+  Scoped,
+  internal
+}
 import mill.define.ModuleRef
 import mill.define.PathRef
 import mill.define.Segment
@@ -39,7 +42,7 @@ import mill.define.Task
 import mill.define.TaskCtx
 import mill.define.TaskModule
 import mill.scalalib.api.CompilationResult
-import mill.scalalib.bsp.BspModule
+import mill.scalalib.bsp.{BspJavaModule, BspModule}
 import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.publish.Artifact
 import mill.util.JarManifest
@@ -62,6 +65,9 @@ trait JavaModule
     with SemanticDbJavaModule
     with AssemblyModule
     with JavaModuleApi { outer =>
+
+  private lazy val bspExt = ModuleRef(BspJavaModule.EmbeddableBspJavaModule(this))
+  private[mill] def bspJavaModule: () => BspJavaModuleApi = () => bspExt().internalBspJavaModule
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
   trait JavaTests extends JavaModule with TestModule {
@@ -1407,7 +1413,10 @@ trait JavaModule
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 
-  override private[mill] def bspBuildTargetInverseSources[T](id: T, searched: String): Task[Seq[T]] =
+  override private[mill] def bspBuildTargetInverseSources[T](
+      id: T,
+      searched: String
+  ): Task[Seq[T]] =
     Task.Anon {
       val src = allSourceFiles()
       val found = src.map(sanitizeUri).contains(searched)

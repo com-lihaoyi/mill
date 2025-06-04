@@ -1,14 +1,18 @@
 package mill.bsp.worker
 
-import ch.epfl.scala.bsp4j.{JavaBuildServer, JavacOptionsItem, JavacOptionsParams, JavacOptionsResult}
-import mill.api.internal.{BspModuleApi, JavaModuleApi, TaskApi}
-import mill.bsp.worker.Utils.sanitizeUri
-import mill.bsp.worker.modules.BspJavaModule.given
 import java.util.concurrent.CompletableFuture
 
 import scala.jdk.CollectionConverters.*
 
-import mill.scalalib.JavaModule
+import ch.epfl.scala.bsp4j.{
+  JavaBuildServer,
+  JavacOptionsItem,
+  JavacOptionsParams,
+  JavacOptionsResult
+}
+import mill.api.internal.{BspModuleApi, JavaModuleApi, TaskApi}
+import mill.bsp.worker.Utils.sanitizeUri
+
 
 private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
 
@@ -18,7 +22,7 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
       targetIds = _ => javacOptionsParams.getTargets.asScala,
       tasks = {
         case m: (JavaModuleApi & BspModuleApi) =>
-          m.bspJavaModule.bspBuildTargetJavacOptions(sessionInfo.clientWantsSemanticDb)
+          m.bspJavaModule().bspBuildTargetJavacOptions(sessionInfo.clientWantsSemanticDb)
         //          m.bspJavaModule.bspBuildTargetJavacOptions(sessionInfo.clientWantsSemanticDb)
         //        case m: JavaModule =>
       },
