@@ -12,6 +12,6 @@ object `package` extends MillBuildRootModule {
     ivy"com.goyeau::mill-scalafix::0.5.0",
     ivy"com.lihaoyi::mill-main-graphviz:${mill.api.BuildInfo.millVersion}",
     // TODO: document, why we have this dependency
-    ivy"org.jsoup:jsoup:1.18.1"
+    ivy"org.jsoup:jsoup:1.20.1"
   )
 }
