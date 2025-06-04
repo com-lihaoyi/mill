@@ -8,20 +8,8 @@ import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
 import mill.api.{MillException, Result, Segments}
-import mill.api.internal.{
-  BspBuildTarget,
-  BspJavaModuleApi,
-  BspModuleApi,
-  BspUri,
-  EvaluatorApi,
-  IdeaConfigFile,
-  JavaFacet,
-  JavaModuleApi,
-  JvmBuildTarget,
-  ResolvedModule,
-  Scoped,
-  internal
-}
+import mill.api.internal.{EvaluatorApi, JavaModuleApi, internal}
+import mill.api.internal.idea.ResolvedModule
 import mill.define.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspJavaModule, BspModule}
@@ -31,6 +19,8 @@ import mill.util.{JarManifest, Jvm}
 import os.Path
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
+import mill.api.internal.bsp.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, JvmBuildTarget}
+import mill.api.internal.idea.{IdeaConfigFile, JavaFacet, Scoped}
 
 /**
  * Core configuration required to compile a single Java compilation target

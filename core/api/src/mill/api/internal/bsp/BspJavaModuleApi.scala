@@ -1,6 +1,8 @@
-package mill.api.internal
+package mill.api.internal.bsp
 
 import java.nio.file.Path
+
+import mill.api.internal.{EvaluatorApi, ModuleApi, TaskApi}
 
 trait BspJavaModuleApi extends ModuleApi {
 

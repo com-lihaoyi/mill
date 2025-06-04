@@ -8,8 +8,9 @@ import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
-import mill.api.internal.{ScalaBuildTarget, ScalaJSModuleApi, ScalaPlatform, internal}
+import mill.api.internal.{ScalaJSModuleApi, ScalaPlatform, internal}
 import mill.*
+import mill.api.internal.bsp.ScalaBuildTarget
 import upickle.implicits.namedTuples.default.given
 
 trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =>

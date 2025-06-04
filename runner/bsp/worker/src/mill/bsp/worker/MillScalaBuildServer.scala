@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   ScalacOptionsParams,
   ScalacOptionsResult
 }
-import mill.api.internal.{TaskApi, JavaModuleApi, TestModuleApi}
+import mill.api.internal.{JavaModuleApi, TaskApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
 
 import java.util.concurrent.CompletableFuture

@@ -3,6 +3,7 @@ package mill.idea
 import scala.collection.immutable
 import scala.util.{Success, Try}
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
+
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
 import mill.define.TaskCtx
@@ -12,8 +13,6 @@ import mill.api.internal.{
   BaseModuleApi,
   EvaluatorApi,
   ExecutionResultsApi,
-  IdeaConfigFile,
-  JavaFacet,
   JavaModuleApi,
   ModuleApi,
   ScalaJSModuleApi,
@@ -21,11 +20,13 @@ import mill.api.internal.{
   ScalaNativeModuleApi,
   TestModuleApi
 }
+import mill.api.internal.idea.ResolvedModule
 import mill.util.BuildInfo
-
 import collection.mutable
 import java.net.URL
-import mill.api.internal._
+
+import mill.api.internal.*
+import mill.api.internal.idea.{Element, IdeaConfigFile, JavaFacet, Scoped}
 import os.SubPath
 
 class GenIdeaImpl(

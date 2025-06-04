@@ -4,7 +4,7 @@ import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
 import mill.api.*
-import mill.api.internal.{JvmBuildTarget, ScalaBuildTarget, *}
+import mill.api.internal.*
 import mill.api.Segment.Label
 import mill.bsp.Constants
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
@@ -12,9 +12,9 @@ import mill.client.lock.Lock
 import mill.internal.PrefixLogger
 import mill.server.Server
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
-
 import java.util.concurrent.{CompletableFuture, LinkedBlockingQueue, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
+
 import scala.collection.mutable
 import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration.Duration
@@ -22,6 +22,8 @@ import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
+
+import mill.api.internal.bsp.{BspModuleApi, BspServerResult, JvmBuildTarget, ScalaBuildTarget}
 
 private class MillBuildServer(
     topLevelProjectRoot: os.Path,

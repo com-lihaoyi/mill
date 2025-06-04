@@ -10,7 +10,8 @@ import ch.epfl.scala.bsp4j.{
   JavacOptionsParams,
   JavacOptionsResult
 }
-import mill.api.internal.{BspModuleApi, JavaModuleApi}
+import mill.api.internal.JavaModuleApi
+import mill.api.internal.bsp.BspModuleApi
 import mill.bsp.worker.Utils.sanitizeUri
 
 private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>

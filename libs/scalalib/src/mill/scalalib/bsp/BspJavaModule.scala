@@ -1,9 +1,10 @@
 package mill.scalalib.bsp
 
 import java.nio.file.Path
+import mill.api.internal.bsp.BspJavaModuleApi
 
 import mill.{Args, Task}
-import mill.api.internal.{BspJavaModuleApi, EvaluatorApi, internal}
+import mill.api.internal.{EvaluatorApi, internal}
 import mill.define.{Discover, ExternalModule, ModuleCtx}
 import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule}
 

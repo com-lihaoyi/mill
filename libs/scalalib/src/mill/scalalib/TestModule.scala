@@ -2,10 +2,9 @@ package mill.scalalib
 
 import mill.T
 import mill.api.Result
-import mill.api.internal.BspBuildTarget
-import mill.api.internal.BspModuleApi
 import mill.api.internal.TestModuleApi
 import mill.api.internal.TestReporter
+import mill.api.internal.bsp.{BspBuildTarget, BspModuleApi}
 import mill.define.PathRef
 import mill.define.Task
 import mill.define.TaskCtx

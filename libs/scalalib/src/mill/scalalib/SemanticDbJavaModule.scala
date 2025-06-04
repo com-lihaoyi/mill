@@ -1,8 +1,7 @@
 package mill.scalalib
 
 import mill.api.{Result, experimental}
-import mill.api.internal.BspBuildTarget
-import mill.define.{PathRef}
+import mill.define.PathRef
 import mill.api.internal.SemanticDbJavaModuleApi
 import mill.define.ModuleRef
 import mill.util.BuildInfo
@@ -11,6 +10,7 @@ import mill.util.Version
 import mill.{T, Task}
 
 import scala.util.Properties
+import mill.api.internal.bsp.BspBuildTarget
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
