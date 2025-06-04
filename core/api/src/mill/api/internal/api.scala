@@ -78,8 +78,6 @@ trait JavaModuleApi extends ModuleApi {
 
 object JavaModuleApi
 
-
-
 trait UnresolvedPathApi[P] {
   def resolve(outPath: P): P
 }

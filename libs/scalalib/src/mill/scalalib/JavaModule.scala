@@ -49,7 +49,8 @@ trait JavaModule
     with AssemblyModule
     with JavaModuleApi { outer =>
 
-  private lazy val bspExt = ModuleRef(BspJavaModule.EmbeddableBspJavaModule(this).internalBspJavaModule)
+  private lazy val bspExt =
+    ModuleRef(BspJavaModule.EmbeddableBspJavaModule(this).internalBspJavaModule)
   private[mill] def bspJavaModule: () => BspJavaModuleApi = () => bspExt()
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker

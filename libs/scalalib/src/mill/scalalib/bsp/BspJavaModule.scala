@@ -98,7 +98,6 @@ object BspJavaModule extends ExternalModule {
         Task.log.info("bspLoggingTest from Task.log.info")
       }
 
-
     }
   }
 
