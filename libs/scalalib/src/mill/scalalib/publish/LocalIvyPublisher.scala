@@ -19,7 +19,7 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
       ivy: Either[String, os.Path],
       artifact: Artifact,
       publishInfos: Seq[PublishInfo]
-  )(implicit ctx: TaskCtx.Log): Seq[os.Path] = {
+  )(implicit ctx: TaskCtx): Seq[os.Path] = {
 
     ctx.log.info(s"Publishing ${artifact} to ivy repo ${localIvyRepo}")
     val releaseDir = localIvyRepo / artifact.group / artifact.id / artifact.version
