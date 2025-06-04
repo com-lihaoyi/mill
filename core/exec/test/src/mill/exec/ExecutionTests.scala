@@ -36,18 +36,12 @@ object ExecutionTests extends TestSuite {
   object sourceBuild extends TestRootModule {
     def source = Task.Source { "hello/world.txt" }
     def task = Task { os.read(source().path) + " !" }
-    object sub extends mill.define.Module {
-      def sameDir = Task.Source(".")
-    }
     lazy val millDiscover = Discover[this.type]
   }
 
   object sourcesBuild extends TestRootModule {
     def source = Task.Sources("hello/world.txt", "hello/world2.txt")
     def task = Task { source().map(pr => os.read(pr.path)).mkString + "!" }
-    object sub extends mill.define.Module {
-      def sameDirs = Task.Sources(".")
-    }
     lazy val millDiscover = Discover[this.type]
   }
 
@@ -96,14 +90,6 @@ object ExecutionTests extends TestSuite {
         "hear me moo !",
         Seq(build.source),
         extraEvaled = -1,
-        secondRunNoOp = false
-      )
-
-      checker(
-        build.sub.sameDir,
-        PathRef(build.sub.moduleDir),
-        Seq(build.sub.sameDir),
-        extraEvaled = 0,
         secondRunNoOp = false
       )
     }
