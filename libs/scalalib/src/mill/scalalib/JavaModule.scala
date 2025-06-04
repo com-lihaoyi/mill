@@ -1350,47 +1350,6 @@ trait JavaModule
     Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
   }
 
-  @internal
-  override private[mill] def bspBuildTargetScalacOptions(
-      needsToMergeResourcesIntoCompileDest: Boolean,
-      enableJvmCompileClasspathProvider: Boolean,
-      clientWantsSemanticDb: Boolean
-  ) = {
-    val scalacOptionsTask = this match {
-      case m: ScalaModule => m.allScalacOptions
-      case _ => Task.Anon {
-          Seq.empty[String]
-        }
-    }
-
-    val compileClasspathTask: Task[EvaluatorApi => Seq[String]] =
-      if (enableJvmCompileClasspathProvider) {
-        // We have a dedicated request for it
-        Task.Anon {
-          (_: EvaluatorApi) => Seq.empty[String]
-        }
-      } else {
-        bspCompileClasspath(needsToMergeResourcesIntoCompileDest)
-      }
-
-    val classesPathTask =
-      if (clientWantsSemanticDb) {
-        Task.Anon((e: EvaluatorApi) =>
-          bspCompiledClassesAndSemanticDbFiles().resolve(os.Path(e.outPathJava)).toNIO
-        )
-      } else {
-        Task.Anon((e: EvaluatorApi) =>
-          bspCompileClassesPath(
-            needsToMergeResourcesIntoCompileDest
-          )().resolve(os.Path(e.outPathJava)).toNIO
-        )
-      }
-
-    Task.Anon {
-      (scalacOptionsTask(), compileClasspathTask(), classesPathTask())
-    }
-  }
-
 //  @internal
 //  private[mill] def bspBuildTargetJavacOptions(
 //      needsToMergeResourcesIntoCompileDest: Boolean,
@@ -1499,14 +1458,6 @@ trait JavaModule
   ): Task[java.nio.file.Path] = {
     if (needsToMergeResourcesIntoCompileDest) Task.Anon { bspBuildTargetCompileMerged().path.toNIO }
     else Task.Anon { compile().classes.path.toNIO }
-  }
-
-  private[mill] def bspLoggingTest = Task.Anon {
-    System.out.println("bspLoggingTest from System.out")
-    System.err.println("bspLoggingTest from System.err")
-    Console.out.println("bspLoggingTest from Console.out")
-    Console.err.println("bspLoggingTest from Console.err")
-    Task.log.info("bspLoggingTest from Task.log.info")
   }
 
   private[mill] def genIdeaMetadata(

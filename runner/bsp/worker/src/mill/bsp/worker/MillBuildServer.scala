@@ -428,15 +428,15 @@ private class MillBuildServer(
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] =
     handlerEvaluators() { (state, logger) =>
       val params = TaskParameters.fromRunParams(runParams)
-      val (module, ev) = params.getTargets.map(state.bspModulesById).collectFirst {
+      val (javaModule, ev) = params.getTargets.map(state.bspModulesById).collectFirst {
         case (m: JavaModuleApi, ev) => (m, ev)
       }.get
 
       val args = params.getArguments.getOrElse(Seq.empty[String])
-      val runTask = module.bspJavaModule().bspRun(args)
+      val runTask = javaModule.bspJavaModule().bspRun(args)
       val runResult = evaluate(
         ev,
-        s"Running ${module.bspDisplayName}",
+        s"Running ${javaModule.bspDisplayName}",
         Seq(runTask),
         logger,
         Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client)
@@ -863,7 +863,7 @@ private class MillBuildServer(
       val tasksEvs = state.bspModulesIdList
         .collectFirst {
           case (_, (m: JavaModuleApi, ev)) =>
-            Seq(((m, m.bspLoggingTest), ev))
+            Seq(((m, m.bspJavaModule().bspLoggingTest), ev))
         }
         .getOrElse {
           sys.error("No BSP build target available")
