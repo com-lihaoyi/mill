@@ -21,7 +21,7 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
     handlerTasks(
       targetIds = _ => javacOptionsParams.getTargets.asScala,
       tasks = {
-        case m: (JavaModuleApi & BspModuleApi) =>
+        case m: JavaModuleApi =>
           m.bspJavaModule().bspBuildTargetJavacOptions(
             sessionInfo.clientType.mergeResourcesIntoClasses,
             sessionInfo.clientWantsSemanticDb
@@ -30,7 +30,7 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
       requestDescription = "Getting javac options of {}"
     ) {
       // We ignore all non-JavaModule
-      case (ev, state, id, m: JavaModuleApi, f) =>
+      case (ev, state, id, _, f) =>
         val res = f(ev)
         new JavacOptionsItem(
           id,

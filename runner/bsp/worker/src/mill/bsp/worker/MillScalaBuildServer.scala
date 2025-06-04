@@ -40,7 +40,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
             ev,
             state,
             id,
-            m: JavaModuleApi,
+            _,
             (allScalacOptions, compileClasspath, classesPathTask)
           ) =>
         new ScalacOptionsItem(
@@ -61,7 +61,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       tasks = { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetScalaMainClasses },
       requestDescription = "Getting main classes of {}"
     ) {
-      case (_, _, id, _: JavaModuleApi, res) =>
+      case (_, _, id, _, res) =>
         // We find all main classes, although we could also find only the configured one
         val mainClasses = res.classes
         // val mainMain = m.mainClass().orElse(if(mainClasses.size == 1) mainClasses.headOption else None)
@@ -72,8 +72,6 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
         }
         new ScalaMainClassesItem(id, items.asJava)
 
-      case (ev, state, id, _, _) => // no Java module, so no main classes
-        new ScalaMainClassesItem(id, Seq.empty[ScalaMainClass].asJava)
     } {
       new ScalaMainClassesResult(_)
     }
@@ -87,12 +85,12 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       },
       requestDescription = "Getting test classes of {}"
     ) {
-      case (ev, state, id, m: TestModuleApi, (frameworkName, classes)) =>
+      case (_, _, id, _, (frameworkName, classes)) =>
         val item = new ScalaTestClassesItem(id, classes.asJava)
         item.setFramework(frameworkName)
         item
 
-      case (ev, state, id, _, _) =>
+      case (_, _, id, _, _) =>
         // Not a test module, so no test classes
         new ScalaTestClassesItem(id, Seq.empty[String].asJava)
     } {

@@ -309,16 +309,10 @@ private class MillBuildServer(
       requestDescription =
         s"Getting dependency sources of ${p.getTargets.asScala.map(_.getUri).mkString(", ")}"
     ) {
-      case (
-            _,
-            _,
-            id,
-            _: JavaModuleApi,
-            result
-          ) =>
+      case (_, _, id, _, result) =>
         val cp = (result.resolvedDepsSources ++ result.unmanagedClasspath).map(sanitizeUri)
         new DependencySourcesItem(id, cp.asJava)
-      case _ => ???
+
     } { values =>
       new DependencySourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
@@ -338,13 +332,7 @@ private class MillBuildServer(
       tasks = { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetDependencyModules },
       requestDescription = "Getting external dependencies of {}"
     ) {
-      case (
-            _,
-            _,
-            id,
-            _: JavaModuleApi,
-            result
-          ) =>
+      case (_, _, id, _, result) =>
         val deps = result.mvnDeps.collect {
           case (org, repr, version) if org != "mill-internal" =>
             new DependencyModule(repr, version)
@@ -354,7 +342,7 @@ private class MillBuildServer(
           new DependencyModule(s"unmanaged-${dep.getFileName}", "")
         }
         new DependencyModulesItem(id, (deps ++ unmanaged).asJava)
-      case _ => ???
+
     } { values =>
       new DependencyModulesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
@@ -365,7 +353,7 @@ private class MillBuildServer(
       tasks = { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetResources },
       requestDescription = "Getting resources of {}"
     ) {
-      case (_, _, id, _: JavaModuleApi, resources) =>
+      case (_, _, id, _, resources) =>
         val resourcesUrls =
           resources.map(os.Path(_)).filter(os.exists).map(p => sanitizeUri(p.toNIO))
         new ResourcesItem(id, resourcesUrls.asJava)
