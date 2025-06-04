@@ -123,6 +123,7 @@ object Deps {
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion"
+  val coursierJvmIndexVersion = "0.0.4-111-eb6e08"
 
   val cask = ivy"com.lihaoyi::cask:0.9.4"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
@@ -204,7 +205,6 @@ object Deps {
     ivy"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
   val mavenResolverTransportWagon =
     ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
-  val coursierJvmIndexVersion = "0.0.4-84-f852c6"
   val gradleApi = ivy"dev.gradleplugins:gradle-api:8.11.1"
   val sbt = ivy"org.scala-sbt:sbt:1.10.10"
 
