@@ -1384,8 +1384,6 @@ trait JavaModule
     run(Task.Anon(Args(args)))()
   }
 
-  private[mill] def bspBuildTargetResources = Task.Anon { resources().map(_.path.toNIO) }
-
   /**
    * Performs the compilation (via [[compile]]) and merging of [[resources]] needed by
    * [[BspClientType.mergeResourcesIntoClasses]].

@@ -25,7 +25,7 @@ object BspJavaModule extends ExternalModule {
     @internal
     object internalBspJavaModule extends mill.define.Module with BspJavaModuleApi {
 
-      private[mill] def bspRun(args: Seq[String]): Task[Unit] = Task.Anon {
+      override private[mill] def bspRun(args: Seq[String]): Task[Unit] = Task.Anon {
         jm.run(Task.Anon(Args(args)))
       }
 
@@ -39,7 +39,7 @@ object BspJavaModule extends ExternalModule {
           if (found) Seq(id) else Seq()
         }
 
-      private[mill] override def bspBuildTargetJavacOptions(
+      override private[mill] def bspBuildTargetJavacOptions(
           needsToMergeResourcesIntoCompileDest: Boolean,
           clientWantsSemanticDb: Boolean
       ): Task[EvaluatorApi => (
@@ -78,26 +78,29 @@ object BspJavaModule extends ExternalModule {
         )
       }
 
-      private[mill] def bspBuildTargetDependencyModules
+      override private[mill] def bspBuildTargetDependencyModules
           : Task[(
               mvnDeps: Seq[(String, String, String)],
               unmanagedClasspath: Seq[Path]
-          )] =
-        Task.Anon {
-          (
-            // full list of dependencies, including transitive ones
-            jm.millResolver()
-              .resolution(
-                Seq(
-                  jm.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-                  jm.coursierDependency
-                )
+          )] = Task.Anon {
+        (
+          // full list of dependencies, including transitive ones
+          jm.millResolver()
+            .resolution(
+              Seq(
+                jm.coursierDependency.withConfiguration(coursier.core.Configuration.provided),
+                jm.coursierDependency
               )
-              .orderedDependencies
-              .map { d => (d.module.organization.value, d.module.repr, d.version) },
-            jm.unmanagedClasspath().map(_.path.toNIO)
-          )
-        }
+            )
+            .orderedDependencies
+            .map { d => (d.module.organization.value, d.module.repr, d.version) },
+          jm.unmanagedClasspath().map(_.path.toNIO)
+        )
+      }
+
+      override private[mill] def bspBuildTargetResources = Task.Anon {
+        jm.resources().map(_.path.toNIO)
+      }
 
       override private[mill] def bspBuildTargetScalacOptions(
           needsToMergeResourcesIntoCompileDest: Boolean,

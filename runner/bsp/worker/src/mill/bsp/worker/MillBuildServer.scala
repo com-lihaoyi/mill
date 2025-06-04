@@ -361,10 +361,10 @@ private class MillBuildServer(
   override def buildTargetResources(p: ResourcesParams): CompletableFuture[ResourcesResult] =
     handlerTasks(
       targetIds = _ => p.getTargets.asScala,
-      tasks = { case m: JavaModuleApi => m.bspBuildTargetResources },
+      tasks = { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetResources },
       requestDescription = "Getting resources of {}"
     ) {
-      case (ev, state, id, m: JavaModuleApi, resources) =>
+      case (_, _, id, _: JavaModuleApi, resources) =>
         val resourcesUrls =
           resources.map(os.Path(_)).filter(os.exists).map(p => sanitizeUri(p.toNIO))
         new ResourcesItem(id, resourcesUrls.asJava)
