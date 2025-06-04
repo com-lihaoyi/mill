@@ -2,7 +2,7 @@ package mill.scalalib.bsp
 
 import java.nio.file.Path
 
-import mill.Task
+import mill.{Args, Task}
 import mill.api.internal.{BspJavaModuleApi, EvaluatorApi}
 import mill.define.{Discover, ExternalModule, ModuleCtx}
 import mill.scalalib.{JavaModule, SemanticDbJavaModule}
@@ -21,7 +21,11 @@ object BspJavaModule extends ExternalModule {
     // We keep all BSP-related tasks/state in this sub-module
     object internalBspJavaModule extends mill.define.Module with BspJavaModuleApi {
 
-      override def bspBuildTargetJavacOptions(
+      private[mill] def bspRun(args: Seq[String]): Task[Unit] = Task.Anon {
+        jm.run(Task.Anon(Args(args)))
+      }
+
+      private[mill] override def bspBuildTargetJavacOptions(
           needsToMergeResourcesIntoCompileDest: Boolean,
           clientWantsSemanticDb: Boolean
       ): Task[EvaluatorApi => (

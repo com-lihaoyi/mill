@@ -433,7 +433,7 @@ private class MillBuildServer(
       }.get
 
       val args = params.getArguments.getOrElse(Seq.empty[String])
-      val runTask = module.bspRun(args)
+      val runTask = module.bspJavaModule().bspRun(args)
       val runResult = evaluate(
         ev,
         s"Running ${module.bspDisplayName}",

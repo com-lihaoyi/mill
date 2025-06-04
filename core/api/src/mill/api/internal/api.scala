@@ -7,14 +7,17 @@ import mill.api.*
 trait TaskApi[+T] {
   def apply(): T
 }
+
 trait NamedTaskApi[+T] extends TaskApi[T] {
   def label: String
 }
+
 trait ModuleApi {
   def moduleDirectChildren: Seq[ModuleApi]
   private[mill] def moduleDirJava: java.nio.file.Path
   def moduleSegments: Segments
 }
+
 trait JavaModuleApi extends ModuleApi {
 
   @deprecated("Move to BSP context")
@@ -24,9 +27,6 @@ trait JavaModuleApi extends ModuleApi {
   def recursiveModuleDeps: Seq[JavaModuleApi]
 
   def compileModuleDepsChecked: Seq[JavaModuleApi]
-
-  @deprecated("Move to BSP context")
-  private[mill] def bspRun(args: Seq[String]): TaskApi[Unit]
 
   @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetSources
@@ -90,7 +90,10 @@ trait JavaModuleApi extends ModuleApi {
 object JavaModuleApi
 
 trait BspJavaModuleApi extends ModuleApi {
-  def bspBuildTargetJavacOptions(
+
+  private[mill] def bspRun(args: Seq[String]): TaskApi[Unit]
+
+  private[mill] def bspBuildTargetJavacOptions(
       needsToMergeResourcesIntoCompileDest: Boolean,
       clientWantsSemanticDb: Boolean
   )
