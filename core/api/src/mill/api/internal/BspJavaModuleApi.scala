@@ -22,7 +22,6 @@ trait BspJavaModuleApi extends ModuleApi {
       clientWantsSemanticDb: Boolean
   ): TaskApi[(Seq[String], EvaluatorApi => Seq[String], EvaluatorApi => java.nio.file.Path)]
 
-  @deprecated("Move to BSP context")
   private[mill] def bspLoggingTest: TaskApi[Unit]
 
 }
