@@ -10,31 +10,41 @@ trait JavaModuleApi extends ModuleApi {
 
   def compileModuleDepsChecked: Seq[JavaModuleApi]
 
-  private[mill] def bspBuildTargetCompile(
-      needsToMergeResourcesIntoCompileDest: Boolean
-  ): TaskApi[java.nio.file.Path]
+  def transitiveModuleCompileModuleDeps: Seq[JavaModuleApi]
 
-  private[mill] def bspCompileClasspath(
-      needsToMergeResourcesIntoCompileDest: Boolean
-  )
-      : TaskApi[EvaluatorApi => Seq[String]]
+  def javacOptions: TaskApi[Seq[String]]
+  def mandatoryJavacOptions: TaskApi[Seq[String]]
 
+  // IDEA tasks
+
+  def skipIdea: Boolean
+
+  // FIXME: Move to internal trait like we do for BSP tasks
   private[mill] def genIdeaMetadata(
       ideaConfigVersion: Int,
       evaluator: EvaluatorApi,
       path: mill.api.Segments
   ): TaskApi[ResolvedModule]
 
-  def transitiveModuleCompileModuleDeps: Seq[JavaModuleApi]
-  def skipIdea: Boolean
+  // FIXME: Move to internal trait like we do for BSP tasks
   private[mill] def intellijModulePathJava: java.nio.file.Path
 
-  def javacOptions: TaskApi[Seq[String]]
-  def mandatoryJavacOptions: TaskApi[Seq[String]]
+  // BSP Tasks that sometimes need to be customized
+
+  private[mill] def bspBuildTargetCompile(
+      needsToMergeResourcesIntoCompileDest: Boolean
+  ): TaskApi[java.nio.file.Path]
 
   private[mill] def bspCompileClassesPath(needsToMergeResourcesIntoCompileDest: Boolean)
       : TaskApi[UnresolvedPathApi[?]]
 
+  private[mill] def bspCompileClasspath(
+      needsToMergeResourcesIntoCompileDest: Boolean
+  ): TaskApi[EvaluatorApi => Seq[String]]
+
+  /**
+   * Internal access to some BSP helper tasks
+   */
   private[mill] def bspJavaModule: () => BspJavaModuleApi
 }
 
