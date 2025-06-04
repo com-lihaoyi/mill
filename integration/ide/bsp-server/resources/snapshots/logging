@@ -2,8 +2,8 @@
 [bsp] BSP server started
 [1-buildInitialize] Entered buildInitialize
 [1-buildInitialize] buildInitialize took * msec
-[bsp-init-build.mill-61] [info] compiling * Scala sources to * ...
-[bsp-init-build.mill-61] [info] done compiling
+[bsp-init-build.mill-*] [info] compiling * Scala sources to * ...
+[bsp-init-build.mill-*] [info] done compiling
 [bsp-init] SNAPSHOT
 [2-workspaceBuildTargets] Entered workspaceBuildTargets
 [2-workspaceBuildTargets] Evaluating * tasks

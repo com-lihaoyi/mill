@@ -134,6 +134,8 @@ package build
 ...Qux...
 ```
 
+* `import $packages` and `import $meta` are no longer necessary and have been removed
+
 * `mill.api.Ctx` is now `mill.define.TaskCtx`, and `mill.define.Ctx` is now `mill.define.ModuleCtx`,
   to avoid confusion over the name `Ctx` being overloaded to refer to two different classes
 
@@ -159,7 +161,16 @@ package build
 + }
 ```
 
+* `def zincWorker`, `ZincWorkerModule`, and `ZincWorkerUtil` have been renamed to 
+  `jvmWorker`, `JvmWorkerModule`, and `JvmWorkerUtil` {link-pr}/4834[#4834])
+
+* `millSourcePath` has been renamed to `moduleDir`
+
 * The terms `client`/`server` throughout the codebase have been renamed to `launcher`/`daemon` ({link-pr}/5135[#5135])
+
+* `def test` has been renamed `def testForked` ({link-pr}/4577[#4577]). This allows you to distinguish
+  between running all modules named `test` (`./mill __.test`) and running all modules which are test suites
+  (`./mill __.testForked`) that may include `integration` tests modules or modules with other names
 
 * Removed `PublishModule.publishSelfDependency` in favor of `artifactMetadata` ({link-pr}/5118[#5118])
 
@@ -245,6 +256,9 @@ package build
   documentation for how plugins are currently defined and published at
   https://mill-build.org/mill/main-branch/extending/writing-plugins.html[Writing Mill Plugins]
 
+* Mill's uPickle dependency has been updated from 3.3.1 to 4.2.1, which introduces some backwards
+  incompatible changes to the serialized JSON output. This should only affect you if you are 
+  processing Mill's `out` folder `.json` files via external tools
 
 ==== Other Changes
 

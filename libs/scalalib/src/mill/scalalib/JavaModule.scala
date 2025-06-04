@@ -1,29 +1,15 @@
 package mill
 package scalalib
 
-import scala.util.chaining.scalaUtilChainingOps
-import scala.util.matching.Regex
-
-import coursier.Repository
-import coursier.Type
-import coursier.core as cs
-import coursier.core.BomDependency
-import coursier.core.Configuration
-import coursier.core.DependencyManagement
-import coursier.core.Resolution
+import coursier.{Repository, Type, core as cs}
+import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
 import coursier.params.ResolutionParams
-import coursier.parse.JavaOrScalaModule
-import coursier.parse.ModuleParser
-import coursier.util.EitherT
-import coursier.util.ModuleMatcher
-import coursier.util.Monad
+import coursier.parse.{JavaOrScalaModule, ModuleParser}
+import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
-import mill.api.MillException
-import mill.api.Result
-import mill.api.Segments
+import mill.api.{MillException, Result, Segments}
 import mill.api.internal.{
   BspBuildTarget,
-  BspJavaModuleApi,
   BspModuleApi,
   BspUri,
   EvaluatorApi,
@@ -35,19 +21,16 @@ import mill.api.internal.{
   Scoped,
   internal
 }
-import mill.define.ModuleRef
-import mill.define.PathRef
-import mill.define.Segment
-import mill.define.Task
-import mill.define.TaskCtx
-import mill.define.TaskModule
+import mill.define.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspJavaModule, BspModule}
 import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.publish.Artifact
-import mill.util.JarManifest
-import mill.util.Jvm
+import mill.util.{JarManifest, Jvm}
 import os.Path
+
+import scala.util.chaining.scalaUtilChainingOps
+import scala.util.matching.Regex
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -702,17 +685,6 @@ trait JavaModule
   }
 
   /**
-   * Same as [[transitiveLocalClasspath]], but with all dependencies on [[compile]]
-   * replaced by their non-compiling [[bspCompileClassesPath]] variants.
-   *
-   * Keep in sync with [[transitiveLocalClasspath]]
-   */
-  @internal
-  private[mill] def bspTransitiveLocalClasspath: T[Seq[UnresolvedPath]] = Task {
-    Task.traverse(transitiveModuleCompileModuleDeps)(_.bspLocalClasspath)().flatten
-  }
-
-  /**
    * The transitive version of `compileClasspath`
    */
   def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
@@ -728,11 +700,15 @@ trait JavaModule
    * Keep in sync with [[transitiveCompileClasspath]]
    */
   @internal
-  private[mill] def bspTransitiveCompileClasspath: T[Seq[UnresolvedPath]] = Task {
+  private[mill] def bspTransitiveCompileClasspath(
+      needsToMergeResourcesIntoCompileDest: Boolean
+  ): Task[Seq[UnresolvedPath]] = Task.Anon {
     Task.traverse(transitiveModuleCompileModuleDeps)(m =>
       Task.Anon {
-        m.localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
-          Seq(m.bspCompileClassesPath())
+        val localCompileClasspath =
+          m.localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path))
+        val compileClassesPath = m.bspCompileClassesPath(needsToMergeResourcesIntoCompileDest)()
+        localCompileClasspath :+ compileClassesPath
       }
     )()
       .flatten
@@ -826,29 +802,44 @@ trait JavaModule
       )
   }
 
+  /** Resolves paths relative to the `out` folder. */
+  @internal
+  private[mill] def resolveRelativeToOut(
+      task: Task.Named[?],
+      mkPath: os.SubPath => os.SubPath = identity
+  ): UnresolvedPath.DestPath =
+    UnresolvedPath.DestPath(mkPath(os.sub), task.ctx.segments)
+
+  /** The path where the compiled classes produced by [[compile]] are stored. */
+  @internal
+  private[mill] def compileClassesPath: UnresolvedPath.DestPath =
+    resolveRelativeToOut(compile, _ / "classes")
+
   /**
    * The path to the compiled classes by [[compile]] without forcing to actually run the compilation.
    * This is safe in an BSP context, as the compilation done later will use the
    * exact same compilation settings, so we can safely use the same path.
    *
-   * Keep in sync with [[compile]]
+   * Keep in sync with [[compile]] and [[bspBuildTargetCompile]].
+   *
+   * @param needsToMergeResourcesIntoCompileDest
+   *   Whether we should copy resources into the compile destination directory.
+   *
+   *   This is needed because some BSP clients (e.g. Intellij) ignore the resources classpath that we supply for it
+   *   when running tests.
+   *
+   *   Both sbt and maven (and presumably gradle) copy the resources into the compile destination directory, so while it
+   *   seems like a hack, this seems to be a working solution.
+   *
+   *   See also: https://github.com/com-lihaoyi/mill/issues/4427#issuecomment-2908889481
    */
   @internal
-  override private[mill] def bspCompileClassesPath: T[UnresolvedPath] =
-    if (compile.ctx.enclosing == s"${classOf[JavaModule].getName}#compile") {
-      Task {
-        Task.log.debug(
-          s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
-        )
-        UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments)
-      }
-    } else {
-      Task {
-        Task.log.debug(
-          s"compile target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compile}"
-        )
-        UnresolvedPath.ResolvedPath(compile().classes.path)
-      }
+  override private[mill] def bspCompileClassesPath(
+      needsToMergeResourcesIntoCompileDest: Boolean
+  ): Task[UnresolvedPath] =
+    Task.Anon {
+      if (needsToMergeResourcesIntoCompileDest) resolveRelativeToOut(bspBuildTargetCompileMerged)
+      else compileClassesPath
     }
 
   /**
@@ -857,8 +848,7 @@ trait JavaModule
    * Keep in sync with [[bspLocalRunClasspath]]
    */
   override def localRunClasspath: T[Seq[PathRef]] = Task {
-    super.localRunClasspath() ++ resources() ++
-      Seq(compile().classes)
+    super.localRunClasspath() ++ resources() ++ Seq(compile().classes)
   }
 
   /**
@@ -866,11 +856,15 @@ trait JavaModule
    *
    * Keep in sync with [[localRunClasspath]]
    */
-  private[mill] def bspLocalRunClasspath: T[Seq[UnresolvedPath]] = Task {
-    Seq.from(super.localRunClasspath() ++ resources())
-      .map(p => UnresolvedPath.ResolvedPath(p.path)) ++
-      Seq(bspCompileClassesPath())
-  }
+  @internal
+  private[mill] def bspLocalRunClasspath(
+      needsToMergeResourcesIntoCompileDest: Boolean
+  ): Task[Seq[UnresolvedPath]] =
+    Task.Anon {
+      Seq.from(super.localRunClasspath() ++ resources())
+        .map(p => UnresolvedPath.ResolvedPath(p.path)) ++
+        Seq(bspCompileClassesPath(needsToMergeResourcesIntoCompileDest)())
+    }
 
   /**
    * The *output* classfiles/resources from this module, used for execution,
@@ -892,10 +886,13 @@ trait JavaModule
    * Keep in sync with [[localClasspath]]
    */
   @internal
-  private[mill] def bspLocalClasspath: T[Seq[UnresolvedPath]] = Task {
-    (localCompileClasspath()).map(p => UnresolvedPath.ResolvedPath(p.path)) ++
-      bspLocalRunClasspath()
-  }
+  private[mill] def bspLocalClasspath(
+      needsToMergeResourcesIntoCompileDest: Boolean
+  ): Task[Seq[UnresolvedPath]] =
+    Task.Anon {
+      localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
+        bspLocalRunClasspath(needsToMergeResourcesIntoCompileDest)()
+    }
 
   /**
    * All classfiles and resources from upstream modules and dependencies
@@ -913,10 +910,13 @@ trait JavaModule
    * Keep in sync with [[compileClasspath]]
    */
   @internal
-  override private[mill] def bspCompileClasspath: Task[EvaluatorApi => Seq[String]] = Task.Anon {
+  override private[mill] def bspCompileClasspath(
+      needsToMergeResourcesIntoCompileDest: Boolean
+  )
+      : Task[EvaluatorApi => Seq[String]] = Task.Anon {
     (ev: EvaluatorApi) =>
       (resolvedMvnDeps().map(p => UnresolvedPath.ResolvedPath(p.path)) ++
-        bspTransitiveCompileClasspath() ++
+        bspTransitiveCompileClasspath(needsToMergeResourcesIntoCompileDest)() ++
         localCompileClasspath().map(p => UnresolvedPath.ResolvedPath(p.path))).map(_.resolve(
         os.Path(ev.outPathJava)
       )).map(sanitizeUri)
@@ -1350,7 +1350,9 @@ trait JavaModule
     Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
   }
 
+  @internal
   override private[mill] def bspBuildTargetScalacOptions(
+      needsToMergeResourcesIntoCompileDest: Boolean,
       enableJvmCompileClasspathProvider: Boolean,
       clientWantsSemanticDb: Boolean
   ) = {
@@ -1365,10 +1367,10 @@ trait JavaModule
       if (enableJvmCompileClasspathProvider) {
         // We have a dedicated request for it
         Task.Anon {
-          (e: EvaluatorApi) => Seq.empty[String]
+          (_: EvaluatorApi) => Seq.empty[String]
         }
       } else {
-        bspCompileClasspath
+        bspCompileClasspath(needsToMergeResourcesIntoCompileDest)
       }
 
     val classesPathTask =
@@ -1378,7 +1380,9 @@ trait JavaModule
         )
       } else {
         Task.Anon((e: EvaluatorApi) =>
-          bspCompileClassesPath().resolve(os.Path(e.outPathJava)).toNIO
+          bspCompileClassesPath(
+            needsToMergeResourcesIntoCompileDest
+          )().resolve(os.Path(e.outPathJava)).toNIO
         )
       }
 
@@ -1387,17 +1391,21 @@ trait JavaModule
     }
   }
 
-//  override private[mill] def bspBuildTargetJavacOptions(clientWantsSemanticDb: Boolean) = {
+//  @internal
+//  private[mill] def bspBuildTargetJavacOptions(
+//      needsToMergeResourcesIntoCompileDest: Boolean,
+//      clientWantsSemanticDb: Boolean
+//  ) = {
 //    val classesPathTask = this match {
 //      case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
 //        sem.bspCompiledClassesAndSemanticDbFiles
-//      case _ => bspCompileClassesPath
+//      case _ => bspCompileClassesPath(needsToMergeResourcesIntoCompileDest)
 //    }
 //    Task.Anon { (ev: EvaluatorApi) =>
 //      (
 //        classesPathTask().resolve(os.Path(ev.outPathJava)).toNIO,
 //        javacOptions() ++ mandatoryJavacOptions(),
-//        bspCompileClasspath.apply().apply(ev)
+//        bspCompileClasspath(needsToMergeResourcesIntoCompileDest).apply().apply(ev)
 //      )
 //    }
 //  }
@@ -1461,7 +1469,37 @@ trait JavaModule
 
   private[mill] def bspBuildTargetResources = Task.Anon { resources().map(_.path.toNIO) }
 
-  private[mill] def bspBuildTargetCompile = Task.Anon { compile().classes.path.toNIO }
+  /**
+   * Performs the compilation (via [[compile]]) and merging of [[resources]] needed by
+   * [[BspClientType.mergeResourcesIntoClasses]].
+   */
+  @internal
+  private[mill] def bspBuildTargetCompileMerged: T[PathRef] = Task {
+
+    /**
+     * Make sure to invoke the [[bspBuildTargetCompileMerged]] of the transitive dependencies. For example, tests
+     * should be able to read resources of the module that they are testing.
+     */
+    val _ = Task.traverse(transitiveModuleCompileModuleDeps)(m =>
+      Task.Anon(m.bspBuildTargetCompileMerged())
+    )()
+
+    // Merge the compile and resources classpaths.
+    os.copy(compile().classes.path, Task.dest, mergeFolders = true)
+    resources().foreach { resource =>
+      os.copy(resource.path, Task.dest, mergeFolders = true)
+    }
+
+    PathRef(Task.dest)
+  }
+
+  @internal
+  override private[mill] def bspBuildTargetCompile(
+      needsToMergeResourcesIntoCompileDest: Boolean
+  ): Task[java.nio.file.Path] = {
+    if (needsToMergeResourcesIntoCompileDest) Task.Anon { bspBuildTargetCompileMerged().path.toNIO }
+    else Task.Anon { compile().classes.path.toNIO }
+  }
 
   private[mill] def bspLoggingTest = Task.Anon {
     System.out.println("bspLoggingTest from System.out")

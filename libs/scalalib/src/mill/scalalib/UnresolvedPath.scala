@@ -23,6 +23,7 @@ object UnresolvedPath {
     implicit def upickleRW: ReadWriter[ResolvedPath] = macroRW
   }
 
+  /** A path relative to the `out` folder, in form of `out/${segments}.dest/$subPath`. */
   case class DestPath private (
       subPath: String,
       segments: Seq[String]

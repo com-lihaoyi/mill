@@ -10,9 +10,8 @@ import ch.epfl.scala.bsp4j.{
   JavacOptionsParams,
   JavacOptionsResult
 }
-import mill.api.internal.{BspModuleApi, JavaModuleApi, TaskApi}
+import mill.api.internal.{BspModuleApi, JavaModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
-
 
 private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
 
@@ -22,9 +21,10 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
       targetIds = _ => javacOptionsParams.getTargets.asScala,
       tasks = {
         case m: (JavaModuleApi & BspModuleApi) =>
-          m.bspJavaModule().bspBuildTargetJavacOptions(sessionInfo.clientWantsSemanticDb)
-        //          m.bspJavaModule.bspBuildTargetJavacOptions(sessionInfo.clientWantsSemanticDb)
-        //        case m: JavaModule =>
+          m.bspJavaModule().bspBuildTargetJavacOptions(
+            sessionInfo.clientType.mergeResourcesIntoClasses,
+            sessionInfo.clientWantsSemanticDb
+          )
       },
       requestDescription = "Getting javac options of {}"
     ) {
@@ -43,4 +43,3 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
       new JavacOptionsResult(_)
     }
 }
-
