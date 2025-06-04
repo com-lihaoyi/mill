@@ -89,7 +89,7 @@ private[androidlib] object InstrumentationOutput {
             TimeResultState(state.started, testResultStarted, state.testResults :+ testResult)
           case InstrumentationOutput.Ignored(line) =>
             // todo handle stream and stack
-            logger.debug(s"Message ${line}, ignored")
+            logger.debug(s"Message ${line}")
             state
         }
     }
