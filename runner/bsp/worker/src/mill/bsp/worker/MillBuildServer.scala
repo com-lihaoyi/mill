@@ -267,10 +267,13 @@ private class MillBuildServer(
     handlerEvaluators() { (state, _) =>
       val tasksEvaluators = state.bspModulesIdList.collect {
         case (id, (m: JavaModuleApi, ev)) =>
-          m.bspBuildTargetInverseSources(id, p.getTextDocument.getUri) -> ev
+          (
+            result = m.bspJavaModule().bspBuildTargetInverseSources(id, p.getTextDocument.getUri),
+            evaluator = ev
+          )
       }
 
-      val ids = groupList(tasksEvaluators)(_._2)(_._1)
+      val ids = groupList(tasksEvaluators)(_.evaluator)(_.result)
         .flatMap { case (ev, ts) => ev.executeApi(ts).values.get }
         .flatten
 

@@ -29,6 +29,16 @@ object BspJavaModule extends ExternalModule {
         jm.run(Task.Anon(Args(args)))
       }
 
+      override private[mill] def bspBuildTargetInverseSources[T](
+          id: T,
+          searched: String
+      ): Task[Seq[T]] =
+        Task.Anon {
+          val src = jm.allSourceFiles()
+          val found = src.map(jm.sanitizeUri).contains(searched)
+          if (found) Seq(id) else Seq()
+        }
+
       private[mill] override def bspBuildTargetJavacOptions(
           needsToMergeResourcesIntoCompileDest: Boolean,
           clientWantsSemanticDb: Boolean

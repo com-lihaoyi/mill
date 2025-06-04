@@ -19,9 +19,6 @@ trait JavaModuleApi extends ModuleApi {
       : TaskApi[(Seq[java.nio.file.Path], Seq[java.nio.file.Path])]
 
   @deprecated("Move to BSP context")
-  private[mill] def bspBuildTargetInverseSources[T](id: T, uri: String): TaskApi[Seq[T]]
-
-  @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetDependencySources
       : TaskApi[(Seq[java.nio.file.Path], Seq[java.nio.file.Path])]
 

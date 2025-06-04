@@ -1377,16 +1377,6 @@ trait JavaModule
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 
-  override private[mill] def bspBuildTargetInverseSources[T](
-      id: T,
-      searched: String
-  ): Task[Seq[T]] =
-    Task.Anon {
-      val src = allSourceFiles()
-      val found = src.map(sanitizeUri).contains(searched)
-      if (found) Seq(id) else Seq()
-    }
-
   override private[mill] def bspBuildTargetDependencySources = Task.Anon {
     (
       millResolver().classpath(
