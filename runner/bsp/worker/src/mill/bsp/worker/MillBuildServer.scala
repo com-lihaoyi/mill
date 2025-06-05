@@ -606,13 +606,14 @@ private class MillBuildServer(
       buildTargetIdentifier: BuildTargetIdentifier,
       moduleApi: BspModuleApi,
       result: W
-  ) => T)(agg: java.util.List[T] => V)(implicit
-      name: sourcecode.Name
+  ) => T)(agg: java.util.List[T] => V)(using
+      name: sourcecode.Name,
+      enclosing: sourcecode.Enclosing
   )
       : CompletableFuture[V] =
     handlerTasksEvaluators[T, V, W](targetIds, tasks, requestDescription)(block)((l, _) =>
       agg(l)
-    )
+    )(using name, enclosing)
 
   /**
    * @params tasks A partial function
@@ -625,7 +626,7 @@ private class MillBuildServer(
   )(block: (EvaluatorApi, BspEvaluators, BuildTargetIdentifier, BspModuleApi, W) => T)(agg: (
       java.util.List[T],
       BspEvaluators
-  ) => V)(implicit name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V] = {
+  ) => V)(using name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V] = {
     val prefix = name.value
     handlerEvaluators() { (state, logger) =>
       val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
