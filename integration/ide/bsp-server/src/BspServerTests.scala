@@ -1,16 +1,16 @@
 package mill.integration
 
-import ch.epfl.scala.{bsp4j => b}
-import mill.api.BuildInfo
-import mill.bsp.Constants
-import mill.integration.BspServerTestUtil._
-import mill.testkit.UtestIntegrationTestSuite
-import mill.testrunner.TestRunnerUtils
-import utest._
-
 import java.io.ByteArrayOutputStream
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
+
+import ch.epfl.scala.bsp4j as b
+import mill.api.BuildInfo
+import mill.bsp.Constants
+import mill.integration.BspServerTestUtil.*
+import mill.testkit.UtestIntegrationTestSuite
+import mill.testrunner.TestRunnerUtils
+import utest.*
 
 object BspServerTests extends UtestIntegrationTestSuite {
   def snapshotsPath: os.Path =
@@ -42,7 +42,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
   def tests: Tests = Tests {
     test("requestSnapshots") - integrationTest { tester =>
-      import tester._
+      import tester.*
       eval(
         "--bsp-install",
         stdout = os.Inherit,
@@ -131,6 +131,24 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
+        {
+          val file = workspacePath / "app/src/App.java"
+          assert(initRes.getCapabilities.getInverseSourcesProvider == true)
+          assert(os.exists(file))
+
+          compareWithGsonSnapshot(
+            buildServer
+              .buildTargetInverseSources(
+                new b.InverseSourcesParams(
+                  new b.TextDocumentIdentifier(file.toNIO.toUri().toASCIIString)
+                )
+              )
+              .get(),
+            snapshotsPath / "build-targets-inverse-sources.json",
+            normalizedLocalValues = normalizedLocalValues
+          )
+        }
+
         compareWithGsonSnapshot(
           buildServer
             .buildTargetDependencySources(new b.DependencySourcesParams(targetIdsSubset))
@@ -212,7 +230,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
     }
 
     test("logging") - integrationTest { tester =>
-      import tester._
+      import tester.*
       eval(
         "--bsp-install",
         stdout = os.Inherit,
