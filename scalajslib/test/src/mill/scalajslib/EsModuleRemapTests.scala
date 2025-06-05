@@ -5,7 +5,6 @@ import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestBaseModule
 import utest._
-import mill.define.Target
 import mill.T
 import mill.scalajslib.api._
 

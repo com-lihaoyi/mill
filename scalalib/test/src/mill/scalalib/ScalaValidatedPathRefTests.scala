@@ -28,7 +28,7 @@ object ScalaValidatedPathRefTests extends TestSuite {
 
     test("validated") {
       test("PathRef") {
-        def check(t: Target[PathRef], flip: Boolean) = UnitTester(ValidatedTarget, null).scoped {
+        def check(t: T[PathRef], flip: Boolean) = UnitTester(ValidatedTarget, null).scoped {
           eval =>
             // we reconstruct faulty behavior
             val Right(result) = eval.apply(t)
@@ -48,7 +48,7 @@ object ScalaValidatedPathRefTests extends TestSuite {
         test("checked") - check(ValidatedTarget.checkedPathRef, true)
       }
       test("SeqPathRef") {
-        def check(t: Target[Seq[PathRef]], flip: Boolean) =
+        def check(t: T[Seq[PathRef]], flip: Boolean) =
           UnitTester(ValidatedTarget, null).scoped { eval =>
             // we reconstruct faulty behavior
             val Right(result) = eval.apply(t)
@@ -68,7 +68,7 @@ object ScalaValidatedPathRefTests extends TestSuite {
         test("checked") - check(ValidatedTarget.checkedSeqPathRef, true)
       }
       test("AggPathRef") {
-        def check(t: Target[Agg[PathRef]], flip: Boolean) =
+        def check(t: T[Agg[PathRef]], flip: Boolean) =
           UnitTester(ValidatedTarget, null).scoped { eval =>
             // we reconstruct faulty behavior
             val Right(result) = eval.apply(t)
@@ -88,7 +88,7 @@ object ScalaValidatedPathRefTests extends TestSuite {
         test("checked") - check(ValidatedTarget.checkedAggPathRef, true)
       }
       test("other") {
-        def check(t: Target[Tuple1[PathRef]], flip: Boolean) =
+        def check(t: T[Tuple1[PathRef]], flip: Boolean) =
           UnitTester(ValidatedTarget, null).scoped { eval =>
             // we reconstruct faulty behavior
             val Right(result) = eval.apply(t)

@@ -417,7 +417,7 @@ trait PublishModule extends JavaModule { outer =>
       val publishTransitiveModuleDeps = (transitiveModuleDeps ++ transitiveRunModuleDeps).collect {
         case p: PublishModule => p
       }
-      Target.traverse(publishTransitiveModuleDeps.distinct) { publishMod =>
+      Task.traverse(publishTransitiveModuleDeps.distinct) { publishMod =>
         publishMod.publishLocalTask(localIvyRepo, sources, doc, transitive = false)
       }.map(_.flatten)
     } else {

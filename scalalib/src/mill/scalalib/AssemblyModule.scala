@@ -2,7 +2,8 @@ package mill.scalalib
 
 import mill.api.Loose.Agg
 import mill.api.{JarManifest, PathRef, Result}
-import mill.define.{Target => T, _}
+import mill.define._
+import mill.define.Task.{Simple => T}
 import mill.util.Jvm
 
 /**

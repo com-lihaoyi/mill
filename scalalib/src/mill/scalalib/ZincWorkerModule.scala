@@ -23,9 +23,9 @@ object ZincWorkerModule extends ExternalModule with ZincWorkerModule with Coursi
  */
 @deprecated("Use JvmWorkerModule instead", "Mill 0.12.11")
 trait ZincWorkerModule extends mill.Module with OfflineSupportModule with CoursierModule {
-  def jvmId: mill.define.Target[String] = Task[String] { "" }
+  def jvmId: mill.define.Task.Simple[String] = Task[String] { "" }
 
-  def jvmIndexVersion: mill.define.Target[String] =
+  def jvmIndexVersion: mill.define.Task.Simple[String] =
     mill.scalalib.api.Versions.coursierJvmIndexVersion
 
   def classpath: T[Agg[PathRef]] = Task {
