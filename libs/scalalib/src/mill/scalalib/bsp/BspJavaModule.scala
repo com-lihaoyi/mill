@@ -3,7 +3,7 @@ package mill.scalalib.bsp
 import java.nio.file.Path
 
 import mill.api.internal.bsp.BspJavaModuleApi
-import mill.{Args, Task}
+import mill.Task
 import mill.api.internal.{EvaluatorApi, TaskApi, internal}
 import mill.define.{Discover, ExternalModule, ModuleCtx}
 import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule}
@@ -25,10 +25,6 @@ object BspJavaModule extends ExternalModule {
     // We keep all BSP-related tasks/state in this sub-module
     @internal
     object internalBspJavaModule extends mill.define.Module with BspJavaModuleApi {
-
-      override private[mill] def bspRun(args: Seq[String]): Task[Unit] = Task.Anon {
-        jm.run(Task.Anon(Args(args)))
-      }
 
       override private[mill] def bspBuildTargetInverseSources[T](
           id: T,

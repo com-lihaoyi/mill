@@ -422,15 +422,15 @@ private class MillBuildServer(
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] =
     handlerEvaluators() { (state, logger) =>
       val params = TaskParameters.fromRunParams(runParams)
-      val (javaModule, ev) = params.getTargets.map(state.bspModulesById).collectFirst {
-        case (m: JavaModuleApi, ev) => (m, ev)
+      val (runModule, ev) = params.getTargets.map(state.bspModulesById).collectFirst {
+        case (m: RunModuleApi, ev) => (m, ev)
       }.get
 
       val args = params.getArguments.getOrElse(Seq.empty[String])
-      val runTask = javaModule.bspJavaModule().bspRun(args)
+      val runTask = runModule.bspRunModule().bspRun(args)
       val runResult = evaluate(
         ev,
-        s"Running ${javaModule.bspDisplayName}",
+        s"Running ${runModule.bspDisplayName}",
         Seq(runTask),
         logger,
         Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client)

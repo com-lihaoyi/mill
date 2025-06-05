@@ -5,6 +5,9 @@ import java.nio.file.Path
 import mill.api.internal.{ModuleApi, TaskApi}
 
 trait BspRunModuleApi extends ModuleApi {
+
+  private[mill] def bspRun(args: Seq[String]): TaskApi[Unit]
+
   private[mill] def bspJvmRunTestEnvironment: TaskApi[(
       runClasspath: Seq[Path],
       forkArgs: Seq[String],

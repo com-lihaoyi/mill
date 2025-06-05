@@ -7,7 +7,7 @@ import mill.api.internal.internal
 import mill.define.{Discover, ExternalModule, ModuleCtx}
 import mill.define.JsonFormatters.given
 import mill.scalalib.{JavaModule, RunModule, TestModule}
-import mill.Task
+import mill.{Args, Task}
 
 @internal
 object BspRunModule extends ExternalModule {
@@ -25,6 +25,10 @@ object BspRunModule extends ExternalModule {
     // We keep all BSP-related tasks/state in this sub-module
     @internal
     object internalBspRunModule extends mill.define.Module with BspRunModuleApi {
+
+      override private[mill] def bspRun(args: Seq[String]): Task[Unit] = Task.Anon {
+        runModule.run(Task.Anon(Args(args)))
+      }
 
       override private[mill] def bspJvmRunTestEnvironment: Task.Simple[(
           runClasspath: Seq[Path],

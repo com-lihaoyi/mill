@@ -6,7 +6,6 @@ import mill.api.internal.{EvaluatorApi, JavaModuleApi, ModuleApi, TaskApi}
 
 trait BspJavaModuleApi extends ModuleApi {
 
-  private[mill] def bspRun(args: Seq[String]): TaskApi[Unit]
 
   private[mill] def bspBuildTargetInverseSources[T](id: T, uri: String): TaskApi[Seq[T]]
 
