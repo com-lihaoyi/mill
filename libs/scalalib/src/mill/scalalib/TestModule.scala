@@ -15,7 +15,7 @@ import mill.testrunner.TestArgs
 import mill.testrunner.TestResult
 import mill.testrunner.TestRunner
 import mill.util.Jvm
-import upickle.implicits.namedTuples.default.given
+import mill.define.JsonFormatters.given
 
 trait TestModule
     extends TestModule.JavaModuleBase

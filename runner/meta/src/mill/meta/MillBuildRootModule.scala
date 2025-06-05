@@ -10,7 +10,7 @@ import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.util.BuildInfo
 import mill.api.internal.MillScalaParser
-import upickle.implicits.namedTuples.default.given
+import mill.define.JsonFormatters.given
 
 import scala.jdk.CollectionConverters.ListHasAsScala
 

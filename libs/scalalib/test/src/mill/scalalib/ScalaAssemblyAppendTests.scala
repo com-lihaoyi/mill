@@ -1,16 +1,18 @@
 package mill.scalalib
 
-import mill._
+import mill.*
 import mill.testkit.UnitTester
-import utest._
-
+import utest.*
 import java.util.jar.JarFile
+
 import scala.util.Using
-import HelloWorldTests._
+
+import HelloWorldTests.*
+import mill.define.Task
 
 object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {
-    def checkAppend[M <: mill.testkit.TestRootModule](module: M, target: Target[PathRef]) =
+    def checkAppend[M <: mill.testkit.TestRootModule](module: M, target: Task.Simple[PathRef]) =
       UnitTester(module, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(target): @unchecked
 
@@ -36,7 +38,7 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
 
     def checkAppendMulti[M <: mill.testkit.TestRootModule](
         module: M,
-        target: Target[PathRef]
+        target: Task.Simple[PathRef]
     ): Unit = UnitTester(
       module,
       sourceRoot = helloWorldMultiResourcePath
@@ -62,7 +64,7 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
 
     def checkAppendWithSeparator[M <: mill.testkit.TestRootModule](
         module: M,
-        target: Target[PathRef]
+        target: Task.Simple[PathRef]
     ): Unit = UnitTester(
       module,
       sourceRoot = helloWorldMultiResourcePath
