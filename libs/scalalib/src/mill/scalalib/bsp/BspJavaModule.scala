@@ -7,6 +7,7 @@ import mill.{Args, Task}
 import mill.api.internal.{EvaluatorApi, TaskApi, internal}
 import mill.define.{Discover, ExternalModule, ModuleCtx}
 import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule}
+import mill.define.JsonFormatters.given
 
 @internal
 object BspJavaModule extends ExternalModule {
@@ -62,10 +63,10 @@ object BspJavaModule extends ExternalModule {
       }
 
       override private[mill] def bspBuildTargetDependencySources
-          : Task[(
+          : Task.Simple[(
               resolvedDepsSources: Seq[Path],
               unmanagedClasspath: Seq[Path]
-          )] = Task.Anon {
+          )] = Task {
         (
           resolvedDepsSources = jm.millResolver().classpath(
             Seq(
@@ -79,10 +80,10 @@ object BspJavaModule extends ExternalModule {
       }
 
       override private[mill] def bspBuildTargetDependencyModules
-          : Task[(
+          : Task.Simple[(
               mvnDeps: Seq[(String, String, String)],
               unmanagedClasspath: Seq[Path]
-          )] = Task.Anon {
+          )] = Task {
         (
           // full list of dependencies, including transitive ones
           jm.millResolver()
@@ -99,8 +100,8 @@ object BspJavaModule extends ExternalModule {
       }
 
       override private[mill] def bspBuildTargetSources
-          : TaskApi[(sources: Seq[Path], generatedSources: Seq[Path])] =
-        Task.Anon {
+          : Task.Simple[(sources: Seq[Path], generatedSources: Seq[Path])] =
+        Task {
           (jm.sources().map(_.path.toNIO), jm.generatedSources().map(_.path.toNIO))
         }
 
@@ -149,12 +150,14 @@ object BspJavaModule extends ExternalModule {
       }
 
       override private[mill] def bspBuildTargetScalaMainClasses
-          : Task[(
+          : Task.Simple[(
               classes: Seq[String],
               forkArgs: Seq[String],
               forkEnv: Map[String, String]
           )] =
-        Task.Anon((jm.allLocalMainClasses(), jm.forkArgs(), jm.forkEnv()))
+        Task {
+          (jm.allLocalMainClasses(), jm.forkArgs(), jm.forkEnv())
+        }
 
       override private[mill] def bspLoggingTest = Task.Anon {
         System.out.println("bspLoggingTest from System.out")

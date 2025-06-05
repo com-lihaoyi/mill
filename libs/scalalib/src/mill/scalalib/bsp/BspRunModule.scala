@@ -2,11 +2,12 @@ package mill.scalalib.bsp
 
 import java.nio.file.Path
 
-import mill.api.internal.bsp.{BspJavaModuleApi, BspRunModuleApi}
-import mill.api.internal.{EvaluatorApi, TaskApi, internal}
+import mill.api.internal.bsp.BspRunModuleApi
+import mill.api.internal.internal
 import mill.define.{Discover, ExternalModule, ModuleCtx}
-import mill.scalalib.{JavaModule, RunModule, ScalaModule, SemanticDbJavaModule, TestModule}
-import mill.{Args, Task}
+import mill.define.JsonFormatters.given
+import mill.scalalib.{JavaModule, RunModule, TestModule}
+import mill.Task
 
 @internal
 object BspRunModule extends ExternalModule {
@@ -25,7 +26,7 @@ object BspRunModule extends ExternalModule {
     @internal
     object internalBspRunModule extends mill.define.Module with BspRunModuleApi {
 
-      override private[mill] def bspJvmRunTestEnvironment: Task[(
+      override private[mill] def bspJvmRunTestEnvironment: Task.Simple[(
           runClasspath: Seq[Path],
           forkArgs: Seq[String],
           forkWorkingDir: Path,
@@ -51,7 +52,7 @@ object BspRunModule extends ExternalModule {
               Task.Anon { None }
             )
         }
-        Task.Anon {
+        Task {
           (
             runModule.runClasspath().map(_.path.toNIO),
             runModule.forkArgs(),
