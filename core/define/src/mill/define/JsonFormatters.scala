@@ -73,6 +73,8 @@ trait JsonFormatters {
           .newInstance(s)
           .asInstanceOf[T]
     )
+
+  export upickle.implicits.namedTuples.default.given
 }
 
 object JsonFormatters extends JsonFormatters {
