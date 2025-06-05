@@ -237,15 +237,16 @@ trait AndroidModule extends JavaModule {
       transformedAarFilesToJar ++ jarFiles
     }
 
-  def androidTransformAarFiles(resolvedDeps: Task[Seq[PathRef]]): Task[Seq[UnpackedDep]] = Task.Anon {
-    val transformDest = Task.dest / "transform"
-    val aarFiles = resolvedDeps()
-      .map(_.path)
-      .filter(_.ext == "aar")
-      .distinct
+  def androidTransformAarFiles(resolvedDeps: Task[Seq[PathRef]]): Task[Seq[UnpackedDep]] =
+    Task.Anon {
+      val transformDest = Task.dest / "transform"
+      val aarFiles = resolvedDeps()
+        .map(_.path)
+        .filter(_.ext == "aar")
+        .distinct
 
-    extractAarFiles(aarFiles, transformDest)
-  }
+      extractAarFiles(aarFiles, transformDest)
+    }
 
   /**
    * Extracts JAR files and resources from AAR dependencies.
