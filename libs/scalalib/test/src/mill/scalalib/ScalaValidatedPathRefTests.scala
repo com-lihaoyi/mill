@@ -30,22 +30,23 @@ object ScalaValidatedPathRefTests extends TestSuite {
 
     test("validated") {
       test("PathRef") {
-        def check(t: Task.Simple[PathRef], flip: Boolean) = UnitTester(ValidatedTarget, null).scoped {
-          eval =>
-            // we reconstruct faulty behavior
-            val Right(result) = eval.apply(t): @unchecked
-            assert(
-              result.value.path.last == (t.asInstanceOf[Task.Named[?]].label + ".dest"),
-              os.exists(result.value.path)
-            )
-            os.remove.all(result.value.path)
-            val Right(result2) = eval.apply(t): @unchecked
-            assert(
-              result2.value.path.last == (t.asInstanceOf[Task.Named[?]].label + ".dest"),
-              // as the result was cached but not checked, this path is missing
-              os.exists(result2.value.path) == flip
-            )
-        }
+        def check(t: Task.Simple[PathRef], flip: Boolean) =
+          UnitTester(ValidatedTarget, null).scoped {
+            eval =>
+              // we reconstruct faulty behavior
+              val Right(result) = eval.apply(t): @unchecked
+              assert(
+                result.value.path.last == (t.asInstanceOf[Task.Named[?]].label + ".dest"),
+                os.exists(result.value.path)
+              )
+              os.remove.all(result.value.path)
+              val Right(result2) = eval.apply(t): @unchecked
+              assert(
+                result2.value.path.last == (t.asInstanceOf[Task.Named[?]].label + ".dest"),
+                // as the result was cached but not checked, this path is missing
+                os.exists(result2.value.path) == flip
+              )
+          }
         test("unchecked") - check(ValidatedTarget.uncheckedPathRef, false)
         test("checked") - check(ValidatedTarget.checkedPathRef, true)
       }
