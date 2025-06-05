@@ -10,7 +10,6 @@ import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.api.internal.{ScalaBuildTarget, ScalaJSModuleApi, ScalaPlatform, internal}
 import mill.*
-import upickle.implicits.namedTuples.default.given
 
 trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =>
 
