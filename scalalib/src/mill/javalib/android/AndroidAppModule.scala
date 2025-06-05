@@ -300,7 +300,7 @@ trait AndroidAppModule extends JavaModule {
    */
   def androidAaptOptions: T[Seq[String]] = Task { Seq("--auto-add-overlay") }
 
-  def androidTransitiveResources: Target[Seq[PathRef]] = Task {
+  def androidTransitiveResources: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps) { m =>
       Task.Anon(m.resources())
     }().flatten
@@ -945,7 +945,7 @@ trait AndroidAppModule extends JavaModule {
    *
    * @return The name of the device the app was installed to
    */
-  def androidInstall: Target[String] = Task {
+  def androidInstall: T[String] = Task {
     val emulator = runningEmulator()
 
     os.call(
@@ -1121,7 +1121,7 @@ trait AndroidAppModule extends JavaModule {
 
     def testFramework: T[String]
 
-    override def androidInstall: Target[String] = Task {
+    override def androidInstall: T[String] = Task {
       val emulator = runningEmulator()
       os.call(
         (

@@ -1,7 +1,6 @@
 package mill.contrib.proguard
 
 import mill._
-import mill.define.Target
 import mill.util.Util.millProjectModule
 import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester

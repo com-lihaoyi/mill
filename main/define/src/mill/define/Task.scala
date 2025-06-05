@@ -4,6 +4,7 @@ import mill.api.{CompileProblemReporter, Logger, PathRef, Result, TestReporter}
 import mill.define.Applicative.Applyable
 import upickle.default.{ReadWriter => RW, Writer => W}
 
+import scala.annotation.nowarn
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
@@ -12,7 +13,7 @@ import scala.reflect.macros.blackbox.Context
  * single output of type [[T]].
  *
  * Generally not instantiated manually, but instead constructed via the
- * [[Target.apply]] & similar macros.
+ * [[Task.apply]] & similar macros.
  */
 abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
 
@@ -43,7 +44,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
    */
   def deferredGeneratedSourceRoots: Seq[os.SubPath] = Seq.empty
 
-  def asTarget: Option[Target[T]] = None
+  def asTarget: Option[Task.Simple[T]] = None
   def asCommand: Option[Command[T]] = None
   def asWorker: Option[Worker[T]] = None
   def self: Task[T] = this
@@ -55,6 +56,10 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] {
 
 object Task extends TaskBase {
 
+  // Forward compatibility with Mill 1.0
+  @nowarn("cat=deprecation")
+  type Simple[+T] = Target[T]
+
   /**
    * A specialization of [[InputImpl]] defined via `Task.Sources`, [[SourcesImpl]]
    * uses [[PathRef]]s to compute a signature for a set of source files and
@@ -65,26 +70,28 @@ object Task extends TaskBase {
    * signature for you source files/folders and decides whether downstream
    * [[TargetImpl]]s need to be invalidated and re-computed.
    */
-  def Sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
+  def Sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Task.Simple[Seq[PathRef]] =
     macro Target.Internal.sourcesImpl1
 
-  def Sources(values: Result[Seq[PathRef]])(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
+  def Sources(values: Result[Seq[PathRef]])(implicit
+      ctx: mill.define.Ctx
+  ): Task.Simple[Seq[PathRef]] =
     macro Target.Internal.sourcesImpl2
 
-  def Sources(values: os.SubPath*)(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
+  def Sources(values: os.SubPath*)(implicit ctx: mill.define.Ctx): Task.Simple[Seq[PathRef]] =
     macro Target.Internal.sourcesImpl3
 
   /**
    * Similar to [[Source]], but only for a single source file or folder. Defined
    * using `Task.Source`.
    */
-  def Source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Target[PathRef] =
+  def Source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Task.Simple[PathRef] =
     macro Target.Internal.sourceImpl1
 
-  def Source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Target[PathRef] =
+  def Source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Task.Simple[PathRef] =
     macro Target.Internal.sourceImpl2
 
-  def Source(value: os.SubPath)(implicit ctx: mill.define.Ctx): Target[PathRef] =
+  def Source(value: os.SubPath)(implicit ctx: mill.define.Ctx): Task.Simple[PathRef] =
     macro Target.Internal.sourceImpl3
 
   /**
@@ -106,7 +113,7 @@ object Task extends TaskBase {
   def Input[T](value: Result[T])(implicit
       w: upickle.default.Writer[T],
       ctx: mill.define.Ctx
-  ): Target[T] =
+  ): Task.Simple[T] =
     macro Target.Internal.inputImpl[T]
 
   /**
@@ -185,13 +192,13 @@ object Task extends TaskBase {
     "Creating a target from a task is deprecated. You most likely forgot a parenthesis pair `()`",
     "Mill after 0.12.0-RC1"
   )
-  def apply[T](t: Task[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+  def apply[T](t: Task[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Task.Simple[T] =
     macro Target.Internal.targetTaskImpl[T]
 
-  def apply[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+  def apply[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Task.Simple[T] =
     macro Target.Internal.targetImpl[T]
 
-  def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+  def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Task.Simple[T] =
     macro Target.Internal.targetResultImpl[T]
 
   /**
@@ -229,7 +236,7 @@ object Task extends TaskBase {
     def apply[T](t: Result[T])(implicit
         rw: RW[T],
         ctx: mill.define.Ctx
-    ): Target[T] = macro Target.Internal.persistentTargetResultImpl[T]
+    ): Task.Simple[T] = macro Target.Internal.persistentTargetResultImpl[T]
   }
 
   abstract class Ops[+T] { this: Task[T] =>
@@ -307,33 +314,36 @@ trait NamedTask[+T] extends Task[T] {
  * A Target is a [[NamedTask]] that is cached on disk; either a
  * [[TargetImpl]] or an [[InputImpl]]
  */
+@deprecated("Use Task.Simple[T] or T[T] instead", "Mill 0.12.15")
 trait Target[+T] extends NamedTask[T]
 
 object Target extends TaskBase {
   @deprecated("Use Task(persistent = true){...} instead", "Mill after 0.12.0-RC1")
-  def persistent[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+  def persistent[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Task.Simple[T] =
     macro Target.Internal.persistentImpl[T]
 
   @deprecated("Use Task.Sources instead", "Mill after 0.12.0-RC1")
-  def sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
+  def sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Task.Simple[Seq[PathRef]] =
     macro Target.Internal.sourcesImpl1
   @deprecated("Use Task.Sources instead", "Mill after 0.12.0-RC1")
-  def sources(values: Result[Seq[PathRef]])(implicit ctx: mill.define.Ctx): Target[Seq[PathRef]] =
+  def sources(values: Result[Seq[PathRef]])(implicit
+      ctx: mill.define.Ctx
+  ): Task.Simple[Seq[PathRef]] =
     macro Target.Internal.sourcesImpl2
 
   @deprecated("Use Task.Source instead", "Mill after 0.12.0-RC1")
-  def source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Target[PathRef] =
+  def source(value: Result[os.Path])(implicit ctx: mill.define.Ctx): Task.Simple[PathRef] =
     macro Target.Internal.sourceImpl1
 
   @deprecated("Use Task.Source instead", "Mill after 0.12.0-RC1")
-  def source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Target[PathRef] =
+  def source(value: Result[PathRef])(implicit ctx: mill.define.Ctx): Task.Simple[PathRef] =
     macro Target.Internal.sourceImpl2
 
   @deprecated("Use Task.Input instead", "Mill after 0.12.0-RC1")
   def input[T](value: Result[T])(implicit
       w: upickle.default.Writer[T],
       ctx: mill.define.Ctx
-  ): Target[T] =
+  ): Task.Simple[T] =
     macro Target.Internal.inputImpl[T]
 
   @deprecated(
@@ -371,7 +381,7 @@ object Target extends TaskBase {
     "Creating a target from a task is deprecated. You most likely forgot a parenthesis pair `()`",
     "Mill after 0.12.0-RC1"
   )
-  def apply[T](t: Task[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+  def apply[T](t: Task[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Task.Simple[T] =
     macro Target.Internal.targetTaskImpl[T]
 
   /**
@@ -380,10 +390,10 @@ object Target extends TaskBase {
    * return type is JSON serializable. In return, they automatically cache their
    * return value to disk, only re-computing if upstream [[Task]]s change
    */
-  implicit def apply[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+  implicit def apply[T](t: T)(implicit rw: RW[T], ctx: mill.define.Ctx): Task.Simple[T] =
     macro Internal.targetImpl[T]
 
-  implicit def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Target[T] =
+  implicit def apply[T](t: Result[T])(implicit rw: RW[T], ctx: mill.define.Ctx): Task.Simple[T] =
     macro Internal.targetResultImpl[T]
 
   object Internal {
@@ -396,14 +406,14 @@ object Target extends TaskBase {
     def targetImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
         rw: c.Expr[RW[T]],
         ctx: c.Expr[mill.define.Ctx]
-    ): c.Expr[Target[T]] = {
+    ): c.Expr[Task.Simple[T]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
       val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.create(t.splice)).tree)
 
-      mill.define.Cacher.impl0[Target[T]](c)(
+      mill.define.Cacher.impl0[Task.Simple[T]](c)(
         reify(
           new TargetImpl[T](
             lhs.splice,
@@ -418,12 +428,12 @@ object Target extends TaskBase {
     def targetResultImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Result[T]])(
         rw: c.Expr[RW[T]],
         ctx: c.Expr[mill.define.Ctx]
-    ): c.Expr[Target[T]] = {
+    ): c.Expr[Task.Simple[T]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.define.Cacher.impl0[Target[T]](c)(
+      mill.define.Cacher.impl0[Task.Simple[T]](c)(
         reify(
           new TargetImpl[T](
             Applicative.impl0[Task, T, mill.api.Ctx](c)(t.tree).splice,
@@ -437,12 +447,12 @@ object Target extends TaskBase {
     def persistentTargetResultImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Result[T]])(
         rw: c.Expr[RW[T]],
         ctx: c.Expr[mill.define.Ctx]
-    ): c.Expr[Target[T]] = {
+    ): c.Expr[Task.Simple[T]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.define.Cacher.impl0[Target[T]](c)(
+      mill.define.Cacher.impl0[Task.Simple[T]](c)(
         reify {
           val s1 = Applicative.impl0[Task, T, mill.api.Ctx](c)(t.tree).splice
           val c1 = ctx.splice
@@ -461,12 +471,12 @@ object Target extends TaskBase {
     def targetTaskImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(
         rw: c.Expr[RW[T]],
         ctx: c.Expr[mill.define.Ctx]
-    ): c.Expr[Target[T]] = {
+    ): c.Expr[Task.Simple[T]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.define.Cacher.impl0[Target[T]](c)(
+      mill.define.Cacher.impl0[Task.Simple[T]](c)(
         reify(
           new TargetImpl[T](
             t.splice,
@@ -479,7 +489,7 @@ object Target extends TaskBase {
     }
 
     def sourcesImpl1(c: Context)(values: c.Expr[Result[os.Path]]*)(ctx: c.Expr[mill.define.Ctx])
-        : c.Expr[Target[Seq[PathRef]]] = {
+        : c.Expr[Task.Simple[Seq[PathRef]]] = {
       import c.universe._
       val wrapped =
         for (value <- values.toList)
@@ -501,7 +511,7 @@ object Target extends TaskBase {
     }
 
     def sourcesImpl2(c: Context)(values: c.Expr[Result[Seq[PathRef]]])(ctx: c.Expr[mill.define.Ctx])
-        : c.Expr[Target[Seq[PathRef]]] = {
+        : c.Expr[Task.Simple[Seq[PathRef]]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
@@ -518,7 +528,7 @@ object Target extends TaskBase {
     }
 
     def sourcesImpl3(c: Context)(values: c.Expr[os.SubPath]*)(ctx: c.Expr[mill.define.Ctx])
-        : c.Expr[Target[Seq[PathRef]]] = {
+        : c.Expr[Task.Simple[Seq[PathRef]]] = {
       import c.universe._
       val wrapped =
         for (value <- values.toList)
@@ -540,7 +550,7 @@ object Target extends TaskBase {
     }
 
     def sourceImpl1(c: Context)(value: c.Expr[Result[os.Path]])(ctx: c.Expr[mill.define.Ctx])
-        : c.Expr[Target[PathRef]] = {
+        : c.Expr[Task.Simple[PathRef]] = {
       import c.universe._
 
       val wrapped =
@@ -550,7 +560,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.define.Cacher.impl0[Target[PathRef]](c)(
+      mill.define.Cacher.impl0[Task.Simple[PathRef]](c)(
         reify(
           new SourceImpl(
             wrapped.splice,
@@ -562,12 +572,12 @@ object Target extends TaskBase {
     }
 
     def sourceImpl2(c: Context)(value: c.Expr[Result[PathRef]])(ctx: c.Expr[mill.define.Ctx])
-        : c.Expr[Target[PathRef]] = {
+        : c.Expr[Task.Simple[PathRef]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.define.Cacher.impl0[Target[PathRef]](c)(
+      mill.define.Cacher.impl0[Task.Simple[PathRef]](c)(
         reify(
           new SourceImpl(
             Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(value.tree).splice,
@@ -579,7 +589,7 @@ object Target extends TaskBase {
     }
 
     def sourceImpl3(c: Context)(value: c.Expr[os.SubPath])(ctx: c.Expr[mill.define.Ctx])
-        : c.Expr[Target[PathRef]] = {
+        : c.Expr[Task.Simple[PathRef]] = {
       import c.universe._
 
       val wrapped =
@@ -589,7 +599,7 @@ object Target extends TaskBase {
 
       val taskIsPrivate = isPrivateTargetOption(c)
 
-      mill.define.Cacher.impl0[Target[PathRef]](c)(
+      mill.define.Cacher.impl0[Task.Simple[PathRef]](c)(
         reify(
           new SourceImpl(
             wrapped.splice,
@@ -603,7 +613,7 @@ object Target extends TaskBase {
     def inputImpl[T: c.WeakTypeTag](c: Context)(value: c.Expr[T])(
         w: c.Expr[upickle.default.Writer[T]],
         ctx: c.Expr[mill.define.Ctx]
-    ): c.Expr[Target[T]] = {
+    ): c.Expr[Task.Simple[T]] = {
       import c.universe._
 
       val taskIsPrivate = isPrivateTargetOption(c)
@@ -736,7 +746,7 @@ object Target extends TaskBase {
 }
 
 /**
- * The [[mill.define.Target]] companion object, usually aliased as [[T]],
+ * The [[mill.define.Task.Simple]] companion object, usually aliased as [[T]],
  * provides most of the helper methods and macros used to build task graphs.
  * methods like `Task.`[[apply]], `Task.`[[sources]], `Task.`[[command]] allow you to
  * define the tasks, while methods like `Task.`[[dest]], `Task.`[[log]] or
@@ -851,7 +861,7 @@ class TargetImpl[+T](
     val readWriter: RW[_],
     val isPrivate: Option[Boolean],
     override val deferredGeneratedSourceRoots: Seq[os.SubPath]
-) extends Target[T] {
+) extends Task.Simple[T] {
 
   // Added for bincompat
   def this(
@@ -861,7 +871,7 @@ class TargetImpl[+T](
       isPrivate: Option[Boolean]
   ) = this(t, ctx0, readWriter, isPrivate, Seq.empty)
 
-  override def asTarget: Option[Target[T]] = Some(this)
+  override def asTarget: Option[Task.Simple[T]] = Some(this)
   // FIXME: deprecated return type: Change to Option
   override def readWriterOpt: Some[RW[_]] = Some(readWriter)
 }
@@ -926,7 +936,7 @@ class InputImpl[T](
     val ctx0: mill.define.Ctx,
     val writer: upickle.default.Writer[_],
     val isPrivate: Option[Boolean]
-) extends Target[T] {
+) extends Task.Simple[T] {
   override def sideHash: Int = util.Random.nextInt()
   // FIXME: deprecated return type: Change to Option
   override def writerOpt: Some[W[_]] = Some(writer)

@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.define.{Task, Target, NamedTask, TargetImpl}
+import mill.define.{Task, NamedTask, TargetImpl}
 import mill.util.{TestGraphs, TestUtil}
 import utest._
 import mill.api.Strict.Agg
@@ -69,9 +69,9 @@ object GraphTests extends TestSuite {
     }
 
     test("groupAroundNamedTargets") {
-      def check[T, R <: Target[Int]](base: T)(
+      def check[T, R <: Task.Simple[Int]](base: T)(
           target: T => R,
-          important0: Agg[T => Target[_]],
+          important0: Agg[T => Task.Simple[_]],
           expected: Agg[(R, Int)]
       ) = {
 
@@ -79,7 +79,7 @@ object GraphTests extends TestSuite {
 
         val important = important0.map(_(base))
         val grouped = Graph.groupAroundImportantTargets(topoSorted) {
-          case t: TargetImpl[_] if important.contains(t) => t: Target[_]
+          case t: TargetImpl[_] if important.contains(t) => t: Task.Simple[_]
         }
         val flattened = Agg.from(grouped.values().flatMap(_.items))
 
@@ -88,7 +88,7 @@ object GraphTests extends TestSuite {
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.flatMap(_.asTarget: Option[Target[_]]).filter(important.contains) == Agg(
+            grouping.flatMap(_.asTarget: Option[Task.Simple[_]]).filter(important.contains) == Agg(
               terminal
             )
           )

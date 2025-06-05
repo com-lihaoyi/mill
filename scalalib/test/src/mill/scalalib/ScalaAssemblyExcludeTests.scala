@@ -11,7 +11,7 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {
     def checkExclude[M <: mill.testkit.TestBaseModule](
         module: M,
-        target: Target[PathRef],
+        target: T[PathRef],
         resourcePath: os.Path = resourcePath
     ) = UnitTester(module, resourcePath).scoped { eval =>
       val Right(result) = eval.apply(target)
@@ -42,7 +42,7 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
 
     def checkRelocate[M <: mill.testkit.TestBaseModule](
         module: M,
-        target: Target[PathRef],
+        target: T[PathRef],
         resourcePath: os.Path = resourcePath
     ) = UnitTester(module, resourcePath).scoped { eval =>
       val Right(result) = eval.apply(target)

@@ -5,14 +5,14 @@ import mill.define.{
   BaseModule,
   Command,
   Discover,
+  ExternalModule,
   Module,
   ModuleTask,
   NamedTask,
   Reflect,
   Segments,
-  Target,
-  TaskModule,
-  ExternalModule
+  Task,
+  TaskModule
 }
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 import mill.util.EitherOps
@@ -172,7 +172,7 @@ object Resolve {
       if (a.default.nonEmpty) a
       else if (nullCommandDefaults) {
         a.copy(default =
-          if (a.reader.isInstanceOf[SimpleTaskTokenReader[_]]) Some(_ => Target.task(null))
+          if (a.reader.isInstanceOf[SimpleTaskTokenReader[_]]) Some(_ => Task.Anon(null))
           else Some(_ => null)
         )
       } else a

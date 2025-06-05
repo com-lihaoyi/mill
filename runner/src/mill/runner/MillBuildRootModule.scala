@@ -13,7 +13,6 @@ import mill.main.client.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
 
 import scala.util.Try
-import mill.define.Target
 
 /**
  * Mill module for pre-processing a Mill `build.mill` and related files and then
@@ -42,7 +41,7 @@ abstract class MillBuildRootModule()(implicit
    * All script files (that will get wrapped later)
    * @see [[generateScriptSources]]
    */
-  def scriptSources: Target[Seq[PathRef]] = Task.Sources {
+  def scriptSources: Task.Simple[Seq[PathRef]] = Task.Sources {
     MillBuildRootModule.parseBuildFiles(rootModuleInfo)
       .seenScripts
       .keys
@@ -147,7 +146,7 @@ abstract class MillBuildRootModule()(implicit
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
           def isSimpleTarget =
-            (calledSig.desc.ret.pretty == classOf[mill.define.Target[_]].getName ||
+            (calledSig.desc.ret.pretty == classOf[mill.define.Task.Simple[_]].getName ||
               calledSig.desc.ret.pretty == classOf[mill.define.Worker[_]].getName) &&
               calledSig.desc.args.isEmpty
 
@@ -215,7 +214,7 @@ abstract class MillBuildRootModule()(implicit
     candidates.filterNot(filesToExclude.contains).map(PathRef(_))
   }
 
-  def enclosingClasspath: Target[Seq[PathRef]] = Task.Sources {
+  def enclosingClasspath: Task.Simple[Seq[PathRef]] = Task.Sources {
     rootModuleInfo.enclosingClasspath.map(p => mill.api.PathRef(p, quick = true))
   }
 
@@ -282,7 +281,7 @@ abstract class MillBuildRootModule()(implicit
   /** Used in BSP IntelliJ, which can only work with directories */
   def dummySources: Sources = Task.Sources(Task.dest)
 
-  def millVersion: Target[String] = Task.Input { BuildInfo.millVersion }
+  def millVersion: Task.Simple[String] = Task.Input { BuildInfo.millVersion }
 
   override def compile: T[CompilationResult] = Task(persistent = true) {
     val mv = millVersion()
