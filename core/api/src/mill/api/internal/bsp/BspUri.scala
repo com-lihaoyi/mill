@@ -1,4 +1,4 @@
-package mill.api.internal
+package mill.api.internal.bsp
 
 case class BspUri(uri: String)
 

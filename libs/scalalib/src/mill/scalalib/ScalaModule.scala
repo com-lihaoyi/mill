@@ -8,15 +8,9 @@ import mill.util.Jvm
 import mill.util.Jvm.createJar
 import mill.scalalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mainargs.Flag
+import mill.api.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
 import mill.define.{PathRef, Task}
-import mill.api.internal.{
-  BspBuildTarget,
-  BspModuleApi,
-  ScalaBuildTarget,
-  ScalaModuleApi,
-  ScalaPlatform,
-  internal
-}
+import mill.api.internal.{ScalaModuleApi, ScalaPlatform, internal}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
 // this import requires scala-reflect library to be on the classpath

@@ -4,7 +4,7 @@ import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
 import mill.api.*
-import mill.api.internal.{JvmBuildTarget, ScalaBuildTarget, *}
+import mill.api.internal.*
 import mill.api.Segment.Label
 import mill.bsp.Constants
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
@@ -12,9 +12,9 @@ import mill.client.lock.Lock
 import mill.internal.PrefixLogger
 import mill.server.Server
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
-
 import java.util.concurrent.{CompletableFuture, LinkedBlockingQueue, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
+
 import scala.collection.mutable
 import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration.Duration
@@ -22,6 +22,14 @@ import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
+
+import mill.api.internal.bsp.{
+  BspJavaModuleApi,
+  BspModuleApi,
+  BspServerResult,
+  JvmBuildTarget,
+  ScalaBuildTarget
+}
 
 private class MillBuildServer(
     topLevelProjectRoot: os.Path,
@@ -240,15 +248,16 @@ private class MillBuildServer(
 
     handlerTasksEvaluators(
       targetIds = _ => sourcesParams.getTargets.asScala,
-      tasks = { case module: JavaModuleApi => module.bspBuildTargetSources },
+      tasks = { case module: JavaModuleApi => module.bspJavaModule().bspBuildTargetSources },
       requestDescription =
         s"Getting sources of ${sourcesParams.getTargets.asScala.map(_.getUri).mkString(", ")}"
     ) {
-      case (ev, state, id, module, items) => new SourcesItem(
+      case (_, _, id, _: JavaModuleApi, result) => new SourcesItem(
           id,
-          (items._1.map(p => sourceItem(os.Path(p), false)) ++ items._2.map(p =>
-            sourceItem(os.Path(p), true)
-          )).asJava
+          (
+            result.sources.map(p => sourceItem(os.Path(p), false)) ++
+              result.generatedSources.map(p => sourceItem(os.Path(p), true))
+          ).asJava
         )
     } { (sourceItems, state) =>
       new SourcesResult(
@@ -265,10 +274,13 @@ private class MillBuildServer(
     handlerEvaluators() { (state, _) =>
       val tasksEvaluators = state.bspModulesIdList.collect {
         case (id, (m: JavaModuleApi, ev)) =>
-          m.bspBuildTargetInverseSources(id, p.getTextDocument.getUri) -> ev
+          (
+            result = m.bspJavaModule().bspBuildTargetInverseSources(id, p.getTextDocument.getUri),
+            evaluator = ev
+          )
       }
 
-      val ids = groupList(tasksEvaluators)(_._2)(_._1)
+      val ids = groupList(tasksEvaluators)(_.evaluator)(_.result)
         .flatMap { case (ev, ts) => ev.executeApi(ts).values.get }
         .flatten
 
@@ -293,20 +305,14 @@ private class MillBuildServer(
       : CompletableFuture[DependencySourcesResult] =
     handlerTasks(
       targetIds = _ => p.getTargets.asScala,
-      tasks = { case m: JavaModuleApi => m.bspBuildTargetDependencySources },
+      tasks = { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetDependencySources },
       requestDescription =
         s"Getting dependency sources of ${p.getTargets.asScala.map(_.getUri).mkString(", ")}"
     ) {
-      case (
-            ev,
-            state,
-            id,
-            m: JavaModuleApi,
-            (resolveDepsSources, unmanagedClasspath)
-          ) =>
-        val cp = (resolveDepsSources ++ unmanagedClasspath).map(sanitizeUri)
+      case (_, _, id, _, result) =>
+        val cp = (result.resolvedDepsSources ++ result.unmanagedClasspath).map(sanitizeUri)
         new DependencySourcesItem(id, cp.asJava)
-      case _ => ???
+
     } { values =>
       new DependencySourcesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
@@ -323,26 +329,20 @@ private class MillBuildServer(
       : CompletableFuture[DependencyModulesResult] =
     handlerTasks(
       targetIds = _ => params.getTargets.asScala,
-      tasks = { case m: JavaModuleApi => m.bspBuildTargetDependencyModules },
+      tasks = { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetDependencyModules },
       requestDescription = "Getting external dependencies of {}"
     ) {
-      case (
-            ev,
-            state,
-            id,
-            m: JavaModuleApi,
-            (mvnDeps, unmanagedClasspath)
-          ) =>
-        val deps = mvnDeps.collect {
+      case (_, _, id, _, result) =>
+        val deps = result.mvnDeps.collect {
           case (org, repr, version) if org != "mill-internal" =>
             new DependencyModule(repr, version)
         }
 
-        val unmanaged = unmanagedClasspath.map { dep =>
+        val unmanaged = result.unmanagedClasspath.map { dep =>
           new DependencyModule(s"unmanaged-${dep.getFileName}", "")
         }
         new DependencyModulesItem(id, (deps ++ unmanaged).asJava)
-      case _ => ???
+
     } { values =>
       new DependencyModulesResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }
@@ -350,10 +350,10 @@ private class MillBuildServer(
   override def buildTargetResources(p: ResourcesParams): CompletableFuture[ResourcesResult] =
     handlerTasks(
       targetIds = _ => p.getTargets.asScala,
-      tasks = { case m: JavaModuleApi => m.bspBuildTargetResources },
+      tasks = { case m: JavaModuleApi => m.bspJavaModule().bspBuildTargetResources },
       requestDescription = "Getting resources of {}"
     ) {
-      case (ev, state, id, m, resources) =>
+      case (_, _, id, _, resources) =>
         val resourcesUrls =
           resources.map(os.Path(_)).filter(os.exists).map(p => sanitizeUri(p.toNIO))
         new ResourcesItem(id, resourcesUrls.asJava)
@@ -412,7 +412,7 @@ private class MillBuildServer(
 
       val items = for {
         target <- params.getTargets.asScala
-        (module, ev) <- state.bspModulesById.get(target)
+        (module, _) <- state.bspModulesById.get(target)
       } yield {
         val items = outputPaths(
           os.Path(module.bspBuildTarget.baseDirectory.get),
@@ -428,15 +428,15 @@ private class MillBuildServer(
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] =
     handlerEvaluators() { (state, logger) =>
       val params = TaskParameters.fromRunParams(runParams)
-      val (module, ev) = params.getTargets.map(state.bspModulesById).collectFirst {
+      val (javaModule, ev) = params.getTargets.map(state.bspModulesById).collectFirst {
         case (m: JavaModuleApi, ev) => (m, ev)
       }.get
 
       val args = params.getArguments.getOrElse(Seq.empty[String])
-      val runTask = module.bspRun(args)
+      val runTask = javaModule.bspJavaModule().bspRun(args)
       val runResult = evaluate(
         ev,
-        s"Running ${module.bspDisplayName}",
+        s"Running ${javaModule.bspDisplayName}",
         Seq(runTask),
         logger,
         Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client)
@@ -607,11 +607,11 @@ private class MillBuildServer(
       tasks: PartialFunction[BspModuleApi, TaskApi[W]],
       requestDescription: String
   )(block: (
-      EvaluatorApi,
-      BspEvaluators,
-      BuildTargetIdentifier,
-      BspModuleApi,
-      W
+      evaluator: EvaluatorApi,
+      bspEvaluators: BspEvaluators,
+      buildTargetIdentifier: BuildTargetIdentifier,
+      moduleApi: BspModuleApi,
+      result: W
   ) => T)(agg: java.util.List[T] => V)(implicit
       name: sourcecode.Name
   )
@@ -863,7 +863,7 @@ private class MillBuildServer(
       val tasksEvs = state.bspModulesIdList
         .collectFirst {
           case (_, (m: JavaModuleApi, ev)) =>
-            Seq(((m, m.bspLoggingTest), ev))
+            Seq(((m, m.bspJavaModule().bspLoggingTest), ev))
         }
         .getOrElse {
           sys.error("No BSP build target available")

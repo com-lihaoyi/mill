@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentParams,
   JvmTestEnvironmentResult
 }
-import mill.api.internal.{TaskApi, JavaModuleApi, RunModuleApi, TestModuleApi}
+import mill.api.internal.{JavaModuleApi, RunModuleApi, TaskApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
 import java.util.concurrent.CompletableFuture
 
@@ -47,8 +47,8 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       requestDescription = "Getting JVM test environment of {}"
     ) {
       case (
-            ev,
-            state,
+            _,
+            _,
             id,
             _: (TestModuleApi & JavaModuleApi),
             (
@@ -72,8 +72,8 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         item.setMainClasses(List(mainClass).map(new JvmMainClass(_, fullMainArgs.asJava)).asJava)
         item
       case (
-            ev,
-            state,
+            _,
+            _,
             id,
             _: RunModuleApi,
             (
@@ -113,9 +113,8 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       },
       requestDescription = "Getting JVM compile class path of {}"
     ) {
-      case (ev, _, id, _: JavaModuleApi, compileClasspath) =>
+      case (ev, _, id, _, compileClasspath) =>
         new JvmCompileClasspathItem(id, compileClasspath(ev).asJava)
-      case _ => ???
     } {
       new JvmCompileClasspathResult(_)
     }
