@@ -19,7 +19,7 @@ trait AndroidManifestMerger extends ExternalModule with JvmWorkerModule {
    * Specifies the version of the Manifest Merger.
    */
   def manifestMergerVersion: T[String] = "31.10.0"
-  
+
   /**
    * Classpath for the manifest merger run.
    */
@@ -30,15 +30,15 @@ trait AndroidManifestMerger extends ExternalModule with JvmWorkerModule {
       )
     )
   }
-  
+
   /**
    * Creates a merged manifest from application and dependencies manifests.
    *
    * See [[https://developer.android.com/build/manage-manifests]] for more details.
    */
   def androidMergedManifest(
-                             args: Task[Seq[String]],
-                           ): Task[os.Path] = Task.Anon {
+      args: Task[Seq[String]]
+  ): Task[os.Path] = Task.Anon {
 
     val outFile = os.temp()
     Jvm.callProcess(
@@ -48,7 +48,7 @@ trait AndroidManifestMerger extends ExternalModule with JvmWorkerModule {
     )
     outFile
   }
-  
+
   lazy val millDiscover: Discover = Discover.apply[this.type]
 }
 
