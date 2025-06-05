@@ -237,7 +237,7 @@ trait AndroidModule extends JavaModule {
       transformedAarFilesToJar ++ jarFiles
     }
 
-  def androidTransformAarFiles(resolvedDeps: Task[Seq[PathRef]]): Task[Seq[UnpackedDep]] = Task {
+  def androidTransformAarFiles(resolvedDeps: Task[Seq[PathRef]]): Task[Seq[UnpackedDep]] = Task.Anon {
     val transformDest = Task.dest / "transform"
     val aarFiles = resolvedDeps()
       .map(_.path)
