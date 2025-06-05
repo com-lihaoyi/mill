@@ -252,7 +252,7 @@ private class MillBuildServer(
       requestDescription =
         s"Getting sources of ${sourcesParams.getTargets.asScala.map(_.getUri).mkString(", ")}"
     ) {
-      case (ev, state, id, _: JavaModuleApi, result) => new SourcesItem(
+      case (_, _, id, _: JavaModuleApi, result) => new SourcesItem(
           id,
           (
             result.sources.map(p => sourceItem(os.Path(p), false)) ++
@@ -412,7 +412,7 @@ private class MillBuildServer(
 
       val items = for {
         target <- params.getTargets.asScala
-        (module, ev) <- state.bspModulesById.get(target)
+        (module, _) <- state.bspModulesById.get(target)
       } yield {
         val items = outputPaths(
           os.Path(module.bspBuildTarget.baseDirectory.get),

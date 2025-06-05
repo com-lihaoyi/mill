@@ -26,6 +26,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
     handlerTasks(
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
+        // We ignore all non-JavaModule
         case m: JavaModuleApi =>
           m.bspJavaModule().bspBuildTargetScalacOptions(
             sessionInfo.clientType.mergeResourcesIntoClasses,
@@ -35,10 +36,9 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
       },
       requestDescription = "Getting scalac options of {}"
     ) {
-      // We ignore all non-JavaModule
       case (
             ev,
-            state,
+            _,
             id,
             _,
             (allScalacOptions, compileClasspath, classesPathTask)
@@ -49,7 +49,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
           compileClasspath(ev).asJava,
           sanitizeUri(classesPathTask(ev))
         )
-      case _ => ???
+
     } { values =>
       new ScalacOptionsResult(values.asScala.sortBy(_.getTarget.getUri).asJava)
     }

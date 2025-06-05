@@ -47,8 +47,8 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       requestDescription = "Getting JVM test environment of {}"
     ) {
       case (
-            ev,
-            state,
+            _,
+            _,
             id,
             _: (TestModuleApi & JavaModuleApi),
             (
@@ -72,8 +72,8 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         item.setMainClasses(List(mainClass).map(new JvmMainClass(_, fullMainArgs.asJava)).asJava)
         item
       case (
-            ev,
-            state,
+            _,
+            _,
             id,
             _: RunModuleApi,
             (
