@@ -155,7 +155,11 @@ class UnitTester(
     }
   }
 
-  def fail(target: Task.Simple[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]]): Unit = {
+  def fail(
+      target: Task.Simple[_],
+      expectedFailCount: Int,
+      expectedRawValues: Seq[Result[_]]
+  ): Unit = {
 
     val res = evaluator.evaluate(Agg(target))
 

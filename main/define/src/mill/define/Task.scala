@@ -73,7 +73,9 @@ object Task extends TaskBase {
   def Sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Task.Simple[Seq[PathRef]] =
     macro Target.Internal.sourcesImpl1
 
-  def Sources(values: Result[Seq[PathRef]])(implicit ctx: mill.define.Ctx): Task.Simple[Seq[PathRef]] =
+  def Sources(values: Result[Seq[PathRef]])(implicit
+      ctx: mill.define.Ctx
+  ): Task.Simple[Seq[PathRef]] =
     macro Target.Internal.sourcesImpl2
 
   def Sources(values: os.SubPath*)(implicit ctx: mill.define.Ctx): Task.Simple[Seq[PathRef]] =
@@ -324,7 +326,9 @@ object Target extends TaskBase {
   def sources(values: Result[os.Path]*)(implicit ctx: mill.define.Ctx): Task.Simple[Seq[PathRef]] =
     macro Target.Internal.sourcesImpl1
   @deprecated("Use Task.Sources instead", "Mill after 0.12.0-RC1")
-  def sources(values: Result[Seq[PathRef]])(implicit ctx: mill.define.Ctx): Task.Simple[Seq[PathRef]] =
+  def sources(values: Result[Seq[PathRef]])(implicit
+      ctx: mill.define.Ctx
+  ): Task.Simple[Seq[PathRef]] =
     macro Target.Internal.sourcesImpl2
 
   @deprecated("Use Task.Source instead", "Mill after 0.12.0-RC1")
