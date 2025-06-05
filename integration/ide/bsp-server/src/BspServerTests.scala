@@ -163,6 +163,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
+        // Jvm Extension
+
         compareWithGsonSnapshot(
           buildServer
             .buildTargetJvmRunEnvironment(new b.JvmRunEnvironmentParams(targetIdsSubset))
@@ -179,6 +181,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
+
         compareWithGsonSnapshot(
           buildServer
             .buildTargetJvmCompileClasspath(new b.JvmCompileClasspathParams(targetIdsSubset))
@@ -187,6 +190,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
+        // Java Extention
+
         compareWithGsonSnapshot(
           buildServer
             .buildTargetJavacOptions(new b.JavacOptionsParams(targetIdsSubset))
@@ -194,6 +199,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
           snapshotsPath / "build-targets-javac-options.json",
           normalizedLocalValues = normalizedLocalValues
         )
+
+        // Scala Extension
 
         compareWithGsonSnapshot(
           buildServer
