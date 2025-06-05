@@ -1373,10 +1373,6 @@ trait JavaModule
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 
-  private[mill] def bspRun(args: Seq[String]): Task[Unit] = Task.Anon {
-    run(Task.Anon(Args(args)))()
-  }
-
   /**
    * Performs the compilation (via [[compile]]) and merging of [[resources]] needed by
    * [[BspClientType.mergeResourcesIntoClasses]].
