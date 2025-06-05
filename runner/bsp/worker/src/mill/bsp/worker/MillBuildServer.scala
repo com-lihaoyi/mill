@@ -23,13 +23,7 @@ import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-import mill.api.internal.bsp.{
-  BspJavaModuleApi,
-  BspModuleApi,
-  BspServerResult,
-  JvmBuildTarget,
-  ScalaBuildTarget
-}
+import mill.api.internal.bsp.{BspModuleApi, BspServerResult, JvmBuildTarget, ScalaBuildTarget}
 
 private class MillBuildServer(
     topLevelProjectRoot: os.Path,

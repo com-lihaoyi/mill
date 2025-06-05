@@ -87,7 +87,12 @@ trait TestModule
       testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
     }
 
-  def getTestEnvironmentVars(args: String*): Task.Command[(String, String, String, Seq[String])] = {
+  def getTestEnvironmentVars(args: String*): Task.Command[(
+      mainClass: String,
+      testRunnerClasspathArg: String,
+      argsFile: String,
+      classpath: Seq[String]
+  )] = {
     Task.Command {
       getTestEnvironmentVarsTask(Task.Anon { args })()
     }
@@ -167,7 +172,12 @@ trait TestModule
    * Returns a Tuple where the first element is the main-class, second and third are main-class-arguments and the forth is classpath
    */
   private def getTestEnvironmentVarsTask(args: Task[Seq[String]])
-      : Task[(String, String, String, Seq[String])] =
+      : Task[(
+          mainClass: String,
+          testRunnerClasspathArg: String,
+          argsFile: String,
+          classpath: Seq[String]
+      )] =
     Task.Anon {
       val mainClass = "mill.testrunner.entrypoint.TestRunnerMain"
       val outputPath = Task.dest / "out.json"

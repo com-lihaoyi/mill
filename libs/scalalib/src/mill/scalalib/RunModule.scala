@@ -2,21 +2,27 @@ package mill.scalalib
 
 import java.lang.reflect.Modifier
 
+import scala.util.control.NonFatal
+
 import mainargs.arg
-import mill.define.JsonFormatters.pathReadWrite
 import mill.api.Result
 import mill.api.internal.RunModuleApi
+import mill.api.internal.bsp.BspRunModuleApi
 import mill.constants.DaemonFiles
-import mill.define.{ModuleCtx, PathRef, TaskCtx}
-import mill.define.{ModuleRef, Task}
+import mill.define.JsonFormatters.pathReadWrite
+import mill.define.{ModuleCtx, ModuleRef, PathRef, Task, TaskCtx}
+import mill.scalalib.bsp.BspRunModule
+import mill.scalalib.classgraph.ClassgraphWorkerModule
 import mill.util.Jvm
 import mill.{Args, T}
 import os.{Path, ProcessOutput}
-import scala.util.control.NonFatal
-
-import mill.scalalib.classgraph.ClassgraphWorkerModule
 
 trait RunModule extends WithJvmWorker with RunModuleApi {
+
+  private lazy val bspExt =
+    ModuleRef(BspRunModule.EmbeddableBspRunModule(this).internalBspRunModule)
+
+  private[mill] def bspRunModule: () => BspRunModuleApi = () => bspExt()
 
   def classgraphWorkerModule: ModuleRef[ClassgraphWorkerModule] = ModuleRef(ClassgraphWorkerModule)
 
@@ -224,22 +230,6 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    */
   def launcher: T[PathRef] = Task { launcher0() }
 
-  private[mill] def bspJvmRunTestEnvironment = {
-    val moduleSpecificTask = this match {
-      case m: (TestModule & JavaModule) => m.getTestEnvironmentVars()
-      case _ => allLocalMainClasses
-    }
-    Task.Anon {
-      (
-        runClasspath().map(_.path.toNIO),
-        forkArgs(),
-        forkWorkingDir().toNIO,
-        forkEnv(),
-        mainClass(),
-        moduleSpecificTask()
-      )
-    }
-  }
 }
 
 object RunModule {

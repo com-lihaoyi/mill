@@ -43,7 +43,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
   )(implicit name: sourcecode.Name): CompletableFuture[V] = {
     handlerTasks(
       targetIds = _ => targetIds,
-      tasks = { case m: RunModuleApi => m.bspJvmRunTestEnvironment },
+      tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunTestEnvironment },
       requestDescription = "Getting JVM test environment of {}"
     ) {
       case (
@@ -57,20 +57,25 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
               forkWorkingDir,
               forkEnv,
               _,
-              testEnvVars: (String, String, String, Seq[String])
+              None,
+              Some(testEnvVars)
             )
           ) =>
-        val (mainClass, testRunnerClassPath, argsFile, classpath) = testEnvVars
-        val fullMainArgs: List[String] = List(testRunnerClassPath, argsFile)
+        val fullMainArgs: List[String] =
+          List(testEnvVars.testRunnerClasspathArg, testEnvVars.argsFile)
         val item = new JvmEnvironmentItem(
           id,
-          classpath.asJava,
+          testEnvVars.classpath.asJava,
           forkArgs.asJava,
           forkWorkingDir.toString(),
           forkEnv.asJava
         )
-        item.setMainClasses(List(mainClass).map(new JvmMainClass(_, fullMainArgs.asJava)).asJava)
+        item.setMainClasses(List(testEnvVars.mainClass).map(new JvmMainClass(
+          _,
+          fullMainArgs.asJava
+        )).asJava)
         item
+
       case (
             _,
             _,
@@ -82,7 +87,8 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
               forkWorkingDir,
               forkEnv,
               mainClass,
-              localMainClasses: Seq[String]
+              Some(localMainClasses),
+              None
             )
           ) =>
         val classpath = runClasspath.map(sanitizeUri)
@@ -97,6 +103,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         val classes = mainClass.toList ++ localMainClasses
         item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
+
       case _ => ???
     } {
       agg
