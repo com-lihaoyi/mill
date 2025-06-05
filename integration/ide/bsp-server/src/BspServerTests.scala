@@ -181,7 +181,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
-
         compareWithGsonSnapshot(
           buildServer
             .buildTargetJvmCompileClasspath(new b.JvmCompileClasspathParams(targetIdsSubset))
