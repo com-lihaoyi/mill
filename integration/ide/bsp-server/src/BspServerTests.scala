@@ -250,7 +250,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
         {
           val run3 = os.temp(suffix = "bsp-run-3", deleteOnExit = false)
           println("file: " + run3)
-//          os.write.over(run3, "dummy")
           os.remove(run3)
           compareWithGsonSnapshot(
             buildServer
