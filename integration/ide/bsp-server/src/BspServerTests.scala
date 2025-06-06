@@ -186,12 +186,10 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
-        // Run without args
+        // compile
         compareWithGsonSnapshot(
-          buildServer
-            .buildTargetRun(new b.RunParams(appTargetId))
-            .get(),
-          snapshotsPath / "build-targets-run-1.json",
+          buildServer.buildTargetCompile(new b.CompileParams(targetIds)).get(),
+          snapshotsPath / "build-targets-compile.json",
           normalizedLocalValues = normalizedLocalValues
         )
 
@@ -240,6 +238,14 @@ object BspServerTests extends UtestIntegrationTestSuite {
           snapshotsPath / "build-targets-scalac-options.json",
           normalizedLocalValues = normalizedLocalValues
         )
+
+        // Run without args
+        compareWithGsonSnapshot(
+          buildServer.buildTargetRun(new b.RunParams(appTargetId)).get(),
+          snapshotsPath / "build-targets-run-1.json",
+          normalizedLocalValues = normalizedLocalValues
+        )
+
       }
     }
 
