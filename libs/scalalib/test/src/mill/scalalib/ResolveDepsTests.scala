@@ -201,29 +201,30 @@ object ResolveDepsTests extends TestSuite {
         val dependsOnOptionalRunCp = eval(TestCase.optional.dependsOnOptional.runClasspath)
           .fold(_.get, _.value).map(_.path)
 
-        // optional dependencies in mvnDeps should be added to the current module class path,
-        // but not to the class path of its dependees
+        // optional dependencies in mvnDeps should be added to the current module class path
         assert(optionalCompileCp.exists(_.last == "interface-1.0.29-M1.jar"))
         assert(optionalRuntimeCp.exists(_.last == "interface-1.0.29-M1.jar"))
         assert(optionalRunCp.exists(_.last == "interface-1.0.29-M1.jar"))
-        assert(!dependsOnOptionalCompileCp.exists(_.last == "interface-1.0.29-M1.jar"))
-        assert(!dependsOnOptionalRuntimeCp.exists(_.last == "interface-1.0.29-M1.jar"))
-        assert(!dependsOnOptionalRunCp.exists(_.last == "interface-1.0.29-M1.jar"))
 
         // optional dependencies in compileMvnDeps should be added to the current module compile class path,
-        // but not to the runtime class path or to the class path of its dependees
+        // but not to the runtime class path
         assert(optionalCompileCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
         assert(!optionalRuntimeCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
         assert(!optionalRunCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
-        assert(!dependsOnOptionalCompileCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
-        assert(!dependsOnOptionalRuntimeCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
-        assert(!dependsOnOptionalRunCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
 
         // optional dependencies in runMvnDeps should be added to the current module run class path,
-        // but not to the compile class path or to the class path of its dependees
+        // but not to the compile class path
         assert(!optionalCompileCp.exists(_.last == "logback-core-1.5.18.jar"))
         assert(optionalRuntimeCp.exists(_.last == "logback-core-1.5.18.jar"))
         assert(optionalRunCp.exists(_.last == "logback-core-1.5.18.jar"))
+
+        // in transitive modules, optional dependencies are always ignored
+        assert(!dependsOnOptionalCompileCp.exists(_.last == "interface-1.0.29-M1.jar"))
+        assert(!dependsOnOptionalRuntimeCp.exists(_.last == "interface-1.0.29-M1.jar"))
+        assert(!dependsOnOptionalRunCp.exists(_.last == "interface-1.0.29-M1.jar"))
+        assert(!dependsOnOptionalCompileCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
+        assert(!dependsOnOptionalRuntimeCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
+        assert(!dependsOnOptionalRunCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
         assert(!dependsOnOptionalCompileCp.exists(_.last == "logback-core-1.5.18.jar"))
         assert(!dependsOnOptionalRuntimeCp.exists(_.last == "logback-core-1.5.18.jar"))
         assert(!dependsOnOptionalRunCp.exists(_.last == "logback-core-1.5.18.jar"))

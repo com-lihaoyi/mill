@@ -1554,6 +1554,11 @@ object JavaModule {
   final case class InternalRepo(projects: Seq[cs.Project])
       extends cs.Repository {
 
+    // Reversing the sequence before calling toMap, so that earlier elements have precedence
+    // over later one, in case they have the same module / version.
+    // That's useful for the handling of optional dependencies, where the main project, with
+    // initially optional dependencies marked as non-optional, is put upfront, but might still
+    // be pulled transitively, in that case without the special handling of optional dependencies.
     private lazy val map = projects.reverseIterator.map(proj => proj.moduleVersion -> proj).toMap
 
     override def toString(): String =
