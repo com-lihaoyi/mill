@@ -28,7 +28,6 @@ object Lib {
   def resolveDependenciesMetadataSafe(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
-      checkGradleModules: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       ctx: Option[TaskCtx] = None,
@@ -36,20 +35,21 @@ object Lib {
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      boms: IterableOnce[BomDependency] = Nil
+      boms: IterableOnce[BomDependency] = Nil,
+      checkGradleModules: Boolean = false
   ): Result[Resolution] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependenciesMetadataSafe(
       repositories = repositories,
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
-      checkGradleModules = checkGradleModules,
       mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
       resolutionParams = resolutionParams,
-      boms = boms
+      boms = boms,
+      checkGradleModules = checkGradleModules
     )
   }
 
@@ -63,7 +63,6 @@ object Lib {
   def resolveDependencies(
       repositories: Seq[Repository],
       deps: IterableOnce[BoundDep],
-      checkGradleModules: Boolean = false,
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
@@ -72,21 +71,22 @@ object Lib {
         coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
       ] = None,
       artifactTypes: Option[Set[Type]] = None,
-      resolutionParams: ResolutionParams = ResolutionParams()
+      resolutionParams: ResolutionParams = ResolutionParams(),
+      checkGradleModules: Boolean = false
   ): Result[Seq[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     val res = mill.util.Jvm.resolveDependencies(
       repositories = repositories,
       deps = depSeq.map(_.dep),
       force = depSeq.filter(_.force).map(_.dep),
-      checkGradleModules = checkGradleModules,
       sources = sources,
       artifactTypes = artifactTypes,
       mapDependencies = mapDependencies,
       customizer = customizer,
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
-      resolutionParams = resolutionParams
+      resolutionParams = resolutionParams,
+      checkGradleModules = checkGradleModules
     )
 
     res.map(_.map(_.withRevalidateOnce))

@@ -465,25 +465,25 @@ object Jvm {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency] = Nil,
-      checkGradleModules: Boolean,
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
-      resolutionParams: ResolutionParams = ResolutionParams()
+      resolutionParams: ResolutionParams = ResolutionParams(),
+      checkGradleModules: Boolean = false
   ): Result[coursier.Artifacts.Result] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
       deps,
       force,
-      checkGradleModules,
       mapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer,
-      resolutionParams
+      resolutionParams,
+      checkGradleModules = checkGradleModules
     )
 
     resolutionRes.flatMap { resolution =>
@@ -528,27 +528,27 @@ object Jvm {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
-      checkGradleModules: Boolean = false,
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
-      resolutionParams: ResolutionParams = ResolutionParams()
+      resolutionParams: ResolutionParams = ResolutionParams(),
+      checkGradleModules: Boolean = false
   ): Result[Seq[PathRef]] =
     getArtifacts(
       repositories,
       deps,
       force,
-      checkGradleModules,
       sources,
       mapDependencies,
       customizer,
       ctx,
       coursierCacheCustomizer,
       artifactTypes,
-      resolutionParams
+      resolutionParams,
+      checkGradleModules = checkGradleModules
     ).map { res =>
       mill.define.BuildCtx.withFilesystemCheckerDisabled {
         res.files
@@ -630,13 +630,13 @@ object Jvm {
       repositories: Seq[Repository],
       deps: IterableOnce[Dependency],
       force: IterableOnce[Dependency],
-      checkGradleModules: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
       ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      boms: IterableOnce[BomDependency] = Nil
+      boms: IterableOnce[BomDependency] = Nil,
+      checkGradleModules: Boolean = false
   ): Result[Resolution] = {
 
     val rootDeps = deps.iterator

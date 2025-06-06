@@ -1144,11 +1144,11 @@ trait JavaModule
       val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
         allRepositories(),
         dependencies,
-        checkGradleModules = checkGradleModules(),
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
-        resolutionParams = resolutionParams()
+        resolutionParams = resolutionParams(),
+        checkGradleModules = checkGradleModules()
       ).get
 
       val roots = whatDependsOn match {
