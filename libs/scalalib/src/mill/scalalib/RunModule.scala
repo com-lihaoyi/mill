@@ -19,8 +19,10 @@ import os.{Path, ProcessOutput}
 
 trait RunModule extends WithJvmWorker with RunModuleApi {
 
-  private lazy val bspExt =
-    ModuleRef(BspRunModule.EmbeddableBspRunModule(this).internalBspRunModule)
+  private lazy val bspExt = {
+    import BspRunModule.given
+    ModuleRef(this.internalBspRunModule)
+  }
 
   private[mill] def bspRunModule: () => BspRunModuleApi = () => bspExt()
 

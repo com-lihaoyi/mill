@@ -10,7 +10,7 @@ import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule}
 import mill.define.JsonFormatters.given
 
 @internal
-object BspJavaModule extends ExternalModule {
+private[mill] object BspJavaModule extends ExternalModule {
 
   // Requirement of ExternalModule's
   override protected def millDiscover: Discover = Discover[this.type]

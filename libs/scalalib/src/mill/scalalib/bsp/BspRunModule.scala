@@ -10,7 +10,7 @@ import mill.scalalib.{JavaModule, RunModule, TestModule}
 import mill.{Args, Task}
 
 @internal
-object BspRunModule extends ExternalModule {
+private[mill] object BspRunModule extends ExternalModule {
 
   // Requirement of ExternalModule's
   override protected def millDiscover: Discover = Discover[this.type]
