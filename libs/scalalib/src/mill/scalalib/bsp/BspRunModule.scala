@@ -8,6 +8,8 @@ import mill.define.{Discover, ExternalModule, ModuleCtx}
 import mill.define.JsonFormatters.given
 import mill.scalalib.{JavaModule, RunModule, TestModule}
 import mill.{Args, Task}
+import mill.constants.EnvVars
+import mill.scalalib.TestModuleUtilShared
 
 @internal
 private[mill] object BspRunModule extends ExternalModule {
@@ -44,24 +46,35 @@ private[mill] object BspRunModule extends ExternalModule {
               classpath: Seq[String]
           )]
       )] = {
-        val (localMainClasses, testEnvVars) = runModule match {
+        val (localMainClasses, testEnvVars, environmentVariablesTask) = runModule match {
           case m: (TestModule & JavaModule) =>
             (
               Task.Anon { None },
-              Task.Anon { Some(m.getTestEnvironmentVars()()) }
+              Task.Anon { Some(m.getTestEnvironmentVars()()) },
+              Task.Anon {
+                Map(
+                  EnvVars.MILL_TEST_RESOURCE_DIR -> TestModuleUtilShared.millTestResourceDirValue(
+                    m.resources().iterator.map(_.path)
+                  )
+                )
+              }
             )
           case _ =>
             (
               Task.Anon { Some(runModule.allLocalMainClasses()) },
-              Task.Anon { None }
+              Task.Anon { None },
+              Task.Anon { Map.empty[String, String] }
             )
         }
         Task {
+          // Allow user to override the environment variables we set via `forkEnv`.
+          val environmentVariables = environmentVariablesTask() ++ runModule.forkEnv()
+
           (
             runModule.runClasspath().map(_.path.toNIO),
             runModule.forkArgs(),
             runModule.forkWorkingDir().toNIO,
-            runModule.forkEnv(),
+            environmentVariables,
             runModule.mainClass(),
             localMainClasses(),
             testEnvVars()

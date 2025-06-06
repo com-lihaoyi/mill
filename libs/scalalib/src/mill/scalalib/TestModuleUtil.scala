@@ -46,7 +46,8 @@ private final class TestModuleUtil(
     .mkString(",")
 
   private val resourceEnv = Map(
-    EnvVars.MILL_TEST_RESOURCE_DIR -> resources.map(_.path).mkString(";"),
+    EnvVars.MILL_TEST_RESOURCE_DIR ->
+      TestModuleUtilShared.millTestResourceDirValue(resources.iterator.map(_.path)),
     EnvVars.MILL_WORKSPACE_ROOT -> Task.workspace.toString
   )
 
@@ -239,7 +240,7 @@ private final class TestModuleUtil(
                 groupPromptMessage,
                 priority = -1
               ) {
-                log =>
+                _ =>
                   (
                     folderName,
                     runTestRunnerSubprocess(Task.dest / folderName, testClassList, workerResultSet)
@@ -270,7 +271,7 @@ private final class TestModuleUtil(
       // test-classes folder is used to store the test classes for the children test runners to claim from
       val testClassQueueFolder = base / "test-classes"
       os.makeDir.all(testClassQueueFolder)
-      selectors2.zipWithIndex.foreach { case (s, i) =>
+      selectors2.zipWithIndex.foreach { case (s, _) =>
         os.write.over(testClassQueueFolder / s, Array.empty[Byte])
       }
       testClassQueueFolder
@@ -295,7 +296,7 @@ private final class TestModuleUtil(
             .map(TestRunnerUtils.claimFile(_, claimFolder))
             .collectFirst { case Some(name) => name }
         } catch {
-          case e: Throwable => None
+          case _: Throwable => None
         }
 
       if (force || startingTestClass.nonEmpty) {
@@ -453,6 +454,13 @@ private final class TestModuleUtil(
     subprocessResult
   }
 
+}
+
+private[mill] object TestModuleUtilShared {
+
+  /** Returns the value for [[mill.constants.EnvVars.MILL_TEST_RESOURCE_DIR]]. */
+  def millTestResourceDirValue(resources: IterableOnce[os.Path]): String =
+    resources.iterator.mkString(";")
 }
 
 private[scalalib] object TestModuleUtil {

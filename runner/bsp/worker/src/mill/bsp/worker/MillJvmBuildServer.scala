@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentParams,
   JvmTestEnvironmentResult
 }
-import mill.api.internal.{JavaModuleApi, RunModuleApi, TaskApi, TestModuleApi}
+import mill.api.internal.{JavaModuleApi, RunModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
 import java.util.concurrent.CompletableFuture
 
@@ -23,28 +23,31 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
 
   override def buildTargetJvmRunEnvironment(params: JvmRunEnvironmentParams)
       : CompletableFuture[JvmRunEnvironmentResult] = {
-    jvmRunTestEnvironment(
+    jvmRunEnvironmentFor(
       params.getTargets.asScala,
-      new JvmRunEnvironmentResult(_)
+      new JvmRunEnvironmentResult(_),
+      forTests = false
     )
   }
 
   override def buildTargetJvmTestEnvironment(params: JvmTestEnvironmentParams)
       : CompletableFuture[JvmTestEnvironmentResult] = {
-    jvmRunTestEnvironment(
+    jvmRunEnvironmentFor(
       params.getTargets.asScala,
-      new JvmTestEnvironmentResult(_)
+      new JvmTestEnvironmentResult(_),
+      forTests = true
     )
   }
 
-  def jvmRunTestEnvironment[V](
+  private def jvmRunEnvironmentFor[V](
       targetIds: collection.Seq[BuildTargetIdentifier],
-      agg: java.util.List[JvmEnvironmentItem] => V
+      agg: java.util.List[JvmEnvironmentItem] => V,
+      forTests: Boolean
   )(implicit name: sourcecode.Name): CompletableFuture[V] = {
     handlerTasks(
       targetIds = _ => targetIds,
       tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunTestEnvironment },
-      requestDescription = "Getting JVM test environment of {}"
+      requestDescription = s"Getting JVM run environment (for tests: $forTests) of {}"
     ) {
       case (
             _,
@@ -104,7 +107,8 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
 
-      case _ => ???
+      case other =>
+        throw new NotImplementedError(s"Unsupported target: ${pprint(other).plainText}")
     } {
       agg
     }
