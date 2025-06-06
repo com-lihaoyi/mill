@@ -3,13 +3,14 @@ package mill.scalalib.bsp
 import java.nio.file.Path
 
 import mill.api.internal.bsp.BspJavaModuleApi
-import mill.{Args, Task}
+import mill.Task
 import mill.api.internal.{EvaluatorApi, TaskApi, internal}
 import mill.define.{Discover, ExternalModule, ModuleCtx}
 import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule}
+import mill.define.JsonFormatters.given
 
 @internal
-object BspJavaModule extends ExternalModule {
+private[mill] object BspJavaModule extends ExternalModule {
 
   // Requirement of ExternalModule's
   override protected def millDiscover: Discover = Discover[this.type]
@@ -24,10 +25,6 @@ object BspJavaModule extends ExternalModule {
     // We keep all BSP-related tasks/state in this sub-module
     @internal
     object internalBspJavaModule extends mill.define.Module with BspJavaModuleApi {
-
-      override private[mill] def bspRun(args: Seq[String]): Task[Unit] = Task.Anon {
-        jm.run(Task.Anon(Args(args)))
-      }
 
       override private[mill] def bspBuildTargetInverseSources[T](
           id: T,
@@ -62,10 +59,10 @@ object BspJavaModule extends ExternalModule {
       }
 
       override private[mill] def bspBuildTargetDependencySources
-          : Task[(
+          : Task.Simple[(
               resolvedDepsSources: Seq[Path],
               unmanagedClasspath: Seq[Path]
-          )] = Task.Anon {
+          )] = Task {
         (
           resolvedDepsSources = jm.millResolver().classpath(
             Seq(
@@ -79,10 +76,10 @@ object BspJavaModule extends ExternalModule {
       }
 
       override private[mill] def bspBuildTargetDependencyModules
-          : Task[(
+          : Task.Simple[(
               mvnDeps: Seq[(String, String, String)],
               unmanagedClasspath: Seq[Path]
-          )] = Task.Anon {
+          )] = Task {
         (
           // full list of dependencies, including transitive ones
           jm.millResolver()
@@ -99,8 +96,8 @@ object BspJavaModule extends ExternalModule {
       }
 
       override private[mill] def bspBuildTargetSources
-          : TaskApi[(sources: Seq[Path], generatedSources: Seq[Path])] =
-        Task.Anon {
+          : Task.Simple[(sources: Seq[Path], generatedSources: Seq[Path])] =
+        Task {
           (jm.sources().map(_.path.toNIO), jm.generatedSources().map(_.path.toNIO))
         }
 
@@ -149,12 +146,14 @@ object BspJavaModule extends ExternalModule {
       }
 
       override private[mill] def bspBuildTargetScalaMainClasses
-          : Task[(
+          : Task.Simple[(
               classes: Seq[String],
               forkArgs: Seq[String],
               forkEnv: Map[String, String]
           )] =
-        Task.Anon((jm.allLocalMainClasses(), jm.forkArgs(), jm.forkEnv()))
+        Task {
+          (jm.allLocalMainClasses(), jm.forkArgs(), jm.forkEnv())
+        }
 
       override private[mill] def bspLoggingTest = Task.Anon {
         System.out.println("bspLoggingTest from System.out")

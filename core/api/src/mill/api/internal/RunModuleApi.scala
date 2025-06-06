@@ -1,13 +1,11 @@
 package mill.api.internal
 
+import mill.api.internal.bsp.BspRunModuleApi
+
 trait RunModuleApi extends ModuleApi {
-  @deprecated("Move to BSP context")
-  private[mill] def bspJvmRunTestEnvironment: TaskApi[(
-      Seq[java.nio.file.Path],
-      Seq[String],
-      java.nio.file.Path,
-      Map[String, String],
-      Option[String],
-      Any
-  )]
+
+  /**
+   * Internal access to some BSP helper tasks
+   */
+  private[mill] def bspRunModule: () => BspRunModuleApi
 }

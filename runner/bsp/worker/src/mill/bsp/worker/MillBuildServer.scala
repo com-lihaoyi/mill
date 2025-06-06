@@ -23,13 +23,7 @@ import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-import mill.api.internal.bsp.{
-  BspJavaModuleApi,
-  BspModuleApi,
-  BspServerResult,
-  JvmBuildTarget,
-  ScalaBuildTarget
-}
+import mill.api.internal.bsp.{BspModuleApi, BspServerResult, JvmBuildTarget, ScalaBuildTarget}
 
 private class MillBuildServer(
     topLevelProjectRoot: os.Path,
@@ -428,15 +422,15 @@ private class MillBuildServer(
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] =
     handlerEvaluators() { (state, logger) =>
       val params = TaskParameters.fromRunParams(runParams)
-      val (javaModule, ev) = params.getTargets.map(state.bspModulesById).collectFirst {
-        case (m: JavaModuleApi, ev) => (m, ev)
+      val (runModule, ev) = params.getTargets.map(state.bspModulesById).collectFirst {
+        case (m: RunModuleApi, ev) => (m, ev)
       }.get
 
       val args = params.getArguments.getOrElse(Seq.empty[String])
-      val runTask = javaModule.bspJavaModule().bspRun(args)
+      val runTask = runModule.bspRunModule().bspRun(args)
       val runResult = evaluate(
         ev,
-        s"Running ${javaModule.bspDisplayName}",
+        s"Running ${runModule.bspDisplayName}",
         Seq(runTask),
         logger,
         Utils.getBspLoggedReporterPool(runParams.getOriginId, state.bspIdByModule, client)
@@ -612,13 +606,14 @@ private class MillBuildServer(
       buildTargetIdentifier: BuildTargetIdentifier,
       moduleApi: BspModuleApi,
       result: W
-  ) => T)(agg: java.util.List[T] => V)(implicit
-      name: sourcecode.Name
+  ) => T)(agg: java.util.List[T] => V)(using
+      name: sourcecode.Name,
+      enclosing: sourcecode.Enclosing
   )
       : CompletableFuture[V] =
     handlerTasksEvaluators[T, V, W](targetIds, tasks, requestDescription)(block)((l, _) =>
       agg(l)
-    )
+    )(using name, enclosing)
 
   /**
    * @params tasks A partial function
@@ -631,7 +626,7 @@ private class MillBuildServer(
   )(block: (EvaluatorApi, BspEvaluators, BuildTargetIdentifier, BspModuleApi, W) => T)(agg: (
       java.util.List[T],
       BspEvaluators
-  ) => V)(implicit name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V] = {
+  ) => V)(using name: sourcecode.Name, enclosing: sourcecode.Enclosing): CompletableFuture[V] = {
     val prefix = name.value
     handlerEvaluators() { (state, logger) =>
       val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
