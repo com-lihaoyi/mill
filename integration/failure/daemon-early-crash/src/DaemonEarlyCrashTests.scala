@@ -4,7 +4,7 @@ import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object ServerEarlyCrashTests extends UtestIntegrationTestSuite {
+object DaemonEarlyCrashTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test("check") - integrationTest { tester =>
       import tester._
