@@ -27,7 +27,7 @@ object BspRunModule extends ExternalModule {
     object internalBspRunModule extends mill.define.Module with BspRunModuleApi {
 
       override private[mill] def bspRun(args: Seq[String]): Task[Unit] = Task.Anon {
-        runModule.run(Task.Anon(Args(args)))
+        runModule.run(Task.Anon(Args(args)))()
       }
 
       override private[mill] def bspJvmRunTestEnvironment: Task.Simple[(

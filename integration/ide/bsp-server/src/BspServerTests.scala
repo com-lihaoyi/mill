@@ -3,6 +3,7 @@ package mill.integration
 import java.io.ByteArrayOutputStream
 
 import scala.jdk.CollectionConverters.*
+import scala.util.chaining.given
 
 import ch.epfl.scala.bsp4j as b
 import mill.api.BuildInfo
@@ -245,6 +246,24 @@ object BspServerTests extends UtestIntegrationTestSuite {
           snapshotsPath / "build-targets-run-1.json",
           normalizedLocalValues = normalizedLocalValues
         )
+
+        {
+          val run3 = os.temp(suffix = "bsp-run-3", deleteOnExit = false)
+          println("file: " + run3)
+//          os.write.over(run3, "dummy")
+          os.remove(run3)
+          compareWithGsonSnapshot(
+            buildServer
+              .buildTargetRun(new b.RunParams(appTargetId).tap { p =>
+                p.setArguments(java.util.List.of(s"file=${run3.toString}", "content=run-3"))
+              })
+              .get(),
+            snapshotsPath / "build-targets-run-1.json",
+            normalizedLocalValues = normalizedLocalValues
+          )
+          assert(os.exists(run3))
+          assert(os.read(run3).trim() == "run-3")
+        }
 
       }
     }
