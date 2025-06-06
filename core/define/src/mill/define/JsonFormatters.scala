@@ -31,6 +31,12 @@ trait JsonFormatters {
   implicit val relPathRW: RW[os.RelPath] = upickle.default.readwriter[String]
     .bimap[os.RelPath](_.toString, os.RelPath(_))
 
+  implicit val nioPathRW: RW[java.nio.file.Path] = upickle.default.readwriter[String]
+    .bimap[java.nio.file.Path](
+      _.toUri().toString(),
+      s => java.nio.file.Path.of(new java.net.URI(s))
+    )
+
   implicit val regexReadWrite: RW[Regex] = upickle.default.readwriter[String]
     .bimap[Regex](
       _.pattern.toString,
@@ -73,6 +79,8 @@ trait JsonFormatters {
           .newInstance(s)
           .asInstanceOf[T]
     )
+
+  export upickle.implicits.namedTuples.default.given
 }
 
 object JsonFormatters extends JsonFormatters {

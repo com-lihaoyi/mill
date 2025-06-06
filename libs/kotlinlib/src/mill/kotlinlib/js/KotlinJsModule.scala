@@ -15,7 +15,7 @@ import mill.testrunner.TestResult
 import mill.util.Jvm
 import mill.{Args, T}
 import sbt.testing.Status
-import upickle.implicits.namedTuples.default.given
+import mill.define.JsonFormatters.given
 
 import java.io.{File, FileNotFoundException}
 import java.util.zip.ZipFile

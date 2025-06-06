@@ -1,4 +1,6 @@
-package mill.api.internal
+package mill.api.internal.bsp
+
+import mill.api.internal.ScalaPlatform
 
 case class ScalaBuildTarget(
     /** The Scala organization that is used for a target. */

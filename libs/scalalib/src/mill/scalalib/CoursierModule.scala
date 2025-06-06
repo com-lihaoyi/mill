@@ -102,7 +102,7 @@ trait CoursierModule extends mill.define.Module {
   def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
     val resolve = Resolve()
     val repos = Await.result(
-      resolve.finalRepositories.future()(resolve.cache.ec),
+      resolve.finalRepositories.future()(using resolve.cache.ec),
       Duration.Inf
     )
     Jvm.reposFromStrings(repositories()).map(_ ++ repos)

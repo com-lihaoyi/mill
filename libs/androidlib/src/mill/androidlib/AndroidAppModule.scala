@@ -10,9 +10,10 @@ import mill.testrunner.TestResult
 import mill.util.Jvm
 import os.{Path, RelPath, zip}
 import upickle.default.*
-
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
+
+import mill.api.internal.bsp.BspBuildTarget
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats

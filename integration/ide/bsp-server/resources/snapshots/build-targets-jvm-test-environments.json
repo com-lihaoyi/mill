@@ -19,7 +19,12 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {},
-      "mainClasses": []
+      "mainClasses": [
+        {
+          "className": "App",
+          "arguments": []
+        }
+      ]
     },
     {
       "target": {
