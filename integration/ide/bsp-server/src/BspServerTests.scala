@@ -123,6 +123,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
         assert(targetIds.contains(metaBuildTargetId))
         val targetIdsSubset = targetIds.asScala.filter(_ != metaBuildTargetId).asJava
 
+        val appTargetId = new b.BuildTargetIdentifier(
+          (workspacePath / "app").toNIO.toUri.toASCIIString.stripSuffix("/")
+        )
+        assert(targetIds.contains(appTargetId))
+
         compareWithGsonSnapshot(
           buildServer
             .buildTargetSources(new b.SourcesParams(targetIds))
@@ -178,6 +183,15 @@ object BspServerTests extends UtestIntegrationTestSuite {
             .buildTargetOutputPaths(new b.OutputPathsParams(targetIds))
             .get(),
           snapshotsPath / "build-targets-output-paths.json",
+          normalizedLocalValues = normalizedLocalValues
+        )
+
+        // Run without args
+        compareWithGsonSnapshot(
+          buildServer
+            .buildTargetRun(new b.RunParams(appTargetId))
+            .get(),
+          snapshotsPath / "build-targets-run-1.json",
           normalizedLocalValues = normalizedLocalValues
         )
 
