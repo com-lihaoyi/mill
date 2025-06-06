@@ -113,28 +113,28 @@ public abstract class ServerLauncher {
     try (Locks locks = memoryLock != null ? memoryLock : Locks.files(daemonDir.toString());
         mill.client.lock.Locked locked = locks.launcherLock.lock()) {
 
-      Process serverProcess = null;
+      Process daemonProcess = null;
 
-      if (locks.daemonLock.probe()) serverProcess = initServer(daemonDir, locks);
+      if (locks.daemonLock.probe()) daemonProcess = initServer(daemonDir, locks);
       while (locks.daemonLock.probe()) {
-        if (serverProcess != null && !serverProcess.isAlive()) {
+        if (daemonProcess != null && !daemonProcess.isAlive()) {
           System.err.println("Mill daemon exited!");
           Path stdout = daemonDir.toAbsolutePath().resolve(DaemonFiles.stdout);
           Path stderr = daemonDir.toAbsolutePath().resolve(DaemonFiles.stderr);
           if (Files.exists(stdout) && Files.size(stdout) > 0) {
-            System.err.println("Server stdout:");
+            System.err.println("Daemon stdout:");
             System.err.println();
             System.err.write(Files.readAllBytes(stdout));
           } else {
-            System.err.println("No server stdout");
+            System.err.println("No daemon stdout");
           }
           if (Files.exists(stderr) && Files.size(stderr) > 0) {
             System.err.println();
-            System.err.println("Server stderr:");
+            System.err.println("Daemon stderr:");
             System.err.println();
             System.err.write(Files.readAllBytes(stderr));
           } else {
-            System.err.println("No server stderr");
+            System.err.println("No daemon stderr");
           }
           System.exit(1);
         }
