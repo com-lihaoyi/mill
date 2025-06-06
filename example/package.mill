@@ -120,6 +120,7 @@ object `package` extends Module {
     object jvmcode extends Cross[ExampleCrossModule](build.listIn(moduleDir / "jvmcode"))
     object python extends Cross[ExampleCrossModule](build.listIn(moduleDir / "python"))
     object typescript extends Cross[ExampleCrossModule](build.listIn(moduleDir / "typescript"))
+    object evaluator extends Cross[ExampleCrossModule](build.listIn(moduleDir / "evaluator"))
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
