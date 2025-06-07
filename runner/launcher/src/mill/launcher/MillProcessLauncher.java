@@ -56,7 +56,7 @@ public class MillProcessLauncher {
     }
   }
 
-  static void launchMillServer(Path daemonDir) throws Exception {
+  static Process launchMillServer(Path daemonDir) throws Exception {
     List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand());
     l.add("mill.daemon.MillDaemonMain");
@@ -67,7 +67,7 @@ public class MillProcessLauncher {
         .redirectOutput(daemonDir.resolve(DaemonFiles.stdout).toFile())
         .redirectError(daemonDir.resolve(DaemonFiles.stderr).toFile());
 
-    configureRunMillProcess(builder, daemonDir);
+    return configureRunMillProcess(builder, daemonDir);
   }
 
   static Process configureRunMillProcess(ProcessBuilder builder, Path daemonDir) throws Exception {

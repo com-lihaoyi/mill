@@ -50,8 +50,8 @@ public class MillLauncherMain {
                 optsArgs.toArray(new String[0]),
                 null,
                 -1) {
-              public void initServer(Path daemonDir, Locks locks) throws Exception {
-                MillProcessLauncher.launchMillServer(daemonDir);
+              public Process initServer(Path daemonDir, Locks locks) throws Exception {
+                return MillProcessLauncher.launchMillServer(daemonDir);
               }
 
               public void preparedaemonDir(Path daemonDir) throws Exception {
