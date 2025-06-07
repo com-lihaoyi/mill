@@ -143,7 +143,7 @@ object `package` extends Module {
             sources ++= Seq(nonJvmSourcesPath)
           }
         }
-        sources.map(mill.api.Result.Success(_))
+        sources
       }*)
 
       override def kotlincOptions =
@@ -163,8 +163,7 @@ object `package` extends Module {
         override def sources: T[Seq[PathRef]] = Task.Sources(
           Seq("common", outer.platformCrossSuffix)
             .map(platform => outer.moduleDir / "src" / s"${platform}Test" / "kotlin")
-            .filter(p => os.exists(p))
-            .map(mill.api.Result.Success(_))*
+            .filter(p => os.exists(p))*
         )
       }
     }

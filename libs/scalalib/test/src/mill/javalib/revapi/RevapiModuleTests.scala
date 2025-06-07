@@ -73,7 +73,7 @@ object RevapiModuleTests extends TestSuite {
     object module2 extends module with RevapiModule {
       override def revapiConfigFiles: T[Seq[PathRef]] =
         Task.Sources(
-          os.list(conf).iterator.filter(_.ext == "json").toSeq.map(mill.api.Result.Success(_))*
+          os.list(conf).iterator.filter(_.ext == "json").toSeq*
         )
       override def revapiClasspath: T[Seq[PathRef]] = Task {
         super.revapiClasspath() ++ Seq(PathRef(conf))
@@ -113,7 +113,7 @@ object RevapiModuleTests extends TestSuite {
       }
       override def revapiConfigFiles: T[Seq[PathRef]] =
         Task.Sources(
-          os.list(conf).iterator.filter(_.ext == "json").toSeq.map(mill.api.Result.Success(_))*
+          os.list(conf).iterator.filter(_.ext == "json").toSeq*
         )
       override def revapiClasspath: T[Seq[PathRef]] = Task {
         super.revapiClasspath() ++ Seq(PathRef(conf))
