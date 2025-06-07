@@ -32,6 +32,38 @@
     },
     {
       "id": {
+        "uri": "file:///workspace/app/test"
+      },
+      "displayName": "app.test",
+      "baseDirectory": "file:///workspace/app/test",
+      "tags": [
+        "test"
+      ],
+      "languageIds": [
+        "java"
+      ],
+      "dependencies": [
+        {
+          "uri": "file:///workspace/lib"
+        },
+        {
+          "uri": "file:///workspace/app"
+        }
+      ],
+      "capabilities": {
+        "canCompile": true,
+        "canTest": true,
+        "canRun": true,
+        "canDebug": false
+      },
+      "dataKind": "jvm",
+      "data": {
+        "javaHome": "java-home",
+        "javaVersion": "<java-version>"
+      }
+    },
+    {
+      "id": {
         "uri": "file:///workspace/delayed"
       },
       "displayName": "delayed",
