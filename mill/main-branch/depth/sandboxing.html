@@ -677,7 +677,7 @@ property. This is available within any task, and gives you access to the
 each task is lazily initialized when <code>Task.dest</code> is referenced and used:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC1/mill-dist-1.0.0-RC1-43-9f86dc-example-depth-sandbox-1-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC1/example/depth/sandbox/1-task">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC1/mill-dist-1.0.0-RC1-44-97fdb4-example-depth-sandbox-1-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC1/example/depth/sandbox/1-task">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -703,7 +703,7 @@ object foo extends Module {
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bannedWriteTask
-error: ...Writing to banned-path not allowed during execution phase</code></pre>
+error: ...Writing to banned-path not allowed during execution of `bannedWriteTask`</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -716,7 +716,7 @@ error: ...Writing to banned-path not allowed during execution phase</code></pre>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bannedReadTask
-error: ...Reading from build.mill not allowed during execution phase</code></pre>
+error: ...Reading from build.mill not allowed during execution of `bannedReadTask`</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -729,7 +729,7 @@ error: ...Reading from build.mill not allowed during execution phase</code></pre
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bannedReadTask2
-error: ...Reading from out/foo/tDestTask.json not allowed during execution phase</code></pre>
+error: ...Reading from out/foo/tDestTask.json not allowed during execution of `bannedReadTask2`</code></pre>
 </div>
 </div>
 </div>
@@ -814,7 +814,7 @@ following build with two modules <code>foo</code> and <code>bar</code>, and thei
 <code>foo.test</code> and <code>bar.test</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC1/mill-dist-1.0.0-RC1-43-9f86dc-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC1/example/depth/sandbox/2-test">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC1/mill-dist-1.0.0-RC1-44-97fdb4-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC1/example/depth/sandbox/2-test">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -987,7 +987,7 @@ code auto-formatters, auto-fixers, auto-updaters. etc.</p>
 <p><code>Task.workspace</code> can be used in tasks:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC1/mill-dist-1.0.0-RC1-43-9f86dc-example-depth-sandbox-3-breaking.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC1/example/depth/sandbox/3-breaking">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC1/mill-dist-1.0.0-RC1-44-97fdb4-example-depth-sandbox-3-breaking.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC1/example/depth/sandbox/3-breaking">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
