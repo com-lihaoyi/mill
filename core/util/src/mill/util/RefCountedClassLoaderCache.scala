@@ -5,7 +5,8 @@ import mill.define.PathRef
 import java.net.URLClassLoader
 import collection.mutable.LinkedHashMap
 
-class RefCountedClassLoaderCache(sharedLoader: ClassLoader) {
+class RefCountedClassLoaderCache(sharedLoader: ClassLoader,
+                                 parent: ClassLoader = null) {
 
   val cache = LinkedHashMap.empty[Long, (URLClassLoader, Int)]
 
@@ -55,7 +56,8 @@ class RefCountedClassLoaderCache(sharedLoader: ClassLoader) {
   }
   def get(
                             combinedCompilerJars: Seq[PathRef]
-                          ): URLClassLoader = synchronized  {
+                          )
+         (implicit e: sourcecode.Enclosing): URLClassLoader = synchronized  {
     val compilersSig = combinedCompilerJars.hashCode()
     cache.get(compilersSig) match {
       case Some((cl, i)) =>
@@ -63,13 +65,12 @@ class RefCountedClassLoaderCache(sharedLoader: ClassLoader) {
         cl
       case _ =>
         // the Scala compiler must load the `xsbti.*` classes from the same loader as `JvmWorkerImpl`
-        println("RefCountedCache.get getClass.getClassLoader " + getClass.getClassLoader)
         val cl = mill.util.Jvm.createClassLoader(
           combinedCompilerJars.map(_.path),
-          parent = null,
+          parent = parent,
           sharedLoader = sharedLoader,
           sharedPrefixes = Seq("xsbti")
-        )
+        )(e)
         cache.update(compilersSig, (cl, 1))
         cl
     }

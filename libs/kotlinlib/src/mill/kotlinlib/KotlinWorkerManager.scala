@@ -14,7 +14,10 @@ import java.net.{URL, URLClassLoader}
 class KotlinWorkerFactory()(implicit ctx: TaskCtx)
     extends CachedFactory[Seq[PathRef], (URLClassLoader, KotlinWorker)] {
 
-  private val classloaderCache = new mill.util.RefCountedClassLoaderCache(getClass.getClassLoader)
+  private val classloaderCache = new mill.util.RefCountedClassLoaderCache(
+    getClass.getClassLoader,
+    getClass.getClassLoader,
+  )
 
   def setup(key: Seq[PathRef]) = {
 
