@@ -140,7 +140,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   ) {
     def apply[T](block: ScalaNativeWorkerApi => T): T = {
       scalaNativeWorkerValue.withValue(bridgeFullClassPathValue) {
-        case (cl, bridge) => block(bridge)
+        bridge => block(bridge)
       }
     }
   }
