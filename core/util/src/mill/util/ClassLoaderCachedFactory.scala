@@ -9,7 +9,7 @@ import java.net.URLClassLoader
  * easy way to generate values of type [[T]] to each be used in a single-thread while
  * re-using the underling `URLClassLoader`s where possible.
  */
-abstract class ClassLoaderCachedFactory[T](jobs: Int)
+abstract class ClassLoaderCachedFactory[T](jobs: Int)(implicit e: sourcecode.Enclosing)
     extends CachedFactory[Seq[mill.PathRef], T] {
   private val classloaderCache = RefCountedClassLoaderCache(parent = getClass.getClassLoader)
 
@@ -21,10 +21,7 @@ abstract class ClassLoaderCachedFactory[T](jobs: Int)
     bridge
   }
 
-  override def teardown(
-      key: Seq[PathRef],
-      value: T
-  ): Unit = {
+  override def teardown(key: Seq[PathRef], value: T): Unit = {
     classloaderCache.release(key)
   }
 
