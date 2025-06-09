@@ -1,6 +1,6 @@
 package mill.daemon
 
-import mill.api.internal.{BspServerResult, internal}
+import mill.api.internal.internal
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
@@ -20,6 +20,7 @@ import scala.collection.immutable
 import scala.jdk.CollectionConverters.*
 import scala.util.control.NonFatal
 import scala.util.{Properties, Using}
+import mill.api.internal.bsp.BspServerResult
 
 @internal
 object MillMain0 {

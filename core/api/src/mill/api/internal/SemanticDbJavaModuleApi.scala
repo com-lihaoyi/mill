@@ -3,7 +3,10 @@ package mill.api.internal
 import mill.api.BuildInfo
 
 trait SemanticDbJavaModuleApi {
+  @deprecated("Move to BSP context")
   private[mill] def bspBuildTargetCompileSemanticDb: TaskApi[java.nio.file.Path]
+  @deprecated("Move to BSP context")
+  private[mill] def bspCompiledClassesAndSemanticDbFiles: TaskApi[UnresolvedPathApi[?]]
 }
 object SemanticDbJavaModuleApi {
   val buildTimeJavaSemanticDbVersion = BuildInfo.semanticDbJavaVersion

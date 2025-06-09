@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.define.Task
 import mill.{Module, PathRef, T}
-import mill.api.internal.{JavaFacet, IdeaConfigFile}
+import mill.api.internal.idea.{IdeaConfigFile, JavaFacet}
 
 /**
  * Module specific configuration of the Idea project file generator.

@@ -7,7 +7,7 @@ import mill.T
 import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.util.Jvm
-import upickle.implicits.namedTuples.default.given
+import mill.define.JsonFormatters.given
 
 import scala.collection.immutable
 import scala.xml.*

@@ -138,7 +138,7 @@ trait KspModule extends KotlinModule { outer =>
    * so that the generated  sources are in the [[compileClasspath]]
    * for the main compile task.
    */
-  def generatedSourcesWithKSP: Target[GeneratedKSPSources] = Task {
+  def generatedSourcesWithKSP: T[GeneratedKSPSources] = Task {
     val sourceFiles = kspSources().map(_.path).filter(os.exists)
 
     val compileCp = kspClasspath().map(_.path).filter(os.exists)

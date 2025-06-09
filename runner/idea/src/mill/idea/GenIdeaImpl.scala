@@ -3,6 +3,7 @@ package mill.idea
 import scala.collection.immutable
 import scala.util.{Success, Try}
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
+
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
 import mill.define.TaskCtx
@@ -12,8 +13,6 @@ import mill.api.internal.{
   BaseModuleApi,
   EvaluatorApi,
   ExecutionResultsApi,
-  IdeaConfigFile,
-  JavaFacet,
   JavaModuleApi,
   ModuleApi,
   ScalaJSModuleApi,
@@ -21,11 +20,13 @@ import mill.api.internal.{
   ScalaNativeModuleApi,
   TestModuleApi
 }
+import mill.api.internal.idea.ResolvedModule
 import mill.util.BuildInfo
-
 import collection.mutable
 import java.net.URL
-import mill.api.internal._
+
+import mill.api.internal.*
+import mill.api.internal.idea.{Element, IdeaConfigFile, JavaFacet, Scoped}
 import os.SubPath
 
 class GenIdeaImpl(
@@ -97,10 +98,10 @@ class GenIdeaImpl(
         t.transitive.collect {
           case m: ModuleApi =>
             val rootSegs = os.Path(t.rootModule.moduleDirJava).relativeTo(workDir).segments
-            val modSegs = m.moduleSegments.parts
-            val segments: Seq[String] = rootSegs ++ modSegs
+            val modSegs = m.moduleSegments
+            val segments = Segments(rootSegs.map(Segment.Label)) ++ modSegs
             (
-              segments = Segments(segments.map(Segment.Label(_))),
+              segments = segments,
               module = m,
               evaluator = t.evaluator
             )
@@ -781,19 +782,23 @@ class GenIdeaImpl(
   }
 
   def scalaCompilerTemplate(
-      settings: Map[(Seq[os.Path], Seq[String]), Seq[JavaModuleApi]]
+      settings: Map[(Seq[os.Path], Seq[String]), Vector[JavaModuleApi]]
   ) = {
     def modulesString(mods: Seq[ModuleApi]) =
       mods.map(m => moduleName(m.moduleSegments)).mkString(",")
 
+    val orderedSettings = settings.toSeq.map {
+      case ((plugins, params), mods) => ((plugins, params), modulesString(mods))
+    }.sortBy(_._2).zipWithIndex
+
     <project version={"" + ideaConfigVersion}>
       <component name="ScalaCompilerConfiguration">
         {
-      for ((((plugins, params), mods), i) <- settings.toSeq.zipWithIndex)
-        yield <profile name={s"mill ${i + 1}"} modules={modulesString(mods)}>
-            <parameters>{for (param <- params) yield <parameter value={param} />}</parameters>
-            <plugins>{for (plugin <- plugins) yield <plugin path={plugin.toString} />}</plugins>
-          </profile>
+      for ((((plugins, params), modsString), i) <- orderedSettings)
+        yield <profile name={s"mill ${i + 1}"} modules={modsString}>
+          <parameters>{for (param <- params) yield <parameter value={param} />}</parameters>
+          <plugins>{for (plugin <- plugins) yield <plugin path={plugin.toString} />}</plugins>
+        </profile>
     }
       </component>
     </project>

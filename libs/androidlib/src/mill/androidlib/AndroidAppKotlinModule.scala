@@ -7,7 +7,7 @@ import mill.kotlinlib.{Dep, DepSyntax}
 import mill.scalalib.TestModule.Junit5
 import mill.scalalib.{JavaModule, TestModule}
 import mill.*
-import upickle.implicits.namedTuples.default.given
+import mill.define.JsonFormatters.given
 
 /**
  * Trait for building Android applications using the Mill build tool.

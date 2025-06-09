@@ -1,5 +1,7 @@
 package object mill extends mill.define.JsonFormatters with mill.util.TokenReaders0 {
   type T[+T] = define.Task.Simple[T]
+  // FIXME: Remove once we have released Mill 0.12.15
+  @deprecated("Use Task.Simple[T] or T[T] instead", "0.12.15")
   type Target[+T] = define.Task.Simple[T]
   val PathRef = mill.define.PathRef
   type PathRef = mill.define.PathRef

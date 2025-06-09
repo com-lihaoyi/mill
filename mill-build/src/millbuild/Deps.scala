@@ -175,6 +175,7 @@ object Deps {
   val zinc = mvn"org.scala-sbt::zinc:1.10.8".withDottyCompat(scalaVersion)
   // keep in sync with doc/antora/antory.yml
   val bsp4j = mvn"ch.epfl.scala:bsp4j:2.2.0-M2"
+  val gson = mvn"com.google.code.gson:gson:2.10.1"
   val fansi = mvn"com.lihaoyi::fansi:0.5.0"
   val jarjarabrams =
     mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.1".withDottyCompat(scalaVersion)
@@ -254,7 +255,7 @@ object Deps {
   lazy val transitiveDeps = Seq(
     mvn"org.apache.ant:ant:1.10.15",
     Deps.commonsIo,
-    mvn"com.google.code.gson:gson:2.11.0",
+    Deps.gson,
     mvn"com.google.protobuf:protobuf-java:4.29.3",
     mvn"com.google.guava:guava:33.4.0-jre",
     mvn"org.yaml:snakeyaml:2.3",

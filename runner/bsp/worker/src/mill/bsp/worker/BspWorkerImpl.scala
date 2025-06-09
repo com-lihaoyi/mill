@@ -2,7 +2,7 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildClient
 import mill.bsp.BuildInfo
-import mill.api.internal.{BspServerHandle, BspServerResult, EvaluatorApi}
+import mill.api.internal.EvaluatorApi
 import mill.bsp.Constants
 import mill.api.{Logger, Result, SystemStreams}
 import mill.client.lock.Lock
@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
 import scala.concurrent.{Await, CancellationException, Promise}
 import scala.concurrent.duration.Duration
+import mill.api.internal.bsp.{BspServerHandle, BspServerResult}
 
 object BspWorkerImpl {
 

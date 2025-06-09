@@ -1,17 +1,19 @@
 package mill.scalalib
 
-import mill._
+import mill.*
 import mill.testkit.UnitTester
-import utest._
-
+import utest.*
 import java.util.jar.JarFile
+
 import scala.util.Using
-import HelloWorldTests._
+
+import HelloWorldTests.*
+import mill.define.Task
 object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {
     def checkExclude[M <: mill.testkit.TestRootModule](
         module: M,
-        target: Target[PathRef],
+        target: Task.Simple[PathRef],
         resourcePath: os.Path = resourcePath
     ) = UnitTester(module, resourcePath).scoped { eval =>
       val Right(result) = eval.apply(target): @unchecked
@@ -42,7 +44,7 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
 
     def checkRelocate[M <: mill.testkit.TestRootModule](
         module: M,
-        target: Target[PathRef],
+        target: Task.Simple[PathRef],
         resourcePath: os.Path = resourcePath
     ) = UnitTester(module, resourcePath).scoped { eval =>
       val Right(result) = eval.apply(target): @unchecked
