@@ -44,7 +44,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
     handlerTasks(
       targetIds = _ => targetIds,
       tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunTestEnvironment },
-      requestDescription = s"Getting JVM test environment of {}"
+      requestDescription = "Getting JVM test environment of {}"
     ) {
       case (
             _,
@@ -90,7 +90,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
     handlerTasks(
       targetIds = _ => targetIds,
       tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunTestEnvironment },
-      requestDescription = s"Getting JVM run environment of {}"
+      requestDescription = "Getting JVM run environment of {}"
     ) {
       case (
             _,
