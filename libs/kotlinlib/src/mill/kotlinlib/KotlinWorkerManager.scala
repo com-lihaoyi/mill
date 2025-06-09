@@ -12,8 +12,7 @@ import mill.util.ClassLoaderCachedFactory
 
 import java.net.URLClassLoader
 class KotlinWorkerFactory()(implicit ctx: TaskCtx)
-  extends ClassLoaderCachedFactory[KotlinWorker](ctx.jobs) {
-
+    extends ClassLoaderCachedFactory[KotlinWorker](ctx.jobs) {
 
   def getValue(cl: ClassLoader) = KotlinWorkerManager.get(cl)
 }

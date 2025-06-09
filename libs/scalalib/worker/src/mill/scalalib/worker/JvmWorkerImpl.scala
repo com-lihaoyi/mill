@@ -667,7 +667,6 @@ class JvmWorkerImpl(
     scalaCompilerCache.close()
     javaOnlyCompilerCache.close()
 
-
     close0()
     classloaderCache.close()
   }

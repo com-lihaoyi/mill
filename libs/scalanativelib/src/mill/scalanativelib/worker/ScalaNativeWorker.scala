@@ -10,12 +10,12 @@ import mill.util.ClassLoaderCachedFactory
 import java.net.URLClassLoader
 
 private[scalanativelib] class ScalaNativeWorker(jobs: Int)
-  extends ClassLoaderCachedFactory[workerApi.ScalaNativeWorkerApi](jobs) {
+    extends ClassLoaderCachedFactory[workerApi.ScalaNativeWorkerApi](jobs) {
   override def getValue(cl: ClassLoader) = cl
-      .loadClass("mill.scalanativelib.worker.ScalaNativeWorkerImpl")
-      .getDeclaredConstructor()
-      .newInstance()
-      .asInstanceOf[workerApi.ScalaNativeWorkerApi]
+    .loadClass("mill.scalanativelib.worker.ScalaNativeWorkerImpl")
+    .getDeclaredConstructor()
+    .newInstance()
+    .asInstanceOf[workerApi.ScalaNativeWorkerApi]
 }
 
 private[scalanativelib] object ScalaNativeWorkerExternalModule extends mill.define.ExternalModule {

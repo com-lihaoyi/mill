@@ -4,8 +4,8 @@ import mill.define.PathRef
 
 import java.net.URLClassLoader
 
-
-abstract class ClassLoaderCachedFactory[T](jobs: Int) extends CachedFactory[Seq[mill.PathRef], (URLClassLoader, T)] {
+abstract class ClassLoaderCachedFactory[T](jobs: Int)
+    extends CachedFactory[Seq[mill.PathRef], (URLClassLoader, T)] {
   private val classloaderCache = RefCountedClassLoaderCache(parent = getClass.getClassLoader)
 
   def getValue(cl: ClassLoader): T
@@ -13,14 +13,13 @@ abstract class ClassLoaderCachedFactory[T](jobs: Int) extends CachedFactory[Seq[
     val cl = classloaderCache.get(key)
     val bridge = getValue(cl)
 
-
     (cl, bridge)
   }
 
   override def teardown(
-                         key: Seq[PathRef],
-                         value: (URLClassLoader, T)
-                       ): Unit = {
+      key: Seq[PathRef],
+      value: (URLClassLoader, T)
+  ): Unit = {
     classloaderCache.release(key)
   }
 
