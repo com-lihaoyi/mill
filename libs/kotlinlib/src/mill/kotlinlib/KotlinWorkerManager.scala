@@ -5,36 +5,17 @@
  */
 package mill.kotlinlib
 
-import mill._
+import mill.*
 import mill.define.{Discover, ExternalModule, TaskCtx}
 import mill.kotlinlib.worker.api.KotlinWorker
-import mill.util.CachedFactory
-import mill.util.RefCountedClassLoaderCache
-import java.net.{URL, URLClassLoader}
+import mill.util.ClassLoaderCachedFactory
+
+import java.net.URLClassLoader
 class KotlinWorkerFactory()(implicit ctx: TaskCtx)
-    extends CachedFactory[Seq[PathRef], (URLClassLoader, KotlinWorker)] {
+  extends ClassLoaderCachedFactory[KotlinWorker](ctx.jobs) {
 
-  private val classloaderCache = new RefCountedClassLoaderCache(parent = getClass.getClassLoader)
 
-  def setup(key: Seq[PathRef]) = {
-
-    val cl = classloaderCache.get(key)
-    val worker =
-      try KotlinWorkerManager.get(cl)
-      catch { case e => e.printStackTrace(); ??? }
-    (cl, worker)
-  }
-
-  override def teardown(key: Seq[PathRef], value: (URLClassLoader, KotlinWorker)): Unit = {
-    classloaderCache.release(key)
-  }
-
-  override def maxCacheSize: Int = ctx.jobs
-
-  override def close(): Unit = {
-    super.close()
-    classloaderCache.close()
-  }
+  def getValue(cl: ClassLoader) = KotlinWorkerManager.get(cl)
 }
 
 object KotlinWorkerManager extends ExternalModule {
@@ -42,7 +23,7 @@ object KotlinWorkerManager extends ExternalModule {
     new KotlinWorkerFactory()
   }
 
-  def get(toolsClassLoader: URLClassLoader)(implicit ctx: TaskCtx): KotlinWorker = {
+  def get(toolsClassLoader: ClassLoader)(implicit ctx: TaskCtx): KotlinWorker = {
     val className =
       classOf[KotlinWorker].getPackage().getName().split("\\.").dropRight(1).mkString(
         "."
