@@ -16,7 +16,8 @@ import java.net.URLClassLoader
 private[scalajslib] class ScalaJSWorker(jobs: Int)
     extends CachedFactory[Seq[mill.PathRef], (URLClassLoader, workerApi.ScalaJSWorkerApi)] {
 
-  private val classloaderCache = new mill.util.RefCountedClassLoaderCache(getClass.getClassLoader)
+  private val classloaderCache =
+    new mill.util.RefCountedClassLoaderCache(parent = getClass.getClassLoader)
   override def setup(key: Seq[PathRef]) = {
     val cl = classloaderCache.get(key)
     val bridge = cl

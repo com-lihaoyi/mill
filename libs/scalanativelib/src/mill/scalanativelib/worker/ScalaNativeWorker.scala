@@ -34,7 +34,8 @@ private[scalanativelib] class ScalaNativeWorker(jobs: Int)
 
   override def maxCacheSize: Int = jobs
 
-  private val classloaderCache = new mill.util.RefCountedClassLoaderCache(getClass.getClassLoader)
+  private val classloaderCache =
+    new mill.util.RefCountedClassLoaderCache(parent = getClass.getClassLoader)
 }
 
 private[scalanativelib] object ScalaNativeWorkerExternalModule extends mill.define.ExternalModule {

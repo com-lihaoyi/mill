@@ -116,7 +116,10 @@ class JvmWorkerImpl(
     }
   }
 
-  private val classloaderCache = new mill.util.RefCountedClassLoaderCache(getClass.getClassLoader)
+  private val classloaderCache = new mill.util.RefCountedClassLoaderCache(
+    sharedLoader = getClass.getClassLoader,
+    sharedPrefixes = Seq("xsbti")
+  )
 
   object javaOnlyCompilerCache extends CachedFactory[Seq[String], Compilers] {
 

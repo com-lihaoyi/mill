@@ -5,8 +5,11 @@ import mill.define.PathRef
 import java.net.URLClassLoader
 import collection.mutable.LinkedHashMap
 
-class RefCountedClassLoaderCache(sharedLoader: ClassLoader,
-                                 parent: ClassLoader = null) {
+class RefCountedClassLoaderCache(
+    sharedLoader: ClassLoader = null,
+    sharedPrefixes: Seq[String] = Nil,
+    parent: ClassLoader = null
+) {
 
   val cache = LinkedHashMap.empty[Long, (URLClassLoader, Int)]
 
@@ -52,12 +55,10 @@ class RefCountedClassLoaderCache(sharedLoader: ClassLoader,
       case _ => ??? // No other cases; n should never be zero or negative
     }
 
-
   }
   def get(
-                            combinedCompilerJars: Seq[PathRef]
-                          )
-         (implicit e: sourcecode.Enclosing): URLClassLoader = synchronized  {
+      combinedCompilerJars: Seq[PathRef]
+  )(implicit e: sourcecode.Enclosing): URLClassLoader = synchronized {
     val compilersSig = combinedCompilerJars.hashCode()
     cache.get(compilersSig) match {
       case Some((cl, i)) =>
@@ -69,7 +70,7 @@ class RefCountedClassLoaderCache(sharedLoader: ClassLoader,
           combinedCompilerJars.map(_.path),
           parent = parent,
           sharedLoader = sharedLoader,
-          sharedPrefixes = Seq("xsbti")
+          sharedPrefixes = sharedPrefixes
         )(e)
         cache.update(compilersSig, (cl, 1))
         cl
@@ -77,7 +78,7 @@ class RefCountedClassLoaderCache(sharedLoader: ClassLoader,
   }
 
   def close() = {
-    cache.values.map{case (cl, hash) => cl.close()}
+    cache.values.map { case (cl, hash) => cl.close() }
     cache.clear()
   }
 

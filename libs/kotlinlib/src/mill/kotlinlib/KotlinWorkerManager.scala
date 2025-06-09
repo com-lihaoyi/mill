@@ -15,8 +15,7 @@ class KotlinWorkerFactory()(implicit ctx: TaskCtx)
     extends CachedFactory[Seq[PathRef], (URLClassLoader, KotlinWorker)] {
 
   private val classloaderCache = new mill.util.RefCountedClassLoaderCache(
-    getClass.getClassLoader,
-    getClass.getClassLoader,
+    parent = getClass.getClassLoader
   )
 
   def setup(key: Seq[PathRef]) = {
