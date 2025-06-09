@@ -224,14 +224,14 @@ object CoursierModule {
   class Resolver(
       repositories: Seq[Repository],
       bind: Dep => BoundDep,
-      checkGradleModules: Boolean,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
       coursierCacheCustomizer: Option[
         coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
       ] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      offline: Boolean
+      offline: Boolean,
+      checkGradleModules: Boolean
   ) {
 
     /**
@@ -250,14 +250,14 @@ object CoursierModule {
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
-        checkGradleModules = checkGradleModules,
         sources = sources,
         artifactTypes = artifactTypes,
         mapDependencies = Option(mapDependencies).getOrElse(this.mapDependencies),
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = Some(ctx),
-        resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams))
+        resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams)),
+        checkGradleModules = checkGradleModules
       ).get
 
     /**
@@ -275,13 +275,13 @@ object CoursierModule {
       Lib.resolveDependenciesMetadataSafe(
         repositories = repositories,
         deps = deps0,
-        checkGradleModules = checkGradleModules,
         mapDependencies = mapDependencies,
         customizer = customizer,
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = Some(ctx),
         resolutionParams = resolutionParams,
-        boms = Nil
+        boms = Nil,
+        checkGradleModules = checkGradleModules
       ).get
     }
 
@@ -299,9 +299,9 @@ object CoursierModule {
       Jvm.getArtifacts(
         repositories,
         deps0.map(_.dep),
-        checkGradleModules = checkGradleModules,
         sources = sources,
-        ctx = Some(ctx)
+        ctx = Some(ctx),
+        checkGradleModules = checkGradleModules
       ).get
     }
   }
