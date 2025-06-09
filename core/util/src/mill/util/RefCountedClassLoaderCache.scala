@@ -21,11 +21,11 @@ class RefCountedClassLoaderCache(
       case Some((cl, 1)) =>
         // We try to find the timer created by scala.tools.nsc.classpath.FileBasedCache
         // and cancel it, so that it shuts down its thread.
-
+        extraRelease(cl)
         cl.close()
         None
       case Some((cl, n)) if n > 1 => Some((cl, n - 1))
-      case _ => ??? // No other cases; n should never be zero or negative
+      case v => sys.error("Unknown: " + v) // No other cases; n should never be zero or negative
     }
 
   }
