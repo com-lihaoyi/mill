@@ -423,7 +423,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           _.path
         ),
         jvmArgs = forkArgs(),
-        env = forkEnv(),
+        env = allForkEnv(),
         mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)),
         cwd = forkWorkingDir(),
         stdin = os.Inherit,
@@ -494,7 +494,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         mainClass = mainClass,
         classPath = ammoniteReplClasspath().map(_.path).toVector,
         jvmArgs = forkArgs(),
-        env = forkEnv(),
+        env = allForkEnv(),
         mainArgs = replOptions,
         cwd = forkWorkingDir(),
         stdin = os.Inherit,

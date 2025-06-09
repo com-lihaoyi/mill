@@ -45,12 +45,6 @@ private final class TestModuleUtil(
     .map(_.path.toNIO.toUri.toURL)
     .mkString(",")
 
-  private val resourceEnv = Map(
-    EnvVars.MILL_TEST_RESOURCE_DIR ->
-      TestModuleUtilShared.millTestResourceDirValue(resources.iterator.map(_.path)),
-    EnvVars.MILL_WORKSPACE_ROOT -> Task.workspace.toString
-  )
-
   def runTests(): Result[(msg: String, results: Seq[TestResult])] = {
     val globFilter = TestRunnerUtils.globFilter(selectors)
 
@@ -163,7 +157,7 @@ private final class TestModuleUtil(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        env = forkEnv ++ resourceEnv,
+        env = forkEnv,
         mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Option.when(useArgsFile)(
@@ -454,13 +448,6 @@ private final class TestModuleUtil(
     subprocessResult
   }
 
-}
-
-private[mill] object TestModuleUtilShared {
-
-  /** Returns the value for [[mill.constants.EnvVars.MILL_TEST_RESOURCE_DIR]]. */
-  def millTestResourceDirValue(resources: IterableOnce[os.Path]): String =
-    resources.iterator.mkString(";")
 }
 
 private[scalalib] object TestModuleUtil {

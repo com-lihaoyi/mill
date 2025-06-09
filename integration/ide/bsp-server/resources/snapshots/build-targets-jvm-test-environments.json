@@ -19,7 +19,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "MY_ENV_VAR": "my-value"
+        "MY_ENV_VAR": "my-value",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": [
         {
@@ -52,6 +53,7 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace",
         "MILL_TEST_RESOURCE_DIR": "/workspace/app/test/resources"
       },
       "mainClasses": [
@@ -75,7 +77,9 @@
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
-      "environmentVariables": {},
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace"
+      },
       "mainClasses": []
     },
     {
@@ -91,7 +95,9 @@
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
-      "environmentVariables": {},
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace"
+      },
       "mainClasses": []
     },
     {
@@ -106,7 +112,9 @@
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
-      "environmentVariables": {},
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace"
+      },
       "mainClasses": []
     },
     {
@@ -121,7 +129,9 @@
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
-      "environmentVariables": {},
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace"
+      },
       "mainClasses": []
     }
   ]
