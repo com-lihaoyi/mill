@@ -118,7 +118,7 @@ public abstract class ServerLauncher {
       if (locks.daemonLock.probe()) daemonProcess = initServer(daemonDir, locks);
       while (locks.daemonLock.probe()) {
         if (daemonProcess != null && !daemonProcess.isAlive()) {
-          System.err.println("Mill daemon exited!");
+          System.err.println("Mill daemon exited unexpectedly!");
           Path stdout = daemonDir.toAbsolutePath().resolve(DaemonFiles.stdout);
           Path stderr = daemonDir.toAbsolutePath().resolve(DaemonFiles.stderr);
           if (Files.exists(stdout) && Files.size(stdout) > 0) {
