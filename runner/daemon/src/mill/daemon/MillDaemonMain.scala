@@ -10,29 +10,35 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Try
 
 object MillDaemonMain {
-  def main(args0: Array[String]): Unit = mill.define.SystemStreams.withTopLevelSystemStreamProxy {
-    // Disable SIGINT interrupt signal in the Mill server.
-    //
-    // This gets passed through from the client to server whenever the user
-    // hits `Ctrl-C`, which by default kills the server, which defeats the purpose
-    // of running a background daemon. Furthermore, the background daemon already
-    // can detect when the Mill client goes away, which is necessary to handle
-    // the case when a Mill client that did *not* spawn the server gets `CTRL-C`ed
-    Signal.handle(
-      new Signal("INT"),
-      new SignalHandler() {
-        def handle(sig: Signal) = {} // do nothing
-      }
-    )
+  def main(args0: Array[String]): Unit = {
+    // Set by an integration test
+    if (System.getenv("MILL_DAEMON_CRASH") == "true")
+      sys.error("Mill daemon early crash requested")
 
-    val acceptTimeoutMillis =
-      Try(System.getProperty("mill.server_timeout").toInt).getOrElse(30 * 60 * 1000) // 30 minutes
+    mill.define.SystemStreams.withTopLevelSystemStreamProxy {
+      // Disable SIGINT interrupt signal in the Mill server.
+      //
+      // This gets passed through from the client to server whenever the user
+      // hits `Ctrl-C`, which by default kills the server, which defeats the purpose
+      // of running a background daemon. Furthermore, the background daemon already
+      // can detect when the Mill client goes away, which is necessary to handle
+      // the case when a Mill client that did *not* spawn the server gets `CTRL-C`ed
+      Signal.handle(
+        new Signal("INT"),
+        new SignalHandler() {
+          def handle(sig: Signal) = {} // do nothing
+        }
+      )
 
-    new MillDaemonMain(
-      daemonDir = os.Path(args0(0)),
-      acceptTimeoutMillis = acceptTimeoutMillis,
-      Locks.files(args0(0))
-    ).run()
+      val acceptTimeoutMillis =
+        Try(System.getProperty("mill.server_timeout").toInt).getOrElse(30 * 60 * 1000) // 30 minutes
+
+      new MillDaemonMain(
+        daemonDir = os.Path(args0(0)),
+        acceptTimeoutMillis = acceptTimeoutMillis,
+        Locks.files(args0(0))
+      ).run()
+    }
   }
 }
 class MillDaemonMain(
