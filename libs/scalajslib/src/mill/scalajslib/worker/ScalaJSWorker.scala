@@ -3,7 +3,7 @@ package mill.scalajslib.worker
 import java.io.File
 import mill.scalajslib.api
 import mill.scalajslib.worker.{api => workerApi}
-import mill.define.TaskCtx
+import mill.util.RefCountedClassLoaderCache
 import mill.api.Result
 import mill.api.internal.internal
 import mill.define.Discover
@@ -16,8 +16,7 @@ import java.net.URLClassLoader
 private[scalajslib] class ScalaJSWorker(jobs: Int)
     extends CachedFactory[Seq[mill.PathRef], (URLClassLoader, workerApi.ScalaJSWorkerApi)] {
 
-  private val classloaderCache =
-    new mill.util.RefCountedClassLoaderCache(parent = getClass.getClassLoader)
+  private val classloaderCache = RefCountedClassLoaderCache(parent = getClass.getClassLoader)
   override def setup(key: Seq[PathRef]) = {
     val cl = classloaderCache.get(key)
     val bridge = cl

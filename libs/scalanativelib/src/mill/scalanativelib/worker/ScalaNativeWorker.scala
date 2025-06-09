@@ -5,6 +5,8 @@ import mill.{PathRef, Task, Worker}
 import mill.scalanativelib.worker.{api => workerApi}
 import mill.util.CachedFactory
 
+import mill.util.RefCountedClassLoaderCache
+
 import java.net.URLClassLoader
 
 private[scalanativelib] class ScalaNativeWorker(jobs: Int)
@@ -34,8 +36,7 @@ private[scalanativelib] class ScalaNativeWorker(jobs: Int)
 
   override def maxCacheSize: Int = jobs
 
-  private val classloaderCache =
-    new mill.util.RefCountedClassLoaderCache(parent = getClass.getClassLoader)
+  private val classloaderCache = new RefCountedClassLoaderCache(parent = getClass.getClassLoader)
 }
 
 private[scalanativelib] object ScalaNativeWorkerExternalModule extends mill.define.ExternalModule {

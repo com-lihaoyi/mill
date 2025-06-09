@@ -9,14 +9,12 @@ import mill._
 import mill.define.{Discover, ExternalModule, TaskCtx}
 import mill.kotlinlib.worker.api.KotlinWorker
 import mill.util.CachedFactory
-
+import mill.util.RefCountedClassLoaderCache
 import java.net.{URL, URLClassLoader}
 class KotlinWorkerFactory()(implicit ctx: TaskCtx)
     extends CachedFactory[Seq[PathRef], (URLClassLoader, KotlinWorker)] {
 
-  private val classloaderCache = new mill.util.RefCountedClassLoaderCache(
-    parent = getClass.getClassLoader
-  )
+  private val classloaderCache = new RefCountedClassLoaderCache(parent = getClass.getClassLoader)
 
   def setup(key: Seq[PathRef]) = {
 
