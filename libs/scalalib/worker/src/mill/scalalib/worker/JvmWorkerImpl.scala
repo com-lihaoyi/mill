@@ -119,7 +119,7 @@ class JvmWorkerImpl(
   private val classloaderCache = new RefCountedClassLoaderCache(
     sharedLoader = getClass.getClassLoader,
     sharedPrefixes = Seq("xsbti")
-  ){
+  ) {
     override def extraRelease(cl: ClassLoader) = {
 
       for {

@@ -6,11 +6,11 @@ import mill.define.Cross
 import millbuild.*
 
 object `package` extends MillStableScalaModule {
-  def moduleDeps = Seq(build.libs.scalalib, `worker-api`)
+  def moduleDeps = Seq(build.libs.scalalib, api)
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(worker("0.5").localTestOverride())
 
-  object `worker-api` extends MillPublishScalaModule {
+  object api extends MillPublishScalaModule {
     def mvnDeps = Seq(Deps.sbtTestInterface)
   }
 
@@ -19,7 +19,7 @@ object `package` extends MillStableScalaModule {
   trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
     def scalaNativeWorkerVersion = crossValue
     def moduleDir: os.Path = super.moduleDir / scalaNativeWorkerVersion
-    def compileModuleDeps = Seq(`worker-api`)
+    def compileModuleDeps = Seq(api)
     def compileMvnDeps = scalaNativeWorkerVersion match {
       case "0.5" =>
         super.mandatoryMvnDeps() ++ Seq(
