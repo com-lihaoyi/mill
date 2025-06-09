@@ -12,23 +12,27 @@ import mill.util.CachedFactory
 
 import java.net.{URL, URLClassLoader}
 class KotlinWorkerFactory()(implicit ctx: TaskCtx)
-    extends CachedFactory[Seq[os.Path], (URLClassLoader, KotlinWorker)] {
+    extends CachedFactory[Seq[PathRef], (URLClassLoader, KotlinWorker)] {
 
-  def setup(key: Seq[os.Path]) = {
-    val cl = mill.util.Jvm.createClassLoader(key, getClass.getClassLoader)
+  private val classloaderCache = new mill.util.RefCountedClassLoaderCache(getClass.getClassLoader)
+
+  def setup(key: Seq[PathRef]) = {
+
+    val cl = classloaderCache.get(key)
     val worker =
       try KotlinWorkerManager.get(cl)
       catch { case e => e.printStackTrace(); ??? }
     (cl, worker)
   }
 
-  override def teardown(key: Seq[os.Path], value: (URLClassLoader, KotlinWorker)): Unit = {
-    value._1.close
+  override def teardown(key: Seq[PathRef], value: (URLClassLoader, KotlinWorker)): Unit = {
+    classloaderCache.release(key)
   }
 
   override def maxCacheSize: Int = ctx.jobs
 
   override def close(): Unit = {
+    classloaderCache.close()
     super.close()
   }
 }

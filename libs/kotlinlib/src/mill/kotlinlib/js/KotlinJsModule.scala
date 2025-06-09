@@ -102,7 +102,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * Compiles all the sources to the IR representation.
    */
   override def compile: T[CompilationResult] = Task {
-    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath().map(_.path)) {
+    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
       kotlinWorker =>
         kotlinJsCompile(
           outputMode = OutputMode.KlibDir,
@@ -205,7 +205,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
   protected override def kotlinCompileTask(
       extraKotlinArgs: Seq[String] = Seq.empty[String]
   ): Task[CompilationResult] = Task.Anon {
-    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath().map(_.path)) {
+    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
       kotlinWorker =>
         kotlinJsCompile(
           outputMode = OutputMode.KlibDir,
@@ -233,7 +233,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * Creates final executable.
    */
   def linkBinary: T[CompilationResult] = Task {
-    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath().map(_.path)) {
+    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
       kotlinWorker =>
         kotlinJsCompile(
           outputMode = binaryKindToOutputMode(kotlinJsBinaryKind()),

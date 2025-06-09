@@ -1,6 +1,5 @@
 package mill.scalanativelib.worker
 
-import mill.define.TaskCtx
 import mill.define.{Discover}
 import mill.{PathRef, Task, Worker}
 import mill.scalanativelib.worker.{api => workerApi}
@@ -11,10 +10,8 @@ import java.net.URLClassLoader
 private[scalanativelib] class ScalaNativeWorker(jobs: Int)
     extends CachedFactory[Seq[mill.PathRef], (URLClassLoader, workerApi.ScalaNativeWorkerApi)] {
   override def setup(key: Seq[PathRef]) = {
-    val cl = mill.util.Jvm.createClassLoader(
-      key.map(_.path).toVector,
-      getClass.getClassLoader
-    )
+
+    val cl = classloaderCache.get(key)
     val bridge = cl
       .loadClass("mill.scalanativelib.worker.ScalaNativeWorkerImpl")
       .getDeclaredConstructor()
@@ -27,10 +24,17 @@ private[scalanativelib] class ScalaNativeWorker(jobs: Int)
       key: Seq[PathRef],
       value: (URLClassLoader, workerApi.ScalaNativeWorkerApi)
   ): Unit = {
-    value._1.close()
+    classloaderCache.release(key)
+  }
+
+  override def close(): Unit = {
+    classloaderCache.close()
+    super.close()
   }
 
   override def maxCacheSize: Int = jobs
+
+  private val classloaderCache = new mill.util.RefCountedClassLoaderCache(getClass.getClassLoader)
 }
 
 private[scalanativelib] object ScalaNativeWorkerExternalModule extends mill.define.ExternalModule {

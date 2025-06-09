@@ -335,7 +335,7 @@ trait KotlinModule extends JavaModule { outer =>
         ).flatten
 
         val workerResult =
-          KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath().map(_.path)) {
+          KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
             _._2.compile(KotlinWorkerTarget.Jvm, compilerArgs)
           }
 
