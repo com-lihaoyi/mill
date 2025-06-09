@@ -41,7 +41,7 @@ private[mill] object BspRunModule extends ExternalModule {
               mainClass: String,
               testRunnerClasspathArg: String,
               argsFile: String,
-              classpath: Seq[String]
+              classpath: Seq[Path]
           )]
       )] = {
         val (localMainClasses, testEnvVars) = runModule match {

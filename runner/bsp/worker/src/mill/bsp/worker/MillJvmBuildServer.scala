@@ -65,7 +65,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
           List(testEnvVars.testRunnerClasspathArg, testEnvVars.argsFile)
         val item = new JvmEnvironmentItem(
           id,
-          testEnvVars.classpath.asJava,
+          testEnvVars.classpath.map(sanitizeUri).asJava,
           forkArgs.asJava,
           forkWorkingDir.toString(),
           forkEnv.asJava

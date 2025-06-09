@@ -19,7 +19,7 @@ trait BspRunModuleApi extends ModuleApi {
           mainClass: String,
           testRunnerClasspathArg: String,
           argsFile: String,
-          classpath: Seq[String]
+          classpath: Seq[Path]
       )]
   )]
 

@@ -17,6 +17,8 @@ import mill.testrunner.TestRunner
 import mill.util.Jvm
 import mill.define.JsonFormatters.given
 
+import java.nio.file.Path
+
 trait TestModule
     extends TestModule.JavaModuleBase
     with WithJvmWorker
@@ -91,7 +93,7 @@ trait TestModule
       mainClass: String,
       testRunnerClasspathArg: String,
       argsFile: String,
-      classpath: Seq[String]
+      classpath: Seq[Path]
   )] = {
     Task.Command {
       getTestEnvironmentVarsTask(Task.Anon { args })()
@@ -176,7 +178,7 @@ trait TestModule
           mainClass: String,
           testRunnerClasspathArg: String,
           argsFile: String,
-          classpath: Seq[String]
+          classpath: Seq[Path]
       )] =
     Task.Anon {
       val mainClass = "mill.testrunner.entrypoint.TestRunnerMain"
@@ -204,7 +206,7 @@ trait TestModule
         jvmWorker().scalalibClasspath()
           .map(_.path.toNIO.toUri.toURL).mkString(",")
 
-      val cp = (runClasspath() ++ jvmWorker().testrunnerEntrypointClasspath()).map(_.path.toString)
+      val cp = (runClasspath() ++ jvmWorker().testrunnerEntrypointClasspath()).map(_.path.toNIO)
 
       Result.Success((mainClass, testRunnerClasspathArg, argsFile.toString, cp))
     }
