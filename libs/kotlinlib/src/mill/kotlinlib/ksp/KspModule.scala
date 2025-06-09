@@ -200,7 +200,7 @@ trait KspModule extends KotlinModule { outer =>
     Task.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
 
     KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
-      _._2.compile(KotlinWorkerTarget.Jvm, compilerArgs)
+      _.compile(KotlinWorkerTarget.Jvm, compilerArgs)
     }
 
     GeneratedKSPSources(PathRef(java), PathRef(kotlin), PathRef(resources), PathRef(classes))

@@ -121,7 +121,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           artifactId = artifactId(),
           explicitApi = kotlinExplicitApi(),
           extraKotlinArgs = allKotlincOptions(),
-          worker = kotlinWorker._2
+          worker = kotlinWorker
         )
     }
   }
@@ -224,7 +224,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           artifactId = artifactId(),
           explicitApi = kotlinExplicitApi(),
           extraKotlinArgs = allKotlincOptions() ++ extraKotlinArgs,
-          worker = kotlinWorker._2
+          worker = kotlinWorker
         )
     }
   }
@@ -254,7 +254,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           artifactId = artifactId(),
           explicitApi = kotlinExplicitApi(),
           extraKotlinArgs = allKotlincOptions(),
-          worker = kotlinWorker._2
+          worker = kotlinWorker
         )
     }
   }

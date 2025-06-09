@@ -337,7 +337,7 @@ trait KotlinModule extends JavaModule { outer =>
 
         val workerResult =
           KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
-            _._2.compile(KotlinWorkerTarget.Jvm, compilerArgs)
+            _.compile(KotlinWorkerTarget.Jvm, compilerArgs)
           }
 
         val analysisFile = dest / "kotlin.analysis.dummy"

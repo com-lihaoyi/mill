@@ -4,8 +4,13 @@ import mill.define.PathRef
 
 import java.net.URLClassLoader
 
+/**
+ * Combination of [[CachedFactory]] and [[RefCountedClassLoaderCache]], providing an
+ * easy way to generate values of type [[T]] to each be used in a single-thread while
+ * re-using the underling `URLClassLoader`s where possible.
+ */
 abstract class ClassLoaderCachedFactory[T](jobs: Int)
-    extends CachedFactory[Seq[mill.PathRef], (URLClassLoader, T)] {
+    extends CachedFactory[Seq[mill.PathRef], T] {
   private val classloaderCache = RefCountedClassLoaderCache(parent = getClass.getClassLoader)
 
   def getValue(cl: ClassLoader): T
@@ -13,12 +18,12 @@ abstract class ClassLoaderCachedFactory[T](jobs: Int)
     val cl = classloaderCache.get(key)
     val bridge = getValue(cl)
 
-    (cl, bridge)
+    bridge
   }
 
   override def teardown(
       key: Seq[PathRef],
-      value: (URLClassLoader, T)
+      value: T
   ): Unit = {
     classloaderCache.release(key)
   }
