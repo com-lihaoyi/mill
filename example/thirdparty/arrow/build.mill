@@ -629,5 +629,7 @@ object `package` extends Module {
 > sed -i.bak 's/.cause.shouldBeInstanceOf<SocketException>()/.cause.shouldBeInstanceOf<java.io.IOException>()/g' arrow-libs/core/arrow-core-retrofit/src/test/kotlin/arrow/retrofit/adapter/either/networkhandling/NetworkEitherCallAdapterTest.kt # fix wrong assertion
 
 > time ./mill -j5 __.compile
+dummy
+
 
 */
