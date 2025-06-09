@@ -56,13 +56,13 @@ object ResolveDepsTests extends TestSuite {
     }
 
     object optional extends JavaModule {
-      def mvnDeps = Seq(
+      def ivyDeps = Agg(
         mvn"io.get-coursier:interface:1.0.29-M1".optional()
       )
-      def compileMvnDeps = Seq(
+      def compileIvyDeps = Agg(
         mvn"com.lihaoyi:sourcecode_3:0.4.3-M5".optional()
       )
-      def runMvnDeps = Seq(
+      def runIvyDeps = Agg(
         mvn"ch.qos.logback:logback-core:1.5.18".optional()
       )
 
@@ -190,18 +190,18 @@ object ResolveDepsTests extends TestSuite {
         val dependsOnOptionalRunCp = eval(TestCase.optional.dependsOnOptional.runClasspath)
           .fold(_.getOrThrow, _.value).map(_.path)
 
-        // optional dependencies in mvnDeps should be added to the current module class path
+        // optional dependencies in ivyDeps should be added to the current module class path
         assert(optionalCompileCp.exists(_.last == "interface-1.0.29-M1.jar"))
         assert(optionalRuntimeCp.exists(_.last == "interface-1.0.29-M1.jar"))
         assert(optionalRunCp.exists(_.last == "interface-1.0.29-M1.jar"))
 
-        // optional dependencies in compileMvnDeps should be added to the current module compile class path,
+        // optional dependencies in compileIvyDeps should be added to the current module compile class path,
         // but not to the runtime class path
         assert(optionalCompileCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
         assert(!optionalRuntimeCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
         assert(!optionalRunCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
 
-        // optional dependencies in runMvnDeps should be added to the current module run class path,
+        // optional dependencies in runIvyDeps should be added to the current module run class path,
         // but not to the compile class path
         assert(!optionalCompileCp.exists(_.last == "logback-core-1.5.18.jar"))
         assert(optionalRuntimeCp.exists(_.last == "logback-core-1.5.18.jar"))
