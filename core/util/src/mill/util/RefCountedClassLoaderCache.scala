@@ -5,13 +5,18 @@ import mill.define.PathRef
 import java.net.URLClassLoader
 import collection.mutable.LinkedHashMap
 
+/**
+ * Caches classloaders that can be shared between different workers, keeping
+ * a reference count of each classloader and only closing it after no more
+ * references exist
+ */
 class RefCountedClassLoaderCache(
     sharedLoader: ClassLoader = null,
     sharedPrefixes: Seq[String] = Nil,
     parent: ClassLoader = null
 ) {
 
-  val cache = LinkedHashMap.empty[Long, (URLClassLoader, Int)]
+  private val cache = LinkedHashMap.empty[Long, (URLClassLoader, Int)]
 
   def extraRelease(cl: ClassLoader): Unit = ()
 

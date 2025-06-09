@@ -30,8 +30,8 @@ private[scalanativelib] class ScalaNativeWorker(jobs: Int)
   }
 
   override def close(): Unit = {
-    classloaderCache.close()
     super.close()
+    classloaderCache.close()
   }
 
   override def maxCacheSize: Int = jobs

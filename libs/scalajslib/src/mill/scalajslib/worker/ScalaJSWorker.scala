@@ -36,8 +36,8 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
   }
 
   override def close(): Unit = {
-    classloaderCache.close()
     super.close()
+    classloaderCache.close()
   }
 
   override def maxCacheSize: Int = jobs

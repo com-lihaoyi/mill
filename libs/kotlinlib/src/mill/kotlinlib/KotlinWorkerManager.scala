@@ -32,8 +32,8 @@ class KotlinWorkerFactory()(implicit ctx: TaskCtx)
   override def maxCacheSize: Int = ctx.jobs
 
   override def close(): Unit = {
-    classloaderCache.close()
     super.close()
+    classloaderCache.close()
   }
 }
 
