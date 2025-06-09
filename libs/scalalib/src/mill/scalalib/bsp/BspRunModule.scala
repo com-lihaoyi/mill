@@ -8,7 +8,6 @@ import mill.define.{Discover, ExternalModule, ModuleCtx}
 import mill.define.JsonFormatters.given
 import mill.scalalib.{JavaModule, RunModule, TestModule}
 import mill.{Args, Task}
-import mill.constants.EnvVars
 
 @internal
 private[mill] object BspRunModule extends ExternalModule {
