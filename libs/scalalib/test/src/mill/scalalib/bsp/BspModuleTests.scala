@@ -42,10 +42,8 @@ object BspModuleTests extends TestSuite {
   }
 
   override def tests: Tests = Tests {
-    val needsToMerge = true
-
     test("bspCompileClasspath") {
-      test("single module") - UnitTester(MultiBase, null).scoped { eval =>
+      def testSingleModule(eval: UnitTester, needsToMerge: Boolean) = {
         val Right(result) = eval.apply(
           MultiBase.HelloBsp.bspCompileClasspath(needsToMerge)
         ): @unchecked
@@ -62,6 +60,15 @@ object BspModuleTests extends TestSuite {
           relResult == expected,
           result.evalCount > 0
         )
+      }
+
+      test("single module") - UnitTester(MultiBase, sourceRoot = null).scoped { eval =>
+        testSingleModule(eval, needsToMerge = false)
+      }
+
+      test("single module (needs to merge)") - UnitTester(MultiBase, sourceRoot = null).scoped {
+        eval =>
+          testSingleModule(eval, needsToMerge = true)
       }
 
       def testDependentModule(eval: UnitTester, needsToMerge: Boolean, expectedPath: os.Path) = {
@@ -92,7 +99,7 @@ object BspModuleTests extends TestSuite {
         )
       }
 
-      test("dependent module") - UnitTester(MultiBase, null).scoped { eval =>
+      test("dependent module") - UnitTester(MultiBase, sourceRoot = null).scoped { eval =>
         testDependentModule(
           eval,
           needsToMerge = false,
@@ -101,37 +108,39 @@ object BspModuleTests extends TestSuite {
         )
       }
 
-      test("dependent module (needs to merge)") - UnitTester(MultiBase, null).scoped { eval =>
-        testDependentModule(
-          eval,
-          needsToMerge = true,
-          expectedPath = ExecutionPaths.resolve(
-            eval.outPath,
-            MultiBase.HelloBsp.bspBuildTargetCompileMerged
-          ).dest
-        )
+      test("dependent module (needs to merge)") - UnitTester(MultiBase, sourceRoot = null).scoped {
+        eval =>
+          testDependentModule(
+            eval,
+            needsToMerge = true,
+            expectedPath = ExecutionPaths.resolve(
+              eval.outPath,
+              MultiBase.HelloBsp.bspBuildTargetCompileMerged
+            ).dest
+          )
       }
 
       test("interdependencies are fast") {
         test("reference (no BSP)") {
-          def runNoBsp(entry: Int, maxTime: Int) = UnitTester(InterDeps, null).scoped { eval =>
-            val start = System.currentTimeMillis()
-            val Right(_) = eval.apply(
-              InterDeps.Mod(entry).compileClasspath
-            ): @unchecked
-            val timeSpent = System.currentTimeMillis() - start
-            assert(timeSpent < maxTime)
-            s"${timeSpent} msec"
-          }
+          def runNoBsp(entry: Int, maxTime: Int) =
+            UnitTester(InterDeps, sourceRoot = null).scoped { eval =>
+              val start = System.currentTimeMillis()
+              val Right(_) = eval.apply(
+                InterDeps.Mod(entry).compileClasspath
+              ): @unchecked
+              val timeSpent = System.currentTimeMillis() - start
+              assert(timeSpent < maxTime)
+              s"${timeSpent} msec"
+            }
           test("index 1 (no deps)") { runNoBsp(1, 5000) }
           test("index 10") { runNoBsp(10, 30000) }
           test("index 15") { runNoBsp(15, 30000) }
         }
         def run(entry: Int, maxTime: Int) = retry(3) {
-          UnitTester(InterDeps, null).scoped { eval =>
+          UnitTester(InterDeps, sourceRoot = null).scoped { eval =>
             val start = System.currentTimeMillis()
             val Right(_) = eval.apply(
-              InterDeps.Mod(entry).bspCompileClasspath(needsToMerge)
+              InterDeps.Mod(entry).bspCompileClasspath(needsToMergeResourcesIntoCompileDest = false)
             ): @unchecked
             val timeSpent = System.currentTimeMillis() - start
             assert(timeSpent < maxTime)
@@ -142,6 +151,31 @@ object BspModuleTests extends TestSuite {
         test("index 10") { run(10, 5000) }
         test("index 15") { run(15, 15000) }
       }
+    }
+
+    test("bspBuildTargetCompileMerged") {
+      def sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "bspBuildTargetCompileMerged"
+
+      def doTest(path: os.Path) = UnitTester(MultiBase, sourceRoot = path).scoped {
+        eval =>
+          val Right(_) = eval.apply(
+            MultiBase.HelloBsp2.bspBuildTargetCompile(needsToMergeResourcesIntoCompileDest = true)
+          ): @unchecked
+      }
+
+      // https://github.com/com-lihaoyi/mill/issues/5271
+      test("no dependency module sources") - doTest(
+        sourceRoot / "noDependencySourcesButHasResources"
+      )
+      test("no dependency module resources") - doTest(
+        sourceRoot / "noDependencyResourcesButHasSources"
+      )
+      test("no dependent module sources") - doTest(
+        sourceRoot / "noDependentSourcesButHasResources"
+      )
+      test("no dependent module resources") - doTest(
+        sourceRoot / "noDependentResourcesButHasSources"
+      )
     }
   }
 }

@@ -1,18 +1,27 @@
 package mill.testkit
 
 import mill.Task
+import mill.api.DummyInputStream
+import mill.api.ExecResult
 import mill.api.ExecResult.OuterStack
-import mill.api.{DummyInputStream, ExecResult, Result, SystemStreams, Val}
-import mill.define.{Evaluator, SelectMode, Task}
-import mill.resolve.Resolve
+import mill.api.Result
+import mill.api.SystemStreams
+import mill.api.Val
+import mill.constants.OutFiles.millChromeProfile
+import mill.constants.OutFiles.millProfile
+import mill.define.Evaluator
+import mill.define.SelectMode
 import mill.exec.JsonArrayLogger
-import mill.constants.OutFiles.{millChromeProfile, millProfile}
+import mill.resolve.Resolve
+import mill.testkit.UnitTester.SourceRoot
 
-import java.io.{InputStream, PrintStream}
+import java.io.InputStream
+import java.io.PrintStream
 import java.util.concurrent.ThreadPoolExecutor
 
 object UnitTester {
   case class Result[T](value: T, evalCount: Int)
+
   def apply(
       module: mill.testkit.TestRootModule,
       sourceRoot: os.Path,
@@ -27,7 +36,14 @@ object UnitTester {
       offline: Boolean = false
   ) = new UnitTester(
     module = module,
-    sourceRoot = sourceRoot,
+    sourceRoot = (Option(sourceRoot), resetSourcePath) match {
+      case (Some(sourceRoot), true) => SourceRoot.ResetAndCopyFrom(sourceRoot)
+      case (Some(sourceRoot), false) => throw new IllegalArgumentException(
+          s"Cannot provide sourceRoot=$sourceRoot when resetSourcePath=false"
+        )
+      case (None, true) => SourceRoot.Reset
+      case (None, false) => SourceRoot.DoNothing
+    },
     failFast = failFast,
     threads = threads,
     outStream = outStream,
@@ -35,9 +51,21 @@ object UnitTester {
     inStream = inStream,
     debugEnabled = debugEnabled,
     env = env,
-    resetSourcePath = resetSourcePath,
     offline = offline
   )
+
+  /** What to do with [[mill.testkit.TestRootModule.moduleDir]]. */
+  enum SourceRoot {
+
+    /** Do nothing. */
+    case DoNothing
+
+    /** Reset the module dir to an empty directory. */
+    case Reset
+
+    /** Reset the module dir to an empty directory and copy the source tree from the given path. */
+    case ResetAndCopyFrom(path: os.Path)
+  }
 }
 
 /**
@@ -47,7 +75,7 @@ object UnitTester {
  */
 class UnitTester(
     module: mill.testkit.TestRootModule,
-    sourceRoot: os.Path,
+    sourceRoot: UnitTester.SourceRoot,
     failFast: Boolean,
     threads: Option[Int],
     outStream: PrintStream,
@@ -55,7 +83,6 @@ class UnitTester(
     inStream: InputStream,
     debugEnabled: Boolean,
     env: Map[String, String],
-    resetSourcePath: Boolean,
     offline: Boolean
 )(implicit fullName: sourcecode.FullName) extends AutoCloseable {
   assert(
@@ -64,13 +91,17 @@ class UnitTester(
   )
   val outPath: os.Path = module.moduleDir / "out"
 
-  if (resetSourcePath) {
+  def resetSourceRoot() = {
     os.remove.all(module.moduleDir)
     os.makeDir.all(module.moduleDir)
+  }
 
-    for (sourceFileRoot <- Option(sourceRoot)) {
-      os.copy.over(sourceFileRoot, module.moduleDir, createFolders = true)
-    }
+  sourceRoot match {
+    case SourceRoot.DoNothing => // do nothing
+    case SourceRoot.Reset => resetSourceRoot()
+    case SourceRoot.ResetAndCopyFrom(sourceRoot) =>
+      resetSourceRoot()
+      os.copy.over(sourceRoot, module.moduleDir, createFolders = true)
   }
 
   object logger extends mill.internal.PromptLogger(
