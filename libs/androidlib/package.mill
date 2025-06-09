@@ -14,7 +14,7 @@ object `package` extends MillPublishScalaModule {
 
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(
-      build.libs.kotlinlib.worker.impl.localTestOverride()
+      build.libs.kotlinlib.worker.localTestOverride()
     )
 
   object hilt extends MillPublishScalaModule {

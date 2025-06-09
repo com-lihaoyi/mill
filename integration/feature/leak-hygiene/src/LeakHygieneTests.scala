@@ -63,7 +63,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
           "mill.scalalib.JvmWorkerModule#worker cl" -> 1,
-          "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
+          "mill.scalalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
         )
         checkThreads(tester)(
           "HandleRunThread",
@@ -84,9 +84,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           checkClassloaders(tester)(
             "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory#setup cl" -> 1,
+            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 2
+            "mill.scalalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 2
           )
           checkThreads(tester)(
             "HandleRunThread",
@@ -109,9 +109,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           checkClassloaders(tester)(
             "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory#setup cl" -> 1,
+            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 2
+            "mill.scalalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 2
           )
           checkThreads(tester)(
             "HandleRunThread",
@@ -153,9 +153,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory#setup cl" -> 1,
+            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
+            "mill.scalalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
           )
           checkThreads(tester)(
             "HandleRunThread",
@@ -178,9 +178,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory#setup cl" -> 1,
+            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
+            "mill.scalalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
           )
           checkThreads(tester)(
             "HandleRunThread",
@@ -205,9 +205,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           val res = tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory#setup cl" -> 1,
+            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
+            "mill.scalalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
           )
           checkThreads(tester)(
             "HandleRunThread",
@@ -229,9 +229,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         checkClassloaders(tester)(
           "leaked classloader" -> 1,
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-          "mill.kotlinlib.KotlinWorkerFactory#setup cl" -> 1,
+          "mill.kotlinlib.KotlinWorkerFactory" -> 1,
           "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-          "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
+          "mill.scalalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
         )
         checkThreads(tester)(
           "HandleRunThread",

@@ -7,7 +7,7 @@ import mill.api.internal.CompileProblemReporter
 import mill.define.PathRef
 import mill.constants.CodeGenConstants
 import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerApi, JvmWorkerUtil}
-import os.Path
+import mill.util.RefCountedClassLoaderCache
 import sbt.internal.inc.{
   CompileFailed,
   FreshCompilerCache,
@@ -88,7 +88,7 @@ class JvmWorkerImpl(
         scalaOrganization,
         compilerClasspath
       )
-      val loader = getCachedClassLoader(compilersSig, combinedCompilerJars)
+      val loader = classloaderCache.get(key.combinedCompilerClasspath)
       val scalaInstance = new ScalaInstance(
         version = key.scalaVersion,
         loader = loader,
@@ -112,67 +112,48 @@ class JvmWorkerImpl(
     }
 
     override def teardown(key: CompileCacheKey, value: (URLClassLoader, Compilers)): Unit = {
-      import key._
-      classloaderCache.updateWith(compilersSig) {
-        case Some((cl, 1)) =>
-          // We try to find the timer created by scala.tools.nsc.classpath.FileBasedCache
-          // and cancel it, so that it shuts down its thread.
-          for {
-            cls <- {
-              try Some(cl.loadClass("scala.tools.nsc.classpath.FileBasedCache$"))
-              catch { case _: ClassNotFoundException => None }
-            }
-            moduleField <- {
-              try Some(cls.getField("MODULE$"))
-              catch { case _: NoSuchFieldException => None }
-            }
-            module = moduleField.get(null)
-            timerField <- {
-              try Some(cls.getDeclaredField("scala$tools$nsc$classpath$FileBasedCache$$timer"))
-              catch { case _: NoSuchFieldException => None }
-            }
-            _ = timerField.setAccessible(true)
-            timerOpt0 = timerField.get(module)
-            getOrElseMethod <- timerOpt0.getClass.getMethods.find(_.getName == "getOrElse")
-            timer <-
-              Option(getOrElseMethod.invoke(timerOpt0, null).asInstanceOf[java.util.Timer])
-          } {
-
-            timer.cancel()
-          }
-
-          cl.close()
-          None
-        case Some((cl, n)) if n > 1 => Some((cl, n - 1))
-        case _ => ??? // No other cases; n should never be zero or negative
-      }
+      classloaderCache.release(key.combinedCompilerClasspath)
     }
   }
 
-  private val classloaderCache =
-    collection.mutable.LinkedHashMap.empty[Long, (URLClassLoader, Int)]
+  private val classloaderCache = new RefCountedClassLoaderCache(
+    sharedLoader = getClass.getClassLoader,
+    sharedPrefixes = Seq("xsbti")
+  ) {
+    override def extraRelease(cl: ClassLoader) = {
 
-  def getCachedClassLoader(
-      compilersSig: Long,
-      combinedCompilerJars: Array[java.io.File]
-  ): URLClassLoader = {
-    classloaderCache.synchronized {
-      classloaderCache.get(compilersSig) match {
-        case Some((cl, i)) =>
-          classloaderCache(compilersSig) = (cl, i + 1)
-          cl
-        case _ =>
-          // the Scala compiler must load the `xsbti.*` classes from the same loader as `JvmWorkerImpl`
-          val cl = mill.util.Jvm.createClassLoader(
-            combinedCompilerJars.map(os.Path(_)).toSeq,
-            parent = null,
-            sharedLoader = getClass.getClassLoader,
-            sharedPrefixes = Seq("xsbti")
-          )
-          classloaderCache.update(compilersSig, (cl, 1))
-          cl
+      for {
+        cls <- {
+          try Some(cl.loadClass("scala.tools.nsc.classpath.FileBasedCache$"))
+          catch {
+            case _: ClassNotFoundException => None
+          }
+        }
+        moduleField <- {
+          try Some(cls.getField("MODULE$"))
+          catch {
+            case _: NoSuchFieldException => None
+          }
+        }
+        module = moduleField.get(null)
+        timerField <- {
+          try Some(cls.getDeclaredField("scala$tools$nsc$classpath$FileBasedCache$$timer"))
+          catch {
+            case _: NoSuchFieldException => None
+          }
+        }
+        _ = timerField.setAccessible(true)
+        timerOpt0 = timerField.get(module)
+        getOrElseMethod <- timerOpt0.getClass.getMethods.find(_.getName == "getOrElse")
+        timer <-
+          Option(getOrElseMethod.invoke(timerOpt0, null).asInstanceOf[java.util.Timer])
+      } {
+
+        timer.cancel()
       }
+
     }
+
   }
 
   object javaOnlyCompilerCache extends CachedFactory[Seq[String], Compilers] {
@@ -685,10 +666,9 @@ class JvmWorkerImpl(
   override def close(): Unit = {
     scalaCompilerCache.close()
     javaOnlyCompilerCache.close()
-    classloaderCache.foreach(_._2._1.close())
 
-    classloaderCache.clear()
     close0()
+    classloaderCache.close()
   }
 }
 
