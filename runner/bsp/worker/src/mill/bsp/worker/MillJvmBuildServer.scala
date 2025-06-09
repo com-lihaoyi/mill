@@ -25,29 +25,26 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       : CompletableFuture[JvmRunEnvironmentResult] = {
     jvmRunEnvironmentFor(
       params.getTargets.asScala,
-      new JvmRunEnvironmentResult(_),
-      forTests = false
+      new JvmRunEnvironmentResult(_)
     )
   }
 
   override def buildTargetJvmTestEnvironment(params: JvmTestEnvironmentParams)
       : CompletableFuture[JvmTestEnvironmentResult] = {
-    jvmRunEnvironmentFor(
+    jvmTestEnvironmentFor(
       params.getTargets.asScala,
-      new JvmTestEnvironmentResult(_),
-      forTests = true
+      new JvmTestEnvironmentResult(_)
     )
   }
 
-  private def jvmRunEnvironmentFor[V](
+  private def jvmTestEnvironmentFor[V](
       targetIds: collection.Seq[BuildTargetIdentifier],
-      agg: java.util.List[JvmEnvironmentItem] => V,
-      forTests: Boolean
+      agg: java.util.List[JvmEnvironmentItem] => V
   )(implicit name: sourcecode.Name): CompletableFuture[V] = {
     handlerTasks(
       targetIds = _ => targetIds,
       tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunTestEnvironment },
-      requestDescription = s"Getting JVM run environment (for tests: $forTests) of {}"
+      requestDescription = s"Getting JVM test environment of {}"
     ) {
       case (
             _,
@@ -79,6 +76,22 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         )).asJava)
         item
 
+      case other =>
+        throw new NotImplementedError(s"Unsupported target: ${pprint(other).plainText}")
+    } {
+      agg
+    }
+  }
+
+  private def jvmRunEnvironmentFor[V](
+      targetIds: collection.Seq[BuildTargetIdentifier],
+      agg: java.util.List[JvmEnvironmentItem] => V
+  )(implicit name: sourcecode.Name): CompletableFuture[V] = {
+    handlerTasks(
+      targetIds = _ => targetIds,
+      tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunTestEnvironment },
+      requestDescription = s"Getting JVM run environment of {}"
+    ) {
       case (
             _,
             _,
