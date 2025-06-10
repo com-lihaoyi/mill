@@ -65,16 +65,24 @@ object TabCompletionModule extends ExternalModule {
         |""".stripMargin
 
     val homeDest = ".cache/mill/download/mill-completion.sh"
-    os.write(os.home / os.SubPath(homeDest), script)
+    def writeLoudly(path: os.Path, contents: String) = {
+      println("Writing to " + path)
+      os.write.over(path, contents)
+    }
+    writeLoudly(os.home / os.SubPath(homeDest), script)
     for (fileName <- Seq(".bash_profile", ".zshrc")) {
-
+      val file = os.home / fileName
       val markerComment = "# MILL_SOURCE_COMPLETION"
-      val updated = os.read
-        .lines(os.home / fileName)
+      val prevLines =
+        if (os.exists(file)) os.read.lines(file)
+        else Nil
+
+      val updated = prevLines
         .filter(!_.contains(markerComment))
         .++(Seq(s"source $homeDest $markerComment"))
         .mkString("\n")
-      os.write(os.home / fileName, updated)
+
+      writeLoudly(file, updated)
 
     }
   }
