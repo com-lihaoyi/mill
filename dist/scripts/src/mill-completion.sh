@@ -1,5 +1,4 @@
 _mill_bash() {
-  echo $COMP_WORDS >> ~/mill-debug-log.txt
   COMPREPLY=( $(${COMP_WORDS[0]} --tab-complete "$COMP_CWORD" "${COMP_WORDS[@]}") )
   compopt -o nospace 2>/dev/null
 }

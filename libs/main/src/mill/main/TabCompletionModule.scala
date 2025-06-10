@@ -15,7 +15,9 @@ object TabCompletionModule extends ExternalModule {
                   args: mainargs.Leftover[String]) = Task.Command(exclusive = true){
     val currentToken = args.value(index)
     val deSlashed = currentToken.replace("\\", "")
-    val trimmed = deSlashed.reverse.dropWhile(_.isLetterOrDigit).reverse
+    val trimmed = deSlashed.take(
+      deSlashed.lastIndexWhere(c => !c.isLetterOrDigit && !"-_,".contains(c)) + 1
+    )
     val query = trimmed.lastOption match{
       case None => "_"
       case Some('.') => trimmed + "_"
