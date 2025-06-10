@@ -6,19 +6,25 @@ import mill.define.{Discover, Evaluator, ExternalModule}
 
 import mainargs.arg
 
+/**
+ * Handles Bash and Zsh tab completions, which provide an array of tokens in the current
+ * shell and the index of the token currently being completed.
+ */
 object TabCompletionModule extends ExternalModule {
 
   lazy val millDiscover = Discover[this.type]
 
-  def tabComplete(ev: Evaluator,
-                  @arg(positional = true) index: Int,
-                  args: mainargs.Leftover[String]) = Task.Command(exclusive = true){
+  def tabComplete(
+      ev: Evaluator,
+      @arg(positional = true) index: Int,
+      args: mainargs.Leftover[String]
+  ) = Task.Command(exclusive = true) {
     val currentToken = args.value(index)
     val deSlashed = currentToken.replace("\\", "")
     val trimmed = deSlashed.take(
       deSlashed.lastIndexWhere(c => !c.isLetterOrDigit && !"-_,".contains(c)) + 1
     )
-    val query = trimmed.lastOption match{
+    val query = trimmed.lastOption match {
       case None => "_"
       case Some('.') => trimmed + "_"
       case Some('[') => trimmed + "__]"
@@ -26,7 +32,7 @@ object TabCompletionModule extends ExternalModule {
       case Some(']') => trimmed + "._"
     }
 
-    ev.resolveSegments(Seq(query), SelectMode.Multi).map{ res =>
+    ev.resolveSegments(Seq(query), SelectMode.Multi).map { res =>
       res.map(_.render).filter(_.startsWith(deSlashed)).foreach(println)
     }
   }

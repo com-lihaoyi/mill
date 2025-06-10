@@ -294,7 +294,9 @@ object MillMain0 {
                       val bootstrapped = runMillBootstrap(
                         enterKeyPressed = false,
                         Some(stateCache),
-                        Seq("mill.main.TabCompletionModule/tabComplete") ++ config.leftoverArgs.value,
+                        Seq(
+                          "mill.main.TabCompletionModule/tabComplete"
+                        ) ++ config.leftoverArgs.value,
                         streams,
                         "tab-completion"
                       )

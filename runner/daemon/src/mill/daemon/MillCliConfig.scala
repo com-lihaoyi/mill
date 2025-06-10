@@ -169,7 +169,7 @@ case class MillCliConfig(
     )
     offline: Flag = Flag(),
     @arg(
-      doc ="""Runs Mill in tab-completion mode"""
+      doc = """Runs Mill in tab-completion mode"""
     )
     tabComplete: Flag = Flag()
 ) {
