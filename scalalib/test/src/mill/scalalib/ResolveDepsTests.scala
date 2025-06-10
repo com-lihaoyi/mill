@@ -54,6 +54,22 @@ object ResolveDepsTests extends TestSuite {
       }
       def artifactTypes = super.artifactTypes() + coursier.core.Type("aar")
     }
+
+    object optional extends JavaModule {
+      def ivyDeps = Agg(
+        mvn"io.get-coursier:interface:1.0.29-M1".optional()
+      )
+      def compileIvyDeps = Agg(
+        mvn"com.lihaoyi:sourcecode_3:0.4.3-M5".optional()
+      )
+      def runIvyDeps = Agg(
+        mvn"ch.qos.logback:logback-core:1.5.18".optional()
+      )
+
+      object dependsOnOptional extends JavaModule {
+        def moduleDeps = Seq(optional)
+      }
+    }
   }
 
   val tests = Tests {
@@ -155,6 +171,52 @@ object ResolveDepsTests extends TestSuite {
           assert(runtimeCp.exists(_.last == runtimeOnlyJar))
           assert(runCp.exists(_.last == runtimeOnlyJar))
         }
+      }
+    }
+
+    test("optional") {
+      UnitTester(TestCase, null).scoped { eval =>
+        val optionalCompileCp = eval(TestCase.optional.compileClasspath)
+          .fold(_.getOrThrow, _.value).map(_.path)
+        val optionalRuntimeCp = eval(TestCase.optional.upstreamAssemblyClasspath)
+          .fold(_.getOrThrow, _.value).map(_.path)
+        val optionalRunCp = eval(TestCase.optional.runClasspath)
+          .fold(_.getOrThrow, _.value).map(_.path)
+        val dependsOnOptionalCompileCp = eval(TestCase.optional.dependsOnOptional.compileClasspath)
+          .fold(_.getOrThrow, _.value).map(_.path)
+        val dependsOnOptionalRuntimeCp =
+          eval(TestCase.optional.dependsOnOptional.upstreamAssemblyClasspath)
+            .fold(_.getOrThrow, _.value).map(_.path)
+        val dependsOnOptionalRunCp = eval(TestCase.optional.dependsOnOptional.runClasspath)
+          .fold(_.getOrThrow, _.value).map(_.path)
+
+        // optional dependencies in ivyDeps should be added to the current module class path
+        assert(optionalCompileCp.exists(_.last == "interface-1.0.29-M1.jar"))
+        assert(optionalRuntimeCp.exists(_.last == "interface-1.0.29-M1.jar"))
+        assert(optionalRunCp.exists(_.last == "interface-1.0.29-M1.jar"))
+
+        // optional dependencies in compileIvyDeps should be added to the current module compile class path,
+        // but not to the runtime class path
+        assert(optionalCompileCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
+        assert(!optionalRuntimeCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
+        assert(!optionalRunCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
+
+        // optional dependencies in runIvyDeps should be added to the current module run class path,
+        // but not to the compile class path
+        assert(!optionalCompileCp.exists(_.last == "logback-core-1.5.18.jar"))
+        assert(optionalRuntimeCp.exists(_.last == "logback-core-1.5.18.jar"))
+        assert(optionalRunCp.exists(_.last == "logback-core-1.5.18.jar"))
+
+        // in transitive modules, optional dependencies are always ignored
+        assert(!dependsOnOptionalCompileCp.exists(_.last == "interface-1.0.29-M1.jar"))
+        assert(!dependsOnOptionalRuntimeCp.exists(_.last == "interface-1.0.29-M1.jar"))
+        assert(!dependsOnOptionalRunCp.exists(_.last == "interface-1.0.29-M1.jar"))
+        assert(!dependsOnOptionalCompileCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
+        assert(!dependsOnOptionalRuntimeCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
+        assert(!dependsOnOptionalRunCp.exists(_.last == "sourcecode_3-0.4.3-M5.jar"))
+        assert(!dependsOnOptionalCompileCp.exists(_.last == "logback-core-1.5.18.jar"))
+        assert(!dependsOnOptionalRuntimeCp.exists(_.last == "logback-core-1.5.18.jar"))
+        assert(!dependsOnOptionalRunCp.exists(_.last == "logback-core-1.5.18.jar"))
       }
     }
   }
