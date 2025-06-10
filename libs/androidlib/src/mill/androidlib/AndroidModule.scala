@@ -576,7 +576,9 @@ trait AndroidModule extends JavaModule {
   }
 
   def androidPackagedCompiledClasses: T[Seq[PathRef]] = Task {
-    os.walk(compile().classes.path)
+    Seq(compile().classes.path)
+      .filter(os.exists)
+      .flatMap(os.walk(_))
       .filter(_.ext == "class")
       .map(PathRef(_))
   }
