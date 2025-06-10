@@ -1,5 +1,3 @@
-# Mill target completion for Bash and Zsh, with trailing space suppression
-
 # ---- Shared logic (used by both Bash and Zsh) ----
 _mill_common() {
   local input="$1"
