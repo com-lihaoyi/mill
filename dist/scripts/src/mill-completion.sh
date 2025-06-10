@@ -3,11 +3,10 @@
 # ---- Shared logic (used by both Bash and Zsh) ----
 _mill_common() {
   local input="$1"
-  local cur base completions
+  local cur
 
   # Strip trailing alphanumerics from current input
-  cur="${input%%[[:alnum:]]#}"
-  local last_char="${cur: -1}"
+  cur=$(echo "$input" | sed 's/[[:alnum:]][[:alnum:]]*$//')
 
   ./mill --ticker false resolve "${cur}_"
 }
