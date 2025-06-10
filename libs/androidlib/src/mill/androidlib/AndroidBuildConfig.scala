@@ -40,6 +40,6 @@ trait AndroidBuildConfig extends mill.Module { this: AndroidAppModule =>
   }
 
   override def generatedSources: T[Seq[PathRef]] = Task {
-    androidLibsRClasses() ++ Seq(generatedBuildConfig())
+    Seq(generatedBuildConfig())
   }
 }
