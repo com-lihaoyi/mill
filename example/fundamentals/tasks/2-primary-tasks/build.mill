@@ -12,8 +12,10 @@ import mill.{Module, T, _}
 def sources = Task.Source { "src" }
 def resources = Task.Source { "resources" }
 
-// ``Source``s are defined using `Task.Source{...}` taking one `os.Path`, or `Task.Sources{...}`,
-// taking multiple ``os.Path``s as arguments. A ``Source``'s:
+// ``Source``s are defined using `Task.Source{...}` taking one path, or `Task.Sources{...}`,
+// taking multiple paths as arguments. Both accept `os.Path`, `os.SubPath`, `os.RelPath`
+// or a `String` containing a sub-path. All relative paths will be resolve against the `moduleDir`
+// of the enclosing module. A ``Source``'s:
 // its build signature/`hashCode` depends not just on the path
 // it refers to (e.g. `foo/bar/baz`) but also the MD5 hash of the file contents or
 // folder tree at that path.
