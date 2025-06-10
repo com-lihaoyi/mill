@@ -9,7 +9,7 @@ _mill_common() {
   cur="${input%%[[:alnum:]]#}"
   local last_char="${cur: -1}"
 
-  ./mill resolve "${cur}_"
+  ./mill --ticker false resolve "${cur}_"
 }
 
 # ---- Bash-specific function ----
