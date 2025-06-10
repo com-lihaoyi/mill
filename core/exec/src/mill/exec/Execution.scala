@@ -1,15 +1,15 @@
 package mill.exec
 
-import mill.api._
-import mill.api.internal._
+import mill.api.*
+import mill.api.internal.*
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
-import mill.define._
+import mill.define.*
 import mill.internal.PrefixLogger
-
 import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
+
 import scala.collection.mutable
-import scala.concurrent._
+import scala.concurrent.*
 
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
@@ -219,7 +219,6 @@ private[mill] case class Execution(
                   allTransitiveClassMethods,
                   forkExecutionContext,
                   exclusive,
-                  offline,
                   upstreamPathRefs
                 )
 

@@ -8,29 +8,25 @@ import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
 import mill.api.{MillException, Result, Segments}
-import mill.api.internal.{
-  BspBuildTarget,
-  BspModuleApi,
-  BspUri,
-  EvaluatorApi,
-  IdeaConfigFile,
-  JavaFacet,
-  JavaModuleApi,
-  JvmBuildTarget,
-  ResolvedModule,
-  Scoped,
-  internal
-}
+import mill.api.internal.{EvaluatorApi, JavaModuleApi, internal}
+import mill.api.internal.idea.ResolvedModule
 import mill.define.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.scalalib.api.CompilationResult
-import mill.scalalib.bsp.BspModule
+import mill.scalalib.bsp.{BspJavaModule, BspModule}
 import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.publish.Artifact
 import mill.util.{JarManifest, Jvm}
 import os.Path
-
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
+import mill.api.internal.bsp.{
+  BspBuildTarget,
+  BspJavaModuleApi,
+  BspModuleApi,
+  BspUri,
+  JvmBuildTarget
+}
+import mill.api.internal.idea.{IdeaConfigFile, JavaFacet, Scoped}
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -48,6 +44,12 @@ trait JavaModule
     with SemanticDbJavaModule
     with AssemblyModule
     with JavaModuleApi { outer =>
+
+  private lazy val bspExt = {
+    import BspJavaModule.given
+    ModuleRef(this.internalBspJavaModule)
+  }
+  override private[mill] def bspJavaModule: () => BspJavaModuleApi = () => bspExt()
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
   trait JavaTests extends JavaModule with TestModule {
@@ -252,12 +254,12 @@ trait JavaModule
   /**
    * Options to pass to the java compiler
    */
-  def javacOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  override def javacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * Additional options for the java compiler derived from other module settings.
    */
-  def mandatoryJavacOptions: T[Seq[String]] = Task { Seq.empty[String] }
+  override def mandatoryJavacOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    *  The direct dependencies of this module.
@@ -619,13 +621,19 @@ trait JavaModule
   }
 
   /**
-   * Coursier project of this module and those of all its transitive module dependencies
+   * Coursier projects of all the transitive module dependencies of this module
+   *
+   * Doesn't include the coursier project of the current module, see [[coursierProject]] for that.
    */
-  def transitiveCoursierProjects: Task[Seq[cs.Project]] = Task {
-    (Seq(coursierProject()) ++
-      Task.traverse(
-        (compileModuleDepsChecked ++ moduleDepsChecked ++ runModuleDepsChecked ++ bomModuleDepsChecked).distinct
-      )(_.transitiveCoursierProjects)().flatten).distinctBy(_.module)
+  def transitiveCoursierProjects: Task[Seq[cs.Project]] = {
+    val allModuleDeps =
+      (compileModuleDepsChecked ++ moduleDepsChecked ++ runModuleDepsChecked ++ bomModuleDepsChecked).distinct
+    Task {
+      val allTransitiveProjects =
+        Task.traverse(allModuleDeps)(_.transitiveCoursierProjects)().flatten
+      val allModuleDepsProjects = Task.traverse(allModuleDeps)(_.coursierProject)()
+      (allModuleDepsProjects ++ allTransitiveProjects).distinctBy(_.module.name.value)
+    }
   }
 
   /**
@@ -647,7 +655,18 @@ trait JavaModule
     // (it's respectively provided, runtime, import). The configuration is compile for
     // standard mvnDeps / moduleDeps.
     //
-    JavaModule.InternalRepo(transitiveCoursierProjects().distinctBy(_.module.name.value))
+    val project = coursierProject()
+    // Mark optional direct dependencies as non-optional, so that these are included in the
+    // class paths of this module
+    val project0 = project.withDependencies0(
+      project.dependencies0.map {
+        case (conf, dep) if dep.optional =>
+          (conf, dep.withOptional(false))
+        case other =>
+          other
+      }
+    )
+    JavaModule.InternalRepo(Seq(project0) ++ transitiveCoursierProjects())
   }
 
   /**
@@ -897,7 +916,7 @@ trait JavaModule
    *
    * Keep in sync with [[bspCompileClasspath]]
    */
-  def compileClasspath: T[Seq[PathRef]] = Task {
+  override def compileClasspath: T[Seq[PathRef]] = Task {
     resolvedMvnDeps() ++ transitiveCompileClasspath() ++ localCompileClasspath()
   }
 
@@ -907,7 +926,7 @@ trait JavaModule
    * Keep in sync with [[compileClasspath]]
    */
   @internal
-  private[mill] def bspCompileClasspath(
+  override private[mill] def bspCompileClasspath(
       needsToMergeResourcesIntoCompileDest: Boolean
   )
       : Task[EvaluatorApi => Seq[String]] = Task.Anon {
@@ -955,10 +974,10 @@ trait JavaModule
     )
   }
 
-  def upstreamIvyAssemblyClasspath: T[Seq[PathRef]] = Task {
+  override def upstreamIvyAssemblyClasspath: T[Seq[PathRef]] = Task {
     resolvedRunMvnDeps()
   }
-  def upstreamLocalAssemblyClasspath: T[Seq[PathRef]] = Task {
+  override def upstreamLocalAssemblyClasspath: T[Seq[PathRef]] = Task {
     transitiveLocalClasspath()
   }
 
@@ -1142,11 +1161,11 @@ trait JavaModule
       val resolution: Resolution = Lib.resolveDependenciesMetadataSafe(
         allRepositories(),
         dependencies,
-        checkGradleModules = checkGradleModules(),
         Some(mapDependencies()),
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
-        resolutionParams = resolutionParams()
+        resolutionParams = resolutionParams(),
+        checkGradleModules = checkGradleModules()
       ).get
 
       val roots = whatDependsOn match {
@@ -1347,69 +1366,24 @@ trait JavaModule
     Some((JvmBuildTarget.dataKind, bspJvmBuildTargetTask()))
   }
 
-  @internal
-  private[mill] def bspBuildTargetScalacOptions(
-      needsToMergeResourcesIntoCompileDest: Boolean,
-      enableJvmCompileClasspathProvider: Boolean,
-      clientWantsSemanticDb: Boolean
-  ) = {
-    val scalacOptionsTask = this match {
-      case m: ScalaModule => m.allScalacOptions
-      case _ => Task.Anon {
-          Seq.empty[String]
-        }
-    }
-
-    val compileClasspathTask: Task[EvaluatorApi => Seq[String]] =
-      if (enableJvmCompileClasspathProvider) {
-        // We have a dedicated request for it
-        Task.Anon {
-          (_: EvaluatorApi) => Seq.empty[String]
-        }
-      } else {
-        bspCompileClasspath(needsToMergeResourcesIntoCompileDest)
-      }
-
-    val classesPathTask =
-      if (clientWantsSemanticDb) {
-        Task.Anon((e: EvaluatorApi) =>
-          bspCompiledClassesAndSemanticDbFiles().resolve(os.Path(e.outPathJava)).toNIO
-        )
-      } else {
-        Task.Anon((e: EvaluatorApi) =>
-          bspCompileClassesPath(
-            needsToMergeResourcesIntoCompileDest
-          )().resolve(os.Path(e.outPathJava)).toNIO
-        )
-      }
-
-    Task.Anon {
-      (scalacOptionsTask(), compileClasspathTask(), classesPathTask())
-    }
-  }
-
-  @internal
-  private[mill] def bspBuildTargetJavacOptions(
-      needsToMergeResourcesIntoCompileDest: Boolean,
-      clientWantsSemanticDb: Boolean
-  ) = {
-    val classesPathTask = this match {
-      case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
-        sem.bspCompiledClassesAndSemanticDbFiles
-      case _ => bspCompileClassesPath(needsToMergeResourcesIntoCompileDest)
-    }
-    Task.Anon { (ev: EvaluatorApi) =>
-      (
-        classesPathTask().resolve(os.Path(ev.outPathJava)).toNIO,
-        javacOptions() ++ mandatoryJavacOptions(),
-        bspCompileClasspath(needsToMergeResourcesIntoCompileDest).apply().apply(ev)
-      )
-    }
-  }
-
-  private[mill] def bspBuildTargetSources = Task.Anon {
-    Tuple2(sources().map(_.path.toNIO), generatedSources().map(_.path.toNIO))
-  }
+//  @internal
+//  private[mill] def bspBuildTargetJavacOptions(
+//      needsToMergeResourcesIntoCompileDest: Boolean,
+//      clientWantsSemanticDb: Boolean
+//  ) = {
+//    val classesPathTask = this match {
+//      case sem: SemanticDbJavaModule if clientWantsSemanticDb =>
+//        sem.bspCompiledClassesAndSemanticDbFiles
+//      case _ => bspCompileClassesPath(needsToMergeResourcesIntoCompileDest)
+//    }
+//    Task.Anon { (ev: EvaluatorApi) =>
+//      (
+//        classesPathTask().resolve(os.Path(ev.outPathJava)).toNIO,
+//        javacOptions() ++ mandatoryJavacOptions(),
+//        bspCompileClasspath(needsToMergeResourcesIntoCompileDest).apply().apply(ev)
+//      )
+//    }
+//  }
 
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
@@ -1417,51 +1391,6 @@ trait JavaModule
   def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toNIO.toUri.toString)
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
-
-  private[mill] def bspBuildTargetInverseSources[T](id: T, searched: String): Task[Seq[T]] =
-    Task.Anon {
-      val src = allSourceFiles()
-      val found = src.map(sanitizeUri).contains(searched)
-      if (found) Seq(id) else Seq()
-    }
-
-  private[mill] def bspBuildTargetDependencySources = Task.Anon {
-    (
-      millResolver().classpath(
-        Seq(
-          coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-          coursierDependency
-        ),
-        sources = true
-      ).map(_.path.toNIO),
-      unmanagedClasspath().map(_.path.toNIO)
-    )
-  }
-
-  private[mill] def bspBuildTargetDependencyModules = Task.Anon {
-    (
-      // full list of dependencies, including transitive ones
-      millResolver()
-        .resolution(
-          Seq(
-            coursierDependency.withConfiguration(coursier.core.Configuration.provided),
-            coursierDependency
-          )
-        )
-        .orderedDependencies
-        .map { d => (d.module.organization.value, d.module.repr, d.version) },
-      unmanagedClasspath().map(_.path.toNIO)
-    )
-  }
-
-  private[mill] def bspBuildTargetScalaMainClasses =
-    Task.Anon((allLocalMainClasses(), forkArgs(), forkEnv()))
-
-  private[mill] def bspRun(args: Seq[String]): Task[Unit] = Task.Anon {
-    run(Task.Anon(Args(args)))()
-  }
-
-  private[mill] def bspBuildTargetResources = Task.Anon { resources().map(_.path.toNIO) }
 
   /**
    * Performs the compilation (via [[compile]]) and merging of [[resources]] needed by
@@ -1488,19 +1417,11 @@ trait JavaModule
   }
 
   @internal
-  private[mill] def bspBuildTargetCompile(
+  override private[mill] def bspBuildTargetCompile(
       needsToMergeResourcesIntoCompileDest: Boolean
   ): Task[java.nio.file.Path] = {
     if (needsToMergeResourcesIntoCompileDest) Task.Anon { bspBuildTargetCompileMerged().path.toNIO }
     else Task.Anon { compile().classes.path.toNIO }
-  }
-
-  private[mill] def bspLoggingTest = Task.Anon {
-    System.out.println("bspLoggingTest from System.out")
-    System.err.println("bspLoggingTest from System.err")
-    Console.out.println("bspLoggingTest from Console.out")
-    Console.err.println("bspLoggingTest from Console.err")
-    Task.log.info("bspLoggingTest from Task.log.info")
   }
 
   private[mill] def genIdeaMetadata(
@@ -1633,7 +1554,12 @@ object JavaModule {
   final case class InternalRepo(projects: Seq[cs.Project])
       extends cs.Repository {
 
-    private lazy val map = projects.map(proj => proj.moduleVersion -> proj).toMap
+    // Reversing the sequence before calling toMap, so that earlier elements have precedence
+    // over later one, in case they have the same module / version.
+    // That's useful for the handling of optional dependencies, where the main project, with
+    // initially optional dependencies marked as non-optional, is put upfront, but might still
+    // be pulled transitively, in that case without the special handling of optional dependencies.
+    private lazy val map = projects.reverseIterator.map(proj => proj.moduleVersion -> proj).toMap
 
     override def toString(): String =
       pprint.apply(this).toString

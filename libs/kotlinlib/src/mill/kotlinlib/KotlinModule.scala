@@ -12,13 +12,14 @@ import mill.api.Result
 import mill.define.ModuleRef
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.scalalib.api.{CompilationResult, JvmWorkerApi}
-import mill.api.internal.{BspBuildTarget, BspModuleApi, CompileProblemReporter, internal}
+import mill.api.internal.{CompileProblemReporter, internal}
 import mill.scalalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
 import mill.*
 import java.io.File
 
 import mainargs.Flag
+import mill.api.internal.bsp.{BspBuildTarget, BspModuleApi}
 
 trait KotlinModule extends JavaModule { outer =>
 
@@ -91,7 +92,7 @@ trait KotlinModule extends JavaModule { outer =>
    */
   def kotlinCompilerClasspath: T[Seq[PathRef]] = Task {
     val deps = kotlinCompilerMvnDeps() ++ Seq(
-      Dep.millProjectModule("mill-libs-kotlinlib-worker-impl")
+      Dep.millProjectModule("mill-libs-kotlinlib-worker")
     )
     defaultResolver().classpath(
       deps,
@@ -335,8 +336,8 @@ trait KotlinModule extends JavaModule { outer =>
         ).flatten
 
         val workerResult =
-          KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath().map(_.path)) {
-            _._2.compile(KotlinWorkerTarget.Jvm, compilerArgs)
+          KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
+            _.compile(KotlinWorkerTarget.Jvm, compilerArgs)
           }
 
         val analysisFile = dest / "kotlin.analysis.dummy"

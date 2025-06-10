@@ -1,4 +1,6 @@
-package mill.api.internal
+package mill.api.internal.bsp
+
+import mill.api.internal.EvaluatorApi
 
 /** With this server handle you can interact with a running Mill BSP server. */
 trait BspServerHandle {

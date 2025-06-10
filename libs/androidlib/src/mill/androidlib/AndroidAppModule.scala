@@ -10,9 +10,10 @@ import mill.testrunner.TestResult
 import mill.util.Jvm
 import os.{Path, RelPath, zip}
 import upickle.default.*
-
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
+
+import mill.api.internal.bsp.BspBuildTarget
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -279,54 +280,30 @@ trait AndroidAppModule extends AndroidModule { outer =>
     PathRef(unsignedApk)
   }
 
-  /**
-   * Creates a merged manifest from application and dependencies manifests.
-   *
-   * See [[https://developer.android.com/build/manage-manifests]] for more details.
-   */
-  def androidMergedManifest: T[PathRef] = Task {
-    val debugManifest = Seq(androidDebugManifestLocation().path).filter(os.exists)
-    val libManifests = androidUnpackArchives().flatMap(_.manifest.map(_.path))
-    val allManifests = debugManifest ++ libManifests
-    val mergedManifestPath = Task.dest / "AndroidManifest.xml"
-    // TODO put it to the dedicated worker if cost of classloading is too high
-    Jvm.callProcess(
-      mainClass = "com.android.manifmerger.Merger",
-      mainArgs = Seq(
-        "--main",
-        androidManifest().path.toString(),
-        "--remove-tools-declarations",
-        "--property",
-        s"min_sdk_version=${androidMinSdk()}",
-        "--property",
-        s"target_sdk_version=${androidTargetSdk()}",
-        "--property",
-        s"version_code=${androidVersionCode()}",
-        "--property",
-        s"version_name=${androidVersionName()}",
-        "--property",
-        s"package=${androidApplicationId}",
-        "--manifest-placeholders",
-        s"applicationId=${androidApplicationId}",
-        "--out",
-        mergedManifestPath.toString()
-      ) ++ allManifests.flatMap(m => Seq("--libs", m.toString)),
-      classPath = manifestMergerClasspath().map(_.path).toVector,
-      stdin = os.Inherit,
-      stdout = os.Inherit
-    )
-    PathRef(mergedManifestPath)
+  override def androidMergeableManifests: Task[Seq[PathRef]] = Task {
+    val debugManifest = Seq(androidDebugManifestLocation()).filter(pr => os.exists(pr.path))
+    val libManifests = androidUnpackArchives().flatMap(_.manifest)
+    debugManifest ++ libManifests
   }
 
-  /**
-   * Classpath for the manifest merger run.
-   */
-  def manifestMergerClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
-      Seq(
-        mvn"com.android.tools.build:manifest-merger:${androidSdkModule().manifestMergerVersion()}"
-      )
-    )
+  override def androidMergedManifestArgs: Task[Seq[String]] = Task {
+    Seq(
+      "--main",
+      androidManifest().path.toString(),
+      "--remove-tools-declarations",
+      "--property",
+      s"min_sdk_version=${androidMinSdk()}",
+      "--property",
+      s"target_sdk_version=${androidTargetSdk()}",
+      "--property",
+      s"version_code=${androidVersionCode()}",
+      "--property",
+      s"version_name=${androidVersionName()}",
+      "--property",
+      s"package=${androidApplicationId}",
+      "--manifest-placeholders",
+      s"applicationId=${androidApplicationId}"
+    ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", m.path.toString))
   }
 
   /**
@@ -973,39 +950,33 @@ trait AndroidAppModule extends AndroidModule { outer =>
       }.map(PathRef(_))
     }
 
+    override def androidMergeableManifests: Task[Seq[PathRef]] = Task {
+      Seq(outer.androidDebugManifestLocation()).filter(pr =>
+        os.exists(pr.path)
+      ) ++ androidxTestManifests()
+    }
+
     /**
-     * Creates a merged manifest for instrumented tests.
+     * Args for the manifest merger, to create a merged manifest for instrumented tests via [[androidMergedManifest]].
      *
      * See [[https://developer.android.com/build/manage-manifests]] for more details.
      */
-    def androidMergedManifest: T[PathRef] = Task {
-      val debugManifest = Seq(outer.androidDebugManifestLocation().path).filter(os.exists)
-      val androidxManifests = androidxTestManifests().map(_.path)
-      val libManifests = (debugManifest ++ androidxManifests)
-      val mergedManifestPath = Task.dest / "AndroidManifest.xml"
-      // TODO put it to the dedicated worker if cost of classloading is too high
-      Jvm.callProcess(
-        mainClass = "com.android.manifmerger.Merger",
-        mainArgs = Seq(
-          "--main",
-          androidManifest().path.toString(),
-          "--remove-tools-declarations",
-          "--property",
-          s"min_sdk_version=${androidMinSdk()}",
-          "--property",
-          s"target_sdk_version=${androidTargetSdk()}",
-          "--property",
-          s"version_code=${androidVersionCode()}",
-          "--property",
-          s"target_package=${outer.androidApplicationId}",
-          "--property",
-          s"version_name=${androidVersionName()}",
-          "--out",
-          mergedManifestPath.toString()
-        ) ++ libManifests.flatMap(m => Seq("--libs", m.toString())),
-        classPath = manifestMergerClasspath().map(_.path)
-      )
-      PathRef(mergedManifestPath)
+    override def androidMergedManifestArgs: Task[Seq[String]] = Task {
+      Seq(
+        "--main",
+        androidManifest().path.toString(),
+        "--remove-tools-declarations",
+        "--property",
+        s"min_sdk_version=${androidMinSdk()}",
+        "--property",
+        s"target_sdk_version=${androidTargetSdk()}",
+        "--property",
+        s"version_code=${androidVersionCode()}",
+        "--property",
+        s"target_package=${outer.androidApplicationId}",
+        "--property",
+        s"version_name=${androidVersionName()}"
+      ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", m.path.toString))
     }
 
     override def androidVirtualDeviceIdentifier: String = outer.androidVirtualDeviceIdentifier

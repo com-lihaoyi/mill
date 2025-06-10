@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentParams,
   JvmTestEnvironmentResult
 }
-import mill.api.internal.{TaskApi, JavaModuleApi, RunModuleApi, TestModuleApi}
+import mill.api.internal.{JavaModuleApi, RunModuleApi, TaskApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
 import java.util.concurrent.CompletableFuture
 
@@ -43,12 +43,12 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
   )(implicit name: sourcecode.Name): CompletableFuture[V] = {
     handlerTasks(
       targetIds = _ => targetIds,
-      tasks = { case m: RunModuleApi => m.bspJvmRunTestEnvironment },
+      tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunTestEnvironment },
       requestDescription = "Getting JVM test environment of {}"
     ) {
       case (
-            ev,
-            state,
+            _,
+            _,
             id,
             _: (TestModuleApi & JavaModuleApi),
             (
@@ -57,23 +57,28 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
               forkWorkingDir,
               forkEnv,
               _,
-              testEnvVars: (String, String, String, Seq[String])
+              None,
+              Some(testEnvVars)
             )
           ) =>
-        val (mainClass, testRunnerClassPath, argsFile, classpath) = testEnvVars
-        val fullMainArgs: List[String] = List(testRunnerClassPath, argsFile)
+        val fullMainArgs: List[String] =
+          List(testEnvVars.testRunnerClasspathArg, testEnvVars.argsFile)
         val item = new JvmEnvironmentItem(
           id,
-          classpath.asJava,
+          testEnvVars.classpath.asJava,
           forkArgs.asJava,
           forkWorkingDir.toString(),
           forkEnv.asJava
         )
-        item.setMainClasses(List(mainClass).map(new JvmMainClass(_, fullMainArgs.asJava)).asJava)
+        item.setMainClasses(List(testEnvVars.mainClass).map(new JvmMainClass(
+          _,
+          fullMainArgs.asJava
+        )).asJava)
         item
+
       case (
-            ev,
-            state,
+            _,
+            _,
             id,
             _: RunModuleApi,
             (
@@ -82,7 +87,8 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
               forkWorkingDir,
               forkEnv,
               mainClass,
-              localMainClasses: Seq[String]
+              Some(localMainClasses),
+              None
             )
           ) =>
         val classpath = runClasspath.map(sanitizeUri)
@@ -97,6 +103,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         val classes = mainClass.toList ++ localMainClasses
         item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
+
       case _ => ???
     } {
       agg
@@ -113,9 +120,8 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
       },
       requestDescription = "Getting JVM compile class path of {}"
     ) {
-      case (ev, _, id, _: JavaModuleApi, compileClasspath) =>
+      case (ev, _, id, _, compileClasspath) =>
         new JvmCompileClasspathItem(id, compileClasspath(ev).asJava)
-      case _ => ???
     } {
       new JvmCompileClasspathResult(_)
     }

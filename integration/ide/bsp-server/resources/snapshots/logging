@@ -23,9 +23,9 @@
 [4-compile] Entered buildTargetCompile
 [4-compile] Evaluating 1 task
 [4-compile] * tasks failed
-[4-compile] errored.compile java.lang.RuntimeException: nope
+[4-compile] errored.exception.compile java.lang.RuntimeException: nope
 [4-compile]     scala.sys.package$.error(package.scala:*)
-[4-compile]     build_.package_.build_$package_$errored$$$_$compile$$anonfun$1$$anonfun$1(build.mill:*)
+[4-compile]     build_.package_.build_*(build.mill:*)
 [4-compile]     mill.define.Task$Named.evaluate(Task.scala:*)
 [4-compile]     mill.define.Task$Named.evaluate$(Task.scala:*)
 [4-compile]     mill.define.Task$Computed.evaluate(Task.scala:*)
@@ -33,9 +33,18 @@
 [4-compile] buildTargetCompile took * msec
 [5-compile] Entered buildTargetCompile
 [5-compile] Evaluating 1 task
+[5-compile-*] [info] compiling 1 Scala source to * ...
+[5-compile-*] [error] */errored/compilation-error/src/Thing.scala:2:3: not found: value nope
+[5-compile-*] [error]   nope
+[5-compile-*] [error]   ^
+[5-compile-*] [error] one error found
 [5-compile] Done
 [5-compile] buildTargetCompile took * msec
-[7-buildShutdown] Entered buildShutdown
-[8-onBuildExit] Entered onBuildExit
-[bsp] BSP session returned with mill.api.internal.BspServerResult$Shutdown$@*
-[bsp] Exiting BSP runner loop. Stopping BSP server. Last result: Success(mill.api.internal.BspServerResult$Shutdown$@*)
+[6-compile] Entered buildTargetCompile
+[6-compile] Evaluating 1 task
+[6-compile] Done
+[6-compile] buildTargetCompile took * msec
+[8-buildShutdown] Entered buildShutdown
+[9-onBuildExit] Entered onBuildExit
+[bsp] BSP session returned with mill.api.internal.bsp.BspServerResult$Shutdown$@*
+[bsp] Exiting BSP runner loop. Stopping BSP server. Last result: Success(mill.api.internal.bsp.BspServerResult$Shutdown$@*)

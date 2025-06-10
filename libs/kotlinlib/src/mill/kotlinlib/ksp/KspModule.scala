@@ -138,7 +138,7 @@ trait KspModule extends KotlinModule { outer =>
    * so that the generated  sources are in the [[compileClasspath]]
    * for the main compile task.
    */
-  def generatedSourcesWithKSP: Target[GeneratedKSPSources] = Task {
+  def generatedSourcesWithKSP: T[GeneratedKSPSources] = Task {
     val sourceFiles = kspSources().map(_.path).filter(os.exists)
 
     val compileCp = kspClasspath().map(_.path).filter(os.exists)
@@ -199,8 +199,8 @@ trait KspModule extends KotlinModule { outer =>
 
     Task.log.info(s"KSP arguments: ${compilerArgs.mkString(" ")}")
 
-    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath().map(_.path)) {
-      _._2.compile(KotlinWorkerTarget.Jvm, compilerArgs)
+    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
+      _.compile(KotlinWorkerTarget.Jvm, compilerArgs)
     }
 
     GeneratedKSPSources(PathRef(java), PathRef(kotlin), PathRef(resources), PathRef(classes))

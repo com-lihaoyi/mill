@@ -4,10 +4,11 @@ import coursier.Repository
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.T
+import mill.androidlib.manifestmerger.AndroidManifestMerger
 import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.util.Jvm
-import upickle.implicits.namedTuples.default.given
+import mill.define.JsonFormatters.given
 
 import scala.collection.immutable
 import scala.xml.*
@@ -236,26 +237,16 @@ trait AndroidModule extends JavaModule {
       transformedAarFilesToJar ++ jarFiles
     }
 
-  def androidTransformAarFiles(resolvedDeps: Task[Seq[PathRef]]): Task[Seq[UnpackedDep]] = Task {
-    val transformDest = Task.dest / "transform"
-    val aarFiles = resolvedDeps()
-      .map(_.path)
-      .filter(_.ext == "aar")
-      .distinct
+  def androidTransformAarFiles(resolvedDeps: Task[Seq[PathRef]]): Task[Seq[UnpackedDep]] =
+    Task.Anon {
+      val transformDest = Task.dest / "transform"
+      val aarFiles = resolvedDeps()
+        .map(_.path)
+        .filter(_.ext == "aar")
+        .distinct
 
-    extractAarFiles(aarFiles, transformDest)
-  }
-
-  /**
-   * Classpath for the manifest merger run.
-   */
-  def manifestMergerClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
-      Seq(
-        mvn"com.android.tools.build:manifest-merger:${androidSdkModule().manifestMergerVersion()}"
-      )
-    )
-  }
+      extractAarFiles(aarFiles, transformDest)
+    }
 
   /**
    * Extracts JAR files and resources from AAR dependencies.
@@ -314,35 +305,47 @@ trait AndroidModule extends JavaModule {
     })
   }
 
+  def androidManifestMergerModuleRef: ModuleRef[AndroidManifestMerger] =
+    ModuleRef(AndroidManifestMerger)
+
+  def androidMergeableManifests: Task[Seq[PathRef]] = Task {
+    androidUnpackArchives().flatMap(_.manifest)
+  }
+
+  def androidMergedManifestArgs: Task[Seq[String]] = Task {
+    Seq(
+      "--main",
+      androidManifest().path.toString(),
+      "--remove-tools-declarations",
+      "--property",
+      s"min_sdk_version=${androidMinSdk()}",
+      "--property",
+      s"target_sdk_version=${androidTargetSdk()}",
+      "--property",
+      s"version_code=${androidVersionCode()}",
+      "--property",
+      s"version_name=${androidVersionName()}"
+    ) ++ androidMergeableManifests().flatMap(m => Seq("--libs", m.path.toString()))
+  }
+
   /**
-   * Creates a merged manifest from application and dependencies manifests.
+   * Creates a merged manifest from application and dependencies manifests using.
+   * Merged manifests are given via [[androidMergeableManifests]] and merger args via
+   * [[androidMergedManifestArgs]]
    *
    * See [[https://developer.android.com/build/manage-manifests]] for more details.
    */
   def androidMergedManifest: T[PathRef] = Task {
-    val libManifests = androidUnpackArchives().map(_.manifest.get)
-    val mergedManifestPath = Task.dest / "AndroidManifest.xml"
-    // TODO put it to the dedicated worker if cost of classloading is too high
-    Jvm.callProcess(
-      mainClass = "com.android.manifmerger.Merger",
-      mainArgs = Seq(
-        "--main",
-        androidManifest().path.toString(),
-        "--remove-tools-declarations",
-        "--property",
-        s"min_sdk_version=${androidMinSdk()}",
-        "--property",
-        s"target_sdk_version=${androidTargetSdk()}",
-        "--property",
-        s"version_code=${androidVersionCode()}",
-        "--property",
-        s"version_name=${androidVersionName()}",
-        "--out",
-        mergedManifestPath.toString()
-      ) ++ libManifests.flatMap(m => Seq("--libs", m.path.toString())),
-      classPath = manifestMergerClasspath().map(_.path)
-    )
-    PathRef(mergedManifestPath)
+
+    val mergedAndroidManifestLocation = androidManifestMergerModuleRef().androidMergedManifest(
+      args = Task.Anon(androidMergedManifestArgs())
+    )()
+
+    val mergedAndroidManifestDest = Task.dest / "AndroidManifest.xml"
+
+    os.move(mergedAndroidManifestLocation, mergedAndroidManifestDest)
+
+    PathRef(mergedAndroidManifestDest)
   }
 
   def androidLibsRClasses: T[Seq[PathRef]] = Task {

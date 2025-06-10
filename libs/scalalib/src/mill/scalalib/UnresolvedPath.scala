@@ -1,7 +1,7 @@
 package mill.scalalib
 
-import mill.define.{Segment, Segments, ExecutionPaths}
-import os.Path
+import mill.api.internal.UnresolvedPathApi
+import mill.define.{ExecutionPaths, Segment, Segments}
 import upickle.default.{ReadWriter, macroRW}
 
 /**
@@ -10,12 +10,12 @@ import upickle.default.{ReadWriter, macroRW}
  * Hence, you need to call [[#resolve]] with an instance of
  * [[ExecutionPathsResolver]] to get the final [[os.Path]].
  */
-sealed trait UnresolvedPath {
-  def resolve(outPath: os.Path): Path
+sealed trait UnresolvedPath extends UnresolvedPathApi[os.Path] {
+  def resolve(outPath: os.Path): os.Path
 }
 object UnresolvedPath {
   case class ResolvedPath private (path: String) extends UnresolvedPath {
-    override def resolve(outPath: os.Path): Path = os.Path(path)
+    override def resolve(outPath: os.Path): os.Path = os.Path(path)
   }
   object ResolvedPath {
     def apply(path: os.Path): ResolvedPath = ResolvedPath(path.toString)
@@ -28,7 +28,7 @@ object UnresolvedPath {
       subPath: String,
       segments: Seq[String]
   ) extends UnresolvedPath {
-    override def resolve(outPath: os.Path): Path = {
+    override def resolve(outPath: os.Path): os.Path = {
       ExecutionPaths.resolve(
         outPath,
         Segments(segments.map(Segment.Label(_)))
