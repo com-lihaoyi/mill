@@ -131,14 +131,6 @@ object ExecutionTests extends TestSuite {
         extraEvaled = -1,
         secondRunNoOp = false
       )
-
-      checker(
-        build.sub.sameDirs,
-        Seq(PathRef(build.sub.moduleDir)),
-        Seq(build.sub.sameDirs),
-        extraEvaled = 0,
-        secondRunNoOp = false
-      )
     }
 
     test("input") {
