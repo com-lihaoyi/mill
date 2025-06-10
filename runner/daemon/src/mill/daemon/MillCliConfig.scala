@@ -167,7 +167,11 @@ case class MillCliConfig(
           |There are currently no guarantees that modules don't attempt to fetch remote sources."""
           .stripMargin
     )
-    offline: Flag = Flag()
+    offline: Flag = Flag(),
+    @arg(
+      doc ="""Runs Mill in tab-completion mode"""
+    )
+    tabComplete: Flag = Flag()
 ) {
   def noDaemonEnabled =
     Seq(interactive.value, noServer.value, noDaemon.value, bsp.value).count(identity)
