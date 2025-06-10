@@ -9,13 +9,7 @@ _mill_common() {
   cur="${input%%[[:alnum:]]#}"
   local last_char="${cur: -1}"
 
-  if [[ "$last_char" == "." ]]; then
-    completions=$(./mill --disable-ticker resolve "${cur}_")
-  else
-    completions=$(./mill --disable-ticker resolve _)
-  fi
-
-  printf '%s\n' "$completions"
+  ./mill resolve "${cur}_"
 }
 
 # ---- Bash-specific function ----
