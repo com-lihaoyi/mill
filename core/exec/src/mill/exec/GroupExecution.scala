@@ -35,6 +35,7 @@ private trait GroupExecution {
   def getEvaluator: () => EvaluatorApi
   def headerData: String
   def offline: Boolean
+  def noFilesystemChecker: Boolean
   lazy val parsedHeaderData: Map[String, ujson.Value] = {
     import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
     val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
@@ -318,7 +319,8 @@ private trait GroupExecution {
             counterMsg,
             destCreator,
             getEvaluator().asInstanceOf[Evaluator],
-            terminal
+            terminal,
+            noFilesystemChecker
           ) {
             try {
               task.evaluate(args) match {
@@ -531,7 +533,8 @@ private object GroupExecution {
       counterMsg: String,
       destCreator: DestCreator,
       evaluator: Evaluator,
-      terminal: Task[?]
+      terminal: Task[?],
+      noFilesystemChecker: Boolean
   )(t: => T): T = {
     val isCommand = terminal.isInstanceOf[Task.Command[?]]
     val isInput = terminal.isInstanceOf[Task.Input[?]]
@@ -563,7 +566,7 @@ private object GroupExecution {
       else (multiLogger.streams, () => destCreator.makeDest())
 
     os.dynamicPwdFunction.withValue(destFunc) {
-      os.checker.withValue(executionChecker) {
+      os.checker.withValue(if (noFilesystemChecker) os.Checker.Nop else executionChecker) {
         mill.define.SystemStreams.withStreams(streams) {
           val exposedEvaluator =
             if (exclusive) evaluator.asInstanceOf[Evaluator]
