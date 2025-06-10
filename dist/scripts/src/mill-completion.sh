@@ -10,9 +10,9 @@ _mill_common() {
   local last_char="${cur: -1}"
 
   if [[ "$last_char" == "." ]]; then
-    completions=$(./mill --disable-ticker resolve "${cur}_" 2>/dev/null)
+    completions=$(./mill --disable-ticker resolve "${cur}_")
   else
-    completions=$(./mill --disable-ticker resolve _ 2>/dev/null)
+    completions=$(./mill --disable-ticker resolve _)
   fi
 
   printf '%s\n' "$completions"
