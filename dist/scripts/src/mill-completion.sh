@@ -1,12 +1,16 @@
 _mill_bash() {
-  COMPREPLY=( $(${COMP_WORDS[0]} --tab-complete "$COMP_CWORD" $COMP_WORDS) )
+  echo $COMP_WORDS >> ~/mill-debug-log.txt
+  COMPREPLY=( $(${COMP_WORDS[0]} --tab-complete "$COMP_CWORD" "${COMP_WORDS[@]}") )
   compopt -o nospace 2>/dev/null
 }
 
 _mill_zsh() {
   # `-S` to avoid the trailing space after a completion, since it is
   # common that the user will want to put a `.` and continue typing
-  compadd -S '' -- $($words[1] --tab-complete "$CURRENT" $words)
+  #
+  # zsh $CURRENT is 1-indexed while bash $COMP_CWORD is 0-indexed, so
+  # subtract 1 from zsh's variable so Mill gets a consistent index
+  compadd -S '' -- $($words[1] --tab-complete "$((CURRENT - 1))" $words)
 }
 
 if [ -n "${ZSH_VERSION:-}" ]; then

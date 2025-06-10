@@ -279,6 +279,7 @@ object MillMain0 {
                             config,
                             enableTicker = config.ticker
                               .orElse(config.enableTicker)
+                              .orElse(Option.when(config.tabComplete.value)(false))
                               .orElse(Option.when(config.disableTicker.value)(false)),
                             daemonDir,
                             colored = colored,
@@ -293,14 +294,11 @@ object MillMain0 {
                       val bootstrapped = runMillBootstrap(
                         enterKeyPressed = false,
                         Some(stateCache),
-                        Seq("version"),
+                        Seq("mill.main.TabCompletionModule/tabComplete") ++ config.leftoverArgs.value,
                         streams,
-                        "tab-completion",
-                        None
+                        "tab-completion"
                       )
-                      for(ev <- bootstrapped.result.frames.head.evaluator){
-                        ev.
-                      }
+
                       (true, bootstrapped.result)
                     } else if (bspMode) {
                       val bspLogger = getBspLogger(streams, config)
