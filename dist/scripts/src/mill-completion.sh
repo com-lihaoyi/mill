@@ -2,15 +2,21 @@
 _mill_common() {
   local input="$1"
   local cur
+  local cmd
 
   # Strip trailing alphanumerics from current input
   cur=$(echo "$input" | sed 's/[[:alnum:]][[:alnum:]]*$//')
 
+  if [ -n "${ZSH_VERSION:-}" ]; then
+    cmd="$words[1]"
+  elif [ -n "${BASH_VERSION:-}" ]; then
+    cmd="${COMP_WORDS[0]}"
+  fi
   # Disable the ticker since it gets in the way all the time, but leave
   # stderr un-redirected so that if the completion is blocked on build
   # compilation or something at least the user has some logs indicating
   # something is going on
-  ./mill --ticker false resolve "${cur}_"
+  $cmd --ticker false resolve "${cur}_"
 }
 
 # ---- Bash-specific function ----
