@@ -32,6 +32,8 @@ private class BspCompileProblemReporter(
   private var errors = 0
   private var warnings = 0
 
+  def hasErrors: Boolean = errors > 0
+
   object diagnostics {
     private val map = mutable.Map.empty[TextDocumentIdentifier, java.util.List[Diagnostic]]
     def add(textDocument: TextDocumentIdentifier, diagnostic: Diagnostic): Unit =

@@ -12,7 +12,7 @@ import mill.client.lock.Lock
 import mill.internal.PrefixLogger
 import mill.server.Server
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
-import java.util.concurrent.{CompletableFuture, LinkedBlockingQueue, TimeUnit}
+import java.util.concurrent.{CompletableFuture, ConcurrentHashMap, LinkedBlockingQueue, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.mutable
@@ -374,6 +374,14 @@ private class MillBuildServer(
           )
       }
 
+      val reporterMaker = Utils.getBspLoggedReporterPool(p.getOriginId, state.bspIdByModule, client)
+      val reporters = new ConcurrentHashMap[Int, Option[BspCompileProblemReporter]]
+      val getReporter: Int => Option[CompileProblemReporter] = { id =>
+        if (!reporters.contains(id))
+          reporters.putIfAbsent(id, reporterMaker(id))
+        reporters.get(id)
+      }
+
       val result = compileTasksEvs
         .groupMap(_._2)(_._1)
         .map { case (ev, ts) =>
@@ -382,8 +390,20 @@ private class MillBuildServer(
             s"Compiling ${ts.map(_._1.bspDisplayName).mkString(", ")}",
             ts.map(_._2),
             logger,
-            Utils.getBspLoggedReporterPool(p.getOriginId, state.bspIdByModule, client),
-            TestReporter.DummyTestReporter
+            getReporter,
+            TestReporter.DummyTestReporter,
+            errorOpt = { result =>
+              val baseErrorOpt = evaluatorErrorOpt(result)
+              def hasCompilationErrors =
+                reporters.asScala.valuesIterator.flatMap(_.iterator).exists(_.hasErrors)
+              if (baseErrorOpt.isEmpty || hasCompilationErrors)
+                // No task errors, or some compilation errors were already reported:
+                // no need to tell more about this to users
+                None
+              else
+                // No compilation errors were reported: report task errors if any
+                baseErrorOpt
+            }
           )
         }
         .toSeq
@@ -632,12 +652,12 @@ private class MillBuildServer(
       val ids = state.filterNonSynthetic(targetIds(state).asJava).asScala
       val tasksSeq = ids.flatMap { id =>
         val (m, ev) = state.bspModulesById(id)
-        tasks.lift.apply(m).map(ts => (ts, (ev, id, m.bspDisplayName)))
+        tasks.lift.apply(m).map(ts => (ts, (ev, id, m)))
       }
 
       // group by evaluator (different root module)
       val groups0 = groupList(tasksSeq)(_._2._1) {
-        case (tasks, (_, id, displayName)) => (id, displayName, tasks)
+        case (tasks, (_, id, m)) => (id, m.bspDisplayName, tasks)
       }
 
       val evaluated = groups0.flatMap {
@@ -820,13 +840,17 @@ private class MillBuildServer(
     )
   }
 
+  private def evaluatorErrorOpt(result: EvaluatorApi.Result[Any]): Option[String] =
+    result.values.toEither.left.toOption
+
   private def evaluate(
       evaluator: EvaluatorApi,
       requestDescription: String,
       goals: Seq[TaskApi[?]],
       logger: Logger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = TestReporter.DummyTestReporter
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
+      errorOpt: EvaluatorApi.Result[Any] => Option[String] = evaluatorErrorOpt(_)
   ): ExecutionResultsApi = {
     val goalCount = goals.length
     logger.info(s"Evaluating $goalCount ${if (goalCount > 1) "tasks" else "task"}")
@@ -837,7 +861,7 @@ private class MillBuildServer(
       logger,
       serialCommandExec = false
     )
-    result.values.toEither.left.toOption match {
+    errorOpt(result) match {
       case None =>
         logger.info("Done")
       case Some(error) =>
