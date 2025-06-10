@@ -6,6 +6,10 @@ _mill_common() {
   # Strip trailing alphanumerics from current input
   cur=$(echo "$input" | sed 's/[[:alnum:]][[:alnum:]]*$//')
 
+  # Disable the ticker since it gets in the way all the time, but leave
+  # stderr un-redirected so that if the completion is blocked on build
+  # compilation or something at least the user has some logs indicating
+  # something is going on
   ./mill --ticker false resolve "${cur}_"
 }
 
@@ -24,6 +28,8 @@ _mill_zsh() {
   completions=$(_mill_common "$cur")
   local -a suggestions
   suggestions=(${(f)completions})
+  # `-S` to avoid the trailing space after a completion, since it is
+  # common that the user will want to put a `.` and continue typing
   compadd -S '' -- $suggestions
 }
 
