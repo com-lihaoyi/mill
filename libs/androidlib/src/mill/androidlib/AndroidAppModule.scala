@@ -895,9 +895,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def sources: T[Seq[PathRef]] = Task.Sources("src/androidTest/java")
 
-    def androidResources = Task.Sources("src/androidTest/res")
-
-    override def generatedSources: T[Seq[PathRef]] = Task.Sources()
+    def androidResources: T[Seq[PathRef]] = Task.Sources("src/androidTest/res")
 
     private def androidInstrumentedTestsBaseManifest: Task[Elem] = Task.Anon {
       val label = s"Tests for ${outer.androidApplicationId}"
