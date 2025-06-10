@@ -1,6 +1,8 @@
 _mill_bash() {
-  COMPREPLY=( $(${COMP_WORDS[0]} --tab-complete "$COMP_CWORD" "${COMP_WORDS[@]}") )
+  # compopt makes bash not insert a newline after each completion, which
+  # is what we want for modules
   compopt -o nospace 2>/dev/null
+  COMPREPLY=( $(${COMP_WORDS[0]} --tab-complete "$COMP_CWORD" "${COMP_WORDS[@]}") )
 }
 
 _mill_zsh() {
