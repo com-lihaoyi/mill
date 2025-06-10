@@ -30,13 +30,31 @@ private[mill] object BspRunModule extends ExternalModule {
         runModule.run(Task.Anon(Args(args)))()
       }
 
-      override private[mill] def bspJvmRunTestEnvironment: Task.Simple[(
+      override private[mill] def bspJvmRunEnvironment: Task.Simple[(
           runClasspath: Seq[Path],
           forkArgs: Seq[String],
           forkWorkingDir: Path,
           forEnv: Map[String, String],
           mainClass: Option[String],
-          localMainClasses: Option[Seq[String]],
+          localMainClasses: Seq[String]
+      )] =
+        Task {
+          (
+            runModule.runClasspath().map(_.path.toNIO),
+            runModule.forkArgs(),
+            runModule.forkWorkingDir().toNIO,
+            runModule.forkEnv(),
+            runModule.mainClass(),
+            runModule.allLocalMainClasses()
+          )
+        }
+
+      override private[mill] def bspJvmTestEnvironment: Task.Simple[(
+          runClasspath: Seq[Path],
+          forkArgs: Seq[String],
+          forkWorkingDir: Path,
+          forEnv: Map[String, String],
+          mainClass: Option[String],
           testEnvVars: Option[(
               mainClass: String,
               testRunnerClasspathArg: String,
@@ -44,17 +62,11 @@ private[mill] object BspRunModule extends ExternalModule {
               classpath: Seq[Path]
           )]
       )] = {
-        val (localMainClasses, testEnvVars) = runModule match {
+        val testEnvVars = runModule match {
           case m: (TestModule & JavaModule) =>
-            (
-              Task.Anon { None },
-              Task.Anon { Some(m.getTestEnvironmentVars()()) }
-            )
+            Task.Anon { Some(m.getTestEnvironmentVars()()) }
           case _ =>
-            (
-              Task.Anon { Some(runModule.allLocalMainClasses()) },
-              Task.Anon { None }
-            )
+            Task.Anon { None }
         }
         Task {
           (
@@ -63,7 +75,6 @@ private[mill] object BspRunModule extends ExternalModule {
             runModule.forkWorkingDir().toNIO,
             runModule.forkEnv(),
             runModule.mainClass(),
-            localMainClasses(),
             testEnvVars()
           )
         }
