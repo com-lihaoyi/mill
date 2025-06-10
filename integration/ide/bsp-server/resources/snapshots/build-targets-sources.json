@@ -26,6 +26,18 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/hello-java/test"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/hello-java/test/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-kotlin"
       },
       "sources": [
@@ -43,6 +55,18 @@
       "sources": [
         {
           "uri": "file:///workspace/hello-scala/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala/test"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/hello-scala/test/src",
           "kind": 2,
           "generated": false
         }
