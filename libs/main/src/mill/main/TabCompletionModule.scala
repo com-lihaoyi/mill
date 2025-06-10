@@ -72,7 +72,10 @@ object TabCompletionModule extends ExternalModule {
     writeLoudly(os.home / os.SubPath(homeDest), script)
     for (fileName <- Seq(".bash_profile", ".zshrc")) {
       val file = os.home / fileName
-      val markerComment = "# MILL_SOURCE_COMPLETION"
+      // We use the marker comment to help remove any previous `source` line before
+      // adding a new line, so that running `install` over and over doesn't build up
+      // repeated source lines
+      val markerComment = "# MILL_SOURCE_COMPLETION_LINE"
       val prevLines =
         if (os.exists(file)) os.read.lines(file)
         else Nil
@@ -83,7 +86,7 @@ object TabCompletionModule extends ExternalModule {
         .mkString("\n")
 
       writeLoudly(file, updated)
-
+      println(s"Please restart your shell or `source ~/$homeDest` to enable completions")
     }
   }
 }
