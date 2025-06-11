@@ -77,6 +77,13 @@ You can set up Bash and Zsh tab completions by subsequently running the command:
 After that, doing `./mill <tab>` should begin showing possible modules and tasks for you
 to select at the command line.
 
+You can also choose to write the tab-completion script to a manually-specified path via:
+
+[source,console,subs="verbatim,attributes"]
+----
+> ./mill mill.tabcomplete/install --dest <path>
+----
+
 === Mill Native Executable
 
 The default Mill executable configured above requires a JVM (11 or above) installed globally in

@@ -14,6 +14,9 @@ object TabCompleteModule extends ExternalModule {
 
   lazy val millDiscover = Discover[this.type]
 
+  /**
+   * The main entrypoint for Mill's Bash and Zsh tab-completion logic
+   */
   def complete(
       ev: Evaluator,
       @arg(positional = true) index: Int,
@@ -40,12 +43,17 @@ object TabCompleteModule extends ExternalModule {
     }
   }
 
+  /**
+   * Installs the Mill tab completion script globally and hooks it into
+   * `~/.zshrc` and `~/.bash_profile`. Can be passed an optional `--dest <path>`
+   * to instead write it to a manually-specified destination path
+   */
   def install(dest: os.Path = null) = Task.Command(exclusive = true) {
     val script = os.read(os.resource / "mill/tabcomplete/complete.sh")
 
     def writeLoudly(path: os.Path, contents: String) = {
       println("Writing to " + path)
-      os.write.over(path, contents)
+      os.write.over(path, contents, createFolders = true)
     }
     dest match{
       case null =>
