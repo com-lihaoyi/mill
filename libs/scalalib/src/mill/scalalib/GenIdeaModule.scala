@@ -9,6 +9,9 @@ import mill.api.internal.idea.{GenIdeaModuleApi, IdeaConfigFile, JavaFacet}
  */
 trait GenIdeaModule extends Module with GenIdeaModuleApi {
 
+  /**
+   * The path denoting the module directory in generated IntelliJ projects. Defaults to [[moduleDir]].
+   */
   override def intellijModulePathJava: java.nio.file.Path = moduleDir.toNIO
 
   /**
