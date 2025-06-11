@@ -40,10 +40,16 @@ object TabCompleteModule extends ExternalModule {
     }
   }
 
+  def script = Task {
+    os.write(
+      Task.dest / "complete.sh",
+      os.read(os.resource / "mill/tabcomplete/complete.sh")
+    )
+    PathRef(Task.dest / "complete.sh")
+  }
+
   def install() = Task.Command(exclusive = true) {
-    val script = os.read(os.resource / "mill/tabcomplete/complete.sh")
-    """
-      |""".stripMargin
+    val script = os.read(this.script().path)
 
     val homeDest = ".cache/mill/download/mill-completion.sh"
     def writeLoudly(path: os.Path, contents: String) = {
