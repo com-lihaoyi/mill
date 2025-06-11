@@ -128,7 +128,8 @@ class UnitTester(
   val evaluator: Evaluator = new mill.eval.EvaluatorImpl(
     allowPositionalCommandArgs = false,
     selectiveExecution = false,
-    execution = execution
+    execution = execution,
+    noFilesystemChecker = false
   )
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {

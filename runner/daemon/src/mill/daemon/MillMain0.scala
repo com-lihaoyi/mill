@@ -263,7 +263,8 @@ object MillMain0 {
                               systemExit = systemExit,
                               streams0 = streams,
                               selectiveExecution = config.watch.value,
-                              offline = config.offline.value
+                              offline = config.offline.value,
+                              noFilesystemChecker = config.noFilesystemChecker.value
                             ).evaluate()
                           }
 

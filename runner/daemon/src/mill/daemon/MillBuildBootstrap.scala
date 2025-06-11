@@ -50,7 +50,8 @@ class MillBuildBootstrap(
     systemExit: Int => Nothing,
     streams0: SystemStreams,
     selectiveExecution: Boolean,
-    offline: Boolean
+    offline: Boolean,
+    noFilesystemChecker: Boolean
 ) { outer =>
   import MillBuildBootstrap.*
 
@@ -196,7 +197,8 @@ class MillBuildBootstrap(
                 .getOrElse(0),
               depth,
               actualBuildFileName = nestedState.buildFile,
-              headerData = headerDataOpt.getOrElse("")
+              headerData = headerDataOpt.getOrElse(""),
+              noFilesystemChecker
             )) { evaluator =>
               if (depth == requestedDepth) {
                 processFinalTargets(nestedState, buildFileApi, evaluator)
@@ -368,7 +370,8 @@ object MillBuildBootstrap {
       millClassloaderIdentityHash: Int,
       depth: Int,
       actualBuildFileName: Option[String] = None,
-      headerData: String
+      headerData: String,
+      noFilesystemChecker: Boolean
   ): EvaluatorApi = {
     val bootLogPrefix: Seq[String] =
       if (depth == 0) Nil
@@ -405,7 +408,8 @@ object MillBuildBootstrap {
         streams0,
         () => evaluator,
         offline,
-        headerData
+        headerData,
+        noFilesystemChecker
       )
     ).asInstanceOf[EvaluatorApi]
 

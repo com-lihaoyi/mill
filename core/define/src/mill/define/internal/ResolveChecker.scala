@@ -1,5 +1,11 @@
 package mill.define.internal
 
+object ResolveChecker {
+  def apply(workspace: os.Path, noFilesystemChecker: Boolean) = {
+    if (noFilesystemChecker) os.Checker.Nop
+    else new ResolveChecker(workspace)
+  }
+}
 class ResolveChecker(workspace: os.Path) extends os.Checker {
   def onRead(path: os.ReadablePath): Unit = {
     path match {

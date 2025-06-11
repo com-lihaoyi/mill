@@ -21,6 +21,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
   private[mill] def offline: Boolean
+  private[mill] def noFilesystemChecker: Boolean
 
   def withBaseLogger(newBaseLogger: Logger): Evaluator
 

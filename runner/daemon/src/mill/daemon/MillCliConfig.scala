@@ -167,7 +167,7 @@ case class MillCliConfig(
         There are currently no guarantees that modules don't attempt to fetch remote sources.
       """
     )
-    offline: Flag = Flag()
+    offline: Flag = Flag(),
     @arg(
       doc = """
         Globally disables the checks that prevent you from reading and writing to disallowed 
