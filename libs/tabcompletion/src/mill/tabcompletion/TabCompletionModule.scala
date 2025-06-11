@@ -6,7 +6,6 @@ import mill.define.{Discover, Evaluator, ExternalModule}
 
 import mainargs.arg
 
-
 /**
  * Handles Bash and Zsh tab completions, which provide an array of tokens in the current
  * shell and the index of the token currently being completed.
@@ -40,8 +39,8 @@ object TabCompletionModule extends ExternalModule {
 
   def install() = Task.Command(exclusive = true) {
     val script = os.read(os.resource / "mill/tabcompletion/mill-tabcompletion.sh")
-      """
-        |""".stripMargin
+    """
+      |""".stripMargin
 
     val homeDest = ".cache/mill/download/mill-completion.sh"
     def writeLoudly(path: os.Path, contents: String) = {

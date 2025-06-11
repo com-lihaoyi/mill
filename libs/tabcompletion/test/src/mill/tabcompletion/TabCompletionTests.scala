@@ -10,16 +10,16 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 
 object TabCompletionTests extends TestSuite {
 
-  object mainModule extends TestRootModule{
+  object mainModule extends TestRootModule {
     lazy val millDiscover = Discover[this.type]
     def task1 = Task { 123 }
     object foo extends Module
-    object bar extends Module{
+    object bar extends Module {
       def task2 = Task { 456 }
 
     }
     object qux extends Cross[QuxModule](12, 34, 56)
-    trait QuxModule extends Cross.Module[Int]{
+    trait QuxModule extends Cross.Module[Int] {
       def task3 = Task { 789 }
     }
   }

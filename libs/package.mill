@@ -17,6 +17,6 @@ object `package` extends MillStableScalaModule {
     build.libs.pythonlib,
     build.libs.init,
     build.libs.main,
-    build.libs.tabcompletion,
+    build.libs.tabcompletion
   )
 }
