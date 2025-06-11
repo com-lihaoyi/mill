@@ -1,4 +1,4 @@
-package mill.tabcompletion
+package mill.tabcomplete
 
 import mill.*
 import mill.api.SelectMode
@@ -10,11 +10,11 @@ import mainargs.arg
  * Handles Bash and Zsh tab completions, which provide an array of tokens in the current
  * shell and the index of the token currently being completed.
  */
-object TabCompletionModule extends ExternalModule {
+object TabCompleteModule extends ExternalModule {
 
   lazy val millDiscover = Discover[this.type]
 
-  def tabComplete(
+  def complete(
       ev: Evaluator,
       @arg(positional = true) index: Int,
       args: mainargs.Leftover[String]
@@ -38,7 +38,7 @@ object TabCompletionModule extends ExternalModule {
   }
 
   def install() = Task.Command(exclusive = true) {
-    val script = os.read(os.resource / "mill/tabcompletion/mill-tabcompletion.sh")
+    val script = os.read(os.resource / "mill/tabcomplete/complete.sh")
     """
       |""".stripMargin
 

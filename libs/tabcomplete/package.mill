@@ -1,12 +1,6 @@
-package build.libs.tabcompletion
+package build.libs.tabcomplete
 
 // imports
-import mill._
-import mill.scalalib._
-import mill.contrib.buildinfo.BuildInfo
-import mill.T
-import mill.define.Cross
-import mill.scalalib.api.JvmWorkerUtil
 import millbuild.*
 
 /**
