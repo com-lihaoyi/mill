@@ -22,7 +22,7 @@ object BspServerTestUtil {
    * Set to true when running tests to update the snapshots on the disk. Do not forget to set it back to
    * false after that.
    */
-  val updateSnapshots = false
+  val updateSnapshots = true
 
   private[mill] def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
 
