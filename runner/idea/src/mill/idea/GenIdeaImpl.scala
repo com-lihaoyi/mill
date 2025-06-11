@@ -2,6 +2,8 @@ package mill.idea
 
 import scala.util.{Success, Try}
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
+import scala.collection.mutable
+import java.net.URL
 
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
@@ -14,15 +16,11 @@ import mill.api.internal.{
   ScalaJSModuleApi,
   ScalaModuleApi,
   ScalaNativeModuleApi,
+  TaskApi,
   TestModuleApi
 }
-import mill.api.internal.idea.ResolvedModule
+import mill.api.internal.idea.{Element, IdeaConfigFile, JavaFacet, ResolvedModule}
 import mill.util.BuildInfo
-import collection.mutable
-import java.net.URL
-
-import mill.api.internal.*
-import mill.api.internal.idea.{Element, IdeaConfigFile, JavaFacet, Scoped}
 import os.SubPath
 
 class GenIdeaImpl(
@@ -33,8 +31,8 @@ class GenIdeaImpl(
   }
   import GenIdeaImpl._
 
-  val workDir: os.Path = os.Path(evaluators.head.rootModule.moduleDirJava)
-  val ideaDir: os.Path = workDir / ".idea"
+  private val workDir: os.Path = os.Path(evaluators.head.rootModule.moduleDirJava)
+  private val ideaDir: os.Path = workDir / ".idea"
   val ideaConfigVersion = 4
 
   def run(): Unit = {
@@ -125,7 +123,7 @@ class GenIdeaImpl(
       modulesByEvaluator.map { case (evaluator, m) =>
         evaluator -> m.map {
           case (path, mod) =>
-            mod.genIdeaInternal().genIdeaMetadata(ideaConfigVersion, evaluator, path)
+            mod.genIdeaInternal().genIdeaResolvedModule(ideaConfigVersion, evaluator, path)
 
         }
       }
@@ -145,7 +143,7 @@ class GenIdeaImpl(
     val moduleLabels = modules.map { case (module = m, segments = s) => (m, s) }.toMap
 
     val allResolved: Seq[os.Path] =
-      (resolvedModules.flatMap(_.classpath).map(s => os.Path(s.value)) ++ buildDepsPaths)
+      (resolvedModules.flatMap(_.scopedCpEntries).map(s => os.Path(s.path)) ++ buildDepsPaths)
         .distinct
         .sorted
 
@@ -379,126 +377,123 @@ class GenIdeaImpl(
           }
       }
 
-    val moduleFiles: Seq[(os.SubPath, Elem)] = resolvedModules.flatMap {
-      case ResolvedModule(
-            path,
-            resolvedDeps,
-            mod,
-            _,
-            _,
-            compilerClasspath,
-            _,
-            facets,
-            _,
-            compilerOutput,
-            scalaVersion,
-            resources,
-            generatedSources,
-            allSources
-          ) =>
+    val moduleFiles: Seq[(os.SubPath, Elem)] = resolvedModules.flatMap { resolvedModule =>
+//      case ResolvedModule(
+//            path,
+//            resolvedDeps,
+//            mod,
+//            _,
+//            _,
+//            compilerClasspath,
+//            _,
+//            facets,
+//            _,
+//            compilerOutput,
+//            scalaVersion,
+//            resources,
+//            generatedSources,
+//            allSources
+//          ) =>
 
-        val generatedSourcePaths = generatedSources.map(os.Path(_))
-        val normalSourcePaths = (allSources
-          .map(os.Path(_))
-          .toSet -- generatedSourcePaths.toSet).toSeq
+      val generatedSourcePaths = resolvedModule.generatedSources.map(os.Path(_))
+      val normalSourcePaths = (
+        resolvedModule.allSources.map(os.Path(_)).toSet -- generatedSourcePaths.toSet
+      ).toSeq
 
-        val sanizedDeps: Seq[ScopedOrd[String]] = {
-          resolvedDeps
-            .map((s: Scoped[java.nio.file.Path]) =>
-              pathToLibName(os.Path(s.value)) -> s.scope
-            )
-            .iterator
-            .toSeq
-            .groupBy(_._1)
-            .view
-            .mapValues(_.map(_._2))
-            .map {
-              case (lib, scopes) =>
-                val isCompile = scopes.contains(None)
-                val isProvided = scopes.contains(Some("PROVIDED"))
-                val isRuntime = scopes.contains(Some("RUNTIME"))
+      val sanizedDeps: Seq[ScopedOrd[String]] = {
+        resolvedModule.scopedCpEntries
+          .map(s => (lib = pathToLibName(os.Path(s.path)), scope = s.scope))
+          .groupBy(_.lib)
+          .view
+          .mapValues(_.map(_.scope))
+          .map {
+            case (lib, scopes) =>
+              val isCompile = scopes.contains(None)
+              val isProvided = scopes.contains(Some("PROVIDED"))
+              val isRuntime = scopes.contains(Some("RUNTIME"))
 
-                val finalScope = (isCompile, isProvided, isRuntime) match {
-                  case (_, true, false) => Some("PROVIDED")
-                  case (false, false, true) => Some("RUNTIME")
-                  case _ => None
-                }
+              val finalScope = (isCompile, isProvided, isRuntime) match {
+                case (_, true, false) => Some("PROVIDED")
+                case (false, false, true) => Some("RUNTIME")
+                case _ => None
+              }
 
-                ScopedOrd(lib, finalScope)
-            }
-            .toSeq
-        }
-
-        val libNames = Seq.from(sanizedDeps).iterator.toSeq
-
-        val depNames = {
-          val allTransitive = mod.transitiveModuleCompileModuleDeps
-          val recursive = mod.recursiveModuleDeps
-          val provided = allTransitive.filterNot(recursive.contains)
-
-          Seq
-            .from(recursive.map((_, None)) ++
-              provided.map((_, Some("PROVIDED"))))
-            .filter(!_._1.skipIdea)
-            .map { case (v, s) => ScopedOrd(moduleName(moduleLabels(v)), s) }
-            .iterator
-            .toSeq
-            .distinct
-        }
-
-        val isTest = mod.isInstanceOf[TestModuleApi]
-
-        val sdkName = (mod match {
-          case _: ScalaJSModuleApi => Some("scala-js-SDK")
-          case _: ScalaNativeModuleApi => Some("scala-native-SDK")
-          case _: ScalaModuleApi => Some("scala-SDK")
-          case _ => None
-        })
-          .map { name => s"${name}-${scalaVersion.get}" }
-
-        val moduleXml = moduleXmlTemplate(
-          basePath = os.Path(mod.intellijModulePathJava),
-          sdkOpt = sdkName,
-          resourcePaths = Seq.from(resources.map(os.Path(_))),
-          normalSourcePaths = Seq.from(normalSourcePaths),
-          generatedSourcePaths = Seq.from(generatedSourcePaths),
-          compileOutputPath = os.Path(compilerOutput),
-          libNames = libNames,
-          depNames = depNames,
-          isTest = isTest,
-          facets = facets
-        )
-
-        val moduleFile = Tuple2(
-          os.sub / "mill_modules" / s"${moduleName(path)}.iml",
-          moduleXml
-        )
-
-        val scalaSdkFile = {
-          sdkName.map { nameAndVersion =>
-            val languageLevel =
-              scalaVersion.map(_.split("[.]", 3).take(2).mkString("Scala_", "_", ""))
-
-            val cpFilter: os.Path => Boolean = mod match {
-              case _: ScalaJSModuleApi => entry => !entry.last.startsWith("scala3-library_3")
-              case _ => _ => true
-            }
-
-            Tuple2(
-              os.sub / "libraries" / libraryNameToFileSystemPathPart(nameAndVersion, "xml"),
-              scalaSdkTemplate(
-                name = nameAndVersion,
-                languageLevel = languageLevel,
-                scalaCompilerClassPath = compilerClasspath.map(os.Path(_)).filter(cpFilter),
-                // FIXME: fill in these fields
-                compilerBridgeJar = None,
-                scaladocExtraClasspath = Nil
-              )
-            )
+              ScopedOrd(lib, finalScope)
           }
-        }
+          .toSeq
+      }
 
-        Seq(moduleFile) ++ scalaSdkFile
+      val libNames = Seq.from(sanizedDeps).iterator.toSeq
+
+      val depNames = {
+        val allTransitive = resolvedModule.module.transitiveModuleCompileModuleDeps
+        val recursive = resolvedModule.module.recursiveModuleDeps
+        val provided = allTransitive.filterNot(recursive.contains)
+
+        Seq
+          .from(recursive.map((_, None)) ++
+            provided.map((_, Some("PROVIDED"))))
+          .filter(!_._1.skipIdea)
+          .map { case (v, s) => ScopedOrd(moduleName(moduleLabels(v)), s) }
+          .iterator
+          .toSeq
+          .distinct
+      }
+
+      val isTest = resolvedModule.module.isInstanceOf[TestModuleApi]
+
+      val sdkName = (resolvedModule.module match {
+        case _: ScalaJSModuleApi => Some("scala-js-SDK")
+        case _: ScalaNativeModuleApi => Some("scala-native-SDK")
+        case _: ScalaModuleApi => Some("scala-SDK")
+        case _ => None
+      })
+        .map { name => s"${name}-${resolvedModule.scalaVersion.get}" }
+
+      val moduleXml = moduleXmlTemplate(
+        basePath = os.Path(resolvedModule.module.intellijModulePathJava),
+        sdkOpt = sdkName,
+        resourcePaths = Seq.from(resolvedModule.resources.map(os.Path(_))),
+        normalSourcePaths = Seq.from(normalSourcePaths),
+        generatedSourcePaths = Seq.from(generatedSourcePaths),
+        compileOutputPath = os.Path(resolvedModule.compilerOutput),
+        libNames = libNames,
+        depNames = depNames,
+        isTest = isTest,
+        facets = resolvedModule.facets
+      )
+
+      val moduleFile = Tuple2(
+        os.sub / "mill_modules" / s"${moduleName(resolvedModule.segments)}.iml",
+        moduleXml
+      )
+
+      val scalaSdkFile = {
+        sdkName.map { nameAndVersion =>
+          val languageLevel =
+            resolvedModule.scalaVersion.map(_.split("[.]", 3).take(2).mkString("Scala_", "_", ""))
+
+          val cpFilter: os.Path => Boolean = resolvedModule.module match {
+            case _: ScalaJSModuleApi => entry => !entry.last.startsWith("scala3-library_3")
+            case _ => _ => true
+          }
+
+          Tuple2(
+            os.sub / "libraries" / libraryNameToFileSystemPathPart(nameAndVersion, "xml"),
+            scalaSdkTemplate(
+              name = nameAndVersion,
+              languageLevel = languageLevel,
+              scalaCompilerClassPath =
+                resolvedModule.scalaCompilerClasspath.map(os.Path(_)).filter(cpFilter),
+              // FIXME: fill in these fields
+              compilerBridgeJar = None,
+              scaladocExtraClasspath = Nil
+            )
+          )
+        }
+      }
+
+      Seq(moduleFile) ++ scalaSdkFile
     }
 
     {
@@ -857,10 +852,6 @@ object GenIdeaImpl {
           }
         case x => x
       }
-  }
-  object ScopedOrd {
-    def apply[T <: Comparable[T]](scoped: Scoped[T]): ScopedOrd[T] =
-      ScopedOrd(scoped.value, scoped.scope)
   }
 
   case class GenIdeaException(msg: String) extends RuntimeException

@@ -4,10 +4,10 @@ import mill.api.internal.{EvaluatorApi, PathRefApi, TaskApi}
 
 trait GenIdeaInternalApi {
 
-  private[mill] def genIdeaMetadata(
+  private[mill] def genIdeaResolvedModule(
       ideaConfigVersion: Int,
       evaluator: EvaluatorApi,
-      path: mill.api.Segments
+      segments: mill.api.Segments
   ): TaskApi[ResolvedModule]
 
   private[mill] def ideaCompileOutput: TaskApi[PathRefApi]
