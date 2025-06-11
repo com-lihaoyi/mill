@@ -13,7 +13,6 @@ import mill.define.Evaluator
 import mill.define.SelectMode
 import mill.exec.JsonArrayLogger
 import mill.resolve.Resolve
-import mill.testkit.UnitTester.SourceRoot
 
 import java.io.InputStream
 import java.io.PrintStream
