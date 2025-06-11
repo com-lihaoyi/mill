@@ -11,7 +11,7 @@ import mill.api.{MillException, Result, Segments}
 import mill.api.internal.{EvaluatorApi, JavaModuleApi, internal}
 import mill.api.internal.idea.{
   GenIdeaModuleApi,
-  GenIdeaModuleInternalApi,
+  GenIdeaInternalApi,
   IdeaConfigFile,
   JavaFacet,
   ResolvedModule,
@@ -58,13 +58,13 @@ trait JavaModule
   }
   override private[mill] def bspJavaModule: () => BspJavaModuleApi = () => bspExt()
 
-  private lazy val genIdeaModuleInternalExt = {
-    import mill.scalalib.idea.GenIdeaModuleInternal.given
-    ModuleRef(this.internalGenIdeaModule)
+  private lazy val genIdeaInternalExt = {
+    import mill.scalalib.idea.GenIdeaInternal.given
+    ModuleRef(this.internalGenIdea)
   }
 
-  private[mill] override def genIdeaModuleInternal: () => GenIdeaModuleInternalApi =
-    () => genIdeaModuleInternalExt()
+  private[mill] override def genIdeaInternal: () => GenIdeaInternalApi =
+    () => genIdeaInternalExt()
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
   trait JavaTests extends JavaModule with TestModule {

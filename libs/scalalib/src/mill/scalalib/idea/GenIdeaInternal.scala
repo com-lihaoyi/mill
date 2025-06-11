@@ -3,7 +3,7 @@ package mill.scalalib.idea
 import mill.Task
 import mill.api.Segments
 import mill.api.internal.idea.{
-  GenIdeaModuleInternalApi,
+  GenIdeaInternalApi,
   IdeaConfigFile,
   JavaFacet,
   ResolvedModule,
@@ -14,7 +14,7 @@ import mill.define.{Discover, ExternalModule, ModuleCtx, PathRef}
 import mill.scalalib.{BoundDep, Dep, JavaModule, ScalaModule}
 
 @internal
-private[mill] object GenIdeaModuleInternal extends ExternalModule {
+private[mill] object GenIdeaInternal extends ExternalModule {
 
   // Requirement of ExternalModule's
   override protected def millDiscover: Discover = Discover[this.type]
@@ -30,52 +30,48 @@ private[mill] object GenIdeaModuleInternal extends ExternalModule {
 
     // We keep all BSP-related tasks/state in this sub-module
     @internal
-    object internalGenIdeaModule extends mill.define.Module with GenIdeaModuleInternalApi {
+    object internalGenIdea extends mill.define.Module with GenIdeaInternalApi {
+
+      private def allMvnDeps = Task {
+        Seq(
+          javaModule.coursierDependency,
+          javaModule.coursierDependency.withConfiguration(coursier.core.Configuration.provided)
+        ).map(BoundDep(_, force = false))
+      }
+
+      private val scalaCompilerClasspath = javaModule match {
+        case sm: ScalaModule => Task.Anon(sm.scalaCompilerClasspath())
+        case _ => emptyPathRefs
+      }
+
+      private def externalLibraryDependencies = Task {
+        javaModule.defaultResolver().classpath(javaModule.mandatoryMvnDeps())
+      }
+
+      private def externalDependencies = Task {
+        javaModule.resolvedMvnDeps() ++
+          Task.traverse(javaModule.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
+      }
+
+      private def extCompileMvnDeps = Task {
+        javaModule.defaultResolver().classpath(javaModule.compileMvnDeps())
+      }
+
+      private val extRunMvnDeps = Task.Anon {
+        javaModule.resolvedRunMvnDeps()
+      }
+
+      private def externalSources = Task {
+        javaModule.millResolver().classpath(allMvnDeps(), sources = true)
+      }
 
       private[mill] override def genIdeaMetadata(
           ideaConfigVersion: Int,
           evaluator: EvaluatorApi,
           path: Segments
       ): Task[ResolvedModule] = {
-        val mod = javaModule
-        val jm = javaModule
 
-        // same as input of resolvedMvnDeps
-        val allMvnDeps =
-          Task.Anon {
-            Seq(
-              mod.coursierDependency,
-              mod.coursierDependency.withConfiguration(coursier.core.Configuration.provided)
-            ).map(BoundDep(_, force = false))
-          }
-
-        val scalaCompilerClasspath = mod match {
-          case sm: ScalaModule => Task.Anon(sm.scalaCompilerClasspath())
-          case _ => emptyPathRefs
-        }
-
-        val externalLibraryDependencies = Task.Anon {
-          jm.defaultResolver().classpath(jm.mandatoryMvnDeps())
-        }
-
-        val externalDependencies = Task.Anon {
-          jm.resolvedMvnDeps() ++
-            Task.traverse(jm.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
-        }
-
-        val extCompileMvnDeps = Task.Anon {
-          jm.defaultResolver().classpath(jm.compileMvnDeps())
-        }
-
-        val extRunMvnDeps = Task.Anon {
-          jm.resolvedRunMvnDeps()
-        }
-
-        val externalSources = Task.Anon {
-          jm.millResolver().classpath(allMvnDeps(), sources = true)
-        }
-
-        val (scalacPluginsMvnDeps, allScalacOptions, scalaVersion) = mod match {
+        val (scalacPluginsMvnDeps, allScalacOptions, scalaVersion) = javaModule match {
           case mod: ScalaModule => (
               Task.Anon(mod.scalacPluginMvnDeps()),
               Task.Anon(mod.allScalacOptions()),
@@ -91,18 +87,18 @@ private[mill] object GenIdeaModuleInternal extends ExternalModule {
         }
 
         val scalacPluginDependencies = Task.Anon {
-          jm.defaultResolver().classpath(scalacPluginsMvnDeps())
+          javaModule.defaultResolver().classpath(scalacPluginsMvnDeps())
         }
 
-        val facets = Task.Anon { jm.ideaJavaModuleFacets(ideaConfigVersion)() }
+        val facets = Task.Anon { javaModule.ideaJavaModuleFacets(ideaConfigVersion)() }
 
         val configFileContributions = Task.Anon {
-          mod.ideaConfigFiles(ideaConfigVersion)()
+          javaModule.ideaConfigFiles(ideaConfigVersion)()
         }
 
-        val resources = Task.Anon { jm.resources() }
-        val generatedSources = Task.Anon { jm.generatedSources() }
-        val allSources = Task.Anon { jm.allSources() }
+        val resources = Task.Anon { javaModule.resources() }
+        val generatedSources = Task.Anon { javaModule.generatedSources() }
+        val allSources = Task.Anon { javaModule.allSources() }
 
         Task.Anon {
           val resolvedCp: Seq[Scoped[os.Path]] =
@@ -130,7 +126,7 @@ private[mill] object GenIdeaModuleInternal extends ExternalModule {
             classpath = resolvedCp
               .filter(_.value.ext == "jar")
               .map(s => Scoped(s.value.toNIO, s.scope)),
-            module = mod,
+            module = javaModule,
             pluginClasspath = resolvedSp.map(_.path).filter(_.ext == "jar").map(_.toNIO),
             scalaOptions = scalacOpts,
             scalaCompilerClasspath = resolvedCompilerCp.map(_.path.toNIO),

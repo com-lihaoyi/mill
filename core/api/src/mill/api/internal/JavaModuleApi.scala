@@ -1,7 +1,7 @@
 package mill.api.internal
 
 import mill.api.internal.bsp.BspJavaModuleApi
-import mill.api.internal.idea.{GenIdeaModuleApi, GenIdeaModuleInternalApi}
+import mill.api.internal.idea.{GenIdeaModuleApi, GenIdeaInternalApi}
 import mill.api.internal.{EvaluatorApi, ModuleApi, TaskApi, UnresolvedPathApi}
 
 trait JavaModuleApi extends ModuleApi with GenIdeaModuleApi {
@@ -36,7 +36,7 @@ trait JavaModuleApi extends ModuleApi with GenIdeaModuleApi {
   /**
    * Internal access to some GenIdea helper tasks
    */
-  private[mill] def genIdeaModuleInternal: () => GenIdeaModuleInternalApi
+  private[mill] def genIdeaInternal: () => GenIdeaInternalApi
 
 }
 

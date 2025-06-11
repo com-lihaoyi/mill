@@ -1,16 +1,12 @@
 package mill.idea
 
-import scala.collection.immutable
 import scala.util.{Success, Try}
 import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
 
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
-import mill.define.TaskCtx
-import mill.define.PathRef
-import mill.define.{Evaluator, TaskCtx as _, *}
+import mill.define.{TaskCtx as _, *}
 import mill.api.internal.{
-  BaseModuleApi,
   EvaluatorApi,
   ExecutionResultsApi,
   JavaModuleApi,
@@ -129,7 +125,7 @@ class GenIdeaImpl(
       modulesByEvaluator.map { case (evaluator, m) =>
         evaluator -> m.map {
           case (path, mod) =>
-            mod.genIdeaModuleInternal().genIdeaMetadata(ideaConfigVersion, evaluator, path)
+            mod.genIdeaInternal().genIdeaMetadata(ideaConfigVersion, evaluator, path)
 
         }
       }

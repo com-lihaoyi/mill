@@ -2,7 +2,7 @@ package mill.api.internal.idea
 
 import mill.api.internal.{EvaluatorApi, PathRefApi, TaskApi}
 
-trait GenIdeaModuleInternalApi {
+trait GenIdeaInternalApi {
 
   private[mill] def genIdeaMetadata(
       ideaConfigVersion: Int,
