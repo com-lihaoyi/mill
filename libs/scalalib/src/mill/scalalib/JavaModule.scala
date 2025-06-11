@@ -9,7 +9,7 @@ import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
 import mill.api.{MillException, Result, Segments}
 import mill.api.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.internal.idea.ResolvedModule
+import mill.api.internal.idea.{GenIdeaModuleApi, GenIdeaModuleInternalApi, IdeaConfigFile, JavaFacet, ResolvedModule, Scoped}
 import mill.define.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspJavaModule, BspModule}
@@ -19,14 +19,8 @@ import mill.util.{JarManifest, Jvm}
 import os.Path
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
-import mill.api.internal.bsp.{
-  BspBuildTarget,
-  BspJavaModuleApi,
-  BspModuleApi,
-  BspUri,
-  JvmBuildTarget
-}
-import mill.api.internal.idea.{IdeaConfigFile, JavaFacet, Scoped}
+
+import mill.api.internal.bsp.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, JvmBuildTarget}
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -50,6 +44,15 @@ trait JavaModule
     ModuleRef(this.internalBspJavaModule)
   }
   override private[mill] def bspJavaModule: () => BspJavaModuleApi = () => bspExt()
+
+  private lazy val genIdeaModuleInternalExt = {
+    import mill.scalalib.idea.GenIdeaModuleInternal.given
+    ModuleRef(this.internalGenIdeaModule)
+  }
+
+  private[mill] override def genIdeaModuleInternal: () => GenIdeaModuleInternalApi =
+    () => genIdeaModuleInternalExt()
+
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
   trait JavaTests extends JavaModule with TestModule {
@@ -1424,121 +1427,6 @@ trait JavaModule
     else Task.Anon { compile().classes.path.toNIO }
   }
 
-  private[mill] def genIdeaMetadata(
-      ideaConfigVersion: Int,
-      evaluator: EvaluatorApi,
-      path: Segments
-  ) = {
-
-    val mod = this
-    // same as input of resolvedMvnDeps
-    val allMvnDeps = Task.Anon {
-      Seq(
-        mod.coursierDependency,
-        mod.coursierDependency.withConfiguration(coursier.core.Configuration.provided)
-      ).map(BoundDep(_, force = false))
-    }
-
-    val scalaCompilerClasspath = mod match {
-      case x: ScalaModule => x.scalaCompilerClasspath
-      case _ =>
-        Task.Anon {
-          Seq.empty[PathRef]
-        }
-    }
-
-    val externalLibraryDependencies = Task.Anon {
-      mod.defaultResolver().classpath(mod.mandatoryMvnDeps())
-    }
-
-    val externalDependencies = Task.Anon {
-      mod.resolvedMvnDeps() ++
-        Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
-    }
-    val extCompileMvnDeps = Task.Anon {
-      mod.defaultResolver().classpath(mod.compileMvnDeps())
-    }
-    val extRunMvnDeps = mod.resolvedRunMvnDeps
-
-    val externalSources = Task.Anon {
-      mod.millResolver().classpath(allMvnDeps(), sources = true)
-    }
-
-    val (scalacPluginsMvnDeps, allScalacOptions, scalaVersion) = mod match {
-      case mod: ScalaModule => (
-          Task.Anon(mod.scalacPluginMvnDeps()),
-          Task.Anon(mod.allScalacOptions()),
-          Task.Anon {
-            Some(mod.scalaVersion())
-          }
-        )
-      case _ => (
-          Task.Anon(Seq[Dep]()),
-          Task.Anon(Seq[String]()),
-          Task.Anon(None)
-        )
-    }
-
-    val scalacPluginDependencies = Task.Anon {
-      mod.defaultResolver().classpath(scalacPluginsMvnDeps())
-    }
-
-    val facets = Task.Anon {
-      mod.ideaJavaModuleFacets(ideaConfigVersion)()
-    }
-
-    val configFileContributions = Task.Anon {
-      mod.ideaConfigFiles(ideaConfigVersion)()
-    }
-
-    val compilerOutput = Task.Anon {
-      mod.ideaCompileOutput()
-    }
-
-    Task.Anon {
-      val resolvedCp: Seq[Scoped[os.Path]] =
-        externalDependencies().map(_.path).map(Scoped(_, None)) ++
-          extCompileMvnDeps()
-            .map(_.path)
-            .map(Scoped(_, Some("PROVIDED"))) ++
-          extRunMvnDeps().map(_.path).map(Scoped(_, Some("RUNTIME")))
-      // unused, but we want to trigger sources, to have them available (automatically)
-      // TODO: make this a separate eval to handle resolve errors
-      externalSources()
-      val resolvedSp: Seq[PathRef] = scalacPluginDependencies()
-      val resolvedCompilerCp: Seq[PathRef] =
-        scalaCompilerClasspath()
-      val resolvedLibraryCp: Seq[PathRef] =
-        externalLibraryDependencies()
-      val scalacOpts: Seq[String] = allScalacOptions()
-      val resolvedFacets: Seq[JavaFacet] = facets()
-      val resolvedConfigFileContributions: Seq[IdeaConfigFile] =
-        configFileContributions()
-      val resolvedCompilerOutput = compilerOutput()
-      val resolvedScalaVersion = scalaVersion()
-
-      ResolvedModule(
-        path = path,
-        // FIXME: why do we need to sources in the classpath?
-        // FIXED, was: classpath = resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
-        classpath =
-          resolvedCp.filter(_.value.ext == "jar").map(s => Scoped(s.value.toNIO, s.scope)),
-        module = mod,
-        pluginClasspath = resolvedSp.map(_.path).filter(_.ext == "jar").map(_.toNIO),
-        scalaOptions = scalacOpts,
-        scalaCompilerClasspath = resolvedCompilerCp.map(_.path.toNIO),
-        libraryClasspath = resolvedLibraryCp.map(_.path.toNIO),
-        facets = resolvedFacets,
-        configFileContributions = resolvedConfigFileContributions,
-        compilerOutput = resolvedCompilerOutput.path.toNIO,
-        scalaVersion = resolvedScalaVersion,
-        resources = resources().map(_.path.toNIO),
-        generatedSources = generatedSources().map(_.path.toNIO),
-        allSources = allSources().map(_.path.toNIO)
-      )
-    }
-
-  }
 }
 
 object JavaModule {

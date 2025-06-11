@@ -128,7 +128,7 @@ class GenIdeaImpl(
         : Map[EvaluatorApi, Seq[TaskApi[ResolvedModule]]] =
       modulesByEvaluator.map { case (evaluator, m) =>
         evaluator -> m.map {
-          case (path, mod) => mod.genIdeaMetadata(ideaConfigVersion, evaluator, path)
+          case (path, mod) => mod.genIdeaModuleInternal().genIdeaMetadata(ideaConfigVersion, evaluator, path)
 
         }
       }

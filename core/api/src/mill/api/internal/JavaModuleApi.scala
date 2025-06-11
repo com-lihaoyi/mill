@@ -1,10 +1,10 @@
 package mill.api.internal
 
 import mill.api.internal.bsp.BspJavaModuleApi
-import mill.api.internal.idea.ResolvedModule
+import mill.api.internal.idea.{GenIdeaModuleApi, GenIdeaModuleInternalApi}
 import mill.api.internal.{EvaluatorApi, ModuleApi, TaskApi, UnresolvedPathApi}
 
-trait JavaModuleApi extends ModuleApi {
+trait JavaModuleApi extends ModuleApi with GenIdeaModuleApi {
 
   def recursiveModuleDeps: Seq[JavaModuleApi]
 
@@ -14,20 +14,6 @@ trait JavaModuleApi extends ModuleApi {
 
   def javacOptions: TaskApi[Seq[String]]
   def mandatoryJavacOptions: TaskApi[Seq[String]]
-
-  // IDEA tasks
-
-  def skipIdea: Boolean
-
-  // FIXME: Move to internal trait like we do for BSP tasks
-  private[mill] def genIdeaMetadata(
-      ideaConfigVersion: Int,
-      evaluator: EvaluatorApi,
-      path: mill.api.Segments
-  ): TaskApi[ResolvedModule]
-
-  // FIXME: Move to internal trait like we do for BSP tasks
-  private[mill] def intellijModulePathJava: java.nio.file.Path
 
   // BSP Tasks that sometimes need to be customized
 
@@ -46,6 +32,12 @@ trait JavaModuleApi extends ModuleApi {
    * Internal access to some BSP helper tasks
    */
   private[mill] def bspJavaModule: () => BspJavaModuleApi
+
+  /**
+   * Internal access to some GenIdea helper tasks
+   */
+  private[mill] def genIdeaModuleInternal: () => GenIdeaModuleInternalApi
+
 }
 
 object JavaModuleApi
