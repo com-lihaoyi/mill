@@ -7,5 +7,3 @@ trait GenIdeaModuleApi {
   private[mill] def intellijModulePathJava: java.nio.file.Path
 
 }
-
-

@@ -9,7 +9,14 @@ import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
 import mill.api.{MillException, Result, Segments}
 import mill.api.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.internal.idea.{GenIdeaModuleApi, GenIdeaModuleInternalApi, IdeaConfigFile, JavaFacet, ResolvedModule, Scoped}
+import mill.api.internal.idea.{
+  GenIdeaModuleApi,
+  GenIdeaModuleInternalApi,
+  IdeaConfigFile,
+  JavaFacet,
+  ResolvedModule,
+  Scoped
+}
 import mill.define.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspJavaModule, BspModule}
@@ -20,7 +27,13 @@ import os.Path
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
 
-import mill.api.internal.bsp.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, JvmBuildTarget}
+import mill.api.internal.bsp.{
+  BspBuildTarget,
+  BspJavaModuleApi,
+  BspModuleApi,
+  BspUri,
+  JvmBuildTarget
+}
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -52,7 +65,6 @@ trait JavaModule
 
   private[mill] override def genIdeaModuleInternal: () => GenIdeaModuleInternalApi =
     () => genIdeaModuleInternalExt()
-
 
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
   trait JavaTests extends JavaModule with TestModule {
