@@ -2,6 +2,7 @@ package mill.scalalib
 
 import mill.Task
 
+import java.nio.file.Path
 import scala.annotation.nowarn
 
 /**
@@ -19,7 +20,7 @@ trait MavenModule extends JavaModule { outer =>
   @deprecated("Use MavenTests instead", since = "Mill 0.11.10")
   trait MavenModuleTests extends JavaTests {
     override def millSourcePath = outer.millSourcePath
-    override def intellijModulePath: os.Path = outer.moduleDir / "src/test"
+    override def intellijModulePathJava: Path = (outer.moduleDir / "src/test").toNIO
 
     override def sources = Task.Sources("src/test/java")
     override def resources = Task.Sources("src/test/resources")

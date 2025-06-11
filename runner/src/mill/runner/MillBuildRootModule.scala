@@ -1,17 +1,18 @@
 package mill.runner
 
 import coursier.Repository
-import mill._
+import mill.*
 import mill.api.{PathRef, Result, internal}
 import mill.define.{Discover, Task}
 import mill.scalalib.{BoundDep, Dep, DepSyntax, Lib, ScalaModule}
 import mill.util.CoursierSupport
 import mill.util.Util.millProjectModule
-import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerUtil}
-import mill.main.client.OutFiles._
+import mill.scalalib.api.{CompilationResult, JvmWorkerUtil, Versions}
+import mill.main.client.OutFiles.*
 import mill.main.client.CodeGenConstants.buildFileExtensions
 import mill.main.{BuildInfo, RootModule}
 
+import java.nio.file.Path
 import scala.util.Try
 
 /**
@@ -33,7 +34,7 @@ abstract class MillBuildRootModule()(implicit
     .mkString("/")
 
   override def millSourcePath: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
-  override def intellijModulePath: os.Path = moduleDir / os.up
+  override def intellijModulePathJava: Path = (moduleDir / os.up).toNIO
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
