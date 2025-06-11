@@ -6,7 +6,6 @@ trait GenIdeaInternalApi {
 
   private[mill] def genIdeaResolvedModule(
       ideaConfigVersion: Int,
-      evaluator: EvaluatorApi,
       segments: mill.api.Segments
   ): TaskApi[ResolvedModule]
 

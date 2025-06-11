@@ -5,7 +5,7 @@ import java.nio.file.Path
 import mill.Task
 import mill.api.Segments
 import mill.api.internal.idea.{GenIdeaInternalApi, ResolvedModule}
-import mill.api.internal.{EvaluatorApi, internal}
+import mill.api.internal.internal
 import mill.define.{Discover, ExternalModule, ModuleCtx, PathRef}
 import mill.scalalib.{BoundDep, Dep, JavaModule, ScalaModule}
 import mill.define.JsonFormatters.given
@@ -91,7 +91,6 @@ private[mill] object GenIdeaInternal extends ExternalModule {
 
       private[mill] override def genIdeaResolvedModule(
           ideaConfigVersion: Int,
-          evaluator: EvaluatorApi,
           segments: Segments
       ): Task[ResolvedModule] = Task.Anon {
 

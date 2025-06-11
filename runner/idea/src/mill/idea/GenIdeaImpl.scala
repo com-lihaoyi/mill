@@ -69,10 +69,44 @@ class GenIdeaImpl(
     }.getOrElse(None)
   }
 
+  /** Ensure, the additional configs don't collide. */
+  private def collisionFreeExtraConfigs(
+      confs: Seq[IdeaConfigFile]
+  ): Map[os.SubPath, Seq[IdeaConfigFile]] = {
+
+    var seen: Map[(subPath: os.SubPath, component: Option[String]), Seq[Element]] = Map()
+    var result: Map[os.SubPath, Seq[IdeaConfigFile]] = Map()
+    confs.foreach { conf =>
+      val subPath = os.SubPath(conf.subPath)
+      val key = (subPath = subPath, component = conf.component)
+      seen.get(key) match {
+        case None =>
+          seen += (key, conf.config)
+          result += (subPath, result.getOrElse(subPath, Seq()) ++ Seq(conf))
+        case Some(existing) if conf.config == existing =>
+        // identical, ignore
+        case Some(existing) =>
+          def details(elements: Seq[Element]) = {
+            elements.map(
+              ideaConfigElementTemplate(_).toString().replaceAll("\\n", "")
+            )
+          }
+
+          val msg =
+            s"Config collision in file `${conf.subPath}` and component `${conf.component}`: ${
+                details(
+                  conf.config
+                )
+              } vs. ${details(existing)}"
+          println(msg)
+      }
+    }
+    result
+  }
+
   def xmlFileLayout(
       evaluators: Seq[EvaluatorApi],
-      jdkInfo: (String, String),
-      fetchMillModules: Boolean = true
+      jdkInfo: (String, String)
   ): Seq[(subPath: os.SubPath, xml: scala.xml.Node)] = {
 
     val rootModules = evaluators.zipWithIndex.map { case (ev, idx) =>
@@ -93,7 +127,7 @@ class GenIdeaImpl(
           case m: ModuleApi =>
             val rootSegs = os.Path(t.rootModule.moduleDirJava).relativeTo(workDir).segments
             val modSegs = m.moduleSegments
-            val segments = Segments(rootSegs.map(Segment.Label)) ++ modSegs
+            val segments = Segments(rootSegs.map(Segment.Label.apply)) ++ modSegs
             (
               segments = segments,
               module = m,
@@ -104,28 +138,28 @@ class GenIdeaImpl(
 
     val modules: Seq[(segments: Segments, module: JavaModuleApi, evaluator: EvaluatorApi)] =
       foundModules
-        .collect { case (segments = s, module = x: JavaModuleApi, evaluator = ev) =>
-          (segments = s, module = x, evaluator = ev)
+        .collect {
+          case x @ (module = m: JavaModuleApi) if !m.skipIdea =>
+            (segments = x.segments, module = m, evaluator = x.evaluator)
         }
-        .filterNot(_.module.skipIdea)
         .distinct
 
     lazy val modulesByEvaluator
-        : Map[EvaluatorApi, Seq[(segments: Segments, module: JavaModuleApi)]] = modules
-      .groupMap { case (evaluator = ev) => ev } { m => (segments = m.segments, module = m.module) }
+        : Map[EvaluatorApi, Seq[(segments: Segments, module: JavaModuleApi)]] =
+      modules.groupMap(_.evaluator) { m => (segments = m.segments, module = m.module) }
 
     // is head the right one?
     val buildDepsPaths = GenIdeaImpl.allJars(evaluators.head.rootModule.getClass.getClassLoader)
       .map(url => os.Path(java.nio.file.Paths.get(url.toURI)))
 
-    def resolveTasks
-        : Map[EvaluatorApi, Seq[TaskApi[ResolvedModule]]] =
-      modulesByEvaluator.map { case (evaluator, m) =>
-        evaluator -> m.map {
-          case (path, mod) =>
-            mod.genIdeaInternal().genIdeaResolvedModule(ideaConfigVersion, evaluator, path)
-
-        }
+    def resolveTasks: Map[EvaluatorApi, Seq[TaskApi[ResolvedModule]]] =
+      modulesByEvaluator.map { case (ev, ms) =>
+        (
+          ev,
+          ms.map { m =>
+            m.module.genIdeaInternal().genIdeaResolvedModule(ideaConfigVersion, m.segments)
+          }
+        )
       }
 
     val resolvedModules: Seq[ResolvedModule] = {
@@ -157,42 +191,6 @@ class GenIdeaImpl(
       wholeFileConfigs.flatMap(_.asWholeFile).map { wf =>
         os.sub / os.SubPath(wf._1) -> ideaConfigElementTemplate(wf._2)
       }
-
-    type FileComponent = (subPath: os.SubPath, component: Option[String])
-
-    /** Ensure, the additional configs don't collide. */
-    def collisionFreeExtraConfigs(
-        confs: Seq[IdeaConfigFile]
-    ): Map[os.SubPath, Seq[IdeaConfigFile]] = {
-
-      var seen: Map[FileComponent, Seq[Element]] = Map()
-      var result: Map[os.SubPath, Seq[IdeaConfigFile]] = Map()
-      confs.foreach { conf =>
-        val subPath = os.SubPath(conf.subPath)
-        val key = (subPath = subPath, component = conf.component)
-        seen.get(key) match {
-          case None =>
-            seen += key -> conf.config
-            result += subPath -> (result
-              .get(subPath)
-              .getOrElse(Seq()) ++ Seq(conf))
-          case Some(existing) if conf.config == existing =>
-          // identical, ignore
-          case Some(existing) =>
-            def details(elements: Seq[Element]) = {
-              elements.map(
-                ideaConfigElementTemplate(_).toString().replaceAll("\\n", "")
-              )
-            }
-            val msg =
-              s"Config collision in file `${conf.subPath}` and component `${conf.component}`: ${details(
-                  conf.config
-                )} vs. ${details(existing)}"
-            println(msg)
-        }
-      }
-      result
-    }
 
     val fileComponentContributions: Seq[(os.SubPath, Elem)] =
       collisionFreeExtraConfigs(configFileContributions).toSeq.map {
