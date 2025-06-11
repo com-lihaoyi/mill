@@ -103,7 +103,7 @@ Inputs:
     foo.finalMainClassOpt
     foo.runClasspath
     foo.forkArgs
-    foo.forkEnv
+    foo.allForkEnv
     foo.forkWorkingDir
     foo.runUseArgsFile
 
