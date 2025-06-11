@@ -98,7 +98,6 @@ private[mill] object GenIdeaInternal extends ExternalModule {
           segments: Segments
       ): Task[ResolvedModule] = Task.Anon {
 
-
         // unused, but we want to trigger sources, to have them available (automatically)
         // TODO: make this a separate eval to handle resolve errors
         externalSources()
