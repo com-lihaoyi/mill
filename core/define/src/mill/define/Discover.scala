@@ -90,8 +90,9 @@ object Discover {
               returnType <:< tt && !(returnType <:< TypeRepr.of[Nothing])
             }
             .foreach { case (tt, n, label) =>
+
               if (m.paramSymss.length != n) report.errorAndAbort(
-                s"$label definitions must have $n parameter list" + (if (n == 1) "" else "s"),
+                s"$label definition `$m` must have $n parameter list" + (if (n == 1) "" else "s"),
                 m.pos.getOrElse(Position.ofMacroExpansion)
               )
             }
@@ -128,7 +129,7 @@ object Discover {
             curCls,
             declMethods,
             (TypeRepr.of[Task.Command[?]], 1, "`Task.Command`"),
-            (TypeRepr.of[Task.Simple[?]], 0, "Target")
+            (TypeRepr.of[Task.Simple[?]], 0, "Task")
           )
 
           val names =

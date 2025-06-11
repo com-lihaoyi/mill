@@ -19,7 +19,7 @@ object OsCheckerTests extends UtestIntegrationTestSuite {
 
       assert(res2.isSuccess == false)
       assert(res2.err.contains(
-        s"Writing to file.txt not allowed during execution phase"
+        s"Writing to file.txt not allowed during execution of `qux`"
       ))
 
       tester.modifyFile(workspacePath / "build.mill", _.replace("if (false)", "if (true)"))

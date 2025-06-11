@@ -41,12 +41,14 @@ trait DistModule extends Module {
 
   val batExt = if (scala.util.Properties.isWin) ".bat" else ""
 
+  def installLocalCachePath(suffixTask: Task[String]) = Task.Anon {
+    (os.home / ".cache/mill/download" / (build.millVersion() + suffixTask() + batExt)).toString()
+  }
+
   def installLocalCache() = Task.Command {
-    val path = installLocalTask(
-      Task.Anon(
-        (os.home / ".cache/mill/download" / (build.millVersion() + cacheBinarySuffix() + batExt)).toString()
-      )
-    )()
+    val path = installLocalTask(installLocalCachePath(build.dist.cacheBinarySuffix))()
+    val path2 = installLocalTask(installLocalCachePath(build.dist.native.cacheBinarySuffix))()
+
     Task.log.streams.out.println(path.toString())
     PathRef(path)
   }

@@ -219,7 +219,6 @@ private[mill] case class Execution(
                   allTransitiveClassMethods,
                   forkExecutionContext,
                   exclusive,
-                  offline,
                   upstreamPathRefs
                 )
 

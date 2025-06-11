@@ -110,6 +110,7 @@ object ClientServerTests extends TestSuite {
             locks,
             testLogEvenWhenServerIdWrong
           )).start()
+          null
         }
       }.run((outDir / "server-0").relativeTo(os.pwd).toNIO, "")
 
