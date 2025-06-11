@@ -40,15 +40,35 @@ object TabCompleteTests extends TestSuite {
       outStream.toString
     }
 
+    test("empty-bash") - {
+      val out = evalComplete("1", "./mill", "")
+      val expected =
+        """bar
+          |foo
+          |qux
+          |task1
+          |""".stripMargin
+      assert(out == expected)
+    }
+    test("empty-zsh") - {
+      val out = evalComplete("1", "./mill")
+      val expected =
+        """bar
+          |foo
+          |qux
+          |task1
+          |""".stripMargin
+      assert(out == expected)
+    }
     test("task") - {
-      val out = evalComplete("0", "t")
+      val out = evalComplete("1", "./mill", "t")
       val expected =
         """task1
           |""".stripMargin
       assert(out == expected)
     }
     test("firstTask") - {
-      val out = evalComplete("0", "t", "bar.task2")
+      val out = evalComplete("1", "./mill", "t", "bar.task2")
       val expected =
         """task1
           |""".stripMargin
@@ -56,7 +76,7 @@ object TabCompleteTests extends TestSuite {
     }
 
     test("secondTask") - {
-      val out = evalComplete("1", "bar.task2", "t")
+      val out = evalComplete("2", "./mill", "bar.task2", "t")
       val expected =
         """task1
           |""".stripMargin
@@ -64,7 +84,7 @@ object TabCompleteTests extends TestSuite {
     }
 
     test("module") - {
-      val out = evalComplete("0", "fo")
+      val out = evalComplete("1", "./mill", "fo")
       val expected =
         """foo
           |""".stripMargin
@@ -72,7 +92,7 @@ object TabCompleteTests extends TestSuite {
     }
 
     test("nested") - {
-      val out = evalComplete("0", "bar.")
+      val out = evalComplete("1", "./mill", "bar.")
       val expected =
         """bar.task2
           |""".stripMargin
@@ -80,7 +100,7 @@ object TabCompleteTests extends TestSuite {
     }
 
     test("cross") - {
-      val out = evalComplete("0", "qux[")
+      val out = evalComplete("1", "./mill", "qux[")
       val expected =
         """qux[12]
           |qux[34]
@@ -90,7 +110,7 @@ object TabCompleteTests extends TestSuite {
     }
 
     test("crossPartial") - {
-      val out = evalComplete("0", "qux[1")
+      val out = evalComplete("1", "./mill", "qux[1")
       val expected =
         """qux[12]
           |""".stripMargin
@@ -98,7 +118,7 @@ object TabCompleteTests extends TestSuite {
     }
 
     test("crossNested") - {
-      val out = evalComplete("0", "qux[12]")
+      val out = evalComplete("1", "./mill", "qux[12]")
       val expected =
         """qux[12].task3
           |""".stripMargin
@@ -106,21 +126,21 @@ object TabCompleteTests extends TestSuite {
     }
 
     test("crossNestedSlashed") - {
-      val out = evalComplete("0", "qux\\[12\\]")
+      val out = evalComplete("1", "./mill", "qux\\[12\\]")
       val expected =
         """qux[12].task3
           |""".stripMargin
       assert(out == expected)
     }
     test("crossNestedSingleQuoted") - {
-      val out = evalComplete("0", "'qux[12]")
+      val out = evalComplete("1", "./mill", "'qux[12]")
       val expected =
         """qux[12].task3
           |""".stripMargin
       assert(out == expected)
     }
     test("crossNestedDoubleQuoted") - {
-      val out = evalComplete("0", "\"qux[12]")
+      val out = evalComplete("1", "./mill", "\"qux[12]")
       val expected =
         """qux[12].task3
           |""".stripMargin
@@ -128,7 +148,7 @@ object TabCompleteTests extends TestSuite {
     }
 
     test("crossComplete") - {
-      val out = evalComplete("0", "qux[12].task3")
+      val out = evalComplete("1", "./mill", "qux[12].task3")
       val expected =
         """qux[12].task3
           |""".stripMargin
