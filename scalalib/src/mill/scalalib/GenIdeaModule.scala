@@ -1,8 +1,11 @@
 package mill.scalalib
 
+import mill.api.WorkspaceRoot
 import mill.define.Task
 import mill.{Module, PathRef, T}
 import os.SubPath
+
+import java.nio.file.Path
 
 /**
  * Module specific configuration of the Idea project file generator.
@@ -10,7 +13,12 @@ import os.SubPath
 trait GenIdeaModule extends Module {
   import GenIdeaModule._
 
-  def intellijModulePath: os.Path = moduleDir
+  /**
+   * The path denoting the module directory in generated IntelliJ projects. Defaults to [[moduleDir]].
+   */
+  def intellijModulePathJava: Path = moduleDir.toNIO
+  @deprecated("Use and override intellijModulePathJava instead", "Mill 0.12.15")
+  def intellijModulePath: os.Path = os.Path(intellijModulePathJava, WorkspaceRoot.workspaceRoot)
 
   /**
    * Skip Idea project file generation.
