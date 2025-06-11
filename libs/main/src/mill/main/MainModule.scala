@@ -42,7 +42,7 @@ trait MainModule extends BaseModule with MainModuleApi {
 
       resolved.map { resolvedSegmentsList =>
         val resolvedStrings = resolvedSegmentsList.map(_.render)
-        resolvedStrings.sorted.foreach(println)
+        resolvedStrings.foreach(println)
         resolvedStrings
       }
     }
