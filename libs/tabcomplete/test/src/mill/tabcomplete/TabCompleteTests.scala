@@ -34,8 +34,8 @@ object TabCompleteTests extends TestSuite {
         null,
         outStream = new PrintStream(outStream),
         errStream = new PrintStream(errStream)
-      ).scoped{ tester =>
-          tester.evaluator.evaluate(Seq("mill.tabcomplete.TabCompleteModule/complete") ++ s).get
+      ).scoped { tester =>
+        tester.evaluator.evaluate(Seq("mill.tabcomplete.TabCompleteModule/complete") ++ s).get
       }
       outStream.toString
     }
