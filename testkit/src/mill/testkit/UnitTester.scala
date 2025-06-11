@@ -79,6 +79,14 @@ class UnitTester(
     for (sourceFileRoot <- sourceRoot) {
       os.copy.over(sourceFileRoot, module.moduleDir, createFolders = true)
     }
+  } else {
+    sourceRoot match {
+      case Some(sourceRoot) =>
+        throw new IllegalArgumentException(
+          s"Cannot provide sourceRoot=$sourceRoot when resetSourcePath=false"
+        )
+      case None => // ok
+    }
   }
 
   object logger extends mill.internal.PromptLogger(

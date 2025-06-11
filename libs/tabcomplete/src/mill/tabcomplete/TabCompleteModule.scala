@@ -55,7 +55,7 @@ object TabCompleteModule extends ExternalModule {
       println("Writing to " + path)
       os.write.over(path, contents, createFolders = true)
     }
-    dest match{
+    dest match {
       case null =>
         val homeDest = ".cache/mill/download/mill-completion.sh"
 
