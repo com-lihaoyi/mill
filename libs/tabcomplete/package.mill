@@ -8,5 +8,5 @@ import millbuild.*
  * script that runs in both shells
  */
 object `package` extends MillStableScalaModule {
-  def moduleDeps = Seq(build.core.define)
+  def moduleDeps = Seq(build.core.define, build.libs.main)
 }
