@@ -1415,9 +1415,12 @@ trait JavaModule
     )()
 
     // Merge the compile and resources classpaths.
-    os.copy(compile().classes.path, Task.dest, mergeFolders = true)
+    val compileClasses = compile().classes.path
+    // The `compileClasses` can not exist if we had no sources in the module.
+    if (os.exists(compileClasses)) os.copy(compileClasses, Task.dest, mergeFolders = true)
     resources().foreach { resource =>
-      os.copy(resource.path, Task.dest, mergeFolders = true)
+      // The `resource.path` can not exist if we had no resources in the module.
+      if (os.exists(resource.path)) os.copy(resource.path, Task.dest, mergeFolders = true)
     }
 
     PathRef(Task.dest)

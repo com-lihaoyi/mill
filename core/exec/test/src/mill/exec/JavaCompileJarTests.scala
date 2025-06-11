@@ -115,7 +115,7 @@ object JavaCompileJarTests extends TestSuite {
       // You can swap evaluators halfway without any ill effects
       evaluator = UnitTester(
         Build,
-        sourceRoot = javacSrcPath,
+        sourceRoot = null,
         resetSourcePath = false
       )
 

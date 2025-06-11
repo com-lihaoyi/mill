@@ -12,14 +12,14 @@ trait BspRunModuleApi extends ModuleApi {
       runClasspath: Seq[Path],
       forkArgs: Seq[String],
       forkWorkingDir: Path,
-      forEnv: Map[String, String],
+      forkEnv: Map[String, String],
       mainClass: Option[String],
       localMainClasses: Option[Seq[String]],
       testEnvVars: Option[(
           mainClass: String,
           testRunnerClasspathArg: String,
           argsFile: String,
-          classpath: Seq[String]
+          classpath: Seq[Path]
       )]
   )]
 

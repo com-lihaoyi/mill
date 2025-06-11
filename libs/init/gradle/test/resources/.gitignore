@@ -1,0 +1,4 @@
+# Ignore Gradle generated files
+**/.gradle
+*/build
+*/*/build

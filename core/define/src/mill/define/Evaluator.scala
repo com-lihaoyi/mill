@@ -79,7 +79,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
 
   def evaluate(
       scriptArgs: Seq[String],
-      selectMode: SelectMode,
+      selectMode: SelectMode = SelectMode.Separated,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]]
 
