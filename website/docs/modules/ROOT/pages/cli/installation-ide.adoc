@@ -65,6 +65,18 @@ folder with one of the Mill example projects. There are a wide range of example 
 from hello-world to multi-module libraries to client-server web applications, and you can
 pick one most similar to what you are doing so you can hit the ground running working.
 
+=== Bash/Zsh Tab Completion
+
+You can set up Bash and Zsh tab completions by subsequently running the command:
+
+[source,console,subs="verbatim,attributes"]
+----
+> ./mill mill.tabcomplete/install
+----
+
+After that, doing `./mill <tab>` should begin showing possible modules and tasks for you
+to select at the command line.
+
 === Mill Native Executable
 
 The default Mill executable configured above requires a JVM (11 or above) installed globally in
