@@ -295,7 +295,7 @@ object MillMain0 {
                         enterKeyPressed = false,
                         Some(stateCache),
                         Seq(
-                          "mill.main.TabCompletionModule/tabComplete"
+                          "mill.tabcompletion/tabComplete"
                         ) ++ config.leftoverArgs.value,
                         streams,
                         "tab-completion"
