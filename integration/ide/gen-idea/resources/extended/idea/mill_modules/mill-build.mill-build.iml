@@ -74,6 +74,7 @@
         <orderEntry type="library" name="mill-libs-scalalib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalanativelib-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalanativelib_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-tabcomplete_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-testrunner-entrypoint.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-testrunner_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3.jar" level="project"/>
