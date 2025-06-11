@@ -375,12 +375,12 @@ object ErrorTests extends TestSuite {
               "",
               "myCross",
               "myCross[1]",
-              "myCross[1].foo",
               "myCross[2]",
-              "myCross[2].foo",
               "myCross[3]",
-              "myCross[3].foo",
               "myCross[4]",
+              "myCross[1].foo",
+              "myCross[2].foo",
+              "myCross[3].foo",
               "myCross[4].foo"
             ))
           )
