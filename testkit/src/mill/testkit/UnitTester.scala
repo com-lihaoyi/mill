@@ -27,7 +27,7 @@ object UnitTester {
       offline: Boolean = false
   ) = new UnitTester(
     module = module,
-    sourceRoot = sourceRoot,
+    sourceRoot = Option(sourceRoot),
     failFast = failFast,
     threads = threads,
     outStream = outStream,
@@ -47,7 +47,7 @@ object UnitTester {
  */
 class UnitTester(
     module: mill.testkit.TestRootModule,
-    sourceRoot: os.Path,
+    sourceRoot: Option[os.Path],
     failFast: Boolean,
     threads: Option[Int],
     outStream: PrintStream,
@@ -68,8 +68,16 @@ class UnitTester(
     os.remove.all(module.moduleDir)
     os.makeDir.all(module.moduleDir)
 
-    for (sourceFileRoot <- Option(sourceRoot)) {
+    for (sourceFileRoot <- sourceRoot) {
       os.copy.over(sourceFileRoot, module.moduleDir, createFolders = true)
+    }
+  } else {
+    sourceRoot match {
+      case Some(sourceRoot) =>
+        throw new IllegalArgumentException(
+          s"Cannot provide sourceRoot=$sourceRoot when resetSourcePath=false"
+        )
+      case None => // ok
     }
   }
 
