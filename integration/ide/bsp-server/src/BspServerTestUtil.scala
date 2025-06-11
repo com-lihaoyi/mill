@@ -18,6 +18,10 @@ import scala.reflect.ClassTag
 
 object BspServerTestUtil {
 
+  /**
+   * Set to true when running tests to update the snapshots on the disk. Do not forget to set it back to
+   * false after that.
+   */
   val updateSnapshots = false
 
   private[mill] def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
@@ -264,9 +268,11 @@ object BspServerTestUtil {
       coursierCache.toNIO.toUri.toASCIIString -> "file:///coursier-cache/",
       millWorkspace.toNIO.toUri.toASCIIString -> "file:///mill-workspace/",
       javaHome.toNIO.toUri.toASCIIString.stripSuffix("/") -> "file:///java-home",
+      os.home.toNIO.toUri.toASCIIString.stripSuffix("/") -> "file:///user-home",
       ("\"" + javaVersion + "\"") -> "\"<java-version>\"",
       workspacePath.toString -> "/workspace",
       coursierCache.toString -> "/coursier-cache",
-      millWorkspace.toString -> "/mill-workspace"
+      millWorkspace.toString -> "/mill-workspace",
+      os.home.toString -> "/user-home"
     )
 }

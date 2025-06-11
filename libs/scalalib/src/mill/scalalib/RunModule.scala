@@ -16,6 +16,7 @@ import mill.scalalib.classgraph.ClassgraphWorkerModule
 import mill.util.Jvm
 import mill.{Args, T}
 import os.{Path, ProcessOutput}
+import mill.constants.EnvVars
 
 trait RunModule extends WithJvmWorker with RunModuleApi {
 
@@ -37,6 +38,17 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    * Any environment variables you want to pass to the forked JVM.
    */
   def forkEnv: T[Map[String, String]] = Task { Map.empty[String, String] }
+
+  /**
+   * Environment variables to pass to the forked JVM.
+   *
+   * Includes [[forkEnv]] and the variables defined by Mill itself.
+   */
+  def allForkEnv: T[Map[String, String]] = Task {
+    forkEnv() ++ Map(
+      EnvVars.MILL_WORKSPACE_ROOT -> Task.workspace.toString
+    )
+  }
 
   def forkWorkingDir: T[os.Path] = Task { Task.workspace }
 
@@ -156,7 +168,7 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
       finalMainClassOpt(),
       runClasspath().map(_.path),
       forkArgs(),
-      forkEnv(),
+      allForkEnv(),
       runUseArgsFile(),
       jvmWorker().javaHome().map(_.path)
     )

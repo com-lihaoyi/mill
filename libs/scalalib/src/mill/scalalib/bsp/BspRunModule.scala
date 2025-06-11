@@ -34,14 +34,14 @@ private[mill] object BspRunModule extends ExternalModule {
           runClasspath: Seq[Path],
           forkArgs: Seq[String],
           forkWorkingDir: Path,
-          forEnv: Map[String, String],
+          forkEnv: Map[String, String],
           mainClass: Option[String],
           localMainClasses: Option[Seq[String]],
           testEnvVars: Option[(
               mainClass: String,
               testRunnerClasspathArg: String,
               argsFile: String,
-              classpath: Seq[String]
+              classpath: Seq[Path]
           )]
       )] = {
         val (localMainClasses, testEnvVars) = runModule match {
@@ -61,7 +61,7 @@ private[mill] object BspRunModule extends ExternalModule {
             runModule.runClasspath().map(_.path.toNIO),
             runModule.forkArgs(),
             runModule.forkWorkingDir().toNIO,
-            runModule.forkEnv(),
+            runModule.allForkEnv(),
             runModule.mainClass(),
             localMainClasses(),
             testEnvVars()
