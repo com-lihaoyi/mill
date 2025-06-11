@@ -64,7 +64,7 @@ object TabCompleteModule extends ExternalModule {
         .mkString("\n")
 
       writeLoudly(file, updated)
-      println(s"Please restart your shell or `source ~/$homeDest` to enable completions")
     }
+    println(s"Please restart your shell or `source ~/$homeDest` to enable completions")
   }
 }
