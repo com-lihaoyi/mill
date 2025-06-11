@@ -18,7 +18,7 @@ import scala.quoted.*
 object Applicative {
 
   trait Applyable[M[+_], +T] { this: M[T] =>
-    @compileTimeOnly("Target#apply() can only be used with a Task{...} block")
+    @compileTimeOnly("Task#apply() can only be used within a Task{...} block")
     def apply(): T = ???
   }
 
@@ -76,7 +76,7 @@ object Applicative {
               val sym = x.symbol
               if (sym != Symbol.noSymbol && defs(sym) && !localDefs(sym)) {
                 macroError(
-                  "Target#apply() call cannot use `" + x.symbol + "` defined within the Task{...} block",
+                  "Task#apply() call cannot use `" + x.symbol + "` defined within the Task{...} block",
                   x.pos
                 )
               }

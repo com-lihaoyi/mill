@@ -54,13 +54,20 @@ object app extends scalalib.JavaModule {
   )
 }
 
-object errored extends scalalib.ScalaModule {
-  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+object errored extends Module {
 
-  def compile = Task {
-    val res = super.compile()
-    sys.error("nope")
-    res
+  object exception extends scalalib.ScalaModule {
+    def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+
+    def compile = Task {
+      val res = super.compile()
+      sys.error("nope")
+      res
+    }
+  }
+
+  object `compilation-error` extends scalalib.ScalaModule {
+    def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
   }
 }
 

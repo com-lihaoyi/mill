@@ -30,7 +30,7 @@ private object Utils {
       originId: String,
       bspIdsByModule: Map[BspModuleApi, BuildTargetIdentifier],
       client: BuildClient
-  ): Int => Option[CompileProblemReporter] = { (moduleHashCode: Int) =>
+  ): Int => Option[BspCompileProblemReporter] = { (moduleHashCode: Int) =>
     bspIdsByModule.find(_._1.hashCode == moduleHashCode).map {
       case (module: JavaModuleApi, targetId) =>
         val buildTarget = module.bspBuildTarget

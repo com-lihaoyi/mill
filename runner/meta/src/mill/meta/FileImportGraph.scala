@@ -62,8 +62,6 @@ object FileImportGraph {
           MillScalaParser.current.value.splitScript(content, fileName)
         ) match {
           case Right((prefix, pkgs, stmts)) =>
-            mill.constants.DebugLog.println("pkgs" + pprint.apply(pkgs).toString)
-            mill.constants.DebugLog.println("stmts " + pprint.apply(stmts).toString)
             val importSegments = pkgs.mkString(".")
 
             val expectedImportSegments0 =
