@@ -742,6 +742,34 @@ from hello-world to multi-module libraries to client-server web applications, an
 pick one most similar to what you are doing so you can hit the ground running working.</p>
 </div>
 <div class="sect2">
+<h3 id="_bashzsh_tab_completion"><a class="anchor" href="#_bashzsh_tab_completion"></a>Bash/Zsh Tab Completion</h3>
+<div class="paragraph">
+<p>You can set up Bash and Zsh tab completions by subsequently running the command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.tabcomplete/install</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This unpacks the completion script in <code>~/.cache/mill</code> and registers it in your <code>~/.bash_profile</code> and <code>~/.zshrc</code>.
+After that, doing <code>./mill &lt;tab&gt;</code> should begin showing possible modules and tasks for you
+to select at the command line.</p>
+</div>
+<div class="paragraph">
+<p>You can also choose to write the tab-completion script to a manually-specified path via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.tabcomplete/install --dest &lt;path&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When <code>--dest</code> is given, Mill simply generate the tab-completion script without registering it,
+assuming you want to register the script yourself (e.g. by placing it in a relevant folder).</p>
+</div>
+</div>
+<div class="sect2">
 <h3 id="_mill_native_executable"><a class="anchor" href="#_mill_native_executable"></a>Mill Native Executable</h3>
 <div class="paragraph">
 <p>The default Mill executable configured above requires a JVM (11 or above) installed globally in
