@@ -4,33 +4,9 @@ package build.libs.tabcomplete
 import millbuild.*
 
 /**
- * This package encapsulates the entire classpath that is available within the `build.mill`
- * file, for use by build authors or plugin authors. All the various language `*lib` modules,
- * the available `core.*` modules, and builtin tasks defined on the top-level `build` object.
+ * Scala logic for tab-completion in Bash and Zsh, delegated to by the `complete.sh`
+ * script that runs in both shells
  */
 object `package` extends MillStableScalaModule {
-
-  def moduleDeps = Seq(
-    build.core.util,
-    build.core.define,
-    build.libs.init
-  )
-  def mvnDeps = Seq(
-    Deps.millModuledefs
-  )
-
-  def compileMvnDeps = Seq(
-    Deps.nativeTerminal,
-    Deps.jgraphtCore,
-    Deps.graphvizWithExcludes
-  )
-  def runMvnDeps = Seq(
-    Deps.logback,
-    Deps.nativeTerminal,
-    Deps.jgraphtCore,
-    Deps.graphvizWithExcludes
-  )
-
-  def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
-  def testMvnDeps = Seq(Deps.coursierInterface)
+  def moduleDeps = Seq(build.core.define)
 }
