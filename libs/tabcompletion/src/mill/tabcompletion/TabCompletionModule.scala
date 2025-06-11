@@ -61,7 +61,7 @@ object TabCompletionModule extends ExternalModule {
 
       val updated = prevLines
         .filter(!_.contains(markerComment))
-        .++(Seq(s"source $homeDest $markerComment"))
+        .++(Seq(s"source $homeDest $markerComment\n"))
         .mkString("\n")
 
       writeLoudly(file, updated)
