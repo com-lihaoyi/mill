@@ -40,40 +40,38 @@ object TabCompleteModule extends ExternalModule {
     }
   }
 
-  def script = Task {
-    os.write(
-      Task.dest / "complete.sh",
-      os.read(os.resource / "mill/tabcomplete/complete.sh")
-    )
-    PathRef(Task.dest / "complete.sh")
-  }
+  def install(dest: os.Path = null) = Task.Command(exclusive = true) {
+    val script = os.read(os.resource / "mill/tabcomplete/complete.sh")
 
-  def install() = Task.Command(exclusive = true) {
-    val script = os.read(this.script().path)
-
-    val homeDest = ".cache/mill/download/mill-completion.sh"
     def writeLoudly(path: os.Path, contents: String) = {
       println("Writing to " + path)
       os.write.over(path, contents)
     }
-    writeLoudly(os.home / os.SubPath(homeDest), script)
-    for (fileName <- Seq(".bash_profile", ".zshrc")) {
-      val file = os.home / fileName
-      // We use the marker comment to help remove any previous `source` line before
-      // adding a new line, so that running `install` over and over doesn't build up
-      // repeated source lines
-      val markerComment = "# MILL_SOURCE_COMPLETION_LINE"
-      val prevLines =
-        if (os.exists(file)) os.read.lines(file)
-        else Nil
+    dest match{
+      case null =>
+        val homeDest = ".cache/mill/download/mill-completion.sh"
 
-      val updated = prevLines
-        .filter(!_.contains(markerComment))
-        .++(Seq(s"source $homeDest $markerComment\n"))
-        .mkString("\n")
+        writeLoudly(os.home / os.SubPath(homeDest), script)
+        for (fileName <- Seq(".bash_profile", ".zshrc")) {
+          val file = os.home / fileName
+          // We use the marker comment to help remove any previous `source` line before
+          // adding a new line, so that running `install` over and over doesn't build up
+          // repeated source lines
+          val markerComment = "# MILL_SOURCE_COMPLETION_LINE"
+          val prevLines =
+            if (os.exists(file)) os.read.lines(file)
+            else Nil
 
-      writeLoudly(file, updated)
+          val updated = prevLines
+            .filter(!_.contains(markerComment))
+            .++(Seq(s"source $homeDest $markerComment\n"))
+            .mkString("\n")
+
+          writeLoudly(file, updated)
+        }
+        println(s"Please restart your shell or `source ~/$homeDest` to enable completions")
+
+      case dest => writeLoudly(dest, script)
     }
-    println(s"Please restart your shell or `source ~/$homeDest` to enable completions")
   }
 }
