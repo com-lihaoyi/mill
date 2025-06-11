@@ -23,9 +23,6 @@ private[mill] object GenIdeaInternal extends ExternalModule {
     // We act in the context of the module
     override def moduleCtx: ModuleCtx = javaModule.moduleCtx
 
-    private val emptyPathRefs = Task.Anon(Seq.empty[PathRef])
-    private val emptyDeps = Task.Anon(Seq.empty[Dep])
-
     private val jarCollector: PartialFunction[PathRef, Path] = {
       case p if p.path.ext == "jar" => p.path.toNIO
     }
@@ -43,7 +40,7 @@ private[mill] object GenIdeaInternal extends ExternalModule {
 
       private val scalaCompilerClasspath = javaModule match {
         case sm: ScalaModule => Task.Anon(sm.scalaCompilerClasspath())
-        case _ => emptyPathRefs
+        case _ => Task.Anon(Seq.empty[PathRef])
       }
 
       private def externalLibraryDependencies = Task {
@@ -69,7 +66,7 @@ private[mill] object GenIdeaInternal extends ExternalModule {
 
       private val scalacPluginsMvnDeps = javaModule match {
         case mod: ScalaModule => mod.scalacPluginMvnDeps
-        case _ => emptyDeps
+        case _ => Task.Anon(Seq[Dep]())
       }
 
       private val allScalacOptions = javaModule match {
