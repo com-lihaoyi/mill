@@ -20,7 +20,7 @@ object TabCompleteModule extends ExternalModule {
       args: mainargs.Leftover[String]
   ) = Task.Command(exclusive = true) {
     val currentToken = args.value(index)
-    val deSlashed = currentToken.replace("\\", "")
+    val deSlashed = currentToken.replace("\\", "").replace("\"", "").replace("\'", "")
     val trimmed = deSlashed.take(
       deSlashed.lastIndexWhere(c => !c.isLetterOrDigit && !"-_,".contains(c)) + 1
     )

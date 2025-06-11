@@ -112,6 +112,20 @@ object TabCompleteTests extends TestSuite {
           |""".stripMargin
       assert(out == expected)
     }
+    test("crossNestedSingleQuoted") - {
+      val out = evalComplete("0", "'qux[12]")
+      val expected =
+        """qux[12].task3
+          |""".stripMargin
+      assert(out == expected)
+    }
+    test("crossNestedDoubleQuoted") - {
+      val out = evalComplete("0", "\"qux[12]")
+      val expected =
+        """qux[12].task3
+          |""".stripMargin
+      assert(out == expected)
+    }
 
     test("crossComplete") - {
       val out = evalComplete("0", "qux[12].task3")
