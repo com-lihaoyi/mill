@@ -366,19 +366,19 @@ private[mill] trait Resolve[T] {
         case ResolveCore.Error(value) => Result.Failure(value)
       }
 
-    resolved
-      .flatMap(r =>
-        handleResolved(
-          rootModule,
-          r.sortBy(_.segments),
-          args,
-          sel,
-          nullCommandDefaults,
-          allowPositionalCommandArgs,
-          resolveToModuleTasks,
-          cache = cache
-        )
+    resolved.flatMap { r =>
+      val sorted = r.sorted
+      handleResolved(
+        rootModule,
+        sorted,
+        args,
+        sel,
+        nullCommandDefaults,
+        allowPositionalCommandArgs,
+        resolveToModuleTasks,
+        cache = cache
       )
+    }
   }
 
   private[mill] def deduplicate(items: List[T]): List[T] = items

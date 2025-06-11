@@ -32,6 +32,12 @@
 
 set -e
 
+if [ "$1" = "--setup-completions" ] ; then
+  # Need to preserve the first position of those listed options
+  MILL_FIRST_ARG=$1
+  shift
+fi
+
 if [ -z "${DEFAULT_MILL_VERSION}" ] ; then
   DEFAULT_MILL_VERSION="0.12.10"
 fi
