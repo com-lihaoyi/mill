@@ -20,6 +20,8 @@ import mill.constants.EnvVars
 
 import java.nio.file.Path
 
+import java.nio.file.Path
+
 trait TestModule
     extends TestModule.JavaModuleBase
     with WithJvmWorker
