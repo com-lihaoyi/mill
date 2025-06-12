@@ -361,7 +361,7 @@ object PublishModuleTests extends TestSuite {
       def clearRepo(): Unit =
         os.remove.all(ivy2Repo)
 
-      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString)).get
       assert(repoHasIvyXml())
       assert(repoHasJar())
       assert(repoHasSourcesJar())
@@ -369,7 +369,7 @@ object PublishModuleTests extends TestSuite {
 
       clearRepo()
 
-      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString, doc = false)).right.get
+      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString, doc = false)).get
       assert(repoHasIvyXml())
       assert(repoHasJar())
       assert(repoHasSourcesJar())
@@ -406,7 +406,7 @@ object PublishModuleTests extends TestSuite {
       def clearRepo(): Unit =
         os.remove.all(ivy2Repo)
 
-      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString)).get
       assert(!repoHasIvyXml(mainModuleName))
       assert(!repoHasJar(mainModuleName))
       assert(!repoHasSourcesJar(mainModuleName))
@@ -421,7 +421,7 @@ object PublishModuleTests extends TestSuite {
       eval(compileAndRuntimeStuff.transitive.publishLocal(
         ivy2Repo.toString,
         transitive = true
-      )).right.get
+      )).get
       assert(repoHasIvyXml(mainModuleName))
       assert(repoHasJar(mainModuleName))
       assert(repoHasSourcesJar(mainModuleName))
@@ -433,7 +433,7 @@ object PublishModuleTests extends TestSuite {
 
       clearRepo()
 
-      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString, doc = false)).right.get
+      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString, doc = false)).get
       assert(!repoHasIvyXml(mainModuleName))
       assert(!repoHasJar(mainModuleName))
       assert(!repoHasSourcesJar(mainModuleName))
@@ -461,7 +461,7 @@ object PublishModuleTests extends TestSuite {
 
       clearRepo()
 
-      eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(ivy2Repo.toString)).get
       assert(!repoHasIvyXml(mainModuleName))
       assert(!repoHasJar(mainModuleName))
       assert(!repoHasSourcesJar(mainModuleName))
@@ -476,7 +476,7 @@ object PublishModuleTests extends TestSuite {
       eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(
         ivy2Repo.toString,
         transitive = true
-      )).right.get
+      )).get
       assert(repoHasIvyXml(mainModuleName))
       assert(repoHasJar(mainModuleName))
       assert(repoHasSourcesJar(mainModuleName))
