@@ -74,11 +74,11 @@ private[mill] object Util {
         case false => ujson.False
         case null => ujson.Null
         case m: java.util.Map[Object, Object] =>
-          import collection.JavaConverters._
+          import scala.jdk.CollectionConverters._
           val scalaMap = m.asScala
           ujson.Obj.from(scalaMap.map { case (k, v) => (k.toString, rec(v)) })
         case l: java.util.List[Object] =>
-          import collection.JavaConverters._
+          import scala.jdk.CollectionConverters._
           val scalaList: collection.Seq[Object] = l.asScala
           ujson.Arr.from(scalaList.map(rec))
       }
