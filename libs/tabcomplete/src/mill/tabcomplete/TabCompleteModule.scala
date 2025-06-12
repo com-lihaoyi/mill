@@ -23,23 +23,27 @@ object TabCompleteModule extends ExternalModule {
       args: mainargs.Leftover[String]
   ) = Task.Command(exclusive = true) {
 
-    // Zsh has the index pointing off the end of the args list,
-    // so use "" as the last arg if out of bounds
-    val currentToken = args.value.lift(index).getOrElse("")
-    val deSlashed = currentToken.replace("\\", "").replace("\"", "").replace("\'", "")
-    val trimmed = deSlashed.take(
-      deSlashed.lastIndexWhere(c => !c.isLetterOrDigit && !"-_,".contains(c)) + 1
-    )
-    val query = trimmed.lastOption match {
-      case None => "_"
-      case Some('.') => trimmed + "_"
-      case Some('[') => trimmed + "__]"
-      case Some(',') => trimmed + "__]"
-      case Some(']') => trimmed + "._"
+    val query = args.value.lift(index) match{
+      // Zsh has the index pointing off the end of the args list,
+      // so use "" as the last arg if out of bounds
+      case None | Some("") => "_"
+
+      case Some(currentToken) =>
+        val deSlashed = currentToken.replace("\\", "").replace("\"", "").replace("\'", "")
+        val trimmed = deSlashed.take(
+          deSlashed.lastIndexWhere(c => !c.isLetterOrDigit && !"-_,".contains(c)) + 1
+        )
+        trimmed.lastOption match {
+          case None => "."
+          case Some('.') => trimmed + "_"
+          case Some('[') => trimmed + "__]"
+          case Some(',') => trimmed + "__]"
+          case Some(']') => trimmed + "._"
+        }
     }
 
     ev.resolveSegments(Seq(query), SelectMode.Multi).map { res =>
-      res.map(_.render).filter(_.startsWith(deSlashed)).foreach(println)
+      res.map(_.render).filter(_.replace('[', '.').startsWith(deSlashed.replace('[', '.'))).foreach(println)
     }
   }
 
