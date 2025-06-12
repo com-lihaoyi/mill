@@ -19,7 +19,8 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {
-        "MY_ENV_VAR": "my-value"
+        "MY_ENV_VAR": "my-value",
+        "MILL_WORKSPACE_ROOT": "/workspace"
       },
       "mainClasses": [
         {
@@ -49,13 +50,11 @@
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
-      "environmentVariables": {},
-      "mainClasses": [
-        {
-          "className": "apptest.AppTest",
-          "arguments": []
-        }
-      ]
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace",
+        "MILL_TEST_RESOURCE_DIR": "/workspace/app/test/resources"
+      },
+      "mainClasses": []
     },
     {
       "target": {
@@ -68,7 +67,9 @@
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
-      "environmentVariables": {},
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace"
+      },
       "mainClasses": []
     },
     {
@@ -89,8 +90,16 @@
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
-      "environmentVariables": {},
-      "mainClasses": []
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace",
+        "MILL_TEST_RESOURCE_DIR": "/workspace/hello-java/test/resources"
+      },
+      "mainClasses": [
+        {
+          "className": "hellojava.HelloJavaTest",
+          "arguments": []
+        }
+      ]
     },
     {
       "target": {
@@ -105,7 +114,9 @@
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
-      "environmentVariables": {},
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace"
+      },
       "mainClasses": []
     },
     {
@@ -120,7 +131,9 @@
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
-      "environmentVariables": {},
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace"
+      },
       "mainClasses": [
         {
           "className": "hello.Hello",
@@ -147,7 +160,10 @@
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
-      "environmentVariables": {},
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace",
+        "MILL_TEST_RESOURCE_DIR": "/workspace/hello-scala/test/resources"
+      },
       "mainClasses": [
         {
           "className": "hello.HelloTest",
@@ -167,7 +183,9 @@
       ],
       "jvmOptions": [],
       "workingDirectory": "/workspace",
-      "environmentVariables": {},
+      "environmentVariables": {
+        "MILL_WORKSPACE_ROOT": "/workspace"
+      },
       "mainClasses": []
     }
   ]

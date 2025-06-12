@@ -43,7 +43,7 @@ private[mill] object BspRunModule extends ExternalModule {
             runModule.runClasspath().map(_.path.toNIO),
             runModule.forkArgs(),
             runModule.forkWorkingDir().toNIO,
-            runModule.forkEnv(),
+            runModule.allForkEnv(),
             runModule.mainClass(),
             runModule.allLocalMainClasses()
           )
