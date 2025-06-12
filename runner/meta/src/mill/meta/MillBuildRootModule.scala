@@ -1,17 +1,18 @@
 package mill.meta
 
+import java.nio.file.Path
+
 import mill.*
 import mill.api.Result
 import mill.api.internal.internal
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.constants.OutFiles.*
-import mill.define.{PathRef, Discover, RootModule0, Task}
+import mill.define.{Discover, PathRef, RootModule0, Task}
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.util.BuildInfo
 import mill.api.internal.MillScalaParser
 import mill.define.JsonFormatters.given
-
 import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
@@ -33,7 +34,7 @@ trait MillBuildRootModule()(implicit
     .mkString("/")
 
   override def moduleDir: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
-  override def intellijModulePath: os.Path = moduleDir / os.up
+  override def intellijModulePathJava: Path = (moduleDir / os.up).toNIO
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
