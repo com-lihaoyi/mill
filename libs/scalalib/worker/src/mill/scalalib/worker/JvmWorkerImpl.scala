@@ -614,9 +614,8 @@ class JvmWorkerImpl(
       }
     }
 
-    val newReporter = mkNewReporter(
-      PositionMapper.create(virtualSources)
-    )
+    val (originalSourcesMap, posMapperOpt) = PositionMapper.create(virtualSources)
+    val newReporter = mkNewReporter(posMapperOpt.orNull)
 
     val inputs = ic.inputs(
       classpath = classpath,
@@ -681,8 +680,14 @@ class JvmWorkerImpl(
       case e: CompileFailed =>
         Result.Failure(e.toString)
     } finally {
-      reporter.foreach(r => sources.foreach(f => r.fileVisited(f.toNIO)))
-      reporter.foreach(_.finish())
+      for (rep <- reporter) {
+        for (f <- sources) {
+          rep.fileVisited(f.toNIO)
+          for (f0 <- originalSourcesMap.get(f))
+            rep.fileVisited(f0.toNIO)
+        }
+        rep.finish()
+      }
       previousScalaColor match {
         case null => sys.props.remove(scalaColorProp)
         case _ => sys.props(scalaColorProp) = previousScalaColor
@@ -725,7 +730,8 @@ object JvmWorkerImpl {
       }
     }
 
-    def create(sources: Array[VirtualFile]): (xsbti.Position => xsbti.Position) | Null = {
+    def create(sources: Array[VirtualFile])
+        : (Map[os.Path, os.Path], Option[xsbti.Position => xsbti.Position]) = {
       val buildSources0 = {
         def isBuild(vf: VirtualFile) =
           CodeGenConstants.buildFileExtensions.asScala.exists(ex =>
@@ -741,11 +747,20 @@ object JvmWorkerImpl {
               .collectFirst { case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => rest.trim }
               .getOrElse(sys.error(vf.id()))
 
-            vf.id() -> remap(lines, adjustedFile)
+            (vf.id(), adjustedFile, remap(lines, adjustedFile))
         })
       }
 
-      if buildSources0.nonEmpty then lookup(buildSources0.toMap) else null
+      val map = buildSources0
+        .map {
+          case (generated, original, _) =>
+            os.Path(generated) -> os.Path(original)
+        }
+        .toMap
+      val lookupOpt = Option.when(buildSources0.nonEmpty) {
+        lookup(buildSources0.map { case (generated, _, f) => (generated, f) }.toMap)
+      }
+      (map, lookupOpt)
     }
 
     private def remap(

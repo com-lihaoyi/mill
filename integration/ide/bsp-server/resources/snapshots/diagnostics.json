@@ -31,6 +31,66 @@
   },
   {
     "textDocument": {
+      "uri": "file:///workspace/build.mill"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/mill-build"
+    },
+    "originId": "",
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 101,
+            "character": 17
+          },
+          "end": {
+            "line": 101,
+            "character": 22
+          }
+        },
+        "severity": 2,
+        "code": {
+          "left": "-1"
+        },
+        "source": "mill",
+        "message": "\u001b[33mmethod\u001b[0m \u001b[35mthing\u001b[0m in \u001b[33mobject\u001b[0m \u001b[35mdiag\u001b[0m is deprecated since 0.0.1: deprecated"
+      }
+    ],
+    "reset": true
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/build.mill"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/mill-build"
+    },
+    "originId": "",
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 101,
+            "character": 17
+          },
+          "end": {
+            "line": 101,
+            "character": 22
+          }
+        },
+        "severity": 2,
+        "code": {
+          "left": "-1"
+        },
+        "source": "mill",
+        "message": "\u001b[33mmethod\u001b[0m \u001b[35mthing\u001b[0m in \u001b[33mobject\u001b[0m \u001b[35mdiag\u001b[0m is deprecated since 0.0.1: deprecated"
+      }
+    ],
+    "reset": true
+  },
+  {
+    "textDocument": {
       "uri": "file:///workspace/diag/src/DiagCheck.scala"
     },
     "buildTarget": {
