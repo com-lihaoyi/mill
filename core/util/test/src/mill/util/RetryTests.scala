@@ -32,7 +32,7 @@ object RetryTests extends TestSuite {
         Retry(
           logger = Retry.printStreamLogger(System.err),
           filter = {
-            case (i, ex: RuntimeException) => true
+            case (_, _: RuntimeException) => true
             case _ => false
           }
         ) {

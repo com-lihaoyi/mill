@@ -82,7 +82,7 @@ private[mill] class PipeStreams(val bufferSize: Int = 1024) { pipe =>
       notifyAll()
       try wait(1000)
       catch {
-        case ex: InterruptedException =>
+        case _: InterruptedException =>
           throw new java.io.InterruptedIOException
       }
     }

@@ -22,7 +22,7 @@ object VersionTests extends TestSuite {
       test("ignoreQualifier") {
         val ordering = Version.IgnoreQualifierOrdering
         val input =
-          versions.map(Version.parse).sorted(ordering).map(_.toString())
+          versions.map(Version.parse).sorted(using ordering).map(_.toString())
         val expected = Seq(
           "0.10.0",
           "0.10.0-M2",
@@ -40,7 +40,7 @@ object VersionTests extends TestSuite {
       }
       test("maven") {
         val ordering = Version.MavenOrdering
-        val input = versions.map(Version.parse).sorted(ordering).map(_.toString())
+        val input = versions.map(Version.parse).sorted(using ordering).map(_.toString())
         val expected = Seq(
           "0.10.0-M2",
           "0.10.0",
@@ -58,7 +58,7 @@ object VersionTests extends TestSuite {
       }
       test("osgi") {
         val ordering = Version.OsgiOrdering
-        val input = versions.map(Version.parse).sorted(ordering).map(_.toString())
+        val input = versions.map(Version.parse).sorted(using ordering).map(_.toString())
         val expected = Seq(
           "0.10.0",
           "0.10.0-M2",
@@ -77,7 +77,7 @@ object VersionTests extends TestSuite {
     }
     test("Version.isAtLeast(String, String)") {
       test("ignoreQualifier") {
-        implicit val ordering = Version.IgnoreQualifierOrdering
+        given Ordering[Version] = Version.IgnoreQualifierOrdering
         assert(
           Version.isAtLeast("0.8.9", "0.7.10") == true,
           Version.isAtLeast("0.8.9", "0.8.10") == false,

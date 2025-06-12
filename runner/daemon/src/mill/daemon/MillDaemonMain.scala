@@ -3,9 +3,8 @@ package mill.daemon
 import mill.api.SystemStreams
 import mill.client.ClientUtil
 import mill.client.lock.{DoubleLock, Lock, Locks}
-import mill.constants.{OutFiles, DaemonFiles}
+import mill.constants.OutFiles
 import sun.misc.{Signal, SignalHandler}
-import scala.jdk.CollectionConverters.*
 
 import scala.util.Try
 
