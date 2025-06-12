@@ -2,7 +2,6 @@ package mill.api.internal
 
 import mill.api.*
 import scala.collection.mutable
-import scala.util.DynamicVariable
 
 trait EvaluatorApi extends AutoCloseable {
   def evaluate(

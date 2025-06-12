@@ -1,6 +1,6 @@
 package mill.api.internal.idea
 
-import mill.api.internal.{EvaluatorApi, PathRefApi, TaskApi}
+import mill.api.internal.{PathRefApi, TaskApi}
 
 trait GenIdeaInternalApi {
 

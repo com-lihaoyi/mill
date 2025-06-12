@@ -7,7 +7,6 @@ import mill.api.internal.{internal, *}
 import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.testrunner.TestResult
-import mill.util.Jvm
 import os.{Path, RelPath, zip}
 import upickle.default.*
 import scala.jdk.OptionConverters.RichOptional

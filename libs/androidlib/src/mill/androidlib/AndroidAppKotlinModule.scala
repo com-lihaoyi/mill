@@ -1,7 +1,5 @@
 package mill.androidlib
 
-import coursier.core.VariantSelector.VariantMatcher
-import coursier.params.ResolutionParams
 import mill.define.{ModuleRef, PathRef, Task}
 import mill.kotlinlib.{Dep, DepSyntax}
 import mill.scalalib.TestModule.Junit5
