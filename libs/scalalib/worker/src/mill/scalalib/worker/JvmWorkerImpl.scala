@@ -614,6 +614,16 @@ class JvmWorkerImpl(
       }
     }
 
+    val finalScalacOptions = {
+      val addColorNever = !ctx.log.prompt.colored &&
+        compilers.scalac().scalaInstance().version().startsWith("3.") &&
+        !scalacOptions.exists(_.startsWith("-color:")) // might be too broad
+      if (addColorNever)
+        "-color:never" +: scalacOptions
+      else
+        scalacOptions
+    }
+
     val (originalSourcesMap, posMapperOpt) = PositionMapper.create(virtualSources)
     val newReporter = mkNewReporter(posMapperOpt.orNull)
 
@@ -622,7 +632,7 @@ class JvmWorkerImpl(
       sources = virtualSources,
       classesDirectory = classesDir.toNIO,
       earlyJarPath = None,
-      scalacOptions = scalacOptions.toArray,
+      scalacOptions = finalScalacOptions.toArray,
       javacOptions = javacOptions.toArray,
       maxErrors = 10,
       sourcePositionMappers = Array(),
