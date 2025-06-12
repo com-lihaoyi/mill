@@ -78,12 +78,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   def androidApplicationId: String
 
-  private def androidManifestUsesSdkSection: Task[Elem] = Task.Anon {
-    val minSdkVersion = androidMinSdk().toString
-    val targetSdkVersion = androidTargetSdk().toString
-    <uses-sdk android:minSdkVersion={minSdkVersion} android:targetSdkVersion={targetSdkVersion}/>
-  }
-
   def androidDebugManifestLocation: T[PathRef] = Task.Source {
     "src/debug/AndroidManifest.xml"
   }
