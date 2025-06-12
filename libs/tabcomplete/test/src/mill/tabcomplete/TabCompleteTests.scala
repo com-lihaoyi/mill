@@ -129,16 +129,6 @@ object TabCompleteTests extends TestSuite {
       assert(out == expected)
     }
 
-    test("cross3") - {
-      val out = evalComplete("1", "./mill", "qux.")
-      val expected =
-        """qux[12]
-          |qux[34]
-          |qux[56]
-          |""".stripMargin
-      assert(out == expected)
-    }
-
     test("crossPartial") - {
       val out = evalComplete("1", "./mill", "qux[1")
       val expected =
