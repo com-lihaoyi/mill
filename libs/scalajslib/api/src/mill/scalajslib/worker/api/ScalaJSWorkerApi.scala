@@ -32,23 +32,21 @@ private[scalajslib] trait ScalaJSWorkerApi {
 
 }
 
-private[scalajslib] sealed trait ModuleKind
-private[scalajslib] object ModuleKind {
-  object NoModule extends ModuleKind
-  object CommonJSModule extends ModuleKind
-  object ESModule extends ModuleKind
+private[scalajslib] enum ModuleKind {
+  case NoModule
+  case CommonJSModule
+  case ESModule
 }
 
-private[scalajslib] sealed trait ESVersion
-private[scalajslib] object ESVersion {
-  object ES2015 extends ESVersion
-  object ES2016 extends ESVersion
-  object ES2017 extends ESVersion
-  object ES2018 extends ESVersion
-  object ES2019 extends ESVersion
-  object ES2020 extends ESVersion
-  object ES2021 extends ESVersion
-  object ES5_1 extends ESVersion
+private[scalajslib] enum ESVersion {
+  case ES2015
+  case ES2016
+  case ES2017
+  case ES2018
+  case ES2019
+  case ES2020
+  case ES2021
+  case ES5_1
 }
 
 private[scalajslib] case class ESFeatures(
