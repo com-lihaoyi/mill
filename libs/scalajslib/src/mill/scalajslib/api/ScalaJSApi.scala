@@ -4,8 +4,6 @@ import upickle.default.{ReadWriter => RW, macroRW}
 import mill.define.Mirrors.autoMirror
 import mill.define.Mirrors
 
-
-
 sealed trait ESVersion
 object ESVersion {
   object ES2015 extends ESVersion
