@@ -238,13 +238,13 @@ object ExecutionTests extends TestSuite {
       }
 
       UnitTester(build, null).scoped { tester =>
-        val Right(UnitTester.Result(worker1, _)) = tester.apply(build.worker)
-        val Right(UnitTester.Result(worker2, _)) = tester.apply(build.worker)
+        val Right(UnitTester.Result(worker1, _)) = tester.apply(build.worker): @unchecked
+        val Right(UnitTester.Result(worker2, _)) = tester.apply(build.worker): @unchecked
         assert(worker1 == worker2)
         assert(worker1.n == 10)
         assert(!worker1.closed)
         x = 11
-        val Right(UnitTester.Result(worker3, _)) = tester.apply(build.worker)
+        val Right(UnitTester.Result(worker3, _)) = tester.apply(build.worker): @unchecked
         assert(worker3 != worker2)
         assert(worker3.n == 11)
         assert(!worker3.closed)
