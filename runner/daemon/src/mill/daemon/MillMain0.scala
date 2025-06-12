@@ -180,7 +180,7 @@ object MillMain0 {
                         )
                         defaultJobCount
                       }
-                    case other =>
+                    case _ =>
                       streams.err.println(
                         s"Warning: ignoring leftover arguments passed to ${config.leftoverArgs.value.head}"
                       )
