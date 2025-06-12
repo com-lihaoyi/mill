@@ -1,7 +1,7 @@
 package mill.tabcomplete
 
 import mill.*
-import mill.api.SelectMode
+import mill.api.{SelectMode, Result}
 import mill.define.{Discover, Evaluator, ExternalModule}
 
 import mainargs.arg
@@ -23,23 +23,41 @@ object TabCompleteModule extends ExternalModule {
       args: mainargs.Leftover[String]
   ) = Task.Command(exclusive = true) {
 
-    // Zsh has the index pointing off the end of the args list,
-    // so use "" as the last arg if out of bounds
-    val currentToken = args.value.lift(index).getOrElse("")
-    val deSlashed = currentToken.replace("\\", "").replace("\"", "").replace("\'", "")
-    val trimmed = deSlashed.take(
-      deSlashed.lastIndexWhere(c => !c.isLetterOrDigit && !"-_,".contains(c)) + 1
-    )
-    val query = trimmed.lastOption match {
-      case None => "_"
-      case Some('.') => trimmed + "_"
-      case Some('[') => trimmed + "__]"
-      case Some(',') => trimmed + "__]"
-      case Some(']') => trimmed + "._"
+    val (query, unescapedOpt) = args.value.lift(index) match {
+      // Zsh has the index pointing off the end of the args list, while
+      // Bash has the index pointing at an empty string arg
+      case None | Some("") => ("_", None)
+
+      case Some(currentToken) =>
+        val unescaped = currentToken.replace("\\", "").replace("\"", "").replace("\'", "")
+        val trimmed = unescaped
+          .take(unescaped.lastIndexWhere(c => !c.isLetterOrDigit && !"-_,".contains(c)) + 1)
+
+        val query = trimmed.lastOption match {
+          case None => "_"
+          case Some('.') => trimmed + "_"
+          case Some('[') => trimmed + "__]"
+          case Some(',') => trimmed + "__]"
+          case Some(']') => trimmed + "._"
+        }
+
+        (query, Some(unescaped))
     }
 
     ev.resolveSegments(Seq(query), SelectMode.Multi).map { res =>
-      res.map(_.render).filter(_.startsWith(deSlashed)).foreach(println)
+      val unescapedStr = unescapedOpt.getOrElse("")
+      val filtered = res.map(_.render).filter(_.startsWith(unescapedStr))
+      val moreFiltered = unescapedOpt match {
+        case Some(u) if filtered.contains(u) =>
+          ev.resolveSegments(Seq(u + "._"), SelectMode.Multi) match {
+            case Result.Success(v) => v.map(_.render)
+            case Result.Failure(error) => Nil
+          }
+
+        case _ => Nil
+      }
+
+      (filtered ++ moreFiltered).foreach(println)
     }
   }
 

@@ -91,6 +91,15 @@ object TabCompleteTests extends TestSuite {
       assert(out == expected)
     }
 
+    test("exactModule") - {
+      val out = evalComplete("1", "./mill", "bar")
+      val expected =
+        """bar
+          |bar.task2
+          |""".stripMargin
+      assert(out == expected)
+    }
+
     test("nested") - {
       val out = evalComplete("1", "./mill", "bar.")
       val expected =
@@ -103,6 +112,17 @@ object TabCompleteTests extends TestSuite {
       val out = evalComplete("1", "./mill", "qux[")
       val expected =
         """qux[12]
+          |qux[34]
+          |qux[56]
+          |""".stripMargin
+      assert(out == expected)
+    }
+
+    test("cross2") - {
+      val out = evalComplete("1", "./mill", "qux")
+      val expected =
+        """qux
+          |qux[12]
           |qux[34]
           |qux[56]
           |""".stripMargin
