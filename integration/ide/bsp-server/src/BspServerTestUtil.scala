@@ -21,13 +21,14 @@ object BspServerTestUtil {
   /** Allows to update the snapshots on the disk when running tests. */
   lazy val updateSnapshots: Boolean = {
     val varName = "MILL_TESTS_BSP_UPDATE_SNAPSHOTS"
-    val value = sys.env.get(varName)
-    if (value.isEmpty) println(
-      s"Using current BSP snapshots. You can update them by setting the $varName=1 environment variable."
-    )
-    val doUpdate = value.contains("1")
-    if (doUpdate) println(s"Updating BSP snapshots for tests.")
-    doUpdate
+    sys.env.get(varName) match {
+      case Some("1") =>
+        println(s"Updating BSP snapshots for tests.")
+        true
+      case _ =>
+        println(s"Using current BSP snapshots. Update with env var $varName=1")
+        false
+    }
   }
 
   private[mill] def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
