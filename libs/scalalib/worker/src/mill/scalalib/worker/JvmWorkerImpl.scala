@@ -230,7 +230,7 @@ class JvmWorkerImpl(
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
       args: Seq[String]
-  )(implicit ctx: JvmWorkerApi.Ctx): Boolean = {
+  )(using ctx: JvmWorkerApi.Ctx): Boolean = {
     withCompilers(
       scalaVersion,
       scalaOrganization,
@@ -474,7 +474,7 @@ class JvmWorkerImpl(
         scalaOrganization,
         javacRuntimeOptions
       )
-    ) { case (loader, compilers) =>
+    ) { case (_, compilers) =>
       f(compilers)
     }
   }
@@ -658,7 +658,7 @@ class JvmWorkerImpl(
       reporter.foreach(_.finish())
       previousScalaColor match {
         case null => sys.props.remove(scalaColorProp)
-        case v => sys.props(scalaColorProp) = previousScalaColor
+        case _ => sys.props(scalaColorProp) = previousScalaColor
       }
     }
   }

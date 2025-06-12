@@ -50,7 +50,7 @@ object JvmModel {
     }
 
     object Desc extends Table[String, Desc] {
-      def create: String => Desc = s => JvmModel.this.Desc.read(s)(SymbolTable.this)
+      def create: String => Desc = s => JvmModel.this.Desc.read(s)(using SymbolTable.this)
       def read(name: String): Desc = get(name)
     }
   }

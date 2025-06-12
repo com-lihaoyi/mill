@@ -76,7 +76,7 @@ private object PromptLoggerUtil {
           }
         )
       )
-    } catch { case e => None }
+    } catch { case _ => None }
   }
 
   def renderPrompt(
@@ -100,7 +100,7 @@ private object PromptLoggerUtil {
 
     val body0 = statuses
       .flatMap {
-        case (threadId, status) =>
+        case (_, status) =>
           // For statuses that have completed transitioning from Some to None, continue
           // rendering them as an empty line for `statusRemovalRemoveDelayMillis` to try
           // and maintain prompt height and stop it from bouncing up and down

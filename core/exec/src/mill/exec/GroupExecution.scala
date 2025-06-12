@@ -149,7 +149,7 @@ private trait GroupExecution {
 
               val cachedValueAndHash =
                 upToDateWorker.map(w => (w -> Nil, inputsHash))
-                  .orElse(cached.flatMap { case (inputHash, valOpt, valueHash) =>
+                  .orElse(cached.flatMap { case (_, valOpt, valueHash) =>
                     valOpt.map((_, valueHash))
                   })
 
@@ -218,7 +218,7 @@ private trait GroupExecution {
                   )
               }
           }
-        case task =>
+        case _ =>
           val (newResults, newEvaluated) = executeGroup(
             group = group,
             results = results,
@@ -383,7 +383,7 @@ private trait GroupExecution {
     def normalJson(w: upickle.default.Writer[_]) = PathRef.withSerializedPaths {
       upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
     }
-    lazy val workerJson = labelled.asWorker.map { w =>
+    lazy val workerJson = labelled.asWorker.map { _ =>
       ujson.Obj(
         "worker" -> ujson.Str(labelled.toString),
         "toString" -> ujson.Str(v.value.toString),

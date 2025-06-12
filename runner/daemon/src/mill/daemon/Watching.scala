@@ -62,7 +62,7 @@ object Watching {
 
     watch match {
       case None =>
-        val Result(watchables, errorOpt, result) =
+        val Result(_, errorOpt, result) =
           evaluate(enterKeyPressed = false, previousState = None)
         handleError(errorOpt)
         (errorOpt.isEmpty, result)
@@ -262,12 +262,12 @@ object Watching {
   def poll(w: Watchable): Long = w match {
     case Watchable.Path(p, quick, sig) =>
       new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).recomputeSig()
-    case Watchable.Value(f, sig, pretty) => f()
+    case Watchable.Value(f, _, _) => f()
   }
 
   def signature(w: Watchable): Long = w match {
     case Watchable.Path(p, quick, sig) =>
       new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).sig
-    case Watchable.Value(f, sig, pretty) => sig
+    case Watchable.Value(f, sig, _) => sig
   }
 }

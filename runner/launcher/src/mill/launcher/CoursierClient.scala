@@ -1,38 +1,16 @@
 package mill.launcher
 
+import coursier.{Artifacts, Dependency, ModuleName, Organization, Resolve, VersionConstraint}
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
 import coursier.util.Task
-import coursier.{
-  Artifacts,
-  Classifier,
-  Dependency,
-  ModuleName,
-  Organization,
-  Repository,
-  Resolution,
-  Resolve,
-  Type,
-  VersionConstraint
-}
-import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
-import coursier.core.{BomDependency, Module}
-import coursier.error.FetchError.DownloadingArtifacts
-import coursier.error.ResolutionError.CantDownloadModule
-import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
-import coursier.params.ResolutionParams
-import coursier.parse.RepositoryParser
-import coursier.util.Task
+import coursier.core.Module
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
-import coursier.core.{ArtifactSource, Extension, Info, Module, Project, Publication}
-import coursier.util.{Artifact, EitherT, Monad}
-import coursier.{Classifier, Dependency, Repository, Type}
 import mill.coursierutil.TestOverridesRepo
 
-import java.util.concurrent.ConcurrentHashMap
 object CoursierClient {
   def resolveMillDaemon() = {
     val repositories = Await.result(Resolve().finalRepositories.future(), Duration.Inf)
@@ -83,6 +61,6 @@ object CoursierClient {
       // rather than the highest already on disk
       .withUpdate(true)
 
-    javaHome.get(id).unsafeRun()(coursierCache0.ec)
+    javaHome.get(id).unsafeRun()(using coursierCache0.ec)
   }
 }

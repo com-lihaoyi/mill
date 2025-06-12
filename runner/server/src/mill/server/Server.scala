@@ -2,17 +2,17 @@ package mill.server
 
 import mill.api.SystemStreams
 import mill.constants.ProxyStream.Output
-import mill.client.lock.{DoubleLock, Lock, Locks}
+import mill.client.lock.{Lock, Locks}
 import mill.client.*
 import mill.constants.{DaemonFiles, InputPumper}
+import mill.constants.OutFiles
 import mill.constants.ProxyStream
 
 import java.io.*
-import java.net.{InetAddress, Socket, ServerSocket}
+import java.net.{InetAddress, Socket}
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 import scala.util.Using
-import mill.constants.OutFiles
 
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -180,7 +180,7 @@ abstract class Server[T](
         ProxyStream.sendHeartbeat(currentOutErr)
         true
       } catch {
-        case e: Throwable =>
+        case _: Throwable =>
           clientDisappeared = true
           false
       }
@@ -285,7 +285,7 @@ abstract class Server[T](
       Thread.sleep(5)
       try t.stop()
       catch {
-        case e: UnsupportedOperationException =>
+        case _: UnsupportedOperationException =>
         // nothing we can do about, removed in Java 20
         case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
         // ignore this error and do nothing; seems benign
@@ -325,7 +325,7 @@ object Server {
   }
   def checkProcessIdFile(processIdFile: os.Path, processId: String): Option[String] = {
     Try(os.read(processIdFile)) match {
-      case scala.util.Failure(e) => Some(s"processId file missing")
+      case scala.util.Failure(_) => Some(s"processId file missing")
 
       case scala.util.Success(s) =>
         Option.when(s != processId) {
@@ -383,7 +383,7 @@ object Server {
       def activeTaskString =
         try os.read(out / OutFiles.millActiveCommand)
         catch {
-          case e => "<unknown>"
+          case _ => "<unknown>"
         }
 
       def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"

@@ -2,6 +2,7 @@ package mill
 package scalanativelib
 
 import mainargs.Flag
+import mill.{api => _, *}
 import mill.api.Result
 import mill.api.internal.bsp.ScalaBuildTarget
 import mill.scalalib.api.JvmWorkerUtil
@@ -14,9 +15,6 @@ import mill.scalanativelib.worker.{
   ScalaNativeWorkerExternalModule,
   api as workerApi
 }
-import mill.{api => _, *}
-
-import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
 trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>

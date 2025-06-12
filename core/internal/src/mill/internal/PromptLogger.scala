@@ -70,7 +70,7 @@ private[mill] class PromptLogger(
       while (!runningState.stopped) {
         try Thread.sleep(promptUpdateIntervalMillis)
         catch {
-          case e: InterruptedException => /*do nothing*/
+          case _: InterruptedException => /*do nothing*/
         }
 
         readTerminalDims(terminfoPath).foreach(termDimensions = _)
@@ -359,7 +359,7 @@ private[mill] object PromptLogger {
       infoColor: fansi.Attrs
   ) {
     private val statuses = collection.mutable.SortedMap
-      .empty[Seq[String], Status](PromptLoggerUtil.seqStringOrdering)
+      .empty[Seq[String], Status](using PromptLoggerUtil.seqStringOrdering)
 
     private var headerPrefix = ""
     // Pre-compute the prelude and current prompt as byte arrays so that
@@ -418,7 +418,7 @@ private[mill] object PromptLogger {
       val sOptEntry = sOpt.map(StatusEntry(_, now, ""))
       statuses.updateWith(key) {
         case None =>
-          statuses.find { case (k, v) => v.next.isEmpty } match {
+          statuses.find { case (_, v) => v.next.isEmpty } match {
             case Some((reusableKey, reusableValue)) =>
               statuses.remove(reusableKey)
               Some(reusableValue.copy(next = sOptEntry))
