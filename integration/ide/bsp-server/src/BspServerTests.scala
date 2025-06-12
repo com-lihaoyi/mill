@@ -436,43 +436,59 @@ object BspServerTests extends UtestIntegrationTestSuite {
       val normalizedLocalValues = normalizeLocalValuesForTesting(workspacePath) ++
         scalaVersionNormalizedValues()
 
-      var messages = Seq.empty[b.ShowMessageParams]
-      val diagnostics = new mutable.ListBuffer[b.PublishDiagnosticsParams]
-      val client: b.BuildClient = new DummyBuildClient {
-        override def onBuildPublishDiagnostics(params: b.PublishDiagnosticsParams): Unit = {
-          // Not looking at diagnostics for generated sources of the build
-          val keep = !uriAsSubPath(params.getTextDocument.getUri).startsWith(os.sub / OutFiles.out)
-          if (keep)
-            diagnostics.append(params)
+      def runTest(): Unit = {
+        var messages = Seq.empty[b.ShowMessageParams]
+        val diagnostics = new mutable.ListBuffer[b.PublishDiagnosticsParams]
+        val client: b.BuildClient = new DummyBuildClient {
+          override def onBuildPublishDiagnostics(params: b.PublishDiagnosticsParams): Unit = {
+            // Not looking at diagnostics for generated sources of the build
+            val keep =
+              !uriAsSubPath(params.getTextDocument.getUri).startsWith(os.sub / OutFiles.out)
+            if (keep)
+              diagnostics.append(params)
+          }
+          override def onBuildShowMessage(params: b.ShowMessageParams): Unit = {
+            messages = messages :+ params
+          }
         }
-        override def onBuildShowMessage(params: b.ShowMessageParams): Unit = {
-          messages = messages :+ params
-        }
-      }
 
-      withBspServer(
-        workspacePath,
-        millTestSuiteEnv,
-        client = client
-      ) { (buildServer, _) =>
-        val targets = buildServer.workspaceBuildTargets().get().getTargets.asScala
-        val diagTargets = targets.filter(_.getDisplayName == "diag").map(_.getId).asJava
-        assert(!diagTargets.isEmpty())
+        withBspServer(
+          workspacePath,
+          millTestSuiteEnv,
+          client = client
+        ) { (buildServer, _) =>
+          val targets = buildServer.workspaceBuildTargets().get().getTargets.asScala
+          val diagTargets = targets.filter(_.getDisplayName == "diag").map(_.getId).asJava
+          assert(!diagTargets.isEmpty())
 
-        buildServer
-          .buildTargetCompile(
-            new b.CompileParams(
-              targets.filter(_.getDisplayName == "diag").map(_.getId).asJava
+          buildServer
+            .buildTargetCompile(
+              new b.CompileParams(
+                targets.filter(_.getDisplayName == "diag").map(_.getId).asJava
+              )
             )
-          )
-          .get()
+            .get()
 
-        compareWithGsonSnapshot(
-          diagnostics.asJava,
-          snapshotsPath / "diagnostics.json",
-          normalizedLocalValues = normalizedLocalValues
-        )
+          compareWithGsonSnapshot(
+            diagnostics.asJava,
+            snapshotsPath / "diagnostics.json",
+            normalizedLocalValues = normalizedLocalValues
+          )
+        }
       }
+
+      runTest()
+
+      // drop "package build" from build.mill, the test should still pass,
+      // diagnostic positions should all be the same
+      val originalBuildMill = os.read(workspacePath / "build.mill")
+      val idx = originalBuildMill.indexOf("package build")
+      assert(idx >= 0)
+      val noPackageBuildMill =
+        originalBuildMill.take(idx) + originalBuildMill.drop(idx + "package build".length)
+      os.write.over(workspacePath / "build.mill", noPackageBuildMill)
+      os.remove.all(workspacePath / OutFiles.out)
+      runTest()
     }
   }
 
