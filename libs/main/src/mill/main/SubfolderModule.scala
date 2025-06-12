@@ -12,7 +12,7 @@ abstract class SubfolderModule(millDiscover: Discover)(implicit
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File,
     subFolderInfo: SubfolderModule.Info
-) extends mill.define.Module.BaseClass()(
+) extends mill.define.Module.BaseClass(using
       ModuleCtx.makeRoot(
         millModuleEnclosing0 = subFolderInfo.segments.mkString("."),
         millModuleLine0 = millModuleLine0,
