@@ -53,7 +53,7 @@ private[mill] object BspRunModule extends ExternalModule {
           runClasspath: Seq[Path],
           forkArgs: Seq[String],
           forkWorkingDir: Path,
-          forEnv: Map[String, String],
+          forkEnv: Map[String, String],
           mainClass: Option[String],
           testEnvVars: Option[(
               mainClass: String,
@@ -73,7 +73,7 @@ private[mill] object BspRunModule extends ExternalModule {
             runModule.runClasspath().map(_.path.toNIO),
             runModule.forkArgs(),
             runModule.forkWorkingDir().toNIO,
-            runModule.forkEnv(),
+            runModule.allForkEnv(),
             runModule.mainClass(),
             testEnvVars()
           )

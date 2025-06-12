@@ -15,7 +15,7 @@ final case class IdeaConfigFile(
     config: Seq[Element]
 ) {
   // An empty component name meas we contribute a whole file
-  // If we have a fill file, we only accept a single root xml node.
+  // If we have a full file, we only accept a single root xml node.
   require(
     component.forall(_.nonEmpty) && (component.nonEmpty || config.size == 1),
     "Files contributions must have exactly one root element."

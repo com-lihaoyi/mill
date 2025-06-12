@@ -21,7 +21,7 @@ trait BspRunModuleApi extends ModuleApi {
       runClasspath: Seq[Path],
       forkArgs: Seq[String],
       forkWorkingDir: Path,
-      forEnv: Map[String, String],
+      forkEnv: Map[String, String],
       mainClass: Option[String],
       testEnvVars: Option[(
           mainClass: String,

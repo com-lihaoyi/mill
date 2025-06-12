@@ -14,6 +14,18 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/app/test"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/app/test/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-java"
       },
       "sources": [

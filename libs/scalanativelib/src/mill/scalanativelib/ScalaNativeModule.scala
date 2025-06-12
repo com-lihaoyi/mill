@@ -288,7 +288,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   override def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
     os.call(
       cmd = nativeLink().path.toString +: args().value,
-      env = forkEnv(),
+      env = allForkEnv(),
       cwd = forkWorkingDir(),
       stdin = os.Inherit,
       stdout = os.Inherit,
@@ -382,11 +382,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
 
     val (close, framework) = withScalaNativeBridge.apply().apply(_.getFramework(
       nativeLink().path.toIO,
-      forkEnv() ++
-        Map(
-          EnvVars.MILL_TEST_RESOURCE_DIR -> resources().map(_.path).mkString(";"),
-          EnvVars.MILL_WORKSPACE_ROOT -> Task.workspace.toString
-        ),
+      allForkEnv(),
       toWorkerApi(logLevel()),
       testFramework()
     ))

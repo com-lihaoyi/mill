@@ -16,6 +16,9 @@ import mill.testrunner.TestResult
 import mill.testrunner.TestRunner
 import mill.util.Jvm
 import mill.define.JsonFormatters.given
+import mill.constants.EnvVars
+
+import java.nio.file.Path
 
 import java.nio.file.Path
 
@@ -221,6 +224,12 @@ trait TestModule
    */
   def testSandboxWorkingDir: T[Boolean] = true
 
+  override def allForkEnv: T[Map[String, String]] = Task {
+    super.allForkEnv() ++ Map(
+      EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator.map(_.path).mkString(";")
+    )
+  }
+
   /**
    * The actual task shared by `test`-tasks that runs test in a forked JVM.
    */
@@ -241,7 +250,7 @@ trait TestModule
         args(),
         testForkGrouping(),
         jvmWorker().testrunnerEntrypointClasspath(),
-        forkEnv(),
+        allForkEnv(),
         testSandboxWorkingDir(),
         forkWorkingDir(),
         testReportXml(),

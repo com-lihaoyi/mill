@@ -8,6 +8,12 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/app/test"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-java"
       },
       "outputPaths": []
