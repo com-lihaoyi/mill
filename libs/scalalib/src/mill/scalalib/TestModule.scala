@@ -2,10 +2,9 @@ package mill.scalalib
 
 import mill.T
 import mill.api.Result
-import mill.api.internal.BspBuildTarget
-import mill.api.internal.BspModuleApi
 import mill.api.internal.TestModuleApi
 import mill.api.internal.TestReporter
+import mill.api.internal.bsp.{BspBuildTarget, BspModuleApi}
 import mill.define.PathRef
 import mill.define.Task
 import mill.define.TaskCtx
@@ -16,7 +15,10 @@ import mill.testrunner.TestArgs
 import mill.testrunner.TestResult
 import mill.testrunner.TestRunner
 import mill.util.Jvm
-import upickle.implicits.namedTuples.default.given
+import mill.define.JsonFormatters.given
+import mill.constants.EnvVars
+
+import java.nio.file.Path
 
 trait TestModule
     extends TestModule.JavaModuleBase
@@ -88,7 +90,12 @@ trait TestModule
       testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
     }
 
-  def getTestEnvironmentVars(args: String*): Task.Command[(String, String, String, Seq[String])] = {
+  def getTestEnvironmentVars(args: String*): Task.Command[(
+      mainClass: String,
+      testRunnerClasspathArg: String,
+      argsFile: String,
+      classpath: Seq[Path]
+  )] = {
     Task.Command {
       getTestEnvironmentVarsTask(Task.Anon { args })()
     }
@@ -168,7 +175,12 @@ trait TestModule
    * Returns a Tuple where the first element is the main-class, second and third are main-class-arguments and the forth is classpath
    */
   private def getTestEnvironmentVarsTask(args: Task[Seq[String]])
-      : Task[(String, String, String, Seq[String])] =
+      : Task[(
+          mainClass: String,
+          testRunnerClasspathArg: String,
+          argsFile: String,
+          classpath: Seq[Path]
+      )] =
     Task.Anon {
       val mainClass = "mill.testrunner.entrypoint.TestRunnerMain"
       val outputPath = Task.dest / "out.json"
@@ -195,7 +207,7 @@ trait TestModule
         jvmWorker().scalalibClasspath()
           .map(_.path.toNIO.toUri.toURL).mkString(",")
 
-      val cp = (runClasspath() ++ jvmWorker().testrunnerEntrypointClasspath()).map(_.path.toString)
+      val cp = (runClasspath() ++ jvmWorker().testrunnerEntrypointClasspath()).map(_.path.toNIO)
 
       Result.Success((mainClass, testRunnerClasspathArg, argsFile.toString, cp))
     }
@@ -209,6 +221,12 @@ trait TestModule
    * isolation.
    */
   def testSandboxWorkingDir: T[Boolean] = true
+
+  override def allForkEnv: T[Map[String, String]] = Task {
+    super.allForkEnv() ++ Map(
+      EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator.map(_.path).mkString(";")
+    )
+  }
 
   /**
    * The actual task shared by `test`-tasks that runs test in a forked JVM.
@@ -230,7 +248,7 @@ trait TestModule
         args(),
         testForkGrouping(),
         jvmWorker().testrunnerEntrypointClasspath(),
-        forkEnv(),
+        allForkEnv(),
         testSandboxWorkingDir(),
         forkWorkingDir(),
         testReportXml(),

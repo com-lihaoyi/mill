@@ -13,10 +13,11 @@ import java.util.concurrent.ConcurrentHashMap
  * come from the build and not from remote repositories or ~/.ivy2/local. See
  * `MillJavaModule#{testTransitiveDeps,writeLocalTestOverrides}` in the Mill build.
  */
-final class TestOverridesRepo() extends Repository {
+object TestOverridesRepo extends Repository {
   private def envFor(mod: Module): Option[String] = {
     val key = s"MILL_LOCAL_TEST_OVERRIDE_${mod.organization.value}-${mod.name.value}"
       .replaceAll("[.-]", "_")
+      .toUpperCase
 
     sys.env.get(key)
   }

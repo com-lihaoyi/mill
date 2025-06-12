@@ -8,10 +8,11 @@ import mill.internal.MultiLogger
 import mill.internal.FileLogger
 
 import java.lang.reflect.Method
+import java.util.concurrent.ThreadPoolExecutor
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
-import mill.api.internal.{EvaluatorApi, BaseModuleApi, CompileProblemReporter, TestReporter}
+import mill.api.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TestReporter}
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s
@@ -27,12 +28,13 @@ private trait GroupExecution {
   def workerCache: mutable.Map[String, (Int, Val)]
   def env: Map[String, String]
   def failFast: Boolean
-  def threadCount: Option[Int]
+  def ec: Option[ThreadPoolExecutor]
   def codeSignatures: Map[String, Int]
   def systemExit: Int => Nothing
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
   def headerData: String
+  def offline: Boolean
   lazy val parsedHeaderData: Map[String, ujson.Value] = {
     import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
     val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
@@ -72,7 +74,7 @@ private trait GroupExecution {
     CodeSigUtils.constructorHashSignatures(codeSignatures)
 
   val effectiveThreadCount: Int =
-    this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
+    ec.map(_.getMaximumPoolSize).getOrElse(1)
 
   // those result which are inputs but not contained in this terminal group
   def executeGroupCached(
@@ -88,7 +90,6 @@ private trait GroupExecution {
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
       executionContext: mill.define.TaskCtx.Fork.Api,
       exclusive: Boolean,
-      offline: Boolean,
       upstreamPathRefs: Seq[PathRef]
   ): GroupExecution.Results = {
     logger.withPromptLine {
@@ -185,11 +186,9 @@ private trait GroupExecution {
                       logger = logger,
                       executionContext = executionContext,
                       exclusive = exclusive,
-                      isCommand = labelled.isInstanceOf[Task.Command[?]],
-                      isInput = labelled.isInstanceOf[Task.Input[?]],
                       deps = deps,
-                      offline = offline,
-                      upstreamPathRefs = upstreamPathRefs
+                      upstreamPathRefs = upstreamPathRefs,
+                      terminal = labelled
                     )
 
                   val (valueHash, serializedPaths) = newResults(labelled) match {
@@ -232,11 +231,9 @@ private trait GroupExecution {
             logger = logger,
             executionContext = executionContext,
             exclusive = exclusive,
-            isCommand = task.isInstanceOf[Task.Command[?]],
-            isInput = task.isInstanceOf[Task.Input[?]],
             deps = deps,
-            offline = offline,
-            upstreamPathRefs = upstreamPathRefs
+            upstreamPathRefs = upstreamPathRefs,
+            terminal = terminal
           )
           GroupExecution.Results(
             newResults,
@@ -264,13 +261,10 @@ private trait GroupExecution {
       logger: mill.api.Logger,
       executionContext: mill.define.TaskCtx.Fork.Api,
       exclusive: Boolean,
-      isCommand: Boolean,
-      isInput: Boolean,
       deps: Seq[Task[?]],
-      offline: Boolean,
-      upstreamPathRefs: Seq[PathRef]
+      upstreamPathRefs: Seq[PathRef],
+      terminal: Task[?]
   ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
-
     val newEvaluated = mutable.Buffer.empty[Task[?]]
     val newResults = mutable.Map.empty[Task[?], ExecResult[(Val, Int)]]
 
@@ -317,15 +311,14 @@ private trait GroupExecution {
             workspace,
             validWriteDests,
             validReadDests,
-            isCommand,
-            isInput,
             exclusive,
             multiLogger,
             logger,
             exclusiveSystemStreams,
             counterMsg,
             destCreator,
-            getEvaluator().asInstanceOf[Evaluator]
+            getEvaluator().asInstanceOf[Evaluator],
+            terminal
           ) {
             try {
               task.evaluate(args) match {
@@ -531,23 +524,24 @@ private object GroupExecution {
       workspace: os.Path,
       validWriteDests: Seq[os.Path],
       validReadDests: Seq[os.Path],
-      isCommand: Boolean,
-      isInput: Boolean,
       exclusive: Boolean,
       multiLogger: Logger,
       logger: Logger,
       exclusiveSystemStreams: SystemStreams,
       counterMsg: String,
       destCreator: DestCreator,
-      evaluator: Evaluator
+      evaluator: Evaluator,
+      terminal: Task[?]
   )(t: => T): T = {
+    val isCommand = terminal.isInstanceOf[Task.Command[?]]
+    val isInput = terminal.isInstanceOf[Task.Input[?]]
     val executionChecker = new os.Checker {
       def onRead(path: os.ReadablePath): Unit = path match {
         case path: os.Path =>
           if (!isCommand && !isInput) {
             if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
               sys.error(
-                s"Reading from ${path.relativeTo(workspace)} not allowed during execution phase"
+                s"Reading from ${path.relativeTo(workspace)} not allowed during execution of `$terminal`"
               )
             }
           }
@@ -558,7 +552,7 @@ private object GroupExecution {
         if (!isCommand) {
           if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
             sys.error(
-              s"Writing to ${path.relativeTo(workspace)} not allowed during execution phase"
+              s"Writing to ${path.relativeTo(workspace)} not allowed during execution of `$terminal`"
             )
           }
         }

@@ -1,17 +1,18 @@
 package mill.meta
 
+import java.nio.file.Path
+
 import mill.*
 import mill.api.Result
 import mill.api.internal.internal
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.constants.OutFiles.*
-import mill.define.{PathRef, Discover, RootModule0, Task}
+import mill.define.{Discover, PathRef, RootModule0, Task}
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.util.BuildInfo
 import mill.api.internal.MillScalaParser
-import upickle.implicits.namedTuples.default.given
-
+import mill.define.JsonFormatters.given
 import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
@@ -33,7 +34,7 @@ trait MillBuildRootModule()(implicit
     .mkString("/")
 
   override def moduleDir: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
-  override def intellijModulePath: os.Path = moduleDir / os.up
+  override def intellijModulePathJava: Path = (moduleDir / os.up).toNIO
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
@@ -48,7 +49,7 @@ trait MillBuildRootModule()(implicit
    * @see [[generatedSources]]
    */
   def scriptSources: T[Seq[PathRef]] = Task.Sources(
-    scriptSourcesPaths.map(Result.Success(_))* // Ensure ordering is deterministic
+    scriptSourcesPaths* // Ensure ordering is deterministic
   )
 
   def parseBuildFiles: T[FileImportGraph] = Task {
@@ -240,26 +241,13 @@ trait MillBuildRootModule()(implicit
   def compileMvnDeps = Seq(
     mvn"com.lihaoyi::sourcecode:0.4.3-M5"
   )
+
   override def scalacPluginMvnDeps: T[Seq[Dep]] = Seq(
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${Versions.millModuledefsVersion}"
       .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 
-  override def scalacOptions: T[Seq[String]] = Task {
-    super.scalacOptions() ++
-      Seq("-deprecation")
-  }
-
-  override def scalacPluginClasspath: T[Seq[PathRef]] =
-    super.scalacPluginClasspath() ++ lineNumberPluginClasspath()
-
-  override protected def semanticDbPluginClasspath: T[Seq[PathRef]] =
-    super.semanticDbPluginClasspath() ++ lineNumberPluginClasspath()
-
-  def lineNumberPluginClasspath: T[Seq[PathRef]] = Task {
-    // millProjectModule("mill-runner-linenumbers", repositoriesTask())
-    Seq.empty
-  }
+  override def scalacOptions: T[Seq[String]] = Task { super.scalacOptions() ++ Seq("-deprecation") }
 
   /** Used in BSP IntelliJ, which can only work with directories */
   def dummySources: Sources = Task.Sources(Task.dest)

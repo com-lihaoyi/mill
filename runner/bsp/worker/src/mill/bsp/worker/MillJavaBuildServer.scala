@@ -1,16 +1,18 @@
 package mill.bsp.worker
 
+import java.util.concurrent.CompletableFuture
+
+import scala.jdk.CollectionConverters.*
+
 import ch.epfl.scala.bsp4j.{
   JavaBuildServer,
   JavacOptionsItem,
   JavacOptionsParams,
   JavacOptionsResult
 }
-import mill.api.internal.{TaskApi, JavaModuleApi}
+import mill.api.internal.JavaModuleApi
+import mill.api.internal.bsp.BspModuleApi
 import mill.bsp.worker.Utils.sanitizeUri
-
-import java.util.concurrent.CompletableFuture
-import scala.jdk.CollectionConverters._
 
 private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServer =>
 
@@ -18,22 +20,25 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
       : CompletableFuture[JavacOptionsResult] =
     handlerTasks(
       targetIds = _ => javacOptionsParams.getTargets.asScala,
-      tasks = { case m: JavaModuleApi =>
-        m.bspBuildTargetJavacOptions(sessionInfo.clientWantsSemanticDb)
+      tasks = {
+        // We ignore all non-JavaModule
+        case m: JavaModuleApi =>
+          m.bspJavaModule().bspBuildTargetJavacOptions(
+            sessionInfo.clientType.mergeResourcesIntoClasses,
+            sessionInfo.clientWantsSemanticDb
+          )
       },
       requestDescription = "Getting javac options of {}"
     ) {
-      // We ignore all non-JavaModule
-      case (ev, state, id, m: JavaModuleApi, f) =>
-        val (classesPath, javacOptions, classpath) = f(ev)
+      case (ev, _, id, _, f) =>
+        val res = f(ev)
         new JavacOptionsItem(
           id,
-          javacOptions.asJava,
-          classpath.asJava,
-          sanitizeUri(classesPath)
+          res.javacOptions.asJava,
+          res.classpath.asJava,
+          sanitizeUri(res.classesPath)
         )
 
-      case _ => ???
     } {
       new JavacOptionsResult(_)
     }

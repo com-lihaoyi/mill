@@ -56,7 +56,7 @@ public class MillProcessLauncher {
     }
   }
 
-  static void launchMillServer(Path daemonDir) throws Exception {
+  static Process launchMillServer(Path daemonDir) throws Exception {
     List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand());
     l.add("mill.daemon.MillDaemonMain");
@@ -67,7 +67,7 @@ public class MillProcessLauncher {
         .redirectOutput(daemonDir.resolve(DaemonFiles.stdout).toFile())
         .redirectError(daemonDir.resolve(DaemonFiles.stderr).toFile());
 
-    configureRunMillProcess(builder, daemonDir);
+    return configureRunMillProcess(builder, daemonDir);
   }
 
   static Process configureRunMillProcess(ProcessBuilder builder, Path daemonDir) throws Exception {
@@ -113,8 +113,12 @@ public class MillProcessLauncher {
         Path buildFile = Paths.get(rootBuildFileName);
         if (Files.exists(buildFile)) {
           String[] config = cachedComputedValue(
-              "yaml-config-" + key, mill.constants.Util.readYamlHeader(buildFile), () -> {
-                Object conf = mill.launcher.ConfigReader.readYaml(buildFile);
+              "yaml-config-" + key,
+              mill.constants.Util.readYamlHeader(
+                  buildFile, buildFile.getFileName().toString()),
+              () -> {
+                Object conf = mill.launcher.ConfigReader.readYaml(
+                    buildFile, buildFile.getFileName().toString());
                 if (!(conf instanceof Map)) return new String[] {};
                 Map<String, Object> conf2 = (Map<String, Object>) conf;
 

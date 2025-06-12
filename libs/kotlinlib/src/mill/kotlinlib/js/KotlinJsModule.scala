@@ -15,7 +15,7 @@ import mill.testrunner.TestResult
 import mill.util.Jvm
 import mill.{Args, T}
 import sbt.testing.Status
-import upickle.implicits.namedTuples.default.given
+import mill.define.JsonFormatters.given
 
 import java.io.{File, FileNotFoundException}
 import java.util.zip.ZipFile
@@ -102,7 +102,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * Compiles all the sources to the IR representation.
    */
   override def compile: T[CompilationResult] = Task {
-    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath().map(_.path)) {
+    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
       kotlinWorker =>
         kotlinJsCompile(
           outputMode = OutputMode.KlibDir,
@@ -121,7 +121,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           artifactId = artifactId(),
           explicitApi = kotlinExplicitApi(),
           extraKotlinArgs = allKotlincOptions(),
-          worker = kotlinWorker._2
+          worker = kotlinWorker
         )
     }
   }
@@ -205,7 +205,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
   protected override def kotlinCompileTask(
       extraKotlinArgs: Seq[String] = Seq.empty[String]
   ): Task[CompilationResult] = Task.Anon {
-    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath().map(_.path)) {
+    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
       kotlinWorker =>
         kotlinJsCompile(
           outputMode = OutputMode.KlibDir,
@@ -224,7 +224,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           artifactId = artifactId(),
           explicitApi = kotlinExplicitApi(),
           extraKotlinArgs = allKotlincOptions() ++ extraKotlinArgs,
-          worker = kotlinWorker._2
+          worker = kotlinWorker
         )
     }
   }
@@ -233,7 +233,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    * Creates final executable.
    */
   def linkBinary: T[CompilationResult] = Task {
-    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath().map(_.path)) {
+    KotlinWorkerManager.kotlinWorker().withValue(kotlinCompilerClasspath()) {
       kotlinWorker =>
         kotlinJsCompile(
           outputMode = binaryKindToOutputMode(kotlinJsBinaryKind()),
@@ -254,7 +254,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
           artifactId = artifactId(),
           explicitApi = kotlinExplicitApi(),
           extraKotlinArgs = allKotlincOptions(),
-          worker = kotlinWorker._2
+          worker = kotlinWorker
         )
     }
   }

@@ -1,11 +1,12 @@
 package mill.scalalib.bsp
 
 import mill.define.Task
-import mill._
-import mill.api.internal.BspModuleApi._
-import mill.api.internal.{BspBuildTarget, internal}
+import mill.*
+import mill.api.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.api.internal.bsp.BspModuleApi.Tag
+import mill.api.internal.internal
 
-trait BspModule extends mill.define.Module with mill.api.internal.BspModuleApi {
+trait BspModule extends mill.define.Module with BspModuleApi {
 
   private[mill] def bspDisplayName0: String = this.moduleSegments.render
 

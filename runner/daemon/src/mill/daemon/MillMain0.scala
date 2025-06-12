@@ -1,6 +1,6 @@
 package mill.daemon
 
-import mill.api.internal.{BspServerResult, internal}
+import mill.api.internal.internal
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
@@ -11,14 +11,16 @@ import mill.server.Server
 import mill.util.BuildInfo
 import mill.{api, define}
 
-import java.io.{InputStream, PipedInputStream, PrintStream}
+import java.io.{InputStream, PipedInputStream, PrintStream, PrintWriter, StringWriter}
 import java.lang.reflect.InvocationTargetException
 import java.util.Locale
+import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
 import java.util.concurrent.locks.ReentrantLock
 import scala.collection.immutable
 import scala.jdk.CollectionConverters.*
 import scala.util.control.NonFatal
 import scala.util.{Properties, Using}
+import mill.api.internal.bsp.BspServerResult
 
 @internal
 object MillMain0 {
@@ -34,53 +36,11 @@ object MillMain0 {
         if e.getCause != null && e.getCause.isInstanceOf[MillException] =>
       err.println(e.getCause.getMessage())
       (false, onError)
-    case NonFatal(e) =>
-      err.println("An unexpected error occurred " + e + "\n" + e.getStackTrace.mkString("\n"))
+    case e =>
+      val str = new StringWriter
+      e.printStackTrace(new PrintWriter(str))
+      err.println(str)
       throw e
-      (false, onError)
-  }
-
-  def main(args: Array[String]): Unit = mill.define.SystemStreams.withTopLevelSystemStreamProxy {
-    val initialSystemStreams = mill.define.SystemStreams.original
-
-    if (Properties.isWin && Util.hasConsole())
-      io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
-
-    val processId = Server.computeProcessId()
-    val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
-    Server.watchProcessIdFile(
-      out / OutFiles.millNoDaemon / processId / DaemonFiles.processId,
-      processId,
-      running = () => true,
-      exit = msg => {
-        System.err.println(msg)
-        System.exit(0)
-      }
-    )
-
-    val outLock = new DoubleLock(
-      outMemoryLock,
-      Lock.file((out / OutFiles.millOutLock).toString)
-    )
-
-    val daemonDir = os.Path(args.head)
-    val (result, _) =
-      try main0(
-          args = args.tail,
-          stateCache = RunnerState.empty,
-          mainInteractive = mill.constants.Util.hasConsole(),
-          streams0 = initialSystemStreams,
-          env = System.getenv().asScala.toMap,
-          setIdle = _ => (),
-          userSpecifiedProperties0 = Map(),
-          initialSystemProperties = sys.props.toMap,
-          systemExit = i => sys.exit(i),
-          daemonDir = daemonDir,
-          outLock = outLock
-        )
-      catch handleMillException(initialSystemStreams.err, ())
-
-    System.exit(if (result) 0 else 1)
   }
 
   val outMemoryLock = Lock.memory()
@@ -257,10 +217,14 @@ object MillMain0 {
                   val userSpecifiedProperties =
                     userSpecifiedProperties0 ++ config.extraSystemProperties
 
-                  val threadCount = Some(maybeThreadCount.toOption.get)
+                  val threadCount = maybeThreadCount.toOption.get
+
+                  def createEc(): Option[ThreadPoolExecutor] =
+                    if (threadCount == 1) None
+                    else Some(mill.exec.ExecutionContexts.createExecutor(threadCount))
 
                   val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
-                  Using.resource(new TailManager(daemonDir)) { tailManager =>
+                  Using.resources(new TailManager(daemonDir), createEc()) { (tailManager, ec) =>
                     def runMillBootstrap(
                         enterKeyPressed: Boolean,
                         prevState: Option[RunnerState],
@@ -289,7 +253,7 @@ object MillMain0 {
                               keepGoing = config.keepGoing.value,
                               imports = config.imports,
                               env = env,
-                              threadCount = threadCount,
+                              ec = ec,
                               targetsAndParams = targetsAndParams,
                               prevRunnerState = prevState.getOrElse(stateCache),
                               logger = logger,
@@ -315,6 +279,7 @@ object MillMain0 {
                             config,
                             enableTicker = config.ticker
                               .orElse(config.enableTicker)
+                              .orElse(Option.when(config.tabComplete.value)(false))
                               .orElse(Option.when(config.disableTicker.value)(false)),
                             daemonDir,
                             colored = colored,
@@ -325,7 +290,19 @@ object MillMain0 {
                       }
                     }
 
-                    if (bspMode) {
+                    if (config.tabComplete.value) {
+                      val bootstrapped = runMillBootstrap(
+                        enterKeyPressed = false,
+                        Some(stateCache),
+                        Seq(
+                          "mill.tabcomplete.TabCompleteModule/complete"
+                        ) ++ config.leftoverArgs.value,
+                        streams,
+                        "tab-completion"
+                      )
+
+                      (true, bootstrapped.result)
+                    } else if (bspMode) {
                       val bspLogger = getBspLogger(streams, config)
                       runBspSession(
                         streams0,
@@ -426,7 +403,8 @@ object MillMain0 {
         logDir,
         true,
         outLock,
-        bspLogger
+        bspLogger,
+        wsRoot / OutFiles.out
       )
     }
 
@@ -589,4 +567,14 @@ object MillMain0 {
     for (k <- systemPropertiesToUnset) System.clearProperty(k)
     for ((k, v) <- desiredProps) System.setProperty(k, v)
   }
+
+  private implicit lazy val threadPoolExecutorOptionReleasable
+      : Using.Releasable[Option[ThreadPoolExecutor]] =
+    new Using.Releasable[Option[ThreadPoolExecutor]] {
+      def release(resource: Option[ThreadPoolExecutor]): Unit =
+        for (t <- resource) {
+          t.shutdown()
+          t.awaitTermination(Long.MaxValue, TimeUnit.SECONDS)
+        }
+    }
 }

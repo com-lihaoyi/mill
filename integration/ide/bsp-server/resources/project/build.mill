@@ -19,9 +19,11 @@ object `hello-kotlin` extends kotlinlib.KotlinModule {
 // involving mvnDeps, but also compile-time only and runtime only dependencies
 object lib extends scalalib.JavaModule {
   import scalalib._
+
   def compileMvnDeps = Seq(
     mvn"junit:junit:4.13.2"
   )
+
   def mvnDeps = Seq(
     mvn"org.slf4j:slf4j-api:2.0.16"
   )
@@ -29,21 +31,47 @@ object lib extends scalalib.JavaModule {
 
 object app extends scalalib.JavaModule {
   import scalalib._
+
   def moduleDeps = Seq(lib)
+
   def mvnDeps = Seq(
     mvn"ch.qos.logback:logback-core:1.5.15"
   )
+
   def runMvnDeps = Seq(
     mvn"com.mysql:mysql-connector-j:9.1.0"
   )
+
+  def forkEnv = Map("MY_ENV_VAR" -> "my-value")
+
+  object test extends JavaTests {
+    def testFramework = "com.novocode.junit.JUnitFramework"
+  }
 }
 
-object errored extends scalalib.ScalaModule {
+object errored extends Module {
+
+  object exception extends scalalib.ScalaModule {
+    def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+
+    def compile = Task {
+      val res = super.compile()
+      sys.error("nope")
+      res
+    }
+  }
+
+  object `compilation-error` extends scalalib.ScalaModule {
+    def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+  }
+}
+
+object delayed extends scalalib.ScalaModule {
   def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
 
   def compile = Task {
     val res = super.compile()
-    sys.error("nope")
+    Thread.sleep(5000L)
     res
   }
 }

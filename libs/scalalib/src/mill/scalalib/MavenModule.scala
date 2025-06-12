@@ -1,5 +1,7 @@
 package mill.scalalib
 
+import java.nio.file.Path
+
 import mill.Task
 
 /**
@@ -14,7 +16,7 @@ trait MavenModule extends JavaModule { outer =>
 
   trait MavenTests extends JavaTests {
     override def moduleDir = outer.moduleDir
-    override def intellijModulePath: os.Path = outer.moduleDir / "src/test"
+    override def intellijModulePathJava: Path = (outer.moduleDir / "src/test").toNIO
 
     override def sources = Task.Sources("src/test/java")
     override def resources = Task.Sources("src/test/resources")

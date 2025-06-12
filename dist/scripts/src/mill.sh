@@ -6,7 +6,7 @@
 #   - env-variable `MILL_VERSION`
 #   - local file `.mill-version`
 #   - local file `.config/mill-version`
-#   - `mill-version` from YAML fronmatter of current buildfile
+#   - `mill-version` from YAML frontmatter of current buildfile
 #   - if accessible, find the latest stable version available on Maven Central ({{{ mill-maven-url }}})
 #   - env-variable `DEFAULT_MILL_VERSION`
 #
@@ -309,7 +309,7 @@ if [ -z "$MILL_MAIN_CLI" ] ; then
 fi
 
 MILL_FIRST_ARG=""
-if [ "$1" = "--bsp" ] || [ "$1" = "-i" ] || [ "$1" = "--interactive" ] || [ "$1" = "--no-server" ] || [ "$1" = "--no-daemon" ] || [ "$1" = "--repl" ] || [ "$1" = "--help" ] ; then
+if [ "$1" = "--bsp" ] || [ "${1#"-i"}" != "$1" ] || [ "$1" = "--interactive" ] || [ "$1" = "--no-server" ] || [ "$1" = "--no-daemon" ] || [ "$1" = "--repl" ] || [ "$1" = "--help" ] ; then
   # Need to preserve the first position of those listed options
   MILL_FIRST_ARG=$1
   shift

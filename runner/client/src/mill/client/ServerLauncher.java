@@ -47,7 +47,12 @@ public abstract class ServerLauncher {
 
   final int serverInitWaitMillis = 10000;
 
-  public abstract void initServer(Path daemonDir, Locks locks) throws Exception;
+  /**
+   * Starts a Mill server
+   *
+   * @return the server process if available, or null
+   */
+  public abstract Process initServer(Path daemonDir, Locks locks) throws Exception;
 
   public abstract void preparedaemonDir(Path daemonDir) throws Exception;
 
@@ -108,8 +113,33 @@ public abstract class ServerLauncher {
     try (Locks locks = memoryLock != null ? memoryLock : Locks.files(daemonDir.toString());
         mill.client.lock.Locked locked = locks.launcherLock.lock()) {
 
-      if (locks.daemonLock.probe()) initServer(daemonDir, locks);
-      while (locks.daemonLock.probe()) Thread.sleep(1);
+      Process daemonProcess = null;
+
+      if (locks.daemonLock.probe()) daemonProcess = initServer(daemonDir, locks);
+      while (locks.daemonLock.probe()) {
+        if (daemonProcess != null && !daemonProcess.isAlive()) {
+          System.err.println("Mill daemon exited unexpectedly!");
+          Path stdout = daemonDir.toAbsolutePath().resolve(DaemonFiles.stdout);
+          Path stderr = daemonDir.toAbsolutePath().resolve(DaemonFiles.stderr);
+          if (Files.exists(stdout) && Files.size(stdout) > 0) {
+            System.err.println("Daemon stdout:");
+            System.err.println();
+            System.err.write(Files.readAllBytes(stdout));
+          } else {
+            System.err.println("No daemon stdout");
+          }
+          if (Files.exists(stderr) && Files.size(stderr) > 0) {
+            System.err.println();
+            System.err.println("Daemon stderr:");
+            System.err.println();
+            System.err.write(Files.readAllBytes(stderr));
+          } else {
+            System.err.println("No daemon stderr");
+          }
+          System.exit(1);
+        }
+        Thread.sleep(1);
+      }
     }
     long retryStart = System.currentTimeMillis();
     Socket ioSocket = null;

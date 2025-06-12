@@ -2,13 +2,14 @@ package mill
 package scalajslib
 
 import mainargs.{Flag, arg}
+import mill.api.internal.{ScalaJSModuleApi, ScalaPlatform, internal}
+import mill.api.internal.bsp.ScalaBuildTarget
 import mill.api.Result
-import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
+import mill.scalalib.api.JvmWorkerUtil
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
-import mill.api.internal.{ScalaBuildTarget, ScalaJSModuleApi, ScalaPlatform, internal}
 import mill.*
 import upickle.implicits.namedTuples.default.given
 
@@ -44,7 +45,9 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
   }
 
   def scalaJSWorkerClasspath = Task {
-    defaultResolver().classpath(Seq(
+    // Use the global jvmWorker's resolver rather than this module's resolver so
+    // we don't incorrectly override the worker classpath's scala-library version
+    jvmWorker().defaultResolver().classpath(Seq(
       Dep.millProjectModule(s"mill-libs-scalajslib-worker-${scalaJSWorkerVersion()}")
     ))
   }
@@ -87,14 +90,15 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
           mvn"org.scala-js:scalajs-linker_2.13:${scalaJSVersion()}"
         ) ++ scalaJSJsEnvMvnDeps()
     }
-    // we need to use the scala-library of the currently running mill
-    defaultResolver().classpath(
+    // Use the global jvmWorker's resolver rather than this module's resolver so
+    // we don't incorrectly override the worker classpath's scala-library version
+    jvmWorker().defaultResolver().classpath(
       (commonDeps.iterator ++ envDeps ++ scalajsImportMapDeps)
         .map(Lib.depToBoundDep(_, mill.util.BuildInfo.scalaVersion, ""))
     )
   }
 
-  def scalaJSToolsClasspath: Target[Seq[PathRef]] = Task {
+  def scalaJSToolsClasspath: T[Seq[PathRef]] = Task {
     scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath()
   }
 

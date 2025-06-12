@@ -1,21 +1,23 @@
 package mill.scalalib
 
-import mill.define.Task
+import mill.define.{ModuleRef, Task}
 import mill.{Module, PathRef, T}
-import mill.api.internal.{JavaFacet, IdeaConfigFile}
+import mill.api.internal.idea.{GenIdeaModuleApi, IdeaConfigFile, JavaFacet}
 
 /**
  * Module specific configuration of the Idea project file generator.
  */
-trait GenIdeaModule extends Module {
+trait GenIdeaModule extends Module with GenIdeaModuleApi {
 
-  def intellijModulePath: os.Path = moduleDir
-  def intellijModulePathJava: java.nio.file.Path = intellijModulePath.toNIO
+  /**
+   * The path denoting the module directory in generated IntelliJ projects. Defaults to [[moduleDir]].
+   */
+  override def intellijModulePathJava: java.nio.file.Path = moduleDir.toNIO
 
   /**
    * Skip Idea project file generation.
    */
-  def skipIdea: Boolean = false
+  override def skipIdea: Boolean = false
 
   /**
    * Contribute facets to the Java module configuration.
@@ -30,9 +32,5 @@ trait GenIdeaModule extends Module {
    */
   def ideaConfigFiles(ideaConfigVersion: Int): Task[Seq[IdeaConfigFile]] =
     Task.Anon { Seq[IdeaConfigFile]() }
-
-  def ideaCompileOutput: T[PathRef] = Task(persistent = true) {
-    PathRef(Task.dest / "classes")
-  }
 
 }

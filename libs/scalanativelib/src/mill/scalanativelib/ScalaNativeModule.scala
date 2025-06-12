@@ -3,8 +3,9 @@ package scalanativelib
 
 import mainargs.Flag
 import mill.api.Result
+import mill.api.internal.bsp.ScalaBuildTarget
 import mill.scalalib.api.JvmWorkerUtil
-import mill.api.internal.{ScalaBuildTarget, ScalaNativeModuleApi, ScalaPlatform, internal}
+import mill.api.internal.{ScalaNativeModuleApi, ScalaPlatform, internal}
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalanativelib.api.*
@@ -17,7 +18,6 @@ import mill.{api => _, *}
 
 import mill.constants.EnvVars
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
-import upickle.implicits.namedTuples.default.given
 
 trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   def scalaNativeVersion: T[String]
@@ -36,7 +36,9 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
     Task { JvmWorkerUtil.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(Seq(
+    // Use the global jvmWorker's resolver rather than this module's resolver so
+    // we don't incorrectly override the worker classpath's scala-library version
+    jvmWorker().defaultResolver().classpath(Seq(
       Dep.millProjectModule(s"mill-libs-scalanativelib-worker-${scalaNativeWorkerVersion()}")
     ))
   }
@@ -138,7 +140,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   ) {
     def apply[T](block: ScalaNativeWorkerApi => T): T = {
       scalaNativeWorkerValue.withValue(bridgeFullClassPathValue) {
-        case (cl, bridge) => block(bridge)
+        bridge => block(bridge)
       }
     }
   }
@@ -286,7 +288,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   override def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
     os.call(
       cmd = nativeLink().path.toString +: args().value,
-      env = forkEnv(),
+      env = allForkEnv(),
       cwd = forkWorkingDir(),
       stdin = os.Inherit,
       stdout = os.Inherit,
@@ -380,11 +382,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
 
     val (close, framework) = withScalaNativeBridge.apply().apply(_.getFramework(
       nativeLink().path.toIO,
-      forkEnv() ++
-        Map(
-          EnvVars.MILL_TEST_RESOURCE_DIR -> resources().map(_.path).mkString(";"),
-          EnvVars.MILL_WORKSPACE_ROOT -> Task.workspace.toString
-        ),
+      allForkEnv(),
       toWorkerApi(logLevel()),
       testFramework()
     ))

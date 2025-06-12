@@ -12,6 +12,31 @@ endif::[]
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
+[#1-0-0-RC2]
+=== 1.0.0-RC2
+_2025-06-12_
+
+
+:version: 1.0.0-RC2
+:milestone-name: 1.0.0-RC2
+:milestone: 119
+:prev-version: 1.0.0-RC1
+
+Changes since 1.0.0-RC1
+
+* Add support for Bash/Zsh tab-completion, installable via `./mill mill.tabcomplete/install`
+  ({link-pr}/5279[#5279])
+
+* Better classloader re-use for improved performance when compiling Kotlin/Scala.js/Scala-Native
+  modules ({link-pr}/5269[#5269])
+
+* Lots of BSP/Intellij/VSCode bugfixes ({link-pr}/5275[#5275], {link-pr}/5265[#5265],
+  {link-pr}/5220[#5220], {link-pr}/5202[#5202], {link-pr}/5200[#5200])
+
+* Lots of error-reporting improvements ({link-pr}/52825[#5282], {link-pr}/5267[#5267],
+  {link-pr}/5235[#5235], {link-pr}/5233[#5233], {link-pr}/5213[#5213])
+
+
 [#1-0-0-RC1]
 === 1.0.0-RC1
 _2025-05-25_
@@ -134,6 +159,8 @@ package build
 ...Qux...
 ```
 
+* `import $packages` and `import $meta` are no longer necessary and have been removed
+
 * `mill.api.Ctx` is now `mill.define.TaskCtx`, and `mill.define.Ctx` is now `mill.define.ModuleCtx`,
   to avoid confusion over the name `Ctx` being overloaded to refer to two different classes
 
@@ -159,7 +186,16 @@ package build
 + }
 ```
 
+* `def zincWorker`, `ZincWorkerModule`, and `ZincWorkerUtil` have been renamed to 
+  `jvmWorker`, `JvmWorkerModule`, and `JvmWorkerUtil` {link-pr}/4834[#4834])
+
+* `millSourcePath` has been renamed to `moduleDir`
+
 * The terms `client`/`server` throughout the codebase have been renamed to `launcher`/`daemon` ({link-pr}/5135[#5135])
+
+* `def test` has been renamed `def testForked` ({link-pr}/4577[#4577]). This allows you to distinguish
+  between running all modules named `test` (`./mill __.test`) and running all modules which are test suites
+  (`./mill __.testForked`) that may include `integration` tests modules or modules with other names
 
 * Removed `PublishModule.publishSelfDependency` in favor of `artifactMetadata` ({link-pr}/5118[#5118])
 
@@ -245,6 +281,9 @@ package build
   documentation for how plugins are currently defined and published at
   https://mill-build.org/mill/main-branch/extending/writing-plugins.html[Writing Mill Plugins]
 
+* Mill's uPickle dependency has been updated from 3.3.1 to 4.2.1, which introduces some backwards
+  incompatible changes to the serialized JSON output. This should only affect you if you are 
+  processing Mill's `out` folder `.json` files via external tools
 
 ==== Other Changes
 

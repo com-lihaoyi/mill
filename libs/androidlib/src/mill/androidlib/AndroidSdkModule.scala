@@ -40,7 +40,7 @@ trait AndroidSdkModule extends Module {
   /**
    * Specifies the version of the Manifest Merger.
    */
-  def manifestMergerVersion: T[String] = "31.7.3"
+  def manifestMergerVersion: T[String] = "31.10.0"
 
   /**
    * Specifies the version of the Android build tools to be used.

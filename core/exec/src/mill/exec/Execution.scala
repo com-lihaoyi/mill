@@ -1,15 +1,15 @@
 package mill.exec
 
-import mill.api._
-import mill.api.internal._
+import mill.api.*
+import mill.api.internal.*
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
-import mill.define._
+import mill.define.*
 import mill.internal.PrefixLogger
-
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
+
 import scala.collection.mutable
-import scala.concurrent._
+import scala.concurrent.*
 
 /**
  * Core logic of evaluating tasks, without any user-facing helper methods
@@ -27,7 +27,7 @@ private[mill] case class Execution(
     workerCache: mutable.Map[String, (Int, Val)],
     env: Map[String, String],
     failFast: Boolean,
-    threadCount: Option[Int],
+    ec: Option[ThreadPoolExecutor],
     codeSignatures: Map[String, Int],
     systemExit: Int => Nothing,
     exclusiveSystemStreams: SystemStreams,
@@ -48,7 +48,7 @@ private[mill] case class Execution(
       workerCache: mutable.Map[String, (Int, Val)],
       env: Map[String, String],
       failFast: Boolean,
-      threadCount: Option[Int],
+      ec: Option[ThreadPoolExecutor],
       codeSignatures: Map[String, Int],
       systemExit: Int => Nothing,
       exclusiveSystemStreams: SystemStreams,
@@ -68,7 +68,7 @@ private[mill] case class Execution(
     workerCache,
     env,
     failFast,
-    threadCount,
+    ec,
     codeSignatures,
     systemExit,
     exclusiveSystemStreams,
@@ -94,12 +94,7 @@ private[mill] case class Execution(
     os.makeDir.all(outPath)
 
     PathRef.validatedPaths.withValue(new PathRef.ValidatedPaths()) {
-      val ec =
-        if (effectiveThreadCount == 1) ExecutionContexts.RunNow
-        else new ExecutionContexts.ThreadPool(effectiveThreadCount)
-
-      try execute0(goals, logger, reporter, testReporter, ec, serialCommandExec)
-      finally ec.close()
+      execute0(goals, logger, reporter, testReporter, serialCommandExec)
     }
   }
 
@@ -108,7 +103,6 @@ private[mill] case class Execution(
       logger: Logger,
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
-      ec: mill.define.TaskCtx.Fork.Impl,
       serialCommandExec: Boolean
   ): Execution.Results = {
     os.makeDir.all(outPath)
@@ -140,9 +134,10 @@ private[mill] case class Execution(
 
     def evaluateTerminals(
         terminals: Seq[Task[?]],
-        forkExecutionContext: mill.define.TaskCtx.Fork.Impl,
         exclusive: Boolean
     ) = {
+      val forkExecutionContext =
+        ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_))
       implicit val taskExecutionContext =
         if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
       // We walk the task graph in topological order and schedule the futures
@@ -224,7 +219,6 @@ private[mill] case class Execution(
                   allTransitiveClassMethods,
                   forkExecutionContext,
                   exclusive,
-                  offline,
                   upstreamPathRefs
                 )
 
@@ -293,9 +287,9 @@ private[mill] case class Execution(
 
     // Run all non-command tasks according to the threads
     // given but run the commands in linear order
-    val nonExclusiveResults = evaluateTerminals(tasks, ec, exclusive = false)
+    val nonExclusiveResults = evaluateTerminals(tasks, exclusive = false)
 
-    val exclusiveResults = evaluateTerminals(leafExclusiveCommands, ec, exclusive = true)
+    val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
 
     logger.prompt.clearPromptStatuses()
 

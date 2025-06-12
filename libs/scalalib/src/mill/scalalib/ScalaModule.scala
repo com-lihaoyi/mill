@@ -8,15 +8,9 @@ import mill.util.Jvm
 import mill.util.Jvm.createJar
 import mill.scalalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mainargs.Flag
+import mill.api.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
 import mill.define.{PathRef, Task}
-import mill.api.internal.{
-  BspBuildTarget,
-  BspModuleApi,
-  ScalaBuildTarget,
-  ScalaModuleApi,
-  ScalaPlatform,
-  internal
-}
+import mill.api.internal.{ScalaModuleApi, ScalaPlatform, internal}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
 
 // this import requires scala-reflect library to be on the classpath
@@ -295,25 +289,6 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       )
   }
 
-  /** the path to the compiled classes without forcing the compilation. */
-  @internal
-  override def bspCompileClassesPath: T[UnresolvedPath] =
-    if (compile.ctx.enclosing == s"${classOf[ScalaModule].getName}#compile") {
-      Task {
-        Task.log.debug(
-          s"compile target was not overridden, assuming hard-coded classes directory for target ${compile}"
-        )
-        UnresolvedPath.DestPath(os.sub / "classes", compile.ctx.segments)
-      }
-    } else {
-      Task {
-        Task.log.debug(
-          s"compile target was overridden, need to actually execute compilation to get the compiled classes directory for target ${compile}"
-        )
-        UnresolvedPath.ResolvedPath(compile().classes.path)
-      }
-    }
-
   override def docSources: T[Seq[PathRef]] = Task {
     if (JvmWorkerUtil.isScala3(scalaVersion()) && !JvmWorkerUtil.isScala3Milestone(scalaVersion()))
       Seq(compile().classes)
@@ -448,7 +423,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           _.path
         ),
         jvmArgs = forkArgs(),
-        env = forkEnv(),
+        env = allForkEnv(),
         mainArgs = Seq(useJavaCp) ++ consoleScalacOptions().filterNot(Set(useJavaCp)),
         cwd = forkWorkingDir(),
         stdin = os.Inherit,
@@ -519,7 +494,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         mainClass = mainClass,
         classPath = ammoniteReplClasspath().map(_.path).toVector,
         jvmArgs = forkArgs(),
-        env = forkEnv(),
+        env = allForkEnv(),
         mainArgs = replOptions,
         cwd = forkWorkingDir(),
         stdin = os.Inherit,

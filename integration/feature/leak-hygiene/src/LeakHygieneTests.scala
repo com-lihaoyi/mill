@@ -26,11 +26,20 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
   def checkThreads(tester: IntegrationTester)(expected: String*) = {
     val out = tester.eval(("show", "countThreads")).out
     val read = upickle.default.read[Seq[String]](out)
+    // Filter out threads from the thread pool that runs tasks
+    // 'countThreads' marks the thread that runs it with a '!' prefix
+    val taskPoolPrefixOpt = read
+      .find(_.startsWith("!execution-contexts-threadpool-"))
+      .map(_.stripPrefix("!").split("-thread-").apply(0) + "-thread-")
     val filtered = read
       .filter {
         case s"coursier-pool-$_" => false
         case s"scala-execution-context-$_" => false
-        case _ => true
+        case other =>
+          taskPoolPrefixOpt.forall { taskPoolPrefix =>
+            !other.startsWith(taskPoolPrefix) &&
+            !other.startsWith("!" + taskPoolPrefix)
+          }
       }
       .map {
         // Timers have incrementing IDs, but we don't care what
@@ -39,8 +48,10 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         case s => s
       }
 
-    // pprint.log(read)
-    // pprint.log(expected)
+    if (filtered != expected) {
+      pprint.log(expected.sorted)
+      pprint.log(filtered.sorted)
+    }
     assert(filtered == expected)
   }
 
@@ -52,7 +63,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
           "mill.scalalib.JvmWorkerModule#worker cl" -> 1,
-          "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
+          "mill.scalalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
         )
         checkThreads(tester)(
           "HandleRunThread",
@@ -61,7 +72,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           "Process ID Checker Thread",
           "Tail",
           "Tail",
-          "execution-contexts-threadpool-thread",
           "main",
           "prompt-logger-stream-pumper-thread",
           "proxyInputStreamThroughPumper"
@@ -74,9 +84,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           checkClassloaders(tester)(
             "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory#setup cl" -> 1,
+            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 2
+            "mill.scalalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 2
           )
           checkThreads(tester)(
             "HandleRunThread",
@@ -86,7 +96,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Tail",
             "Tail",
             "Timer",
-            "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
             "proxyInputStreamThroughPumper"
@@ -100,9 +109,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           checkClassloaders(tester)(
             "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory#setup cl" -> 1,
+            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 2
+            "mill.scalalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 2
           )
           checkThreads(tester)(
             "HandleRunThread",
@@ -112,7 +121,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Tail",
             "Tail",
             "Timer",
-            "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
             "proxyInputStreamThroughPumper"
@@ -134,7 +142,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           "Process ID Checker Thread",
           "Tail",
           "Tail",
-          "execution-contexts-threadpool-thread",
           "main",
           "prompt-logger-stream-pumper-thread",
           "proxyInputStreamThroughPumper"
@@ -146,9 +153,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory#setup cl" -> 1,
+            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
+            "mill.scalalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
           )
           checkThreads(tester)(
             "HandleRunThread",
@@ -158,7 +165,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Tail",
             "Tail",
             "Timer",
-            "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
             "proxyInputStreamThroughPumper"
@@ -167,14 +173,14 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
         // Exercise modifying build.mill
         for (i <- Range(0, 2)) {
-          tester.modifyFile(tester.workspacePath / "build.mill", "\n" + _)
+          tester.modifyFile(tester.workspacePath / "build.mill", _ + "\n")
 
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory#setup cl" -> 1,
+            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
+            "mill.scalalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
           )
           checkThreads(tester)(
             "HandleRunThread",
@@ -184,7 +190,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Tail",
             "Tail",
             "Timer",
-            "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
             "proxyInputStreamThroughPumper"
@@ -200,9 +205,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           val res = tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory#setup cl" -> 1,
+            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
             "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
+            "mill.scalalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
           )
           checkThreads(tester)(
             "HandleRunThread",
@@ -212,7 +217,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Tail",
             "Tail",
             "Timer",
-            "execution-contexts-threadpool-thread",
             "main",
             "prompt-logger-stream-pumper-thread",
             "proxyInputStreamThroughPumper"
@@ -225,9 +229,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         checkClassloaders(tester)(
           "leaked classloader" -> 1,
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-          "mill.kotlinlib.KotlinWorkerFactory#setup cl" -> 1,
+          "mill.kotlinlib.KotlinWorkerFactory" -> 1,
           "mill.scalalib.JvmWorkerModule#worker cl" -> 2,
-          "mill.scalalib.worker.JvmWorkerImpl#getCachedClassLoader cl" -> 1
+          "mill.scalalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
         )
         checkThreads(tester)(
           "HandleRunThread",
@@ -237,7 +241,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           "Tail",
           "Tail",
           "Timer",
-          "execution-contexts-threadpool-thread",
           "leaked thread",
           "main",
           "prompt-logger-stream-pumper-thread",

@@ -1,16 +1,17 @@
 package mill.integration
 
-import ch.epfl.scala.{bsp4j => b}
-import mill.api.BuildInfo
-import mill.bsp.Constants
-import mill.integration.BspServerTestUtil._
-import mill.testkit.UtestIntegrationTestSuite
-import mill.testrunner.TestRunnerUtils
-import utest._
-
 import java.io.ByteArrayOutputStream
 
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
+import scala.util.chaining.given
+
+import ch.epfl.scala.bsp4j as b
+import mill.api.BuildInfo
+import mill.bsp.Constants
+import mill.integration.BspServerTestUtil.*
+import mill.testkit.UtestIntegrationTestSuite
+import mill.testrunner.TestRunnerUtils
+import utest.*
 
 object BspServerTests extends UtestIntegrationTestSuite {
   def snapshotsPath: os.Path =
@@ -42,7 +43,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
   def tests: Tests = Tests {
     test("requestSnapshots") - integrationTest { tester =>
-      import tester._
+      import tester.*
       eval(
         "--bsp-install",
         stdout = os.Inherit,
@@ -110,13 +111,24 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
-        val targetIds =
-          buildTargets.getTargets.asScala.filter(_.getDisplayName != "errored").map(_.getId).asJava
+        val targetIds = buildTargets
+          .getTargets
+          .asScala
+          .filter(_.getDisplayName != "errored.exception")
+          .filter(_.getDisplayName != "errored.compilation-error")
+          .filter(_.getDisplayName != "delayed")
+          .map(_.getId)
+          .asJava
         val metaBuildTargetId = new b.BuildTargetIdentifier(
           (workspacePath / "mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
         )
         assert(targetIds.contains(metaBuildTargetId))
         val targetIdsSubset = targetIds.asScala.filter(_ != metaBuildTargetId).asJava
+
+        val appTargetId = new b.BuildTargetIdentifier(
+          (workspacePath / "app").toNIO.toUri.toASCIIString.stripSuffix("/")
+        )
+        assert(targetIds.contains(appTargetId))
 
         compareWithGsonSnapshot(
           buildServer
@@ -125,6 +137,24 @@ object BspServerTests extends UtestIntegrationTestSuite {
           snapshotsPath / "build-targets-sources.json",
           normalizedLocalValues = normalizedLocalValues
         )
+
+        {
+          val file = workspacePath / "app/src/App.java"
+          assert(initRes.getCapabilities.getInverseSourcesProvider == true)
+          assert(os.exists(file))
+
+          compareWithGsonSnapshot(
+            buildServer
+              .buildTargetInverseSources(
+                new b.InverseSourcesParams(
+                  new b.TextDocumentIdentifier(file.toNIO.toUri().toASCIIString)
+                )
+              )
+              .get(),
+            snapshotsPath / "build-targets-inverse-sources.json",
+            normalizedLocalValues = normalizedLocalValues
+          )
+        }
 
         compareWithGsonSnapshot(
           buildServer
@@ -158,6 +188,15 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
+        // compile
+        compareWithGsonSnapshot(
+          buildServer.buildTargetCompile(new b.CompileParams(targetIds)).get(),
+          snapshotsPath / "build-targets-compile.json",
+          normalizedLocalValues = normalizedLocalValues
+        )
+
+        // Jvm Extension
+
         compareWithGsonSnapshot(
           buildServer
             .buildTargetJvmRunEnvironment(new b.JvmRunEnvironmentParams(targetIdsSubset))
@@ -182,6 +221,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
+        // Java Extention
+
         compareWithGsonSnapshot(
           buildServer
             .buildTargetJavacOptions(new b.JavacOptionsParams(targetIdsSubset))
@@ -190,6 +231,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
+        // Scala Extension
+
         compareWithGsonSnapshot(
           buildServer
             .buildTargetScalacOptions(new b.ScalacOptionsParams(targetIdsSubset))
@@ -197,11 +240,36 @@ object BspServerTests extends UtestIntegrationTestSuite {
           snapshotsPath / "build-targets-scalac-options.json",
           normalizedLocalValues = normalizedLocalValues
         )
+
+        // Run without args
+        compareWithGsonSnapshot(
+          buildServer.buildTargetRun(new b.RunParams(appTargetId)).get(),
+          snapshotsPath / "build-targets-run-1.json",
+          normalizedLocalValues = normalizedLocalValues
+        )
+
+        {
+          val run3 = os.temp(suffix = "bsp-run-3", deleteOnExit = false)
+          println("file: " + run3)
+          os.remove(run3)
+          compareWithGsonSnapshot(
+            buildServer
+              .buildTargetRun(new b.RunParams(appTargetId).tap { p =>
+                p.setArguments(java.util.List.of(s"file=${run3.toString}", "content=run-3"))
+              })
+              .get(),
+            snapshotsPath / "build-targets-run-1.json",
+            normalizedLocalValues = normalizedLocalValues
+          )
+          assert(os.exists(run3))
+          assert(os.read(run3).trim() == "run-3")
+        }
+
       }
     }
 
     test("logging") - integrationTest { tester =>
-      import tester._
+      import tester.*
       eval(
         "--bsp-install",
         stdout = os.Inherit,
@@ -229,9 +297,32 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         buildServer.buildTargetCompile(
           new b.CompileParams(
-            targets.filter(_.getDisplayName == "errored").map(_.getId).asJava
+            targets.filter(_.getDisplayName == "errored.exception").map(_.getId).asJava
           )
         ).get()
+
+        buildServer.buildTargetCompile(
+          new b.CompileParams(
+            targets.filter(_.getDisplayName == "errored.compilation-error").map(_.getId).asJava
+          )
+        ).get()
+
+        // Submitting two compilation requests in a row, and cancelling
+        // the second one.
+        // We shouldn't get any log from the cancelled one, apart from
+        // a "… was cancelled" message.
+        val delayedCompileFuture = buildServer.buildTargetCompile(
+          new b.CompileParams(
+            targets.filter(_.getDisplayName == "delayed").map(_.getId).asJava
+          )
+        )
+        val erroredCompileFuture = buildServer.buildTargetCompile(
+          new b.CompileParams(
+            targets.filter(_.getDisplayName == "errored.exception").map(_.getId).asJava
+          )
+        )
+        erroredCompileFuture.cancel(true)
+        delayedCompileFuture.get()
       }
 
       val logs = stderr.toString
@@ -239,18 +330,32 @@ object BspServerTests extends UtestIntegrationTestSuite {
         .filter(_.startsWith("["))
         .mkString
 
+      val expectedCancelledLine = "[7-compile] buildTargetCompile was cancelled"
+
+      assert(logs.linesIterator.contains(expectedCancelledLine))
+
       compareLogWithSnapshot(
         logs,
         snapshotsPath / "logging",
         // ignoring compilation warnings that might go away in the future
-        ignoreLine = TestRunnerUtils.matchesGlob("[bsp-init-build.mill-*] [warn] *")
+        ignoreLine = {
+          val warnGlob = TestRunnerUtils.matchesGlob("[bsp-init-build.mill-*] [warn] *")
+          val waitingGlob = TestRunnerUtils.matchesGlob("[*] Another Mill process is running *")
+          s =>
+            warnGlob(s) || waitingGlob(s) ||
+              // Ignoring this one, that sometimes comes out of order.
+              // If the request hasn't been cancelled, we'd see extra lines making the
+              // test fail anyway.
+              s == expectedCancelledLine
+        }
       )
 
       val messages0 = messages.map { message =>
         (message.getType, message.getMessage)
       }
       val expectedMessages = Seq(
-        (b.MessageType.ERROR, "Compiling errored failed, see Mill logs for more details")
+        // no message for errored.compilation-error, compilation diagnostics are enough
+        (b.MessageType.ERROR, "Compiling errored.exception failed, see Mill logs for more details")
       )
       assert(expectedMessages == messages0)
     }
