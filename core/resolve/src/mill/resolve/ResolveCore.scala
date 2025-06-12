@@ -442,7 +442,7 @@ private object ResolveCore {
                     Segments.labels(c.moduleSegments.last.value),
                     c.getClass
                   ),
-                  Some((x: Module) => mill.api.Result.Success(c))
+                  Some((_: Module) => mill.api.Result.Success(c))
                 )
               )
         }

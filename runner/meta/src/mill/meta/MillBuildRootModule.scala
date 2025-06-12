@@ -316,7 +316,8 @@ object MillBuildRootModule {
     FileImportGraph.parseBuildFiles(
       millBuildRootModuleInfo.topLevelProjectRoot,
       millBuildRootModuleInfo.projectRoot / os.up,
-      millBuildRootModuleInfo.output
+      millBuildRootModuleInfo.output,
+      parser
     )
   }
 }

@@ -1,6 +1,6 @@
 package mill.scalajslib.worker
 
-import java.io.File
+import mill.*
 import mill.scalajslib.api
 import mill.scalajslib.worker.{api => workerApi}
 import mill.define.TaskCtx
@@ -8,13 +8,14 @@ import mill.api.Result
 import mill.api.internal.internal
 import mill.define.Discover
 import mill.util.CachedFactory
-import mill.*
 
+import java.io.File
 import java.net.URLClassLoader
 
 @internal
 private[scalajslib] class ScalaJSWorker(jobs: Int)
     extends CachedFactory[Seq[mill.PathRef], (URLClassLoader, workerApi.ScalaJSWorkerApi)] {
+
   override def setup(key: Seq[PathRef]) = {
     val cl = mill.util.Jvm.createClassLoader(
       key.map(_.path).toVector,
@@ -103,7 +104,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
               workerApi.JsEnvConfig.Selenium.ChromeOptions(headless = options.headless)
             case options: api.JsEnvConfig.Selenium.FirefoxOptions =>
               workerApi.JsEnvConfig.Selenium.FirefoxOptions(headless = options.headless)
-            case options: api.JsEnvConfig.Selenium.SafariOptions =>
+            case _: api.JsEnvConfig.Selenium.SafariOptions =>
               workerApi.JsEnvConfig.Selenium.SafariOptions()
           }
         )
@@ -180,7 +181,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
       importMap: Seq[api.ESModuleImportMapping],
       experimentalUseWebAssembly: Boolean
   ): Result[api.Report] = {
-    withValue(toolsClasspath) { case (cl, bridge) =>
+    withValue(toolsClasspath) { case (_, bridge) =>
       bridge.link(
         runClasspath = runClasspath.iterator.map(_.path.toNIO).toSeq,
         dest = dest,
@@ -205,7 +206,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
   }
 
   def run(toolsClasspath: Seq[mill.PathRef], config: api.JsEnvConfig, report: api.Report): Unit = {
-    withValue(toolsClasspath) { case (cl, bridge) =>
+    withValue(toolsClasspath) { case (_, bridge) =>
       bridge.run(toWorkerApi(config), toWorkerApi(report))
     }
   }
@@ -216,7 +217,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
       frameworkName: String,
       report: api.Report
   ): (() => Unit, sbt.testing.Framework) = {
-    withValue(toolsClasspath) { case (cl, bridge) =>
+    withValue(toolsClasspath) { case (_, bridge) =>
       bridge.getFramework(
         toWorkerApi(config),
         frameworkName,

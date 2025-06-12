@@ -1,6 +1,5 @@
 package mill.define
 
-import mill.api
 import mill.api.internal.{ModuleApi, internal}
 import mill.define.internal.{OverrideMapping, Reflect}
 import mill.define.Task.Simple
@@ -95,7 +94,7 @@ object Module {
         filter,
         Reflect.getMethods(_, scala.reflect.NameTransformer.decode)
       )
-        .map { case (name, cls, getter) => getter(outer) }
+        .map { case (getter = getter) => getter(outer) }
         .toSeq
     }
   }

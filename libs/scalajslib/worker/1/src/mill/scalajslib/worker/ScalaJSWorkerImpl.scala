@@ -27,8 +27,6 @@ import scala.ref.SoftReference
 import com.armanbilge.sjsimportmap.ImportMappedIRFile
 import mill.constants.InputPumper
 
-import scala.annotation.nowarn
-
 class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
   private case class LinkerInput(
       isFullLinkJS: Boolean,
@@ -257,17 +255,16 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
               .withSourceMap(PathOutputFile(sourceMapFile))
               .withSourceMapURI(java.net.URI.create(sourceMapFile.getFileName.toString))
           }
-          linker.link(irFiles, moduleInitializers, linkerOutput, logger).map {
-            file =>
-              Report(
-                publicModules = Seq(Report.Module(
-                  moduleID = "main",
-                  jsFileName = jsFileName,
-                  sourceMapName = sourceMapNameOpt,
-                  moduleKind = moduleKind
-                )),
-                dest = dest
-              )
+          linker.link(irFiles, moduleInitializers, linkerOutput, logger).map { _ =>
+            Report(
+              publicModules = Seq(Report.Module(
+                moduleID = "main",
+                jsFileName = jsFileName,
+                sourceMapName = sourceMapNameOpt,
+                moduleKind = moduleKind
+              )),
+              dest = dest
+            )
           }
         } else {
           val linkerOutput = PathOutputDirectory(dest.toPath())

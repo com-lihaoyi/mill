@@ -7,7 +7,6 @@ import mill.T
 import mill.androidlib.manifestmerger.AndroidManifestMerger
 import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
-import mill.util.Jvm
 import mill.define.JsonFormatters.given
 
 import scala.collection.immutable

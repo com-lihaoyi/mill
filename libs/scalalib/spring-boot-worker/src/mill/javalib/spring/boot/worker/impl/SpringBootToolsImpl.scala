@@ -41,7 +41,7 @@ class SpringBootToolsImpl() extends SpringBootTools {
       mainClass: String,
       libs: Seq[Path],
       launchScript: Option[String]
-  )(implicit ctx: TaskCtx): Unit = {
+  )(using ctx: TaskCtx): Unit = {
     val repack = new Repackager(base.toIO)
     repack.setMainClass(mainClass)
 

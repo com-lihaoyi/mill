@@ -46,7 +46,7 @@ private trait GroupExecution {
       "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
     )
     def rec(x: Any): ujson.Value = {
-      import collection.JavaConverters._
+      import scala.jdk.CollectionConverters._
       x match {
         case d: java.util.Date => ujson.Str(d.toString)
         case s: String => ujson.Str(mill.constants.Util.interpolateEnvVars(s, envWithPwd.asJava))
@@ -57,11 +57,9 @@ private trait GroupExecution {
         case false => ujson.False
         case null => ujson.Null
         case m: java.util.Map[Object, Object] =>
-          import collection.JavaConverters._
           val scalaMap = m.asScala
           ujson.Obj.from(scalaMap.map { case (k, v) => (k.toString, rec(v)) })
         case l: java.util.List[Object] =>
-          import collection.JavaConverters._
           val scalaList: collection.Seq[Object] = l.asScala
           ujson.Arr.from(scalaList.map(rec))
       }
@@ -149,7 +147,7 @@ private trait GroupExecution {
 
               val cachedValueAndHash =
                 upToDateWorker.map(w => (w -> Nil, inputsHash))
-                  .orElse(cached.flatMap { case (inputHash, valOpt, valueHash) =>
+                  .orElse(cached.flatMap { case (_, valOpt, valueHash) =>
                     valOpt.map((_, valueHash))
                   })
 
@@ -218,7 +216,7 @@ private trait GroupExecution {
                   )
               }
           }
-        case task =>
+        case _ =>
           val (newResults, newEvaluated) = executeGroup(
             group = group,
             results = results,
@@ -383,7 +381,7 @@ private trait GroupExecution {
     def normalJson(w: upickle.default.Writer[_]) = PathRef.withSerializedPaths {
       upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
     }
-    lazy val workerJson = labelled.asWorker.map { w =>
+    lazy val workerJson = labelled.asWorker.map { _ =>
       ujson.Obj(
         "worker" -> ujson.Str(labelled.toString),
         "toString" -> ujson.Str(v.value.toString),

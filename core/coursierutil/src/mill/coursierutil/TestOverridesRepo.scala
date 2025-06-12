@@ -4,8 +4,6 @@ import coursier.core.{ArtifactSource, Extension, Info, Module, Project, Publicat
 import coursier.util.{Artifact, EitherT, Monad}
 import coursier.{Classifier, Dependency, Repository, Type}
 
-import java.util.concurrent.ConcurrentHashMap
-
 /**
  * A `coursier.Repository` that exposes modules with hard-coded artifact list
  *

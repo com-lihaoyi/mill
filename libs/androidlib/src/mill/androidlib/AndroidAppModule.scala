@@ -7,7 +7,6 @@ import mill.api.internal.{internal, *}
 import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.testrunner.TestResult
-import mill.util.Jvm
 import os.{Path, RelPath, zip}
 import upickle.default.*
 import scala.jdk.OptionConverters.RichOptional
@@ -78,12 +77,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
    * See more in [[https://developer.android.com/build/configure-app-module#set-application-id]]
    */
   def androidApplicationId: String
-
-  private def androidManifestUsesSdkSection: Task[Elem] = Task.Anon {
-    val minSdkVersion = androidMinSdk().toString
-    val targetSdkVersion = androidTargetSdk().toString
-    <uses-sdk android:minSdkVersion={minSdkVersion} android:targetSdkVersion={targetSdkVersion}/>
-  }
 
   def androidDebugManifestLocation: T[PathRef] = Task.Source {
     "src/debug/AndroidManifest.xml"
