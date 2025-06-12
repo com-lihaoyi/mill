@@ -1,21 +1,25 @@
 package mill.scalajslib.api
 
-import upickle.default.{ReadWriter => RW, macroRW}
-import mill.define.Mirrors.autoMirror
-import mill.define.Mirrors
+import upickle.default.ReadWriter
 
 case class ESFeatures private (
     allowBigIntsForLongs: Boolean,
     avoidClasses: Boolean,
     avoidLetsAndConsts: Boolean,
     esVersion: ESVersion
-) {
+) derives ReadWriter {
+
   def withAllowBigIntsForLongs(allowBigIntsForLongs: Boolean): ESFeatures =
     copy(allowBigIntsForLongs = allowBigIntsForLongs)
-  def withAvoidClasses(avoidClasses: Boolean): ESFeatures = copy(avoidClasses = avoidClasses)
+
+  def withAvoidClasses(avoidClasses: Boolean): ESFeatures =
+    copy(avoidClasses = avoidClasses)
+
   def withAvoidLetsAndConsts(avoidLetsAndConsts: Boolean): ESFeatures =
     copy(avoidLetsAndConsts = avoidLetsAndConsts)
-  def withESVersion(esVersion: ESVersion): ESFeatures = copy(esVersion = esVersion)
+
+  def withESVersion(esVersion: ESVersion): ESFeatures =
+    copy(esVersion = esVersion)
 }
 
 object ESFeatures {
@@ -25,5 +29,4 @@ object ESFeatures {
     avoidLetsAndConsts = true,
     esVersion = ESVersion.ES2015
   )
-  implicit val rw: RW[ESFeatures] = macroRW[ESFeatures]
 }
