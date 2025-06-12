@@ -50,7 +50,12 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {},
-      "mainClasses": []
+      "mainClasses": [
+        {
+          "className": "apptest.AppTest",
+          "arguments": []
+        }
+      ]
     },
     {
       "target": {
@@ -116,7 +121,12 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {},
-      "mainClasses": []
+      "mainClasses": [
+        {
+          "className": "hello.Hello",
+          "arguments": []
+        }
+      ]
     },
     {
       "target": {
@@ -138,7 +148,12 @@
       "jvmOptions": [],
       "workingDirectory": "/workspace",
       "environmentVariables": {},
-      "mainClasses": []
+      "mainClasses": [
+        {
+          "className": "hello.HelloTest",
+          "arguments": []
+        }
+      ]
     },
     {
       "target": {
