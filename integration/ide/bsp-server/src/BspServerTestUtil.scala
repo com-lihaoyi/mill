@@ -124,7 +124,7 @@ object BspServerTestUtil {
           snapshotLines.iterator
             .zip(logLines.iterator)
             .zipWithIndex
-            .map {
+            .forall {
               case ((snapshotLine, logLine), lineIdx) =>
                 val cmp = TestRunnerUtils.matchesGlob(snapshotLine)
                 cmp(logLine) || {
@@ -134,7 +134,6 @@ object BspServerTestUtil {
                   false
                 }
             }
-            .foldLeft(true)(_ && _)
         else {
           System.err.println(s"Expected ${snapshotLines.length} lines, got ${logLines.length}")
           false
