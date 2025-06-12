@@ -4,31 +4,6 @@ import upickle.default.{ReadWriter => RW, macroRW}
 import mill.define.Mirrors.autoMirror
 import mill.define.Mirrors
 
-sealed trait ESVersion
-object ESVersion {
-  object ES2015 extends ESVersion
-  implicit val rw2015: RW[ES2015.type] = macroRW
-  object ES2016 extends ESVersion
-  implicit val rw2016: RW[ES2016.type] = macroRW
-  object ES2017 extends ESVersion
-  implicit val rw2017: RW[ES2017.type] = macroRW
-  object ES2018 extends ESVersion
-  implicit val rw2018: RW[ES2018.type] = macroRW
-  object ES2019 extends ESVersion
-  implicit val rw2019: RW[ES2019.type] = macroRW
-  object ES2020 extends ESVersion
-  implicit val rw2020: RW[ES2020.type] = macroRW
-  object ES2021 extends ESVersion
-  implicit val rw2021: RW[ES2021.type] = macroRW
-  object ES5_1 extends ESVersion
-  implicit val rw5_1: RW[ES5_1.type] = macroRW
-
-  implicit val rw: RW[ESVersion] = macroRW[ESVersion]
-
-  private given Root_ESVersion: Mirrors.Root[ESVersion] =
-    Mirrors.autoRoot[ESVersion]
-}
-
 case class ESFeatures private (
     allowBigIntsForLongs: Boolean,
     avoidClasses: Boolean,
