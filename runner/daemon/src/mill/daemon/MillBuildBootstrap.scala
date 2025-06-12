@@ -1,6 +1,6 @@
 package mill.daemon
 
-import mill.api.internal.{BuildFileApi, EvaluatorApi, PathRefApi, RootModuleApi, internal}
+import mill.api.internal.{BuildFileApi, EvaluatorApi, MillScalaParser, PathRefApi, RootModuleApi, internal}
 import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.{millBuild, millRunnerState}
@@ -10,10 +10,10 @@ import mill.internal.PrefixLogger
 import mill.meta.{FileImportGraph, MillBuildRootModule}
 import mill.meta.CliImports
 import mill.util.BuildInfo
-
 import java.io.File
 import java.net.URLClassLoader
 import java.util.concurrent.ThreadPoolExecutor
+
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
 import scala.collection.mutable.Buffer
@@ -111,7 +111,7 @@ class MillBuildBootstrap(
         }
       } else {
         val parsedScriptFiles = FileImportGraph
-          .parseBuildFiles(projectRoot, currentRoot / os.up, output)
+          .parseBuildFiles(projectRoot, currentRoot / os.up, output, MillScalaParser.current.value)
 
         val state =
           if (os.exists(currentRoot)) evaluateRec(depth + 1)
