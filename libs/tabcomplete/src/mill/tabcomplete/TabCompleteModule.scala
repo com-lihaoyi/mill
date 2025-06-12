@@ -23,7 +23,7 @@ object TabCompleteModule extends ExternalModule {
       args: mainargs.Leftover[String]
   ) = Task.Command(exclusive = true) {
 
-    val (query, unescapedOpt) = args.value.lift(index) match {
+    val (query, unescaped) = args.value.lift(index) match {
       // Zsh has the index pointing off the end of the args list, while
       // Bash has the index pointing at an empty string arg
       case None | Some("") => ("_", None)
@@ -44,10 +44,12 @@ object TabCompleteModule extends ExternalModule {
         (query, Some(unescaped))
     }
 
+    def normalizeSeps(s: String) = s.replace('[', '.')
+
     ev.resolveSegments(Seq(query), SelectMode.Multi).map { res =>
-      val unescapedStr = unescapedOpt.getOrElse("")
-      val filtered = res.map(_.render).filter(_.startsWith(unescapedStr))
-      val moreFiltered = unescapedOpt match {
+      val normalizedUnescaped = normalizeSeps(unescaped.getOrElse(""))
+      val filtered = res.map(_.render).filter(normalizeSeps(_).startsWith(normalizedUnescaped))
+      val moreFiltered = unescaped match {
         case Some(u) if filtered.contains(u) =>
           ev.resolveSegments(Seq(u + "._"), SelectMode.Multi) match {
             case Result.Success(v) => v.map(_.render)
