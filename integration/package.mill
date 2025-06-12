@@ -39,7 +39,14 @@ object `package` extends mill.Module {
       def mode: String = moduleSegments.parts.last
       def scalaVersion = Deps.scalaVersion
 
-      def forkEnv =
+      def forkEnv = {
+        def exportFromEnv(key: String) = {
+          sys.env.get(key) match {
+            case Some(value) => Map(key -> value)
+            case None => Map.empty
+          }
+        }
+
         super.forkEnv() ++
           IntegrationTestModule.this.forkEnv() ++
           Map(
@@ -49,7 +56,9 @@ object `package` extends mill.Module {
             "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
           ) ++
+          exportFromEnv("MILL_TESTS_BSP_UPDATE_SNAPSHOTS") ++
           (if (millIntegrationIsPackagedLauncher()) Map() else build.dist.localTestOverridesEnv())
+      }
 
       def millIntegrationLauncher: T[PathRef]
 
