@@ -84,7 +84,7 @@ _build.mill_
 
 [source]
 ----
-//| mill-jvm-versiontemurin:17.0.6
+//| mill-jvm-version: temurin:17.0.6
 ----
 
 An explicit `mill-jvm-version` can help ensure your project uses a consistent JVM version and
