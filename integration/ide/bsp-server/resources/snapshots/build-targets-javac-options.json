@@ -43,6 +43,17 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/diag"
+      },
+      "options": [],
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/diag/compile-resources"
+      ],
+      "classDirectory": "file:///workspace/out/diag/compiledClassesAndSemanticDbFiles.dest"
+    },
+    {
+      "target": {
         "uri": "file:///workspace/errored/compilation-error"
       },
       "options": [],

@@ -43,6 +43,17 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/diag"
+      },
+      "modules": [
+        {
+          "name": "org.scala-lang:scala-library",
+          "version": "<scala-version>"
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/errored/compilation-error"
       },
       "modules": [

@@ -20,6 +20,12 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/diag"
+      },
+      "resources": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/errored/compilation-error"
       },
       "resources": []
