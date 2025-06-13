@@ -77,9 +77,7 @@ trait IntegrationTesterBase {
       } else {
         val serverPath0 = outDir / millNoDaemon
 
-        if (os.exists(serverPath0))
-          for (serverPath <- os.list.stream(serverPath0))
-            os.remove(serverPath / processId)
+        for (serverPath <- os.list.stream(serverPath0)) os.remove(serverPath / processId)
 
       }
       Thread.sleep(500) // give a moment for the server to notice the file is gone and exit

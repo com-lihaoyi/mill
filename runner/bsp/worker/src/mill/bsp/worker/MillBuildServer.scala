@@ -71,24 +71,60 @@ private class MillBuildServer(
 
   def initialized = sessionInfo != null
 
+  /**
+   * Updates the BSP server evaluators.
+   *
+   * This updates the evaluators used to answer BSP requests. The passed
+   * evaluators will be used by the next BSP request to be processed, and
+   * those that follow.
+   *
+   * If errored is true, this method attempts to keep former evaluators
+   * for the build / meta-build levels that don't have evaluators anymore.
+   * This is useful if the build or some meta-builds don't compile. In that
+   * case, we keep the former evaluators for build / meta-build levels that
+   * lack a new evaluator, so that we can still answer BSP requests about those,
+   * and users can still benefit from IDE features in spite of a broken build.
+   *
+   * `watched` is used to check whether the evaluators are still valid. If some
+   * watched elements changed, the BSP server assumes the evaluators are stale.
+   * It completes its result promise with ReloadWorkspace if it picks those
+   * changes before the file watcher of the Mill process picks them, in order to
+   * signal to the Mill process that it should re-compile the build and update
+   * the evaluators.
+   *
+   * @param evaluators new evaluators
+   * @param errored whether the build is errored
+   * @param watched files to use to check whether the build is up-to-date or not
+   */
   def updateEvaluator(
       evaluators: Seq[EvaluatorApi],
       errored: Boolean,
       watched: Seq[Watchable]
   ): Unit = {
     baseLogger.debug(s"Updating Evaluator: $evaluators")
+
+    // save current evaluators, in case they need to be re-used if `errored` is true,
+    // and to know whether this is the first call to `updateEvaluators` or not
     val previousEvaluatorsOpt = bspEvaluatorsOpt().orElse(savedPreviousEvaluators)
-    if (bspEvaluators.isCompleted) bspEvaluators = Promise[BspEvaluators]() // replace the promise
+
+    // update the evaluator promise, that we use to pass the evaluators
+    // to the thread processing requests
+    if (bspEvaluators.isCompleted) bspEvaluators = Promise[BspEvaluators]()
+
+    // actual evaluators that we're going to use: if `errored` is false,
+    // the incoming evaluators as is, else a mix of the incoming evaluators
+    // and the former ones, for build and meta-build levels that don't compile
     val updatedEvaluators =
       if (errored)
         previousEvaluatorsOpt.map(_.evaluators) match {
           case Some(previous) =>
             evaluators.headOption match {
-              case None => // ???
-                previous
+              case None => previous
               case Some(headEvaluator) =>
                 val idx = previous.indexWhere(_.outPathJava == headEvaluator.outPathJava)
-                if (idx < 0) // ???
+                if (idx < 0)
+                  // Can't match the former evaluators and the new ones based on their out paths.
+                  // Might be a bug. We just discard the former evaluators for now.
                   evaluators
                 else
                   previous.take(idx) ++ evaluators
@@ -97,6 +133,8 @@ private class MillBuildServer(
         }
       else
         evaluators
+
+    // update the evaluator promise for the thread processing requests to pick it up
     val evaluators0 = new BspEvaluators(
       topLevelProjectRoot,
       updatedEvaluators,
@@ -104,53 +142,52 @@ private class MillBuildServer(
       watched
     )
     bspEvaluators.success(evaluators0)
+
     if (client != null && previousEvaluatorsOpt.nonEmpty) {
+      // not the first call to updateEvaluators, and we have a client:
+      // compute which targets were added / updated / removed, and
+      // send a buildTarget/didChange notification to the client
+
       val newTargetIds = evaluators0.bspModulesIdList.map {
         case (id, (_, ev)) =>
           id -> ev
       }
-      val newTargetIdsMap = newTargetIds.toMap
 
       val previousTargetIds = previousEvaluatorsOpt.map(_.bspModulesIdList).getOrElse(Nil).map {
         case (id, (_, ev)) =>
           id -> ev
       }
 
-      val deleted0 = previousTargetIds.filterNot {
-        case (id, _) =>
-          newTargetIdsMap.contains(id)
-      }
-      val previousTargetIdsMap = previousTargetIds.toMap
-      val (modified0, created0) = newTargetIds.partition {
-        case (id, _) =>
-          previousTargetIdsMap.contains(id)
+      val createdAndModifiedEvents = {
+        val previousTargetIdsMap = previousTargetIds.toMap
+        newTargetIds.flatMap {
+          case (id, ev) =>
+            previousTargetIdsMap.get(id) match {
+              case None =>
+                val event = new bsp4j.BuildTargetEvent(id)
+                event.setKind(bsp4j.BuildTargetEventKind.CREATED)
+                Seq(event)
+              case Some(`ev`) =>
+                Nil
+              case Some(_) =>
+                val event = new bsp4j.BuildTargetEvent(id)
+                event.setKind(bsp4j.BuildTargetEventKind.CHANGED)
+                Seq(event)
+            }
+        }
       }
 
-      val deletedEvents = deleted0.map {
-        case (id, _) =>
-          val event = new bsp4j.BuildTargetEvent(id)
-          event.setKind(bsp4j.BuildTargetEventKind.DELETED)
-          event
-      }
-      val createdEvents = created0.map {
-        case (id, _) =>
-          val event = new bsp4j.BuildTargetEvent(id)
-          event.setKind(bsp4j.BuildTargetEventKind.CREATED)
-          event
-      }
-      val modifiedEvents = modified0
-        .filter {
-          case (id, ev) =>
-            !previousTargetIdsMap.get(id).contains(ev)
-        }
-        .map {
-          case (id, ev) =>
+      val deletedEvents = {
+        val newTargetIdsMap = newTargetIds.toMap
+        previousTargetIds.collect {
+          case (id, _) if !newTargetIdsMap.contains(id) =>
             val event = new bsp4j.BuildTargetEvent(id)
-            event.setKind(bsp4j.BuildTargetEventKind.CHANGED)
+            event.setKind(bsp4j.BuildTargetEventKind.DELETED)
             event
         }
+      }
 
-      val allEvents = deletedEvents ++ createdEvents ++ modifiedEvents
+      val allEvents = deletedEvents ++ createdAndModifiedEvents
 
       if (allEvents.nonEmpty)
         client.onBuildTargetDidChange(new bsp4j.DidChangeBuildTarget(allEvents.asJava))

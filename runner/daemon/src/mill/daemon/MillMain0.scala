@@ -372,6 +372,7 @@ object MillMain0 {
                           case Some(Success(BspServerResult.ReloadWorkspace)) =>
                           // reload asked by client
                           case Some(Success(BspServerResult.Shutdown)) =>
+                            streams.err.println("BSP shutdown asked by client, exiting")
                             // shutdown asked by client
                             keepGoing = false
                             // should make the lsp4j-managed BSP server exit
