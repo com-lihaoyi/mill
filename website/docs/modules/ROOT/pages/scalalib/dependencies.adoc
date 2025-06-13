@@ -12,8 +12,6 @@ for `ScalaModule`.
 
 include::partial$example/scalalib/dependencies/1-mvn-deps.adoc[]
 
-== Runtime and Compile-time Dependencies
-
 include::partial$example/scalalib/dependencies/2-run-compile-deps.adoc[]
 
 == Dependency Management

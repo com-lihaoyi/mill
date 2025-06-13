@@ -85,18 +85,13 @@ xref:large/multi-language-builds.adoc[multiple languages].
 Even projects with hundreds or thousands of sub-modules can be handled performantly
 and with minimal overhead.
 
-If you prefer a video introduction to Mill, see:
+Mill is used to build many real-world projects, such as:
 
-* https://www.youtube.com/watch?v=REOCaHmUkH4[Video: Java build tooling could be so much better!],
-Seattle Java User Group 24 April 2025
-* https://www.youtube.com/watch?v=fyf2AWUyq24[Video: Solving Scala's Build Problem with the Mill Build Tool], SF Scala Meetup 22 April 2025
+* https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool]
+* https://github.com/coursier/coursier[Coursier dependency resolver]
+* https://github.com/com-lihaoyi/Ammonite[Ammonite REPL]
+* https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and https://github.com/chipsalliance/chisel[Chisel] chip design frameworks
 
-Mill is used to build many real-world projects, such as the
-https://github.com/swaldman/c3p0[C3P0 JDBC Connection Pool],
-https://github.com/coursier/coursier[Coursier dependency resolver],
-https://github.com/com-lihaoyi/Ammonite[Ammonite REPL], and the
-https://github.com/SpinalHDL/SpinalHDL[SpinalHDL] and
-https://github.com/chipsalliance/chisel[Chisel] hardware design frameworks.
 Mill can be used for applications built on top of common JVM frameworks like
 Spring Boot (both xref:javalib/web-examples.adoc#_spring_boot_todomvc_app[in Java]
 and xref:kotlinlib/web-examples.adoc#_spring_boot_todomvc_app[in Kotlin]),
@@ -105,7 +100,8 @@ xref:kotlinlib/web-examples.adoc#_ktor_todomvc_app[Ktor], or
 xref:scalalib/web-examples.adoc#_todomvc_http4s_web_app[Http4S].
 
 Mill borrows ideas from other tools like https://maven.apache.org/[Maven],
-https://gradle.org/[Gradle], https://bazel.build/[Bazel], but tries to learn from the
+https://gradle.org/[Gradle], https://bazel.build/[Bazel], and
+https://www.scala-sbt.org/[sbt], but tries to learn from the
 strengths of each tool and improve on their weaknesses. For comparisons with existing
 build tools, check out these pages:
 

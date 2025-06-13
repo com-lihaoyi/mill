@@ -425,7 +425,7 @@ is based around _global mutable variables_. The Groovy or Kotlin code you write 
 actually _perform the build_, but instead is just setting up some
 global mutable data structure that is used to configure the _real_ build engine that
 runs _later_. Thus when you explore the Gradle build in an IDE, the IDE can only explore the
-configuration logic (the`getCompilerArgs` method above) and is unable to explore
+configuration logic (the `getCompilerArgs` method above) and is unable to explore
 the actual build logic (how `getCompilerArgs` _actually gets used in Gradle_). And
 just because the global mutable variable is wrapped in a getter and setter
 does not make it any less global or any less mutable!
@@ -661,6 +661,76 @@ digraph G {
 }
 ....
 
+If you want to re-use your build pipeline customizations, it as simple as turning the
+`object foo` into a `interface MyJavaModule` (called a `trait MyJavaModule` in Mill's syntax), so it
+can be inherited
+by `object foo` and `object bar` to share the configuration:
+
+
+[source,scala]
+----
+package build
+import mill._, javalib._
+
+object foo extends MyJavaModule
+object bar extends MyJavaModule
+
+trait MyJavaModule extends JavaModule {
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f => os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resources using lineCount of sources */
+  override def resources = Task {
+    os.write(Task.dest / "line-count.txt", "" + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+}
+----
+
+[graphviz]
+....
+digraph G {
+  rankdir=LR
+  node [shape=box width=0 height=0 style=filled fillcolor=white]
+  bgcolor=transparent
+  newrank=true;
+  subgraph cluster_1 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    color = darkgreen
+    penwidth=3
+    label = "bar";
+
+    "bar.sources" -> "bar.compile" -> "bar.classPath" -> "bar.assembly"
+    "bar.super.resources" -> "bar.resources" -> "bar.assembly"
+    "bar.lineCount"
+    "bar.sources" -> "bar.lineCount" -> "bar.resources"
+    "bar.resources"
+  }
+  subgraph cluster_0 {
+    style=dashed
+    node [shape=box width=0 height=0 style=filled fillcolor=white]
+    label = "foo";
+
+    "foo.sources" -> "foo.compile" -> "foo.classPath" -> "foo.assembly"
+    "foo.super.resources" -> "foo.resources" -> "foo.assembly"
+    "foo.lineCount"
+    "foo.sources" -> "foo.lineCount" -> "foo.resources"
+    "foo.resources"
+  }
+
+}
+....
+
+If you want to further customize either of those modules, you simply `override`
+one or more of the inherited methods. And if you want to publish your customizations
+for others to use in their own projects,
+you can as xref:extending/writing-plugins.adoc#_publishing[publish
+MyJavaModule to Maven Central] for others to
+xref:extending/import-mvn-plugins.adoc[import into their build].
+
 Mill's usage of methods, classes, and overrides is also what powers the IDE support
 discussed earlier on this page. IDEs like IntelliJ or VSCode are uniquely adept at
 working with JVM codebases full of methods and classes, and so
@@ -694,7 +764,7 @@ IDE support, library ecosystem, and other quality of life details they are used 
 
 The rest of this doc-site contains more Mill build tool comparisons
 (with xref:comparisons/maven.adoc[Maven], xref:comparisons/gradle.adoc[Gradle],
-xref:comparisons/sbt.adoc[`sbt`]), with getting started instructions
+xref:comparisons/sbt.adoc[sbt]), with getting started instructions
 for using Mill with xref:javalib/intro.adoc[Java], with xref:scalalib/intro.adoc[Scala],
 or with xref:kotlinlib/intro.adoc[Kotlin], and detailed documentation for how Mill
 works. Please try it out and let us know in the

@@ -8,8 +8,8 @@ If the determined Mill version is not installed locally, it will be downloaded a
 
 For all the examples in this documentation, there is a `download` link that provides
 a zip file containing the full example ready to use. These examples come with a `./mill`
-script you can use to immediately begin working with the project, needing only a JVM installed
-globally.
+script you can use to immediately begin working with the project, automatically downloading and
+caching a JVM and any additional dependencies as necessary.
 
 [#_bootstrap_scripts]
 == Bootstrap Scripts
@@ -22,14 +22,14 @@ bootstrap script, included. You can also download the boostrap script manually:
 ----
 > curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill
 > chmod +x mill
-> echo {mill-version} > .mill-version
+> echo "//| mill-version: {mill-version}" > build.mill
 ----
 
 .Windows
 [source,console,subs="verbatim,attributes"]
 ----
 > curl -L {mill-download-url}/mill-dist-{mill-version}-mill.bat -o mill.bat
-> echo {mill-version}> .mill-version
+> echo "//| mill-version: {mill-version}" > build.mill
 ----
 
 [CAUTION]
@@ -47,7 +47,7 @@ Anyone who wants to work with the project can simply use the `./mill` script dir
 [source,console]
 ----
 > ./mill --version
-> ./mill __.compile # double underscore
+> ./mill __.compile # double underscore means compile all modules
 ----
 
 
@@ -88,22 +88,11 @@ You can also choose to write the tab-completion script to a manually-specified p
 When `--dest` is given, Mill simply generate the tab-completion script without registering it,
 assuming you want to register the script yourself (e.g. by placing it in a relevant folder).
 
-=== Mill Native Executable
+=== Mill Native and JVM Executables
 
-The default Mill executable configured above requires a JVM (11 or above) installed globally in
-order to run, and imposes some Java startup overhead (100-200ms) when running Mill from the
-command line. You can also use Mill's native executables by appending a `-native` suffix to the
-Mill version:
-
-[source,console,subs="verbatim,attributes"]
-----
-> echo {version}-native > .mill-version
-----
-
-Using the `-native` suffix should provide a faster CLI experience than using Mill's default
-JVM launcher, and makes it easier to install Mill in environments without a JVM pre-installed.
-
-
+The default Mill launcher configured above is a
+xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Image],
+that provides faster startup and is able to run even on machines without Java installed.
 Mill native executables are supported on the following OS/CPU combinations:
 
 |===
@@ -117,27 +106,18 @@ upstream Graal Native Image tooling (see https://github.com/oracle/graal/issues/
 If you are on a platform not supported by Mill's native executables, use the default
 JVM launcher instead.
 
-=== Customizing Mill's JVM
+Mill uses a JVM-based xref:javalib/publishing.adoc#_building_executable_assemblies_with_assemblymodule[Assembly Jar],
+as the launcher on On Windows-ARM, and you can enable this on other platforms
+by adding a a `-jvm` suffix on the Mill version:
 
-Mill allows you to specify the exact JVM version you want to use to run the build tool
-via a  `.mill-jvm-version` file such as:
-
-[source,console]
+[source,subs="verbatim,attributes"]
 ----
-> echo temurin:17.0.6 > .mill-jvm-version
+{version}-jvm
 ----
 
-This has two benefits
-
-* `.mill-jvm-version` can also be used with Mill's default JVM launcher if you want
-your Mill process to use a different JVM than what you have installed globally.This
-can help ensure your project uses a consistent JVM version and behaves identically regardless
-of what the developer may have installed on their laptop or dev environment
-
-* `.mill-jvm-version` can be used together with <<Mill Native Executable>>s to build your
-project without needing a JVM pre-installed at all.This simplifies project setup and
-onboarding of new developers.
-
+Mill's JVM launcher imposes some Java startup overhead (~100ms) over the native launcher
+when running Mill from the command line, and requires a JVM installed globally (version 11 or above)
+in order to run.
 
 [#_ide_support]
 == IDE Support
@@ -155,7 +135,7 @@ Your IDEs may already auto-detect the Mill project and run this command on behal
 To use Mill with IntelliJ, first ensure you have the free
 https://plugins.jetbrains.com/plugin/1347-scala[IntelliJ Scala Plugin]
 installed. This is necessary as Mill build files are written in Scala,
-even if you are using it to build a Java or Kotlin or Python project.
+even if you are using it to build a Java or Kotlin project.
 
 Once you have the plugin installed, you can use IntelliJ to open any project
 containing a Mill `build.mill` file, and IntelliJ will automatically load the
@@ -181,6 +161,8 @@ those updates by opening the "BSP" tab and clicking the "Refresh" button
 
 image::basic/IntellijRefresh.png[]
 
+==== Explicit BSP installation
+
 To prepare your project for IDEs, and in general any BSP client, you can also
 run this command to generate the BSP configuration files:
 
@@ -188,6 +170,10 @@ run this command to generate the BSP configuration files:
 ----
 > ./mill --bsp-install
 ----
+
+This should not be necessary with IntelliJ and VSCode being able to identify and
+load `build.mill` files by default, but can be useful in certain cases if you
+are using a less-common editor that does not have this support builtin.
 
 ==== IntelliJ IDEA XML Support
 
@@ -255,15 +241,55 @@ A lot of other editors may work too, since {link-metals}[Metals], the Language S
 
 === Debugging IDE issues
 
-Mill's BSP IDE integration writes to a log file under
-`.bsp/mill-bsp.stderr`, where you can find various information about what's
+Mill's BSP IDE integration writes to log files under
+`out/mill-bsp/`, where you can find various information about what's
 going on. It contains regular Mill output accompanied by additional BSP
 client-server communication details. This can be useful to look at if your
 IDE fails to import your Mill project
 
+== Using Mill without access to Maven Central
+
+Under some circumstances (e.g. corporate firewalls), you may not have access maven central.
+The typical symptom will be error messages which look like this;
+
+[source]
+----
+1 tasks failed
+mill.scalalib.JvmWorkerModule.classpath
+Resolution failed for 1 modules:
+--------------------------------------------
+  com.lihaoyi:mill-libs-scalalib-worker_2.13:0.11.1
+        not found: C:\Users\partens\.ivy2\local\com.lihaoyi\mill-libs-scalalib-worker_2.13\0.11.1\ivys\ivy.xml
+        download error: Caught java.io.IOException (Server returned HTTP response code: 503 for URL: https://repo1.maven.org/maven2/com/lihaoyi/mill-libs-scalalib-worker_2.13/0.11.1/mill-libs-scalalib-worker_2.13-0.11.1.pom) while downloading https://repo1.maven.org/maven2/com/lihaoyi/mill-libs-scalalib-worker_2.13/0.11.1/mill-libs-scalalib-worker_2.13-0.11.1.pom
+----
+
+It is expected that basic commands (e.g. clean) will not work, as Mill saying it is
+unable to resolve it's own, fundamental, dependencies from the default Maven Central
+JVM package repository. Under such circumstances, you
+will normally have access to some proxy, or other corporate repository which resolves
+maven artifacts.
+
+To resolve this, you can set an environment variable `COURSIER_REPOSITORIES` (see coursier docs)
+to point at your own server that mirrors the Maven Central artifacts.
+The below command should pass the environment variable to the `mill` command.
+
+[source,console]
+----
+> COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _
+----
+
+NOTE: Currently, you may need to `./mill shutdown` before calling Mill with the environment variable to make sure it gets properly propagated to Mill's background daemon.
+There is an https://github.com/com-lihaoyi/mill/issues/5134[open issue] to let Mill  detect these changes automatically.
+
+If you are using bootstrap script, a more permanent solution could be to set the environment variable
+at the top of the bootstrap script, or as a user environment variable.
+
 == Updating Mill
 
-Typically, most Mill projects use a `.mill-version` file to configure what version
+=== Overriding your Mill Version
+
+Typically, most Mill projects use a `mill-version` key in their xref:cli/build-header.adoc[] or
+a `.mill-version` file to configure what version
 to use. You can update the version specified in this file in order to change the version
 of Mill. The file path `.config/mill-version` is also supported. If neither is provided,
 the `./mill` bootstrap script will use the `DEFAULT_MILL_VERSION` it has built in.
@@ -286,42 +312,8 @@ or
 to override the Mill version manually. This takes precedence over the version
 specified in `./mill`, `.config/mill-version` or `.mill-version`
 
-== Using Mill without access to Maven Central
 
-Under some circumstances (e.g. corporate firewalls), you may not have access maven central.
-The typical symptom will be error messages which look like this;
-
-[source]
-----
-1 tasks failed
-mill.scalalib.JvmWorkerModule.classpath
-Resolution failed for 1 modules:
---------------------------------------------
-  com.lihaoyi:mill-libs-scalalib-worker_2.13:0.11.1
-        not found: C:\Users\partens\.ivy2\local\com.lihaoyi\mill-libs-scalalib-worker_2.13\0.11.1\ivys\ivy.xml
-        download error: Caught java.io.IOException (Server returned HTTP response code: 503 for URL: https://repo1.maven.org/maven2/com/lihaoyi/mill-libs-scalalib-worker_2.13/0.11.1/mill-libs-scalalib-worker_2.13-0.11.1.pom) while downloading https://repo1.maven.org/maven2/com/lihaoyi/mill-libs-scalalib-worker_2.13/0.11.1/mill-libs-scalalib-worker_2.13-0.11.1.pom
-----
-
-It is expected that basic commands (e.g. clean) will not work, as Mill saying it is
-unable to resolve it's own, fundamental, dependencies from the default Maven Central
-JVM package repository. Under such circumstances, you
-will normally have access to some proxy, or other corporate repository which resolves
-maven artifacts. The strategy is simply to tell mill to use that instead.
-
-To resolve this, you can set an environment variable COURSIER_REPOSITORIES (see coursier docs)
-to point at your own server that mirrors the Maven Central artifacts.
-The below command should pass the environment variable to the `mill` command.
-
-[source,console]
-----
-> COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _
-----
-
-If you are using bootstrap script, a more permanent solution could be to set the environment variable
-at the top of the bootstrap script, or as a user environment variable.
-
-
-== Automatic Mill updates
+=== Automatic Mill updates
 
 If your project is hosted on GitHub, GitLab, or Bitbucket, you can use
 https://github.com/scala-steward-org/scala-steward[Scala Steward] to
@@ -332,7 +324,7 @@ TIP: Scala Steward can also
 xref:scalalib/dependencies.adoc#_keeping_up_to_date_with_scala_steward[scan your project dependencies]
 and keep them up-to-date.
 
-== Unstable Development Releases
+=== Unstable Development Releases
 
 In case you want to try out the latest features and improvements that are
 currently in the main branch, unstable versions of Mill

@@ -39,13 +39,13 @@ include::partial$example/javalib/module/9-docjar.adoc[]
 include::partial$example/javalib/module/11-main-class.adoc[]
 
 
+== Generated Sources
+
+include::partial$example/javalib/module/3-generated-sources.adoc[]
+
 == Custom Tasks
 
 include::partial$example/javalib/module/2-custom-tasks.adoc[]
-
-== Overriding Tasks
-
-include::partial$example/javalib/module/3-override-tasks.adoc[]
 
 [#_native_c_code_with_jni]
 == Native C Code with JNI
