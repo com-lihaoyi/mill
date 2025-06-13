@@ -2,7 +2,7 @@
 
 
 
-While xref:extending/import-mvn-plugins.adoc[import $ivy] is convenient,
+While xref:extending/import-mvn-plugins.adoc[//| mvnDeps] is convenient,
 it comes with limitations as the JVM library it imports is global to your build:
 
 1. The library has to be resolved and downloaded before any part of your build starts.

@@ -91,7 +91,7 @@ object Foo {
 == Example Builds
 
 To build this small program, we will set up equivalent builds using the
-https://mill-build.org/[Mill build tool], https://www.scala-sbt.org/[`sbt`],
+https://mill-build.org/[Mill build tool], https://www.scala-sbt.org/[sbt],
 and https://maven.apache.org/[Maven]
 
 === Mill

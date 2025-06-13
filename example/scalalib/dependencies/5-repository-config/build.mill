@@ -76,6 +76,5 @@ object bar extends ScalaModule {
 
 */
 
-// To customize the repositories used to resolve the `//| mvnDeps:` dependencies used in your
-// `build.mill` file, you can add `//| repositories:` to your YAML header which takes a
-// list of strings of the same format.
+// See xref:extending/import-mvn-plugins.adoc[] for customizing repositories used to resolve
+// `//| mvnDeps` used in your `build.mill` file

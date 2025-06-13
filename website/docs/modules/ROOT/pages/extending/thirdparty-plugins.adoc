@@ -533,14 +533,8 @@ As the buildfiles `build.mill` in your test cases typically want to access the l
 the plugins publishes all plugins referenced under `pluginsUnderTest` to a temporary ivy repository, just before the test is executed.
 The mill version used in the integration test then used that temporary ivy repository.
 
-Instead of referring to your plugin with `import $ivy.&#39;your::plugin:version&#39;`,
+Instead of referring to your plugin with `//| mvnDeps.&#39;your::plugin:version&#39;`,
 you can use the following line instead, which ensures you will use the correct locally build plugins.
-
-.`build.mill`
-[source,scala]
-----
-import $exec.plugins
-----
 
 Effectively, at execution time, this line gets replaced by the content of `plugins.sc`, a file which was generated just before the test started to execute.
 

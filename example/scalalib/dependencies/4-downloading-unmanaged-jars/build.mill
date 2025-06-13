@@ -25,9 +25,6 @@ object `package` extends ScalaModule {
 
 //// SNIPPET:END
 
-// <1> Since Mill can also be run with the `--offline` option, we should make sure,
-// that we don't download anything when in offline mode.
-
 /** Usage
 
 > ./mill run "textfile.txt" # mac/linux

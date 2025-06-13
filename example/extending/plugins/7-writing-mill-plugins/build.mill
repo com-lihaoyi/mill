@@ -1,6 +1,6 @@
 // This example demonstrates how to write and test Mill plugin, and publish it to
 // Sonatype's Maven Central so it can be used by other developers over the internet
-// via xref:extending/import-mvn-plugins.adoc[import $ivy].
+// via xref:extending/import-mvn-plugins.adoc[//| mvnDeps].
 
 // == Project Configuration
 package build

@@ -9,8 +9,6 @@ for `JavaModule`.
 
 include::partial$example/javalib/dependencies/1-mvn-deps.adoc[]
 
-== Runtime and Compile-time Dependencies
-
 include::partial$example/javalib/dependencies/2-run-compile-deps.adoc[]
 
 == Dependency Management
