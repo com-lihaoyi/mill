@@ -115,23 +115,12 @@ _build.mill_
 //| mill-jvm-opts: ["-Xss10m", "-Xmx10G"]
 ----
 
-Note that `.mill-jvm-opts` requires each CLI token to be on a separate line, so
-`-Xss10m -Xmx10G` on a single line is not allowed (as it would pass `"-Xss10m -Xmx10G"`
-as a single token and fail argument parsing)
+`mill-jvm-opts` also supports environment variable interpolation, e.g.
 
-`.mill-jvm-opts` also supports environment variable interpolation, e.g.
-
-_.mill-jvm-opts_
-
-[source,sh]
+[source]
 ----
-# PWD on mac/linux
 -Dmy.jvm.property=${PWD}
 ----
 
-Missing environment variables are
-converted to the empty string.
-
-The file name `.mill-jvm-opts` can be overridden via the `MILL_JVM_OPTS_PATH` environment
-variable.
+Missing environment variables are converted to the empty string.
 
