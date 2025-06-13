@@ -82,12 +82,9 @@ class MillBuildBootstrap(
     )
   }
 
-  def evaluateRec(
-      depth: Int,
-      closeEvaluator: Boolean = true
-  ): RunnerState = {
+  def evaluateRec(depth: Int): RunnerState = {
+    // println(s"+evaluateRec($depth) " + recRoot(projectRoot, depth))
     val currentRoot = recRoot(projectRoot, depth)
-    // println(s"+evaluateRec($depth, $closeEvaluator) " + recRoot(projectRoot, depth))
     val prevFrameOpt = prevRunnerState.frames.lift(depth)
     val prevOuterFrameOpt = prevRunnerState.frames.lift(depth - 1)
 
@@ -98,7 +95,7 @@ class MillBuildBootstrap(
         // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
         // Unfortunately, some targets also make sense without a `build.mill`, e.g. the `init` command.
         // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
-        lazy val state = evaluateRec(depth + 1, closeEvaluator = closeEvaluator)
+        lazy val state = evaluateRec(depth + 1)
         if (
           rootBuildFileNames.asScala.exists(rootBuildFileName =>
             os.exists(currentRoot / rootBuildFileName)
@@ -124,7 +121,7 @@ class MillBuildBootstrap(
           .parseBuildFiles(projectRoot, currentRoot / os.up, output, MillScalaParser.current.value)
 
         val state =
-          if (os.exists(currentRoot)) evaluateRec(depth + 1, closeEvaluator = closeEvaluator)
+          if (os.exists(currentRoot)) evaluateRec(depth + 1)
           else {
             val bootstrapModule =
               new MillBuildRootModule.BootstrapModule()(
@@ -172,7 +169,7 @@ class MillBuildBootstrap(
           case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
           case Result.Success((buildFileApi)) =>
 
-            def makeEvaluator0 = makeEvaluator(
+            Using.resource(makeEvaluator(
               projectRoot,
               output,
               keepGoing,
@@ -207,27 +204,20 @@ class MillBuildBootstrap(
               depth,
               actualBuildFileName = nestedState.buildFile,
               headerData = headerDataOpt.getOrElse("")
-            )
-
-            def proceed(evaluator: () => EvaluatorApi): RunnerState =
-              // FIXME If this throws after having called evaluator(), the evaluator might not be closed
-              if (depth == requestedDepth)
-                processFinalTargets(nestedState, buildFileApi, evaluator())
-              else if (depth <= requestedDepth) nestedState
+            )) { evaluator =>
+              if (depth == requestedDepth) {
+                processFinalTargets(nestedState, buildFileApi, evaluator)
+              } else if (depth <= requestedDepth) nestedState
               else {
                 processRunClasspath(
                   nestedState,
                   buildFileApi,
-                  evaluator(),
+                  evaluator,
                   prevFrameOpt,
                   prevOuterFrameOpt
                 )
               }
-
-            if (closeEvaluator)
-              Using.resource(makeEvaluator0)(ev => proceed(() => ev))
-            else
-              proceed(() => makeEvaluator0)
+            }
         }
       }
 
