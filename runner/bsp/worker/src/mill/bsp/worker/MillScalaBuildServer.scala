@@ -26,7 +26,6 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
     handlerTasks(
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
-        // We ignore all non-JavaModule
         case m: ScalaModuleApi =>
           m.bspJavaModule().bspBuildTargetScalacOptions(
             sessionInfo.clientType.mergeResourcesIntoClasses,
