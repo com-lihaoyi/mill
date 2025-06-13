@@ -14,7 +14,7 @@ import mill.testrunner.TestRunnerUtils
 import utest.*
 
 object BspServerTests extends UtestIntegrationTestSuite {
-  def snapshotsPath: os.Path =
+  protected def snapshotsPath: os.Path =
     super.workspaceSourcePath / "snapshots"
   def logsPath: os.Path =
     super.workspaceSourcePath / "logs"
