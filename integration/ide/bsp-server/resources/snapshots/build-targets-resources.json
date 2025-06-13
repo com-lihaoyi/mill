@@ -8,7 +8,19 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/app/test"
+      },
+      "resources": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-java"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-java/test"
       },
       "resources": []
     },
@@ -21,6 +33,12 @@
     {
       "target": {
         "uri": "file:///workspace/hello-scala"
+      },
+      "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/hello-scala/test"
       },
       "resources": []
     },

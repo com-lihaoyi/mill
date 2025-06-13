@@ -83,10 +83,10 @@ trait AndroidSdkModule extends Module {
       .pipe { cache =>
         if (Task.offline) cache.withCachePolicies(Seq(LocalOnly)) else cache
       }
-    cache.file(Artifact(url)).run.unsafeRun()(cache.ec) match {
+    cache.file(Artifact(url)).run.unsafeRun()(using cache.ec) match {
       case Right(file) =>
         PathRef(os.Path(file)).withRevalidateOnce
-      case Left(ex) if Task.offline =>
+      case Left(_) if Task.offline =>
         Task.fail(s"Can't fetch bundle tools (from ${url}) while in offline mode.")
       case Left(ex) =>
         Task.fail(ex.getMessage())

@@ -1,13 +1,10 @@
 package mill.scalanativelib.worker
 
 import mill.define.{Discover}
-import mill.{PathRef, Task, Worker}
+import mill.{Task, Worker}
 import mill.scalanativelib.worker.{api => workerApi}
-import mill.util.CachedFactory
 
 import mill.util.ClassLoaderCachedFactory
-
-import java.net.URLClassLoader
 
 private[scalanativelib] class ScalaNativeWorker(jobs: Int)
     extends ClassLoaderCachedFactory[workerApi.ScalaNativeWorkerApi](jobs) {

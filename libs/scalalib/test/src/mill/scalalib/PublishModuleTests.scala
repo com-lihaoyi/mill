@@ -16,7 +16,6 @@ import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
 import mill.util.TokenReaders._
-import java.io.PrintStream
 import scala.jdk.CollectionConverters.*
 import scala.xml.NodeSeq
 
@@ -233,19 +232,19 @@ object PublishModuleTests extends TestSuite {
     test("pom-packaging-type") - {
       test("pom") - UnitTester(PomOnly, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(PomOnly.core.pom): @unchecked
-//
-//        assert(
-//          os.exists(result.path),
-//          evalCount > 0
-//        )
-//
-//        val pomXml = scala.xml.XML.loadFile(result.path.toString)
-//        val scalaLibrary = pomXml \ "dependencies" \ "dependency"
-//        assert(
-//          (pomXml \ "packaging").text == PackagingType.Pom,
-//          (scalaLibrary \ "artifactId").text == "slf4j-api",
-//          (scalaLibrary \ "groupId").text == "org.slf4j"
-//        )
+
+        assert(
+          os.exists(result.value.path),
+          result.evalCount > 0
+        )
+
+        val pomXml = scala.xml.XML.loadFile(result.value.path.toString)
+        val scalaLibrary = pomXml \ "dependencies" \ "dependency"
+        assert(
+          (pomXml \ "packaging").text == PackagingType.Pom,
+          (scalaLibrary \ "artifactId").text == "slf4j-api",
+          (scalaLibrary \ "groupId").text == "org.slf4j"
+        )
       }
     }
 
@@ -362,7 +361,7 @@ object PublishModuleTests extends TestSuite {
       def clearRepo(): Unit =
         os.remove.all(ivy2Repo)
 
-      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString)).get
       assert(repoHasIvyXml())
       assert(repoHasJar())
       assert(repoHasSourcesJar())
@@ -370,7 +369,7 @@ object PublishModuleTests extends TestSuite {
 
       clearRepo()
 
-      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString, doc = false)).right.get
+      eval(compileAndRuntimeStuff.main.publishLocal(ivy2Repo.toString, doc = false)).get
       assert(repoHasIvyXml())
       assert(repoHasJar())
       assert(repoHasSourcesJar())
@@ -407,7 +406,7 @@ object PublishModuleTests extends TestSuite {
       def clearRepo(): Unit =
         os.remove.all(ivy2Repo)
 
-      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString)).get
       assert(!repoHasIvyXml(mainModuleName))
       assert(!repoHasJar(mainModuleName))
       assert(!repoHasSourcesJar(mainModuleName))
@@ -422,7 +421,7 @@ object PublishModuleTests extends TestSuite {
       eval(compileAndRuntimeStuff.transitive.publishLocal(
         ivy2Repo.toString,
         transitive = true
-      )).right.get
+      )).get
       assert(repoHasIvyXml(mainModuleName))
       assert(repoHasJar(mainModuleName))
       assert(repoHasSourcesJar(mainModuleName))
@@ -434,7 +433,7 @@ object PublishModuleTests extends TestSuite {
 
       clearRepo()
 
-      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString, doc = false)).right.get
+      eval(compileAndRuntimeStuff.transitive.publishLocal(ivy2Repo.toString, doc = false)).get
       assert(!repoHasIvyXml(mainModuleName))
       assert(!repoHasJar(mainModuleName))
       assert(!repoHasSourcesJar(mainModuleName))
@@ -462,7 +461,7 @@ object PublishModuleTests extends TestSuite {
 
       clearRepo()
 
-      eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(ivy2Repo.toString)).right.get
+      eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(ivy2Repo.toString)).get
       assert(!repoHasIvyXml(mainModuleName))
       assert(!repoHasJar(mainModuleName))
       assert(!repoHasSourcesJar(mainModuleName))
@@ -477,7 +476,7 @@ object PublishModuleTests extends TestSuite {
       eval(compileAndRuntimeStuff.runtimeTransitive.publishLocal(
         ivy2Repo.toString,
         transitive = true
-      )).right.get
+      )).get
       assert(repoHasIvyXml(mainModuleName))
       assert(repoHasJar(mainModuleName))
       assert(repoHasSourcesJar(mainModuleName))

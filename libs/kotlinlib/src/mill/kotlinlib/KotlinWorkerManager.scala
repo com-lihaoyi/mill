@@ -10,7 +10,6 @@ import mill.define.{Discover, ExternalModule, TaskCtx}
 import mill.kotlinlib.worker.api.KotlinWorker
 import mill.util.ClassLoaderCachedFactory
 
-import java.net.URLClassLoader
 class KotlinWorkerFactory()(implicit ctx: TaskCtx)
     extends ClassLoaderCachedFactory[KotlinWorker](ctx.jobs) {
 

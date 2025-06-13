@@ -16,6 +16,11 @@ import mill.testrunner.TestResult
 import mill.testrunner.TestRunner
 import mill.util.Jvm
 import mill.define.JsonFormatters.given
+import mill.constants.EnvVars
+
+import java.nio.file.Path
+
+import java.nio.file.Path
 
 trait TestModule
     extends TestModule.JavaModuleBase
@@ -91,7 +96,7 @@ trait TestModule
       mainClass: String,
       testRunnerClasspathArg: String,
       argsFile: String,
-      classpath: Seq[String]
+      classpath: Seq[Path]
   )] = {
     Task.Command {
       getTestEnvironmentVarsTask(Task.Anon { args })()
@@ -176,7 +181,7 @@ trait TestModule
           mainClass: String,
           testRunnerClasspathArg: String,
           argsFile: String,
-          classpath: Seq[String]
+          classpath: Seq[Path]
       )] =
     Task.Anon {
       val mainClass = "mill.testrunner.entrypoint.TestRunnerMain"
@@ -204,7 +209,7 @@ trait TestModule
         jvmWorker().scalalibClasspath()
           .map(_.path.toNIO.toUri.toURL).mkString(",")
 
-      val cp = (runClasspath() ++ jvmWorker().testrunnerEntrypointClasspath()).map(_.path.toString)
+      val cp = (runClasspath() ++ jvmWorker().testrunnerEntrypointClasspath()).map(_.path.toNIO)
 
       Result.Success((mainClass, testRunnerClasspathArg, argsFile.toString, cp))
     }
@@ -218,6 +223,12 @@ trait TestModule
    * isolation.
    */
   def testSandboxWorkingDir: T[Boolean] = true
+
+  override def allForkEnv: T[Map[String, String]] = Task {
+    super.allForkEnv() ++ Map(
+      EnvVars.MILL_TEST_RESOURCE_DIR -> resources().iterator.map(_.path).mkString(";")
+    )
+  }
 
   /**
    * The actual task shared by `test`-tasks that runs test in a forked JVM.
@@ -239,7 +250,7 @@ trait TestModule
         args(),
         testForkGrouping(),
         jvmWorker().testrunnerEntrypointClasspath(),
-        forkEnv(),
+        allForkEnv(),
         testSandboxWorkingDir(),
         forkWorkingDir(),
         testReportXml(),

@@ -42,7 +42,8 @@ object FileImportGraph {
   def parseBuildFiles(
       topLevelProjectRoot: os.Path,
       projectRoot: os.Path,
-      output: os.Path
+      output: os.Path,
+      parser: MillScalaParser = MillScalaParser.current.value
   ): FileImportGraph = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val errors = mutable.Buffer.empty[String]
@@ -59,11 +60,9 @@ object FileImportGraph {
             catch { case e: RuntimeException => Left(e.getMessage) }
 
         yamlHeaderError.flatMap(_ =>
-          MillScalaParser.current.value.splitScript(content, fileName)
+          parser.splitScript(content, fileName)
         ) match {
           case Right((prefix, pkgs, stmts)) =>
-            mill.constants.DebugLog.println("pkgs" + pprint.apply(pkgs).toString)
-            mill.constants.DebugLog.println("stmts " + pprint.apply(stmts).toString)
             val importSegments = pkgs.mkString(".")
 
             val expectedImportSegments0 =

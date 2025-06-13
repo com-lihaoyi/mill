@@ -132,7 +132,7 @@ object JavaHomeTests extends TestSuite {
       test("test11") {
         UnitTester(HelloJavaJavaHome11Override, resourcePath).scoped { eval =>
 
-          val Left(ExecResult.Failure(ref1)) =
+          val Left(ExecResult.Failure(_)) =
             eval.apply(HelloJavaJavaHome11Override.core.test.testForked()): @unchecked
 
           //        assert(
@@ -146,7 +146,7 @@ object JavaHomeTests extends TestSuite {
       test("test17") {
         UnitTester(HelloJavaJavaHome17Override, resourcePath).scoped { eval =>
 
-          val Left(ExecResult.Failure(ref1)) =
+          val Left(ExecResult.Failure(_)) =
             eval.apply(HelloJavaJavaHome17Override.core.test.testForked()): @unchecked
 
           //        assert(
@@ -168,7 +168,7 @@ object JavaHomeTests extends TestSuite {
           resourcePathCompile,
           errStream = new PrintStream(baos)
         ).scoped { eval =>
-          val Left(result) = eval.apply(JavaJdk11DoesntCompile.javamodule.compile): @unchecked
+          val Left(_) = eval.apply(JavaJdk11DoesntCompile.javamodule.compile): @unchecked
           assert(baos.toString.contains("cannot find symbol"))
           assert(baos.toString.contains("method indent"))
         }
@@ -176,7 +176,7 @@ object JavaHomeTests extends TestSuite {
 
       test("jdk17java") {
         UnitTester(JavaJdk17Compiles, resourcePathCompile).scoped { eval =>
-          val Right(result) = eval.apply(JavaJdk17Compiles.javamodule.compile): @unchecked
+          val Right(_) = eval.apply(JavaJdk17Compiles.javamodule.compile): @unchecked
         }
       }
 
@@ -190,7 +190,7 @@ object JavaHomeTests extends TestSuite {
 
       test("jdk17scala") {
         UnitTester(JavaJdk17Compiles, resourcePathCompile).scoped { eval =>
-          val Right(result) = eval.apply(JavaJdk17Compiles.scalamodule.compile): @unchecked
+          val Right(_) = eval.apply(JavaJdk17Compiles.scalamodule.compile): @unchecked
         }
       }
     }

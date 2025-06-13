@@ -4,8 +4,8 @@ import mill.api.Segments
 import mill.api.internal.JavaModuleApi
 
 final case class ResolvedModule(
-    path: Segments,
-    classpath: Seq[Scoped[java.nio.file.Path]],
+    segments: Segments,
+    scopedCpEntries: Seq[(path: java.nio.file.Path, scope: Option[String])],
     module: JavaModuleApi,
     pluginClasspath: Seq[java.nio.file.Path],
     scalaOptions: Seq[String],

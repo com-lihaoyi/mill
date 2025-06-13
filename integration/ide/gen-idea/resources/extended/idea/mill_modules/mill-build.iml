@@ -1,6 +1,6 @@
 <module type="JAVA_MODULE" version="4">
     <component name="NewModuleRootManager">
-        <output url="file://$MODULE_DIR$/../../out/mill-build/ideaCompileOutput.dest/classes"/>
+        <output url="file://$MODULE_DIR$/../../out/mill-build/internalGenIdea/ideaCompileOutput.dest/classes"/>
         <exclude-output/>
         <content url="file://$MODULE_DIR$/../..">
             <sourceFolder url="file://$MODULE_DIR$/../../out/mill-build/generatedScriptSources.dest/support" isTestSource="false" generated="true"/>
@@ -73,6 +73,7 @@
         <orderEntry type="library" name="mill-libs-scalalib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalanativelib-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalanativelib_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-tabcomplete_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-testrunner-entrypoint.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-testrunner_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3.jar" level="project"/>

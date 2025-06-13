@@ -18,7 +18,18 @@ import scala.reflect.ClassTag
 
 object BspServerTestUtil {
 
-  val updateSnapshots = false
+  /** Allows to update the snapshots on the disk when running tests. */
+  lazy val updateSnapshots: Boolean = {
+    val varName = "MILL_TESTS_BSP_UPDATE_SNAPSHOTS"
+    sys.env.get(varName) match {
+      case Some("1") =>
+        println(s"Updating BSP snapshots for tests.")
+        true
+      case _ =>
+        println(s"Using current BSP snapshots. Update with env var $varName=1")
+        false
+    }
+  }
 
   private[mill] def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
 
@@ -113,7 +124,7 @@ object BspServerTestUtil {
           snapshotLines.iterator
             .zip(logLines.iterator)
             .zipWithIndex
-            .map {
+            .forall {
               case ((snapshotLine, logLine), lineIdx) =>
                 val cmp = TestRunnerUtils.matchesGlob(snapshotLine)
                 cmp(logLine) || {
@@ -123,7 +134,6 @@ object BspServerTestUtil {
                   false
                 }
             }
-            .foldLeft(true)(_ && _)
         else {
           System.err.println(s"Expected ${snapshotLines.length} lines, got ${logLines.length}")
           false
@@ -264,9 +274,11 @@ object BspServerTestUtil {
       coursierCache.toNIO.toUri.toASCIIString -> "file:///coursier-cache/",
       millWorkspace.toNIO.toUri.toASCIIString -> "file:///mill-workspace/",
       javaHome.toNIO.toUri.toASCIIString.stripSuffix("/") -> "file:///java-home",
+      os.home.toNIO.toUri.toASCIIString.stripSuffix("/") -> "file:///user-home",
       ("\"" + javaVersion + "\"") -> "\"<java-version>\"",
       workspacePath.toString -> "/workspace",
       coursierCache.toString -> "/coursier-cache",
-      millWorkspace.toString -> "/mill-workspace"
+      millWorkspace.toString -> "/mill-workspace",
+      os.home.toString -> "/user-home"
     )
 }

@@ -3,24 +3,21 @@ package mill.daemon
 import mill.api.internal.internal
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
-import mill.client.lock.{DoubleLock, Lock}
-import mill.constants.{DaemonFiles, OutFiles, Util}
+import mill.client.lock.Lock
+import mill.constants.{DaemonFiles, OutFiles}
 import mill.define.BuildCtx
 import mill.internal.{Colors, MultiStream, PrefixLogger, PromptLogger, SimpleLogger}
 import mill.server.Server
 import mill.util.BuildInfo
 import mill.{api, define}
+import mill.api.internal.bsp.BspServerResult
 
 import java.io.{InputStream, PipedInputStream, PrintStream, PrintWriter, StringWriter}
 import java.lang.reflect.InvocationTargetException
 import java.util.Locale
 import java.util.concurrent.{ThreadPoolExecutor, TimeUnit}
-import java.util.concurrent.locks.ReentrantLock
-import scala.collection.immutable
 import scala.jdk.CollectionConverters.*
-import scala.util.control.NonFatal
-import scala.util.{Properties, Using}
-import mill.api.internal.bsp.BspServerResult
+import scala.util.Using
 
 @internal
 object MillMain0 {
@@ -183,7 +180,7 @@ object MillMain0 {
                         )
                         defaultJobCount
                       }
-                    case other =>
+                    case _ =>
                       streams.err.println(
                         s"Warning: ignoring leftover arguments passed to ${config.leftoverArgs.value.head}"
                       )
@@ -279,6 +276,7 @@ object MillMain0 {
                             config,
                             enableTicker = config.ticker
                               .orElse(config.enableTicker)
+                              .orElse(Option.when(config.tabComplete.value)(false))
                               .orElse(Option.when(config.disableTicker.value)(false)),
                             daemonDir,
                             colored = colored,
@@ -289,7 +287,19 @@ object MillMain0 {
                       }
                     }
 
-                    if (bspMode) {
+                    if (config.tabComplete.value) {
+                      val bootstrapped = runMillBootstrap(
+                        enterKeyPressed = false,
+                        Some(stateCache),
+                        Seq(
+                          "mill.tabcomplete.TabCompleteModule/complete"
+                        ) ++ config.leftoverArgs.value,
+                        streams,
+                        "tab-completion"
+                      )
+
+                      (true, bootstrapped.result)
+                    } else if (bspMode) {
                       val bspLogger = getBspLogger(streams, config)
                       runBspSession(
                         streams0,

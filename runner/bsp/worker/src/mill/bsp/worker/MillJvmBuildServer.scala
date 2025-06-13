@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentParams,
   JvmTestEnvironmentResult
 }
-import mill.api.internal.{JavaModuleApi, RunModuleApi, TaskApi, TestModuleApi}
+import mill.api.internal.{JavaModuleApi, RunModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
 import java.util.concurrent.CompletableFuture
 
@@ -23,7 +23,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
 
   override def buildTargetJvmRunEnvironment(params: JvmRunEnvironmentParams)
       : CompletableFuture[JvmRunEnvironmentResult] = {
-    jvmRunTestEnvironment(
+    jvmRunEnvironmentFor(
       params.getTargets.asScala,
       new JvmRunEnvironmentResult(_)
     )
@@ -31,19 +31,19 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
 
   override def buildTargetJvmTestEnvironment(params: JvmTestEnvironmentParams)
       : CompletableFuture[JvmTestEnvironmentResult] = {
-    jvmRunTestEnvironment(
+    jvmTestEnvironmentFor(
       params.getTargets.asScala,
       new JvmTestEnvironmentResult(_)
     )
   }
 
-  def jvmRunTestEnvironment[V](
+  private def jvmTestEnvironmentFor[V](
       targetIds: collection.Seq[BuildTargetIdentifier],
       agg: java.util.List[JvmEnvironmentItem] => V
   )(implicit name: sourcecode.Name): CompletableFuture[V] = {
     handlerTasks(
       targetIds = _ => targetIds,
-      tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunTestEnvironment },
+      tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmTestEnvironment },
       requestDescription = "Getting JVM test environment of {}"
     ) {
       case (
@@ -57,7 +57,6 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
               forkWorkingDir,
               forkEnv,
               _,
-              None,
               Some(testEnvVars)
             )
           ) =>
@@ -65,7 +64,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
           List(testEnvVars.testRunnerClasspathArg, testEnvVars.argsFile)
         val item = new JvmEnvironmentItem(
           id,
-          testEnvVars.classpath.asJava,
+          testEnvVars.classpath.map(sanitizeUri).asJava,
           forkArgs.asJava,
           forkWorkingDir.toString(),
           forkEnv.asJava
@@ -76,6 +75,22 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         )).asJava)
         item
 
+      case other =>
+        throw new NotImplementedError(s"Unsupported target: ${pprint(other).plainText}")
+    } {
+      agg
+    }
+  }
+
+  private def jvmRunEnvironmentFor[V](
+      targetIds: collection.Seq[BuildTargetIdentifier],
+      agg: java.util.List[JvmEnvironmentItem] => V
+  )(implicit name: sourcecode.Name): CompletableFuture[V] = {
+    handlerTasks(
+      targetIds = _ => targetIds,
+      tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunEnvironment },
+      requestDescription = "Getting JVM run environment of {}"
+    ) {
       case (
             _,
             _,
@@ -87,8 +102,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
               forkWorkingDir,
               forkEnv,
               mainClass,
-              Some(localMainClasses),
-              None
+              localMainClasses
             )
           ) =>
         val classpath = runClasspath.map(sanitizeUri)
@@ -103,8 +117,6 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         val classes = mainClass.toList ++ localMainClasses
         item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
-
-      case _ => ???
     } {
       agg
     }

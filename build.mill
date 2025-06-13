@@ -1,4 +1,4 @@
-//| mill-version: 1.0.0-RC1
+//| mill-version: 1.0.0-RC2-4-784a1c
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C"]
 
@@ -71,10 +71,9 @@ def millDownloadUrl = Task {
 
 def millBinPlatform: T[String] = Task {
   val tag = millLastTag()
-  if (tag.contains("-M")) tag
-  else {
-    val pos = if (tag.startsWith("0.")) 2 else 1
-    tag.split("[.]", pos + 1).take(pos).mkString(".")
+  tag match {
+    case s"$_-M$_" | s"$_-RC$_" => tag
+    case tag => tag.split('.').head
   }
 }
 
