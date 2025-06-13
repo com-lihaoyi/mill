@@ -46,8 +46,9 @@ Mill's build headers can contain the following keys:
    tasks on xref:extending/meta-build.adoc[]
 
 `mill-version`, `mill-opts`, `mill-jvm-version`, and `mill-jvm-opts` can also be
-provided as standalone files on disk (`.mill-version`, `.mill-opts`,
-`.mill-jvm-version`, and `.mill-jvm-opts`) for compatibility with older versions of Mill
+provided as standalone files on disk (e.g. `.mill-version`) for compatibility with
+older versions of Mill, or the `.config` folder (e.g. `.config/mill-version`)
+following the https://dot-config.github.io/[`.config` XDG Base Directory Standard]
 
 == mill-opts
 
