@@ -8,7 +8,7 @@ body of the `build.mill` file has been compiled and loaded.
 
 For example, a build header may look something like:
 
-[source,console,subs="verbatim,attributes"]
+[source,scala]
 ----
 //| mill-version: {mill-version}
 //| # yaml comments are allowed in the build header
