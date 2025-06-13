@@ -67,6 +67,11 @@ object `package` extends ScalaModule {
 //
 //// SNIPPET:END
 //
+// You can also use your IDE's autocompletion to explore what tasks are available
+// to override and what each one does:
+//
+// image::basic/autocomplete-override.png[autocomplete-override.png]
+//
 //
 // Note the use of `moduleDir`, `Task.dest`, and `PathRef` when preforming
 // various filesystem operations:

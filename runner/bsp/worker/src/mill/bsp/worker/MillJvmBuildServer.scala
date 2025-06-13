@@ -43,7 +43,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
   )(implicit name: sourcecode.Name): CompletableFuture[V] = {
     handlerTasks(
       targetIds = _ => targetIds,
-      tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunTestEnvironment },
+      tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmTestEnvironment },
       requestDescription = "Getting JVM test environment of {}"
     ) {
       case (
@@ -57,7 +57,6 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
               forkWorkingDir,
               forkEnv,
               _,
-              None,
               Some(testEnvVars)
             )
           ) =>
@@ -89,7 +88,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
   )(implicit name: sourcecode.Name): CompletableFuture[V] = {
     handlerTasks(
       targetIds = _ => targetIds,
-      tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunTestEnvironment },
+      tasks = { case m: RunModuleApi => m.bspRunModule().bspJvmRunEnvironment },
       requestDescription = "Getting JVM run environment of {}"
     ) {
       case (
@@ -103,8 +102,7 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
               forkWorkingDir,
               forkEnv,
               mainClass,
-              Some(localMainClasses),
-              None
+              localMainClasses
             )
           ) =>
         val classpath = runClasspath.map(sanitizeUri)
@@ -119,9 +117,6 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
         val classes = mainClass.toList ++ localMainClasses
         item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
-
-      case other =>
-        throw new NotImplementedError(s"Unsupported target: ${pprint(other).plainText}")
     } {
       agg
     }

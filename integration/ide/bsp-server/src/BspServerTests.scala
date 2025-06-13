@@ -14,7 +14,7 @@ import mill.testrunner.TestRunnerUtils
 import utest.*
 
 object BspServerTests extends UtestIntegrationTestSuite {
-  def snapshotsPath: os.Path =
+  protected def snapshotsPath: os.Path =
     super.workspaceSourcePath / "snapshots"
   def logsPath: os.Path =
     super.workspaceSourcePath / "logs"
@@ -161,9 +161,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         compareWithGsonSnapshot(
-          buildServer
-            .buildTargetJvmTestEnvironment(new b.JvmTestEnvironmentParams(targetIdsSubset))
-            .get(),
+          cleanUpJvmTestEnvResult(
+            buildServer
+              .buildTargetJvmTestEnvironment(new b.JvmTestEnvironmentParams(targetIdsSubset))
+              .get()
+          ),
           snapshotsPath / "build-targets-jvm-test-environments.json",
           normalizedLocalValues = normalizedLocalValues
         )
@@ -316,5 +318,19 @@ object BspServerTests extends UtestIntegrationTestSuite {
       )
       assert(expectedMessages == messages0)
     }
+  }
+
+  private def cleanUpJvmTestEnvResult(res: b.JvmTestEnvironmentResult): res.type = {
+    for {
+      item <- res.getItems.asScala
+      mc <- item.getMainClasses.asScala
+      if mc.getArguments.size() > 0
+    }
+      // zero-out first arg that contains parts of the Mill class path, whose versions and libraries
+      // should change quite often - no need to track those here
+      mc.setArguments(
+        ("" +: mc.getArguments.asScala.drop(1)).asJava
+      )
+    res
   }
 }

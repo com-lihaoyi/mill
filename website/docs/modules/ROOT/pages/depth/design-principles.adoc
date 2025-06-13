@@ -183,7 +183,7 @@ that would make a build tool hard to understand.
 
 Before you continue, take a moment to think: how would you answer to each of
 those questions using an existing build tool you are familiar with? Different
-tools like http://www.scala-sbt.org/[`sbt`],
+tools like http://www.scala-sbt.org/[sbt],
 https://fake.build[Fake], https://gradle.org/[Gradle] or
 https://gruntjs.com/[Grunt] have very different answers.
 

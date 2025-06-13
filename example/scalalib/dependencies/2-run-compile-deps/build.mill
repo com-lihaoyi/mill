@@ -1,3 +1,4 @@
+// == Run-time Dependencies
 // If you want to use additional dependencies at runtime or override
 // dependencies and their versions at runtime, you can do so with
 // `runMvnDeps`.
@@ -18,6 +19,13 @@ object foo extends ScalaModule {
 }
 
 //// SNIPPET:END
+
+// Runtime dependencies are not available during compilation, but are available
+// at runtime. They are transitive, and so if you `run` or create an `assembly`
+// of a module it will include the runtime dependencies of all upstream modules on the
+// classpath
+
+// == Compile-time Dependencies
 
 // You can also declare compile-time-only dependencies with `compileMvnDeps`.
 // These are present in the compile classpath, but will not propagate to the
@@ -53,7 +61,7 @@ object bar extends ScalaModule {
 // NOTE: Compile-time dependencies are translated to `provided`-scoped
 // dependencies when publish to Maven or Ivy-Repositories.
 //
-// Both `compileMvnDeps` and `runMvnDeps` are non-transitive: a module does not
+// `compileMvnDeps` are non-transitive: a module does not
 // automatically aggregate them from its upstream dependencies. They must be
 // defined in every module that they are required in, either explicitly or via
 // a `trait` that the module inherits from.

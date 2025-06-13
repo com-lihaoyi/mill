@@ -29,9 +29,9 @@ object bar extends MyModule {
 //
 // Note that we split out the `test` submodule configuration common to both
 // modules into a separate `trait MyModule`. This xref:fundamentals/modules.adoc[Trait Module]
-// lets us avoid the need to copy-paste common settings, while still letting
-// us define any per-module configuration such as `mvnDeps` specific to a
-// particular module. This is a common pattern within Mill builds.
+// works like a `class` in Java, and lets us avoid the need to copy-paste common
+// settings, while still letting us define any per-module configuration such as
+// `mvnDeps` specific to a particular module. This is a common pattern within Mill builds.
 //
 // The above builds expect the following project layout:
 //

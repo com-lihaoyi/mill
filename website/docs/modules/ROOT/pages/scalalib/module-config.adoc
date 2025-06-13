@@ -44,15 +44,13 @@ include::partial$example/scalalib/module/14-cross-scala-version.adoc[]
 
 include::partial$example/scalalib/module/15-unidoc.adoc[]
 
+== Generated Sources
+
+include::partial$example/scalalib/module/3-generated-sources.adoc[]
+
 == Custom Tasks
 
 include::partial$example/scalalib/module/2-custom-tasks.adoc[]
-
-== Overriding Tasks
-
-include::partial$example/scalalib/module/3-override-tasks.adoc[]
-
-
 
 
 

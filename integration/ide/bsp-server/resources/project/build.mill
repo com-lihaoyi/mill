@@ -3,11 +3,27 @@ package build
 import mill._
 
 // testing a simple Java module
-object `hello-java` extends scalalib.JavaModule
+object `hello-java` extends scalalib.JavaModule {
+  object test extends JavaTests {
+    import scalalib._
+    def testFramework = "com.novocode.junit.JUnitFramework"
+    def mvnDeps = Seq(
+      mvn"com.github.sbt:junit-interface:0.13.2",
+      mvn"junit:junit:4.13.2"
+    )
+  }
+}
 
 // testing a simple Scala module
 object `hello-scala` extends scalalib.ScalaModule {
   def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+  object test extends ScalaTests {
+    import scalalib._
+    def testFramework = "utest.runner.Framework"
+    def mvnDeps = Seq(
+      mvn"com.lihaoyi::utest:0.8.5"
+    )
+  }
 }
 
 // testing a simple Kotlin module
