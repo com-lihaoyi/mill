@@ -166,5 +166,1011 @@
       }
     ],
     "reset": true
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 12,
+            "character": 4
+          },
+          "end": {
+            "line": 12,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 17,
+            "character": 4
+          },
+          "end": {
+            "line": 17,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 22,
+            "character": 4
+          },
+          "end": {
+            "line": 22,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 27,
+            "character": 4
+          },
+          "end": {
+            "line": 27,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 32,
+            "character": 4
+          },
+          "end": {
+            "line": 32,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 37,
+            "character": 4
+          },
+          "end": {
+            "line": 37,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 42,
+            "character": 4
+          },
+          "end": {
+            "line": 42,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 47,
+            "character": 4
+          },
+          "end": {
+            "line": 47,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 52,
+            "character": 4
+          },
+          "end": {
+            "line": 52,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 4
+          },
+          "end": {
+            "line": 57,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 62,
+            "character": 4
+          },
+          "end": {
+            "line": 62,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 67,
+            "character": 4
+          },
+          "end": {
+            "line": 67,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 12,
+            "character": 4
+          },
+          "end": {
+            "line": 12,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 17,
+            "character": 4
+          },
+          "end": {
+            "line": 17,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 22,
+            "character": 4
+          },
+          "end": {
+            "line": 22,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 27,
+            "character": 4
+          },
+          "end": {
+            "line": 27,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 32,
+            "character": 4
+          },
+          "end": {
+            "line": 32,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 37,
+            "character": 4
+          },
+          "end": {
+            "line": 37,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 42,
+            "character": 4
+          },
+          "end": {
+            "line": 42,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 47,
+            "character": 4
+          },
+          "end": {
+            "line": 47,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 52,
+            "character": 4
+          },
+          "end": {
+            "line": 52,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 4
+          },
+          "end": {
+            "line": 57,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 62,
+            "character": 4
+          },
+          "end": {
+            "line": 62,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 67,
+            "character": 4
+          },
+          "end": {
+            "line": 67,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": true
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 12,
+            "character": 4
+          },
+          "end": {
+            "line": 12,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 17,
+            "character": 4
+          },
+          "end": {
+            "line": 17,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 22,
+            "character": 4
+          },
+          "end": {
+            "line": 22,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 27,
+            "character": 4
+          },
+          "end": {
+            "line": 27,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 32,
+            "character": 4
+          },
+          "end": {
+            "line": 32,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 37,
+            "character": 4
+          },
+          "end": {
+            "line": 37,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 42,
+            "character": 4
+          },
+          "end": {
+            "line": 42,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 47,
+            "character": 4
+          },
+          "end": {
+            "line": 47,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 52,
+            "character": 4
+          },
+          "end": {
+            "line": 52,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 4
+          },
+          "end": {
+            "line": 57,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 62,
+            "character": 4
+          },
+          "end": {
+            "line": 62,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 67,
+            "character": 4
+          },
+          "end": {
+            "line": 67,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": false
+  },
+  {
+    "textDocument": {
+      "uri": "file:///workspace/diag/many/src/WarningAndErrors.scala"
+    },
+    "buildTarget": {
+      "uri": "file:///workspace/diag/many"
+    },
+    "diagnostics": [
+      {
+        "range": {
+          "start": {
+            "line": 12,
+            "character": 4
+          },
+          "end": {
+            "line": 12,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 17,
+            "character": 4
+          },
+          "end": {
+            "line": 17,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 22,
+            "character": 4
+          },
+          "end": {
+            "line": 22,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 27,
+            "character": 4
+          },
+          "end": {
+            "line": 27,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 32,
+            "character": 4
+          },
+          "end": {
+            "line": 32,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 37,
+            "character": 4
+          },
+          "end": {
+            "line": 37,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 42,
+            "character": 4
+          },
+          "end": {
+            "line": 42,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 47,
+            "character": 4
+          },
+          "end": {
+            "line": 47,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 52,
+            "character": 4
+          },
+          "end": {
+            "line": 52,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 57,
+            "character": 4
+          },
+          "end": {
+            "line": 57,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 62,
+            "character": 4
+          },
+          "end": {
+            "line": 62,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      },
+      {
+        "range": {
+          "start": {
+            "line": 67,
+            "character": 4
+          },
+          "end": {
+            "line": 67,
+            "character": 7
+          }
+        },
+        "severity": 1,
+        "source": "mill",
+        "message": "not found: value foo"
+      }
+    ],
+    "reset": true
   }
 ]

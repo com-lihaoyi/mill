@@ -155,6 +155,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
                   .filter(!_.getUri.endsWith("/errored/exception"))
                   .filter(!_.getUri.endsWith("/errored/compilation-error"))
                   .filter(!_.getUri.endsWith("/delayed"))
+                  .filter(!_.getUri.endsWith("/diag/many"))
                   .asJava
               )
             )
@@ -262,7 +263,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
           ),
           os.sub / "errored/exception" -> Nil,
           os.sub / "errored/compilation-error" -> Nil,
-          os.sub / "delayed" -> Nil
+          os.sub / "delayed" -> Nil,
+          os.sub / "diag/many" -> Nil
         )
 
         {
@@ -459,14 +461,15 @@ object BspServerTests extends UtestIntegrationTestSuite {
         ) { (buildServer, _) =>
           val targets = buildServer.workspaceBuildTargets().get().getTargets.asScala
           val diagTargets = targets.filter(_.getDisplayName == "diag").map(_.getId).asJava
+          val diagManyTargets = targets.filter(_.getDisplayName == "diag.many").map(_.getId).asJava
           assert(!diagTargets.isEmpty())
+          assert(!diagManyTargets.isEmpty())
 
           buildServer
-            .buildTargetCompile(
-              new b.CompileParams(
-                targets.filter(_.getDisplayName == "diag").map(_.getId).asJava
-              )
-            )
+            .buildTargetCompile(new b.CompileParams(diagTargets))
+            .get()
+          buildServer
+            .buildTargetCompile(new b.CompileParams(diagManyTargets))
             .get()
 
           compareWithGsonSnapshot(

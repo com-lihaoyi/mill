@@ -50,6 +50,18 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/diag/many"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/diag/many/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/errored/compilation-error"
       },
       "sources": [

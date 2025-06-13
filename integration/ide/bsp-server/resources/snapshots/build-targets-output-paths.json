@@ -26,6 +26,12 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/diag/many"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/errored/compilation-error"
       },
       "outputPaths": []

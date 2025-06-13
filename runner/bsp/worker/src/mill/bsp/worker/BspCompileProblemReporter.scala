@@ -5,6 +5,7 @@ import ch.epfl.scala.{bsp4j => bsp}
 import mill.api.internal.{CompileProblemReporter, Problem}
 
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 
 /**
@@ -31,6 +32,9 @@ private class BspCompileProblemReporter(
 ) extends CompileProblemReporter {
   private var errors = 0
   private var warnings = 0
+
+  // no need of a limit here, there's no console not to flood in BSP mode
+  override def maxErrors: Int = Int.MaxValue
 
   def hasErrors: Boolean = errors > 0
 
@@ -139,7 +143,13 @@ private class BspCompileProblemReporter(
   override def fileVisited(file: java.nio.file.Path): Unit = {
     val uri = file.toUri.toString
     val textDocument = new TextDocumentIdentifier(uri)
-    sendBuildPublishDiagnostics(textDocument, diagnostics.getAll(textDocument), reset = true)
+    sendBuildPublishDiagnostics(
+      textDocument,
+      // We sometimes compile things twice, (once for classes, second time for semanticdbs)
+      // so we de-duplicate diagnostics here
+      diagnostics.getAll(textDocument).asScala.distinct.asJava,
+      reset = true
+    )
   }
 
   override def printSummary(): Unit = {

@@ -560,12 +560,14 @@ class JvmWorkerImpl(
     val loggerId = Thread.currentThread().getId.toString
     val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
 
+    val maxErrors = reporter.map(_.maxErrors).getOrElse(CompileProblemReporter.defaultMaxErrors)
+
     def mkNewReporter(mapper: (xsbti.Position => xsbti.Position) | Null) = reporter match {
       case None =>
-        new ManagedLoggedReporter(10, logger) with RecordingReporter
+        new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter
           with TransformingReporter(ctx.log.prompt.colored, mapper) {}
       case Some(forwarder) =>
-        new ManagedLoggedReporter(10, logger)
+        new ManagedLoggedReporter(maxErrors, logger)
           with ForwardingReporter(forwarder)
           with RecordingReporter
           with TransformingReporter(ctx.log.prompt.colored, mapper) {}
@@ -634,7 +636,7 @@ class JvmWorkerImpl(
       earlyJarPath = None,
       scalacOptions = finalScalacOptions.toArray,
       javacOptions = javacOptions.toArray,
-      maxErrors = 10,
+      maxErrors = maxErrors,
       sourcePositionMappers = Array(),
       order = CompileOrder.Mixed,
       compilers = compilers,
