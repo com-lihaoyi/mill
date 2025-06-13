@@ -188,6 +188,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
               new b.CompileParams(
                 targetIds
                   .asScala
+                  // No need to attempt to compile the failing targets.
+                  // The snapshot data for this request basically only contains
+                  // a global status, errored or success. By excluding these,
+                  // we get a success status, and ensure compilation succeeds
+                  // as expected for all other targets.
                   .filter(!_.getUri.endsWith("/errored/exception"))
                   .filter(!_.getUri.endsWith("/errored/compilation-error"))
                   .filter(!_.getUri.endsWith("/delayed"))
