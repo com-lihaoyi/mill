@@ -22,22 +22,14 @@ bootstrap script, included. You can also download the boostrap script manually:
 ----
 > curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill
 > chmod +x mill
-> echo {mill-version} > .mill-version
+> echo "//| mill-version: {mill-version}" > build.mill
 ----
 
 .Windows
 [source,console,subs="verbatim,attributes"]
 ----
 > curl -L {mill-download-url}/mill-dist-{mill-version}-mill.bat -o mill.bat
-> echo {mill-version}> .mill-version
-----
-
-Mill also supports defining the Mill version in an attribute of the YAML-header at
-the top of your `build.mill` file:
-
-[source,console,subs="verbatim,attributes"]
-----
-//| mill-version: {mill-version}
+> echo "//| mill-version: {mill-version}" > build.mill
 ----
 
 [CAUTION]
@@ -118,33 +110,14 @@ Mill uses a JVM-based xref:javalib/publishing.adoc#_building_executable_assembli
 as the launcher on On Windows-ARM, and you can enable this on other platforms
 by adding a a `-jvm` suffix on the Mill version:
 
-[source,console,subs="verbatim,attributes"]
+[source,subs="verbatim,attributes"]
 ----
-> echo {version}-jvm > .mill-version
+{version}-jvm
 ----
 
 Mill's JVM launcher imposes some Java startup overhead (~100ms) over the native launcher
 when running Mill from the command line, and requires a JVM installed globally (version 11 or above)
 in order to run.
-
-=== Customizing Mill's JVM
-
-Mill allows you to specify the exact JVM version you want to use to run the build tool
-via a  `.mill-jvm-version`, which also becomes the default version used for any JVMs spawned
-by Mill to `run` or `test` your project:
-
-[source,console]
-----
-> echo temurin:17.0.6 > .mill-jvm-version
-----
-
-`.mill-jvm-version` can help ensure your project uses a consistent JVM version and
-behaves identically regardless of what the developer may have installed on their laptop
-or dev environment. If `.mill-jvm-version` is not provided, Mill uses the globally-installed
-`java` installation if there is one present on your `PATH`, and otherwise will download and
-cache a default version of Java for usage.
-
-
 
 [#_ide_support]
 == IDE Support
@@ -315,7 +288,8 @@ at the top of the bootstrap script, or as a user environment variable.
 
 === Overriding your Mill Version
 
-Typically, most Mill projects use a `.mill-version` file to configure what version
+Typically, most Mill projects use a `mill-version` key in their xref:cli/build-header.adoc[] or
+a `.mill-version` file to configure what version
 to use. You can update the version specified in this file in order to change the version
 of Mill. The file path `.config/mill-version` is also supported. If neither is provided,
 the `./mill` bootstrap script will use the `DEFAULT_MILL_VERSION` it has built in.
