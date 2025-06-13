@@ -367,6 +367,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -688,7 +692,7 @@ so its sources will live in the top-level <code>src/</code> folder and its tasks
 called directly via <code>compile</code> or <code>run</code> without needing a <code>foo.</code> module prefix.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-javalib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/1-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javalib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -753,6 +757,15 @@ a task of interest, such as <code>run</code>, you can visualize their relationsh
 <p>(right-click open in new tab to see full sized)</p>
 </div>
 <div class="paragraph">
+<p>You can also use your IDE’s autocompletion to explore what tasks are available
+to override and what each one does:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/autocomplete-override.png" alt="autocomplete-override.png" />
+</div>
+</div>
+<div class="paragraph">
 <p>Note the use of <code>moduleDir</code>, <code>Task.dest</code>, and <code>PathRef</code> when preforming
 various filesystem operations:</p>
 </div>
@@ -811,7 +824,7 @@ my.custom.property: my-prop-value</code></pre>
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-javalib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javalib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/4-compilation-execution-flags">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -868,7 +881,7 @@ them after the <code>foo.run</code>/<code>foo.runLocal</code>:</p>
 <h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-javalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/7-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/7-resources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1044,7 +1057,7 @@ the sandbox and make the tests run in the project root.</p>
 <h2 id="_annotation_processors"><a class="anchor" href="#_annotation_processors"></a>Annotation Processors</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-javalib-module-8-annotation-processors.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/8-annotation-processors">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javalib-module-8-annotation-processors.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/8-annotation-processors">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1124,7 +1137,7 @@ or ErrorProne use annotation processors, and can be set up in this way.</p>
 like to create the docs for, configured via <code>javaDocOptions</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-javalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/9-docjar">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/9-docjar">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1149,7 +1162,7 @@ object foo extends JavaModule {
 <h2 id="specifying-main-class"><a class="anchor" href="#specifying-main-class"></a>Specifying the Main Class</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-javalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/11-main-class">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/11-main-class">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1177,6 +1190,49 @@ main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_generated_sources"><a class="anchor" href="#_generated_sources"></a>Generated Sources</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javalib-module-3-generated-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/3-generated-sources">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
+
+object foo extends JavaModule {
+
+  def generatedSources = Task {
+    os.write(
+      Task.dest / &quot;Foo.java&quot;,
+      &quot;&quot;&quot;package foo;
+        |
+        |public class Foo {
+        |    public static void main(String[] args) {
+        |        System.out.println(&quot;Hello World&quot;);
+        |    }
+        |}
+      &quot;&quot;&quot;.stripMargin
+    )
+    Seq(PathRef(Task.dest))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In Mill, you can override the <code>def generatedSources</code> task to write files to disk that
+will be added to the module’s source folders during compilation. The example above
+generates a simple <code>main</code> method during build time that can be compiled and then
+used at runtime, but you can write arbitrarily code inside <code>generatedSources</code> to
+generated the sources you need.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run
+Hello World</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_custom_tasks"><a class="anchor" href="#_custom_tasks"></a>Custom Tasks</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1197,7 +1253,7 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-javalib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/2-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javalib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1399,7 +1455,7 @@ to compile some Javascript, generate sources to feed into a compiler, or
 create some custom jar/zip assembly with the files you want , all of these
 can simply be custom tasks with your code running in the <code>Task {…​}</code> block.
 You can also import arbitrary Java or Scala libraries from Maven Central via
-<a href="../extending/import-mvn-plugins.html" class="xref page">import $ivy</a> to use in your build.</p>
+<a href="../extending/import-mvn-plugins.html" class="xref page">//| mvnDeps</a> to use in your build.</p>
 </div>
 <div class="paragraph">
 <p>You can create arbitrarily long chains of dependent tasks, and Mill will
@@ -1433,96 +1489,6 @@ change.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_overriding_tasks"><a class="anchor" href="#_overriding_tasks"></a>Overriding Tasks</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-javalib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/3-override-tasks">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
-
-object foo extends JavaModule {
-
-  def sources = Task {
-    os.write(
-      Task.dest / &quot;Foo.java&quot;,
-      &quot;&quot;&quot;package foo;
-        |
-        |public class Foo {
-        |    public static void main(String[] args) {
-        |        System.out.println(&quot;Hello World&quot;);
-        |    }
-        |}
-      &quot;&quot;&quot;.stripMargin
-    )
-    Seq(PathRef(Task.dest))
-  }
-
-  def compile = Task {
-    println(&quot;Compiling...&quot;)
-    super.compile()
-  }
-
-  def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
-    println(&quot;Running...&quot; + args().value.mkString(&quot; &quot;))
-    super.run(args)()
-  }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You can re-define tasks to override them, and use <code>super</code> if you
-want to refer to the originally defined task. The above example shows how to
-override <code>compile</code> and <code>run</code> to add additional logging messages, and we
-override <code>sources</code> which was <code>Task.Sources</code> for the <code>src/</code> folder with a plain
-<code>T{…​}</code> task that generates the  necessary source files on-the-fly.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-that this example <strong>replaces</strong> your <code>src/</code> folder with the generated
-sources, as we are overriding the <code>def sources</code> task. If you want to <strong>add</strong>
-generated sources, you can either override <code>generatedSources</code>, or you can
-override <code>sources</code> and use <code>super</code> to include the original source folder with <code>super</code>:
-</td>
-</tr>
-</tbody></table>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo2 extends JavaModule {
-  def generatedSources = Task {
-    os.write(Task.dest / &quot;Foo.java&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
-    Seq(PathRef(Task.dest))
-  }
-}
-
-object foo3 extends JavaModule {
-  def sources = Task {
-    os.write(Task.dest / &quot;Foo.java&quot;, &quot;&quot;&quot;...&quot;&quot;&quot;)
-    super.sources() ++ Seq(PathRef(Task.dest))
-  }
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In Mill builds the <code>override</code> keyword is optional.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run
-Compiling...
-Running...
-Hello World</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_native_c_code_with_jni"><a class="anchor" href="#_native_c_code_with_jni"></a>Native C Code with JNI</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1530,7 +1496,7 @@ Hello World</code></pre>
 code using JNI.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-javalib-module-15-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/15-jni">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javalib-module-15-jni.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/module/15-jni">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._, util.Jvm

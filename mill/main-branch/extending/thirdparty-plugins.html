@@ -367,6 +367,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -1315,14 +1319,8 @@ the plugins publishes all plugins referenced under <code>pluginsUnderTest</code>
 The mill version used in the integration test then used that temporary ivy repository.</p>
 </div>
 <div class="paragraph">
-<p>Instead of referring to your plugin with <code>import $ivy.&apos;your::plugin:version&apos;</code>,
+<p>Instead of referring to your plugin with <code>//| mvnDeps.&apos;your::plugin:version&apos;</code>,
 you can use the following line instead, which ensures you will use the correct locally build plugins.</p>
-</div>
-<div class="listingblock">
-<div class="title"><code>build.mill</code></div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $exec.plugins</code></pre>
-</div>
 </div>
 <div class="paragraph">
 <p>Effectively, at execution time, this line gets replaced by the content of <code>plugins.sc</code>, a file which was generated just before the test started to execute.</p>

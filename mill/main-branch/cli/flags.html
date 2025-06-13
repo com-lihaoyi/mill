@@ -367,6 +367,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -676,13 +680,14 @@ These are configured using <a href="../javalib/module-config.html#_compilation_e
 </li>
 <li>
 <p>The Mill build tool process, e.g. <code>./mill --jobs 10</code>. These can be passed directly after the
-<code>./mill</code> executable name, or set in a <code>.mill-opts</code> file as shown below in
-<a href="#_repo_level_mill_options">Repo-Level Mill Options</a></p>
+<code>./mill</code> executable name, or set in your <a href="build-header.html" class="xref page">Build Header Config</a> or <code>.mill-opts</code> file as shown below in
+<a href="build-header.html#_repo_level_mill_options" class="xref page">Repo-Level Mill Options</a></p>
 </li>
 <li>
 <p>The JVM running the Mill build tool process, which may take flags. e.g.
-<code>java -Xss10m -Xmx10G</code>. These are passed via <code>JAVA_OPTs</code> or via a <code>.mill-jvm-opts</code> flag
-as shown below in <a href="#_running_mill_with_custom_jvm_options">Mill with custom JVM options</a></p>
+<code>java -Xss10m -Xmx10G</code>. These are passed via <code>JAVA_OPTs</code>, your  <a href="build-header.html" class="xref page">Build Header Config</a>
+or via a <code>.mill-jvm-opts</code> file
+as shown below in <a href="build-header.html#_running_mill_with_custom_jvm_options" class="xref page">Mill with custom JVM options</a></p>
 </li>
 </ol>
 </div>
@@ -842,104 +847,10 @@ Defaults to the number of cores available on your system.</p>
 <div class="paragraph">
 <p>You can also set Mill’s parallelism to some multiple of the number of cores, e.g.
 <code>-j0.5C</code> to use half as many threads as cores, or <code>-j2C</code> to use twice as many threads as cores.
-These can be useful as <a href="#_repo_level_mill_options">Repo-Level Mill Options</a> to configure an appropriate level
+These can be useful as <a href="build-header.html#_repo_level_mill_options" class="xref page">cli/build-header.adoc#_repo_level_mill_options</a> to configure an appropriate level
 of parallelism that scales based on the number of cores available (which might differ
 between e.g. developer laptops and CI machines)</p>
 </div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_repo_level_mill_options"><a class="anchor" href="#_repo_level_mill_options"></a>Repo-Level Mill Options</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill supports the <code>.mill-opts</code> file for passing a default set of command line
-options to Mill itself.For example, if your project’s tasks are CPU heavy, you
-may want everyone using your project to run only 0.5 concurrent tasks per CPU.This
-can be done by setting <code>.mill-opts</code> to:</p>
-</div>
-<div class="paragraph">
-<p><em>.mill-opts</em></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">--jobs=0.5C</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The file name <code>.mill-opts</code> can be overridden via the <code>MILL_OPTS_PATH</code> environment variable.
-You can also pass in flags like <code>--jobs=10</code> explicitly to override the value passed in
-<code>.mill-opts</code>.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<code>.mill-jvm-opts</code> is for passing JVM options to the JVM running Mill,
-and <code>.mill-opts</code> is for passing options to Mill itself.If you want to pass JVM options
-to the project that Mill is building and running, see the section on
-<a href="../javalib/module-config.html#_compilation_execution_flags" class="xref page">Compilation and Execution Flags</a>.
-</td>
-</tr>
-</tbody></table>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_running_mill_with_custom_jvm_options"><a class="anchor" href="#_running_mill_with_custom_jvm_options"></a>Running Mill with custom JVM options</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>It’s possible to pass JVM options to the Mill launcher.To do this you can either set
-the <code>JAVA_OPTS</code> environment variable, or create a <code>.mill-jvm-opts</code> file in your project’s
-root that contains JVM options one per line.</p>
-</div>
-<div class="paragraph">
-<p>For example, if your build requires a lot of memory and bigger stack size, you could run</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; JAVA_OPTS='-Xss10m -Xmx10G' ./mill __.compile</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Or you could create a <code>.mill-jvm-opts</code>:</p>
-</div>
-<div class="paragraph">
-<p><em>.mill-jvm-opts</em></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-none hljs">-Xss10m
--Xmx10G</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Note that <code>.mill-jvm-opts</code> requires each CLI token to be on a separate line, so
-<code>-Xss10m -Xmx10G</code> on a single line is not allowed (as it would pass <code>&quot;-Xss10m -Xmx10G&quot;</code>
-as a single token and fail argument parsing)</p>
-</div>
-<div class="paragraph">
-<p><code>.mill-jvm-opts</code> also supports environment variable interpolation, e.g.</p>
-</div>
-<div class="paragraph">
-<p><em>.mill-jvm-opts</em></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh"># PWD on mac/linux
--Dmy.jvm.property=${PWD}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Missing environment variables are
-converted to the empty string.</p>
-</div>
-<div class="paragraph">
-<p>The file name <code>.mill-jvm-opts</code> can be overridden via the <code>MILL_JVM_OPTS_PATH</code> environment
-variable.</p>
 </div>
 </div>
 </div>

@@ -367,6 +367,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -666,7 +670,7 @@ a simple Kotlin program. It walks through a series of Mill builds of increasing
 complexity to show you the key features and usage of the Mill build tool.</p>
 </div>
 <div class="paragraph">
-<p>The other pages of this section of the documentation go into more depth into individual features,
+<p>The other pages of this section of the docs go into more depth into individual features,
 with more examples of how to use Mill for Kotlin and more details of how the Mill
 build tool works. They aren’t intended to be read comprehensively top-to-bottom, but
 rather looked up when you have a particular interest e.g. in
@@ -695,7 +699,7 @@ limitations!
 <h2 id="_simple_kotlin_module"><a class="anchor" href="#_simple_kotlin_module"></a>Simple Kotlin Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-kotlinlib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/basic/1-simple">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-kotlinlib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/basic/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -723,10 +727,9 @@ third-party dependencies and a test suite using the JUnit framework.</p>
 <div class="paragraph">
 <p>You can download this example project using the <strong>download</strong> link above
 if you want to try out the commands below yourself, or browse the full sources
-of the example (including supporting files) via the <strong>browse</strong> link. The only requirement is
-that you have some version of the JVM installed; the <code>./mill</code> script
-(<code>./mill.bat</code> on windows) takes
-care of any further dependencies that need to be downloaded. All examples
+of the example (including supporting files) via the <strong>browse</strong> link. the <code>./mill</code> script
+(<code>./mill.bat</code> on windows) takes care of downloading and caching any further dependencies,
+including downloading a JVM if you do not already have one. All examples
 in this documentation site are executable and are continually exercised as
 part of Mill’s CI workflows, and they range from the simple hello-world
 projects on this page to more sophisticated
@@ -845,36 +848,33 @@ Test run finished: 0 failed, 0 ignored, 2 total, ...
 </div>
 <div class="paragraph">
 <p>The output of every Mill task is stored in the <code>out/</code> folder under a name
-corresponding to the task that created it. e.g. The <code>assembly</code> task puts its
-metadata output in <code>out/assembly.json</code>, and its output files in
-<code>out/assembly.dest</code>. You can also use <code>show</code> to make Mill print out the
-metadata output for a particular task.</p>
+corresponding to the task that created it. e.g. The <code>foo.assembly</code> task puts its
+metadata output in <code>out/foo/assembly.json</code>, and its output files in
+<code>out/foo/assembly.dest</code>. You can also use <code>show</code> to print out the
+metadata output for a particular task, or <code>inspect</code> to print metadata about
+the task itself (docs, source location, etc.)</p>
 </div>
 <div class="paragraph">
 <p>Additional Mill tasks you would likely need include:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ mill runBackground # run the main method in the background
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __ # recursively list all tasks and modules that are available
 
-$ mill clean &lt;task&gt;  # delete the cached output of a task, terminate any runBackground
+&gt; ./mill foo.runBackground # run the main method in the background
 
-$ mill launcher      # prepares a foo/launcher.dest/run you can run later
+&gt; ./mill clean &lt;task&gt;  # delete the cached output of a task, terminate any runBackground
 
-$ mill jar           # bundle the classfiles into a jar suitable for publishing
+&gt; ./mill foo.launcher      # prepares a foo/launcher.dest/run you can run later
 
-$ mill -i console    # start a Scala console within your project
+&gt; ./mill foo.jar           # bundle the classfiles into a jar suitable for publishing
 
-$ mill -i repl       # start an Ammonite Scala REPL within your project
+&gt; ./mill -i foo.console    # start a Scala console within your project
 
-$ mill -w compile    # watch input files and re-compile whenever a file changes</code></pre>
+&gt; ./mill -i foo.repl       # start an Ammonite Scala REPL within your project
+
+&gt; ./mill -w foo.compile    # watch input files and re-compile whenever a file changes</code></pre>
 </div>
-</div>
-<div class="paragraph">
-<p>You can run <code>mill resolve __</code> to see a full list of the different tasks that
-are available, <code>mill resolve _</code> to see the tasks within <code>foo</code>,
-<code>mill inspect compile</code> to inspect a task’s doc-comment documentation or what
-it depends on, or <code>mill show foo.scalaVersion</code> to show the output of any task.</p>
 </div>
 <div class="paragraph">
 <p>The most common <strong>tasks</strong> that Mill can run are cached tasks, such as
@@ -902,7 +902,7 @@ single generated text file containing the line count of all the source files
 in that module</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-kotlinlib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/basic/2-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-kotlinlib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/basic/2-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -1014,7 +1014,7 @@ folder of the new task which contains a <code>lint-count.txt</code> file we writ
 from the <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a> library, which is
 one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.
 You can also import any JVM library you want from Maven Central using
-<a href="../extending/import-mvn-plugins.html" class="xref page">import $ivy</a>, so you are not limited
+<a href="../extending/import-mvn-plugins.html" class="xref page">//| mvnDeps</a>, so you are not limited
 to what is bundled with Mill.</p>
 </li>
 <li>
@@ -1063,7 +1063,7 @@ maintainable even as the complexity of your project grows.</p>
 <h2 id="_multi_module_project"><a class="anchor" href="#_multi_module_project"></a>Multi-Module Project</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-kotlinlib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/basic/3-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-kotlinlib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/basic/3-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -1104,9 +1104,9 @@ within <code>foo</code> and <code>bar</code> respectively</p>
 <div class="paragraph">
 <p>Note that we split out the <code>test</code> submodule configuration common to both
 modules into a separate <code>trait MyModule</code>. This <a href="../fundamentals/modules.html" class="xref page">Trait Module</a>
-lets us avoid the need to copy-paste common settings, while still letting
-us define any per-module configuration such as <code>mvnDeps</code> specific to a
-particular module. This is a common pattern within Mill builds.</p>
+works like a <code>class</code> in Java, and lets us avoid the need to copy-paste common
+settings, while still letting us define any per-module configuration such as
+<code>mvnDeps</code> specific to a particular module. This is a common pattern within Mill builds.</p>
 </div>
 <div class="paragraph">
 <p>The above builds expect the following project layout:</p>
@@ -1236,7 +1236,7 @@ migrating an existing codebase, you can use Mill’s <code>KotlinMavenModule</co
 Maven or Gradle build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-kotlinlib-basic-4-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/basic/4-compat-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-kotlinlib-basic-4-compat-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/basic/4-compat-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._
@@ -1306,6 +1306,9 @@ Compiling 1 Kotlin source...
 ...foo.FooTests hello ...</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>For more details on migrating from other build tools, see <a href="../migrating/migrating.html" class="xref page">Migrating to Mill</a></p>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1318,7 +1321,7 @@ and other topics covered in more detail in the Kotlin section of the Mill docs,
 and you can browse each respective page if you want to learn more.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-kotlinlib-basic-6-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/basic/6-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-kotlinlib-basic-6-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/basic/6-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, kotlinlib._, publish._

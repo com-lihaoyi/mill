@@ -367,6 +367,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -669,7 +673,7 @@
 <h2 id="_defining_unit_test_suites"><a class="anchor" href="#_defining_unit_test_suites"></a>Defining Unit Test Suites</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-scalalib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/testing/1-test-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/testing/1-test-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -922,7 +926,7 @@ and <code>runMvnDeps</code> to declare dependencies in test modules, and test mo
 can use their <code>moduleDeps</code> to also depend on each other</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-scalalib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/testing/2-test-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/testing/2-test-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -984,7 +988,7 @@ the build below defines a test suite with the name <code>integration</code>, in 
 to that named <code>test</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-scalalib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/testing/3-integration-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/testing/3-integration-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1003,7 +1007,8 @@ object qux extends ScalaModule {
 </div>
 <div class="paragraph">
 <p>These two test modules will expect their sources to be in their respective <code>qux/test</code> and
-<code>qux/integration</code> folder respectively</p>
+<code>qux/integration</code> folder respectively. You can use Mill’s task query syntax to select
+the test modules which you want to run</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1012,7 +1017,11 @@ object qux extends ScalaModule {
 ...qux.QuxTests...world...
 ...qux.QuxIntegrationTests...helloworld...
 
-&gt; mill __.integration.testCached # run all integration test suites</code></pre>
+&gt; mill __.integration # run all integration test suites
+
+&gt; mill __.test # run all normal test suites
+
+&gt; mill __.testForked # run all test suites of any kind</code></pre>
 </div>
 </div>
 </div>
@@ -1021,17 +1030,12 @@ object qux extends ScalaModule {
 <h2 id="_test_parallelism"><a class="anchor" href="#_test_parallelism"></a>Test Parallelism</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Test parallelism is an opt-in that enables parallel test execution, automatically
-distributing your test classes across multiple JVM subprocesses, while minimizing the
-overhead of JVM creation by re-using the subprocesses where possible.
-Test parallelism should be able to reduce testing times for most project’s test suites</p>
-</div>
-<div class="paragraph">
-<p>Test parallelism can be enabled by overriding <code>def testParallelism</code>, as demonstrated below.
-This feature is expected to be enabled by default in future versions of Mill.</p>
+<p>Test parallelism automatically
+distributes your test classes across multiple JVM subprocesses, while minimizing the
+overhead of JVM creation by re-using the subprocesses where possible.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-scalalib-testing-4-test-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/testing/4-test-parallel">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-testing-4-test-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/testing/4-test-parallel">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1063,6 +1067,11 @@ out/foo/test/testForked.dest/test-report.xml
 ...</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p><code>def testParallelism = true</code> is enabled by default, and only shown in the above
+example for clarity. To disable test parallelism, add <code>def testParallelism = false</code>
+to your test suites</p>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1075,7 +1084,7 @@ execute in parallel in a separate JVM when you call <code>test</code>. Test grou
 is enabled by overriding <code>def testForkGrouping</code>, as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-scalalib-testing-5-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/testing/5-test-grouping">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-testing-5-test-grouping.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/testing/5-test-grouping">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1190,7 +1199,7 @@ execution, based on the unique constraints of your test suite.</p>
 <p><code>testParallelism</code> respects <code>testForkGrouping</code>, allowing you to use both features in a test module.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-scalalib-testing-6-test-group-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/testing/6-test-group-parallel">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-testing-6-test-group-parallel.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/testing/6-test-group-parallel">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._

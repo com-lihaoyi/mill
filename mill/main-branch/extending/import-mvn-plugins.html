@@ -367,6 +367,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -682,7 +686,7 @@ into your build, so you can use it at build-time to safely generate escaped HTML
 in your resource path for your application to use.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-extending-imports-1-mvn-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/imports/1-mvn-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-extending-imports-1-mvn-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/imports/1-mvn-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;]
 
@@ -733,6 +737,19 @@ generated snippet.txt resource: &lt;div&gt;&lt;h1&gt;hello&lt;/h1&gt;&lt;p&gt;wo
 generated snippet.txt resource: &lt;div&gt;&lt;h1&gt;hello&lt;/h1&gt;&lt;p&gt;world&lt;/p&gt;&lt;/div&gt;</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>To customize the repositories used to resolve the <code>//| mvnDeps:</code> dependencies used in your
+<code>build.mill</code> file, you can add <code>//| repositories:</code> to your YAML header which takes a
+list of strings of the same format. For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">//| repositories:
+//| - https://oss.sonatype.org/content/repositories/snapshots
+//| mvnDeps:
+//| - com.goyeau::mill-scalafix::0.5.1-14-4d3f5ea-SNAPSHOT</code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -745,7 +762,7 @@ a HTML generation library that does the string concatenation/construction intern
 and also escapes the input strings on your behalf:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-11-fbe784-example-extending-imports-2-mvn-deps-scala.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/imports/2-mvn-deps-scala">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-extending-imports-2-mvn-deps-scala.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/imports/2-mvn-deps-scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.lihaoyi::scalatags:0.13.1&quot;]
 

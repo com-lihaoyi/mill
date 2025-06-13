@@ -367,6 +367,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -1375,7 +1379,7 @@ is based around <em>global mutable variables</em>. The Groovy or Kotlin code you
 actually <em>perform the build</em>, but instead is just setting up some
 global mutable data structure that is used to configure the <em>real</em> build engine that
 runs <em>later</em>. Thus when you explore the Gradle build in an IDE, the IDE can only explore the
-configuration logic (the`getCompilerArgs` method above) and is unable to explore
+configuration logic (the <code>getCompilerArgs</code> method above) and is unable to explore
 the actual build logic (how <code>getCompilerArgs</code> <em>actually gets used in Gradle</em>). And
 just because the global mutable variable is wrapped in a getter and setter
 does not make it any less global or any less mutable!</p>
@@ -1479,20 +1483,20 @@ define templated, customizable graph-computations when setting up their build pi
 <svg width="767px" height="364px" viewBox="0.00 0.00 767.02 364.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
-<g id="clust3" class="cluster">
-<title>cluster_2</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="250.41,-8 250.41,-116 751.02,-116 751.02,-8 250.41,-8"></polygon>
-<text text-anchor="middle" x="500.71" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-124 126.09,-232 617.74,-232 617.74,-124 126.09,-124"></polygon>
+<text text-anchor="middle" x="371.92" y="-215.4" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 484.87,-348 484.87,-240 8,-240"></polygon>
 <text text-anchor="middle" x="246.43" y="-331.4" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-124 126.09,-232 617.74,-232 617.74,-124 126.09,-124"></polygon>
-<text text-anchor="middle" x="371.92" y="-215.4" font-family="Times,serif" font-size="14.00">bar</text>
+<g id="clust3" class="cluster">
+<title>cluster_2</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="250.41,-8 250.41,-116 751.02,-116 751.02,-8 250.41,-8"></polygon>
+<text text-anchor="middle" x="500.71" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">
@@ -1951,6 +1955,230 @@ calling <code>foo.super.resources</code>:</p>
 </center>
 </div>
 <div class="paragraph">
+<p>If you want to re-use your build pipeline customizations, it as simple as turning the
+<code>object foo</code> into a <code>interface MyJavaModule</code> (called a <code>trait MyJavaModule</code> in Mill’s syntax), so it
+can be inherited
+by <code>object foo</code> and <code>object bar</code> to share the configuration:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
+
+object foo extends MyJavaModule
+object bar extends MyJavaModule
+
+trait MyJavaModule extends JavaModule {
+  /** Total number of lines in module source files */
+  def lineCount = Task {
+    allSourceFiles().map(f =&gt; os.read.lines(f.path).size).sum
+  }
+
+  /** Generate resources using lineCount of sources */
+  override def resources = Task {
+    os.write(Task.dest / &quot;line-count.txt&quot;, &quot;&quot; + lineCount())
+    super.resources() ++ Seq(PathRef(Task.dest))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<center>
+<svg width="534px" height="334px" viewBox="0.00 0.00 534.25 334.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 330.0)">
+<title>G</title>
+<g id="clust1" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="darkgreen" stroke-width="3" stroke-dasharray="5,2" points="8.39,-8 8.39,-159 517.86,-159 517.86,-8 8.39,-8"></polygon>
+<text text-anchor="middle" x="263.12" y="-142.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-167 8,-318 518.25,-318 518.25,-167 8,-167"></polygon>
+<text text-anchor="middle" x="263.12" y="-301.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<!-- bar.sources -->
+<g id="node1" class="node">
+<title>bar.sources</title>
+<polygon fill="white" stroke="black" points="95.92,-104.3 16.21,-104.3 16.21,-79.7 95.92,-79.7 95.92,-104.3"></polygon>
+<text text-anchor="middle" x="56.07" y="-87.8" font-family="Times,serif" font-size="14.00">bar.sources</text>
+</g>
+<!-- bar.compile -->
+<g id="node2" class="node">
+<title>bar.compile</title>
+<polygon fill="white" stroke="black" points="236.03,-126.3 153.08,-126.3 153.08,-101.7 236.03,-101.7 236.03,-126.3"></polygon>
+<text text-anchor="middle" x="194.56" y="-109.8" font-family="Times,serif" font-size="14.00">bar.compile</text>
+</g>
+<!-- bar.sources&#45;&gt;bar.compile -->
+<g id="edge1" class="edge">
+<title>bar.sources-&gt;bar.compile</title>
+<path fill="none" stroke="black" d="M95.82,-98.25C110.56,-100.62 127.57,-103.36 143.23,-105.89"></path>
+<polygon fill="black" stroke="black" points="142.86,-109.37 153.29,-107.51 143.97,-102.46 142.86,-109.37"></polygon>
+</g>
+<!-- bar.lineCount -->
+<g id="node7" class="node">
+<title>bar.lineCount</title>
+<polygon fill="white" stroke="black" points="240.66,-83.3 148.46,-83.3 148.46,-58.7 240.66,-58.7 240.66,-83.3"></polygon>
+<text text-anchor="middle" x="194.56" y="-66.8" font-family="Times,serif" font-size="14.00">bar.lineCount</text>
+</g>
+<!-- bar.sources&#45;&gt;bar.lineCount -->
+<g id="edge6" class="edge">
+<title>bar.sources-&gt;bar.lineCount</title>
+<path fill="none" stroke="black" d="M95.82,-86.04C109.01,-84.01 124.02,-81.7 138.25,-79.51"></path>
+<polygon fill="black" stroke="black" points="139.09,-82.92 148.44,-77.94 138.02,-76 139.09,-82.92"></polygon>
+</g>
+<!-- bar.classPath -->
+<g id="node3" class="node">
+<title>bar.classPath</title>
+<polygon fill="white" stroke="black" points="383.45,-126.3 293.51,-126.3 293.51,-101.7 383.45,-101.7 383.45,-126.3"></polygon>
+<text text-anchor="middle" x="338.48" y="-109.8" font-family="Times,serif" font-size="14.00">bar.classPath</text>
+</g>
+<!-- bar.compile&#45;&gt;bar.classPath -->
+<g id="edge2" class="edge">
+<title>bar.compile-&gt;bar.classPath</title>
+<path fill="none" stroke="black" d="M235.85,-114C250.64,-114 267.63,-114 283.43,-114"></path>
+<polygon fill="black" stroke="black" points="283.61,-117.5 293.61,-114 283.61,-110.5 283.61,-117.5"></polygon>
+</g>
+<!-- bar.assembly -->
+<g id="node4" class="node">
+<title>bar.assembly</title>
+<polygon fill="white" stroke="black" points="510.1,-104.3 420.14,-104.3 420.14,-79.7 510.1,-79.7 510.1,-104.3"></polygon>
+<text text-anchor="middle" x="465.12" y="-87.8" font-family="Times,serif" font-size="14.00">bar.assembly</text>
+</g>
+<!-- bar.classPath&#45;&gt;bar.assembly -->
+<g id="edge3" class="edge">
+<title>bar.classPath-&gt;bar.assembly</title>
+<path fill="none" stroke="black" d="M383.42,-106.24C392.08,-104.72 401.26,-103.1 410.2,-101.52"></path>
+<polygon fill="black" stroke="black" points="410.91,-104.95 420.15,-99.76 409.7,-98.05 410.91,-104.95"></polygon>
+</g>
+<!-- bar.super.resources -->
+<g id="node5" class="node">
+<title>bar.super.resources</title>
+<polygon fill="white" stroke="black" points="256.61,-40.3 132.51,-40.3 132.51,-15.7 256.61,-15.7 256.61,-40.3"></polygon>
+<text text-anchor="middle" x="194.56" y="-23.8" font-family="Times,serif" font-size="14.00">bar.super.resources</text>
+</g>
+<!-- bar.resources -->
+<g id="node6" class="node">
+<title>bar.resources</title>
+<polygon fill="white" stroke="black" points="383.71,-83.3 293.25,-83.3 293.25,-58.7 383.71,-58.7 383.71,-83.3"></polygon>
+<text text-anchor="middle" x="338.48" y="-66.8" font-family="Times,serif" font-size="14.00">bar.resources</text>
+</g>
+<!-- bar.super.resources&#45;&gt;bar.resources -->
+<g id="edge4" class="edge">
+<title>bar.super.resources-&gt;bar.resources</title>
+<path fill="none" stroke="black" d="M236.23,-40.32C252.11,-45.14 270.49,-50.7 287.2,-55.76"></path>
+<polygon fill="black" stroke="black" points="286.22,-59.13 296.81,-58.68 288.25,-52.43 286.22,-59.13"></polygon>
+</g>
+<!-- bar.resources&#45;&gt;bar.assembly -->
+<g id="edge5" class="edge">
+<title>bar.resources-&gt;bar.assembly</title>
+<path fill="none" stroke="black" d="M383.78,-78.46C392.22,-79.89 401.16,-81.39 409.87,-82.86"></path>
+<polygon fill="black" stroke="black" points="409.53,-86.35 419.97,-84.56 410.69,-79.45 409.53,-86.35"></polygon>
+</g>
+<!-- bar.lineCount&#45;&gt;bar.resources -->
+<g id="edge7" class="edge">
+<title>bar.lineCount-&gt;bar.resources</title>
+<path fill="none" stroke="black" d="M240.85,-71C254.17,-71 268.88,-71 282.72,-71"></path>
+<polygon fill="black" stroke="black" points="283.1,-74.5 293.1,-71 283.1,-67.5 283.1,-74.5"></polygon>
+</g>
+<!-- foo.sources -->
+<g id="node8" class="node">
+<title>foo.sources</title>
+<polygon fill="white" stroke="black" points="96.21,-263.3 15.93,-263.3 15.93,-238.7 96.21,-238.7 96.21,-263.3"></polygon>
+<text text-anchor="middle" x="56.07" y="-246.8" font-family="Times,serif" font-size="14.00">foo.sources</text>
+</g>
+<!-- foo.compile -->
+<g id="node9" class="node">
+<title>foo.compile</title>
+<polygon fill="white" stroke="black" points="236.32,-285.3 152.79,-285.3 152.79,-260.7 236.32,-260.7 236.32,-285.3"></polygon>
+<text text-anchor="middle" x="194.56" y="-268.8" font-family="Times,serif" font-size="14.00">foo.compile</text>
+</g>
+<!-- foo.sources&#45;&gt;foo.compile -->
+<g id="edge8" class="edge">
+<title>foo.sources-&gt;foo.compile</title>
+<path fill="none" stroke="black" d="M96.18,-257.3C110.66,-259.64 127.28,-262.32 142.65,-264.79"></path>
+<polygon fill="black" stroke="black" points="142.11,-268.25 152.54,-266.39 143.22,-261.34 142.11,-268.25"></polygon>
+</g>
+<!-- foo.lineCount -->
+<g id="node14" class="node">
+<title>foo.lineCount</title>
+<polygon fill="white" stroke="black" points="241.44,-242.3 147.67,-242.3 147.67,-217.7 241.44,-217.7 241.44,-242.3"></polygon>
+<text text-anchor="middle" x="194.56" y="-225.8" font-family="Times,serif" font-size="14.00">foo.lineCount</text>
+</g>
+<!-- foo.sources&#45;&gt;foo.lineCount -->
+<g id="edge13" class="edge">
+<title>foo.sources-&gt;foo.lineCount</title>
+<path fill="none" stroke="black" d="M96.18,-244.98C109.11,-242.99 123.76,-240.74 137.7,-238.59"></path>
+<polygon fill="black" stroke="black" points="138.33,-242.04 147.68,-237.06 137.27,-235.12 138.33,-242.04"></polygon>
+</g>
+<!-- foo.classPath -->
+<g id="node10" class="node">
+<title>foo.classPath</title>
+<polygon fill="white" stroke="black" points="383.74,-285.3 293.22,-285.3 293.22,-260.7 383.74,-260.7 383.74,-285.3"></polygon>
+<text text-anchor="middle" x="338.48" y="-268.8" font-family="Times,serif" font-size="14.00">foo.classPath</text>
+</g>
+<!-- foo.compile&#45;&gt;foo.classPath -->
+<g id="edge9" class="edge">
+<title>foo.compile-&gt;foo.classPath</title>
+<path fill="none" stroke="black" d="M236.23,-273C250.87,-273 267.64,-273 283.26,-273"></path>
+<polygon fill="black" stroke="black" points="283.33,-276.5 293.33,-273 283.33,-269.5 283.33,-276.5"></polygon>
+</g>
+<!-- foo.assembly -->
+<g id="node11" class="node">
+<title>foo.assembly</title>
+<polygon fill="white" stroke="black" points="510.38,-263.3 419.86,-263.3 419.86,-238.7 510.38,-238.7 510.38,-263.3"></polygon>
+<text text-anchor="middle" x="465.12" y="-246.8" font-family="Times,serif" font-size="14.00">foo.assembly</text>
+</g>
+<!-- foo.classPath&#45;&gt;foo.assembly -->
+<g id="edge10" class="edge">
+<title>foo.classPath-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M383.78,-265.18C392.22,-263.69 401.16,-262.11 409.87,-260.57"></path>
+<polygon fill="black" stroke="black" points="410.73,-263.98 419.97,-258.79 409.51,-257.08 410.73,-263.98"></polygon>
+</g>
+<!-- foo.super.resources -->
+<g id="node12" class="node">
+<title>foo.super.resources</title>
+<polygon fill="white" stroke="black" points="256.89,-199.3 132.22,-199.3 132.22,-174.7 256.89,-174.7 256.89,-199.3"></polygon>
+<text text-anchor="middle" x="194.56" y="-182.8" font-family="Times,serif" font-size="14.00">foo.super.resources</text>
+</g>
+<!-- foo.resources -->
+<g id="node13" class="node">
+<title>foo.resources</title>
+<polygon fill="white" stroke="black" points="384,-242.3 292.97,-242.3 292.97,-217.7 384,-217.7 384,-242.3"></polygon>
+<text text-anchor="middle" x="338.48" y="-225.8" font-family="Times,serif" font-size="14.00">foo.resources</text>
+</g>
+<!-- foo.super.resources&#45;&gt;foo.resources -->
+<g id="edge11" class="edge">
+<title>foo.super.resources-&gt;foo.resources</title>
+<path fill="none" stroke="black" d="M236.23,-199.32C252.11,-204.14 270.49,-209.7 287.2,-214.76"></path>
+<polygon fill="black" stroke="black" points="286.22,-218.13 296.81,-217.68 288.25,-211.43 286.22,-218.13"></polygon>
+</g>
+<!-- foo.resources&#45;&gt;foo.assembly -->
+<g id="edge12" class="edge">
+<title>foo.resources-&gt;foo.assembly</title>
+<path fill="none" stroke="black" d="M384.13,-237.52C392.46,-238.93 401.25,-240.41 409.84,-241.85"></path>
+<polygon fill="black" stroke="black" points="409.34,-245.32 419.79,-243.53 410.51,-238.42 409.34,-245.32"></polygon>
+</g>
+<!-- foo.lineCount&#45;&gt;foo.resources -->
+<g id="edge14" class="edge">
+<title>foo.lineCount-&gt;foo.resources</title>
+<path fill="none" stroke="black" d="M241.64,-230C254.66,-230 268.97,-230 282.47,-230"></path>
+<polygon fill="black" stroke="black" points="282.6,-233.5 292.6,-230 282.6,-226.5 282.6,-233.5"></polygon>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>If you want to further customize either of those modules, you simply <code>override</code>
+one or more of the inherited methods. And if you want to publish your customizations
+for others to use in their own projects,
+you can as <a href="../extending/writing-plugins.html#_publishing" class="xref page">publish
+MyJavaModule to Maven Central</a> for others to
+<a href="../extending/import-mvn-plugins.html" class="xref page">import into their build</a>.</p>
+</div>
+<div class="paragraph">
 <p>Mill’s usage of methods, classes, and overrides is also what powers the IDE support
 discussed earlier on this page. IDEs like IntelliJ or VSCode are uniquely adept at
 working with JVM codebases full of methods and classes, and so
@@ -1991,7 +2219,7 @@ IDE support, library ecosystem, and other quality of life details they are used 
 <div class="paragraph">
 <p>The rest of this doc-site contains more Mill build tool comparisons
 (with <a href="maven.html" class="xref page">Maven</a>, <a href="gradle.html" class="xref page">Gradle</a>,
-<a href="sbt.html" class="xref page"><code>sbt</code></a>), with getting started instructions
+<a href="sbt.html" class="xref page">sbt</a>), with getting started instructions
 for using Mill with <a href="../javalib/intro.html" class="xref page">Java</a>, with <a href="../scalalib/intro.html" class="xref page">Scala</a>,
 or with <a href="../kotlinlib/intro.html" class="xref page">Kotlin</a>, and detailed documentation for how Mill
 works. Please try it out and let us know in the

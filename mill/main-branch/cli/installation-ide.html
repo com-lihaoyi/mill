@@ -367,6 +367,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -670,8 +674,8 @@ If the determined Mill version is not installed locally, it will be downloaded a
 <div class="paragraph">
 <p>For all the examples in this documentation, there is a <code>download</code> link that provides
 a zip file containing the full example ready to use. These examples come with a <code>./mill</code>
-script you can use to immediately begin working with the project, needing only a JVM installed
-globally.</p>
+script you can use to immediately begin working with the project, automatically downloading and
+caching a JVM and any additional dependencies as necessary.</p>
 </div>
 </div>
 </div>
@@ -687,14 +691,14 @@ bootstrap script, included. You can also download the boostrap script manually:<
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-mill.sh -o mill
 &gt; chmod +x mill
-&gt; echo 1.0.0-RC2 &gt; .mill-version</code></pre>
+&gt; echo &quot;//| mill-version: 1.0.0-RC2&quot; &gt; build.mill</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-mill.bat -o mill.bat
-&gt; echo 1.0.0-RC2&gt; .mill-version</code></pre>
+&gt; echo &quot;//| mill-version: 1.0.0-RC2&quot; &gt; build.mill</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -722,7 +726,7 @@ Anyone who wants to work with the project can simply use the <code>./mill</code>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill --version
-&gt; ./mill __.compile # double underscore</code></pre>
+&gt; ./mill __.compile # double underscore means compile all modules</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -770,24 +774,12 @@ assuming you want to register the script yourself (e.g. by placing it in a relev
 </div>
 </div>
 <div class="sect2">
-<h3 id="_mill_native_executable"><a class="anchor" href="#_mill_native_executable"></a>Mill Native Executable</h3>
+<h3 id="_mill_native_and_jvm_executables"><a class="anchor" href="#_mill_native_and_jvm_executables"></a>Mill Native and JVM Executables</h3>
 <div class="paragraph">
-<p>The default Mill executable configured above requires a JVM (11 or above) installed globally in
-order to run, and imposes some Java startup overhead (100-200ms) when running Mill from the
-command line. You can also use Mill’s native executables by appending a <code>-native</code> suffix to the
-Mill version:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo {version}-native &gt; .mill-version</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Using the <code>-native</code> suffix should provide a faster CLI experience than using Mill’s default
-JVM launcher, and makes it easier to install Mill in environments without a JVM pre-installed.</p>
-</div>
-<div class="paragraph">
-<p>Mill native executables are supported on the following OS/CPU combinations:</p>
+<p>The default Mill launcher configured above is a
+<a href="../javalib/publishing.html#_building_native_image_binaries_with_graal_vm" class="xref page">Graal Native Image</a>,
+that provides faster startup and is able to run even on machines without Java installed.
+Mill native executables are supported on the following OS/CPU combinations:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -823,35 +815,20 @@ upstream Graal Native Image tooling (see <a href="https://github.com/oracle/graa
 If you are on a platform not supported by Mill’s native executables, use the default
 JVM launcher instead.</p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_customizing_mills_jvm"><a class="anchor" href="#_customizing_mills_jvm"></a>Customizing Mill’s JVM</h3>
 <div class="paragraph">
-<p>Mill allows you to specify the exact JVM version you want to use to run the build tool
-via a  <code>.mill-jvm-version</code> file such as:</p>
+<p>Mill uses a JVM-based <a href="../javalib/publishing.html#_building_executable_assemblies_with_assemblymodule" class="xref page">Assembly Jar</a>,
+as the launcher on On Windows-ARM, and you can enable this on other platforms
+by adding a a <code>-jvm</code> suffix on the Mill version:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo temurin:17.0.6 &gt; .mill-jvm-version</code></pre>
+<pre class="highlightjs highlight"><code class="language-none hljs">{version}-jvm</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This has two benefits</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>.mill-jvm-version</code> can also be used with Mill’s default JVM launcher if you want
-your Mill process to use a different JVM than what you have installed globally.This
-can help ensure your project uses a consistent JVM version and behaves identically regardless
-of what the developer may have installed on their laptop or dev environment</p>
-</li>
-<li>
-<p><code>.mill-jvm-version</code> can be used together with <a href="#_mill_native_executable">Mill Native Executable</a>s to build your
-project without needing a JVM pre-installed at all.This simplifies project setup and
-onboarding of new developers.</p>
-</li>
-</ul>
+<p>Mill’s JVM launcher imposes some Java startup overhead (~100ms) over the native launcher
+when running Mill from the command line, and requires a JVM installed globally (version 11 or above)
+in order to run.</p>
 </div>
 </div>
 </div>
@@ -872,7 +849,7 @@ onboarding of new developers.</p>
 <p>To use Mill with IntelliJ, first ensure you have the free
 <a href="https://plugins.jetbrains.com/plugin/1347-scala">IntelliJ Scala Plugin</a>
 installed. This is necessary as Mill build files are written in Scala,
-even if you are using it to build a Java or Kotlin or Python project.</p>
+even if you are using it to build a Java or Kotlin project.</p>
 </div>
 <div class="paragraph">
 <p>Once you have the plugin installed, you can use IntelliJ to open any project
@@ -917,6 +894,8 @@ those updates by opening the &quot;BSP&quot; tab and clicking the &quot;Refresh&
 <img src="../_images/basic/IntellijRefresh.png" alt="IntellijRefresh" />
 </div>
 </div>
+<div class="sect3">
+<h4 id="_explicit_bsp_installation"><a class="anchor" href="#_explicit_bsp_installation"></a>Explicit BSP installation</h4>
 <div class="paragraph">
 <p>To prepare your project for IDEs, and in general any BSP client, you can also
 run this command to generate the BSP configuration files:</p>
@@ -924,6 +903,12 @@ run this command to generate the BSP configuration files:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill --bsp-install</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This should not be necessary with IntelliJ and VSCode being able to identify and
+load <code>build.mill</code> files by default, but can be useful in certain cases if you
+are using a less-common editor that does not have this support builtin.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1024,44 +1009,12 @@ those updates by opening the &quot;BSP&quot; tab and clicking the &quot;Refresh&
 <div class="sect2">
 <h3 id="_debugging_ide_issues"><a class="anchor" href="#_debugging_ide_issues"></a>Debugging IDE issues</h3>
 <div class="paragraph">
-<p>Mill’s BSP IDE integration writes to a log file under
-<code>.bsp/mill-bsp.stderr</code>, where you can find various information about what’s
+<p>Mill’s BSP IDE integration writes to log files under
+<code>out/mill-bsp/</code>, where you can find various information about what’s
 going on. It contains regular Mill output accompanied by additional BSP
 client-server communication details. This can be useful to look at if your
 IDE fails to import your Mill project</p>
 </div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_updating_mill"><a class="anchor" href="#_updating_mill"></a>Updating Mill</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Typically, most Mill projects use a <code>.mill-version</code> file to configure what version
-to use. You can update the version specified in this file in order to change the version
-of Mill. The file path <code>.config/mill-version</code> is also supported. If neither is provided,
-the <code>./mill</code> bootstrap script will use the <code>DEFAULT_MILL_VERSION</code> it has built in.</p>
-</div>
-<div class="paragraph">
-<p>To choose a different Mill version on an ad-hoc basis, e.g. for experimentation, you can pass
-in a <code>MILL_VERSION</code> environment variable, e.g.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; MILL_VERSION=0.5.0-3-4faefb mill __.compile</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>or</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; MILL_VERSION=0.5.0-3-4faefb ./mill __.compile</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>to override the Mill version manually. This takes precedence over the version
-specified in <code>./mill</code>, <code>.config/mill-version</code> or <code>.mill-version</code></p>
 </div>
 </div>
 </div>
@@ -1088,10 +1041,10 @@ Resolution failed for 1 modules:
 unable to resolve it’s own, fundamental, dependencies from the default Maven Central
 JVM package repository. Under such circumstances, you
 will normally have access to some proxy, or other corporate repository which resolves
-maven artifacts. The strategy is simply to tell mill to use that instead.</p>
+maven artifacts.</p>
 </div>
 <div class="paragraph">
-<p>To resolve this, you can set an environment variable COURSIER_REPOSITORIES (see coursier docs)
+<p>To resolve this, you can set an environment variable <code>COURSIER_REPOSITORIES</code> (see coursier docs)
 to point at your own server that mirrors the Maven Central artifacts.
 The below command should pass the environment variable to the <code>mill</code> command.</p>
 </div>
@@ -1100,6 +1053,19 @@ The below command should pass the environment variable to the <code>mill</code> 
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _</code></pre>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Currently, you may need to <code>./mill shutdown</code> before calling Mill with the environment variable to make sure it gets properly propagated to Mill’s background daemon.
+There is an <a href="https://github.com/com-lihaoyi/mill/issues/5134">open issue</a> to let Mill  detect these changes automatically.
+</td>
+</tr>
+</tbody></table>
+</div>
 <div class="paragraph">
 <p>If you are using bootstrap script, a more permanent solution could be to set the environment variable
 at the top of the bootstrap script, or as a user environment variable.</p>
@@ -1107,8 +1073,41 @@ at the top of the bootstrap script, or as a user environment variable.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_automatic_mill_updates"><a class="anchor" href="#_automatic_mill_updates"></a>Automatic Mill updates</h2>
+<h2 id="_updating_mill"><a class="anchor" href="#_updating_mill"></a>Updating Mill</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_overriding_your_mill_version"><a class="anchor" href="#_overriding_your_mill_version"></a>Overriding your Mill Version</h3>
+<div class="paragraph">
+<p>Typically, most Mill projects use a <code>mill-version</code> key in their <a href="build-header.html" class="xref page">Build Header Config</a> or
+a <code>.mill-version</code> file to configure what version
+to use. You can update the version specified in this file in order to change the version
+of Mill. The file path <code>.config/mill-version</code> is also supported. If neither is provided,
+the <code>./mill</code> bootstrap script will use the <code>DEFAULT_MILL_VERSION</code> it has built in.</p>
+</div>
+<div class="paragraph">
+<p>To choose a different Mill version on an ad-hoc basis, e.g. for experimentation, you can pass
+in a <code>MILL_VERSION</code> environment variable, e.g.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; MILL_VERSION=0.5.0-3-4faefb mill __.compile</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>or</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; MILL_VERSION=0.5.0-3-4faefb ./mill __.compile</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>to override the Mill version manually. This takes precedence over the version
+specified in <code>./mill</code>, <code>.config/mill-version</code> or <code>.mill-version</code></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_automatic_mill_updates"><a class="anchor" href="#_automatic_mill_updates"></a>Automatic Mill updates</h3>
 <div class="paragraph">
 <p>If your project is hosted on GitHub, GitLab, or Bitbucket, you can use
 <a href="https://github.com/scala-steward-org/scala-steward">Scala Steward</a> to
@@ -1130,10 +1129,8 @@ and keep them up-to-date.
 </tbody></table>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_unstable_development_releases"><a class="anchor" href="#_unstable_development_releases"></a>Unstable Development Releases</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_unstable_development_releases"><a class="anchor" href="#_unstable_development_releases"></a>Unstable Development Releases</h3>
 <div class="paragraph">
 <p>In case you want to try out the latest features and improvements that are
 currently in the main branch, unstable versions of Mill
@@ -1173,6 +1170,7 @@ additional commits, on commit hash <code>b4d975</code>.</p>
 <div class="paragraph">
 <p>You can update your <code>.mill-version</code> to to the unstable version and the bootstrap script
 will download it for you to try it out in your project.</p>
+</div>
 </div>
 </div>
 </div>

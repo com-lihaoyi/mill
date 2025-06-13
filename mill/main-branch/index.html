@@ -366,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -810,27 +814,26 @@ and with minimal overhead.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>If you prefer a video introduction to Mill, see:</p>
+<p>Mill is used to build many real-world projects, such as:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://www.youtube.com/watch?v=REOCaHmUkH4">Video: Java build tooling could be so much better!</a>,
-Seattle Java User Group 24 April 2025</p>
+<p><a href="https://github.com/swaldman/c3p0">C3P0 JDBC Connection Pool</a></p>
 </li>
 <li>
-<p><a href="https://www.youtube.com/watch?v=fyf2AWUyq24">Video: Solving Scala’s Build Problem with the Mill Build Tool</a>, SF Scala Meetup 22 April 2025</p>
+<p><a href="https://github.com/coursier/coursier">Coursier dependency resolver</a></p>
+</li>
+<li>
+<p><a href="https://github.com/com-lihaoyi/Ammonite">Ammonite REPL</a></p>
+</li>
+<li>
+<p><a href="https://github.com/SpinalHDL/SpinalHDL">SpinalHDL</a> and <a href="https://github.com/chipsalliance/chisel">Chisel</a> chip design frameworks</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Mill is used to build many real-world projects, such as the
-<a href="https://github.com/swaldman/c3p0">C3P0 JDBC Connection Pool</a>,
-<a href="https://github.com/coursier/coursier">Coursier dependency resolver</a>,
-<a href="https://github.com/com-lihaoyi/Ammonite">Ammonite REPL</a>, and the
-<a href="https://github.com/SpinalHDL/SpinalHDL">SpinalHDL</a> and
-<a href="https://github.com/chipsalliance/chisel">Chisel</a> hardware design frameworks.
-Mill can be used for applications built on top of common JVM frameworks like
+<p>Mill can be used for applications built on top of common JVM frameworks like
 Spring Boot (both <a href="javalib/web-examples.html#_spring_boot_todomvc_app" class="xref page">in Java</a>
 and <a href="kotlinlib/web-examples.html#_spring_boot_todomvc_app" class="xref page">in Kotlin</a>),
 <a href="javalib/web-examples.html#_micronaut_todomvc_app" class="xref page">Micronaut</a>,
@@ -839,7 +842,8 @@ and <a href="kotlinlib/web-examples.html#_spring_boot_todomvc_app" class="xref p
 </div>
 <div class="paragraph">
 <p>Mill borrows ideas from other tools like <a href="https://maven.apache.org/">Maven</a>,
-<a href="https://gradle.org/">Gradle</a>, <a href="https://bazel.build/">Bazel</a>, but tries to learn from the
+<a href="https://gradle.org/">Gradle</a>, <a href="https://bazel.build/">Bazel</a>, and
+<a href="https://www.scala-sbt.org/">sbt</a>, but tries to learn from the
 strengths of each tool and improve on their weaknesses. For comparisons with existing
 build tools, check out these pages:</p>
 </div>
