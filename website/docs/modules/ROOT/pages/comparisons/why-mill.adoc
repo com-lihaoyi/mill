@@ -662,7 +662,7 @@ digraph G {
 ....
 
 If you want to re-use your build pipeline customizations, it as simple as turning the
-`object foo` into a `class MyJavaModule` (called a `trait MyJavaModule` in Mill's syntax), so it
+`object foo` into a `interface MyJavaModule` (called a `trait MyJavaModule` in Mill's syntax), so it
 can be inherited
 by `object foo` and `object bar` to share the configuration:
 
