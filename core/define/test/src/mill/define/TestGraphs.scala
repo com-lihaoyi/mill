@@ -1,8 +1,9 @@
-package mill.util
+package mill.define
+
 import mainargs.arg
-import mill.testkit.TestRootModule
-import mill.define.{Cross, Discover, TaskModule}
 import mill.*
+import mill.define.{Cross, Discover, TaskModule}
+import mill.testkit.TestRootModule
 
 /**
  * Example dependency graphs for us to use in our test suite.
@@ -134,7 +135,7 @@ object TestGraphs {
 
   trait TraitWithModule extends Module { outer =>
     object TraitModule extends Module {
-      def testFrameworks = Task { Seq("mill.UTestFramework") }
+      def testFrameworks = Task { Seq("mill.define.UTestFramework") }
       def test() = Task.Command { () /*do nothing*/ }
     }
   }

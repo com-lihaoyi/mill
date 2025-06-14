@@ -36,7 +36,4 @@ object `package` extends MillStableScalaModule {
     Deps.jgraphtCore,
     Deps.graphvizWithExcludes
   )
-
-  def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
-  def testMvnDeps = Seq(Deps.coursierInterface)
 }
