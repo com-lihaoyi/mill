@@ -610,11 +610,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       if (isMixedProject) Seq.empty else Seq("-Ystop-after:semanticdb-typer")
 
     val additionalScalacOptions = if (JvmWorkerUtil.isScala3(sv)) {
-      Seq("-Xsemanticdb", s"-sourceroot:${Task.workspace}")
+      Seq("-Xsemanticdb", s"-sourceroot:${mill.define.BuildCtx.workspaceRoot}")
     } else {
       Seq(
         "-Yrangepos",
-        s"-P:semanticdb:sourceroot:${Task.workspace}"
+        s"-P:semanticdb:sourceroot:${mill.define.BuildCtx.workspaceRoot}"
       ) ++ stopAfterSemanticDbOpts
     }
 
@@ -650,7 +650,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       .map(compileRes =>
         SemanticDbJavaModule.copySemanticdbFiles(
           compileRes.classes.path,
-          Task.workspace,
+          mill.define.BuildCtx.workspaceRoot,
           Task.dest / "data"
         )
       )

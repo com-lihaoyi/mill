@@ -55,7 +55,7 @@ trait UnidocModule extends ScalaModule {
           "-doc-source-url",
           url + "€{FILE_PATH}.scala",
           "-sourcepath",
-          Task.workspace.toString
+          mill.define.BuildCtx.workspaceRoot.toString
         )
       } ++ unidocOptions()
 
@@ -82,7 +82,7 @@ trait UnidocModule extends ScalaModule {
       sourceUrl <- unidocSourceUrl()
       p <- os.walk(Task.dest) if p.ext == "scala"
     } {
-      os.write(p, os.read(p).replace(s"file://${Task.workspace}", sourceUrl))
+      os.write(p, os.read(p).replace(s"file://${mill.define.BuildCtx.workspaceRoot}", sourceUrl))
     }
     PathRef(Task.dest)
   }

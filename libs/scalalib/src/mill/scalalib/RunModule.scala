@@ -46,11 +46,11 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    */
   def allForkEnv: T[Map[String, String]] = Task {
     forkEnv() ++ Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> Task.workspace.toString
+      EnvVars.MILL_WORKSPACE_ROOT -> mill.define.BuildCtx.workspaceRoot.toString
     )
   }
 
-  def forkWorkingDir: T[os.Path] = Task { Task.workspace }
+  def forkWorkingDir: T[os.Path] = Task { mill.define.BuildCtx.workspaceRoot }
 
   /**
    * All classfiles and resources including upstream modules and dependencies

@@ -8,7 +8,7 @@ object foo extends Module {
 }
 
 def qux = Task {
-  os.write(Task.workspace / "file.txt", "hello")
+  os.write(mill.define.BuildCtx.workspaceRoot / "file.txt", "hello")
 }
 
 def baz = Task { 1 }

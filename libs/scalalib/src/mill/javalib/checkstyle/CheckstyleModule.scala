@@ -92,7 +92,7 @@ trait CheckstyleModule extends JavaModule {
    * Checkstyle configuration file. Defaults to `checkstyle-config.xml`.
    */
   def checkstyleConfig: T[PathRef] = Task.Source {
-    Task.workspace / "checkstyle-config.xml"
+    mill.define.BuildCtx.workspaceRoot / "checkstyle-config.xml"
   }
 
   /**

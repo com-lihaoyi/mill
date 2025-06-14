@@ -75,7 +75,7 @@ object `package` extends mill.Module {
   }
 
   def source0 = Task.Source("docs")
-  def projectChangelog = Task.Source(Task.workspace / "changelog.adoc")
+  def projectChangelog = Task.Source(mill.define.BuildCtx.workspaceRoot / "changelog.adoc")
   def source = Task {
     os.copy(source0().path, Task.dest, mergeFolders = true)
 
@@ -245,8 +245,8 @@ object `package` extends mill.Module {
   }
   def githubPagesPlaybookText(authorMode: Boolean) = Task.Anon { (extraSources: Seq[os.Path]) =>
     val taggedSources = for (path <- extraSources) yield {
-      s"""    - url: ${Task.workspace}
-         |      start_path: ${path.relativeTo(Task.workspace)}
+      s"""    - url: ${mill.define.BuildCtx.workspaceRoot}
+         |      start_path: ${path.relativeTo(mill.define.BuildCtx.workspaceRoot)}
          |      edit_url: false
          |""".stripMargin
     }
@@ -259,7 +259,7 @@ object `package` extends mill.Module {
        |
        |content:
        |  sources:
-       |    - url: ${if (authorMode) Task.workspace else Settings.projectUrl}
+       |    - url: ${if (authorMode) mill.define.BuildCtx.workspaceRoot else Settings.projectUrl}
        |      branches: []
        |      tags: ${Settings.legacyDocTags.filter(_ => !authorMode).map(
         "'" + _ + "'"
@@ -269,11 +269,11 @@ object `package` extends mill.Module {
        |
        |${taggedSources.mkString("\n\n")}
        |
-       |    - url: ${Task.workspace}
-       |      start_path: ${devAntoraSources().path.relativeTo(Task.workspace)}
+       |    - url: ${mill.define.BuildCtx.workspaceRoot}
+       |      start_path: ${devAntoraSources().path.relativeTo(mill.define.BuildCtx.workspaceRoot)}
        |
-       |    - url: ${Task.workspace}
-       |      start_path: ${blogFolder().path.relativeTo(Task.workspace)}
+       |    - url: ${mill.define.BuildCtx.workspaceRoot}
+       |      start_path: ${blogFolder().path.relativeTo(mill.define.BuildCtx.workspaceRoot)}
        |ui:
        |  bundle:
        |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
@@ -334,7 +334,7 @@ object `package` extends mill.Module {
       val newWebsiteTask: Boolean = crossValue5
 
       val checkout = Task.dest / millVersion
-      os.proc("git", "clone", Task.workspace / ".git", checkout).call(stdout = os.Inherit)
+      os.proc("git", "clone", mill.define.BuildCtx.workspaceRoot / ".git", checkout).call(stdout = os.Inherit)
 
       try os.proc("git", "checkout", gitVersion).call(cwd = checkout, stdout = os.Inherit)
       catch {
@@ -416,7 +416,7 @@ object `package` extends mill.Module {
 
     // sanitize devAntora source URLs
     Task.log.streams.err.println("Sanitizing links ...")
-    sanitizeDevUrls(siteDir, devAntoraSources().path, Task.workspace / "docs", Task.workspace)
+    sanitizeDevUrls(siteDir, devAntoraSources().path, mill.define.BuildCtx.workspaceRoot / "docs", mill.define.BuildCtx.workspaceRoot)
 
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
     val unidocSrc = if (authorMode) site.unidocLocal().path else site.unidocSite().path

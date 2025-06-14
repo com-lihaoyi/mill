@@ -152,9 +152,9 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
   }
 
   /**
-   * Path to options file for Palantir Java Format CLI at `Task.workspace` `/` `palantirformat.options`.
+   * Path to options file for Palantir Java Format CLI at `mill.define.BuildCtx.workspaceRoot` `/` `palantirformat.options`.
    */
   override def palantirformatOptions: T[PathRef] = Task.Source(
-    Task.workspace / "palantirformat.options"
+    mill.define.BuildCtx.workspaceRoot / "palantirformat.options"
   )
 }

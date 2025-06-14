@@ -58,7 +58,7 @@ object TestModule {
       }
       runner().run(
         ("-m", "unittest", testArgs, "-v"),
-        workingDir = Task.workspace
+        workingDir = mill.define.BuildCtx.workspaceRoot
       )
       Seq()
     }
@@ -81,7 +81,7 @@ object TestModule {
           args()
           // format: in
         ),
-        workingDir = Task.workspace
+        workingDir = mill.define.BuildCtx.workspaceRoot
       )
       Seq()
     }

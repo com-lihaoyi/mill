@@ -134,7 +134,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(scoverageToolsClasspath())
-        .report(reportType, allSources().map(_.path), Seq(data().path), Task.workspace)
+        .report(reportType, allSources().map(_.path), Seq(data().path), mill.define.BuildCtx.workspaceRoot)
     }
 
     /**
@@ -173,12 +173,12 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
           if (isScala3()) {
             Seq(
               s"-coverage-out:${data().path.toIO.getPath()}",
-              s"-sourceroot:${Task.workspace}"
+              s"-sourceroot:${mill.define.BuildCtx.workspaceRoot}"
             )
           } else {
             Seq(
               s"-P:scoverage:dataDir:${data().path.toIO.getPath()}",
-              s"-P:scoverage:sourceRoot:${Task.workspace}"
+              s"-P:scoverage:sourceRoot:${mill.define.BuildCtx.workspaceRoot}"
             )
           }
 

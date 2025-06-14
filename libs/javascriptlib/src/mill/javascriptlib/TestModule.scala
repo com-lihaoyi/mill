@@ -41,7 +41,7 @@ object TestModule {
     def istanbulNycrcConfigBuilder: Task[PathRef] = Task.Anon {
       val fileName = ".nycrc"
       val config = Task.dest / fileName
-      val customConfig = Task.workspace / fileName
+      val customConfig = mill.define.BuildCtx.workspaceRoot / fileName
 
       val content =
         s"""|{
@@ -133,7 +133,7 @@ object TestModule {
     def conf: Task[PathRef] = Task.Anon {
       val fileName = "jest.config.ts"
       val config = Task.dest / fileName
-      val customConfig = Task.workspace / fileName
+      val customConfig = mill.define.BuildCtx.workspaceRoot / fileName
 
       val content =
         s"""|import {pathsToModuleNameMapper} from 'ts-jest';
@@ -202,7 +202,7 @@ object TestModule {
     def coverageConf: Task[PathRef] = Task.Anon {
       val fileName = "jest.config.coverage.ts"
       val config = Task.dest / fileName
-      val customConfig = Task.workspace / fileName
+      val customConfig = mill.define.BuildCtx.workspaceRoot / fileName
 
       val content =
         s"""|import {pathsToModuleNameMapper} from 'ts-jest';
@@ -369,7 +369,7 @@ object TestModule {
     def conf: Task[PathRef] = Task.Anon {
       val fileName = "vitest.config.ts"
       val config = Task.dest / fileName
-      val customConfig = Task.workspace / fileName
+      val customConfig = mill.define.BuildCtx.workspaceRoot / fileName
 
       val content =
         s"""|import { defineConfig } from 'vite';
@@ -426,7 +426,7 @@ object TestModule {
     def coverageConf: Task[PathRef] = Task.Anon {
       val fileName = "vitest.config.coverage.ts"
       val config = Task.dest / fileName
-      val customConfig = Task.workspace / fileName
+      val customConfig = mill.define.BuildCtx.workspaceRoot / fileName
       val content =
         s"""|import { defineConfig } from 'vite';
             |import tsconfigPaths from 'vite-tsconfig-paths';
@@ -579,7 +579,7 @@ object TestModule {
     }
 
     def configSource: T[PathRef] =
-      Task.Source(Task.workspace / "cypress.config.ts")
+      Task.Source(mill.define.BuildCtx.workspaceRoot / "cypress.config.ts")
 
     override def compilerOptions: T[Map[String, ujson.Value]] =
       Task {
@@ -662,7 +662,7 @@ object TestModule {
     }
 
     def configSource: T[PathRef] =
-      Task.Source(Task.workspace / "playwright.config.ts")
+      Task.Source(mill.define.BuildCtx.workspaceRoot / "playwright.config.ts")
 
     def conf: Task[TestResult] = Task.Anon {
       os.copy.over(

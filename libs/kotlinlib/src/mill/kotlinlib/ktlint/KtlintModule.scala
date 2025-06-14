@@ -37,7 +37,7 @@ trait KtlintModule extends JavaModule {
     )
   }
 
-  def ktlintConfig0 = Task.Source(Task.workspace / ".editorconfig")
+  def ktlintConfig0 = Task.Source(mill.define.BuildCtx.workspaceRoot / ".editorconfig")
 
   /**
    * Ktlint configuration file.

@@ -2,7 +2,7 @@ package build
 import mill._
 
 def myInput = Task.Input {
-  os.proc("git", "rev-parse", "HEAD").call(cwd = Task.workspace)
+  os.proc("git", "rev-parse", "HEAD").call(cwd = mill.define.BuildCtx.workspaceRoot)
     .out
     .text()
     .trim()
@@ -21,7 +21,7 @@ def myInput = Task.Input {
 def gitStatusTask = Task {
   "version-" +
     os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
-      .call(cwd = Task.workspace)
+      .call(cwd = mill.define.BuildCtx.workspaceRoot)
       .out
       .text()
       .trim()
@@ -51,7 +51,7 @@ def gitStatusTask = Task {
 
 def gitStatusInput = Task.Input {
   os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
-    .call(cwd = Task.workspace)
+    .call(cwd = mill.define.BuildCtx.workspaceRoot)
     .out
     .text()
     .trim()

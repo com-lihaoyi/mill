@@ -114,7 +114,7 @@ object `package` extends mill.Module {
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkEnv = super.forkEnv() ++ Seq(
-      "MILL_PROJECT_ROOT" -> Task.workspace.toString,
+      "MILL_PROJECT_ROOT" -> mill.define.BuildCtx.workspaceRoot.toString,
       "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
       "TEST_KOTLIN_VERSION" -> Deps.kotlinCompiler.version
     )

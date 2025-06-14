@@ -51,7 +51,7 @@ trait SonatypeCentralPublishModule extends PublishModule {
         connectTimeout = sonatypeCentralConnectTimeout(),
         readTimeout = sonatypeCentralReadTimeout(),
         log = Task.log,
-        workspace = Task.workspace,
+        workspace = mill.define.BuildCtx.workspaceRoot,
         env = Task.env,
         awaitTimeout = sonatypeCentralAwaitTimeout()
       )
@@ -104,7 +104,7 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
       log = Task.log,
-      workspace = Task.workspace,
+      workspace = mill.define.BuildCtx.workspaceRoot,
       env = Task.env,
       awaitTimeout = awaitTimeout
     )

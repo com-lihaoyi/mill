@@ -190,7 +190,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
           pythonExe().path.toString,
           mainScript().path.toString
         ) ++ args.value,
-        cwd = Task.workspace,
+        cwd = mill.define.BuildCtx.workspaceRoot,
         stdin = "",
         // Hack to forward the background subprocess output to the Mill server process
         // stdout/stderr files, so the output will get properly slurped up by the Mill server

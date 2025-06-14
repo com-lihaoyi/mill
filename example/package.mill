@@ -247,7 +247,7 @@ object `package` extends Module {
     def rendered = Task {
       var seenCode = false
       var seenFrontMatter = false
-      val examplePath = moduleDir.subRelativeTo(Task.workspace)
+      val examplePath = moduleDir.subRelativeTo(mill.define.BuildCtx.workspaceRoot)
       val frontMatter = parsed().takeWhile(_._1 == "yaml").map(_._2).mkString("\n")
       val withoutFrontMatter = parsed().dropWhile(_._1 == "yaml")
 

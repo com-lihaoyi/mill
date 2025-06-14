@@ -25,7 +25,7 @@ outside of Mill's control.
 
 However, by setting `os.pwd` to safe sandbox folders, and performing some basic checks
 on `os.*` read/write operations, we hope to minimize the cases where someone accidentally
-causes issues with their build by doing the wrong thing. The escape hatches of `Task.workspace`,
+causes issues with their build by doing the wrong thing. The escape hatches of `mill.define.BuildCtx.workspaceRoot`,
 `MILL_WORKSPACE_ROOT`, or `BuildCtx.withFilesystemCheckerDisabled` are provided to be used
 in cases you do need to do something unusual, but usage of them should be minimized if possible
 as they may result in `--watch` or `selective.test` not missing some implicit dependencies

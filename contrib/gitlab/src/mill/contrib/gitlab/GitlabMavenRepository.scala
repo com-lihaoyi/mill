@@ -13,7 +13,7 @@ trait GitlabMavenRepository {
 
   def mavenRepository: Task[MavenRepository] = Task.Anon {
 
-    val gitlabAuth = tokenLookup.resolveGitlabToken(Task.env, sys.props.toMap, Task.workspace)
+    val gitlabAuth = tokenLookup.resolveGitlabToken(Task.env, sys.props.toMap, mill.define.BuildCtx.workspaceRoot)
       .map(auth => Authentication(auth.headers))
       .map(auth => MavenRepository(gitlabRepository.url(), Some(auth)))
 

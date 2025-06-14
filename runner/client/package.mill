@@ -11,7 +11,7 @@ import millbuild.*
  */
 object `package` extends MillPublishJavaModule with BuildInfo {
   def buildInfoPackageName = "mill.client"
-  def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
+  def millJvmVersion = Task.Source(mill.define.BuildCtx.workspaceRoot / ".mill-jvm-version")
 
   def buildInfoMembers = Seq(
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),

@@ -30,7 +30,7 @@ object foo extends Module {
 // read from the `PathRef`s provided to it from upstream tasks
 
 def bannedWriteTask = Task {
-  os.write(Task.workspace / "banned-path", "hello")
+  os.write(mill.define.BuildCtx.workspaceRoot / "banned-path", "hello")
 }
 
 /** Usage
@@ -39,7 +39,7 @@ error: ...Writing to banned-path not allowed during execution of `bannedWriteTas
 */
 
 def bannedReadTask = Task {
-  os.read(Task.workspace / "build.mill")
+  os.read(mill.define.BuildCtx.workspaceRoot / "build.mill")
 }
 
 /** Usage
@@ -48,7 +48,7 @@ error: ...Reading from build.mill not allowed during execution of `bannedReadTas
 */
 
 def bannedReadTask2 = Task {
-  os.read(Task.workspace / "out/foo/tDestTask.json")
+  os.read(mill.define.BuildCtx.workspaceRoot / "out/foo/tDestTask.json")
 }
 
 /** Usage
@@ -73,8 +73,8 @@ val listed = BuildCtx.watchValue(os.list(BuildCtx.workspaceRoot).map(_.last))
 
 def bannedWriteTaskOverridden = Task {
   BuildCtx.withFilesystemCheckerDisabled {
-    os.write(Task.workspace / "banned-path", "hello")
-    println(os.read(Task.workspace / "banned-path"))
+    os.write(mill.define.BuildCtx.workspaceRoot / "banned-path", "hello")
+    println(os.read(mill.define.BuildCtx.workspaceRoot / "banned-path"))
   }
 }
 

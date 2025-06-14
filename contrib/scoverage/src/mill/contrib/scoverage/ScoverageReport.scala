@@ -105,7 +105,7 @@ trait ScoverageReport extends Module {
       scoverageReportWorkerModule
         .scoverageReportWorker()
         .bridge(workerModule.scoverageToolsClasspath())
-        .report(reportType, sourcePaths, dataPaths, Task.workspace)
+        .report(reportType, sourcePaths, dataPaths, mill.define.BuildCtx.workspaceRoot)
       PathRef(Task.dest)
     }
   }

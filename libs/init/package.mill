@@ -20,7 +20,7 @@ object `package` extends MillPublishScalaModule {
       build.dist.examplePathsWithArtifactName().map { case (pathRef, str) =>
         val downloadUrl =
           s"${build.millDownloadUrl()}/$str.zip"
-        val subPath = pathRef.path.subRelativeTo(Task.workspace / "example")
+        val subPath = pathRef.path.subRelativeTo(mill.define.BuildCtx.workspaceRoot / "example")
         (subPath, downloadUrl)
       }
 

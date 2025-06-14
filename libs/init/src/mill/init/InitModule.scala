@@ -60,7 +60,7 @@ trait InitModule extends Module {
             val conflicting = for {
               p <- os.walk(extractedPath)
               rel = p.relativeTo(extractedPath)
-              if os.exists(Task.workspace / rel)
+              if os.exists(mill.define.BuildCtx.workspaceRoot / rel)
             } yield rel
 
             if (conflicting.nonEmpty) {
@@ -75,15 +75,15 @@ trait InitModule extends Module {
             }
 
             // Remove any existing bootstrap script since the example will come with one
-            os.remove(Task.workspace / "mill")
-            os.copy.apply(extractedPath, Task.workspace, mergeFolders = true)
+            os.remove(mill.define.BuildCtx.workspaceRoot / "mill")
+            os.copy.apply(extractedPath, mill.define.BuildCtx.workspaceRoot, mergeFolders = true)
 
             // Make sure the `./mill` launcher is executable
-            os.perms.set(Task.workspace / "mill", "rwxrwxrwx")
+            os.perms.set(mill.define.BuildCtx.workspaceRoot / "mill", "rwxrwxrwx")
 
             (
               Seq(unpackPath.toString()),
-              s"Example download and unpacked to [${Task.workspace}]; " +
+              s"Example download and unpacked to [${mill.define.BuildCtx.workspaceRoot}]; " +
                 "See `build.mill` for an explanation of this example and instructions on how to use it"
             )
         }

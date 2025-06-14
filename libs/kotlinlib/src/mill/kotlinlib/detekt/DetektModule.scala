@@ -21,7 +21,7 @@ trait DetektModule extends KotlinModule {
 
   private def detekt0() = Task.Anon {
 
-    val args = detektOptions() ++ Seq("-i", Task.workspace.toString()) ++
+    val args = detektOptions() ++ Seq("-i", mill.define.BuildCtx.workspaceRoot.toString()) ++
       Seq("-c", detektConfig().path.toString())
 
     Task.log.info("running detekt ...")
@@ -70,7 +70,7 @@ trait DetektModule extends KotlinModule {
   /**
    * Detekt configuration file. Defaults to `detekt-config.yml`.
    */
-  def detektConfig: T[PathRef] = Task.Source(Task.workspace / "detekt-config.yml")
+  def detektConfig: T[PathRef] = Task.Source(mill.define.BuildCtx.workspaceRoot / "detekt-config.yml")
 
   /**
    * Detekt version.
