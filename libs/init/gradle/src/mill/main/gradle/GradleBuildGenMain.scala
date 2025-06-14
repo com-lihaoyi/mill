@@ -199,7 +199,6 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       baseInfo: IrBaseInfo,
       build: Node[ProjectModel]
   ): Seq[String] =
-    Seq("mill.Module") ++
       Option.when(null != build.value.maven().pom() && {
         val baseTrait = baseInfo.moduleTypedef
         baseTrait == null || !baseTrait.moduleSupertypes.contains("PublishModule")
