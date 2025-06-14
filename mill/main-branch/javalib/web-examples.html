@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -674,7 +674,7 @@ It covers setting up a basic backend server with a variety of server frameworks<
 <h2 id="_jetty_hello_world_app"><a class="anchor" href="#_jetty_hello_world_app"></a>Jetty Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javalib-web-1-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/1-hello-jetty">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javalib-web-1-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/1-hello-jetty">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -695,15 +695,15 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
 ...HelloJettyTest.testHelloJetty finished...
 
-&gt; mill runBackground
+&gt; ./mill runBackground
 
 &gt; curl http://localhost:8085
 ...&lt;h1&gt;Hello, World!&lt;/h1&gt;...
 
-&gt; mill clean runBackground</code></pre>
+&gt; ./mill clean runBackground</code></pre>
 </div>
 </div>
 </div>
@@ -712,7 +712,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <h2 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javalib-web-2-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/2-hello-spring-boot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javalib-web-2-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/2-hello-spring-boot">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -737,15 +737,15 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
 ...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
 
-&gt; mill runBackground
+&gt; ./mill runBackground
 
 &gt; curl http://localhost:8086
 ...&lt;h1&gt;Hello, World!&lt;/h1&gt;...
 
-&gt; mill clean runBackground</code></pre>
+&gt; ./mill clean runBackground</code></pre>
 </div>
 </div>
 </div>
@@ -754,7 +754,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <h2 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javalib-web-3-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/3-todo-spring-boot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javalib-web-3-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/3-todo-spring-boot">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -821,20 +821,20 @@ this example also demonstrates:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
 ...com.example.TodomvcTests#homePageLoads() finished...
 ...com.example.TodomvcTests#addNewTodoItem() finished...
 
-&gt; mill integration
+&gt; ./mill integration
 ...com.example.TodomvcIntegrationTests#homePageLoads() finished...
 ...com.example.TodomvcIntegrationTests#addNewTodoItem() finished...
 
-&gt; mill test.runBackground
+&gt; ./mill test.runBackground
 
 &gt; curl http://localhost:8087
 ...&lt;h1&gt;todos&lt;/h1&gt;...
 
-&gt; mill clean runBackground</code></pre>
+&gt; ./mill clean runBackground</code></pre>
 </div>
 </div>
 </div>
@@ -843,7 +843,7 @@ this example also demonstrates:</p>
 <h2 id="_micronaut_hello_world_app"><a class="anchor" href="#_micronaut_hello_world_app"></a>Micronaut Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javalib-web-4-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/4-hello-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javalib-web-4-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/4-hello-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -919,15 +919,15 @@ extended with more features as necessary.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
 ...example.micronaut.HelloControllerTest#testHello()...
 
-&gt; mill runBackground
+&gt; ./mill runBackground
 
 &gt; curl http://localhost:8088/hello
 ...Hello World...
 
-&gt; mill clean runBackground</code></pre>
+&gt; ./mill clean runBackground</code></pre>
 </div>
 </div>
 </div>
@@ -936,7 +936,7 @@ extended with more features as necessary.</p>
 <h2 id="_micronaut_todomvc_app"><a class="anchor" href="#_micronaut_todomvc_app"></a>Micronaut TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javalib-web-5-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/5-todo-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javalib-web-5-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/5-todo-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1037,19 +1037,19 @@ and can be extended to cover additional functionality in future</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
 ...example.micronaut.LearnJsonTest...
 ...example.micronaut.TodoTest...
 ...example.micronaut.TodoItemMapperTest...
 ...example.micronaut.TodoItemControllerTest...
 ...example.micronaut.HtmxWebJarsTest...
 
-&gt; mill runBackground
+&gt; ./mill runBackground
 
 &gt; curl http://localhost:8089
  ...&lt;h1&gt;todos&lt;/h1&gt;...
 
-&gt; mill clean runBackground</code></pre>
+&gt; ./mill clean runBackground</code></pre>
 </div>
 </div>
 </div>

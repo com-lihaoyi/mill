@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -684,7 +684,7 @@ code nice and tidy.</p>
 <p>First, make your module extend <code>pythonlib.RuffModule</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-pythonlib-linting-1-ruff-format.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/pythonlib/linting/1-ruff-format">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-pythonlib-linting-1-ruff-format.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/pythonlib/linting/1-ruff-format">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
@@ -707,7 +707,7 @@ class IntWrapper:
 print(IntWrapper(2).plus(IntWrapper(3)).x)
 ...
 
-&gt; mill ruffFormat --diff # you can also pass in extra arguments understood by `ruff format`
+&gt; ./mill ruffFormat --diff # you can also pass in extra arguments understood by `ruff format`
 error: ...
 error: @@ -1,7 +1,12 @@
 error:  from typing import Self
@@ -729,7 +729,7 @@ error:  print(IntWrapper(2).plus(IntWrapper(3)).x)
 error: ...
 error: 1 file would be reformatted
 
-&gt; mill ruffFormat
+&gt; ./mill ruffFormat
 ...1 file reformatted
 
 &gt; cat src/main.py # the file is now correctly formatted
@@ -753,7 +753,7 @@ formatting options as desired. For example,</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo indent-width=2 &gt; ruff.toml
 
-&gt; mill ruffFormat
+&gt; ./mill ruffFormat
 ...1 file reformatted
 
 &gt; cat src/main.py # the file is now correctly formatted with 2 spaces indentation
@@ -794,14 +794,14 @@ shorter name that’s easier to type.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.pythonlib.RuffModule/formatAll</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.pythonlib.RuffModule/formatAll</code></pre>
 </div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_linting"><a class="anchor" href="#_linting"></a>Linting</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-pythonlib-linting-2-ruff-check.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/pythonlib/linting/2-ruff-check">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-pythonlib-linting-2-ruff-check.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/pythonlib/linting/2-ruff-check">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, pythonlib._
@@ -823,7 +823,7 @@ def doit(x: int):
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill ruffCheck
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill ruffCheck
 error: ...
 error: ...F401 [*] `os` imported but unused
 error:   |
@@ -851,7 +851,7 @@ error: [*] 2 fixable with the `--fix` option.</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill ruffCheck --fix
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill ruffCheck --fix
 Found 2 errors (2 fixed, 0 remaining).
 
 &gt; cat src/main.py
@@ -874,7 +874,7 @@ def doit(x: int):
 <p>You can use it by extending <code>CoverageTests</code> in your test module.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-pythonlib-linting-3-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/pythonlib/linting/3-coverage">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-pythonlib-linting-3-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/pythonlib/linting/3-coverage">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, pythonlib._
 
@@ -912,7 +912,7 @@ def test_other():
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill test.coverageReport
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test.coverageReport
 Name ...                        Stmts   Miss  Cover
 ...------------------------------------------------
 .../src/main.py                 4      1    75%
@@ -927,7 +927,7 @@ For example, you can use it to fail if a coverage threshold is not met:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill test.coverageReport --fail-under 90
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test.coverageReport --fail-under 90
 error: ...
 error: Coverage failure: total of 89 is less than fail-under=90</code></pre>
 </div>

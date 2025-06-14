@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -668,7 +668,7 @@
 <p>The standard method of installing Mill is to install a <code>./mill</code> <a href="#_bootstrap_scripts">bootstrap script</a>,
 similar to <code>./gradlew</code> or <code>./mvnw</code> in other build tools.
 This script can determine the best version to be used by a project (e.g. by
-reading a <code>.mill-version</code>) and will use this exact Mill version.
+reading a <code>//| mill-version</code> header comment) and will use this exact Mill version.
 If the determined Mill version is not installed locally, it will be downloaded automatically.</p>
 </div>
 <div class="paragraph">
@@ -684,7 +684,7 @@ caching a JVM and any additional dependencies as necessary.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The Mill example projects in this documentation come with <code>./mill</code> and <code>./mill.bat</code>
-bootstrap script, included. You can also download the boostrap script manually:</p>
+bootstrap script, included. You can also download the bootstrap script manually:</p>
 </div>
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
@@ -743,35 +743,7 @@ present to build, compile or test your code.</p>
 <a href="builtin-commands.html#_init" class="xref page">mill init</a> to initialize the project
 folder with one of the Mill example projects. There are a wide range of example projects,
 from hello-world to multi-module libraries to client-server web applications, and you can
-pick one most similar to what you are doing so you can hit the ground running working.</p>
-</div>
-<div class="sect2">
-<h3 id="_bashzsh_tab_completion"><a class="anchor" href="#_bashzsh_tab_completion"></a>Bash/Zsh Tab Completion</h3>
-<div class="paragraph">
-<p>You can set up Bash and Zsh tab completions by subsequently running the command:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.tabcomplete/install</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This unpacks the completion script in <code>~/.cache/mill</code> and registers it in your <code>~/.bash_profile</code> and <code>~/.zshrc</code>.
-After that, doing <code>./mill &lt;tab&gt;</code> should begin showing possible modules and tasks for you
-to select at the command line.</p>
-</div>
-<div class="paragraph">
-<p>You can also choose to write the tab-completion script to a manually-specified path via:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.tabcomplete/install --dest &lt;path&gt;</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>When <code>--dest</code> is given, Mill simply generate the tab-completion script without registering it,
-assuming you want to register the script yourself (e.g. by placing it in a relevant folder).</p>
-</div>
+pick one most similar to what you are doing so you can hit the ground running.</p>
 </div>
 <div class="sect2">
 <h3 id="_mill_native_and_jvm_executables"><a class="anchor" href="#_mill_native_and_jvm_executables"></a>Mill Native and JVM Executables</h3>
@@ -812,12 +784,8 @@ Mill native executables are supported on the following OS/CPU combinations:</p>
 <div class="paragraph">
 <p>Notably, Mill native executables <em>do not</em> support Windows-ARM, due to limitations in the
 upstream Graal Native Image tooling (see <a href="https://github.com/oracle/graal/issues/9215">oracle/graal#9215</a>).
-If you are on a platform not supported by Mill’s native executables, use the default
-JVM launcher instead.</p>
-</div>
-<div class="paragraph">
-<p>Mill uses a JVM-based <a href="../javalib/publishing.html#_building_executable_assemblies_with_assemblymodule" class="xref page">Assembly Jar</a>,
-as the launcher on On Windows-ARM, and you can enable this on other platforms
+If you are on a platform not supported by Mill’s native executables, Mill uses the
+JVM-based launcher instead. You can also opt-in to the JVM launcher on other platforms
 by adding a a <code>-jvm</code> suffix on the Mill version:</p>
 </div>
 <div class="listingblock">
@@ -834,14 +802,43 @@ in order to run.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_bashzsh_tab_completion"><a class="anchor" href="#_bashzsh_tab_completion"></a>Bash/Zsh Tab Completion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can set up Bash and Zsh tab completions by subsequently running the command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.tabcomplete/install</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This unpacks the completion script in <code>~/.cache/mill</code> and registers it in your <code>~/.bash_profile</code> and <code>~/.zshrc</code>.
+After that, doing <code>./mill &lt;tab&gt;</code> should begin showing possible modules and tasks for you
+to select at the command line.</p>
+</div>
+<div class="paragraph">
+<p>You can also choose to write the tab-completion script to a manually-specified path via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.tabcomplete/install --dest &lt;path&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When <code>--dest</code> is given, Mill simply generate the tab-completion script without registering it,
+assuming you want to register the script yourself (e.g. by placing it in a relevant folder).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_ide_support"><a class="anchor" href="#_ide_support"></a>IDE Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill supports IntelliJ and VSCode and in general any client of the standard
-<a href="https://build-server-protocol.github.io/">Build Server Protocol (BSP)</a>.</p>
-</div>
-<div class="paragraph">
-<p>Your IDEs may already auto-detect the Mill project and run this command on behalf of you, when opening/importing the project.</p>
+<a href="https://build-server-protocol.github.io/">Build Server Protocol (BSP)</a>.
+Your IDEs may already auto-detect the Mill project and run this command on
+behalf of you when opening/importing the project.</p>
 </div>
 <div class="sect2">
 <h3 id="_intellij"><a class="anchor" href="#_intellij"></a>IntelliJ</h3>

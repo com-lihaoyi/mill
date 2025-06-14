@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -674,7 +674,7 @@ for `TypescriptModule`s.</p>
 <h2 id="_adding_dependencies"><a class="anchor" href="#_adding_dependencies"></a>Adding Dependencies</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javascriptlib-dependencies-1-npm-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/dependencies/1-npm-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javascriptlib-dependencies-1-npm-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/dependencies/1-npm-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javascriptlib._
@@ -692,7 +692,7 @@ via configured registry.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run e b k a l m o p
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run e b k a l m o p
 Sorted with lodash: [a,b,e,k,l,m,o,p]</code></pre>
 </div>
 </div>
@@ -702,7 +702,7 @@ Sorted with lodash: [a,b,e,k,l,m,o,p]</code></pre>
 <h2 id="_unmanaged_packages"><a class="anchor" href="#_unmanaged_packages"></a>Unmanaged Packages</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javascriptlib-dependencies-2-unmanaged-packages.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/dependencies/2-unmanaged-packages">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javascriptlib-dependencies-2-unmanaged-packages.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/dependencies/2-unmanaged-packages">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javascriptlib._
@@ -730,7 +730,7 @@ For more info on creating unmanaged dependecies, see: <a href="https://docs.npmj
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run e b k a l m o p
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run e b k a l m o p
 Sorted with lodash: [a,b,e,k,l,m,o,p]</code></pre>
 </div>
 </div>
@@ -746,7 +746,7 @@ download from arbitrary URLs.
 library, one of Mill’s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javascriptlib-dependencies-3-downloading-unmanaged-packages.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/dependencies/3-downloading-unmanaged-packages">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javascriptlib-dependencies-3-downloading-unmanaged-packages.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/dependencies/3-downloading-unmanaged-packages">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javascriptlib._
@@ -763,7 +763,7 @@ object foo extends TypeScriptModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run e b k a l m o p
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run e b k a l m o p
 Sorted with lodash: [a,b,e,k,l,m,o,p]</code></pre>
 </div>
 </div>
@@ -798,7 +798,7 @@ example above). Instead, you can declare the dependency as a regular <code>npmDe
 <h2 id="_using_custom_or_private_registries"><a class="anchor" href="#_using_custom_or_private_registries"></a>Using Custom or Private Registries</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javascriptlib-dependencies-4-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/dependencies/4-repository-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javascriptlib-dependencies-4-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/dependencies/4-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javascriptlib._
@@ -821,7 +821,7 @@ The example below uses the alternate registry <a href="https://registry.npmmirro
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run e b k a l m o p
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run e b k a l m o p
 Sorted with lodash: [a,b,e,k,l,m,o,p]
 ....
 {

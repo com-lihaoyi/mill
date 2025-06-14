@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -673,7 +673,7 @@
 <h2 id="_simple_publish"><a class="anchor" href="#_simple_publish"></a>Simple publish</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javascriptlib-publishing-1-publish.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/publishing/1-publish">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javascriptlib-publishing-1-publish.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/publishing/1-publish">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -737,10 +737,10 @@ change the regsitry to publish to a private registry.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run &quot;James Bond&quot;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run &quot;James Bond&quot;
 Hello James Bond!
 
-&gt; mill show foo.bundle
+&gt; ./mill show foo.bundle
 Build succeeded!
 
 &gt; node out/foo/bundle.dest/dist/src/foo.js &quot;James Bond&quot;
@@ -759,7 +759,7 @@ Hello James Bond!</code></pre>
 <h2 id="_realistic_publish"><a class="anchor" href="#_realistic_publish"></a>Realistic publish</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javascriptlib-publishing-2-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/publishing/2-realistic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javascriptlib-publishing-2-realistic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/publishing/2-realistic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -851,13 +851,13 @@ The package.json generated for this lib publish:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill qux.run James Bond prof
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill qux.run James Bond prof
 { prof: 'Professor' }
 prof
 Professor
 Hello James Bond Professor
 
-&gt; mill show qux.bundle
+&gt; ./mill show qux.bundle
 Build succeeded!
 
 &gt; node out/qux/bundle.dest/dist/src/qux.js James Bond prof
@@ -866,7 +866,7 @@ prof
 Professor
 Hello James Bond Professor
 
-&gt; mill qux.test
+&gt; ./mill qux.test
 PASS .../qux.test.ts
 ...
 

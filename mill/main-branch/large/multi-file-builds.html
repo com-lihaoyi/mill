@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -673,10 +673,36 @@ build logic since each <code>build.mill</code> or <code>package.mill</code> file
 it is modified without re-compiling all the others.</p>
 </div>
 <div class="paragraph">
-<p>Usage of sub-folder <code>package.mill</code> files is enabled by the magic import <code>import $packages._</code></p>
+<p>This means that instead of one large <code>build.mill</code> file at the root of your repo:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-large-multifile-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multifile/10-multi-file-builds">browse</a>)</div>
+<div class="content">
+<pre>build.mill</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You have a smaller <code>build.mill</code> with the config for each sub-folder broken
+out into that folder’s respective `package.mill</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>foo/
+    src/...
+    package.mill
+bar/
+    package.mill
+    qux/
+        mymodule/src/...
+        package.mill
+build.mill</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_example_project"><a class="anchor" href="#_example_project"></a>Example Project</h3>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-large-multifile-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multifile/10-multi-file-builds">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -697,6 +723,12 @@ object `package` extends build.MyModule {
   def moduleDeps = Seq(build.bar.qux.mymodule)
   def mvnDeps = Seq(mvn&quot;com.lihaoyi::mainargs:0.4.0&quot;)
 }</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">bar/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multifile/10-multi-file-builds/bar/package.mill">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.bar</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -739,17 +771,16 @@ BarQux.value: &lt;p&gt;world&lt;/p&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Note that in this example, <code>foo/package.mill</code> defines <code>object module extends mill.Module</code>,
-and so the name <code>.module</code> does not need to be provided at the command line. In contrast,
-<code>bar/qux/package.mill</code> defines <code>object mymodule</code> that does not extend <code>RootModule</code>, and so
+<p>Note that in this example, <code>foo/package.mill</code> defines <code>object package extends mill.Module</code>,
+and so the name <code>.package</code> does not need to be provided at the command line. In contrast,
+<code>bar/qux/package.mill</code> defines <code>object mymodule</code> which is not named <code>package</code>, and so
 we need to explicitly reference it with a <code>.mymodule</code> suffix.</p>
 </div>
 <div class="paragraph">
 <p><code>package.mill</code> files are only discovered in direct subfolders of the root <code>build.mill</code> or
 subfolders of another folder containing a <code>package.mill</code>; Hence in this example, we need
 an <code>bar/package.mill</code> to be present for <code>bar/qux/package.mill</code> to be discovered, even
-though <code>bar/package.mill</code> is empty</p>
-</div>
+though <code>bar/package.mill</code> is empty.</p>
 </div>
 </div>
 <div class="sect1">
@@ -761,7 +792,7 @@ also allows you to have helper code in any <code>*.mill</code> file in the same 
 as your <code>build.mill</code> or a <code>package.mill</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-large-multifile-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multifile/11-helper-files">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-large-multifile-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multifile/11-helper-files">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -816,18 +847,17 @@ In this example:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>build.mill</code> can be referred to as simple <code>build</code></p>
+<p><code>build.mill</code>, <code>util.mill</code> and other adjacent files  can be referred to as simple <code>build</code></p>
 </li>
 <li>
-<p><code>util.mill</code> can be referred to as simple <code>$file.util</code></p>
-</li>
-<li>
-<p><code>foo/package</code> can be referred to as simple <code>build.foo</code></p>
-</li>
-<li>
-<p><code>foo/versions.mill</code> can be referred to as simple <code>$file.foo.versions</code></p>
+<p><code>foo/package</code>, <code>foo/versions.mill</code>, and other adjacent files can be referred to as simple <code>build.foo</code></p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>Helper files are very handy for you to put custom logic which you use in
+your <code>build.mill</code> or <code>package.mill</code> module definitions. This can help keep
+your <code>build.mill</code> or <code>package.mill</code> files concise and understandable.</p>
 </div>
 <div class="listingblock">
 <div class="content">

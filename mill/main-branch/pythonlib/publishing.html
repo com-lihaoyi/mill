@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -672,7 +672,7 @@
 Start by extending it.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-pythonlib-publishing-1-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/pythonlib/publishing/1-publish-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-pythonlib-publishing-1-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/pythonlib/publishing/1-publish-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, pythonlib._
 
@@ -733,10 +733,10 @@ control.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show sdist
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show sdist
 &quot;.../out/sdist.dest/dist/testpkg_mill-0.0.2.tar.gz&quot;
 
-&gt; mill show wheel
+&gt; ./mill show wheel
 &quot;.../out/wheel.dest/dist/testpkg_mill-0.0.2-py3-none-any.whl&quot;</code></pre>
 </div>
 </div>
@@ -792,7 +792,7 @@ can also do this with Mill, by running:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill __.checkPublish
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill __.checkPublish
 ... PASSED</code></pre>
 </div>
 </div>
@@ -842,7 +842,7 @@ or override the <code>pyproject</code> task with your own metadata.</p>
 custom <code>setup.py</code> file.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-pythonlib-publishing-2-publish-module-advanced.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/pythonlib/publishing/2-publish-module-advanced">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-pythonlib-publishing-2-publish-module-advanced.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/pythonlib/publishing/2-publish-module-advanced">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, pythonlib._
 
@@ -882,7 +882,7 @@ object `package` extends PythonModule with PublishModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill sdist
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill sdist
 ...
 hello from custom setup.py!
 ...</code></pre>

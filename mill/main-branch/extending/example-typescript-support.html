@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -694,7 +694,7 @@ tool and package repository</p>
 library necessary for accessing Node.js APIs:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-extending-typescript-1-hello-typescript.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/typescript/1-hello-typescript">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-extending-typescript-1-hello-typescript.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/typescript/1-hello-typescript">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -846,12 +846,12 @@ console.log(&quot;Hello &quot; + user.name + &quot; &quot; + user.lastName)</cod
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile
 error: .../src/hello.ts(...): error ... Property 'name' does not exist on type...
 
 &gt; sed -i.bak 's/user.name/user.firstName/g' src/hello.ts
 
-&gt; mill compile
+&gt; ./mill compile
 
 &gt; cat out/compile.dest/hello.js # Output is stripped of types and converted to javascript
 var user = {
@@ -965,7 +965,7 @@ the user, rather than capturing it for use in our command.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill run James Bond
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run James Bond
 Hello James Bond</code></pre>
 </div>
 </div>
@@ -989,7 +989,7 @@ we wrote above, and turn it into a re-usable <code>TypeScriptModule</code>.</p>
 <code>trait TypeScriptModule extends Module</code> wrapper:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/typescript/2-typescript-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/typescript/2-typescript-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1067,13 +1067,13 @@ console.log(&quot;Hello &quot; + user.firstName + &quot; Qux&quot;)</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run James
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run James
 Hello James Foo
 
-&gt; mill foo.bar.run James
+&gt; ./mill foo.bar.run James
 Hello James Bar
 
-&gt; mill qux.run James
+&gt; ./mill qux.run James
 Hello James Qux</code></pre>
 </div>
 </div>
@@ -1087,6 +1087,11 @@ but they are each independent and do not depend on one another.</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 522.6,-363 522.6,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-116 504.16,-116 504.16,-8 14.44,-8"></polygon>
+<text text-anchor="middle" x="259.3" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 510.6,-351 510.6,-124 8,-124"></polygon>
@@ -1096,11 +1101,6 @@ but they are each independent and do not depend on one another.</p>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 502.6,-318 502.6,-210 16,-210"></polygon>
 <text text-anchor="middle" x="259.3" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="14.44,-8 14.44,-116 504.16,-116 504.16,-8 14.44,-8"></polygon>
-<text text-anchor="middle" x="259.3" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">
@@ -1336,7 +1336,7 @@ use in <code>compile</code>, and <code>compiledJavascript</code> for use in <cod
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/typescript/3-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/typescript/3-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1458,7 +1458,7 @@ console.log(&quot;Hello &quot; + user.firstName + &quot; &quot; + user.lastName 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill qux.run James Bond
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill qux.run James Bond
 Hello James Bond Professor</code></pre>
 </div>
 </div>
@@ -1473,6 +1473,11 @@ ultimately <code>qux.run</code>):</p>
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 363.0)">
 <title>G</title>
 <polygon fill="white" stroke="transparent" points="-4,4 -4,-363 670.01,-363 670.01,4 -4,4"></polygon>
+<g id="clust1" class="cluster">
+<title>cluster_3</title>
+<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="139.53,-8 139.53,-116 658.01,-116 658.01,-8 139.53,-8"></polygon>
+<text text-anchor="middle" x="398.77" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-351 537.02,-351 537.02,-124 8,-124"></polygon>
@@ -1482,11 +1487,6 @@ ultimately <code>qux.run</code>):</p>
 <title>cluster_2</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="16,-210 16,-318 529.02,-318 529.02,-210 16,-210"></polygon>
 <text text-anchor="middle" x="272.51" y="-301.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_3</title>
-<polygon fill="none" stroke="black" stroke-dasharray="5,2" points="139.53,-8 139.53,-116 658.01,-116 658.01,-8 139.53,-8"></polygon>
-<text text-anchor="middle" x="398.77" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <!-- qux.npmInstall -->
 <g id="node1" class="node">
@@ -1732,7 +1732,7 @@ into a <code>def prepareRun</code> task.</p>
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-extending-typescript-4-npm-deps-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/typescript/4-npm-deps-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-extending-typescript-4-npm-deps-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/typescript/4-npm-deps-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._
@@ -1835,10 +1835,10 @@ standalone using <code>node</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill qux.run James Bond prof
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill qux.run James Bond prof
 Hello James Bond Professor
 
-&gt; mill show qux.bundle
+&gt; ./mill show qux.bundle
 &quot;.../out/qux/bundle.dest/bundle.js&quot;
 
 &gt; node out/qux/bundle.dest/bundle.js James Bond prof

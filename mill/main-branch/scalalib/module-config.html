@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -692,7 +692,7 @@ so its sources will live in the top-level <code>src/</code> folder and its tasks
 called directly via <code>compile</code> or <code>run</code> without needing a <code>foo.</code> module prefix.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/1-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-scalalib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -751,7 +751,7 @@ a task of interest, such as <code>run</code>, you can visualize their relationsh
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill visualizePlan run</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill visualizePlan run</code></pre>
 </div>
 </div>
 <div class="imageblock">
@@ -799,7 +799,7 @@ the same</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
 Foo2.value: &lt;h1&gt;hello2&lt;/h1&gt;
 Foo.value: &lt;h1&gt;hello&lt;/h1&gt;
 FooA.value: hello A
@@ -810,7 +810,7 @@ MyOtherResource: My Other Resource Contents
 my.custom.property: my-prop-value
 MY_CUSTOM_ENV: my-env-value
 
-&gt; mill show assembly
+&gt; ./mill show assembly
 &quot;.../out/assembly.dest/out.jar&quot;
 
 &gt; ./out/assembly.dest/out.jar # mac/linux
@@ -828,7 +828,7 @@ my.custom.property: my-prop-value</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sed -i.bak 's/Foo2 {/Foo2 { println(this + &quot;hello&quot;)/g' custom-src/Foo2.scala
 
-&gt; mill compile # demonstrate -deprecation/-Xfatal-warnings flags
+&gt; ./mill compile # demonstrate -deprecation/-Xfatal-warnings flags
 error: object Foo2 { println(this + &quot;hello&quot;)
 error:                       ^
 error: ...Implicit injection of + is deprecated. Convert to String to call +...</code></pre>
@@ -840,7 +840,7 @@ error: ...Implicit injection of + is deprecated. Convert to String to call +...<
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-scalalib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/4-compilation-execution-flags">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -895,7 +895,7 @@ them after the <code>foo.run</code>/<code>foo.runLocal</code>:</p>
 <h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/7-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-scalalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/7-resources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1052,7 +1052,7 @@ the sandbox and make the tests run in the project root.</p>
 <h2 id="_scala_compiler_plugins"><a class="anchor" href="#_scala_compiler_plugins"></a>Scala Compiler Plugins</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-module-8-scala-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/8-scala-compiler-plugins">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-scalalib-module-8-scala-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/8-scala-compiler-plugins">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1106,7 +1106,7 @@ error:   def x = Foo.y</code></pre>
 like to create the docs for, configured via <code>scalaDocOptions</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/9-docjar">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-scalalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/9-docjar">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1192,7 +1192,7 @@ documentation.</p>
 <h2 id="_specifying_the_main_class"><a class="anchor" href="#_specifying_the_main_class"></a>Specifying the Main Class</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/11-main-class">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-scalalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/11-main-class">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1224,7 +1224,7 @@ main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
 <h2 id="_cross_scala_version_modules"><a class="anchor" href="#_cross_scala_version_modules"></a>Cross-Scala-Version Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-module-14-cross-scala-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/14-cross-scala-version">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-scalalib-module-14-cross-scala-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/14-cross-scala-version">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1254,25 +1254,25 @@ apply to the cross-module with that version prefix.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill resolve __.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __.run
 foo[2.12.17].run
 foo[2.13.8].run
 bar[2.12.17].run
 bar[2.13.8].run
 
-&gt; mill foo[2.12.17].run
+&gt; ./mill foo[2.12.17].run
 Foo.value: Hello World Scala library version 2.12.17...
 Bar.value: bar-value
 Specific code for Scala 2.x
 Specific code for Scala 2.12.x
 
-&gt; mill foo[2.13.8].run
+&gt; ./mill foo[2.13.8].run
 Foo.value: Hello World Scala library version 2.13.8...
 Bar.value: bar-value
 Specific code for Scala 2.x
 Specific code for Scala 2.13.x
 
-&gt; mill bar[2.13.8].run
+&gt; ./mill bar[2.13.8].run
 Bar.value: bar-value</code></pre>
 </div>
 </div>
@@ -1299,7 +1299,7 @@ trait Bar2Module extends CrossScalaModule</code></pre>
 <h2 id="_unidoc"><a class="anchor" href="#_unidoc"></a>Unidoc</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-module-15-unidoc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/15-unidoc">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-scalalib-module-15-unidoc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/15-unidoc">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1367,7 +1367,7 @@ sources as browsable from the <code>unidocSourceUrl</code> base (e.g. on Github)
 <h2 id="_generated_sources"><a class="anchor" href="#_generated_sources"></a>Generated Sources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-module-3-generated-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/3-generated-sources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-scalalib-module-3-generated-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/3-generated-sources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1400,7 +1400,7 @@ generated the sources you need.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 Hello World</code></pre>
 </div>
 </div>
@@ -1427,7 +1427,7 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-scalalib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/2-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-scalalib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1611,15 +1611,15 @@ implementation.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill run --text hello
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run --text hello
 text: hello
 MyDeps.value: List((com.lihaoyi,mainargs,0.4.0))
 my.line.count: 14
 
-&gt; mill show lineCount
+&gt; ./mill show lineCount
 14
 
-&gt; mill printLineCount
+&gt; ./mill printLineCount
 14</code></pre>
 </div>
 </div>

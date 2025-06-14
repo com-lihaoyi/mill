@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -711,7 +711,7 @@ request branch, you can do that as follows:</p>
 where <code>bar</code> depends on <code>foo</code> but <code>qux</code> is standalone:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-large-selective-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/selective/9-selective-execution">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-large-selective-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/selective/9-selective-execution">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -878,7 +878,7 @@ suites and show both successes and the one failure:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill __.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill __.test
 error: Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
 Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 Test run qux.QuxTests finished: 1 failed, 0 ignored, 1 total, ...</code></pre>
@@ -908,15 +908,15 @@ after the code change, to only run the tests downstream of the change (below, <c
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill selective.prepare __.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill selective.prepare __.test
 
 &gt; echo '//' &gt;&gt; bar/src/bar/Bar.java # emulate the code change
 
-&gt; mill selective.resolve __.test # dry-run selective execution to show what would get run
+&gt; ./mill selective.resolve __.test # dry-run selective execution to show what would get run
 foo.test.testForked
 bar.test.testForked
 
-&gt; mill selective.run __.test
+&gt; ./mill selective.run __.test
 Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
 Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...</code></pre>
 </div>
@@ -1005,10 +1005,10 @@ of the tree) and the selected tasks (at the leaves of the tree)</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill selective.resolveChanged __.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill selective.resolveChanged __.test
 bar.sources
 
-&gt; mill selective.resolveTree __.test
+&gt; ./mill selective.resolveTree __.test
 {
   &quot;bar.sources&quot;: {
     &quot;bar.allSources&quot;: {

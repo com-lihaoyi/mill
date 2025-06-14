@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -673,7 +673,7 @@
 <h2 id="_defining_unit_test_suites"><a class="anchor" href="#_defining_unit_test_suites"></a>Defining Unit Test Suites</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javascriptlib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/testing/1-test-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javascriptlib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/testing/1-test-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -730,25 +730,25 @@ to define a custom test configurtion file.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
 ...
 ...4 passing...
 ...
 
-&gt; mill bar.test
+&gt; ./mill bar.test
 ...Calculator
 ...
 Test Suites:...1 passed, 1 total...
 Tests:...4 passed, 4 total...
 ...
 
-&gt; mill baz.test
+&gt; ./mill baz.test
 .../calculator.test.ts...
 ...Test Files  1 passed...
 ...Tests  4 passed...
 ...
 
-&gt; mill qux.test
+&gt; ./mill qux.test
 ...
 4 specs, 0 failures</code></pre>
 </div>
@@ -759,7 +759,7 @@ Tests:...4 passed, 4 total...
 <h2 id="_test_dependencies"><a class="anchor" href="#_test_dependencies"></a>Test Dependencies</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javascriptlib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/testing/2-test-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javascriptlib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/testing/2-test-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -788,14 +788,14 @@ test helper throughout multiple modules' test suites.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test
 PASS .../foo.test.ts
 ...
 Test Suites:...1 passed, 1 total...
 Tests:...3 passed, 3 total...
 ...
 
-&gt; mill bar.test
+&gt; ./mill bar.test
 PASS .../bar.test.ts
 ...
 Test Suites:...1 passed, 1 total...
@@ -809,7 +809,7 @@ Tests:...1 passed, 1 total...
 <h2 id="_integration_suite_with_cypress"><a class="anchor" href="#_integration_suite_with_cypress"></a>Integration Suite with Cypress</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javascriptlib-testing-3-integration-suite-cypress.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/testing/3-integration-suite-cypress">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javascriptlib-testing-3-integration-suite-cypress.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/testing/3-integration-suite-cypress">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -845,7 +845,7 @@ and kill the service once completed</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill server.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill server.test
 ...
 ...Server listening on port 4000
 ... app.cy.ts...
@@ -859,7 +859,7 @@ and kill the service once completed</p>
 <h2 id="_integration_suite_with_playwright"><a class="anchor" href="#_integration_suite_with_playwright"></a>Integration Suite with PlayWright</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javascriptlib-testing-3-integration-suite-playwright.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/testing/3-integration-suite-playwright">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javascriptlib-testing-3-integration-suite-playwright.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/testing/3-integration-suite-playwright">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -895,7 +895,7 @@ and kill the service once completed</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill server.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill server.test
 ...
 ...Server listening on port 6000
 ...

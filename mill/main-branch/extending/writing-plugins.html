@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -675,7 +675,7 @@ via <a href="import-mvn-plugins.html" class="xref page">//| mvnDeps</a>.</p>
 <h2 id="_project_configuration"><a class="anchor" href="#_project_configuration"></a>Project Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, publish._
@@ -729,7 +729,7 @@ object myplugin extends ScalaModule with PublishModule {
 <div class="paragraph">
 <p>Mill plugins are fundamentally just JVM libraries that depend on Mill. Any vanilla JVM
 library (whether written in Java or Scala) can be used in a Mill <code>build.mill</code> file via
-<code>//| mvnDeps:</code>, but Mill plugins tend to integrate with Mill by defining a
+<code>//| mvnDeps</code>, but Mill plugins tend to integrate with Mill by defining a
 <a href="../fundamentals/modules.html#_module_traits" class="xref page">trait for modules in your <code>build.mill</code> to inherit from</a>.</p>
 </div>
 <div class="paragraph">
@@ -746,14 +746,15 @@ they are compiled against (to ensure that improper usage raises an easy to under
 error)</p>
 </li>
 <li>
-<p>A dependency on <code>com.lihaoyi:mill-dist:$millVersion</code></p>
+<p>A dependency on <code>com.lihaoyi:mill-libs:$millVersion</code>, which transitively includes
+all APIs available in your <code>build.mill</code> that plugins can use</p>
 </li>
 <li>
 <p>A test dependency on <code>com.lihaoyi::mill-testkit:$millVersion</code></p>
 </li>
 <li>
 <p>An <code>object millExecutable</code> that adds some resources to the published <code>mill-dist</code>
-assembly to configure it to rewire <code>//| mvnDeps:</code> to instead use the local compiled
+assembly to configure it to rewire <code>//| mvnDeps</code> to instead use the local compiled
 classfiles for testing.</p>
 </li>
 </ul>
@@ -1057,7 +1058,7 @@ that the printed output is as expected.</p>
 having the testing logic defined as part of the test suite in a <code>.scala</code> file, the testing
 logic is instead defined as a <code>/** Usage */</code> comment in the <code>build.mill</code>. These tests are
 a great way of documenting expected usage of your plugin: a user can glance at a single
-file to see how the plugin is imported (via <code>//| mvnDeps:</code>) how it is used (e.g. by being
+file to see how the plugin is imported (via <code>//| mvnDeps</code>) how it is used (e.g. by being
 extended by a module) and what commands they can run exercising the plugin and the resultant
 output they should expect:</p>
 </div>

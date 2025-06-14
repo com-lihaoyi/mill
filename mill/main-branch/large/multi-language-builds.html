@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -662,8 +662,13 @@
 </aside>
 <article class="doc">
 <h1 class="page">Multi-Language Builds</h1>
+<div class="paragraph">
+<p>This example demonstrates a simple multi-langauge project,
+running a <code>spring boot webserver</code> serving a <code>react client</code> and interacting with a <code>python binary</code>
+through the web-server api.</p>
+</div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-large-multilang-14-multi-language.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multilang/14-multi-language">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-large-multilang-14-multi-language.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multilang/14-multi-language">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javascriptlib._, pythonlib._, javalib._
@@ -701,13 +706,36 @@ object server extends JavaModule {
 </div>
 </div>
 <div class="paragraph">
-<p>This example demonstrates a simple multi-langauge project,
-running a <code>spring boot webserver</code> serving a <code>react client</code> and interacting with a <code>python binary</code>
-through the web-server api.</p>
+<p>Mill as a build tool is not inherently limited to working with JVM languages like
+Java/Scala/Kotlin, and you can set up toolchains for other languages as well.
+This example makes use of Mill’s experimental <a href="../pythonlib/intro.html" class="xref page">Python Toolchain</a>
+and <a href="../javascriptlib/intro.html" class="xref page">Typescript Toolchain</a> together with it’s builtin
+<a href="../javalib/intro.html" class="xref page">Java Toolchain</a> to build a multi-language project containing
+all three languages. This provides several benefits over having separate build tools for
+each language:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Mill can provide caching and automatic
+invalidation across languages, e.g. changing the Typescript <code>client</code> code automatically
+makes the Java <code>server</code> re-build</p>
+</li>
+<li>
+<p>Mill can parallelize different language toolchains, e.g. building the Typescript <code>client</code>,
+Python <code>sentiment-analysis</code> module, and Java <code>server</code> code in parallel on multiple cores</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you wish to learn how additional language toolchains can be added to Mill, you can see
+the pages on <a href="../extending/example-python-support.html" class="xref page">Example: Python Support</a> and
+<a href="../extending/example-typescript-support.html" class="xref page">Example: Typescript Support</a> for walk-throughs on how language traits such
+as <code>PythonModule</code> can be defined by users.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill client.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill client.test
 PASS src/test/App.test.tsx
 ...Text Analysis Tool
 ...renders the app with initial UI...
@@ -717,7 +745,7 @@ Test Suites:...1 passed, 1 total
 Tests:...2 passed, 2 total
 ...
 
-&gt; mill sentiment-analysis.test
+&gt; ./mill sentiment-analysis.test
 ...
 test_negative_sentiment... ok
 test_neutral_sentiment... ok
@@ -728,12 +756,12 @@ Ran 3 tests...
 OK
 ...
 
-&gt; mill server.test
+&gt; ./mill server.test
 ...com.example.ServerTest#shouldReturnStaticPage() finished...
 ...com.example.ServerTest#shouldReturnPositiveAnalysis() finished...
 ...com.example.ServerTest#shouldReturnNegativeAnalysis() finished...
 
-&gt; mill server.runBackground
+&gt; ./mill server.runBackground
 
 &gt; curl http://localhost:8086
 ...&lt;title&gt;Sentiment Analysis Tool&lt;/title&gt;...
@@ -741,7 +769,7 @@ OK
 &gt; curl -X POST http://localhost:8086/api/analysis -H &quot;Content-Type: text/plain&quot; --data &quot;This is awesome!&quot; # Make request to the analysis api
 Positive sentiment (polarity: 1.0)
 
-&gt; mill clean server.runBackground</code></pre>
+&gt; ./mill clean server.runBackground</code></pre>
 </div>
 </div>
 <nav class="pagination">

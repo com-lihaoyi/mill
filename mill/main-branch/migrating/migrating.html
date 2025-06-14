@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -681,7 +681,7 @@ tooling.</p>
 <p><a href="gradle.html" class="xref page">Migrating From Gradle to Mill</a></p>
 </li>
 <li>
-<p><a href="sbt.html" class="xref page">Migrating From <code>sbt</code> to Mill</a></p>
+<p><a href="sbt.html" class="xref page">Migrating From sbt to Mill</a></p>
 </li>
 </ul>
 </div>
@@ -831,6 +831,28 @@ system can be removed.</strong></p>
 <p>Of the four steps above, most of the work goes into (2) setting up the parallel Mill
 build for your project. We will walk through each of the sub-bullets in that step
 below</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_run_the_mill_init_project_importer"><a class="anchor" href="#_run_the_mill_init_project_importer"></a>Run the <code>./mill init</code> project importer</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Run <code>./mill init</code> in your codebase to run the automated build importer, which will perform
+<a href="#_translating_subprojects_to_modules">Translating Subprojects to Modules</a> and <a href="#_translating_third_party_dependencies">Translating Third-Party Dependencies</a>
+on your behalf</p>
+</li>
+<li>
+<p>After that completes, you should not need to do those steps manually, though you should still
+read through them to understand what the <code>./mill init</code> importer was doing</p>
+</li>
+<li>
+<p>Next, you can start again with the manual steps in <a href="#_translating_third_party_plugins">Translating Third-Party Plugins</a>
+and <a href="#_translating_custom_build_logic">Translating Custom Build Logic</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>

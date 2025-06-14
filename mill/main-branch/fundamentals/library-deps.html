@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -962,7 +962,7 @@ whose Maven coordinates are <code>com.google.cloud:libraries-bom:26.50.0</code><
 <p>Pass an external BOM to a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code> with <code>bomMvnDeps</code>, like</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-fundamentals-dependencies-1-external-bom.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/fundamentals/dependencies/1-external-bom">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-fundamentals-dependencies-1-external-bom.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/fundamentals/dependencies/1-external-bom">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -998,7 +998,7 @@ for a dependency, all exclusions are added to that dependency.</p>
 <p>Pass dependencies to <code>depManagement</code> in a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code>, like</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/fundamentals/dependencies/2-managed">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/fundamentals/dependencies/2-managed">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -1155,7 +1155,7 @@ dependencies with particularly weird version numbers. For example, given the fol
 build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/fundamentals/dependencies/3-search-updates">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/fundamentals/dependencies/3-search-updates">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1182,21 +1182,21 @@ object bar extends MyModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill mill.scalalib.Dependency/showUpdates
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.scalalib.Dependency/showUpdates
 Found 2 dependency update for bar
   com.lihaoyi:mainargs_2.13 : 0.4.0 -&gt; 0.5.0 -&gt; 0.5.1 -&gt; 0.5.2 -&gt; 0.5.3 -&gt; ...
   com.lihaoyi:scalatags_2.13 : 0.8.2 -&gt; 0.8.3 -&gt; 0.8.4 -&gt; 0.8.5 -&gt; 0.8.6 -&gt; ...
 Found 1 dependency update for foo
   com.lihaoyi:mainargs_2.13 : 0.4.0 -&gt; 0.5.0 -&gt; 0.5.1 -&gt; 0.5.2 -&gt; 0.5.3 -&gt; ...
 
-&gt; mill mill.scalalib.Dependency/showUpdates --format PerDependency
+&gt; ./mill mill.scalalib.Dependency/showUpdates --format PerDependency
 com.lihaoyi:mainargs_2.13 : 0.4.0 -&gt; 0.5.0 -&gt; 0.5.1 -&gt; 0.5.2 -&gt; 0.5.3 -&gt; ... in
   bar
   foo
 com.lihaoyi:scalatags_2.13 : 0.8.2 -&gt; 0.8.3 -&gt; 0.8.4 -&gt; 0.8.5 -&gt; 0.8.6 -&gt; ... in
   bar
 
-&gt; mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions</code></pre>
+&gt; ./mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1204,7 +1204,7 @@ com.lihaoyi:scalatags_2.13 : 0.8.2 -&gt; 0.8.3 -&gt; 0.8.4 -&gt; 0.8.5 -&gt; 0.8
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill --meta-level 1 mill.scalalib.Dependency/showUpdates</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill --meta-level 1 mill.scalalib.Dependency/showUpdates</code></pre>
 </div>
 </div>
 <div class="paragraph">

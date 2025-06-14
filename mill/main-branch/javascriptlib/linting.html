@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -677,7 +677,7 @@ codebases using the Mill build tool</p>
 <p>Eslint and Prettier are tools that analyzes your Typescript source code, performing intelligent analyses and code quality checks, and is often able to automatically fix the issues that it discovers. It can also perform automated refactoring.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javascriptlib-linting-1-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/linting/1-linting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javascriptlib-linting-1-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/linting/1-linting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -705,7 +705,7 @@ export class Foo{
   }
 }
 
-&gt; mill foo.checkFormatAll # run eslint
+&gt; ./mill foo.checkFormatAll # run eslint
 ...
 foo/src/foo.ts
   3:5  error  'args' is defined but never used  @typescript-eslint/no-unused-vars
@@ -723,12 +723,12 @@ export class Foo{
   }
 }
 
-&gt; mill foo.checkFormatAll # run eslint
+&gt; ./mill foo.checkFormatAll # run eslint
 All matched files use Eslint code style!</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javascriptlib-linting-2-autoformatting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/linting/2-autoformatting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javascriptlib-linting-2-autoformatting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/linting/2-autoformatting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -768,7 +768,7 @@ args: string[
 }
 }
 
-&gt; mill foo.checkFormatAll # run linter - since both eslint and prettier configurations are present, mill will opt to use eslint.
+&gt; ./mill foo.checkFormatAll # run linter - since both eslint and prettier configurations are present, mill will opt to use eslint.
 ...
 foo/src/foo.ts
   2:1   error  Expected indentation of 2 spaces but found 0                                   indent
@@ -785,7 +785,7 @@ foo/src/foo.ts
 ...10 problems (10 errors, 0 warnings)
 ...10 errors and 0 warnings potentially fixable with running foo.reformatAll.
 
-&gt; mill foo.reformatAll
+&gt; ./mill foo.reformatAll
 ...
 All matched files have been reformatted!
 
@@ -800,12 +800,12 @@ export class Foo{
 
 &gt; rm -rf eslint.config.mjs # since there is no eslint config file `eslint.config.(js|mjs|cjs)`, mill will use the prettier configuration available.
 
-&gt; mill foo.checkFormatAll # run lint with prettier configuration.
+&gt; ./mill foo.checkFormatAll # run lint with prettier configuration.
 Checking formatting...
 [warn] foo/src/foo.ts
 [warn] Code style issues found. Run foo.reformatAll to fix.
 
-&gt; mill foo.reformatAll
+&gt; ./mill foo.reformatAll
 ...
 All matched files have been reformatted!
 
@@ -826,7 +826,7 @@ export class Foo {
 <p>Mill supports code coverage analysis with multiple Typescript testing frameworks.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-javascriptlib-linting-3-code-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/linting/3-code-coverage">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-javascriptlib-linting-3-code-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javascriptlib/linting/3-code-coverage">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -898,7 +898,7 @@ for coverage, when using either, to use custom coverage configurations you must 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.test.coverage
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test.coverage
 ...Calculator
 ...
 ---------------|---------|----------|---------|---------|-------------------
@@ -912,7 +912,7 @@ Test Suites:...1 passed, 1 total...
 Tests:...4 passed, 4 total...
 ...
 
-&gt; mill bar.test.coverage
+&gt; ./mill bar.test.coverage
 ...
 ...2 passing...
 ...
@@ -923,7 +923,7 @@ File...| % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s...
 ...calculator.ts...|...66.66 |...0 |...66.66 |...62.5 | 7-10...
 ---------------|---------|----------|---------|---------|-------------------
 
-&gt; mill baz.test.coverage
+&gt; ./mill baz.test.coverage
 .../calculator.test.ts...
 ...Test Files  1 passed...
 ...Tests  4 passed...
@@ -936,7 +936,7 @@ File...| % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s...
 ...calculator.ts...|...100 |...100 |...100 |...100 |...
 ---------------|---------|----------|---------|---------|-------------------
 
-&gt; mill qux.test.coverage
+&gt; ./mill qux.test.coverage
 ...
 4 specs, 0 failures
 ...

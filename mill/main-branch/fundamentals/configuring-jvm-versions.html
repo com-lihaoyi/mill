@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -666,8 +666,9 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>By default, Mill uses the same JVM that it itself is running on to compile/test/run
-Java/Scala/Kotlin modules. This page goes into more detail about downloading
-and using a custom Java home on a per-module basis.</p>
+Java/Scala/Kotlin modules, typically whatever <code>java</code> command you have available globally
+or what you have configured in your <a href="../cli/build-header.html" class="xref page">Build Header Config</a>. This page goes into
+more detail about downloading and using a custom Java home on a per-module basis.</p>
 </div>
 <div class="paragraph">
 <p>To override the default Java home, you can create a custom
@@ -680,12 +681,13 @@ and using a custom Java home on a per-module basis.</p>
 <h2 id="_setting_the_jvm_version_of_a_javamodule"><a class="anchor" href="#_setting_the_jvm_version_of_a_javamodule"></a>Setting the JVM version of a JavaModule</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>JvmWorkerModule.ForJvm</code> class takes a Jvm dependency string as its
-contructor argument and configures the module to fetch and cache the Jvm
-using coursier and use it for the compile, run, and test tasks.</p>
+<p>Configuring custom JVMs is done by defining a <code>JvmWorkerModule</code> takes a Jvm
+dependency string as its <code>def jvmId</code>. You can then set the <code>jvmWorker</code>
+of any <code>JavaModule, `ScalaModule</code>, or <code>KotlinModule</code> to reference this <code>JvmWorkerModule</code>
+to make use of the downloaded and cached JVM.</p>
 </div>
 <div class="paragraph">
-<p>The string has the form:</p>
+<p>The <code>jvmId</code> string has the form:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -697,7 +699,7 @@ using coursier and use it for the compile, run, and test tasks.</p>
 and architecture <a href="https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json">here</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/depth/javahome/1-custom-jvms">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/depth/javahome/1-custom-jvms">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 import mill.define.ModuleRef
@@ -715,21 +717,19 @@ object foo extends JavaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 Foo running on Java 18.0.2
 
-&gt; mill foo.test
+&gt; ./mill foo.test
 Testing with JVM version: 18.0.2
 Test foo.FooTest.testSimple finished...</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Selecting a custom JVM via <code>JvmWorkerModule.ForJvm</code> means that JVM is used for
+<p>Selecting a custom JVM via <code>JvmWorkerModule</code> means that JVM is used for
 compiling, testing, and running that module via Mill. Note that <code>.assembly</code> is not
 affected, as JVM assembly jars do not bundle a JVM and have to be run using a
-JVM installed on the target host machine. Configuration is done via <code>JvmWorkerModule</code>
-as the <a href="https://github.com/sbt/zinc">Zinc</a> incremental compiler is used for compiling
-Java and Scala sources.</p>
+JVM installed on the target host machine.</p>
 </div>
 </div>
 </div>
@@ -746,9 +746,14 @@ index version from the Maven Central:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/">JVM Indices on Maven Central</a>)</p>
+<p><a href="https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/">JVM Indices on Maven Central</a></p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>Or alternatively pass in <code>&quot;latest.release&quot;</code> to pick the latest JVM index available,
+although that might mean the JVM version is no longer stable and might change over
+time as new releases are published:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -768,7 +773,7 @@ object bar extends ScalaModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill bar.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar.run
 Bar running on Java 23.0.1</code></pre>
 </div>
 </div>
@@ -806,7 +811,7 @@ object qux extends KotlinModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill qux.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill qux.run
 Qux running on Java 22.0.2</code></pre>
 </div>
 </div>

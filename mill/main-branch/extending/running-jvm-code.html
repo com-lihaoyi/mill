@@ -388,7 +388,7 @@
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From <code>sbt</code> to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
   </li>
 </ul>
   </li>
@@ -679,7 +679,7 @@ needing to download the library when working on parts that don’t need it can b
 <p>The library can only have one version across the entire build. This can be an issue if
 you need to have multiple versions of the library used in different parts of your build.
 e.g. different parts of a large Groovy codebase may use different versions of the Groovy
-interpreter, and so the Groovy interpreter cannot be included via <code>//| mvnDeps:</code> because the
+interpreter, and so the Groovy interpreter cannot be included via <code>//| mvnDeps</code> because the
 different versions would collide.</p>
 </li>
 <li>
@@ -687,13 +687,13 @@ different versions would collide.</p>
 it as part of your <a href="meta-build.html" class="xref page">Meta-Build</a>, that comes with additional
 complexity and limitations. In a large codebase, you often end up building modules that
 are shared between production deployments as well as local tooling: in such cases
-<code>//| mvnDeps:</code> is not a good fit</p>
+<code>//| mvnDeps</code> is not a good fit</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
 <p>In scenarios where these limitations cause issues, Mill provides other ways to run arbitrary
-JVM code apart from <code>//| mvnDeps:</code>.</p>
+JVM code apart from <code>//| mvnDeps</code>.</p>
 </div>
 </div>
 </div>
@@ -724,7 +724,7 @@ can be used to create any processes, JVM subprocesses are common enough have eno
 idiosyncracies (e.g. classpaths) that Mill provides helper methods specifically for them.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-extending-jvmcode-1-subprocess.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/jvmcode/1-subprocess">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-extending-jvmcode-1-subprocess.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/jvmcode/1-subprocess">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -776,7 +776,7 @@ Contents of groovy-generated.html is &lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt
 </div>
 <div class="paragraph">
 <p>As mentioned above, <code>defaultResolver().classpath</code> and <code>Jvm.runSubprocess</code> are an
-alternative to <code>//| mvnDeps:</code>, providing you more flexibility to resolve dependencies
+alternative to <code>//| mvnDeps</code>, providing you more flexibility to resolve dependencies
 on-demand as part of your task graph only when necessary, and keeping it isolated from
 the build in a subprocess preventing classpath collisions.</p>
 </div>
@@ -792,7 +792,7 @@ a subprocess, but:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>We use <code>Jvm.inprocess</code> to
+<p>We use <code>Jvm.withClassLoader</code> to
 load the Groovy interpreter classpath files into an in-memory in-process classloader,</p>
 </li>
 <li>
@@ -801,7 +801,7 @@ load the Groovy interpreter classpath files into an in-memory in-process classlo
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-extending-jvmcode-2-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/jvmcode/2-classloader">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-extending-jvmcode-2-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/jvmcode/2-classloader">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -837,7 +837,7 @@ object foo extends JavaModule {
 </div>
 </div>
 <div class="paragraph">
-<p>Note that unlike <code>Jvm.runSubprocess</code>, <code>Jvm.runClassloader</code> does not take a <code>workingDir</code>
+<p>Note that unlike <code>Jvm.runSubprocess</code>, <code>Jvm.withClassLoader</code> does not take a <code>workingDir</code>
 on <code>mainArgs</code>: it instead provides you an in-memory <code>classLoader</code> that contains the
 classpath you gave it. From there, you can use <code>.loadClass</code> and <code>.getMethod</code> to fish out
 the classes and methods you want, and <code>.invoke</code> to call them.</p>
@@ -849,7 +849,7 @@ Contents of groovy-generated.html is &lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt
 </div>
 </div>
 <div class="paragraph">
-<p><code>Jvm.runClassloader</code> has significantly less overhead than <code>Jvm.runSubprocess</code>: both in terms
+<p><code>Jvm.withClassLoader</code> has significantly less overhead than <code>Jvm.runSubprocess</code>: both in terms
 of wall-clock time and in terms of memory footprint. However, it does have somewhat less
 isolation, as the code is running inside your JVM and cannot be configured to have a separate
 working directory, environment variables, and other process-global configs. Which one is
@@ -874,7 +874,7 @@ a subprocess, but instead of using <code>Jvm.runSubprocess</code> we use <code>C
 load the Groovy interpreter classpath files:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-extending-jvmcode-3-worker.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/jvmcode/3-worker">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-extending-jvmcode-3-worker.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/jvmcode/3-worker">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
@@ -964,6 +964,57 @@ rely on mutable state, see <a href="#_caching_and_re_using_jvm_subprocesses_and_
 </div>
 </div>
 <div class="sect1">
+<h2 id="_running_a_javamodule_in_a_classloader"><a class="anchor" href="#_running_a_javamodule_in_a_classloader"></a>Running a JavaModule in a Classloader</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This example demonstrates how to run your own Java code within a classloader
+as part of your build. We run the <code>bar</code> module code built as part of the project
+within an in-memory classloader via <code>Jvm.withClassloader</code>, which in this example
+serves as a code-generated to generated the <code>sources</code> of the <code>foo</code> module:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-extending-jvmcode-4-module-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/jvmcode/4-module-classloader">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, scalalib._
+import mill.util.Jvm
+
+object foo extends JavaModule {
+  def moduleDeps = Seq(bar)
+
+  def sources = Task {
+    Jvm.withClassLoader(classPath = bar.runClasspath().map(_.path)) { classLoader =&gt;
+      classLoader
+        .loadClass(&quot;bar.Bar&quot;)
+        .getMethod(&quot;main&quot;, classOf[Array[String]])
+        .invoke(null, Array(Task.dest.toString) ++ super.sources().map(_.path.toString))
+    }
+    Seq(PathRef(Task.dest))
+  }
+}
+
+object bar extends JavaModule</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As mentioned in the section on
+<a href="#_in_process_isolated_classloaders">In-process Isolated Classloaders</a>,
+this provides less overhead over running <code>bar</code>'s classpath in a subprocess, at
+the expense of the classloader providing weaker isolation than a subprocess.
+Thus we cannot rely on the working directory inside the <code>bar.Bar</code> code to be in the
+right place, and instead we need to pass in the <code>Task.dest</code> path explicitly as a
+<code>main</code> method parameter to the <code>bar.Bar</code> main class.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
+...
+Foo.value: HELLO</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_running_a_scalamodule_in_a_subprocess"><a class="anchor" href="#_running_a_scalamodule_in_a_subprocess"></a>Running a ScalaModule in a Subprocess</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -972,7 +1023,7 @@ than pulling the code we need off of Maven Central, we instead build the code
 within the <code>bar</code> module as <code>bar/src/Bar.scala</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-extending-jvmcode-4-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/jvmcode/4-module-run-task">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-extending-jvmcode-5-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/jvmcode/5-module-run-task">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1005,7 +1056,7 @@ task automatically.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 ...
 Foo.value: HELLO</code></pre>
 </div>
@@ -1040,57 +1091,6 @@ arguments if you wish to override the defaults.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_running_a_javamodule_in_a_classloader"><a class="anchor" href="#_running_a_javamodule_in_a_classloader"></a>Running a JavaModule in a Classloader</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>While the previously example showed how to use the <code>runner().run</code> helpers
-to run a <code>ScalaModule</code>'s code, but you can also use <code>JavaModule</code>s for this
-purpose, with a source code generator written in Java. We also run the
-<code>bar</code> code within an in-memory classloader via <code>Jvm.runClassloader</code> as
-we saw earlier:</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-extending-jvmcode-5-module-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/jvmcode/5-module-classloader">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
-import mill.util.Jvm
-
-object foo extends JavaModule {
-  def moduleDeps = Seq(bar)
-
-  def sources = Task {
-    Jvm.withClassLoader(classPath = bar.runClasspath().map(_.path)) { classLoader =&gt;
-      classLoader
-        .loadClass(&quot;bar.Bar&quot;)
-        .getMethod(&quot;main&quot;, classOf[Array[String]])
-        .invoke(null, Array(Task.dest.toString) ++ super.sources().map(_.path.toString))
-    }
-    Seq(PathRef(Task.dest))
-  }
-}
-
-object bar extends JavaModule</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>As mentioned in the section on
-<a href="#_in_process_isolated_classloaders">In-process Isolated Classloaders</a>,
-this provides less overhead over running <code>bar</code>'s classpath in a subprocess, at
-the expense of the classloader providing weaker isolation than a subprocess.
-Thus we cannot rely on the working directory inside the <code>bar.Bar</code> code to be in the
-right place, and instead we need to pass in the <code>Task.dest</code> path explicitly.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.run
-...
-Foo.value: HELLO</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_caching_and_re_using_jvm_subprocesses_and_classloaders"><a class="anchor" href="#_caching_and_re_using_jvm_subprocesses_and_classloaders"></a>Caching and Re-using JVM subprocesses and classloaders</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1110,7 +1110,7 @@ which ensures that the classloaders are created when necessary,
 cached/re-used where possible, and torn down properly when no longer necessary.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-12-523ddc-example-extending-jvmcode-6-module-cached-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/jvmcode/6-module-cached-classloader">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-13-30708b-example-extending-jvmcode-6-module-cached-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/jvmcode/6-module-cached-classloader">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1157,14 +1157,14 @@ object bar extends JavaModule</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill '{foo1,foo2,foo3}.run' # 3 classloaders are setup, one is torn down due to maxCacheSize
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill '{foo1,foo2,foo3}.run' # 3 classloaders are setup, one is torn down due to maxCacheSize
 Setting up Classloader
 Setting up Classloader
 Setting up Classloader
 Tearing down Classloader
 Foo.value: HELLO
 
-&gt; mill clean # mill clean tears down the 2 remaining classloaders
+&gt; ./mill clean # mill clean tears down the 2 remaining classloaders
 Tearing down Classloader
 Tearing down Classloader</code></pre>
 </div>
