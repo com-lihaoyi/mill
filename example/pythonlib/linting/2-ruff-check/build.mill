@@ -9,7 +9,7 @@ object `package` extends PythonModule with RuffModule {}
 
 /** Usage
 
-> mill ruffCheck
+> ./mill ruffCheck
 error: ...
 error: ...F401 [*] `os` imported but unused
 error:   |
@@ -37,7 +37,7 @@ error: [*] 2 fixable with the `--fix` option.
 
 /** Usage
 
-> mill ruffCheck --fix
+> ./mill ruffCheck --fix
 Found 2 errors (2 fixed, 0 remaining).
 
 > cat src/main.py

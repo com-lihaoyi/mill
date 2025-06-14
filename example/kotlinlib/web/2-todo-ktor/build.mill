@@ -45,13 +45,13 @@ object `package` extends KotlinModule {
 
 /** Usage
 
-> mill test
+> ./mill test
 
-> mill runBackground
+> ./mill runBackground
 
 > curl http://localhost:8091
 ...<h1>todos</h1>...
 
-> mill clean runBackground
+> ./mill clean runBackground
 
 */

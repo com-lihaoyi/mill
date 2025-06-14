@@ -83,7 +83,7 @@ def dist = Task {
 
 /** Usage
 
-> mill dist
+> ./mill dist
 
 > cat out/dist.dest/index.html                    # root index page
 ...
@@ -111,7 +111,7 @@ def dist = Task {
 
 /** Usage
 
-> mill show "post[1-My-First-Post.md].render"
+> ./mill show "post[1-My-First-Post.md].render"
 ".../out/post/1-My-First-Post.md/render.dest/1-my-first-post.html"
 
 > cat out/post/1-My-First-Post.md/render.dest/1-my-first-post.html

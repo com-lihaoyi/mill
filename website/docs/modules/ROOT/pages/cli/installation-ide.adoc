@@ -3,7 +3,7 @@
 The standard method of installing Mill is to install a `./mill` <<_bootstrap_scripts,bootstrap script>>,
 similar to `./gradlew` or `./mvnw` in other build tools.
 This script can determine the best version to be used by a project (e.g. by
-reading a `.mill-version`) and will use this exact Mill version.
+reading a `//| mill-version` header comment) and will use this exact Mill version.
 If the determined Mill version is not installed locally, it will be downloaded automatically.
 
 For all the examples in this documentation, there is a `download` link that provides
@@ -15,7 +15,7 @@ caching a JVM and any additional dependencies as necessary.
 == Bootstrap Scripts
 
 The Mill example projects in this documentation come with `./mill` and `./mill.bat`
-bootstrap script, included. You can also download the boostrap script manually:
+bootstrap script, included. You can also download the bootstrap script manually:
 
 .Mac/Linux
 [source,console,subs="verbatim,attributes"]
@@ -63,9 +63,37 @@ If you are starting a new project using a Mill bootstrap script, you can use the
 xref:cli/builtin-commands.adoc#_init[mill init] to initialize the project
 folder with one of the Mill example projects. There are a wide range of example projects,
 from hello-world to multi-module libraries to client-server web applications, and you can
-pick one most similar to what you are doing so you can hit the ground running working.
+pick one most similar to what you are doing so you can hit the ground running.
 
-=== Bash/Zsh Tab Completion
+=== Mill Native and JVM Executables
+
+The default Mill launcher configured above is a
+xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Image],
+that provides faster startup and is able to run even on machines without Java installed.
+Mill native executables are supported on the following OS/CPU combinations:
+
+|===
+| | Windows | Mac | Linux
+| Intel | Y | Y | Y
+| ARM |  | Y | Y
+|===
+
+Notably, Mill native executables _do not_ support Windows-ARM, due to limitations in the
+upstream Graal Native Image tooling (see https://github.com/oracle/graal/issues/9215[oracle/graal#9215]).
+If you are on a platform not supported by Mill's native executables, Mill uses the
+JVM-based launcher instead. You can also opt-in to the JVM launcher on other platforms
+by adding a a `-jvm` suffix on the Mill version:
+
+[source,subs="verbatim,attributes"]
+----
+{version}-jvm
+----
+
+Mill's JVM launcher imposes some Java startup overhead (~100ms) over the native launcher
+when running Mill from the command line, and requires a JVM installed globally (version 11 or above)
+in order to run.
+
+== Bash/Zsh Tab Completion
 
 You can set up Bash and Zsh tab completions by subsequently running the command:
 
@@ -88,36 +116,6 @@ You can also choose to write the tab-completion script to a manually-specified p
 When `--dest` is given, Mill simply generate the tab-completion script without registering it,
 assuming you want to register the script yourself (e.g. by placing it in a relevant folder).
 
-=== Mill Native and JVM Executables
-
-The default Mill launcher configured above is a
-xref:javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Graal Native Image],
-that provides faster startup and is able to run even on machines without Java installed.
-Mill native executables are supported on the following OS/CPU combinations:
-
-|===
-| | Windows | Mac | Linux
-| Intel | Y | Y | Y
-| ARM |  | Y | Y
-|===
-
-Notably, Mill native executables _do not_ support Windows-ARM, due to limitations in the
-upstream Graal Native Image tooling (see https://github.com/oracle/graal/issues/9215[oracle/graal#9215]).
-If you are on a platform not supported by Mill's native executables, use the default
-JVM launcher instead.
-
-Mill uses a JVM-based xref:javalib/publishing.adoc#_building_executable_assemblies_with_assemblymodule[Assembly Jar],
-as the launcher on On Windows-ARM, and you can enable this on other platforms
-by adding a a `-jvm` suffix on the Mill version:
-
-[source,subs="verbatim,attributes"]
-----
-{version}-jvm
-----
-
-Mill's JVM launcher imposes some Java startup overhead (~100ms) over the native launcher
-when running Mill from the command line, and requires a JVM installed globally (version 11 or above)
-in order to run.
 
 [#_ide_support]
 == IDE Support
@@ -125,10 +123,8 @@ in order to run.
 
 Mill supports IntelliJ and VSCode and in general any client of the standard
 https://build-server-protocol.github.io/[Build Server Protocol (BSP)].
-
-
-
-Your IDEs may already auto-detect the Mill project and run this command on behalf of you, when opening/importing the project.
+Your IDEs may already auto-detect the Mill project and run this command on
+behalf of you when opening/importing the project.
 
 === IntelliJ
 

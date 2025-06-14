@@ -52,19 +52,19 @@ object `package` extends KotlinModule {
 
 /** Usage
 
-> mill test
+> ./mill test
 ...com.example.TodomvcTests#homePageLoads() finished...
 ...com.example.TodomvcTests#addNewTodoItem() finished...
 
-> mill integration
+> ./mill integration
 ...com.example.TodomvcIntegrationTests#homePageLoads() finished...
 ...com.example.TodomvcIntegrationTests#addNewTodoItem() finished...
 
-> mill test.runBackground
+> ./mill test.runBackground
 
 > curl http://localhost:8099
 ...<h1>todos</h1>...
 
-> mill clean runBackground
+> ./mill clean runBackground
 
 */

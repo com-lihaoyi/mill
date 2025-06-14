@@ -31,14 +31,14 @@ object `package` extends KotlinModule {
 
 /** Usage
 
-> mill test
+> ./mill test
 Test com.example.HelloKtorTest HelloKtorTest finished, took...
 
-> mill runBackground
+> ./mill runBackground
 
 > curl http://localhost:8090
 ...<h1>Hello, World!</h1>...
 
-> mill clean runBackground
+> ./mill clean runBackground
 
 */

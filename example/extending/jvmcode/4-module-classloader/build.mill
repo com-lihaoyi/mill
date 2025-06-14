@@ -1,8 +1,7 @@
-// While the previously example showed how to use the `runner().run` helpers
-// to run a ``ScalaModule``'s code, but you can also use ``JavaModule``s for this
-// purpose, with a source code generator written in Java. We also run the
-// `bar` code within an in-memory classloader via `Jvm.runClassloader` as
-// we saw earlier:
+// This example demonstrates how to run your own Java code within a classloader
+// as part of your build. We run the `bar` module code built as part of the project
+// within an in-memory classloader via `Jvm.withClassloader`, which in this example
+// serves as a code-generated to generated the `sources` of the `foo` module:
 
 package build
 import mill._, scalalib._
@@ -29,11 +28,12 @@ object bar extends JavaModule
 // this provides less overhead over running ``bar``'s classpath in a subprocess, at
 // the expense of the classloader providing weaker isolation than a subprocess.
 // Thus we cannot rely on the working directory inside the `bar.Bar` code to be in the
-// right place, and instead we need to pass in the `Task.dest` path explicitly.
+// right place, and instead we need to pass in the `Task.dest` path explicitly as a
+// `main` method parameter to the `bar.Bar` main class.
 
 /** Usage
 
-> mill foo.run
+> ./mill foo.run
 ...
 Foo.value: HELLO
 

@@ -4,7 +4,7 @@ import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object InvalidYamlHeaderNoSpaceTests extends UtestIntegrationTestSuite {
+object InvalidBuildHeaderNoSpaceTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
       import tester._

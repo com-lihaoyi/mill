@@ -51,7 +51,7 @@ object foo extends TypeScriptModule {
 
 /** Usage
 
-> mill foo.run
+> ./mill foo.run
 hello2
 Hello A
 Hello B
@@ -59,7 +59,7 @@ Hello C
 my-env-value
 MyResource: My Resource Contents
 
-> mill foo.bundle
+> ./mill foo.bundle
 Build succeeded!
 
 > MY_CUSTOM_ENV=my-env-value node out/foo/bundle.dest/bundle.js

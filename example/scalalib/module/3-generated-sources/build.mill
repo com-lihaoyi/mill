@@ -30,7 +30,7 @@ object foo extends ScalaModule {
 
 /** Usage
 
-> mill foo.run
+> ./mill foo.run
 Hello World
 
 */

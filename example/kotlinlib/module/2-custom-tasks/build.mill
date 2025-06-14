@@ -47,14 +47,14 @@ object `package` extends KotlinModule {
 
 /** Usage
 
-> mill run --text hello
+> ./mill run --text hello
 text: hello
 MyDeps.value: com.github.ajalt.clikt:clikt-jvm:4.4.0
 my.line.count: 17
 
-> mill show lineCount
+> ./mill show lineCount
 17
 
-> mill printLineCount
+> ./mill printLineCount
 17
 */

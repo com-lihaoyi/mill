@@ -33,17 +33,17 @@ object `package` extends TypeScriptModule {
 // woudld be `foo.ts` located in top-level `src/`
 
 /** Usage
-> mill run James Bond prof
+> ./mill run James Bond prof
 Hello James Bond Professor
 
-> mill test
+> ./mill test
 PASS .../foo.test.ts
 ...
 Test Suites:...1 passed, 1 total...
 Tests:...3 passed, 3 total...
 ...
 
-> mill show bundle
+> ./mill show bundle
 Build succeeded!
 
 > node out/bundle.dest/bundle.js James Bond prof
