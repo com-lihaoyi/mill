@@ -296,7 +296,7 @@ complicated that people do not do it.
 
 With Mill, pre-rendering HTML at build time is really easy, even if you need a third-party
 library. Mill does not ship with a bundled HTML templating engine, but you can use the
-`//| mvnDeps:` syntax to include one such as Thymeleaf, which would immediately make the
+`//| mvnDeps` syntax to include one such as Thymeleaf, which would immediately make the
 Thymeleaf classes available for you to import and use in your build as below:
 
 [source,scala]

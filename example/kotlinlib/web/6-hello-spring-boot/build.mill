@@ -24,14 +24,14 @@ object `package` extends KotlinModule {
 
 /** Usage
 
-> mill test
+> ./mill test
 ...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
 
-> mill runBackground
+> ./mill runBackground
 
 > curl http://localhost:8095
 ...<h1>Hello, World!</h1>...
 
-> mill clean runBackground
+> ./mill clean runBackground
 
 */

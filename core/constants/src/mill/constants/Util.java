@@ -78,35 +78,35 @@ public class Util {
     return hasConsole0;
   }
 
-  private static String throwYamlHeaderError(
+  private static String throwBuildHeaderError(
       String errorFileName, int lineNumber, String line, String msg) {
     throw new RuntimeException("Invalid YAML header comment at " + errorFileName + ":" + lineNumber
         + ": " + line + "\n" + msg);
   }
 
-  public static String readYamlHeader(java.nio.file.Path buildFile, String errorFileName) {
+  public static String readBuildHeader(java.nio.file.Path buildFile, String errorFileName) {
     try {
       java.util.List<String> lines = java.nio.file.Files.readAllLines(buildFile);
-      boolean readingYamlHeader = true;
+      boolean readingBuildHeader = true;
       java.util.List<String> output = new ArrayList<>();
       for (int i = 0; i < lines.size(); i++) {
         String line = lines.get(i);
-        if (!line.startsWith("//|")) readingYamlHeader = false;
+        if (!line.startsWith("//|")) readingBuildHeader = false;
         else if (!buildFile.getFileName().toString().startsWith("build.")) {
-          throwYamlHeaderError(
+          throwBuildHeaderError(
               errorFileName,
               i,
               line,
               "YAML header can only be defined in the `build.mill` file, not `" + errorFileName
                   + "`");
-        } else if (!readingYamlHeader) {
-          throwYamlHeaderError(
+        } else if (!readingBuildHeader) {
+          throwBuildHeaderError(
               errorFileName,
               i,
               line,
               "YAML header comments can only occur at the start of the file");
         } else if (line.length() >= 4 && !line.startsWith("//| ")) {
-          throwYamlHeaderError(
+          throwBuildHeaderError(
               errorFileName,
               i,
               line,

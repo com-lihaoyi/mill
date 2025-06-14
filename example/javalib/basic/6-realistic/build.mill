@@ -69,38 +69,38 @@ object qux extends MyModule
 
 /** Usage
 
-> mill resolve __.run
+> ./mill resolve __.run
 bar.run
 bar.test.run
 foo.run
 foo.test.run
 qux.run
 
-> mill foo.run
+> ./mill foo.run
 foo version 0.0.1
 Foo.value: <h1>hello</h1>
 Bar.value: <p>world</p>
 Qux.value: 31337
 
-> mill bar.test
+> ./mill bar.test
 ...bar.BarTests.test ...
 
-> mill qux.run
+> ./mill qux.run
 Qux.value: 31337
 
-> mill __.compile
+> ./mill __.compile
 
-> mill __.test
+> ./mill __.test
 ...bar.BarTests.test ...
 ...foo.FooTests.test ...
 
-> mill __.publishLocal
+> ./mill __.publishLocal
 Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,bar,0.0.1) to ivy repo...
 Publishing Artifact(com.lihaoyi,qux,0.0.1) to ivy repo...
 ...
 
-> mill show foo.assembly # mac/linux
+> ./mill show foo.assembly # mac/linux
 ".../out/foo/assembly.dest/out.jar"
 
 > ./out/foo/assembly.dest/out.jar # mac/linux

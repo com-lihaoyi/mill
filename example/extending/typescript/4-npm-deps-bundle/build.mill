@@ -113,10 +113,10 @@ object qux extends TypeScriptModule {
 
 /** Usage
 
-> mill qux.run James Bond prof
+> ./mill qux.run James Bond prof
 Hello James Bond Professor
 
-> mill show qux.bundle
+> ./mill show qux.bundle
 ".../out/qux/bundle.dest/bundle.js"
 
 > node out/qux/bundle.dest/bundle.js James Bond prof

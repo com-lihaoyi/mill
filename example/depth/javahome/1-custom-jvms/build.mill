@@ -32,10 +32,10 @@ object foo extends JavaModule {
 
 /** Usage
 
-> mill foo.run
+> ./mill foo.run
 Foo running on Java 18.0.2
 
-> mill foo.test
+> ./mill foo.test
 Testing with JVM version: 18.0.2
 Test foo.FooTest.testSimple finished...
 
@@ -76,7 +76,7 @@ object bar extends ScalaModule {
 
 /** Usage
 
-> mill bar.run
+> ./mill bar.run
 Bar running on Java 23.0.1
 
 */
@@ -108,7 +108,7 @@ object qux extends KotlinModule {
 
 /** Usage
 
-> mill qux.run
+> ./mill qux.run
 Qux running on Java 22.0.2
 
 */

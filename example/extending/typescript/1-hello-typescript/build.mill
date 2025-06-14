@@ -84,12 +84,12 @@ def compile = Task {
 
 /** Usage
 
-> mill compile
+> ./mill compile
 error: .../src/hello.ts(...): error ... Property 'name' does not exist on type...
 
 > sed -i.bak 's/user.name/user.firstName/g' src/hello.ts
 
-> mill compile
+> ./mill compile
 
 > cat out/compile.dest/hello.js # Output is stripped of types and converted to javascript
 var user = {
@@ -132,7 +132,7 @@ def run(args: mill.define.Args) = Task.Command {
 // ....
 
 /** Usage
-> mill run James Bond
+> ./mill run James Bond
 Hello James Bond
 
 */
