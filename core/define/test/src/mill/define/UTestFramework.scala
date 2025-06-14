@@ -1,4 +1,4 @@
-package mill
+package mill.define
 
 class UTestFramework extends utest.runner.Framework {
   override def exceptionStackFrameHighlighter(s: StackTraceElement): Boolean = {

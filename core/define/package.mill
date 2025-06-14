@@ -30,4 +30,7 @@ object `package` extends MillStableScalaModule {
     Deps.mainargs,
     Deps.fastparse
   )
+
+  def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
+  def testMvnDeps = Seq(Deps.coursierInterface)
 }
