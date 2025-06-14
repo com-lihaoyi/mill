@@ -1,9 +1,8 @@
-package mill.main
-
+package mill.vcs
 import scala.util.Try
-import mill.define.Task
+import mill.define.{Task, Module}
+import mill.define.Task.{Simple => T}
 import mill.api.Logger
-import mill.*
 import mill.define.{Discover, ExternalModule}
 import os.SubprocessException
 
@@ -92,7 +91,7 @@ object VcsVersion extends ExternalModule with VcsVersion {
   lazy val millDiscover = Discover[this.type]
 }
 
-trait VcsVersion extends mill.Module {
+trait VcsVersion extends Module {
 
   def vcsBasePath: os.Path = moduleDir
 

@@ -1,4 +1,4 @@
-package mill.main
+package mill.vcs
 
 import utest.*
 object VcsVersionTests extends TestSuite {

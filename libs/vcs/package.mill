@@ -1,0 +1,7 @@
+package build.libs.vcs
+import mill._
+import millbuild.*
+
+object `package` extends MillPublishScalaModule {
+  def moduleDeps = Seq(build.core.define)
+}

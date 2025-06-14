@@ -343,9 +343,8 @@ object BuildGenUtil {
   }
 
   def renderExtends(supertypes: Seq[String]): String = supertypes match {
-    case Seq() => ""
-    case Seq(head) => s"extends $head"
-    case head +: tail => tail.mkString(s"extends $head with ", " with ", "")
+    case Seq() => "extends mill.Module"
+    case items => s"extends ${items.mkString(" with ")}"
   }
 
   def renderLicense(
