@@ -14,7 +14,7 @@ object foo extends Module {
 }
 
 /** Usage
-> ./mill_OUTPUT_DIR=build-stuff/working-dir ./mill foo.printDest
+> MILL_OUTPUT_DIR=build-stuff/working-dir ./mill foo.printDest
 ...
 .../build-stuff/working-dir/foo/printDest.dest
 */

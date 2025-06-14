@@ -61,7 +61,7 @@ error: ...Reading from out/foo/tDestTask.json not allowed during execution of `b
 // reads are tracked by Mill's `--watch` and cache-invalidation logic.
 
 import mill.define.BuildCtx
-val listed = BuildCtx.watchValue(os.list(path).map(_.last))
+val listed = BuildCtx.watchValue(os.list(BuildCtx.workspaceRoot).map(_.last))
 
 // === Disabling Task Sandboxing
 //
@@ -72,10 +72,10 @@ val listed = BuildCtx.watchValue(os.list(path).map(_.last))
 // you really know what you are doing:
 
 def bannedWriteTaskOverridden = Task {
-  mill.define.BuildCtx.withFilesystemCheckerDisabled {
+  BuildCtx.withFilesystemCheckerDisabled {
     os.write(Task.workspace / "banned-path", "hello")
+    println(os.read(Task.workspace / "banned-path"))
   }
-  println(os.read(Task.workspace / "banned-path"))
 }
 
 /** Usage
