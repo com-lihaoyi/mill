@@ -32,6 +32,39 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/delayed"
+      },
+      "modules": [
+        {
+          "name": "org.scala-lang:scala-library",
+          "version": "<scala-version>"
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/compilation-error"
+      },
+      "modules": [
+        {
+          "name": "org.scala-lang:scala-library",
+          "version": "<scala-version>"
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/exception"
+      },
+      "modules": [
+        {
+          "name": "org.scala-lang:scala-library",
+          "version": "<scala-version>"
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-java"
       },
       "modules": []

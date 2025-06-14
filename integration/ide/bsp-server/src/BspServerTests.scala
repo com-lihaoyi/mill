@@ -111,14 +111,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
-        val targetIds = buildTargets
-          .getTargets
-          .asScala
-          .filter(_.getDisplayName != "errored.exception")
-          .filter(_.getDisplayName != "errored.compilation-error")
-          .filter(_.getDisplayName != "delayed")
-          .map(_.getId)
-          .asJava
+        val targetIds = buildTargets.getTargets.asScala.map(_.getId).asJava
         val metaBuildTargetId = new b.BuildTargetIdentifier(
           (workspacePath / "mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
         )
@@ -190,7 +183,23 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         // compile
         compareWithGsonSnapshot(
-          buildServer.buildTargetCompile(new b.CompileParams(targetIds)).get(),
+          buildServer
+            .buildTargetCompile(
+              new b.CompileParams(
+                targetIds
+                  .asScala
+                  // No need to attempt to compile the failing targets.
+                  // The snapshot data for this request basically only contains
+                  // a global status, errored or success. By excluding these,
+                  // we get a success status, and ensure compilation succeeds
+                  // as expected for all other targets.
+                  .filter(!_.getUri.endsWith("/errored/exception"))
+                  .filter(!_.getUri.endsWith("/errored/compilation-error"))
+                  .filter(!_.getUri.endsWith("/delayed"))
+                  .asJava
+              )
+            )
+            .get(),
           snapshotsPath / "build-targets-compile.json",
           normalizedLocalValues = normalizedLocalValues
         )
