@@ -8,17 +8,22 @@
 // * Scenarios where writing the the original source repository is necessary:
 //   code auto-formatters, auto-fixers, auto-updaters. etc.
 //
-// `Task.workspace` can be used in tasks:
+// `Task.workspace` and `BuildCtx.withFilesystemCheckerDisabled` can be used in
+// tasks to read or write files outside the sandbox:
 package build
 import mill._, javalib._
-
-def myTask = Task { println(Task.workspace) }
+import mill.define.BuildCtx
+def myTask = Task {
+  BuildCtx.withFilesystemCheckerDisabled {
+    println(os.list(Task.workspace))
+  }
+}
 
 /** Usage
 > ./mill myTask
 */
 
-// Whereas `MILL_WORKSPACE_ROOT` as well as in tests, which can access the
+// Whereas `MILL_WORKSPACE_ROOT` can be used in tests, which can access the
 // workspace root via the `MILL_WORKSPACE_ROOT` environment variable
 
 object foo extends JavaModule {

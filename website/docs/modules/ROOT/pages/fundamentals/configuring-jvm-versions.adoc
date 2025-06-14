@@ -1,8 +1,9 @@
 = Configuring JVM Versions
 
 By default, Mill uses the same JVM that it itself is running on to compile/test/run
-Java/Scala/Kotlin modules. This page goes into more detail about downloading
-and using a custom Java home on a per-module basis.
+Java/Scala/Kotlin modules, typically whatever `java` command you have available globally
+or what you have configured in your xref:cli/build-header.adoc[]. This page goes into
+more detail about downloading and using a custom Java home on a per-module basis.
 
 include::partial$example/depth/javahome/1-custom-jvms.adoc[]
 

@@ -5,11 +5,12 @@
 
 // == Setting the JVM version of a JavaModule
 //
-// The `JvmWorkerModule.ForJvm` class takes a Jvm dependency string as its
-// contructor argument and configures the module to fetch and cache the Jvm
-// using coursier and use it for the compile, run, and test tasks.
+// Configuring custom JVMs is done by defining a `JvmWorkerModule` takes a Jvm
+// dependency string as its `def jvmId`. You can then set the `jvmWorker`
+// of any `JavaModule, `ScalaModule`, or `KotlinModule` to reference this `JvmWorkerModule`
+// to make use of the downloaded and cached JVM.
 //
-// The string has the form:
+// The `jvmId` string has the form:
 //
 // ----
 // "{name}:{version}"
@@ -41,12 +42,10 @@ Test foo.FooTest.testSimple finished...
 
 */
 
-// Selecting a custom JVM via `JvmWorkerModule.ForJvm` means that JVM is used for
+// Selecting a custom JVM via `JvmWorkerModule` means that JVM is used for
 // compiling, testing, and running that module via Mill. Note that `.assembly` is not
 // affected, as JVM assembly jars do not bundle a JVM and have to be run using a
-// JVM installed on the target host machine. Configuration is done via `JvmWorkerModule`
-// as the https://github.com/sbt/zinc[Zinc] incremental compiler is used for compiling
-// Java and Scala sources.
+// JVM installed on the target host machine.
 //
 // == Selecting JVM Index Versions
 //
@@ -58,8 +57,11 @@ Test foo.FooTest.testSimple finished...
 // index version explicitly via `def jvmIndexVersion` below, choosing a published
 // index version from the Maven Central:
 //
-// * https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/[JVM Indices on Maven Central])
+// * https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/[JVM Indices on Maven Central]
 //
+// Or alternatively pass in `"latest.release"` to pick the latest JVM index available,
+// although that might mean the JVM version is no longer stable and might change over
+// time as new releases are published:
 
 import scalalib._
 

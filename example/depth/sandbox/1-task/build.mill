@@ -23,6 +23,12 @@ object foo extends Module {
 .../out/foo/tDestTask.dest
 */
 
+// === Filesystem Read/Write Checks
+//
+// Mill enforces limits on what you can read and write while a task is executing.
+// In general, a task may only write to its own `Task.dest` folder, and may only
+// read from the `PathRef`s provided to it from upstream tasks
+
 def bannedWriteTask = Task {
   os.write(Task.workspace / "banned-path", "hello")
 }
@@ -49,6 +55,35 @@ def bannedReadTask2 = Task {
 > ./mill bannedReadTask2
 error: ...Reading from out/foo/tDestTask.json not allowed during execution of `bannedReadTask2`
 */
+
+// Furthermore, code _outside_ of a task that runs during module initialization can only
+// read from disk if wrapped in a `BuildCtx.watchValue` block. This ensures that such
+// reads are tracked by Mill's `--watch` and cache-invalidation logic.
+
+import mill.define.BuildCtx
+val listed = BuildCtx.watchValue(os.list(path).map(_.last))
+
+// === Disabling Task Sandboxing
+//
+// You can disable Mill's filesystem read/write limitations via
+// `BuildCtx.withFilesystemCheckerDisabled`. Note that this bypasses the
+// best-practices that Mill tries to enforce on your tasks and may result in strange
+// bugs around caching, parallelism, and invalidation, so you shouldn't do this unless
+// you really know what you are doing:
+
+def bannedWriteTaskOverridden = Task {
+  mill.define.BuildCtx.withFilesystemCheckerDisabled {
+    os.write(Task.workspace / "banned-path", "hello")
+  }
+  println(os.read(Task.workspace / "banned-path"))
+}
+
+/** Usage
+> ./mill bannedWriteTaskOverridden
+hello
+*/
+
+//== `os.pwd` redirection
 
 // === Task `os.pwd` redirection
 // Mill also redirects the `os.pwd` property from https://github.com/com-lihaoyi/os-lib[OS-Lib],
@@ -87,14 +122,3 @@ def externalPwdTask = Task { println(externalPwd.toString) }
 > ./mill externalPwdTask
 .../out/mill-daemon/sandbox
 */
-
-// === Limitations of Mill's Sandboxing
-//
-// Mill's approach to filesystem sandboxing is designed to avoid accidental interference
-// between different Mill tasks. It is not designed to block intentional misbehavior, and
-// tasks are always able to traverse the filesystem and do whatever they want. Furthermore,
-// Mill's redirection of `os.pwd` does not apply to `java.io` or `java.nio` APIs, which are
-// outside of Mill's control.
-//
-// However, by setting `os.pwd` to safe sandbox folders, we hope to minimize the cases where
-// someone accidentally causes issues with their build by doing the wrong thing.
