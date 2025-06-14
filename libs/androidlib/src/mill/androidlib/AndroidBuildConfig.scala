@@ -7,10 +7,7 @@ import mill.*
  * This is a basic implementation of AGP's build config feature!
  */
 @mill.api.experimental
-trait AndroidBuildConfig extends mill.Module { this: AndroidAppModule =>
-
-  def androidAppVersionCode: Task[Int] = Task { 1 }
-  def androidAppVersionName: Task[String] = Task { "1.0" }
+trait AndroidBuildConfig extends AndroidAppModule {
 
   /**
    * Generates a BuildConfig.java in the [[androidApplicationNamespace]] package
@@ -24,8 +21,8 @@ trait AndroidBuildConfig extends mill.Module { this: AndroidAppModule =>
          |  public static final boolean DEBUG = ${androidIsDebug()};
          |  public static final String APPLICATION_ID = "${androidApplicationId}";
          |  public static final String BUILD_TYPE = "${buildType}";
-         |  public static final int VERSION_CODE = ${androidAppVersionCode()};
-         |  public static final String VERSION_NAME = "${androidAppVersionName()}";
+         |  public static final int VERSION_CODE = ${androidVersionCode()};
+         |  public static final String VERSION_NAME = "${androidVersionName()}";
          |}
         """.stripMargin
 
@@ -40,6 +37,6 @@ trait AndroidBuildConfig extends mill.Module { this: AndroidAppModule =>
   }
 
   override def generatedSources: T[Seq[PathRef]] = Task {
-    androidLibsRClasses() ++ Seq(generatedBuildConfig())
+    super.generatedSources() ++ Seq(generatedBuildConfig())
   }
 }
