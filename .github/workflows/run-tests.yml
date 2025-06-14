@@ -212,7 +212,7 @@ jobs:
             install-sbt: false
 
           - java-version: 11
-            millargs: "'example.{cli,fundamentals,depth,extending}.__.local.daemon'"
+            millargs: "'example.{cli,fundamentals,depth,extending,large}.__.local.daemon'"
             install-android-sdk: false
             install-sbt: false
 
