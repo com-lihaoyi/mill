@@ -199,10 +199,10 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       baseInfo: IrBaseInfo,
       build: Node[ProjectModel]
   ): Seq[String] =
-      Option.when(null != build.value.maven().pom() && {
-        val baseTrait = baseInfo.moduleTypedef
-        baseTrait == null || !baseTrait.moduleSupertypes.contains("PublishModule")
-      }) { "PublishModule" }.toSeq ++
+    Option.when(null != build.value.maven().pom() && {
+      val baseTrait = baseInfo.moduleTypedef
+      baseTrait == null || !baseTrait.moduleSupertypes.contains("PublishModule")
+    }) { "PublishModule" }.toSeq ++
       Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {
         getModuleSupertypes(cfg)
       }.toSeq.flatten
