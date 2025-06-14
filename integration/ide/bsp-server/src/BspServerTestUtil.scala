@@ -224,15 +224,19 @@ object BspServerTestUtil {
 
       val buildServer = launcher.getRemoteProxy()
 
-      val initRes = buildServer.buildInitialize(
-        new b.InitializeBuildParams(
-          "Mill Integration",
-          BuildInfo.millVersion,
-          b.Bsp4j.PROTOCOL_VERSION,
-          workspacePath.toNIO.toUri.toASCIIString,
-          new b.BuildClientCapabilities(List("java", "scala", "kotlin").asJava)
-        )
-      ).get()
+      val initParams = new b.InitializeBuildParams(
+        "Mill Integration",
+        BuildInfo.millVersion,
+        b.Bsp4j.PROTOCOL_VERSION,
+        workspacePath.toNIO.toUri.toASCIIString,
+        new b.BuildClientCapabilities(List("java", "scala", "kotlin").asJava)
+      )
+      // Tell Mill BSP we want semanticdbs
+      initParams.setData(InitData(BuildInfo.semanticDBVersion, BuildInfo.semanticDbJavaVersion))
+      // This seems to be unused by Mill BSP for now, setting it just in case
+      initParams.setDataKind("scala")
+
+      val initRes = buildServer.buildInitialize(initParams).get()
 
       val value =
         try f(buildServer, initRes)
@@ -281,4 +285,10 @@ object BspServerTestUtil {
       millWorkspace.toString -> "/mill-workspace",
       os.home.toString -> "/user-home"
     )
+
+  // using var-s and null-s for GSON, that is meant to serialize this class
+  private case class InitData(
+      var semanticdbVersion: String = null,
+      var javaSemanticdbVersion: String = null
+  )
 }

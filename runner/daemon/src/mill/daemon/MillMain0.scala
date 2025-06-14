@@ -247,7 +247,9 @@ object MillMain0 {
                             new MillBuildBootstrap(
                               projectRoot = BuildCtx.workspaceRoot,
                               output = out,
-                              keepGoing = config.keepGoing.value,
+                              // In BSP server, we want to evaluate as many tasks as possible,
+                              // in order to give as many results as available in BSP responses
+                              keepGoing = bspMode || config.keepGoing.value,
                               imports = config.imports,
                               env = env,
                               ec = ec,

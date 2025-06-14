@@ -1,6 +1,8 @@
 package mill.integration
 
 import java.io.ByteArrayOutputStream
+import java.net.URI
+import java.nio.file.Paths
 
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.given
@@ -8,6 +10,7 @@ import scala.util.chaining.given
 import ch.epfl.scala.bsp4j as b
 import mill.api.BuildInfo
 import mill.bsp.Constants
+import mill.constants.OutFiles
 import mill.integration.BspServerTestUtil.*
 import mill.testkit.UtestIntegrationTestSuite
 import mill.testrunner.TestRunnerUtils
@@ -45,7 +48,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
     test("requestSnapshots") - integrationTest { tester =>
       import tester.*
       eval(
-        "--bsp-install",
+        ("--bsp-install", "--jobs", "1"),
         stdout = os.Inherit,
         stderr = os.Inherit,
         check = true,
@@ -111,14 +114,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
-        val targetIds = buildTargets
-          .getTargets
-          .asScala
-          .filter(_.getDisplayName != "errored.exception")
-          .filter(_.getDisplayName != "errored.compilation-error")
-          .filter(_.getDisplayName != "delayed")
-          .map(_.getId)
-          .asJava
+        val targetIds = buildTargets.getTargets.asScala.map(_.getId).asJava
         val metaBuildTargetId = new b.BuildTargetIdentifier(
           (workspacePath / "mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
         )
@@ -190,7 +186,18 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         // compile
         compareWithGsonSnapshot(
-          buildServer.buildTargetCompile(new b.CompileParams(targetIds)).get(),
+          buildServer
+            .buildTargetCompile(
+              new b.CompileParams(
+                targetIds
+                  .asScala
+                  .filter(!_.getUri.endsWith("/errored/exception"))
+                  .filter(!_.getUri.endsWith("/errored/compilation-error"))
+                  .filter(!_.getUri.endsWith("/delayed"))
+                  .asJava
+              )
+            )
+            .get(),
           snapshotsPath / "build-targets-compile.json",
           normalizedLocalValues = normalizedLocalValues
         )
@@ -243,6 +250,14 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
+        compareWithGsonSnapshot(
+          buildServer
+            .buildTargetScalaMainClasses(new b.ScalaMainClassesParams(targetIdsSubset))
+            .get(),
+          snapshotsPath / "build-targets-scalac-main-classes.json",
+          normalizedLocalValues = normalizedLocalValues
+        )
+
         // Run without args
         compareWithGsonSnapshot(
           buildServer.buildTargetRun(new b.RunParams(appTargetId)).get(),
@@ -267,13 +282,90 @@ object BspServerTests extends UtestIntegrationTestSuite {
           assert(os.read(run3).trim() == "run-3")
         }
 
+        val scalacOptionsResult = buildServer
+          .buildTargetScalacOptions(new b.ScalacOptionsParams(targetIds))
+          .get()
+
+        val expectedScalaSemDbs = Map(
+          os.sub / "hello-scala" -> Seq(
+            os.sub / "hello-scala/src/Hello.scala.semanticdb"
+          ),
+          os.sub / "hello-scala/test" -> Seq(
+            os.sub / "hello-scala/test/src/HelloTest.scala.semanticdb"
+          ),
+          os.sub / "mill-build" -> Seq(
+            os.sub / "build.mill.semanticdb"
+          ),
+          os.sub / "errored/exception" -> Nil,
+          os.sub / "errored/compilation-error" -> Nil,
+          os.sub / "delayed" -> Nil
+        )
+
+        {
+          // check that semanticdbs are generated for Scala modules
+          val semDbs = scalacOptionsResult
+            .getItems
+            .asScala
+            .map { item =>
+              val shortId = os.Path(Paths.get(new URI(item.getTarget.getUri)))
+                .relativeTo(workspacePath)
+                .asSubPath
+              val semDbs = findSemanticdbs(
+                os.Path(Paths.get(new URI(item.getClassDirectory)))
+              )
+              shortId -> semDbs
+            }
+            .toMap
+          if (expectedScalaSemDbs != semDbs) {
+            pprint.err.log(expectedScalaSemDbs)
+            pprint.err.log(semDbs)
+          }
+          assert(expectedScalaSemDbs == semDbs)
+        }
+
+        {
+          // check that semanticdbs are generated for Java modules
+          val javacOptionsResult = buildServer
+            .buildTargetJavacOptions(new b.JavacOptionsParams(targetIds))
+            .get()
+          val semDbs = javacOptionsResult
+            .getItems
+            .asScala
+            .map { item =>
+              val shortId = os.Path(Paths.get(new URI(item.getTarget.getUri)))
+                .relativeTo(workspacePath)
+                .asSubPath
+              val semDbs = findSemanticdbs(
+                os.Path(Paths.get(new URI(item.getClassDirectory)))
+              )
+              shortId -> semDbs
+            }
+            .toMap
+          val expectedJavaSemDbs = expectedScalaSemDbs ++ Seq(
+            os.sub / "app" -> Seq(
+              os.sub / "app/src/App.java.semanticdb"
+            ),
+            os.sub / "app/test" -> Nil,
+            os.sub / "hello-kotlin" -> Nil,
+            os.sub / "lib" -> Nil,
+            os.sub / "hello-java" -> Nil,
+            os.sub / "hello-java/test" -> Seq(
+              os.sub / "hello-java/test/src/HelloJavaTest.java.semanticdb"
+            )
+          )
+          if (expectedJavaSemDbs != semDbs) {
+            pprint.err.log(expectedJavaSemDbs)
+            pprint.err.log(semDbs)
+          }
+          assert(expectedJavaSemDbs == semDbs)
+        }
       }
     }
 
     test("logging") - integrationTest { tester =>
       import tester.*
       eval(
-        "--bsp-install",
+        ("--bsp-install", "--jobs", "1"),
         stdout = os.Inherit,
         stderr = os.Inherit,
         check = true,
@@ -376,4 +468,18 @@ object BspServerTests extends UtestIntegrationTestSuite {
       )
     res
   }
+
+  private def semDbPrefix = os.sub / "META-INF/semanticdb"
+  private def findSemanticdbs(classDir: os.Path) =
+    if (os.exists(classDir))
+      os.walk(classDir)
+        .filter(os.isFile)
+        .map(_.relativeTo(classDir).asSubPath)
+        .filter(_.last.endsWith(".semanticdb"))
+        .filter(_.startsWith(semDbPrefix))
+        .map(_.relativeTo(semDbPrefix).asSubPath)
+        .filter(!_.startsWith(os.sub / OutFiles.out))
+        .sorted
+    else
+      Nil
 }
