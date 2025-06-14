@@ -77,7 +77,7 @@ def millBinPlatform: T[String] = Task {
   }
 }
 
-def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
+def millJvmVersion = Task.Source(Task.workspace / "default-mill-jvm-version")
 
 val essentialBridgeScalaVersions =
   Seq(Deps.scalaVersion, Deps.scala2Version, Deps.workerScalaVersion212)
