@@ -29,7 +29,7 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
         assert(res.err.replace('\\', '/').contains("""foo/package.mill:6:92"""))
         assert(res.err.contains("""Not found: type UnknownFooModule"""))
         assert(res.err.contains(
-          """abstract class package_  extends _root_.mill.main.SubfolderModule(build.millDiscover) with UnknownFooModule {"""
+          """abstract class package_  extends _root_.mill.define.SubfolderModule(build.millDiscover) with UnknownFooModule {"""
         ))
         assert(res.err.contains(
           """                                                                                           ^^^^^^^^^^^^^^^^"""
