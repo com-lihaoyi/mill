@@ -1,0 +1,13 @@
+diff --git a/build.mill b/build.mill
+index 7a17b99362a..67ebbcd2434 100644
+--- a/build.mill
++++ b/build.mill
+@@ -9,7 +9,7 @@ import millbuild.*
+ //import com.github.lolgab.mill.mima.Mima
+ import coursier.maven.MavenRepository
+ import coursier.VersionConstraint
+-import mill.main.VcsVersion
++import mill.vcs.VcsVersion
+ //import com.goyeau.mill.scalafix.ScalafixModule
+ import mill._
+ import mill.main.Tasks
