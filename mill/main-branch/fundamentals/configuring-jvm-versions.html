@@ -681,10 +681,8 @@ more detail about downloading and using a custom Java home on a per-module basis
 <h2 id="_setting_the_jvm_version_of_a_javamodule"><a class="anchor" href="#_setting_the_jvm_version_of_a_javamodule"></a>Setting the JVM version of a JavaModule</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Configuring custom JVMs is done by defining a <code>JvmWorkerModule</code> takes a Jvm
-dependency string as its <code>def jvmId</code>. You can then set the <code>jvmWorker</code>
-of any <code>JavaModule, `ScalaModule</code>, or <code>KotlinModule</code> to reference this <code>JvmWorkerModule</code>
-to make use of the downloaded and cached JVM.</p>
+<p>Configuring custom JVMs is done by setting the <code>def jvmId</code>
+of any <code>JavaModule, `ScalaModule</code>, or <code>KotlinModule</code></p>
 </div>
 <div class="paragraph">
 <p>The <code>jvmId</code> string has the form:</p>
@@ -699,17 +697,13 @@ to make use of the downloaded and cached JVM.</p>
 and architecture <a href="https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json">here</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-26-4464a2-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/depth/javahome/1-custom-jvms">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-27-52d45a-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/depth/javahome/1-custom-jvms">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 import mill.define.ModuleRef
 
-object JvmWorkerJava extends JvmWorkerModule {
-  def jvmId = &quot;temurin:18.0.2&quot;
-}
-
 object foo extends JavaModule {
-  def jvmWorker = ModuleRef(JvmWorkerJava)
+  def jvmId = &quot;temurin:18.0.2&quot;
 
   object test extends JavaTests with TestModule.Junit4
 }</code></pre>
@@ -726,7 +720,7 @@ Test foo.FooTest.testSimple finished...</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Selecting a custom JVM via <code>JvmWorkerModule</code> means that JVM is used for
+<p>Selecting a custom JVM via <code>jvmId</code> means that JVM is used for
 compiling, testing, and running that module via Mill. Note that <code>.assembly</code> is not
 affected, as JVM assembly jars do not bundle a JVM and have to be run using a
 JVM installed on the target host machine.</p>
@@ -759,15 +753,10 @@ time as new releases are published:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import scalalib._
 
-object JvmWorkerJavaLatest extends JvmWorkerModule {
-  def jvmId = &quot;temurin:23.0.1&quot;
-  def jvmIndexVersion = &quot;latest.release&quot;
-}
-
 object bar extends ScalaModule {
   def scalaVersion = &quot;2.13.12&quot;
-  def jvmWorker = ModuleRef(JvmWorkerJavaLatest)
-
+  def jvmId = &quot;temurin:23.0.1&quot;
+  def jvmIndexVersion = &quot;latest.release&quot;
 }</code></pre>
 </div>
 </div>
@@ -793,7 +782,8 @@ OS/CPU combinations</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import kotlinlib._
 
-object JvmWorkerJavaUrl extends JvmWorkerModule {
+object qux extends KotlinModule {
+  def kotlinVersion = &quot;2.0.20&quot;
   def jvmId =
     if (sys.props(&quot;os.name&quot;) == &quot;Mac OS X&quot;) {
       &quot;https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz&quot;
@@ -801,11 +791,6 @@ object JvmWorkerJavaUrl extends JvmWorkerModule {
       &quot;https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_x64_linux_hotspot_22.0.2_9.tar.gz&quot;
     }
 
-}
-
-object qux extends KotlinModule {
-  def kotlinVersion = &quot;2.0.20&quot;
-  def jvmWorker = ModuleRef(JvmWorkerJavaUrl)
 }</code></pre>
 </div>
 </div>
@@ -825,13 +810,8 @@ Qux running on Java 22.0.2</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object JvmWorkerLocalJvm extends JvmWorkerModule {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object baz extends JavaModule {
   def javaHome = Some(PathRef(os.Path(&quot;/my/java/home&quot;), quick = true))
-}
-
-object baz extends JavaModule {
-  def jvmWorker = ModuleRef(JvmWorkerLocalJvm)
-
 }</code></pre>
 </div>
 </div>
