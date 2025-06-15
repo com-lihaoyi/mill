@@ -1,8 +1,8 @@
 diff --git a/build.mill b/build.mill
-index 7a17b99362a..67ebbcd2434 100644
+index d635c0900af..0df9f3ff91b 100644
 --- a/build.mill
 +++ b/build.mill
-@@ -9,7 +9,7 @@ import millbuild.*
+@@ -9,10 +9,10 @@ import millbuild.*
  //import com.github.lolgab.mill.mima.Mima
  import coursier.maven.MavenRepository
  import coursier.VersionConstraint
@@ -10,4 +10,70 @@ index 7a17b99362a..67ebbcd2434 100644
 +import mill.vcs.VcsVersion
  //import com.goyeau.mill.scalafix.ScalafixModule
  import mill._
- import mill.main.Tasks
+-import mill.main.Tasks
++import mill.util.Tasks
+ import mill.scalalib._
+ import mill.scalalib.api.JvmWorkerUtil
+ import mill.scalalib.publish._
+diff --git a/ci/mill-bootstrap.patch b/ci/mill-bootstrap.patch
+index 0c6bbbe3290..d56bea7429f 100644
+--- a/ci/mill-bootstrap.patch
++++ b/ci/mill-bootstrap.patch
+@@ -10,4 +10,4 @@ index 7a17b99362a..67ebbcd2434 100644
+ +import mill.vcs.VcsVersion
+  //import com.goyeau.mill.scalafix.ScalafixModule
+  import mill._
+- import mill.main.Tasks
++ import mill.util.Tasks
+diff --git a/contrib/package.mill b/contrib/package.mill
+index 3d75cbc5d80..dada6a4e9ec 100644
+--- a/contrib/package.mill
++++ b/contrib/package.mill
+@@ -3,7 +3,7 @@ package build.contrib
+ import scala.util.chaining._
+ import coursier.maven.MavenRepository
+ import mill._
+-import mill.main.Tasks
++import mill.util.Tasks
+ import mill.scalalib._
+ import mill.scalalib.api.JvmWorkerUtil
+ import mill.scalalib.publish._
+diff --git a/example/package.mill b/example/package.mill
+index 18f8eadea6f..779fd4d6d37 100644
+--- a/example/package.mill
++++ b/example/package.mill
+@@ -3,7 +3,7 @@ package build.example
+ import scala.util.chaining._
+ import coursier.maven.MavenRepository
+ import mill._
+-import mill.main.Tasks
++import mill.util.Tasks
+ import mill.scalalib._
+ import mill.scalalib.api.JvmWorkerUtil
+ import mill.scalalib.publish._
+diff --git a/integration/package.mill b/integration/package.mill
+index 87321df4887..1c084983f03 100644
+--- a/integration/package.mill
++++ b/integration/package.mill
+@@ -3,7 +3,7 @@ package build.integration
+ import scala.util.chaining._
+ import coursier.maven.MavenRepository
+ import mill._
+-import mill.main.Tasks
++import mill.util.Tasks
+ import mill.scalalib._
+ import mill.scalalib.api.JvmWorkerUtil
+ import mill.scalalib.publish._
+diff --git a/libs/scalalib/package.mill b/libs/scalalib/package.mill
+index c0bc8cb7dce..454d41b6107 100644
+--- a/libs/scalalib/package.mill
++++ b/libs/scalalib/package.mill
+@@ -4,7 +4,7 @@ import scala.util.chaining._
+ 
+ import coursier.maven.MavenRepository
+ import mill._
+-import mill.main.Tasks
++import mill.util.Tasks
+ import mill.scalalib._
+ import mill.scalalib.api.JvmWorkerUtil
+ import mill.scalalib.publish._
