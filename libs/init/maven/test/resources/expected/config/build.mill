@@ -25,8 +25,7 @@ object `package` extends MyModule {
 
     def artifactName = "multi-module-parent"
 
-    def javacOptions =
-      Seq("-source", "1.6", "-target", "1.6")
+    def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
     def pomSettings = PomSettings(
       "Sample multi module Maven project with a working, deployable site.",
@@ -51,8 +50,7 @@ object `package` extends MyModule {
 
     object server extends MyModule {
 
-      def javacOptions =
-        Seq("-source", "1.6", "-target", "1.6")
+      def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
       def pomSettings = PomSettings(
         "Logic.",
@@ -95,8 +93,7 @@ object `package` extends MyModule {
 
     object webapp extends MyModule {
 
-      def javacOptions =
-        Seq("-source", "1.6", "-target", "1.6")
+      def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
       def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
 
@@ -137,8 +134,7 @@ object `package` extends MyModule {
 
     def artifactName = "single-module-project"
 
-    def javacOptions =
-      Seq("-source", "1.6", "-target", "1.6")
+    def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
     def mvnDeps =
       Seq(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)

@@ -8,8 +8,7 @@ object `package` extends PublishModule with MavenModule {
 
   def artifactName = "multi-module-parent"
 
-  def javacOptions =
-    Seq("-source", "1.6", "-target", "1.6")
+  def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
   def pomSettings = PomSettings(
     "Sample multi module Maven project with a working, deployable site.",

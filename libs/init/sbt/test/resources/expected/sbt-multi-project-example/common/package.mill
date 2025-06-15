@@ -9,7 +9,7 @@ object `package` extends SbtModule with PublishModule {
 
   def scalaVersion = "2.12.3"
 
-  def scalacOptions = super.scalacOptions() ++ Seq(
+  def scalacOptions = Seq(
     "-unchecked",
     "-feature",
     "-language:existentials",

@@ -6,8 +6,7 @@ import mill.javalib.publish._
 
 object `package` extends PublishModule with MavenModule {
 
-  def javacOptions =
-    Seq("-source", "1.6", "-target", "1.6")
+  def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
   def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
 

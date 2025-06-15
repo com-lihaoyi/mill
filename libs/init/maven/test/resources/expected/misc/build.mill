@@ -8,8 +8,7 @@ object `package` extends PublishModule with MavenModule {
 
   def artifactName = "single-module-project"
 
-  def javacOptions =
-    Seq("-source", "1.6", "-target", "1.6")
+  def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
   def repositoriesTask = Task.Anon {
     Seq(
