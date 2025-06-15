@@ -12,8 +12,8 @@ object BuildCtx {
    * project directory in classic cli scenarios, but might not in other
    * use cases like BSP or LSP server usage).
    */
-  val workspaceRoot: os.Path =
-    sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_, os.pwd))
+  def workspaceRoot: os.Path = os.Path(mill.api.WorkspaceRoot.workspaceRoot0.value)
+
 
   /**
    * Disable Mill's filesystem read/write checker, which normally enforces best practices
