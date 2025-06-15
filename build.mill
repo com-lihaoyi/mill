@@ -10,7 +10,6 @@ import millbuild.*
 import coursier.maven.MavenRepository
 import coursier.VersionConstraint
 import mill.main.VcsVersion
-import mill.define.BuildCtx
 //import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
 import mill.main.Tasks
@@ -21,6 +20,7 @@ import mill.define.SelectMode
 import mill.T
 import mill.define.Cross
 import scala.util.Properties
+import mill.define.BuildCtx
 
 def millVersionIsStable: T[Boolean] = Task.Input {
   Task.env.contains("MILL_STABLE_VERSION")
