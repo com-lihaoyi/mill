@@ -13,9 +13,7 @@ import scala.util.Properties
  * trait AppModule extends NativeImageModule {
  *   def jvmWorker = ModuleRef(JvmWorkerGraalvm)
  *
- *   object JvmWorkerGraalvm extends JvmWorkerModule {
- *     def jvmId = "graalvm-community:23.0.1"
- *   }
+ *   def jvmId = "graalvm-community:23.0.1"
  * }
  * }}}
  */

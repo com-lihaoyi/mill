@@ -11,12 +11,8 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 object JavaHomeTests extends TestSuite {
 
   object HelloJavaJavaHome11Override extends TestRootModule {
-    object JvmWorkerJava11 extends JvmWorkerModule {
-      def jvmId = "temurin:11.0.24"
-    }
-
     object core extends JavaModule {
-      override def jvmWorker = ModuleRef(JvmWorkerJava11)
+      def jvmId = "temurin:11.0.24"
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
@@ -25,12 +21,10 @@ object JavaHomeTests extends TestSuite {
   }
 
   object HelloJavaJavaHome17Override extends TestRootModule {
-    object JvmWorkerJava17 extends JvmWorkerModule {
-      def jvmId = "temurin:17.0.9"
-    }
+    
 
     object core extends JavaModule {
-      override def jvmWorker = ModuleRef(JvmWorkerJava17)
+      def jvmId = "temurin:17.0.9"
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
@@ -38,30 +32,24 @@ object JavaHomeTests extends TestSuite {
   }
 
   object JavaJdk11DoesntCompile extends TestRootModule {
-    object JvmWorkerJava extends JvmWorkerModule {
-      def jvmId = "temurin:11.0.25"
-    }
+    
 
     object javamodule extends JavaModule {
-      override def jvmWorker = ModuleRef(JvmWorkerJava)
+      def jvmId = "temurin:11.0.25"
     }
     object scalamodule extends JavaModule {
-      override def jvmWorker = ModuleRef(JvmWorkerJava)
+      def jvmId = "temurin:11.0.25"
       def scalaVersion = "2.13.14"
     }
     lazy val millDiscover = Discover[this.type]
   }
 
   object JavaJdk17Compiles extends TestRootModule {
-    object JvmWorkerJava extends JvmWorkerModule {
+    object javamodule extends JavaModule {
       def jvmId = "temurin:17.0.13"
     }
-
-    object javamodule extends JavaModule {
-      override def jvmWorker = ModuleRef(JvmWorkerJava)
-    }
     object scalamodule extends JavaModule {
-      override def jvmWorker = ModuleRef(JvmWorkerJava)
+      def jvmId = "temurin:17.0.13"
 
       def scalaVersion = "2.13.14"
     }
