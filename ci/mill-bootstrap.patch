@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index d635c0900af..0df9f3ff91b 100644
+index 1fb72584691..29d0956b258 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -9,10 +9,10 @@ import millbuild.*
@@ -28,6 +28,22 @@ index 3d75cbc5d80..dada6a4e9ec 100644
  import mill.scalalib._
  import mill.scalalib.api.JvmWorkerUtil
  import mill.scalalib.publish._
+diff --git a/dist/package.mill b/dist/package.mill
+index ce5a5c8583c..661635bb67b 100644
+--- a/dist/package.mill
++++ b/dist/package.mill
+@@ -305,10 +305,6 @@ object `package` extends MillJavaModule with DistModule {
+       // "--enable-monitoring=jvmstat,heapdump"
+     )
+ 
+-    def jvmWorker = ModuleRef(JvmWorkerGraalvm)
+-
+-    object JvmWorkerGraalvm extends JvmWorkerModule {
+-      def jvmId = Settings.graalvmJvmId
+-    }
++    def jvmId = Settings.graalvmJvmId
+   }
+ }
 diff --git a/example/package.mill b/example/package.mill
 index 18f8eadea6f..779fd4d6d37 100644
 --- a/example/package.mill
