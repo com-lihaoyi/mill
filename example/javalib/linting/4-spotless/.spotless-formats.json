@@ -1,0 +1,36 @@
+[
+  {
+    "includes": [
+      "glob:build.mill"
+    ],
+    "steps": [
+      {
+        "$type": "ScalaFmt"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:resources/app.properties"
+    ],
+    "steps": [
+      {
+        "$type": "TrimTrailingWhitespace"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**.java"
+    ],
+    "steps": [
+      {
+        "$type": "PalantirJavaFormat"
+      },
+      {
+        "$type": "LicenseHeader",
+        "delimiter": "(package|import|public|class|module) "
+      }
+    ]
+  }
+]

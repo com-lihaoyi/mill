@@ -1,0 +1,13 @@
+[
+  {
+    "includes": [
+      "glob:src/**"
+    ],
+    "steps": [
+      {
+        "$type": "LicenseHeader",
+        "delimiter": "(package|import|public|class|module) "
+      }
+    ]
+  }
+]
