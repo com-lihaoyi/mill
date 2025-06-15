@@ -169,22 +169,24 @@ class UnitTester(
       tasks: Seq[Task[?]],
       dummy: DummyImplicit = null
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
-    val evaluated = evaluator.execute(tasks).executionResults
+    mill.define.BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
+      val evaluated = evaluator.execute(tasks).executionResults
 
-    if (evaluated.transitiveFailing.nonEmpty) Left(evaluated.transitiveFailing.values.head)
-    else {
-      val values = evaluated.results.map(_.asInstanceOf[ExecResult.Success[Val]].value.value)
-      val evalCount = evaluated
-        .uncached
-        .collect {
-          case t: Task.Computed[_]
+      if (evaluated.transitiveFailing.nonEmpty) Left(evaluated.transitiveFailing.values.head)
+      else {
+        val values = evaluated.results.map(_.asInstanceOf[ExecResult.Success[Val]].value.value)
+        val evalCount = evaluated
+          .uncached
+          .collect {
+            case t: Task.Computed[_]
               if module.moduleInternal.targets.contains(t)
                 && !t.ctx.external => t
-          case t: Task.Command[_] => t
-        }
-        .size
+            case t: Task.Command[_] => t
+          }
+          .size
 
-      Right(UnitTester.Result(values, evalCount))
+        Right(UnitTester.Result(values, evalCount))
+      }
     }
   }
 

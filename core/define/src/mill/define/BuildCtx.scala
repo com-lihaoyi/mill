@@ -2,6 +2,8 @@ package mill.define
 import collection.mutable
 import mill.api.Watchable
 import mill.constants.EnvVars
+import scala.util.DynamicVariable
+
 object BuildCtx {
 
   /**
@@ -12,8 +14,10 @@ object BuildCtx {
    * project directory in classic cli scenarios, but might not in other
    * use cases like BSP or LSP server usage).
    */
-  def workspaceRoot: os.Path = os.Path(mill.api.WorkspaceRoot.workspaceRoot0.value)
+  def workspaceRoot: os.Path = workspaceRoot0.value
 
+  val workspaceRoot0: scala.util.DynamicVariable[os.Path] =
+    DynamicVariable(sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_, os.pwd)))
 
   /**
    * Disable Mill's filesystem read/write checker, which normally enforces best practices
