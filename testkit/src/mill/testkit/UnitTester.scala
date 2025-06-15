@@ -169,25 +169,25 @@ class UnitTester(
       tasks: Seq[Task[?]],
       dummy: DummyImplicit = null
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
-    mill.define.BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
-      val evaluated = evaluator.execute(tasks).executionResults
 
-      if (evaluated.transitiveFailing.nonEmpty) Left(evaluated.transitiveFailing.values.head)
-      else {
-        val values = evaluated.results.map(_.asInstanceOf[ExecResult.Success[Val]].value.value)
-        val evalCount = evaluated
-          .uncached
-          .collect {
-            case t: Task.Computed[_]
-                if module.moduleInternal.targets.contains(t)
-                  && !t.ctx.external => t
-            case t: Task.Command[_] => t
-          }
-          .size
+    val evaluated = evaluator.execute(tasks).executionResults
 
-        Right(UnitTester.Result(values, evalCount))
-      }
+    if (evaluated.transitiveFailing.nonEmpty) Left(evaluated.transitiveFailing.values.head)
+    else {
+      val values = evaluated.results.map(_.asInstanceOf[ExecResult.Success[Val]].value.value)
+      val evalCount = evaluated
+        .uncached
+        .collect {
+          case t: Task.Computed[_]
+              if module.moduleInternal.targets.contains(t)
+                && !t.ctx.external => t
+          case t: Task.Command[_] => t
+        }
+        .size
+
+      Right(UnitTester.Result(values, evalCount))
     }
+
   }
 
   def fail(
@@ -222,8 +222,11 @@ class UnitTester(
   }
 
   def scoped[T](tester: UnitTester => T): T = {
-    try tester(this)
-    finally close()
+    try {
+      mill.define.BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
+        tester(this)
+      }
+    } finally close()
   }
 
   def close(): Unit = {
