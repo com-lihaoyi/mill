@@ -263,7 +263,7 @@ jobs:
             millargs: '"libs.{main,scalalib}.__.test"'
             install-sbt: false
 
-          - java-version: 11
+          - java-version: 24
             millargs: '"example.scalalib.{basic,publishing}.__.local.nodaemon"'
             install-sbt: false
 
