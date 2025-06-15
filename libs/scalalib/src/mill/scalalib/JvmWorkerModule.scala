@@ -68,7 +68,6 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       classOf[Int], // jobs
       classOf[Boolean], // compileToJar
       classOf[Boolean], // zincLogDebug
-      classOf[Option[PathRef]], // javaHome
       classOf[() => Unit]
     )
       .newInstance(
