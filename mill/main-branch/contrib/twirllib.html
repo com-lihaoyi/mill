@@ -780,7 +780,7 @@ import mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = &quot;1.5.1&quot;
-  def twirlScalaVersion = &quot;2.13.8&quot;
+  def twirlScalaVersion = &quot;2.13.16&quot;
   override def twirlImports = super.twirlImports() ++ Seq(&quot;my.additional.stuff._&quot;, &quot;my.other.stuff._&quot;)
   def generatedSources = Task { Seq(compileTwirl().classes) }
 }
