@@ -21,7 +21,7 @@ object `package` extends PublishModule with MavenModule {
     )
   }
 
-  def mvnDeps = super.mvnDeps() ++
+  def mvnDeps =
     Seq(mvn"javax.servlet.jsp:jsp-api:2.2", mvn"javax.servlet:servlet-api:2.5")
 
   def pomSettings = PomSettings(

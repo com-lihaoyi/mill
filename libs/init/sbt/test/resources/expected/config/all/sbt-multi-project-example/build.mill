@@ -75,7 +75,7 @@ object `package` extends BaseModule {
 
     object tests extends SbtTests with TestModule.ScalaTest {
 
-      def mvnDeps = super.mvnDeps() ++
+      def mvnDeps =
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
       def testSandboxWorkingDir = false
@@ -125,7 +125,7 @@ object `package` extends BaseModule {
 
     object tests extends SbtTests with TestModule.ScalaTest {
 
-      def mvnDeps = super.mvnDeps() ++
+      def mvnDeps =
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
       def testSandboxWorkingDir = false
@@ -182,7 +182,7 @@ object `package` extends BaseModule {
 
     object tests extends SbtTests with TestModule.ScalaTest {
 
-      def mvnDeps = super.mvnDeps() ++
+      def mvnDeps =
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
       def testSandboxWorkingDir = false
@@ -194,8 +194,7 @@ object `package` extends BaseModule {
 
     object nested extends BaseModule {
 
-      def mvnDeps = super.mvnDeps() ++
-        Seq(Deps.`io.netty:netty-transport-native-epoll`)
+      def mvnDeps = Seq(Deps.`io.netty:netty-transport-native-epoll`)
 
       def pomSettings = PomSettings(
         "This is an sbt sample project for testing Mill's init command.",

@@ -140,7 +140,7 @@ object `package` extends MyModule {
     def javacOptions = super.javacOptions() ++
       Seq("-source", "1.6", "-target", "1.6")
 
-    def mvnDeps = super.mvnDeps() ++
+    def mvnDeps =
       Seq(Deps.`javax.servlet.jsp:jsp-api`, Deps.`javax.servlet:servlet-api`)
 
     def pomSettings = PomSettings(
