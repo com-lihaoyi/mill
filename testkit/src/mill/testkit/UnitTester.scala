@@ -169,6 +169,7 @@ class UnitTester(
       tasks: Seq[Task[?]],
       dummy: DummyImplicit = null
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
+
     val evaluated = evaluator.execute(tasks).executionResults
 
     if (evaluated.transitiveFailing.nonEmpty) Left(evaluated.transitiveFailing.values.head)
@@ -186,6 +187,7 @@ class UnitTester(
 
       Right(UnitTester.Result(values, evalCount))
     }
+
   }
 
   def fail(
@@ -220,8 +222,11 @@ class UnitTester(
   }
 
   def scoped[T](tester: UnitTester => T): T = {
-    try tester(this)
-    finally close()
+    try {
+      mill.define.BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
+        tester(this)
+      }
+    } finally close()
   }
 
   def close(): Unit = {

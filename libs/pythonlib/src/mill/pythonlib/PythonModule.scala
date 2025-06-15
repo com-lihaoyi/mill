@@ -6,6 +6,7 @@ import mill.constants.DaemonFiles
 import mill.util.Jvm
 import mill.define.TaskCtx
 import mill.scalalib.JavaHomeModule
+import mill.define.BuildCtx
 
 trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer =>
 
@@ -180,7 +181,7 @@ trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer
     val backgroundPaths = mill.scalalib.RunModule.BackgroundPaths(Task.dest)
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
-    mill.define.BuildCtx.withFilesystemCheckerDisabled {
+    BuildCtx.withFilesystemCheckerDisabled {
       Jvm.spawnProcess(
         mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
         classPath = mill.scalalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
@@ -191,7 +192,7 @@ trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer
           pythonExe().path.toString,
           mainScript().path.toString
         ) ++ args.value,
-        cwd = Task.workspace,
+        cwd = BuildCtx.workspaceRoot,
         stdin = "",
         // Hack to forward the background subprocess output to the Mill server process
         // stdout/stderr files, so the output will get properly slurped up by the Mill server

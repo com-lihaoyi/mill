@@ -8,7 +8,7 @@ import mill.util.BuildInfo
 import mill.scalalib.api.{CompilationResult, JvmWorkerUtil}
 import mill.util.Version
 import mill.{T, Task}
-
+import mill.define.BuildCtx
 import scala.util.Properties
 import mill.api.internal.bsp.BspBuildTarget
 
@@ -123,7 +123,11 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi w
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation()
       ).map(r =>
-        SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, Task.workspace, Task.dest / "data")
+        SemanticDbJavaModule.copySemanticdbFiles(
+          r.classes.path,
+          BuildCtx.workspaceRoot,
+          Task.dest / "data"
+        )
       )
   }
 

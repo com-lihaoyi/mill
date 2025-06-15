@@ -34,8 +34,8 @@ object `package` extends PublishModule with MavenModule {
 
   def publishVersion = "1.0-SNAPSHOT"
 
-  def resources = Task
-    .Sources { super.resources() ++ Seq(PathRef(moduleDir / "resources")) }
+  def resources = Task { super.resources() ++ customResources() }
+  def customResources = Task.Sources("resources")
 
   object test extends MavenTests with TestModule.Junit4 {
 
@@ -46,12 +46,8 @@ object `package` extends PublishModule with MavenModule {
       mvn"org.mockito:mockito-core:1.8.5"
     )
 
-    def resources = Task.Sources {
-      super.resources() ++ Seq(
-        PathRef(moduleDir / "test/resources"),
-        PathRef(moduleDir / "src/test/secrets")
-      )
-    }
+    def resources = Task { super.resources() ++ customResources() }
+    def customResources = Task.Sources("test/resources", "src/test/secrets")
 
     def testSandboxWorkingDir = false
     def testParallelism = false

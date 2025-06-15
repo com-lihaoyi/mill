@@ -10,6 +10,7 @@ import mill.scalalib.*
 import mainargs.arg
 import mill.util.Tasks
 import mill.util.Jvm
+import mill.define.BuildCtx
 
 trait ScalafmtModule extends JavaModule {
 
@@ -32,7 +33,7 @@ trait ScalafmtModule extends JavaModule {
   }
 
   def scalafmtConfig: T[Seq[PathRef]] = Task.Sources(
-    Task.workspace / ".scalafmt.conf",
+    BuildCtx.workspaceRoot / ".scalafmt.conf",
     os.pwd / ".scalafmt.conf"
   )
 
@@ -130,7 +131,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule
       scalafmtMainClass,
       args,
       classPath = scalafmtClasspath().map(_.path),
-      cwd = Task.workspace,
+      cwd = BuildCtx.workspaceRoot,
       stdin = os.Inherit,
       stdout = os.Inherit
     )

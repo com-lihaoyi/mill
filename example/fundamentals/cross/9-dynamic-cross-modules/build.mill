@@ -1,7 +1,8 @@
 package build
 import mill._, scalalib._
+import mill.define.BuildCtx
 
-val moduleNames = mill.define.BuildCtx.watchValue(os.list(moduleDir / "modules").map(_.last))
+val moduleNames = BuildCtx.watchValue(os.list(moduleDir / "modules").map(_.last))
 
 object modules extends Cross[FolderModule](moduleNames)
 trait FolderModule extends ScalaModule with Cross.Module[String] {

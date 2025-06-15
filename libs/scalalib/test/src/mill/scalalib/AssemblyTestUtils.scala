@@ -11,7 +11,7 @@ trait AssemblyTestUtils {
     trait Setup extends ScalaModule {
       def scalaVersion = "2.13.11"
 
-      def sources = Task.Sources(Task.workspace / "src")
+      def sources = Task.Sources(mill.define.BuildCtx.workspaceRoot / "src")
 
       def mvnDeps = super.mvnDeps() ++ Seq(
         mvn"com.lihaoyi::scalatags:0.8.2",

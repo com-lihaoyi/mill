@@ -16,6 +16,7 @@ import mill.util.Jvm
 import os.Path
 
 import java.util.Locale
+import mill.define.BuildCtx
 
 /**
  * Adds targets to a [[mill.kotlinlib.KotlinModule]] to create test coverage reports.
@@ -103,7 +104,7 @@ trait KoverModule extends KotlinModule { outer =>
     override def forkArgs: T[Seq[String]] = Task {
       val argsFile = koverDataDir().path / "kover-agent.args"
       val content = s"report.file=${koverBinaryReport().path}"
-      mill.define.BuildCtx.withFilesystemCheckerDisabled {
+      BuildCtx.withFilesystemCheckerDisabled {
         os.write.over(argsFile, content)
       }
       super.forkArgs() ++

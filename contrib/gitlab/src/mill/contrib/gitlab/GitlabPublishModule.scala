@@ -17,7 +17,8 @@ trait GitlabPublishModule extends PublishModule { outer =>
   def gitlabHeaders(
       systemProps: Map[String, String] = sys.props.toMap
   ): Task[GitlabAuthHeaders] = Task.Anon {
-    val auth = tokenLookup.resolveGitlabToken(Task.env, systemProps, Task.workspace)
+    val auth =
+      tokenLookup.resolveGitlabToken(Task.env, systemProps, mill.define.BuildCtx.workspaceRoot)
     auth match {
       case Result.Failure(msg) =>
         Failure(

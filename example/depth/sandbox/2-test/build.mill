@@ -63,6 +63,32 @@ object bar extends MyModule
 // one another, which helps keep tests stable and deterministic even when run in
 // parallel
 //
+// === Escaping the Test Sandbox
+
+// Within a test, you can use the `MILL_WORKSPACE_ROOT` environment variable
+// to access the workspace root directory:
+
+object qux extends JavaModule {
+  object test extends JavaTests with TestModule.Junit4
+}
+
+/** See Also: qux/src/qux/Qux.java */
+/** See Also: qux/test/src/qux/QuxTests.java */
+
+/** Usage
+> ./mill qux.test
+
+
+> find . | grep .html
+...
+.../out/qux/test/testForked.dest/sandbox/foo.html
+
+> cat out/qux/test/testForked.dest/sandbox/foo.html
+<h1>foo</h1>
+
+*/
+
+//
 // === Disabling Test Sandboxing
 //
 // Test sandboxing can be disabled by setting `def testSandboxWorkingDir = false`

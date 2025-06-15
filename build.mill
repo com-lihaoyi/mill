@@ -20,6 +20,7 @@ import mill.define.SelectMode
 import mill.T
 import mill.define.Cross
 import scala.util.Properties
+import mill.define.BuildCtx
 
 def millVersionIsStable: T[Boolean] = Task.Input {
   Task.env.contains("MILL_STABLE_VERSION")
@@ -77,7 +78,7 @@ def millBinPlatform: T[String] = Task {
   }
 }
 
-def millJvmVersion = Task.Source(Task.workspace / "default-mill-jvm-version")
+def millJvmVersion = Task.Source(BuildCtx.workspaceRoot / "default-mill-jvm-version")
 
 val essentialBridgeScalaVersions =
   Seq(Deps.scalaVersion, Deps.scala2Version, Deps.workerScalaVersion212)
@@ -126,7 +127,7 @@ val bridgeScalaVersions = Seq(
 // on the fly anyway. For publishing, we publish everything or a specific version
 // if given.
 val compilerBridgeScalaVersions =
-  mill.define.BuildCtx.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
+  BuildCtx.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
     case None | Some("") | Some("none") => Seq.empty[String]
     case Some("all") => (essentialBridgeScalaVersions ++ bridgeScalaVersions).distinct
     case Some("essential") => essentialBridgeScalaVersions
@@ -183,7 +184,7 @@ def formatDep(dep: Dep) = {
   s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
 }
 
-def listIn(path: os.Path) = mill.define.BuildCtx.watchValue(os.list(path).map(_.last))
+def listIn(path: os.Path) = BuildCtx.watchValue(os.list(path).map(_.last))
 
 val dummyDeps: Seq[Dep] = Seq(
   Deps.DocDeps.millScip,

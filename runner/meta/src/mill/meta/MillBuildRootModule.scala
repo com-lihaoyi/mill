@@ -2,6 +2,7 @@ package mill.meta
 
 import java.nio.file.Path
 
+import mill.define.BuildCtx
 import mill.*
 import mill.api.Result
 import mill.api.internal.internal
@@ -38,7 +39,7 @@ trait MillBuildRootModule()(implicit
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
-  val scriptSourcesPaths = mill.define.BuildCtx.withFilesystemCheckerDisabled {
+  val scriptSourcesPaths = BuildCtx.withFilesystemCheckerDisabled {
     FileImportGraph
       .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
       .sorted
@@ -54,7 +55,7 @@ trait MillBuildRootModule()(implicit
 
   def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
-    mill.define.BuildCtx.withFilesystemCheckerDisabled {
+    BuildCtx.withFilesystemCheckerDisabled {
       MillBuildRootModule.parseBuildFiles(MillScalaParser.current.value, rootModuleInfo)
     }
   }

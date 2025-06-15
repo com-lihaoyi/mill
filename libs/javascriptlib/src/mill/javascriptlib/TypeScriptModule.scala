@@ -6,6 +6,7 @@ import os.*
 import scala.annotation.tailrec
 import scala.util.Try
 import mill.scalalib.publish.licenseFormat
+import mill.define.BuildCtx
 
 trait TypeScriptModule extends Module { outer =>
   // custom module names
@@ -88,7 +89,7 @@ trait TypeScriptModule extends Module { outer =>
     )
   }
 
-  def npmRc = Task.Source(Task.workspace / ".npmrc")
+  def npmRc = Task.Source(BuildCtx.workspaceRoot / ".npmrc")
   def npmInstall: T[PathRef] = Task {
     if (os.exists(npmRc().path)) os.copy.over(npmRc().path, Task.dest / ".npmrc")
 
@@ -151,8 +152,8 @@ trait TypeScriptModule extends Module { outer =>
 
     if (!os.exists(Task.dest)) os.makeDir.all(Task.dest)
 
-    // Copy everything except "build.mill" and the "/out" directory from Task.workspace
-    mill.define.BuildCtx.withFilesystemCheckerDisabled {
+    // Copy everything except "build.mill" and the "/out" directory from BuildCtx.workspaceRoot
+    BuildCtx.withFilesystemCheckerDisabled {
       os.walk(moduleDir, skip = _.last == "out")
         .filter(_.last != "build.mill")
         .filter(_.last != "mill")
@@ -184,7 +185,7 @@ trait TypeScriptModule extends Module { outer =>
     def copyOutSources(sources: Seq[PathRef], target: Path): Unit = {
 
       def copySource(source: PathRef): Unit = {
-        if (!source.path.startsWith(Task.workspace / "out")) () // Guard clause
+        if (!source.path.startsWith(BuildCtx.workspaceRoot / "out")) () // Guard clause
         else os.list(source.path).foreach {
           case IsSrcDirectory(srcDir) => copySrcDirectory(srcDir, target)
           case path => os.copy.over(path, target / path.last, createFolders = true)
@@ -200,21 +201,21 @@ trait TypeScriptModule extends Module { outer =>
     // mod deps
     tscModDepsSources()
       .foreach { case (mod, sources_) =>
-        copyOutSources(sources_, Task.dest / mod.relativeTo(Task.workspace) / "src")
+        copyOutSources(sources_, Task.dest / mod.relativeTo(BuildCtx.workspaceRoot) / "src")
       }
 
   }
 
   private[javascriptlib] def tscCopyModDeps: Task[Unit] = Task.Anon {
     val targets =
-      recModuleDeps.map { _.moduleDir.subRelativeTo(Task.workspace).segments.head }.distinct
+      recModuleDeps.map { _.moduleDir.subRelativeTo(BuildCtx.workspaceRoot).segments.head }.distinct
 
     targets.foreach { target =>
       val destination = Task.dest / target
       os.makeDir.all(destination / os.up)
-      mill.define.BuildCtx.withFilesystemCheckerDisabled {
+      BuildCtx.withFilesystemCheckerDisabled {
         os.copy(
-          Task.workspace / target,
+          BuildCtx.workspaceRoot / target,
           destination,
           mergeFolders = true
         )
@@ -236,7 +237,7 @@ trait TypeScriptModule extends Module { outer =>
 
     tscModDepsGenSources().foreach { case (mod, source_) =>
       source_.foreach { target =>
-        val modDir = mod.relativeTo(Task.workspace)
+        val modDir = mod.relativeTo(BuildCtx.workspaceRoot)
         val destination = Task.dest / modDir / "generatedSources" / target.path.last
         copyGeneratedSources(target.path, destination)
       }
@@ -252,7 +253,7 @@ trait TypeScriptModule extends Module { outer =>
     if (!os.exists(dest)) os.makeDir.all(dest)
 
     val externalResource: PathRef => Boolean = p =>
-      p.path.startsWith(Task.workspace / "out") &&
+      p.path.startsWith(BuildCtx.workspaceRoot / "out") &&
         os.exists(p.path) &&
         os.isDir(p.path)
 
@@ -266,7 +267,7 @@ trait TypeScriptModule extends Module { outer =>
     linkResource(resources(), dest)
 
     tscModDepsResources().foreach { case (mod, r) =>
-      val modDir = mod.relativeTo(Task.workspace)
+      val modDir = mod.relativeTo(BuildCtx.workspaceRoot)
       val modDest = Task.dest / modDir / "resources"
       if (!os.exists(modDest)) os.makeDir.all(modDest)
       linkResource(r, modDest)
@@ -308,10 +309,10 @@ trait TypeScriptModule extends Module { outer =>
         p match {
           case _ if p.startsWith(moduleDir) && !p.startsWith(moduleDir / "out") =>
             relativeToTS(moduleDir, p)
-          case _ if p.startsWith(Task.workspace / "out" / moduleName) =>
-            handleOutTS(Task.workspace / "out" / moduleName, p)
-          case _ if p.startsWith(Task.workspace / "out") =>
-            handleOutTS(Task.workspace / "out", p)
+          case _ if p.startsWith(BuildCtx.workspaceRoot / "out" / moduleName) =>
+            handleOutTS(BuildCtx.workspaceRoot / "out" / moduleName, p)
+          case _ if p.startsWith(BuildCtx.workspaceRoot / "out") =>
+            handleOutTS(BuildCtx.workspaceRoot / "out", p)
           case _ => None
         }
       }
@@ -323,9 +324,9 @@ trait TypeScriptModule extends Module { outer =>
           .flatMap(pr => if (isDir(pr.path)) os.walk(pr.path) else Seq(pr.path))
           .filter(fileExt)
           .flatMap { p =>
-            val modDir = mod.relativeTo(Task.workspace)
-            val modmoduleDir = Task.workspace / modDir
-            val modOutPath = Task.workspace / "out" / modDir
+            val modDir = mod.relativeTo(BuildCtx.workspaceRoot)
+            val modmoduleDir = BuildCtx.workspaceRoot / modDir
+            val modOutPath = BuildCtx.workspaceRoot / "out" / modDir
 
             p match {
               case _ if p.startsWith(modmoduleDir) =>
@@ -345,7 +346,7 @@ trait TypeScriptModule extends Module { outer =>
     val modGenSources = tscModDepsGenSources()
       .toIndexedSeq
       .flatMap { case (mod, source_) =>
-        val modDir = mod.relativeTo(Task.workspace)
+        val modDir = mod.relativeTo(BuildCtx.workspaceRoot)
         source_.map(s"$modDir/generatedSources/" + _.path.last)
       }
 
@@ -382,7 +383,9 @@ trait TypeScriptModule extends Module { outer =>
     } yield {
       val prefix = mod.moduleName.replaceAll("\\.", "/")
       val customResource: PathRef => Boolean = pathRef =>
-        pathRef.path.startsWith(Task.workspace / "out" / mod.moduleName) || !pathRef.path.equals(
+        pathRef.path.startsWith(
+          BuildCtx.workspaceRoot / "out" / mod.moduleName
+        ) || !pathRef.path.equals(
           mod.moduleDir / "src" / "resources"
         )
 
@@ -408,7 +411,7 @@ trait TypeScriptModule extends Module { outer =>
 
   def modulePaths: T[Seq[(String, String)]] = Task {
     val customResource: PathRef => Boolean = pathRef =>
-      pathRef.path.startsWith(Task.workspace / "out") || !pathRef.path.equals(
+      pathRef.path.startsWith(BuildCtx.workspaceRoot / "out") || !pathRef.path.equals(
         moduleDir / "src" / "resources"
       )
 
@@ -482,7 +485,7 @@ trait TypeScriptModule extends Module { outer =>
    * tsconfig, if you can not for some reason just not delete the local one.
    *
    * Regardless of the configuration, mill will auto gen a tsconfig
-   * if one does not exist in `Task.workspace`.
+   * if one does not exist in `BuildCtx.workspaceRoot`.
    */
   def customTsConfig: T[Boolean] = Task { true }
 
