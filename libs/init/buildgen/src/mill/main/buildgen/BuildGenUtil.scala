@@ -384,7 +384,11 @@ object BuildGenUtil {
         // Note that the super def is called even when it's empty.
         // Some super functions can be called without parentheses, but we just add them here for simplicity.
         Some(args.iterator.drop(superLength).map(transform)
-          .mkString(s"super.$defName() ++ Seq(", ",", ")"))
+          .mkString(
+            (if (superArgs.nonEmpty) s"super.$defName() ++ " else "") + "Seq(",
+            ",",
+            ")"
+          ))
     } else
       Some(
         if (args.isEmpty)
@@ -426,13 +430,13 @@ object BuildGenUtil {
     optional("def moduleDeps = super.moduleDeps ++ Seq", args)
 
   def renderCompileMvnDeps(args: IterableOnce[String]): String =
-    optional("def compileMvnDeps = super.compileMvnDeps() ++ Seq", args)
+    optional("def compileMvnDeps = Seq", args)
 
   def renderCompileModuleDeps(args: IterableOnce[String]): String =
     optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
 
   def renderRunMvnDeps(args: IterableOnce[String]): String =
-    optional("def runMvnDeps = super.runMvnDeps() ++ Seq", args)
+    optional("def runMvnDeps = Seq", args)
 
   def renderRunModuleDeps(args: IterableOnce[String]): String =
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)

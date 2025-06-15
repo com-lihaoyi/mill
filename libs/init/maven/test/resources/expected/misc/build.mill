@@ -8,11 +8,11 @@ object `package` extends PublishModule with MavenModule {
 
   def artifactName = "single-module-project"
 
-  def javacOptions = super.javacOptions() ++
+  def javacOptions =
     Seq("-source", "1.6", "-target", "1.6")
 
   def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
+    Seq(
       coursier.maven.MavenRepository(
         "http://repository.jboss.org/nexus/content/groups/public/"
       ),

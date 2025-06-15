@@ -24,7 +24,7 @@ object `package` extends SbtModule with PublishModule {
   )
 
   def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
+    Seq(
       coursier.maven.MavenRepository(
         "https://oss.sonatype.org/service/local/repositories/releases/content/"
       ),

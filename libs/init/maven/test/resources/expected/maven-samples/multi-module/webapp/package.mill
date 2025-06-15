@@ -6,12 +6,12 @@ import mill.javalib.publish._
 
 object `package` extends PublishModule with MavenModule {
 
-  def javacOptions = super.javacOptions() ++
+  def javacOptions =
     Seq("-source", "1.6", "-target", "1.6")
 
   def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
 
-  def compileMvnDeps = super.compileMvnDeps() ++
+  def compileMvnDeps =
     Seq(mvn"javax.servlet.jsp:jsp-api:2.2", mvn"javax.servlet:servlet-api:2.5")
 
   def pomSettings = PomSettings(
