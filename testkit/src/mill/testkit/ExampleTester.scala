@@ -122,8 +122,6 @@ class ExampleTester(
          |------------------------------""".stripMargin
     )
 
-    val javaHomeEnv = Map("JAVA_HOME" -> sys.props("java.home"))
-
     val windowsPathEnv =
       if (!isWindows) Map()
       else Map(
@@ -136,7 +134,7 @@ class ExampleTester(
       stderr = os.Inherit,
       cwd = workspacePath,
       mergeErrIntoOut = true,
-      env = millTestSuiteEnv ++ windowsPathEnv ++ javaHomeEnv,
+      env = millTestSuiteEnv ++ windowsPathEnv,
       check = false
     )
 
