@@ -2,7 +2,7 @@
     <component name="ScalaCompilerConfiguration">
         <profile name="mill 1" modules="">
             <parameters>
-                <parameter value="-Xplugin:/Users/lihaoyi/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/com/lihaoyi/scalac-mill-moduledefs-plugin_3.7.1/0.11.9/scalac-mill-moduledefs-plugin_3.7.1-0.11.9.jar"/>
+                <parameter value="-Xplugin:<!-- IGNORE -->/com/lihaoyi/scalac-mill-moduledefs-plugin_3.7.1/0.11.9/scalac-mill-moduledefs-plugin_3.7.1-0.11.9.jar"/>
                 <parameter value="-deprecation"/>
             </parameters>
             <plugins>
