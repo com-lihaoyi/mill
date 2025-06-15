@@ -122,7 +122,11 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation()
       ).map(r =>
-        SemanticDbJavaModule.copySemanticdbFiles(r.classes.path, BuildCtx.workspaceRoot, Task.dest / "data")
+        SemanticDbJavaModule.copySemanticdbFiles(
+          r.classes.path,
+          BuildCtx.workspaceRoot,
+          Task.dest / "data"
+        )
       )
   }
 

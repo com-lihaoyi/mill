@@ -383,7 +383,9 @@ trait TypeScriptModule extends Module { outer =>
     } yield {
       val prefix = mod.moduleName.replaceAll("\\.", "/")
       val customResource: PathRef => Boolean = pathRef =>
-        pathRef.path.startsWith(BuildCtx.workspaceRoot / "out" / mod.moduleName) || !pathRef.path.equals(
+        pathRef.path.startsWith(
+          BuildCtx.workspaceRoot / "out" / mod.moduleName
+        ) || !pathRef.path.equals(
           mod.moduleDir / "src" / "resources"
         )
 

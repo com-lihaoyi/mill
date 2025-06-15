@@ -417,7 +417,12 @@ object `package` extends mill.Module {
 
     // sanitize devAntora source URLs
     Task.log.streams.err.println("Sanitizing links ...")
-    sanitizeDevUrls(siteDir, devAntoraSources().path, BuildCtx.workspaceRoot / "docs", mill.define.BuildCtx.workspaceRoot)
+    sanitizeDevUrls(
+      siteDir,
+      devAntoraSources().path,
+      BuildCtx.workspaceRoot / "docs",
+      mill.define.BuildCtx.workspaceRoot
+    )
 
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
     val unidocSrc = if (authorMode) site.unidocLocal().path else site.unidocSite().path

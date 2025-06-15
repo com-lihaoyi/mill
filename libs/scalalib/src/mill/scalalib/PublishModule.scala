@@ -411,7 +411,8 @@ trait PublishModule extends JavaModule { outer =>
    */
   def publishM2Local(m2RepoPath: String = null): Task.Command[Seq[PathRef]] = m2RepoPath match {
     case null => Task.Command { publishM2LocalTask(Task.Anon { publishM2LocalRepoPath() })() }
-    case p => Task.Command { publishM2LocalTask(Task.Anon { os.Path(p, BuildCtx.workspaceRoot) })() }
+    case p =>
+      Task.Command { publishM2LocalTask(Task.Anon { os.Path(p, BuildCtx.workspaceRoot) })() }
   }
 
   /**
