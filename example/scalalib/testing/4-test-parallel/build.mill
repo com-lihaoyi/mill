@@ -7,7 +7,7 @@ package build
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
   object test extends ScalaTests with TestModule.Utest {
     def utestVersion = "0.8.5"
 
@@ -19,7 +19,7 @@ object foo extends ScalaModule {
 
 /** Usage
 
-> mill --jobs 3 foo.test
+> ./mill --jobs 3 foo.test
 
 > find out/foo/test/testForked.dest
 ...

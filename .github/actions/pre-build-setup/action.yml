@@ -40,7 +40,7 @@ runs:
       shell: bash
       if: ${{ github.event_name == 'push' && github.repository != 'com-lihaoyi/mill' }}
 
-    - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
+    - run: rm .mill-jvm-version && echo temurin:${{ inputs.java-version }} > .mill-jvm-version
       shell: bash
 
     - run: chmod -R 777 . # normalize permissions before and after upload/download-artifact
@@ -64,5 +64,5 @@ runs:
 
     - uses: actions/checkout@v4
 
-    - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
+    - run: rm .mill-jvm-version && echo temurin:${{ inputs.java-version }} > .mill-jvm-version
       shell: bash

@@ -56,7 +56,6 @@ class JvmWorkerImpl(
     jobs: Int,
     compileToJar: Boolean,
     zincLogDebug: Boolean,
-    javaHome: Option[PathRef],
     close0: () => Unit
 ) extends JvmWorkerApi with AutoCloseable {
   val libraryJarNameGrep: (Seq[PathRef], String) => PathRef =
@@ -67,6 +66,7 @@ class JvmWorkerImpl(
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
       scalaOrganization: String,
+      javaHome: Option[os.Path],
       javacRuntimeOptions: Seq[String]
   ) {
     val combinedCompilerClasspath: Seq[PathRef] = compilerClasspath ++ scalacPluginClasspath
@@ -105,7 +105,7 @@ class JvmWorkerImpl(
         explicitActual = None
       )
       val compilers = ic.compilers(
-        javaTools = getLocalOrCreateJavaTools(javacRuntimeOptions),
+        javaTools = getLocalOrCreateJavaTools(javaHome, javacRuntimeOptions),
         scalac = ZincUtil.scalaCompiler(scalaInstance, compiledCompilerBridge.toIO)
       )
       (loader, compilers)
@@ -156,9 +156,9 @@ class JvmWorkerImpl(
 
   }
 
-  object javaOnlyCompilerCache extends CachedFactory[Seq[String], Compilers] {
+  object javaOnlyCompilerCache extends CachedFactory[(Option[os.Path], Seq[String]), Compilers] {
 
-    override def setup(key: Seq[String]): Compilers = {
+    override def setup(key: (Option[os.Path], Seq[String])): Compilers = {
       // Only options relevant for the compiler runtime influence the cached instance
       // Keep the classpath as written by the user
       val classpathOptions = ClasspathOptions.of(
@@ -187,14 +187,14 @@ class JvmWorkerImpl(
         classpathOptions // this is used for javac too
       )
 
-      val javaTools = getLocalOrCreateJavaTools(key)
+      val javaTools = getLocalOrCreateJavaTools(key._1, key._2)
 
       val compilers = ic.compilers(javaTools, scalac)
       compilers
 
     }
 
-    override def teardown(key: Seq[String], value: Compilers): Unit = ()
+    override def teardown(key: (Option[os.Path], Seq[String]), value: Compilers): Unit = ()
 
     override def maxCacheSize: Int = jobs
   }
@@ -204,8 +204,11 @@ class JvmWorkerImpl(
 
   private def filterJavacRuntimeOptions(opt: String): Boolean = opt.startsWith("-J")
 
-  private def getLocalOrCreateJavaTools(javacRuntimeOptions: Seq[String]): JavaTools = {
-    val javaHome = this.javaHome.map(_.path.toNIO)
+  private def getLocalOrCreateJavaTools(
+      javaHome0: Option[os.Path],
+      javacRuntimeOptions: Seq[String]
+  ): JavaTools = {
+    val javaHome = javaHome0.map(_.toNIO)
     val (javaCompiler, javaDoc) =
       // Local java compilers don't accept -J flags so when we put this together if we detect
       // any javacOptions starting with -J we ensure we have a non-local Java compiler which
@@ -229,6 +232,7 @@ class JvmWorkerImpl(
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      javaHome: Option[os.Path],
       args: Seq[String]
   )(using ctx: JvmWorkerApi.Ctx): Boolean = {
     withCompilers(
@@ -236,6 +240,7 @@ class JvmWorkerImpl(
       scalaOrganization,
       compilerClasspath,
       scalacPluginClasspath,
+      javaHome,
       Seq()
     ) { (compilers: Compilers) =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
@@ -398,24 +403,27 @@ class JvmWorkerImpl(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
       compileClasspath: Seq[os.Path],
+      javaHome: Option[os.Path],
       javacOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
   )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
-    javaOnlyCompilerCache.withValue(javacOptions.filter(filterJavacRuntimeOptions)) { compilers =>
-      compileInternal(
-        upstreamCompileOutput = upstreamCompileOutput,
-        sources = sources,
-        compileClasspath = compileClasspath,
-        javacOptions = javacOptions,
-        scalacOptions = Nil,
-        compilers = compilers,
-        reporter = reporter,
-        reportCachedProblems = reportCachedProblems,
-        incrementalCompilation = incrementalCompilation,
-        auxiliaryClassFileExtensions = Seq.empty[String]
-      )
+    javaOnlyCompilerCache.withValue((javaHome, javacOptions.filter(filterJavacRuntimeOptions))) {
+      compilers =>
+        compileInternal(
+          upstreamCompileOutput = upstreamCompileOutput,
+          sources = sources,
+          compileClasspath = compileClasspath,
+          javaHome: Option[os.Path],
+          javacOptions = javacOptions,
+          scalacOptions = Nil,
+          compilers = compilers,
+          reporter = reporter,
+          reportCachedProblems = reportCachedProblems,
+          incrementalCompilation = incrementalCompilation,
+          auxiliaryClassFileExtensions = Seq.empty[String]
+        )
     }
   }
 
@@ -423,6 +431,7 @@ class JvmWorkerImpl(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
       compileClasspath: Seq[os.Path],
+      javaHome: Option[os.Path],
       javacOptions: Seq[String],
       scalaVersion: String,
       scalaOrganization: String,
@@ -439,12 +448,14 @@ class JvmWorkerImpl(
       scalaOrganization = scalaOrganization,
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
+      javaHome = javaHome,
       javacOptions = javacOptions
     ) { (compilers: Compilers) =>
       compileInternal(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
         compileClasspath = compileClasspath,
+        javaHome = javaHome,
         javacOptions = javacOptions,
         scalacOptions = scalacOptions,
         compilers = compilers,
@@ -461,6 +472,7 @@ class JvmWorkerImpl(
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      javaHome: Option[os.Path],
       javacOptions: Seq[String]
   )(f: Compilers => T) = {
 
@@ -472,6 +484,7 @@ class JvmWorkerImpl(
         compilerClasspath.toSeq,
         scalacPluginClasspath.toSeq,
         scalaOrganization,
+        javaHome,
         javacRuntimeOptions
       )
     ) { case (_, compilers) =>
@@ -492,6 +505,7 @@ class JvmWorkerImpl(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
       compileClasspath: Seq[os.Path],
+      javaHome: Option[os.Path],
       javacOptions: Seq[String],
       scalacOptions: Seq[String],
       compilers: Compilers,

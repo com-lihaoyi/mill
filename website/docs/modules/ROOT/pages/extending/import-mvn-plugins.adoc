@@ -2,12 +2,12 @@
 :page-aliases: Import_File_And_Import_Ivy.adoc, Using_Plugins.adoc
 
 
-This page illustrates usage of the `//| mvnDeps:` syntax.
-`//| mvnDeps:` lets you import JVM dependencies into your `build.mill`, so
+This page illustrates usage of the `//| mvnDeps` syntax.
+`//| mvnDeps` lets you import JVM dependencies into your `build.mill`, so
 you can use arbitrary third-party libraries at build-time. This makes
 lets you perform computations at build-time rather than run-time,
 speeding up your application start up. Unlike most other build tools that
-require purpose-built plugins to extend them, Mill's `//| mvnDeps:` can be used to pull
+require purpose-built plugins to extend them, Mill's `//| mvnDeps` can be used to pull
 in any JVM library on Maven Central to use in your custom tasks, with
 xref:extending/thirdparty-plugins.adoc[Third-Party Plugins] only necessary for
 more sophisticated integrations.
@@ -27,7 +27,7 @@ include::partial$example/extending/imports/2-mvn-deps-scala.adoc[]
 == Importing Plugins
 
 Mill plugins are ordinary JVM libraries jars and are loaded as any other external dependency with
-the `//| mvnDeps:` mechanism.
+the `//| mvnDeps` mechanism.
 
 There exist a large number of Mill plugins, Many of them are available on GitHub and via
 Maven Central.We also have a list of plugins, which is most likely not complete, but it
@@ -63,7 +63,7 @@ following techniques:
 ----
 
 
-=== Use special placeholders in your `//| mvnDeps:`
+=== Use special placeholders in your `//| mvnDeps`
 
 `$MILL_VERSION` ::
 +
@@ -100,5 +100,8 @@ to substitute the currently used Mill binary platform.
 ----
 --
 
-TIP: If you want to publish re-usable libraries that _other_ people can use in their builds, simply publish your code as a library to maven central.
+TIP: If you want to publish re-usable libraries that _other_ people can use in their
+builds, simply publish your code as a library to maven central.
 
+The `//| mvnDeps` and `//| repositories` build headers are a shorthand for overriding
+configuring on xref:extending/meta-build.adoc[].

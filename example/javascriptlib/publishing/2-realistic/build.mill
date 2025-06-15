@@ -88,13 +88,13 @@ object qux extends PublishModule {
 
 /** Usage
 
-> mill qux.run James Bond prof
+> ./mill qux.run James Bond prof
 { prof: 'Professor' }
 prof
 Professor
 Hello James Bond Professor
 
-> mill show qux.bundle
+> ./mill show qux.bundle
 Build succeeded!
 
 > node out/qux/bundle.dest/dist/src/qux.js James Bond prof
@@ -103,7 +103,7 @@ prof
 Professor
 Hello James Bond Professor
 
-> mill qux.test
+> ./mill qux.test
 PASS .../qux.test.ts
 ...
 

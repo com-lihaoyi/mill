@@ -107,16 +107,6 @@ object Task {
     ctx.reporter
 
   /**
-   * This is the `os.Path` pointing to the project root directory.
-   *
-   * This is the preferred access to the project directory, and should
-   * always be prefered over `os.pwd`* (which might also point to the
-   * project directory in classic cli scenarios, but might not in other
-   * use cases like BSP or LSP server usage).
-   */
-  def workspace(implicit ctx: mill.define.TaskCtx): os.Path = ctx.workspace
-
-  /**
    * Provides the `.fork.async` and `.fork.await` APIs for spawning and joining
    * async futures within your task in a Mill-friendly mannter
    */

@@ -1,5 +1,6 @@
 package mill.scalalib
 import mill.*
+import mill.define.BuildCtx
 
 /**
  * Mix this in to any [[ScalaModule]] to provide a [[unidocSite]] target that
@@ -55,7 +56,7 @@ trait UnidocModule extends ScalaModule {
           "-doc-source-url",
           url + "€{FILE_PATH}.scala",
           "-sourcepath",
-          Task.workspace.toString
+          BuildCtx.workspaceRoot.toString
         )
       } ++ unidocOptions()
 
@@ -64,6 +65,7 @@ trait UnidocModule extends ScalaModule {
       scalaOrganization(),
       scalaDocClasspath(),
       scalacPluginClasspath(),
+      javaHome().map(_.path),
       options ++ unidocSourceFiles0.map(_.path.toString)
     ) match {
       case true => PathRef(Task.dest)
@@ -82,7 +84,7 @@ trait UnidocModule extends ScalaModule {
       sourceUrl <- unidocSourceUrl()
       p <- os.walk(Task.dest) if p.ext == "scala"
     } {
-      os.write(p, os.read(p).replace(s"file://${Task.workspace}", sourceUrl))
+      os.write(p, os.read(p).replace(s"file://${BuildCtx.workspaceRoot}", sourceUrl))
     }
     PathRef(Task.dest)
   }

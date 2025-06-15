@@ -23,7 +23,7 @@ object foo extends JavaModule with PublishModule {
 
 /** Usage
 
-> mill foo.publishLocal
+> ./mill foo.publishLocal
 Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...
 
 */

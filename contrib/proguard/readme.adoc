@@ -25,7 +25,7 @@ package build
 import contrib.proguard._
 
 object foo extends ScalaModule with Proguard {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
 
   override def shrink: T[Boolean] = Task { true }
   override def optimize: T[Boolean] = Task { false }

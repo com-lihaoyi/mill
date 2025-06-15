@@ -5,6 +5,7 @@
 package build
 
 import mill._, javalib._
+import mill.define.BuildCtx
 
 // TODO:
 //   testsuite-shading
@@ -254,8 +255,11 @@ object common extends NettyModule {
     val shell = new groovy.lang.GroovyShell()
 
     val context = new java.util.HashMap[String, Object]
-    context.put("collection.template.dir", s"${Task.workspace}/common/src/main/templates")
-    context.put("collection.template.test.dir", s"${Task.workspace}/common/src/test/templates")
+    context.put("collection.template.dir", s"${BuildCtx.workspaceRoot}/common/src/main/templates")
+    context.put(
+      "collection.template.test.dir",
+      s"${BuildCtx.workspaceRoot}/common/src/test/templates"
+    )
     context.put("collection.src.dir", (Task.dest / "src").toString)
     context.put("collection.testsrc.dir", (Task.dest / "testsrc").toString)
     shell.setProperty("properties", context)

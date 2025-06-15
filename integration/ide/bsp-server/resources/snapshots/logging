@@ -55,5 +55,3 @@
 [6-compile] buildTargetCompile took * msec
 [8-buildShutdown] Entered buildShutdown
 [9-onBuildExit] Entered onBuildExit
-[bsp] BSP session returned with mill.api.internal.bsp.BspServerResult$Shutdown$@*
-[bsp] Exiting BSP runner loop. Stopping BSP server. Last result: Success(mill.api.internal.bsp.BspServerResult$Shutdown$@*)

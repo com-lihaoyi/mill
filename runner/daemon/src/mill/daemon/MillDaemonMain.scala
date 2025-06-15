@@ -5,7 +5,7 @@ import mill.client.ClientUtil
 import mill.client.lock.{DoubleLock, Lock, Locks}
 import mill.constants.OutFiles
 import sun.misc.{Signal, SignalHandler}
-
+import mill.define.BuildCtx
 import scala.util.Try
 
 object MillDaemonMain {
@@ -55,7 +55,7 @@ class MillDaemonMain(
   }
   def stateCache0 = RunnerState.empty
 
-  val out = os.Path(OutFiles.out, mill.define.BuildCtx.workspaceRoot)
+  val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
 
   val outLock = new DoubleLock(
     MillMain0.outMemoryLock,

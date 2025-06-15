@@ -36,14 +36,14 @@ object foo extends JavaModule {
 
 /** Usage
 
-> mill foo.compile
+> ./mill foo.compile
 compiling 1 Java source...
 ...
 
-> mill foo.run
+> ./mill foo.run
 generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
 
-> mill show foo.assembly
+> ./mill show foo.assembly
 ".../out/foo/assembly.dest/out.jar"
 
 > ./out/foo/assembly.dest/out.jar # mac/linux
@@ -51,7 +51,7 @@ generated snippet.txt resource: <div><h1>hello</h1><p>world</p></div>
 
 */
 
-// To customize the repositories used to resolve the `//| mvnDeps:` dependencies used in your
+// To customize the repositories used to resolve the `//| mvnDeps` dependencies used in your
 // `build.mill` file, you can add `//| repositories:` to your YAML header which takes a
 // list of strings of the same format. For example:
 //

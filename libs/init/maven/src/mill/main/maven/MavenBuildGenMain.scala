@@ -140,8 +140,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
   def getMillSourcePath(model: Model): Path = os.Path(model.getProjectDirectory)
 
   override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] =
-    Seq("mill.Module") ++
-      cfg.shared.basicConfig.baseModule.fold(getModuleSupertypes(cfg))(Seq(_))
+    cfg.shared.basicConfig.baseModule.fold(getModuleSupertypes(cfg))(Seq(_))
 
   def processResources(
       input: java.util.List[org.apache.maven.model.Resource],
@@ -157,7 +156,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
   def getRepositories(model: Model): Seq[String] =
     model.getRepositories.iterator().asScala
       .filterNot(_.getId == "central")
-      .map(repo => s"coursier.maven.MavenRepository(${escape(repo.getUrl)})")
+      .map(repo => escape(repo.getUrl))
       .toSeq
       .sorted
 

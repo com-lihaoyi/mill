@@ -1,4 +1,4 @@
-import mill.define.BuildCtx.workspaceRoot
+import mill.define.BuildCtx
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 
@@ -15,8 +15,8 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
         .sorted
       val millLocalClasspath = deserialized
         .map(_.path)
-        .filter(_.startsWith(workspaceRoot))
-        .map(_.subRelativeTo(workspaceRoot))
+        .filter(_.startsWith(BuildCtx.workspaceRoot))
+        .map(_.subRelativeTo(BuildCtx.workspaceRoot))
         .filter(!_.startsWith("out/integration"))
         .map(_.toString)
         .sorted
@@ -44,8 +44,9 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
           "mill-libs-tabcomplete_3.jar",
           "mill-libs-testrunner-entrypoint.jar",
           "mill-libs-testrunner_3.jar",
+          "mill-libs-vcs_3.jar",
           "mill-libs_3.jar",
-          "mill-moduledefs_3-0.11.4.jar"
+          "mill-moduledefs_3-0.11.9.jar"
         )
 
         assert(millPublishedJars == expected)

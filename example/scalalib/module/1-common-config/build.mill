@@ -10,7 +10,7 @@ package build
 import mill._, scalalib._
 
 object `package` extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
 
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
@@ -58,7 +58,7 @@ object `package` extends ScalaModule {
 // If you want to better understand how the various upstream tasks feed into
 // a task of interest, such as `run`, you can visualize their relationships via
 /** Usage
-> mill visualizePlan run
+> ./mill visualizePlan run
 */
 //
 // image::basic/VisualizePlanScala.svg[VisualizePlanScala.svg]
@@ -93,7 +93,7 @@ object `package` extends ScalaModule {
 
 /** Usage
 
-> mill run
+> ./mill run
 Foo2.value: <h1>hello2</h1>
 Foo.value: <h1>hello</h1>
 FooA.value: hello A
@@ -104,7 +104,7 @@ MyOtherResource: My Other Resource Contents
 my.custom.property: my-prop-value
 MY_CUSTOM_ENV: my-env-value
 
-> mill show assembly
+> ./mill show assembly
 ".../out/assembly.dest/out.jar"
 
 > ./out/assembly.dest/out.jar # mac/linux
@@ -125,7 +125,7 @@ my.custom.property: my-prop-value
 
 > sed -i.bak 's/Foo2 {/Foo2 { println(this + "hello")/g' custom-src/Foo2.scala
 
-> mill compile # demonstrate -deprecation/-Xfatal-warnings flags
+> ./mill compile # demonstrate -deprecation/-Xfatal-warnings flags
 error: object Foo2 { println(this + "hello")
 error:                       ^
 error: ...Implicit injection of + is deprecated. Convert to String to call +...

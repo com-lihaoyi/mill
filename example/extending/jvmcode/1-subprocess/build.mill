@@ -60,6 +60,6 @@ Contents of groovy-generated.html is <html><body><h1>Hello!</h1><p>Groovy!</p></
 */
 
 // As mentioned above, `defaultResolver().classpath` and `Jvm.runSubprocess` are an
-// alternative to `//| mvnDeps:`, providing you more flexibility to resolve dependencies
+// alternative to `//| mvnDeps`, providing you more flexibility to resolve dependencies
 // on-demand as part of your task graph only when necessary, and keeping it isolated from
 // the build in a subprocess preventing classpath collisions.

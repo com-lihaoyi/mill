@@ -16,15 +16,6 @@ object BuildGenUtil {
 
   def renderIrTrait(value: IrTrait): String = {
     import value.*
-    val jvmWorker = jvmId.fold("") { jvmId =>
-      val name = s"${baseModule}JvmWorker"
-      val setting = renderJvmWorker(name)
-      val typedef = renderJvmWorker(name, jvmId)
-
-      s"""$setting
-         |
-         |$typedef""".stripMargin
-    }
 
     s"""trait $baseModule ${renderExtends(moduleSupertypes)} {
        |
@@ -42,7 +33,7 @@ object BuildGenUtil {
        |
        |${renderRepositories(repositories)}
        |
-       |$jvmWorker
+       |${jvmId.fold("")(renderJvmId(_))}
        |}""".stripMargin
 
   }
@@ -343,9 +334,8 @@ object BuildGenUtil {
   }
 
   def renderExtends(supertypes: Seq[String]): String = supertypes match {
-    case Seq() => ""
-    case Seq(head) => s"extends $head"
-    case head +: tail => tail.mkString(s"extends $head with ", " with ", "")
+    case Seq() => "extends mill.Module"
+    case items => s"extends ${items.mkString(" with ")}"
   }
 
   def renderLicense(
@@ -356,10 +346,9 @@ object BuildGenUtil {
   def renderVersionControl(vc: IrVersionControl): String =
     s"VersionControl(${escapeOption(vc.url)}, ${escapeOption(vc.connection)}, ${escapeOption(vc.devConnection)}, ${escapeOption(vc.tag)})"
 
-  def renderJvmWorker(moduleName: String, jvmId: String): String =
-    s"""object $moduleName extends JvmWorkerModule {
-       |  def jvmId = "$jvmId"
-       |}""".stripMargin
+  def renderJvmId(jvmId: String): String =
+    s"""
+       |def jvmId = "$jvmId"""".stripMargin
 
   // TODO consider renaming to `renderOptionalDef` or `renderIfArgsNonEmpty`?
   def optional(construct: String, args: IterableOnce[String]): String =
@@ -385,7 +374,11 @@ object BuildGenUtil {
         // Note that the super def is called even when it's empty.
         // Some super functions can be called without parentheses, but we just add them here for simplicity.
         Some(args.iterator.drop(superLength).map(transform)
-          .mkString(s"super.$defName() ++ Seq(", ",", ")"))
+          .mkString(
+            (if (superArgs.nonEmpty) s"super.$defName() ++ " else "") + "Seq(",
+            ",",
+            ")"
+          ))
     } else
       Some(
         if (args.isEmpty)
@@ -402,17 +395,6 @@ object BuildGenUtil {
   ) =
     renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s"def $defName = " + _)
 
-  def renderSeqTaskDefWithSuper(
-      defName: String,
-      args: Seq[String],
-      superArgs: Seq[String] = Seq.empty,
-      elementType: String,
-      transform: String => String
-  ) =
-    renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s =>
-      s"def $defName = Task.Anon { $s }"
-    )
-
   def renderArtifactName(name: String, dirs: Seq[String]): String =
     if (dirs.nonEmpty && dirs.last == name) "" // skip default
     else s"def artifactName = ${escape(name)}"
@@ -421,19 +403,19 @@ object BuildGenUtil {
     optional("def bomMvnDeps = super.bomMvnDeps() ++ Seq", args)
 
   def renderMvnDeps(args: IterableOnce[String]): String =
-    optional("def mvnDeps = super.mvnDeps() ++ Seq", args)
+    optional("def mvnDeps = Seq", args)
 
   def renderModuleDeps(args: IterableOnce[String]): String =
     optional("def moduleDeps = super.moduleDeps ++ Seq", args)
 
   def renderCompileMvnDeps(args: IterableOnce[String]): String =
-    optional("def compileMvnDeps = super.compileMvnDeps() ++ Seq", args)
+    optional("def compileMvnDeps = Seq", args)
 
   def renderCompileModuleDeps(args: IterableOnce[String]): String =
     optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
 
   def renderRunMvnDeps(args: IterableOnce[String]): String =
-    optional("def runMvnDeps = super.runMvnDeps() ++ Seq", args)
+    optional("def runMvnDeps = Seq", args)
 
   def renderRunModuleDeps(args: IterableOnce[String]): String =
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)
@@ -458,20 +440,21 @@ object BuildGenUtil {
     ).getOrElse("")
 
   def renderRepositories(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
-    renderSeqTaskDefWithSuper(
-      "repositoriesTask",
+    renderSeqTargetDefWithSuper(
+      "repositories",
       args,
       superArgs,
-      "coursier.Repository",
+      "String",
       identity
     ).getOrElse("")
 
   def renderResources(args: IterableOnce[os.SubPath]): String =
     optional(
-      "def resources = Task.Sources { super.resources() ++ Seq(",
-      args.iterator.map(sub => s"PathRef(moduleDir / ${escape(sub.toString())})"),
+      """def resources = Task { super.resources() ++ customResources() }
+        |def customResources = Task.Sources(""".stripMargin,
+      args.iterator.map(sub => escape(sub.toString())),
       ", ",
-      ") }"
+      ")"
     )
 
   def renderPomPackaging(packaging: String): String =

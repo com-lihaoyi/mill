@@ -32,7 +32,7 @@ import scala.util.matching.Regex
  */
 trait JavaModule
     extends mill.define.Module
-    with WithJvmWorker
+    with WithJvmWorkerModule
     with TestModule.JavaModuleBase
     with TaskModule
     with RunModule
@@ -74,6 +74,19 @@ trait JavaModule
 
     override def javacOptions: T[Seq[String]] = Task { outer.javacOptions() }
     override def jvmWorker: ModuleRef[JvmWorkerModule] = outer.jvmWorker
+
+    def jvmId = outer.jvmId
+
+    def jvmIndexVersion = outer.jvmIndexVersion
+
+    /**
+     * Optional custom Java Home for the JvmWorker to use
+     *
+     * If this value is None, then the JvmWorker uses the same Java used to run
+     * the current mill instance.
+     */
+    def javaHome = outer.javaHome
+
     override def skipIdea: Boolean = outer.skipIdea
     override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
     override def sourcesFolders = outer.sourcesFolders
@@ -818,6 +831,7 @@ trait JavaModule
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
+        javaHome = javaHome().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         reporter = Task.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
@@ -1360,8 +1374,7 @@ trait JavaModule
   @internal
   private[mill] def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
     JvmBuildTarget(
-      javaHome = jvmWorker()
-        .javaHome()
+      javaHome = javaHome()
         .map(p => BspUri(p.path.toNIO))
         .orElse(Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p).toNIO))),
       javaVersion = Option(System.getProperty("java.version"))

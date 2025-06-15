@@ -2,6 +2,7 @@ package mill.androidlib
 
 import mill.*
 import mill.define.{PathRef, Task}
+import mill.define.BuildCtx
 
 @mill.api.experimental
 trait AndroidR8AppModule extends AndroidAppModule {
@@ -67,7 +68,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
       pf => androidProguardPath / pf
     }
     val userProguardFiles = proguardFilesFromBuildSettings.localFiles
-    mill.define.BuildCtx.withFilesystemCheckerDisabled {
+    BuildCtx.withFilesystemCheckerDisabled {
       (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(
         _
       )) ++ androidLibraryProguardConfigs()

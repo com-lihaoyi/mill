@@ -13,7 +13,7 @@ package build
 import mill._, scalalib._
 
 object `package` extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
   def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.4.0")
 
   def generatedSources: T[Seq[PathRef]] = Task {
@@ -95,15 +95,15 @@ object `package` extends ScalaModule {
 
 /** Usage
 
-> mill run --text hello
+> ./mill run --text hello
 text: hello
 MyDeps.value: List((com.lihaoyi,mainargs,0.4.0))
 my.line.count: 14
 
-> mill show lineCount
+> ./mill show lineCount
 14
 
-> mill printLineCount
+> ./mill printLineCount
 14
 */
 

@@ -3,7 +3,7 @@ package build
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
   def mvnDeps = Seq(
     mvn"com.lihaoyi::os-lib:0.10.7"
   )

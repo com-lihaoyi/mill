@@ -5,11 +5,12 @@ import mill.util.Jvm
 
 import kotlinlib.KotlinModule
 import kotlinlib.ktlint.KtlintModule
+import mill.define.BuildCtx
 
 object `package` extends KotlinModule with KtlintModule {
   def kotlinVersion = "1.9.24"
 
-  def ktlintConfig0 = Task.Source(Task.workspace / ".editorconfig")
+  def ktlintConfig0 = Task.Source(BuildCtx.workspaceRoot / ".editorconfig")
   def ktlintConfig = Some(ktlintConfig0())
 }
 

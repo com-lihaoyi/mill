@@ -30,7 +30,7 @@ object server extends TypeScriptModule {
 
 /** Usage
 
-> mill server.test
+> ./mill server.test
 ...
 ...Server listening on port 6000
 ...

@@ -286,14 +286,14 @@ object SbtBuildGenMain
   def getMillSourcePath(project: Project): Path = os.Path(project.projectDirectory)
 
   override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Project]): Seq[String] =
-    Seq("mill.Module") ++ getModuleSupertypes(cfg)
+    getModuleSupertypes(cfg)
 
   def getJavacOptions(buildInfo: BuildInfo): Seq[String] =
     buildInfo.javacOptions.getOrElse(Seq.empty)
 
   def getRepositories(buildInfo: BuildInfo): Seq[String] =
     buildInfo.resolvers.getOrElse(Seq.empty).map(resolver =>
-      s"coursier.maven.MavenRepository(${escape(resolver.root)})"
+      escape(resolver.root)
     )
 
   def getPublishVersion(buildInfo: BuildInfo): String | Null =

@@ -48,7 +48,7 @@ object `package` extends TypeScriptModule {
 
 /** Usage
 
-> mill run "added tags"
+> ./mill run "added tags"
 Compiling...
 Hello World!
 Running... added tags

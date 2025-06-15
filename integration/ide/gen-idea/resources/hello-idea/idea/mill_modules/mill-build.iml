@@ -10,7 +10,7 @@
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
-        <orderEntry type="library" name="scala-SDK-3.7.0" level="project"/>
+        <orderEntry type="library" name="scala-SDK-3.7.1" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="aircompressor-0.27.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="cache-util-2.1.25-M13.jar" level="project"/>
         <orderEntry type="library" name="common_2.13-4.13.4.jar" level="project"/>
@@ -78,8 +78,9 @@
         <orderEntry type="library" name="mill-libs-tabcomplete_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-testrunner-entrypoint.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-testrunner_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-vcs_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-moduledefs_3-0.11.4.jar" level="project"/>
+        <orderEntry type="library" name="mill-moduledefs_3-0.11.9.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
         <orderEntry type="library" name="os-lib_3-0.11.5-M9.jar" level="project"/>
         <orderEntry type="library" name="os-zip-0.11.5-M9.jar" level="project"/>
@@ -102,7 +103,7 @@
         <orderEntry type="library" scope="RUNTIME" name="scala-xml_2.13-2.3.0.jar" level="project"/>
         <orderEntry type="library" name="scala-xml_3-2.3.0.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-3.3.3.jar" level="project"/>
-        <orderEntry type="library" name="scala3-library_3-3.7.0.jar" level="project"/>
+        <orderEntry type="library" name="scala3-library_3-3.7.1.jar" level="project"/>
         <orderEntry type="library" name="scalameta_2.13-4.13.4.jar" level="project"/>
         <orderEntry type="library" name="scalap-2.13.13.jar" level="project"/>
         <orderEntry type="library" name="scalapb-runtime_2.13-0.11.15.jar" level="project"/>

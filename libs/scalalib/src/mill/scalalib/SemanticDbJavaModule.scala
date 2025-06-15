@@ -10,13 +10,15 @@ import mill.scalalib.api.{CompilationResult, JvmWorkerUtil}
 import mill.scalalib.internal.SemanticdbProcessor
 import mill.util.Version
 import mill.{T, Task}
+import mill.define.BuildCtx
 
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.api.internal.bsp.BspBuildTarget
 
 @experimental
-trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
+trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
+    with WithJvmWorkerModule {
   def jvmWorker: ModuleRef[JvmWorkerModule]
   def upstreamCompileOutput: T[Seq[CompilationResult]]
   def zincReportCachedProblems: T[Boolean]
@@ -120,6 +122,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
         sources = allSourceFiles().map(_.path),
         compileClasspath =
           (compileClasspath() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
+        javaHome = javaHome().map(_.path),
         javacOptions = javacOpts,
         reporter = None,
         reportCachedProblems = zincReportCachedProblems(),
@@ -129,7 +132,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi {
         BuildCtx.withFilesystemCheckerDisabled {
           SemanticDbJavaModule.copySemanticdbFiles(
             r.classes.path,
-            Task.workspace,
+            BuildCtx.workspaceRoot,
             Task.dest / "data"
           )
         }
