@@ -80,7 +80,6 @@ Bar running on Java 23.0.1
 
 import kotlinlib._
 
-
 object qux extends KotlinModule {
   def kotlinVersion = "2.0.20"
   def jvmId =

@@ -21,7 +21,6 @@ object JavaHomeTests extends TestSuite {
   }
 
   object HelloJavaJavaHome17Override extends TestRootModule {
-    
 
     object core extends JavaModule {
       def jvmId = "temurin:17.0.9"
@@ -32,7 +31,6 @@ object JavaHomeTests extends TestSuite {
   }
 
   object JavaJdk11DoesntCompile extends TestRootModule {
-    
 
     object javamodule extends JavaModule {
       def jvmId = "temurin:11.0.25"

@@ -204,7 +204,10 @@ class JvmWorkerImpl(
 
   private def filterJavacRuntimeOptions(opt: String): Boolean = opt.startsWith("-J")
 
-  private def getLocalOrCreateJavaTools(javaHome0: Option[os.Path], javacRuntimeOptions: Seq[String]): JavaTools = {
+  private def getLocalOrCreateJavaTools(
+      javaHome0: Option[os.Path],
+      javacRuntimeOptions: Seq[String]
+  ): JavaTools = {
     val javaHome = javaHome0.map(_.toNIO)
     val (javaCompiler, javaDoc) =
       // Local java compilers don't accept -J flags so when we put this together if we detect
@@ -406,20 +409,21 @@ class JvmWorkerImpl(
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
   )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
-    javaOnlyCompilerCache.withValue((javaHome, javacOptions.filter(filterJavacRuntimeOptions))) { compilers =>
-      compileInternal(
-        upstreamCompileOutput = upstreamCompileOutput,
-        sources = sources,
-        compileClasspath = compileClasspath,
-        javaHome: Option[os.Path],
-        javacOptions = javacOptions,
-        scalacOptions = Nil,
-        compilers = compilers,
-        reporter = reporter,
-        reportCachedProblems = reportCachedProblems,
-        incrementalCompilation = incrementalCompilation,
-        auxiliaryClassFileExtensions = Seq.empty[String]
-      )
+    javaOnlyCompilerCache.withValue((javaHome, javacOptions.filter(filterJavacRuntimeOptions))) {
+      compilers =>
+        compileInternal(
+          upstreamCompileOutput = upstreamCompileOutput,
+          sources = sources,
+          compileClasspath = compileClasspath,
+          javaHome: Option[os.Path],
+          javacOptions = javacOptions,
+          scalacOptions = Nil,
+          compilers = compilers,
+          reporter = reporter,
+          reportCachedProblems = reportCachedProblems,
+          incrementalCompilation = incrementalCompilation,
+          auxiliaryClassFileExtensions = Seq.empty[String]
+        )
     }
   }
 

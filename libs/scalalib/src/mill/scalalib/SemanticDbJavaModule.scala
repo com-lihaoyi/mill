@@ -13,7 +13,8 @@ import scala.util.Properties
 import mill.api.internal.bsp.BspBuildTarget
 
 @experimental
-trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi with WithJvmWorkerModule {
+trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
+    with WithJvmWorkerModule {
   def jvmWorker: ModuleRef[JvmWorkerModule]
   def upstreamCompileOutput: T[Seq[CompilationResult]]
   def zincReportCachedProblems: T[Boolean]
