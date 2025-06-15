@@ -196,7 +196,7 @@ jobs:
             install-android-sdk: false
             install-sbt: false
 
-          - java-version: 11
+          - java-version: 24
             millargs: "'example.thirdparty[{mockito,commons-io}].local.daemon'"
             install-android-sdk: false
             install-sbt: false
