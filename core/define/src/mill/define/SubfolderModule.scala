@@ -1,6 +1,7 @@
-package mill.main;
+package mill.define
+
+import mill.define.{Discover, ModuleCtx, Segments}
 import mill.*
-import mill.define.{ModuleCtx, Discover, Segments}
 
 object SubfolderModule {
   class Info(val millSourcePath0: os.Path, val segments: Seq[String]) {
