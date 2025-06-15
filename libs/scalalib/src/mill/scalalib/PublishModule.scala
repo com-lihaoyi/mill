@@ -14,6 +14,7 @@ import mill.scalalib.publish.SonatypeHelpers.{
 }
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 import os.Path
+import mill.define.BuildCtx
 
 /**
  * Configuration necessary for publishing a Scala module to Maven Central or similar
@@ -343,7 +344,7 @@ trait PublishModule extends JavaModule { outer =>
   ): Task.Command[Unit] = Task.Command {
     publishLocalTask(
       Task.Anon {
-        Option(localIvyRepo).map(os.Path(_, mill.define.BuildCtx.workspaceRoot))
+        Option(localIvyRepo).map(os.Path(_, BuildCtx.workspaceRoot))
       },
       sources,
       doc,
@@ -410,7 +411,7 @@ trait PublishModule extends JavaModule { outer =>
    */
   def publishM2Local(m2RepoPath: String = null): Task.Command[Seq[PathRef]] = m2RepoPath match {
     case null => Task.Command { publishM2LocalTask(Task.Anon { publishM2LocalRepoPath() })() }
-    case p => Task.Command { publishM2LocalTask(Task.Anon { os.Path(p, mill.define.BuildCtx.workspaceRoot) })() }
+    case p => Task.Command { publishM2LocalTask(Task.Anon { os.Path(p, BuildCtx.workspaceRoot) })() }
   }
 
   /**
@@ -428,7 +429,7 @@ trait PublishModule extends JavaModule { outer =>
    */
   def publishM2LocalRepoPath: Task[os.Path] = Task.Input {
     sys.props.get("maven.repo.local").map(os.Path(_))
-      .getOrElse(os.Path(os.home / ".m2", mill.define.BuildCtx.workspaceRoot)) / "repository"
+      .getOrElse(os.Path(os.home / ".m2", BuildCtx.workspaceRoot)) / "repository"
   }
 
   private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = Task.Anon {
@@ -519,7 +520,7 @@ trait PublishModule extends JavaModule { outer =>
       readTimeout,
       connectTimeout,
       Task.log,
-      mill.define.BuildCtx.workspaceRoot,
+      BuildCtx.workspaceRoot,
       Task.env,
       awaitTimeout,
       stagingRelease
@@ -634,7 +635,7 @@ object PublishModule extends ExternalModule with TaskModule {
       readTimeout,
       connectTimeout,
       Task.log,
-      mill.define.BuildCtx.workspaceRoot,
+      BuildCtx.workspaceRoot,
       Task.env,
       awaitTimeout,
       stagingRelease

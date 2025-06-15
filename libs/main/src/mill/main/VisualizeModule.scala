@@ -11,6 +11,7 @@ import mill.api.{Result}
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
+import mill.define.BuildCtx
 
 object VisualizeModule extends ExternalModule {
   def repositories: Seq[Repository] = Seq(
@@ -161,7 +162,7 @@ object VisualizeModule extends ExternalModule {
             stdout = os.Inherit
           )
 
-          mill.define.BuildCtx.withFilesystemCheckerDisabled {
+          BuildCtx.withFilesystemCheckerDisabled {
             os.list(dest).sorted.map(PathRef(_))
           }
         }

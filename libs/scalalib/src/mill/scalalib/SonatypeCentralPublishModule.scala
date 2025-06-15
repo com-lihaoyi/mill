@@ -20,6 +20,7 @@ import mill.scalalib.publish.SonatypeHelpers.{
   PASSWORD_ENV_VARIABLE_NAME,
   USERNAME_ENV_VARIABLE_NAME
 }
+import mill.define.BuildCtx
 
 @experimental
 trait SonatypeCentralPublishModule extends PublishModule {
@@ -51,7 +52,7 @@ trait SonatypeCentralPublishModule extends PublishModule {
         connectTimeout = sonatypeCentralConnectTimeout(),
         readTimeout = sonatypeCentralReadTimeout(),
         log = Task.log,
-        workspace = mill.define.BuildCtx.workspaceRoot,
+        workspace = BuildCtx.workspaceRoot,
         env = Task.env,
         awaitTimeout = sonatypeCentralAwaitTimeout()
       )
@@ -104,7 +105,7 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
       log = Task.log,
-      workspace = mill.define.BuildCtx.workspaceRoot,
+      workspace = BuildCtx.workspaceRoot,
       env = Task.env,
       awaitTimeout = awaitTimeout
     )

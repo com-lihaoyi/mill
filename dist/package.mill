@@ -7,7 +7,7 @@ import mill.define.ModuleRef
 import mill.util.Jvm
 //import de.tobiasroeser.mill.vcs.version.VcsVersion
 import millbuild.*
-
+import mill.define.BuildCtx
 import scala.util.Using
 
 trait DistModule extends Module {
@@ -54,7 +54,7 @@ trait DistModule extends Module {
   }
 
   def installLocalTask(binFile: Task[String], ivyRepo: String = null): Task[os.Path] = Task.Anon {
-    val targetFile = os.Path(binFile(), mill.define.BuildCtx.workspaceRoot)
+    val targetFile = os.Path(binFile(), BuildCtx.workspaceRoot)
     if (os.exists(targetFile))
       Task.log.info(s"Overwriting existing local Mill binary at ${targetFile}")
     os.copy.over(executable().path, targetFile, createFolders = true)
@@ -172,7 +172,7 @@ object `package` extends MillJavaModule with DistModule {
     args().value match {
       case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dist.run")
       case wd0 +: rest =>
-        val wd = os.Path(wd0, mill.define.BuildCtx.workspaceRoot)
+        val wd = os.Path(wd0, BuildCtx.workspaceRoot)
         os.makeDir.all(wd)
         try {
           os.call(
@@ -189,8 +189,8 @@ object `package` extends MillJavaModule with DistModule {
     }
   }
 
-  def millBootstrap = Task.Source(mill.define.BuildCtx.workspaceRoot / "mill")
-  def millBootstrapBat = Task.Source(mill.define.BuildCtx.workspaceRoot / "mill.bat")
+  def millBootstrap = Task.Source(BuildCtx.workspaceRoot / "mill")
+  def millBootstrapBat = Task.Source(BuildCtx.workspaceRoot / "mill.bat")
 
   def prepareBootstrapLauncher(
       bootstrap: os.Path,
@@ -227,7 +227,7 @@ object `package` extends MillJavaModule with DistModule {
 
   def examplePathsWithArtifactName = Task {
     for (pr <- examplePathsWithArtifactName0()) yield {
-      val example = pr.path.subRelativeTo(mill.define.BuildCtx.workspaceRoot)
+      val example = pr.path.subRelativeTo(BuildCtx.workspaceRoot)
       val artifactName = example.segments.mkString("-")
       (pr, s"${build.dist.artifactFileNamePrefix()}-$artifactName")
     }

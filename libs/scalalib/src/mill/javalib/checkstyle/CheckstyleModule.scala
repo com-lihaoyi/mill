@@ -4,6 +4,7 @@ import mill._
 import mill.define.{PathRef}
 import mill.scalalib.{DepSyntax, JavaModule}
 import mill.util.Jvm
+import mill.define.BuildCtx
 
 /**
  * Performs quality checks on Java source files using [[https://checkstyle.org/ Checkstyle]].
@@ -92,7 +93,7 @@ trait CheckstyleModule extends JavaModule {
    * Checkstyle configuration file. Defaults to `checkstyle-config.xml`.
    */
   def checkstyleConfig: T[PathRef] = Task.Source {
-    mill.define.BuildCtx.workspaceRoot / "checkstyle-config.xml"
+    BuildCtx.workspaceRoot / "checkstyle-config.xml"
   }
 
   /**

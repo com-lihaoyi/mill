@@ -7,6 +7,7 @@
 
 package build
 import mill._
+import mill.define.BuildCtx
 
 trait PythonModule extends Module {
   def moduleDeps: Seq[PythonModule] = Nil
@@ -34,14 +35,14 @@ trait PythonModule extends Module {
     os.call(
       (pythonExe().path, "-m", "mypy", "--strict", sources().path),
       stdout = os.Inherit,
-      cwd = mill.define.BuildCtx.workspaceRoot
+      cwd = BuildCtx.workspaceRoot
     )
   }
 
   def gatherScripts(upstream: Seq[(PathRef, PythonModule)]) = {
     for ((sourcesFolder, mod) <- upstream) {
       val destinationPath = os.pwd / mod.moduleDir.subRelativeTo(build.moduleDir)
-      mill.define.BuildCtx.withFilesystemCheckerDisabled {
+      BuildCtx.withFilesystemCheckerDisabled {
         os.copy.over(sourcesFolder.path / os.up, destinationPath)
       }
     }

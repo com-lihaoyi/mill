@@ -6,6 +6,7 @@ import mill.scalalib.Assembly.Rule
 import mill.scalalib.ScalaModule
 import mill.util.Jvm
 import millbuild.*
+import mill.define.BuildCtx
 
 object `package` extends MillPublishScalaModule {
 
@@ -20,7 +21,7 @@ object `package` extends MillPublishScalaModule {
       build.dist.examplePathsWithArtifactName().map { case (pathRef, str) =>
         val downloadUrl =
           s"${build.millDownloadUrl()}/$str.zip"
-        val subPath = pathRef.path.subRelativeTo(mill.define.BuildCtx.workspaceRoot / "example")
+        val subPath = pathRef.path.subRelativeTo(BuildCtx.workspaceRoot / "example")
         (subPath, downloadUrl)
       }
 

@@ -37,7 +37,7 @@ object app extends AndroidNativeAppModule { // <1>
 
   def androidExternalNativeLibs = Task { // <2>
     Seq(
-      PathRef(mill.define.BuildCtx.workspaceRoot / "app/src/main/cpp/native-lib.cpp")
+      PathRef(BuildCtx.workspaceRoot / "app/src/main/cpp/native-lib.cpp")
     )
   }
 

@@ -12,6 +12,7 @@ import mill.api.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
 import mill.define.{PathRef, Task}
 import mill.api.internal.{ScalaModuleApi, ScalaPlatform, internal}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
+import mill.define.BuildCtx
 
 // this import requires scala-reflect library to be on the classpath
 // it was duplicated to scala3-compiler, but is that too powerful to add as a dependency?
@@ -610,11 +611,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       if (isMixedProject) Seq.empty else Seq("-Ystop-after:semanticdb-typer")
 
     val additionalScalacOptions = if (JvmWorkerUtil.isScala3(sv)) {
-      Seq("-Xsemanticdb", s"-sourceroot:${mill.define.BuildCtx.workspaceRoot}")
+      Seq("-Xsemanticdb", s"-sourceroot:${BuildCtx.workspaceRoot}")
     } else {
       Seq(
         "-Yrangepos",
-        s"-P:semanticdb:sourceroot:${mill.define.BuildCtx.workspaceRoot}"
+        s"-P:semanticdb:sourceroot:${BuildCtx.workspaceRoot}"
       ) ++ stopAfterSemanticDbOpts
     }
 
@@ -650,7 +651,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       .map(compileRes =>
         SemanticDbJavaModule.copySemanticdbFiles(
           compileRes.classes.path,
-          mill.define.BuildCtx.workspaceRoot,
+          BuildCtx.workspaceRoot,
           Task.dest / "data"
         )
       )

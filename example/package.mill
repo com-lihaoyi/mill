@@ -12,6 +12,7 @@ import mill.define.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
+import mill.define.BuildCtx
 
 object `package` extends Module {
   def exampleModules: Seq[ExampleCrossModule] = moduleInternal
@@ -247,7 +248,7 @@ object `package` extends Module {
     def rendered = Task {
       var seenCode = false
       var seenFrontMatter = false
-      val examplePath = moduleDir.subRelativeTo(mill.define.BuildCtx.workspaceRoot)
+      val examplePath = moduleDir.subRelativeTo(BuildCtx.workspaceRoot)
       val frontMatter = parsed().takeWhile(_._1 == "yaml").map(_._2).mkString("\n")
       val withoutFrontMatter = parsed().dropWhile(_._1 == "yaml")
 

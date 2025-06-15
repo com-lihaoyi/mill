@@ -8,6 +8,7 @@ import mill.javalib.JavaModule
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.util.Tasks
 import mill.util.Jvm
+import mill.define.BuildCtx
 
 /**
  * Performs formatting checks on Kotlin source files using [[https://pinterest.github.io/ktlint/latest/install/integrations/ Ktlint]].
@@ -37,7 +38,7 @@ trait KtlintModule extends JavaModule {
     )
   }
 
-  def ktlintConfig0 = Task.Source(mill.define.BuildCtx.workspaceRoot / ".editorconfig")
+  def ktlintConfig0 = Task.Source(BuildCtx.workspaceRoot / ".editorconfig")
 
   /**
    * Ktlint configuration file.
@@ -123,7 +124,7 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       .filter(f => os.exists(f) && (f.ext == "kt" || f.ext == "kts"))
       .map(_.toString())
 
-    val exitCode = mill.define.BuildCtx.withFilesystemCheckerDisabled {
+    val exitCode = BuildCtx.withFilesystemCheckerDisabled {
       Jvm.callProcess(
         mainClass = "com.pinterest.ktlint.Main",
         classPath = classPath.map(_.path).toVector,

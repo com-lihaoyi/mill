@@ -15,6 +15,7 @@ import mill.define.Cross
 import mill.testrunner.TestResult
 import millbuild.*
 import upickle.implicits.namedTuples.default.given
+import mill.define.BuildCtx
 
 object `package` extends mill.Module {
   // We compile the test code once and then offer multiple modes to
@@ -114,7 +115,7 @@ object `package` extends mill.Module {
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkEnv = super.forkEnv() ++ Seq(
-      "MILL_PROJECT_ROOT" -> mill.define.BuildCtx.workspaceRoot.toString,
+      "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot.toString,
       "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
       "TEST_KOTLIN_VERSION" -> Deps.kotlinCompiler.version
     )

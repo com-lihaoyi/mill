@@ -3,7 +3,7 @@ package mill.scalalib
 import java.lang.reflect.Modifier
 
 import scala.util.control.NonFatal
-
+import mill.define.BuildCtx
 import mainargs.arg
 import mill.api.Result
 import mill.api.internal.RunModuleApi
@@ -46,11 +46,11 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    */
   def allForkEnv: T[Map[String, String]] = Task {
     forkEnv() ++ Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> mill.define.BuildCtx.workspaceRoot.toString
+      EnvVars.MILL_WORKSPACE_ROOT -> BuildCtx.workspaceRoot.toString
     )
   }
 
-  def forkWorkingDir: T[os.Path] = Task { mill.define.BuildCtx.workspaceRoot }
+  def forkWorkingDir: T[os.Path] = Task { BuildCtx.workspaceRoot }
 
   /**
    * All classfiles and resources including upstream modules and dependencies
@@ -307,7 +307,7 @@ object RunModule {
       }
       val env = Option(forkEnv).getOrElse(forkEnv0)
 
-      mill.define.BuildCtx.withFilesystemCheckerDisabled {
+      BuildCtx.withFilesystemCheckerDisabled {
         if (background) {
           val (stdout, stderr) = if (runBackgroundLogToConsole) {
             // Hack to forward the background subprocess output to the Mill server process

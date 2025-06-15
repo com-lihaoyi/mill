@@ -3,6 +3,7 @@ package mill.contrib.scoverage
 import mill.api.Result
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
 import mill.define.{Evaluator, Module, SelectMode, Task}
+import mill.define.BuildCtx
 import mill.*
 import os.Path
 
@@ -105,7 +106,7 @@ trait ScoverageReport extends Module {
       scoverageReportWorkerModule
         .scoverageReportWorker()
         .bridge(workerModule.scoverageToolsClasspath())
-        .report(reportType, sourcePaths, dataPaths, mill.define.BuildCtx.workspaceRoot)
+        .report(reportType, sourcePaths, dataPaths, BuildCtx.workspaceRoot)
       PathRef(Task.dest)
     }
   }

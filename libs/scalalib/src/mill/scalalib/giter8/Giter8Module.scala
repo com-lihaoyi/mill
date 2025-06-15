@@ -6,6 +6,7 @@ import mill.util.Jvm
 import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib._
 import mill.util.BuildInfo
+import mill.define.BuildCtx
 
 object Giter8Module extends ExternalModule with Giter8Module {
   lazy val millDiscover = Discover[this.type]
@@ -36,7 +37,7 @@ trait Giter8Module extends CoursierModule {
       mainClass = "giter8.Giter8",
       classPath = giter8Dependencies.map(_.path).toVector,
       mainArgs = args,
-      cwd = mill.define.BuildCtx.workspaceRoot,
+      cwd = BuildCtx.workspaceRoot,
       stdin = os.Inherit,
       stdout = os.Inherit
     )

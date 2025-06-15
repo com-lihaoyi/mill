@@ -4,6 +4,7 @@ import mill._
 import mill.define.{PathRef}
 import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.util.Jvm
+import mill.define.BuildCtx
 
 /**
  * Performs quality checks on Kotlin source files using [[https://detekt.dev// Detekt]].
@@ -21,7 +22,7 @@ trait DetektModule extends KotlinModule {
 
   private def detekt0() = Task.Anon {
 
-    val args = detektOptions() ++ Seq("-i", mill.define.BuildCtx.workspaceRoot.toString()) ++
+    val args = detektOptions() ++ Seq("-i", BuildCtx.workspaceRoot.toString()) ++
       Seq("-c", detektConfig().path.toString())
 
     Task.log.info("running detekt ...")
@@ -70,7 +71,7 @@ trait DetektModule extends KotlinModule {
   /**
    * Detekt configuration file. Defaults to `detekt-config.yml`.
    */
-  def detektConfig: T[PathRef] = Task.Source(mill.define.BuildCtx.workspaceRoot / "detekt-config.yml")
+  def detektConfig: T[PathRef] = Task.Source(BuildCtx.workspaceRoot / "detekt-config.yml")
 
   /**
    * Detekt version.
