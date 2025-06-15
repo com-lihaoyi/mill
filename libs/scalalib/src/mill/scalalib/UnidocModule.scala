@@ -65,6 +65,7 @@ trait UnidocModule extends ScalaModule {
       scalaOrganization(),
       scalaDocClasspath(),
       scalacPluginClasspath(),
+      javaHome().map(_.path),
       options ++ unidocSourceFiles0.map(_.path.toString)
     ) match {
       case true => PathRef(Task.dest)

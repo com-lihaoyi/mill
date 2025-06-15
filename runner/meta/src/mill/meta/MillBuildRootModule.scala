@@ -282,6 +282,7 @@ trait MillBuildRootModule()(implicit
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = Seq.from(allSourceFiles().map(_.path)),
         compileClasspath = compileClasspath().map(_.path),
+        javaHome = javaHome().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         scalaVersion = scalaVersion(),
         scalaOrganization = scalaOrganization(),

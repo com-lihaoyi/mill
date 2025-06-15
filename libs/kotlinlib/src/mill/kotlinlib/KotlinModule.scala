@@ -219,7 +219,7 @@ trait KotlinModule extends JavaModule { outer =>
 
       os.call(
         cmd = (
-          Jvm.javaExe(jvmWorker().javaHome().map(_.path)),
+          Jvm.javaExe(javaHome().map(_.path)),
           "-jar",
           dokkaCliClasspath().head.path.toString(),
           options
@@ -305,6 +305,7 @@ trait KotlinModule extends JavaModule { outer =>
           upstreamCompileOutput = updateCompileOutput,
           javaSourceFiles = javaSourceFiles,
           compileCp = compileCp,
+          javaHome = javaHome().map(_.path),
           javacOptions = javacOptions(),
           compileProblemReporter = ctx.reporter(hashCode),
           reportOldProblems = internalReportOldProblems()
@@ -394,6 +395,7 @@ trait KotlinModule extends JavaModule { outer =>
       upstreamCompileOutput: Seq[CompilationResult],
       javaSourceFiles: Seq[os.Path],
       compileCp: Seq[os.Path],
+      javaHome: Option[os.Path],
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
       reportOldProblems: Boolean
@@ -402,6 +404,7 @@ trait KotlinModule extends JavaModule { outer =>
       upstreamCompileOutput = upstreamCompileOutput,
       sources = javaSourceFiles,
       compileClasspath = compileCp,
+      javaHome = javaHome,
       javacOptions = javacOptions,
       reporter = compileProblemReporter,
       reportCachedProblems = reportOldProblems,

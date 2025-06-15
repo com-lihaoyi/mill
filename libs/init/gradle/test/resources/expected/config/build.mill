@@ -52,9 +52,5 @@ object `package` extends mill.Module {
 
 trait BaseModule extends MavenModule {
 
-  def jvmWorker = mill.define.ModuleRef(BaseModuleJvmWorker)
-
-  object BaseModuleJvmWorker extends JvmWorkerModule {
-    def jvmId = "11"
-  }
+  def jvmId = "11"
 }

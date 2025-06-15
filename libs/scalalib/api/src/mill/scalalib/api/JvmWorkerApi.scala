@@ -13,6 +13,7 @@ trait JvmWorkerApi {
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
       compileClasspath: Seq[os.Path],
+      javaHome: Option[os.Path],
       javacOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
@@ -24,6 +25,7 @@ trait JvmWorkerApi {
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
       compileClasspath: Seq[os.Path],
+      javaHome: Option[os.Path],
       javacOptions: Seq[String],
       scalaVersion: String,
       scalaOrganization: String,
@@ -41,6 +43,7 @@ trait JvmWorkerApi {
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      javaHome: Option[os.Path],
       args: Seq[String]
   )(using ctx: JvmWorkerApi.Ctx): Boolean
 

@@ -16,15 +16,6 @@ object BuildGenUtil {
 
   def renderIrTrait(value: IrTrait): String = {
     import value.*
-    val jvmWorker = jvmId.fold("") { jvmId =>
-      val name = s"${baseModule}JvmWorker"
-      val setting = renderJvmWorker(name)
-      val typedef = renderJvmWorker(name, jvmId)
-
-      s"""$setting
-         |
-         |$typedef""".stripMargin
-    }
 
     s"""trait $baseModule ${renderExtends(moduleSupertypes)} {
        |
@@ -42,7 +33,7 @@ object BuildGenUtil {
        |
        |${renderRepositories(repositories)}
        |
-       |$jvmWorker
+       |${jvmId.fold("")(renderJvmId(_))}
        |}""".stripMargin
 
   }
@@ -355,10 +346,9 @@ object BuildGenUtil {
   def renderVersionControl(vc: IrVersionControl): String =
     s"VersionControl(${escapeOption(vc.url)}, ${escapeOption(vc.connection)}, ${escapeOption(vc.devConnection)}, ${escapeOption(vc.tag)})"
 
-  def renderJvmWorker(moduleName: String, jvmId: String): String =
-    s"""object $moduleName extends JvmWorkerModule {
-       |  def jvmId = "$jvmId"
-       |}""".stripMargin
+  def renderJvmId(jvmId: String): String =
+    s"""
+       |def jvmId = "$jvmId"""".stripMargin
 
   // TODO consider renaming to `renderOptionalDef` or `renderIfArgsNonEmpty`?
   def optional(construct: String, args: IterableOnce[String]): String =

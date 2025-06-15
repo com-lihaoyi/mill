@@ -200,9 +200,5 @@ trait BaseModule extends SbtModule with PublishModule {
     "https://oss.sonatype.org/content/repositories/snapshots"
   )
 
-  def jvmWorker = mill.define.ModuleRef(BaseModuleJvmWorker)
-
-  object BaseModuleJvmWorker extends JvmWorkerModule {
-    def jvmId = "11"
-  }
+  def jvmId = "11"
 }

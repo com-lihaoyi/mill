@@ -38,7 +38,7 @@ object libraries {
 }
 
 trait MockitoModule extends MavenModule {
-  override def jvmWorker = ModuleRef(build.JvmWorkerJava11)
+  def jvmId = "temurin:11.0.24"
   def javacOptions = Seq("-encoding", "UTF-8")
   def testModuleDeps: Seq[JavaModule] = Nil
   def testMvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
@@ -71,10 +71,6 @@ trait MockitoModule extends MavenModule {
 }
 
 object `package` extends MockitoModule {
-
-  object JvmWorkerJava11 extends JvmWorkerModule {
-    def jvmId = "temurin:11.0.24"
-  }
 
   def compileMvnDeps = Seq(
     libraries.hamcrest,

@@ -22,10 +22,6 @@ object JvmWorkerModule extends ExternalModule with JvmWorkerModule with Coursier
  * A module managing an in-memory Zinc Scala incremental compiler
  */
 trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
-  def jvmId: T[String] = Task[String] { "" }
-
-  def jvmIndexVersion: T[String] =
-    mill.scalalib.api.Versions.coursierJvmIndexVersion
 
   def classpath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
@@ -53,31 +49,6 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
 
   def zincLogDebug: T[Boolean] = Task.Input(Task.ctx().log.debugEnabled)
 
-  def useShortJvmPath(jvmId: String): Boolean =
-    Properties.isWin && (
-      jvmId.startsWith("graalvm") || jvmId.startsWith("liberica-nik")
-    )
-
-  /**
-   * Optional custom Java Home for the JvmWorker to use
-   *
-   * If this value is None, then the JvmWorker uses the same Java used to run
-   * the current mill instance.
-   */
-  def javaHome: T[Option[PathRef]] = Task {
-    Option(jvmId()).filter(_ != "").map { id =>
-      val path = mill.util.Jvm.resolveJavaHome(
-        id = id,
-        coursierCacheCustomizer = coursierCacheCustomizer(),
-        ctx = Some(Task.ctx()),
-        jvmIndexVersion = jvmIndexVersion(),
-        useShortPaths = useShortJvmPath(id)
-      ).get
-      // Java home is externally managed, better revalidate it at least once
-      PathRef(path, quick = true).withRevalidateOnce
-    }
-  }
-
   def worker: Worker[JvmWorkerApi] = Task.Worker {
     val jobs = Task.ctx().jobs
 
@@ -97,7 +68,6 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       classOf[Int], // jobs
       classOf[Boolean], // compileToJar
       classOf[Boolean], // zincLogDebug
-      classOf[Option[PathRef]], // javaHome
       classOf[() => Unit]
     )
       .newInstance(
@@ -109,7 +79,6 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
         jobs,
         java.lang.Boolean.FALSE,
         java.lang.Boolean.valueOf(zincLogDebug()),
-        javaHome(),
         () => cl.close()
       )
     instance.asInstanceOf[JvmWorkerApi]
