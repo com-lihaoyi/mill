@@ -15,14 +15,14 @@ object `package` extends JavaModule {
 
 /** Usage
 
-> mill test
+> ./mill test
 ...HelloJettyTest.testHelloJetty finished...
 
-> mill runBackground
+> ./mill runBackground
 
 > curl http://localhost:8085
 ...<h1>Hello, World!</h1>...
 
-> mill clean runBackground
+> ./mill clean runBackground
 
 */

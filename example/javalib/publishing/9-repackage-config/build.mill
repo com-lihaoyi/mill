@@ -38,12 +38,12 @@ object qux extends MyModule
 
 /** Usage
 
-> mill foo.run
+> ./mill foo.run
 Foo.value: <h1>hello</h1>
 Bar.value: <p>world</p>
 Qux.value: 31337
 
-> mill show foo.repackagedJar
+> ./mill show foo.repackagedJar
 ".../out/foo/repackagedJar.dest/out.jar"
 
 > ./out/foo/repackagedJar.dest/out.jar

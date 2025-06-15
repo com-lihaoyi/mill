@@ -48,7 +48,7 @@ object `package` extends KotlinModule {
 // If you want to better understand how the various upstream tasks feed into
 // a task of interest, such as `run`, you can visualize their relationships via
 /** Usage
-> mill visualizePlan run
+> ./mill visualizePlan run
 */
 //
 // image::basic/VisualizePlanJava.svg[VisualizePlanJava.svg]

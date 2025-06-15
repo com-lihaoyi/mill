@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.define.{Discover, Task}
-import mill.util.TestGraphs
+import mill.define.TestGraphs
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.{PathRef, exec}
 import utest.*

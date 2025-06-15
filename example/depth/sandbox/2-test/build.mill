@@ -63,9 +63,17 @@ object bar extends MyModule
 // one another, which helps keep tests stable and deterministic even when run in
 // parallel
 //
-// Like Mill's Task sandboxing, Mill's Test sandboxing does not guard against
-// intentional misbehavior: tests can still walk the filesystem from the
-// sandbox folder via `..` or from the root folder `/` or home folder `~/`.
-// Nevertheless, it should add some simple guardrails to prevent many common
-// causes of inter-test interference, letting your test suite run in parallel both
-// quickly and reliably
+// === Disabling Test Sandboxing
+//
+// Test sandboxing can be disabled by setting `def testSandboxWorkingDir = false`
+// on your test module, which makes your unit tests run in the root of your
+// project workspace, with full access to the project files on disk.
+//
+// Disabling the test sandbox can be useful when migrating existing projects, as
+// other build tools like Maven, Gradle or SBT do not enforce such sandboxes by default,
+// so many tests are written with the assumption they run in the project root. But
+// it is advisable to use or adopt the default config of `def testSandboxWorkingDir = true`
+// where possible as that will ensure that inputs to tests are properly tracked by
+// the build tool, so features like xref:cli/flags.adoc#_watch_w[] or
+// xref:large/selective-execution.adoc[] are able to precisely determine when a test needs
+// to be run and when it can be skipped.

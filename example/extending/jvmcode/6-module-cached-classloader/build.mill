@@ -56,14 +56,14 @@ object bar extends JavaModule
 
 /** Usage
 
-> mill '{foo1,foo2,foo3}.run' # 3 classloaders are setup, one is torn down due to maxCacheSize
+> ./mill '{foo1,foo2,foo3}.run' # 3 classloaders are setup, one is torn down due to maxCacheSize
 Setting up Classloader
 Setting up Classloader
 Setting up Classloader
 Tearing down Classloader
 Foo.value: HELLO
 
-> mill clean # mill clean tears down the 2 remaining classloaders
+> ./mill clean # mill clean tears down the 2 remaining classloaders
 Tearing down Classloader
 Tearing down Classloader
 

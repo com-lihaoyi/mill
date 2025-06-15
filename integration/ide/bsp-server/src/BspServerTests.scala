@@ -21,26 +21,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
   override protected def workspaceSourcePath: os.Path =
     super.workspaceSourcePath / "project"
 
-  def transitiveDependenciesSubstitutions(
-      dependency: coursierapi.Dependency,
-      filter: coursierapi.Dependency => Boolean
-  ): Seq[(String, String)] = {
-    val fetchRes = coursierapi.Fetch.create()
-      .addDependencies(dependency)
-      .fetchResult()
-    fetchRes.getDependencies.asScala
-      .filter(filter)
-      .map { dep =>
-        val organization = dep.getModule.getOrganization
-        val name = dep.getModule.getName
-        val prefix = (organization.split('.') :+ name).mkString("/")
-        def basePath(version: String): String =
-          s"$prefix/$version/$name-$version"
-        basePath(dep.getVersion) -> basePath(s"<$name-version>")
-      }
-      .toSeq
-  }
-
   def tests: Tests = Tests {
     test("requestSnapshots") - integrationTest { tester =>
       import tester.*
@@ -56,25 +36,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
         workspacePath,
         millTestSuiteEnv
       ) { (buildServer, initRes) =>
-        val scala2Version = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-        val scala3Version = sys.props.getOrElse("MILL_SCALA_3_NEXT_VERSION", ???)
-        val scala2TransitiveSubstitutions = transitiveDependenciesSubstitutions(
-          coursierapi.Dependency.of(
-            "org.scala-lang",
-            "scala-compiler",
-            scala2Version
-          ),
-          _.getModule.getOrganization != "org.scala-lang"
-        )
-        val scala3TransitiveSubstitutions = transitiveDependenciesSubstitutions(
-          coursierapi.Dependency.of(
-            "org.scala-lang",
-            "scala3-compiler_3",
-            scala3Version
-          ),
-          _.getModule.getOrganization != "org.scala-lang"
-        )
-
         val kotlinVersion = sys.props.getOrElse("TEST_KOTLIN_VERSION", ???)
         val kotlinTransitiveSubstitutions = transitiveDependenciesSubstitutions(
           coursierapi.Dependency.of(
@@ -86,14 +47,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val normalizedLocalValues = normalizeLocalValuesForTesting(workspacePath) ++
-          scala2TransitiveSubstitutions ++
-          scala3TransitiveSubstitutions ++
-          kotlinTransitiveSubstitutions ++
-          Seq(
-            scala2Version -> "<scala-version>",
-            scala3Version -> "<scala3-version>",
-            kotlinVersion -> "<kotlin-version>"
-          )
+          scalaVersionNormalizedValues() ++
+          kotlinVersionNormalizedValues()
 
         compareWithGsonSnapshot(
           initRes,
@@ -111,14 +66,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
-        val targetIds = buildTargets
-          .getTargets
-          .asScala
-          .filter(_.getDisplayName != "errored.exception")
-          .filter(_.getDisplayName != "errored.compilation-error")
-          .filter(_.getDisplayName != "delayed")
-          .map(_.getId)
-          .asJava
+        val targetIds = buildTargets.getTargets.asScala.map(_.getId).asJava
         val metaBuildTargetId = new b.BuildTargetIdentifier(
           (workspacePath / "mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
         )
@@ -190,7 +138,23 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         // compile
         compareWithGsonSnapshot(
-          buildServer.buildTargetCompile(new b.CompileParams(targetIds)).get(),
+          buildServer
+            .buildTargetCompile(
+              new b.CompileParams(
+                targetIds
+                  .asScala
+                  // No need to attempt to compile the failing targets.
+                  // The snapshot data for this request basically only contains
+                  // a global status, errored or success. By excluding these,
+                  // we get a success status, and ensure compilation succeeds
+                  // as expected for all other targets.
+                  .filter(!_.getUri.endsWith("/errored/exception"))
+                  .filter(!_.getUri.endsWith("/errored/compilation-error"))
+                  .filter(!_.getUri.endsWith("/delayed"))
+                  .asJava
+              )
+            )
+            .get(),
           snapshotsPath / "build-targets-compile.json",
           normalizedLocalValues = normalizedLocalValues
         )
@@ -339,12 +303,14 @@ object BspServerTests extends UtestIntegrationTestSuite {
       compareLogWithSnapshot(
         logs,
         snapshotsPath / "logging",
-        // ignoring compilation warnings that might go away in the future
         ignoreLine = {
+          // ignore watcher logs
+          val watchGlob = TestRunnerUtils.matchesGlob("[bsp-watch] *")
+          // ignoring compilation warnings that might go away in the future
           val warnGlob = TestRunnerUtils.matchesGlob("[bsp-init-build.mill-*] [warn] *")
           val waitingGlob = TestRunnerUtils.matchesGlob("[*] Another Mill process is running *")
           s =>
-            warnGlob(s) || waitingGlob(s) ||
+            watchGlob(s) || warnGlob(s) || waitingGlob(s) ||
               // Ignoring this one, that sometimes comes out of order.
               // If the request hasn't been cancelled, we'd see extra lines making the
               // test fail anyway.

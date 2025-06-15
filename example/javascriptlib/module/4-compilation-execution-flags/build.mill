@@ -23,7 +23,7 @@ object foo extends TypeScriptModule {
 
 /** Usage
 
-> mill foo.run
+> ./mill foo.run
 Debugger listening on ws://...
 ...
 Foo:

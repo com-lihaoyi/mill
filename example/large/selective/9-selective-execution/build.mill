@@ -82,7 +82,7 @@ object qux extends MyModule
 
 /** Usage
 
-> mill __.test
+> ./mill __.test
 error: Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
 Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 Test run qux.QuxTests finished: 1 failed, 0 ignored, 1 total, ...
@@ -105,15 +105,15 @@ Test run qux.QuxTests finished: 1 failed, 0 ignored, 1 total, ...
 
 /** Usage
 
-> mill selective.prepare __.test
+> ./mill selective.prepare __.test
 
 > echo '//' >> bar/src/bar/Bar.java # emulate the code change
 
-> mill selective.resolve __.test # dry-run selective execution to show what would get run
+> ./mill selective.resolve __.test # dry-run selective execution to show what would get run
 foo.test.testForked
 bar.test.testForked
 
-> mill selective.run __.test
+> ./mill selective.run __.test
 Test run foo.FooTests finished: 0 failed, 0 ignored, 1 total, ...
 Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 
@@ -148,10 +148,10 @@ Test run bar.BarTests finished: 0 failed, 0 ignored, 1 total, ...
 
 /** Usage
 
-> mill selective.resolveChanged __.test
+> ./mill selective.resolveChanged __.test
 bar.sources
 
-> mill selective.resolveTree __.test
+> ./mill selective.resolveTree __.test
 {
   "bar.sources": {
     "bar.allSources": {

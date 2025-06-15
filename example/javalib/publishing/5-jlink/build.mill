@@ -45,9 +45,9 @@ object foo extends JavaModule with JlinkModule {
 /** Usage
 
 
-> mill foo.jlinkAppImage
+> ./mill foo.jlinkAppImage
 
-> mill show foo.jlinkAppImage
+> ./mill show foo.jlinkAppImage
 ".../out/foo/jlinkAppImage.dest/jlink-runtime"
 
 > ./out/foo/jlinkAppImage.dest/jlink-runtime/bin/jlink

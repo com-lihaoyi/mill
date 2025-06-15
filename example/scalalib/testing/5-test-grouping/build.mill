@@ -30,7 +30,7 @@ object foo extends ScalaModule {
 
 /** Usage
 
-> mill foo.test
+> ./mill foo.test
 
 > find out/foo/test/testForked.dest
 ...

@@ -438,7 +438,7 @@ Mill allows us to direct xref:extending/import-mvn-plugins.adoc[import $ivy] the
 JVM artifacts from Maven Central
 
 Mill gives you the full power of the JVM ecosystem to use in your build: any Java library
-on Maven central is just an `//| mvnDeps:` away, and can be used with the full IDE support
+on Maven central is just an `//| mvnDeps` away, and can be used with the full IDE support
 and tooling experience you are used to in the JVM ecosystem.
 
 == IDE Support

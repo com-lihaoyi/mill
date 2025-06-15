@@ -522,7 +522,7 @@ object Jvm {
    *
    * We do not bother breaking this out into the separate JvmWorkerApi classpath,
    * because Coursier is already bundled with mill/Ammonite to support the
-   * `//| mvnDeps:` syntax.
+   * `//| mvnDeps` syntax.
    */
   def resolveDependencies(
       repositories: Seq[Repository],

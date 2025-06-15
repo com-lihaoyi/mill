@@ -24,15 +24,15 @@ object qux extends ScalaModule {
 
 /** Usage
 
-> mill 'qux.{test,integration}' # run both test suites
+> ./mill 'qux.{test,integration}' # run both test suites
 ...qux.QuxTests...hello...
 ...qux.QuxTests...world...
 ...qux.QuxIntegrationTests...helloworld...
 
-> mill __.integration # run all integration test suites
+> ./mill __.integration # run all integration test suites
 
-> mill __.test # run all normal test suites
+> ./mill __.test # run all normal test suites
 
-> mill __.testForked # run all test suites of any kind
+> ./mill __.testForked # run all test suites of any kind
 
 */

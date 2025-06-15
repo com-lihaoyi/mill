@@ -27,10 +27,10 @@ object foo extends TypeScriptModule {
 
 /** Usage
 
-> mill foo.run
+> ./mill foo.run
 Line Count: 21
 
-> mill show foo.bundle
+> ./mill show foo.bundle
 Build succeeded!
 
 > node out/foo/bundle.dest/bundle.js

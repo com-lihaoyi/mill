@@ -1,6 +1,6 @@
 package mill.define
 
-import mill.util.TestGraphs
+import mill.define.TestGraphs
 import mill.testkit.TestRootModule
 import utest._
 

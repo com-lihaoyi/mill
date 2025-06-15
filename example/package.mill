@@ -127,7 +127,7 @@ object `package` extends Module {
     override def lineTransform(line: String) = this.moduleSegments.parts.last match {
       case "1-test-suite" => line
           .replace(
-            "mill bar.test bar.BarTests.hello",
+            "./mill bar.test bar.BarTests.hello",
             "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test"
           )
           .replace("compiling 1 ... source...", "Compiling 1 ... source...")

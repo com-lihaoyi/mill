@@ -79,18 +79,18 @@ trait MicronautModule extends MavenModule {
 
 /** Usage
 
-> mill test
+> ./mill test
 ...example.micronaut.LearnJsonTest...
 ...example.micronaut.TodoTest...
 ...example.micronaut.TodoItemMapperTest...
 ...example.micronaut.TodoItemControllerTest...
 ...example.micronaut.HtmxWebJarsTest...
 
-> mill runBackground
+> ./mill runBackground
 
 > curl http://localhost:8089
  ...<h1>todos</h1>...
 
-> mill clean runBackground
+> ./mill clean runBackground
 
 */

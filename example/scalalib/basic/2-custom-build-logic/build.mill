@@ -60,14 +60,14 @@ object foo extends ScalaModule {
 //
 /** Usage
 
-> mill foo.run
+> ./mill foo.run
 ...
 Line Count: 17
 
-> mill show foo.lineCount
+> ./mill show foo.lineCount
 17
 
-> mill inspect foo.lineCount
+> ./mill inspect foo.lineCount
 foo.lineCount(build.mill:...)
     Total number of lines in module source files
 Inputs:

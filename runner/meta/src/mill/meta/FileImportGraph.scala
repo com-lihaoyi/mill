@@ -53,13 +53,13 @@ object FileImportGraph {
 
         val content = if (useDummy) "" else os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
-        val yamlHeaderError =
+        val buildHeaderError =
           if (useDummy) Right(())
           else
-            try Right(mill.constants.Util.readYamlHeader(s.toNIO, s.last))
+            try Right(mill.constants.Util.readBuildHeader(s.toNIO, s.last))
             catch { case e: RuntimeException => Left(e.getMessage) }
 
-        yamlHeaderError.flatMap(_ =>
+        buildHeaderError.flatMap(_ =>
           parser.splitScript(content, fileName)
         ) match {
           case Right((prefix, pkgs, stmts)) =>
@@ -103,7 +103,7 @@ object FileImportGraph {
 
     val headerData =
       if (!os.exists(projectRoot / foundRootBuildFileName)) ""
-      else mill.constants.Util.readYamlHeader(
+      else mill.constants.Util.readBuildHeader(
         (projectRoot / foundRootBuildFileName).toNIO,
         foundRootBuildFileName
       )

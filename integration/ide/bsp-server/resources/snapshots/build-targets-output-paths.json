@@ -14,6 +14,24 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/delayed"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/compilation-error"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/exception"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-java"
       },
       "outputPaths": []

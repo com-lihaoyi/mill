@@ -3,13 +3,14 @@ package mill.daemon
 import mill.api.SystemStreams
 import mill.api.internal.internal
 import mill.define.internal.Watchable
-import mill.define.{BuildCtx, PathRef}
+import mill.define.BuildCtx
 import mill.internal.Colors
 
 import java.io.InputStream
 import java.nio.channels.ClosedChannelException
 import scala.annotation.tailrec
-import scala.util.Using
+import scala.concurrent.Future
+import scala.util.{Try, Using}
 
 /**
  * Logic around the "watch and wait" functionality in Mill: re-run on change,
@@ -79,7 +80,13 @@ object Watching {
 
           try {
             watchArgs.setIdle(true)
-            enterKeyPressed = watchAndWait(streams, streams.in, watchables, watchArgs)
+            enterKeyPressed = watchAndWait(
+              watchables,
+              watchArgs,
+              () => Option.when(lookForEnterKey(streams.in))(()),
+              "  (Enter to re-run, Ctrl-C to exit)",
+              streams.err.println(_)
+            ).isDefined
           } finally {
             watchArgs.setIdle(false)
           }
@@ -88,12 +95,13 @@ object Watching {
     }
   }
 
-  private def watchAndWait(
-      streams: SystemStreams,
-      stdin: InputStream,
+  def watchAndWait[T](
       watched: Seq[Watchable],
-      watchArgs: WatchArgs
-  ): Boolean = {
+      watchArgs: WatchArgs,
+      sideChannel: () => Option[T],
+      extraMessage: String,
+      log: String => Unit
+  ): Option[T] = {
     val (watchedValues, watchedPathsSeq) = watched.partitionMap {
       case v: Watchable.Value => Left(v)
       case p: Watchable.Path => Right(p)
@@ -104,17 +112,19 @@ object Watching {
     val watchedValueStr =
       if (watchedValueCount == 0) "" else s" and $watchedValueCount other values"
 
-    streams.err.println {
+    log {
       val viaFsNotify = if (watchArgs.useNotify) " (via fsnotify)" else ""
       watchArgs.colors.info(
-        s"Watching for changes to ${watchedPathsSeq.size} paths$viaFsNotify$watchedValueStr... (Enter to re-run, Ctrl-C to exit)"
+        s"Watching for changes to ${watchedPathsSeq.size} paths$viaFsNotify$watchedValueStr...$extraMessage"
       ).toString
     }
 
-    def doWatch(notifiablesChanged: () => Boolean) = {
-      val enterKeyPressed = statWatchWait(watchedValues, stdin, notifiablesChanged)
-      enterKeyPressed
-    }
+    def doWatch(notifiablesChanged: () => Boolean) =
+      statWatchWait(
+        watchedValues,
+        notifiablesChanged,
+        sideChannel
+      )
 
     def doWatchPolling() =
       doWatch(notifiablesChanged = () => watchedPathsSeq.exists(p => !haveNotChanged(p)))
@@ -144,7 +154,7 @@ object Watching {
         val pathsUnderWorkspaceRoot = watchedPathsSet.filter { path =>
           val isUnderWorkspaceRoot = path.startsWith(workspaceRoot)
           if (!isUnderWorkspaceRoot) {
-            streams.err.println(watchArgs.colors.error(
+            log(watchArgs.colors.error(
               s"Watched path $path is outside workspace root $workspaceRoot, this is unsupported."
             ).toString())
           }
@@ -204,7 +214,7 @@ object Watching {
           // starting the watch.
           val alreadyStale = watched.exists(w => !haveNotChanged(w))
 
-          if (alreadyStale) false
+          if (alreadyStale) None
           else doWatch(notifiablesChanged = () => pathChangesDetected)
         }
       }
@@ -217,57 +227,58 @@ object Watching {
   /**
    * @param notifiablesChanged returns true if any of the notifiables have changed
    *
-   * @return `true` if enter key is pressed to re-run tasks explicitly, false if changes in watched files occured.
+   * @return `Some(...)` if notifiablesChanged returned a `Some(...)`, `None` if changes in watched files occured.
    */
-  def statWatchWait(
+  def statWatchWait[T](
       watchedValues: Seq[Watchable.Value],
-      stdin: InputStream,
-      notifiablesChanged: () => Boolean
-  ): Boolean = {
-    val buffer = new Array[Byte](4 * 1024)
+      notifiablesChanged: () => Boolean,
+      sideChannel: () => Option[T]
+  ): Option[T] = {
 
-    @tailrec def statWatchWait0(): Boolean = {
+    @tailrec def statWatchWait0(): Option[T] = {
       if (!notifiablesChanged() && watchedValues.forall(haveNotChanged)) {
-        if (lookForEnterKey()) {
-          true
-        } else {
-          Thread.sleep(100)
-          statWatchWait0()
+        sideChannel() match {
+          case Some(t) => Some(t)
+          case None =>
+            Thread.sleep(100)
+            statWatchWait0()
         }
-      } else false
-    }
-
-    @tailrec def lookForEnterKey(): Boolean = {
-      if (stdin.available() == 0) false
-      else stdin.read(buffer) match {
-        case 0 | -1 => false
-        case bytesRead =>
-          buffer.indexOf('\n') match {
-            case -1 => lookForEnterKey()
-            case index =>
-              // If we found the newline further than the bytes read, that means it's not from this read and thus we
-              // should try reading again.
-              if (index >= bytesRead) lookForEnterKey()
-              else true
-          }
-      }
+      } else
+        None
     }
 
     statWatchWait0()
   }
 
+  private def lookForEnterKey(stdin: InputStream): Boolean = {
+    val buffer = new Array[Byte](4 * 1024)
+
+    @tailrec def loop(): Boolean = {
+      if (stdin.available() == 0) false
+      else stdin.read(buffer) match {
+        case 0 | -1 => false
+        case bytesRead =>
+          buffer.indexOf('\n') match {
+            case -1 => loop()
+            case index =>
+              // If we found the newline further than the bytes read, that means it's not from this read and thus we
+              // should try reading again.
+              if (index >= bytesRead) loop()
+              else true
+          }
+      }
+    }
+
+    loop()
+  }
+
   /** @return true if the watchable did not change. */
-  def haveNotChanged(w: Watchable): Boolean = poll(w) == signature(w)
+  def haveNotChanged(w: Watchable): Boolean =
+    mill.define.internal.WatchSig.haveNotChanged(w)
 
-  def poll(w: Watchable): Long = w match {
-    case Watchable.Path(p, quick, sig) =>
-      new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).recomputeSig()
-    case Watchable.Value(f, _, _) => f()
-  }
+  def poll(w: Watchable): Long =
+    mill.define.internal.WatchSig.poll(w)
 
-  def signature(w: Watchable): Long = w match {
-    case Watchable.Path(p, quick, sig) =>
-      new PathRef(os.Path(p), quick, sig, PathRef.Revalidate.Once).sig
-    case Watchable.Value(f, sig, _) => sig
-  }
+  def signature(w: Watchable): Long =
+    mill.define.internal.WatchSig.signature(w)
 }
