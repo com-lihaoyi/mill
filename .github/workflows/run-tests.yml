@@ -275,7 +275,7 @@ jobs:
             millargs: "'integration.{feature,failure}.__.packaged.nodaemon'"
             install-sbt: false
 
-          - java-version: 11 # Run this with Mill native launcher as a smoketest
+          - java-version: 24 # Run this with Mill native launcher as a smoketest
             millargs: "'integration.invalidation.__.native.daemon'"
             install-sbt: false
 
