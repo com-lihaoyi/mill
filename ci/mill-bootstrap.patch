@@ -15,16 +15,6 @@ index d635c0900af..0df9f3ff91b 100644
  import mill.scalalib._
  import mill.scalalib.api.JvmWorkerUtil
  import mill.scalalib.publish._
-diff --git a/ci/mill-bootstrap.patch b/ci/mill-bootstrap.patch
-index 0c6bbbe3290..d56bea7429f 100644
---- a/ci/mill-bootstrap.patch
-+++ b/ci/mill-bootstrap.patch
-@@ -10,4 +10,4 @@ index 7a17b99362a..67ebbcd2434 100644
- +import mill.vcs.VcsVersion
-  //import com.goyeau.mill.scalafix.ScalafixModule
-  import mill._
-- import mill.main.Tasks
-+ import mill.util.Tasks
 diff --git a/contrib/package.mill b/contrib/package.mill
 index 3d75cbc5d80..dada6a4e9ec 100644
 --- a/contrib/package.mill
