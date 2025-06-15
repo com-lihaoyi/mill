@@ -384,7 +384,11 @@ object BuildGenUtil {
         // Note that the super def is called even when it's empty.
         // Some super functions can be called without parentheses, but we just add them here for simplicity.
         Some(args.iterator.drop(superLength).map(transform)
-          .mkString(s"super.$defName() ++ Seq(", ",", ")"))
+          .mkString(
+            (if (superArgs.nonEmpty) s"super.$defName() ++ " else "") + "Seq(",
+            ",",
+            ")"
+          ))
     } else
       Some(
         if (args.isEmpty)
@@ -401,17 +405,6 @@ object BuildGenUtil {
   ) =
     renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s"def $defName = " + _)
 
-  def renderSeqTaskDefWithSuper(
-      defName: String,
-      args: Seq[String],
-      superArgs: Seq[String] = Seq.empty,
-      elementType: String,
-      transform: String => String
-  ) =
-    renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s =>
-      s"def $defName = Task.Anon { $s }"
-    )
-
   def renderArtifactName(name: String, dirs: Seq[String]): String =
     if (dirs.nonEmpty && dirs.last == name) "" // skip default
     else s"def artifactName = ${escape(name)}"
@@ -420,19 +413,19 @@ object BuildGenUtil {
     optional("def bomMvnDeps = super.bomMvnDeps() ++ Seq", args)
 
   def renderMvnDeps(args: IterableOnce[String]): String =
-    optional("def mvnDeps = super.mvnDeps() ++ Seq", args)
+    optional("def mvnDeps = Seq", args)
 
   def renderModuleDeps(args: IterableOnce[String]): String =
     optional("def moduleDeps = super.moduleDeps ++ Seq", args)
 
   def renderCompileMvnDeps(args: IterableOnce[String]): String =
-    optional("def compileMvnDeps = super.compileMvnDeps() ++ Seq", args)
+    optional("def compileMvnDeps = Seq", args)
 
   def renderCompileModuleDeps(args: IterableOnce[String]): String =
     optional("def compileModuleDeps = super.compileModuleDeps ++ Seq", args)
 
   def renderRunMvnDeps(args: IterableOnce[String]): String =
-    optional("def runMvnDeps = super.runMvnDeps() ++ Seq", args)
+    optional("def runMvnDeps = Seq", args)
 
   def renderRunModuleDeps(args: IterableOnce[String]): String =
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)
@@ -457,11 +450,11 @@ object BuildGenUtil {
     ).getOrElse("")
 
   def renderRepositories(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
-    renderSeqTaskDefWithSuper(
-      "repositoriesTask",
+    renderSeqTargetDefWithSuper(
+      "repositories",
       args,
       superArgs,
-      "coursier.Repository",
+      "String",
       identity
     ).getOrElse("")
 

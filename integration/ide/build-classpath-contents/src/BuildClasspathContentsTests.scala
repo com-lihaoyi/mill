@@ -46,7 +46,7 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
           "mill-libs-testrunner_3.jar",
           "mill-libs-vcs_3.jar",
           "mill-libs_3.jar",
-          "mill-moduledefs_3-0.11.4.jar"
+          "mill-moduledefs_3-0.11.9.jar"
         )
 
         assert(millPublishedJars == expected)

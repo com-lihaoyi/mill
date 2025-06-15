@@ -8,20 +8,14 @@ object `package` extends PublishModule with MavenModule {
 
   def artifactName = "single-module-project"
 
-  def javacOptions = super.javacOptions() ++
-    Seq("-source", "1.6", "-target", "1.6")
+  def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
-  def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
-      coursier.maven.MavenRepository(
-        "http://repository.jboss.org/nexus/content/groups/public/"
-      ),
-      coursier.maven
-        .MavenRepository("https://maven.java.net/content/repositories/public/")
-    )
-  }
+  def repositories = Seq(
+    "http://repository.jboss.org/nexus/content/groups/public/",
+    "https://maven.java.net/content/repositories/public/"
+  )
 
-  def mvnDeps = super.mvnDeps() ++
+  def mvnDeps =
     Seq(mvn"javax.servlet.jsp:jsp-api:2.2", mvn"javax.servlet:servlet-api:2.5")
 
   def pomSettings = PomSettings(
@@ -45,7 +39,7 @@ object `package` extends PublishModule with MavenModule {
 
   object test extends MavenTests with TestModule.Junit4 {
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"junit:junit-dep:4.10",
       mvn"org.hamcrest:hamcrest-core:1.2.1",
       mvn"org.hamcrest:hamcrest-library:1.2.1",

@@ -156,7 +156,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
   def getRepositories(model: Model): Seq[String] =
     model.getRepositories.iterator().asScala
       .filterNot(_.getId == "central")
-      .map(repo => s"coursier.maven.MavenRepository(${escape(repo.getUrl)})")
+      .map(repo => escape(repo.getUrl))
       .toSeq
       .sorted
 
