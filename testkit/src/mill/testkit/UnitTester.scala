@@ -179,8 +179,8 @@ class UnitTester(
           .uncached
           .collect {
             case t: Task.Computed[_]
-              if module.moduleInternal.targets.contains(t)
-                && !t.ctx.external => t
+                if module.moduleInternal.targets.contains(t)
+                  && !t.ctx.external => t
             case t: Task.Command[_] => t
           }
           .size
