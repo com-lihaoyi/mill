@@ -1078,8 +1078,6 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/kotlinlib/Versions$.html#ktfmtVersion-0","e":false,"i":"","n":"ktfmtVersion","t":"ktfmtVersion: String","d":"mill.kotlinlib.Versions","k":"val","x":""},
 {"l":"mill/kotlinlib/Versions$.html#ktlintVersion-0","e":false,"i":"","n":"ktlintVersion","t":"ktlintVersion: String","d":"mill.kotlinlib.Versions","k":"val","x":""},
 {"l":"mill/main.html#","e":false,"i":"","n":"mill.main","t":"mill.main","d":"","k":"package","x":""},
-{"l":"mill/main.html#Tasks-0","e":false,"i":"","n":"Tasks","t":"Tasks[T] = Tasks[T]","d":"mill.main","k":"type","x":""},
-{"l":"mill/main.html#Tasks-0","e":false,"i":"","n":"Tasks","t":"Tasks: Tasks.type","d":"mill.main","k":"val","x":""},
 {"l":"mill/main/MainModule.html#","e":false,"i":"","n":"MainModule","t":"MainModule extends BaseModule, MainModuleApi","d":"mill.main","k":"trait","x":""},
 {"l":"mill/main/MainModule.html#clean-442","e":false,"i":"","n":"clean","t":"clean(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]]","d":"mill.main.MainModule","k":"def","x":""},
 {"l":"mill/main/MainModule.html#init-442","e":false,"i":"","n":"init","t":"init(evaluator: Evaluator, args: String*): Command[Unit]","d":"mill.main.MainModule","k":"def","x":""},
