@@ -1357,6 +1357,8 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/scalalib/internal.html#","e":false,"i":"","n":"mill.scalalib.internal","t":"mill.scalalib.internal","d":"","k":"package","x":""},
 {"l":"mill/scalalib/internal/ModuleUtils$.html#","e":false,"i":"","n":"ModuleUtils","t":"ModuleUtils","d":"mill.scalalib.internal","k":"object","x":""},
 {"l":"mill/scalalib/internal/ModuleUtils$.html#recursive-fffff773","e":false,"i":"","n":"recursive","t":"recursive[T](name: String, start: T, deps: T => Seq[T]): Seq[T]","d":"mill.scalalib.internal.ModuleUtils","k":"def","x":""},
+{"l":"mill/scalalib/internal/SemanticdbProcessor$.html#","e":false,"i":"","n":"SemanticdbProcessor","t":"SemanticdbProcessor","d":"mill.scalalib.internal","k":"object","x":""},
+{"l":"mill/scalalib/internal/SemanticdbProcessor$.html#postProcess-7a9","e":false,"i":"","n":"postProcess","t":"postProcess(originalCode: String, originalPath: RelPath, adjust: Int => Option[Int], orig: Path): Array[Byte]","d":"mill.scalalib.internal.SemanticdbProcessor","k":"def","x":""},
 {"l":"mill/scalalib/publish.html#","e":false,"i":"","n":"mill.scalalib.publish","t":"mill.scalalib.publish","d":"","k":"package","x":""},
 {"l":"mill/scalalib/publish/Artifact.html#","e":false,"i":"","n":"Artifact","t":"Artifact(group: String, id: String, version: String)","d":"mill.scalalib.publish","k":"class","x":""},
 {"l":"mill/scalalib/publish/Artifact.html#isSnapshot-0","e":false,"i":"","n":"isSnapshot","t":"isSnapshot: Boolean","d":"mill.scalalib.publish.Artifact","k":"def","x":""},
