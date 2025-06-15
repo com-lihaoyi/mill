@@ -9,7 +9,7 @@ import mill._, scalalib._
 import scalatags.Text.all._
 
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
 
   def mvnDeps = Seq(mvn"com.lihaoyi::os-lib:0.10.7")
   def htmlSnippet = Task { div(h1("hello"), p("world")).toString }

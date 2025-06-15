@@ -7,7 +7,7 @@ import mill._, scalalib._
 import mill.util.Jvm
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
   def moduleDeps = Seq(bar)
 
   def sources = Task {
@@ -17,7 +17,7 @@ object foo extends ScalaModule {
 }
 
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
   def mvnDeps = Seq(mvn"com.lihaoyi::os-lib:0.10.7")
 }
 

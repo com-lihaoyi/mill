@@ -3,7 +3,7 @@ package build
 import mill._, scalalib._
 
 object `package` extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
   def scalacOptions = Seq("-Ydelambdafy:inline")
   def forkArgs = Seq("-Xmx4g", "-Dmy.jvm.property=hello")
   def forkEnv = Map("MY_ENV_VAR" -> "WORLD")
