@@ -19,16 +19,10 @@ object `package` extends SbtModule with PublishModule {
     "-deprecation"
   )
 
-  def repositoriesTask = Task.Anon {
-    Seq(
-      coursier.maven.MavenRepository(
-        "https://oss.sonatype.org/service/local/repositories/releases/content/"
-      ),
-      coursier.maven.MavenRepository(
-        "https://oss.sonatype.org/content/repositories/snapshots"
-      )
-    )
-  }
+  def repositories = Seq(
+    "https://oss.sonatype.org/service/local/repositories/releases/content/",
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  )
 
   def mvnDeps = Seq(
     mvn"ch.qos.logback:logback-classic:1.2.3",

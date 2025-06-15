@@ -293,7 +293,7 @@ object SbtBuildGenMain
 
   def getRepositories(buildInfo: BuildInfo): Seq[String] =
     buildInfo.resolvers.getOrElse(Seq.empty).map(resolver =>
-      s"coursier.maven.MavenRepository(${escape(resolver.root)})"
+      escape(resolver.root)
     )
 
   def getPublishVersion(buildInfo: BuildInfo): String | Null =

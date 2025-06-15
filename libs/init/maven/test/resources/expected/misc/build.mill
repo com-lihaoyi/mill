@@ -10,15 +10,10 @@ object `package` extends PublishModule with MavenModule {
 
   def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
-  def repositoriesTask = Task.Anon {
-    Seq(
-      coursier.maven.MavenRepository(
-        "http://repository.jboss.org/nexus/content/groups/public/"
-      ),
-      coursier.maven
-        .MavenRepository("https://maven.java.net/content/repositories/public/")
-    )
-  }
+  def repositories = Seq(
+    "http://repository.jboss.org/nexus/content/groups/public/",
+    "https://maven.java.net/content/repositories/public/"
+  )
 
   def mvnDeps =
     Seq(mvn"javax.servlet.jsp:jsp-api:2.2", mvn"javax.servlet:servlet-api:2.5")

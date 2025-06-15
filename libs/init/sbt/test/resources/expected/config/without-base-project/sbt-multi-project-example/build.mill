@@ -195,16 +195,10 @@ trait BaseModule extends SbtModule with PublishModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
-  def repositoriesTask = Task.Anon {
-    Seq(
-      coursier.maven.MavenRepository(
-        "https://oss.sonatype.org/service/local/repositories/releases/content/"
-      ),
-      coursier.maven.MavenRepository(
-        "https://oss.sonatype.org/content/repositories/snapshots"
-      )
-    )
-  }
+  def repositories = Seq(
+    "https://oss.sonatype.org/service/local/repositories/releases/content/",
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  )
 
   def jvmWorker = mill.define.ModuleRef(BaseModuleJvmWorker)
 

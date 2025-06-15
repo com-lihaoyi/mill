@@ -405,17 +405,6 @@ object BuildGenUtil {
   ) =
     renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s"def $defName = " + _)
 
-  def renderSeqTaskDefWithSuper(
-      defName: String,
-      args: Seq[String],
-      superArgs: Seq[String] = Seq.empty,
-      elementType: String,
-      transform: String => String
-  ) =
-    renderSeqWithSuper(defName, args, superArgs, elementType, transform).map(s =>
-      s"def $defName = Task.Anon { $s }"
-    )
-
   def renderArtifactName(name: String, dirs: Seq[String]): String =
     if (dirs.nonEmpty && dirs.last == name) "" // skip default
     else s"def artifactName = ${escape(name)}"
@@ -461,11 +450,11 @@ object BuildGenUtil {
     ).getOrElse("")
 
   def renderRepositories(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
-    renderSeqTaskDefWithSuper(
-      "repositoriesTask",
+    renderSeqTargetDefWithSuper(
+      "repositories",
       args,
       superArgs,
-      "coursier.Repository",
+      "String",
       identity
     ).getOrElse("")
 
