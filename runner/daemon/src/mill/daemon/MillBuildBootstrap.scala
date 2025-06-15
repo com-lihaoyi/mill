@@ -76,7 +76,7 @@ class MillBuildBootstrap(
     }
 
     Watching.Result(
-      watched = runnerState.frames.flatMap(f => f.evalWatched ++ f.moduleWatched),
+      watched = runnerState.watched,
       error = runnerState.errorOpt,
       result = runnerState
     )

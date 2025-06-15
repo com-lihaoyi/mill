@@ -6,13 +6,13 @@ import mill.api.internal.EvaluatorApi
 import mill.bsp.Constants
 import mill.api.{Logger, Result, SystemStreams}
 import mill.client.lock.Lock
+import mill.define.internal.Watchable
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.PrintWriter
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
-import scala.concurrent.{Await, CancellationException, Promise}
-import scala.concurrent.duration.Duration
+import scala.concurrent.{CancellationException, Future, Promise}
 import mill.api.internal.bsp.{BspServerHandle, BspServerResult}
 
 object BspWorkerImpl {
@@ -59,13 +59,20 @@ object BspWorkerImpl {
       lazy val listening = launcher.startListening()
 
       val bspServerHandle = new BspServerHandle {
-        override def runSession(evaluators: Seq[EvaluatorApi]): BspServerResult = {
-          millServer.updateEvaluator(Some(evaluators))
-          millServer.sessionResult = Promise()
-          val res = Await.result(millServer.sessionResult.future, Duration.Inf)
-          millServer.updateEvaluator(None)
-          streams.err.println(s"Reload finished, result: $res")
-          res
+        override def startSession(
+            evaluators: Seq[EvaluatorApi],
+            errored: Boolean,
+            watched: Seq[Watchable]
+        ): Future[BspServerResult] = {
+          // FIXME We might be losing some shutdown requests here
+          val sessionResultPromise = Promise[BspServerResult]()
+          millServer.sessionResult = sessionResultPromise
+          millServer.updateEvaluator(evaluators, errored = errored, watched = watched)
+          sessionResultPromise.future
+        }
+
+        override def resetSession(): Unit = {
+          millServer.resetEvaluator()
         }
 
         override def close(): Unit = {

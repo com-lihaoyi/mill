@@ -32,6 +32,39 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/delayed"
+      },
+      "options": [],
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/delayed/compile-resources"
+      ],
+      "classDirectory": "file:///workspace/out/delayed/compile.dest/classes"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/compilation-error"
+      },
+      "options": [],
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/errored/compilation-error/compile-resources"
+      ],
+      "classDirectory": "file:///workspace/out/errored/compilation-error/compile.dest/classes"
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/exception"
+      },
+      "options": [],
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/errored/exception/compile-resources"
+      ],
+      "classDirectory": "file:///workspace/out/errored/exception/compile.dest/classes"
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-java"
       },
       "options": [],

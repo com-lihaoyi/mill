@@ -8,6 +8,7 @@ import mill.androidlib.manifestmerger.AndroidManifestMerger
 import mill.define.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.define.JsonFormatters.given
+import mill.scalalib.api.CompilationResult
 
 import scala.collection.immutable
 import scala.xml.*
@@ -177,7 +178,7 @@ trait AndroidModule extends JavaModule {
     // TODO support baseline profiles shipped with Android libs.
     (androidOriginalCompileClasspath().filter(_.path.ext != "aar") ++ androidResolvedMvnDeps()).map(
       _.path
-    ).distinct.map(PathRef(_))
+    ).distinct.map(PathRef(_)) ++ androidTransitiveLibRClasspath()
   }
 
   /**
@@ -379,6 +380,36 @@ trait AndroidModule extends JavaModule {
   }
 
   /**
+   * The Java compiled classes of [[androidResources]]
+   */
+  def androidCompiledRClasses: T[CompilationResult] = Task(persistent = true) {
+    jvmWorker()
+      .worker()
+      .compileJava(
+        upstreamCompileOutput = upstreamCompileOutput(),
+        sources = androidLibsRClasses().map(_.path),
+        compileClasspath = Seq.empty,
+        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
+        reporter = Task.reporter.apply(hashCode),
+        reportCachedProblems = zincReportCachedProblems(),
+        incrementalCompilation = zincIncrementalCompilation()
+      )
+  }
+
+  def androidLibRClasspath: T[Seq[PathRef]] = Task {
+    Seq(androidCompiledRClasses().classes)
+  }
+
+  def androidTransitiveLibRClasspath: T[Seq[PathRef]] = Task {
+    Task.traverse(transitiveModuleDeps) {
+      case m: AndroidModule =>
+        Task.Anon(m.androidLibRClasspath())
+      case _ =>
+        Task.Anon(Seq.empty[PathRef])
+    }().flatten
+  }
+
+  /**
    * Namespace of the Android module.
    * Used in manifest package and also used as the package to place the generated R sources
    */
@@ -545,7 +576,9 @@ trait AndroidModule extends JavaModule {
   }
 
   def androidPackagedCompiledClasses: T[Seq[PathRef]] = Task {
-    os.walk(compile().classes.path)
+    Seq(compile().classes.path)
+      .filter(os.exists)
+      .flatMap(os.walk(_))
       .filter(_.ext == "class")
       .map(PathRef(_))
   }

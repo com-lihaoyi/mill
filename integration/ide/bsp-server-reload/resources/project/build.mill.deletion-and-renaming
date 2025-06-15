@@ -1,0 +1,18 @@
+package build
+
+import mill.scalalib._
+
+object lib extends ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+  def mvnDeps = Seq(
+    mvn"org.slf4j:slf4j-api:2.0.16"
+  )
+}
+
+object `my-app` extends ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+  def moduleDeps = Seq(lib)
+  def mvnDeps = Seq(
+    mvn"ch.qos.logback:logback-core:1.5.15"
+  )
+}

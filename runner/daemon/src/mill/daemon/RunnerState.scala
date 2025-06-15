@@ -40,6 +40,9 @@ case class RunnerState(
   ): RunnerState = {
     this.copy(frames = Seq(frame) ++ frames, errorOpt = errorOpt)
   }
+
+  def watched: Seq[Watchable] =
+    frames.flatMap(f => f.evalWatched ++ f.moduleWatched)
 }
 
 object RunnerState {

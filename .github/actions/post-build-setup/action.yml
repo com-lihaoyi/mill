@@ -14,7 +14,7 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - run: echo temurin:${{ inputs.java-version }} > .mill-jvm-version
+    - run: rm .mill-jvm-version && echo temurin:${{ inputs.java-version }} > .mill-jvm-version
       shell: bash
 
     # Need to fix cached artifact file permissions because github actions screws it up

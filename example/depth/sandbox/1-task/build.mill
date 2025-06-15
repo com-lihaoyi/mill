@@ -73,8 +73,8 @@ val listed = BuildCtx.watchValue(os.list(BuildCtx.workspaceRoot).map(_.last))
 
 def bannedWriteTaskOverridden = Task {
   BuildCtx.withFilesystemCheckerDisabled {
-    os.write(mill.define.BuildCtx.workspaceRoot / "banned-path", "hello")
-    println(os.read(mill.define.BuildCtx.workspaceRoot / "banned-path"))
+    os.write(BuildCtx.workspaceRoot / "banned-path", "hello")
+    println(os.read(BuildCtx.workspaceRoot / "banned-path"))
   }
 }
 
