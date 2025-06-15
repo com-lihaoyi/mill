@@ -19,7 +19,7 @@ object `package` extends MillStableScalaModule {
 
   def moduleDeps = Seq(build.core.util, build.libs.scalalib.api, build.libs.testrunner)
   def mvnDeps =
-    Seq(Deps.scalaXml) ++
+    Seq(Deps.scalaXml, Deps.semanticDbShared) ++
       // despite compiling with Scala 3, we need to include scala-reflect
       // for the scala.reflect.internal.util.ScalaClassLoader
       // used in ScalaModule.scalacHelp,
