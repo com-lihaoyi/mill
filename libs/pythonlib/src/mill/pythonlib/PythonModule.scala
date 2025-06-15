@@ -5,8 +5,9 @@ import mill.api.Result
 import mill.constants.DaemonFiles
 import mill.util.Jvm
 import mill.define.TaskCtx
+import mill.scalalib.JavaHomeModule
 
-trait PythonModule extends PipModule with TaskModule { outer =>
+trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer =>
 
   /**
    *  The direct dependencies of this module.
@@ -197,7 +198,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
         // and shown to any connected Mill client even if the current command has completed
         stdout = os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stdout),
         stderr = os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stderr),
-        javaHome = mill.scalalib.JvmWorkerModule.javaHome().map(_.path)
+        javaHome = javaHome().map(_.path)
       )
     }
     ()

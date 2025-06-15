@@ -45,7 +45,7 @@ trait JmhModule extends JavaModule {
           Seq(compileGeneratedSources().path, resources.path),
         mainArgs = args,
         cwd = Task.ctx().dest,
-        javaHome = jvmWorker().javaHome().map(_.path),
+        javaHome = javaHome().map(_.path),
         stdin = os.Inherit,
         stdout = os.Inherit
       )
@@ -95,7 +95,7 @@ trait JmhModule extends JavaModule {
           resourcesDir.toString,
           "default"
         ),
-        javaHome = jvmWorker().javaHome().map(_.path),
+        javaHome = javaHome().map(_.path),
         jvmArgs = forkedArgs,
         stdin = os.Inherit,
         stdout = os.Inherit

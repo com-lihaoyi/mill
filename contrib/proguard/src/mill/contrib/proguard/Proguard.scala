@@ -47,9 +47,7 @@ trait Proguard extends ScalaModule {
    * Defaults to the `java.home` system property.
    * Keep in sync with [[java9RtJar]]-
    */
-  def javaHome: T[PathRef] = Task.Input {
-    PathRef(Path(sys.props("java.home")))
-  }
+  def finalJavaHome: T[PathRef] = javaHome().getOrElse(PathRef(Path(sys.props("java.home")), quick = true))
 
   /** Specifies the input jar to proguard. Defaults to the output of the `assembly` task. */
   def inJar: T[PathRef] = Task { assembly() }
@@ -69,7 +67,7 @@ trait Proguard extends ScalaModule {
    */
   def libraryJars: T[Seq[PathRef]] = Task {
     val javaJars =
-      os.list(javaHome().path / "lib", sort = false).filter(_.ext == "jar").toSeq.map(PathRef(_))
+      os.list(finalJavaHome().path / "lib", sort = false).filter(_.ext == "jar").toSeq.map(PathRef(_))
     javaJars
   }
 

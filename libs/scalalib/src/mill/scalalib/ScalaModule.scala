@@ -276,6 +276,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
+        javaHome = javaHome().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         scalaVersion = sv,
         scalaOrganization = scalaOrganization(),
@@ -316,6 +317,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             scalaOrganization(),
             scalaDocClasspath(),
             scalacPluginClasspath(),
+            javaHome().map(_.path),
             options ++ compileCp ++ scalaDocOptions() ++
               files.map(_.toString())
           ) match {
@@ -636,6 +638,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         sources = allSourceFiles().map(_.path),
         compileClasspath =
           (compileClasspath() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
+        javaHome = javaHome().map(_.path),
         javacOptions = javacOpts,
         scalaVersion = sv,
         scalaOrganization = scalaOrganization(),

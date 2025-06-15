@@ -20,7 +20,7 @@ import scala.util.Properties
  * }}}
  */
 @mill.api.experimental
-trait NativeImageModule extends WithJvmWorker {
+trait NativeImageModule extends WithJvmWorkerModule {
   def runClasspath: T[Seq[PathRef]]
   def finalMainClass: T[String]
 
@@ -70,7 +70,7 @@ trait NativeImageModule extends WithJvmWorker {
    * @note The task fails if the `native-image` Tool is not found.
    */
   def nativeImageTool: T[PathRef] = Task {
-    jvmWorker().javaHome().map(_.path)
+    javaHome().map(_.path)
       .orElse(sys.env.get("GRAALVM_HOME").map(os.Path(_))) match {
       case Some(home) =>
         val tool = if (Properties.isWin) "native-image.cmd" else "native-image"

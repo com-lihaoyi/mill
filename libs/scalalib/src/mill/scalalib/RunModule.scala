@@ -18,7 +18,7 @@ import mill.{Args, T}
 import os.{Path, ProcessOutput}
 import mill.constants.EnvVars
 
-trait RunModule extends WithJvmWorker with RunModuleApi {
+trait RunModule extends WithJvmWorkerModule with RunModuleApi {
 
   private lazy val bspExt = {
     import BspRunModule.given
@@ -170,7 +170,7 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
       forkArgs(),
       allForkEnv(),
       runUseArgsFile(),
-      jvmWorker().javaHome().map(_.path)
+      javaHome().map(_.path)
     )
   }
 

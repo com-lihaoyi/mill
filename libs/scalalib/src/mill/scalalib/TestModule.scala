@@ -24,7 +24,7 @@ import java.nio.file.Path
 
 trait TestModule
     extends TestModule.JavaModuleBase
-    with WithJvmWorker
+    with WithJvmWorkerModule
     with RunModule
     with TaskModule
     with TestModuleApi {
@@ -59,7 +59,7 @@ trait TestModule
    * Test classes (often called test suites) discovered by the configured [[testFramework]].
    */
   def discoveredTestClasses: T[Seq[String]] = Task {
-    val classes = if (jvmWorker().javaHome().isDefined) {
+    val classes = if (javaHome().isDefined) {
       Jvm.callProcess(
         mainClass = "mill.testrunner.DiscoverTestsMain",
         classPath = jvmWorker().scalalibClasspath().map(_.path).toVector,
@@ -67,7 +67,7 @@ trait TestModule
           runClasspath().flatMap(p => Seq("--runCp", p.path.toString())) ++
             testClasspath().flatMap(p => Seq("--testCp", p.path.toString())) ++
             Seq("--framework", testFramework()),
-        javaHome = jvmWorker().javaHome().map(_.path),
+        javaHome = javaHome().map(_.path),
         stdin = os.Inherit,
         stdout = os.Pipe,
         cwd = Task.dest
@@ -254,7 +254,7 @@ trait TestModule
         testSandboxWorkingDir(),
         forkWorkingDir(),
         testReportXml(),
-        jvmWorker().javaHome().map(_.path),
+        javaHome().map(_.path),
         testParallelism(),
         testLogLevel()
       )
