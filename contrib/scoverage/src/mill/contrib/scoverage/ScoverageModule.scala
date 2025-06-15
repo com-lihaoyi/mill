@@ -3,6 +3,7 @@ package mill.contrib.scoverage
 import coursier.Repository
 import mill._
 import mill.define.{PathRef}
+import mill.define.BuildCtx
 import mill.api.{Result}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
 import mill.util.BuildInfo
@@ -134,7 +135,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(scoverageToolsClasspath())
-        .report(reportType, allSources().map(_.path), Seq(data().path), Task.workspace)
+        .report(reportType, allSources().map(_.path), Seq(data().path), BuildCtx.workspaceRoot)
     }
 
     /**
@@ -173,12 +174,12 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
           if (isScala3()) {
             Seq(
               s"-coverage-out:${data().path.toIO.getPath()}",
-              s"-sourceroot:${Task.workspace}"
+              s"-sourceroot:${BuildCtx.workspaceRoot}"
             )
           } else {
             Seq(
               s"-P:scoverage:dataDir:${data().path.toIO.getPath()}",
-              s"-P:scoverage:sourceRoot:${Task.workspace}"
+              s"-P:scoverage:sourceRoot:${BuildCtx.workspaceRoot}"
             )
           }
 

@@ -13,6 +13,7 @@
 
 package build
 import mill._
+import mill.define.BuildCtx
 
 object foo extends Module {
   def tDestTask = Task { println(Task.dest.toString) }
@@ -30,7 +31,7 @@ object foo extends Module {
 // read from the `PathRef`s provided to it from upstream tasks
 
 def bannedWriteTask = Task {
-  os.write(Task.workspace / "banned-path", "hello")
+  os.write(BuildCtx.workspaceRoot / "banned-path", "hello")
 }
 
 /** Usage
@@ -39,7 +40,7 @@ error: ...Writing to banned-path not allowed during execution of `bannedWriteTas
 */
 
 def bannedReadTask = Task {
-  os.read(Task.workspace / "build.mill")
+  os.read(BuildCtx.workspaceRoot / "build.mill")
 }
 
 /** Usage
@@ -48,7 +49,7 @@ error: ...Reading from build.mill not allowed during execution of `bannedReadTas
 */
 
 def bannedReadTask2 = Task {
-  os.read(Task.workspace / "out/foo/tDestTask.json")
+  os.read(BuildCtx.workspaceRoot / "out/foo/tDestTask.json")
 }
 
 /** Usage
@@ -60,7 +61,6 @@ error: ...Reading from out/foo/tDestTask.json not allowed during execution of `b
 // read from disk if wrapped in a `BuildCtx.watchValue` block. This ensures that such
 // reads are tracked by Mill's `--watch` and cache-invalidation logic.
 
-import mill.define.BuildCtx
 val listed = BuildCtx.watchValue(os.list(BuildCtx.workspaceRoot).map(_.last))
 
 // === Disabling Task Sandboxing
@@ -73,8 +73,8 @@ val listed = BuildCtx.watchValue(os.list(BuildCtx.workspaceRoot).map(_.last))
 
 def bannedWriteTaskOverridden = Task {
   BuildCtx.withFilesystemCheckerDisabled {
-    os.write(Task.workspace / "banned-path", "hello")
-    println(os.read(Task.workspace / "banned-path"))
+    os.write(BuildCtx.workspaceRoot / "banned-path", "hello")
+    println(os.read(BuildCtx.workspaceRoot / "banned-path"))
   }
 }
 

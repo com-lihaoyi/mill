@@ -11,10 +11,6 @@ include::partial$example/depth/sandbox/1-task.adoc[]
 
 include::partial$example/depth/sandbox/2-test.adoc[]
 
-== Breaking Out Of Sandbox Folders
-
-include::partial$example/depth/sandbox/3-breaking.adoc[]
-
 == Limitations
 
 Mill's approach to filesystem sandboxing is designed to avoid accidental interference
@@ -25,7 +21,7 @@ outside of Mill's control.
 
 However, by setting `os.pwd` to safe sandbox folders, and performing some basic checks
 on `os.*` read/write operations, we hope to minimize the cases where someone accidentally
-causes issues with their build by doing the wrong thing. The escape hatches of `Task.workspace`,
+causes issues with their build by doing the wrong thing. The escape hatches of `BuildCtx.workspaceRoot`,
 `MILL_WORKSPACE_ROOT`, or `BuildCtx.withFilesystemCheckerDisabled` are provided to be used
 in cases you do need to do something unusual, but usage of them should be minimized if possible
 as they may result in `--watch` or `selective.test` not missing some implicit dependencies

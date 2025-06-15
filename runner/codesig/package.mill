@@ -2,6 +2,7 @@ package build.runner.codesig
 import mill._
 import mill.scalalib._
 import millbuild.*
+import mill.define.BuildCtx
 
 /**
  * The CodeSig module implements a conservative call-graph analyzer at the JVM
@@ -18,7 +19,7 @@ object `package` extends MillPublishScalaModule {
 
   override lazy val test: CodeSigTests = new CodeSigTests {}
   trait CodeSigTests extends MillScalaTests {
-    val caseKeys = mill.define.BuildCtx.watchValue(
+    val caseKeys = BuildCtx.watchValue(
       os.walk(moduleDir / "cases", maxDepth = 3)
         .map(_.subRelativeTo(moduleDir / "cases").segments)
         .collect { case Seq(a, b, c) => s"$a-$b-$c" }

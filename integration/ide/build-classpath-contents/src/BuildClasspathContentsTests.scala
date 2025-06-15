@@ -1,4 +1,4 @@
-import mill.define.BuildCtx.workspaceRoot
+import mill.define.BuildCtx
 import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 
@@ -15,8 +15,8 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
         .sorted
       val millLocalClasspath = deserialized
         .map(_.path)
-        .filter(_.startsWith(workspaceRoot))
-        .map(_.subRelativeTo(workspaceRoot))
+        .filter(_.startsWith(BuildCtx.workspaceRoot))
+        .map(_.subRelativeTo(BuildCtx.workspaceRoot))
         .filter(!_.startsWith("out/integration"))
         .map(_.toString)
         .sorted
