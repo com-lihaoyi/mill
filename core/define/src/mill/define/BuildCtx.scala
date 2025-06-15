@@ -4,6 +4,10 @@ import mill.api.Watchable
 import mill.constants.EnvVars
 import scala.util.DynamicVariable
 
+/**
+ * BuildCtx contains APIs that are global throughout an entire build, without
+ * being tied to any particular task or module
+ */
 object BuildCtx {
 
   /**
