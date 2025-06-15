@@ -81,7 +81,7 @@ object `package` extends MyModule {
 
       object tests extends MavenTests with TestModule.Junit4 {
 
-        def mvnDeps = super.mvnDeps() ++ Seq(
+        def mvnDeps = Seq(
           Deps.`junit:junit-dep`,
           Deps.`org.hamcrest:hamcrest-core`,
           Deps.`org.hamcrest:hamcrest-library`,
@@ -164,7 +164,7 @@ object `package` extends MyModule {
 
     object tests extends MavenTests with TestModule.Junit4 {
 
-      def mvnDeps = super.mvnDeps() ++ Seq(
+      def mvnDeps = Seq(
         Deps.`junit:junit-dep`,
         Deps.`org.hamcrest:hamcrest-core`,
         Deps.`org.hamcrest:hamcrest-library`,

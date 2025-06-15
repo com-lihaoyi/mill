@@ -6,7 +6,7 @@ import mill.javalib.publish._
 
 object `package` extends MavenModule {
 
-  def mvnDeps = super.mvnDeps() ++ Seq(
+  def mvnDeps = Seq(
     mvn"com.google.guava:guava:33.2.1-jre",
     mvn"org.apache.commons:commons-math3:3.6.1"
   )

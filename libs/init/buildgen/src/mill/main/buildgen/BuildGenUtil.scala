@@ -420,7 +420,7 @@ object BuildGenUtil {
     optional("def bomMvnDeps = super.bomMvnDeps() ++ Seq", args)
 
   def renderMvnDeps(args: IterableOnce[String]): String =
-    optional("def mvnDeps = super.mvnDeps() ++ Seq", args)
+    optional("def mvnDeps = Seq", args)
 
   def renderModuleDeps(args: IterableOnce[String]): String =
     optional("def moduleDeps = super.moduleDeps ++ Seq", args)

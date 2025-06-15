@@ -32,7 +32,7 @@ object `package` extends SbtModule with PublishModule {
     )
   }
 
-  def mvnDeps = super.mvnDeps() ++ Seq(
+  def mvnDeps = Seq(
     mvn"ch.qos.logback:logback-classic:1.2.3",
     mvn"com.typesafe.akka::akka-stream:2.5.6",
     mvn"com.typesafe.scala-logging::scala-logging:3.7.2",
@@ -66,7 +66,7 @@ object `package` extends SbtModule with PublishModule {
 
   object test extends SbtTests with TestModule.ScalaTest {
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       mvn"org.scalacheck::scalacheck:1.13.5",
       mvn"org.scalatest::scalatest:3.0.4"
     )

@@ -57,6 +57,7 @@ def latestUnstableVersion = Task.Input {
 def millLastTag: T[String] = Task {
   if (millVersionIsStable())
     VcsVersion.calcVcsState(Task.log).lastTag.getOrElse(
+
       sys.error("No (last) git tag found. Your git history seems incomplete!")
     )
   else "SNAPSHOT"

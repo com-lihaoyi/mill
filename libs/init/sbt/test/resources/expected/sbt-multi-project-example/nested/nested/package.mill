@@ -32,7 +32,7 @@ object `package` extends SbtModule with PublishModule {
     )
   }
 
-  def mvnDeps = super.mvnDeps() ++ Seq(
+  def mvnDeps = Seq(
     mvn"io.netty:netty-transport-native-epoll:4.1.118.Final;type=pom;classifier=linux-x86_64;exclude=io.netty:netty-transport-native-epoll"
   )
 

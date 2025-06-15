@@ -64,7 +64,7 @@ object `package` extends BaseModule {
 
   object common extends BaseModule {
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       Deps.`ch.qos.logback:logback-classic`,
       Deps.`com.typesafe.akka:akka-stream`,
       Deps.`com.typesafe.scala-logging:scala-logging`,
@@ -87,7 +87,7 @@ object `package` extends BaseModule {
 
     def scalacOptions = super.scalacOptions() ++ Seq("-V")
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       Deps.`ch.qos.logback:logback-classic`,
       Deps.`com.github.julien-truffaut:monocle-core`,
       Deps.`com.github.julien-truffaut:monocle-macro`,
@@ -145,7 +145,7 @@ object `package` extends BaseModule {
       "-deprecation"
     )
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       Deps.`ch.qos.logback:logback-classic`,
       Deps.`com.github.pureconfig:pureconfig`,
       Deps.`com.typesafe.akka:akka-stream`,
