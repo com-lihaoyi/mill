@@ -6,7 +6,7 @@ val moduleNames = mill.define.BuildCtx.watchValue(os.list(moduleDir / "modules")
 object modules extends Cross[FolderModule](moduleNames)
 trait FolderModule extends ScalaModule with Cross.Module[String] {
   def moduleDir = super.moduleDir / crossValue
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
 }
 
 // It is sometimes necessary for the instances of a cross-module to vary based

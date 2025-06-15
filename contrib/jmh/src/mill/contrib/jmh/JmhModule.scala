@@ -15,7 +15,7 @@ import mill.util.Jvm
  * import contrib.jmh.JmhModule
  *
  * object foo extends ScalaModule with JmhModule {
- *   def scalaVersion = "2.13.8"
+ *   def scalaVersion = "2.13.16"
  *   def jmhCoreVersion = "1.35"
  * }
  * }}}

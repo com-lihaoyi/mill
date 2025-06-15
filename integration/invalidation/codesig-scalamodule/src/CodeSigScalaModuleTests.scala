@@ -88,7 +88,7 @@ object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
           )
       )
 
-      modifyFile(workspacePath / "build.mill", _.replace("2.13.8", "2.12.11"))
+      modifyFile(workspacePath / "build.mill", _.replace("2.13.16", "2.12.11"))
       val mangledFoo5 = eval("foo.run")
 
       assert(

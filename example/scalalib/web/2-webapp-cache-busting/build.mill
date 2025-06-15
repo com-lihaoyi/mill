@@ -3,7 +3,7 @@ import mill._, scalalib._
 import java.util.Arrays
 
 object `package` extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
   def mvnDeps = Seq(
     mvn"com.lihaoyi::cask:0.9.1",
     mvn"com.lihaoyi::scalatags:0.13.1",
