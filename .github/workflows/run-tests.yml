@@ -133,7 +133,7 @@ jobs:
           # on the opposite version on Windows below, so we get decent coverage of
           # each test on each Java version and each operating system
           # We also try to group tests together to manually balance out the runtimes of each jobs
-          - java-version: 17
+          - java-version: 24
             millargs: "'{core,testkit,runner,dist}.__.test'"
             install-android-sdk: false
             install-sbt: true
@@ -196,7 +196,7 @@ jobs:
             install-android-sdk: false
             install-sbt: false
 
-          - java-version: 11
+          - java-version: 24
             millargs: "'example.thirdparty[{mockito,commons-io}].local.daemon'"
             install-android-sdk: false
             install-sbt: false
@@ -234,7 +234,7 @@ jobs:
             install-android-sdk: false
             install-sbt: false
 
-          - java-version: 17
+          - java-version: 24
             millargs: "'integration.invalidation.__.packaged.daemon'"
             install-android-sdk: false
             install-sbt: false
@@ -275,7 +275,7 @@ jobs:
             millargs: "'integration.{feature,failure}.__.packaged.nodaemon'"
             install-sbt: false
 
-          - java-version: 11 # Run this with Mill native launcher as a smoketest
+          - java-version: 24 # Run this with Mill native launcher as a smoketest
             millargs: "'integration.invalidation.__.native.daemon'"
             install-sbt: false
 

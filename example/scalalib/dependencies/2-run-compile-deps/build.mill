@@ -8,7 +8,7 @@ package build
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
   def moduleDeps = Seq(bar)
   def runMvnDeps = Seq(
     mvn"javax.servlet:servlet-api:2.5",
@@ -34,7 +34,7 @@ object foo extends ScalaModule {
 //// SNIPPET:BUILD2
 
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
   def compileMvnDeps = Seq(
     mvn"javax.servlet:servlet-api:2.5",
     mvn"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
