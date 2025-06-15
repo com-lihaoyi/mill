@@ -6,13 +6,9 @@ import mill.define.ModuleRef
 object foo extends ScalaModule with NativeImageModule {
   def scalaVersion = "2.13.11"
 
-  def nativeImageOptions = Seq("--no-fallback")
-
-  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
-}
-
-object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = "graalvm-community:17.0.7"
+
+  def nativeImageOptions = Seq("--no-fallback")
 }
 
 //// SNIPPET:END
