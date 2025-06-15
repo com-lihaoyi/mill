@@ -153,7 +153,7 @@ jobs:
             install-android-sdk: false
             install-sbt: false
 
-          - java-version: 24
+          - java-version: 17
             millargs: "example.javalib.__.local.daemon"
             install-android-sdk: false
             install-sbt: false
