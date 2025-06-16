@@ -46,6 +46,33 @@ object MillInitScala3ExampleProjectTests extends BuildGenTestSuite {
   }
 }
 
+object MillInitScala3ExampleProjectWithJvmOptsTests extends BuildGenTestSuite {
+  def tests: Tests = Tests {
+    /*
+    - 17 KB
+    - `sbt` 1.10.7
+     */
+    val url =
+      "https://github.com/scala/scala3-example-project/archive/853808c50601e88edaa7272bcfb887b96be0e22a.zip"
+
+    test - integrationTest(url)(it =>
+      os.write(it.workspacePath / ".jvmopts", "-Ddummy=prop")
+      testMillInit(
+        it,
+        expectedAllSourceFileNums = Map("allSourceFiles" -> 13, "test.allSourceFiles" -> 1),
+        expectedCompileTaskResults = Some(SplitTaskResults(
+          successful = SortedSet("compile", "test.compile"),
+          failed = SortedSet.empty
+        )),
+        expectedTestTaskResults =
+          Some(SplitTaskResults(successful = SortedSet("test"), failed = SortedSet.empty))
+      )
+      assert(os.exists(it.workspacePath / ".mill-jvm-opts"))
+      assert(os.read(it.workspacePath / ".mill-jvm-opts") == "-Ddummy=prop")
+    )
+  }
+}
+
 object MillInitSbtScalaCsv200Tests extends BuildGenTestSuite {
   def tests: Tests = Tests {
     /*

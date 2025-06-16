@@ -157,6 +157,21 @@ object SbtBuildGenMain
     convertWriteOut(cfg, cfg.shared, (buildExport.defaultBuildInfo, projectNodeTree))
 
     println("converted sbt build to Mill")
+
+    {
+      val jvmOptsSbt = workspace / ".jvmopts"
+      val jvmOptsMill = workspace / ".mill-jvm-opts"
+
+      if (os.exists(jvmOptsSbt)) {
+        println(s"copying ${jvmOptsSbt.last} to ${jvmOptsMill.last}")
+        if (os.exists(jvmOptsMill)) {
+          val backup = jvmOptsMill / os.up / s"${jvmOptsMill.last}.bak"
+          println(s"creating backup ${backup.last}")
+          os.move.over(jvmOptsMill, backup)
+        }
+        os.copy(jvmOptsSbt, jvmOptsMill)
+      }
+    }
   }
 
   /**
