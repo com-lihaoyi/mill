@@ -80,7 +80,10 @@ trait InitModule extends Module {
             os.copy.apply(extractedPath, BuildCtx.workspaceRoot, mergeFolders = true)
 
             // Make sure the `./mill` launcher is executable
-            os.perms.set(BuildCtx.workspaceRoot / "mill", "rwxrwxrwx")
+            // Skip on windows since windows doesn't support POSIX permissions
+            if (!scala.util.Properties.isWin) {
+              os.perms.set(BuildCtx.workspaceRoot / "mill", "rwxrwxrwx")
+            }
 
             (
               Seq(unpackPath.toString()),
