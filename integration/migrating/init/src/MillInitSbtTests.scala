@@ -56,7 +56,7 @@ object MillInitScala3ExampleProjectWithJvmOptsTests extends BuildGenTestSuite {
       "https://github.com/scala/scala3-example-project/archive/853808c50601e88edaa7272bcfb887b96be0e22a.zip"
 
     test - integrationTest(url)(it =>
-      os.write(it.workspacePath / ".jvmopts", "-Ddummy=prop")
+      os.write(it.workspacePath / ".jvmopts", "-Ddummy=prop -Ddummy2=prop2")
       testMillInit(
         it,
         expectedAllSourceFileNums = Map("allSourceFiles" -> 13, "test.allSourceFiles" -> 1),
@@ -68,7 +68,7 @@ object MillInitScala3ExampleProjectWithJvmOptsTests extends BuildGenTestSuite {
           Some(SplitTaskResults(successful = SortedSet("test"), failed = SortedSet.empty))
       )
       assert(os.exists(it.workspacePath / ".mill-jvm-opts"))
-      assert(os.read(it.workspacePath / ".mill-jvm-opts") == "-Ddummy=prop")
+      assert(os.read(it.workspacePath / ".mill-jvm-opts") == "-Ddummy=prop -Ddummy2=prop2")
     )
   }
 }

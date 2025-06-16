@@ -169,6 +169,17 @@ object SbtBuildGenMain
           println(s"creating backup ${backup.last}")
           os.move.over(jvmOptsMill, backup)
         }
+        var reportOnce = true
+        // Since .jvmopts may contain multiple args per line, we warn the user
+        // as Mill wants each arg on a separate line
+        os.read.lines(jvmOptsSbt).collectFirst {
+          // Warn the user once when we find spaces, but ignore comments
+          case x if reportOnce && !x.trim().startsWith("#") && x.trim().contains(" ") =>
+            reportOnce = false
+            println(
+              s"${jvmOptsMill.last}: Please check that each arguments is on a separate line!"
+            )
+        }
         os.copy(jvmOptsSbt, jvmOptsMill)
       }
     }
