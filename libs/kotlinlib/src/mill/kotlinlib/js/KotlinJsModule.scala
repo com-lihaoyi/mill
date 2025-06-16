@@ -714,7 +714,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     def kotestVersion: T[String]
 
     override def kotlincPluginMvnDeps: T[Seq[Dep]] = super.kotlincPluginMvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler:${kotestVersion()}"
+      mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
     )
 
     override def mandatoryMvnDeps: T[Seq[Dep]] = super.mandatoryMvnDeps() ++ Seq(
