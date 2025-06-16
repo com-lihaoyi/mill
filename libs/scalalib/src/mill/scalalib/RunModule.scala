@@ -209,8 +209,8 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    * when ready. This is useful when working on long-running server processes
    * that would otherwise run forever
    */
-  def runBackground(args: String*): Task.Command[Unit] = {
-    val task = runBackgroundTask(finalMainClass, Task.Anon { Args(args) })
+  def runBackground(args: Task[Args]): Task.Command[Unit] = {
+    val task = runBackgroundTask(finalMainClass, args)
     Task.Command(persistent = true) { task() }
   }
 
