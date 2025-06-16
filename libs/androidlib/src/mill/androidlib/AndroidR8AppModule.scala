@@ -29,16 +29,6 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
   }
 
-  def androidDesugaringLibrary: T[Option[Dep]] = Task {
-    None
-  }
-
-  def androidDesugaringLibraryClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
-      androidDesugaringLibrary().toSeq
-    )
-  }
-
   /**
    * Selects the meta info and metadata files to package. These are being extracted
    * and output by R8 from the dependency jars.
