@@ -30,7 +30,7 @@ object JetLagged extends mill.define.Module {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false
-      )
+      ).withDefaultProguardFile("proguard-android-optimize.txt")
         .withProguardLocalFiles(
           Seq(
             moduleDir / "proguard-rules.pro"
@@ -108,3 +108,32 @@ object JetLagged extends mill.define.Module {
 
   }
 }
+
+/** Usage
+
+> ./mill JetLagged.app.androidApk
+
+> ./mill show JetLagged.app.createAndroidVirtualDevice
+...Name: test, DeviceId: medium_phone...
+
+> ./mill show JetLagged.app.startAndroidEmulator
+
+> ./mill show JetLagged.app.androidInstall
+...All files should be loaded. Notifying the device...
+
+> ./mill show JetLagged.app.androidRun --activity com.example.jetlagged.MainActivity
+[
+  "Starting: Intent { cmp=com.example.jetlagged/.MainActivity }",
+  "Status: ok",
+  "LaunchState: COLD",
+  "Activity: com.example.jetlagged/.MainActivity",
+  "TotalTime: ...",
+  "WaitTime: ...",
+  "Complete"
+]
+
+> ./mill show JetLagged.app.stopAndroidEmulator
+
+> ./mill show JetLagged.app.deleteAndroidVirtualDevice
+
+*/
