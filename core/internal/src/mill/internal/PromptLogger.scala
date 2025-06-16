@@ -310,12 +310,11 @@ private[mill] object PromptLogger {
 
       override def write(dest: OutputStream, buf: Array[Byte], end: Int): Unit = {
         lastCharWritten = buf(end - 1).toChar
-        if (promptShown) dest.write(AnsiNav.clearScreen(0).getBytes)
-        if (interactive() && !paused() && promptShown) {
-          promptShown = false
-        }
+        val clearLines = enableTicker && interactive()
+        if (clearLines && promptShown) dest.write(AnsiNav.clearScreen(0).getBytes)
+        if (interactive() && !paused() && promptShown) promptShown = false
 
-        if (enableTicker && interactive()) {
+        if (clearLines) {
           // Clear each line as they are drawn, rather than relying on clearing
           // the entire screen before each batch of writes, to try and reduce the
           // amount of terminal flickering in slow terminals (e.g. windows)
