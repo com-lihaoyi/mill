@@ -601,7 +601,7 @@ object TestModule {
   def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
-      ctx: TaskCtx.Env & TaskCtx.Dest,
+      ctx: TaskCtx,
       testReportXml: Option[String],
       props: Option[Map[String, String]] = None
   ): Result[(msg: String, results: Seq[TestResult])] =
