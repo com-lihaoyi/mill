@@ -6,7 +6,7 @@ object `package` extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def mvnDeps = Seq(mvn"com.github.ajalt.clikt:clikt-jvm:4.4.0")
+  def mvnDeps = Seq(mvn"com.github.ajalt.clikt:clikt:4.4.0")
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val prettyMvnDeps = for (ivyDep <- mvnDeps()) yield {
@@ -49,7 +49,7 @@ object `package` extends KotlinModule {
 
 > ./mill run --text hello
 text: hello
-MyDeps.value: com.github.ajalt.clikt:clikt-jvm:4.4.0
+MyDeps.value: com.github.ajalt.clikt:clikt:4.4.0
 my.line.count: 17
 
 > ./mill show lineCount

@@ -33,7 +33,7 @@ object HelloKotlinTests extends TestSuite {
       }
       object kotest extends KotlinTests with TestModule.Junit5 {
         override def mvnDeps = super.mvnDeps() ++ Seq(
-          mvn"io.kotest:kotest-runner-junit5-jvm:${junit5Version}"
+          mvn"io.kotest:kotest-runner-junit5:${junit5Version}"
         )
       }
     }
