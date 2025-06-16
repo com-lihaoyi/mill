@@ -81,7 +81,9 @@ trait InitModule extends Module {
 
             // Make sure the `./mill` launcher is executable
             // Skip on windows since windows doesn't support POSIX permissions
-            if (!scala.util.Properties.isWin) os.perms.set(BuildCtx.workspaceRoot / "mill", "rwxrwxrwx")
+            if (!scala.util.Properties.isWin) {
+              os.perms.set(BuildCtx.workspaceRoot / "mill", "rwxrwxrwx")
+            }
 
             (
               Seq(unpackPath.toString()),
