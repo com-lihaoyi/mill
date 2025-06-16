@@ -67,15 +67,8 @@ trait KotlinJsModule extends KotlinModule { outer =>
     Lib.findSourceFiles(allSources(), Seq("kt")).map(PathRef(_))
   }
 
-  override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
-    super.mandatoryMvnDeps()
-      // TODO: find source or docs, why this is the correct behavior
-      // Filter out the non-js kotlin-stdlib
-      .filterNot(d => d.organization == "org.jetbrains.kotlin" && d.name == "kotlin-stdlib") ++
-      Seq(
-        mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}"
-      )
-  }
+  override def mandatoryMvnDeps: T[Seq[Dep]] =
+    Seq(mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}")
 
   override def transitiveCompileClasspath: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps) {
