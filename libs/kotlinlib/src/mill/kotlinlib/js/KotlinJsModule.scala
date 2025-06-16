@@ -73,7 +73,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       // Filter out the non-js kotlin-stdlib
       .filterNot(d => d.organization == "org.jetbrains.kotlin" && d.name == "kotlin-stdlib") ++
       Seq(
-        mvn"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
+        mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}"
       )
   }
 
