@@ -28,7 +28,7 @@ bootstrap script, included. You can also download the bootstrap script manually:
 .Windows
 [source,console,subs="verbatim,attributes"]
 ----
-> curl -L {mill-download-url}/mill-dist-{mill-version}-mill.bat -o mill.bat
+> curl.exe -L {mill-download-url}/mill-dist-{mill-version}-mill.bat -o mill.bat
 > echo "//| mill-version: {mill-version}" > build.mill
 ----
 
