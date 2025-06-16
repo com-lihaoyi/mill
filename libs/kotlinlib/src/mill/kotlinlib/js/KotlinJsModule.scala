@@ -73,7 +73,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       // Filter out the non-js kotlin-stdlib
       .filterNot(d => d.organization == "org.jetbrains.kotlin" && d.name == "kotlin-stdlib") ++
       Seq(
-        mvn"org.jetbrains.kotlin:kotlin-stdlib-js:${kotlinVersion()}"
+        mvn"org.jetbrains.kotlin:kotlin-stdlib:${kotlinVersion()}"
       )
   }
 
@@ -698,7 +698,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
    */
   trait KotlinTestPackageTests extends KotlinJsTests {
     override def mandatoryMvnDeps: T[Seq[Dep]] = super.mandatoryMvnDeps() ++ Seq(
-      mvn"org.jetbrains.kotlin:kotlin-test-js:${kotlinVersion()}"
+      mvn"org.jetbrains.kotlin:kotlin-test:${kotlinVersion()}"
     )
   }
 
@@ -714,15 +714,15 @@ trait KotlinJsModule extends KotlinModule { outer =>
     def kotestVersion: T[String]
 
     override def kotlincPluginMvnDeps: T[Seq[Dep]] = super.kotlincPluginMvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:${kotestVersion()}"
+      mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler:${kotestVersion()}"
     )
 
     override def mandatoryMvnDeps: T[Seq[Dep]] = super.mandatoryMvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-framework-engine-js:${kotestVersion()}"
+      mvn"io.kotest:kotest-framework-engine:${kotestVersion()}"
         // buggy JVM dependency of a kotlin-js dependency?
         // seems that exclusion can be dropped for kotest-framework-engine-js >= 6.0.0.M2
         .exclude(("org.jetbrains.kotlinx", "kotlinx-coroutines-debug")),
-      mvn"io.kotest:kotest-assertions-core-js:${kotestVersion()}"
+      mvn"io.kotest:kotest-assertions-core:${kotestVersion()}"
     )
   }
 

@@ -220,8 +220,8 @@ object Deps {
     val freemarker = mvn"org.freemarker:freemarker:2.3.34"
     val jupiterInterface = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
     val kotestJvm =
-      mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:5.9.1"
-    val kotlinxHtmlJvm = mvn"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+      mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler:5.9.1"
+    val kotlinxHtmlJvm = mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
     val koverCli = mvn"org.jetbrains.kotlinx:kover-cli:$koverVersion"
     val koverJvmAgent = mvn"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
     val ktfmt = mvn"com.facebook:ktfmt:0.53"

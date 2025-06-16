@@ -24,7 +24,7 @@ object KoverModuleTests extends TestSuite {
 
       }
       override def mvnDeps = super.mvnDeps() ++ Seq(
-        mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+        mvn"io.kotest:kotest-runner-junit5:5.9.1"
       )
     }
 
