@@ -208,7 +208,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     }
 
     private def resourceApkPath: Task[PathRef] = Task {
-      outer.androidCompiledResources().resApkFile
+      PathRef(outer.androidLinkedResources().path / "apk/res.apk")
     }
 
     // TODO previews must be source controlled to be used as a base

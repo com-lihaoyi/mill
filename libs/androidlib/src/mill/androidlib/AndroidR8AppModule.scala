@@ -3,6 +3,7 @@ package mill.androidlib
 import mill.*
 import mill.define.{PathRef, Task}
 import mill.define.BuildCtx
+import mill.scalalib.{Dep, DepSyntax}
 
 @mill.api.experimental
 trait AndroidR8AppModule extends AndroidAppModule {
@@ -26,6 +27,16 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
     dex.outPath
 
+  }
+
+  def androidDesugaringLibrary: T[Option[Dep]] = Task {
+    None
+  }
+
+  def androidDesugaringLibraryClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(
+      androidDesugaringLibrary().toSeq
+    )
   }
 
   /**
@@ -104,6 +115,10 @@ trait AndroidR8AppModule extends AndroidAppModule {
     )
   }
 
+  def androidR8Args: T[Seq[String]] = Task {
+    Seq.empty[String]
+  }
+
   def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
     AndroidBuildTypeSettings()
   }
@@ -125,7 +140,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
    * Prepares the R8 cli command to build this android app!
    * @return
    */
-  def androidR8Dex: Task[(outPath: PathRef, dexCliArgs: Seq[String])] = Task {
+  def androidR8Dex: T[(outPath: PathRef, dexCliArgs: Seq[String])] = Task {
     val destDir = Task.dest / "minify"
     os.makeDir.all(destDir)
 
@@ -213,6 +228,8 @@ trait AndroidR8AppModule extends AndroidAppModule {
     val pgArgs = Seq("--pg-conf", androidProguard().path.toString)
 
     r8ArgsBuilder ++= pgArgs
+
+    r8ArgsBuilder ++= androidR8Args()
 
     r8ArgsBuilder ++= allClassFiles
 
