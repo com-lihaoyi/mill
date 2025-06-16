@@ -1,12 +1,8 @@
 // :link-jvm-indices: https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json
-// To override the default Java home, you can create a custom
-// `JvmWorkerModule` and override the `jvmWorker` method in your
-// `JavaModule` or `ScalaModule` by pointing it to that custom object:
-
 // == Setting the JVM version of a JavaModule
 //
 // Configuring custom JVMs is done by setting the `def jvmId`
-// of any `JavaModule, `ScalaModule`, or `KotlinModule`
+// of any `JavaModule`, `ScalaModule`, or `KotlinModule`
 //
 // The `jvmId` string has the form:
 //
