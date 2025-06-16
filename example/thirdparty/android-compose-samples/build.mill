@@ -26,12 +26,6 @@ object JetLagged extends mill.define.Module {
 
     override def androidR8Args = Seq("--map-diagnostics", "error", "warning")
 
-    override def androidDesugaringLibrary = Task {
-      Some(
-        mvn"com.android.tools:desugar_jdk_libs:2.1.5"
-      )
-    }
-
     override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
