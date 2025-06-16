@@ -179,7 +179,9 @@ object `package` extends MillJavaModule with DistModule {
             cmd = (launcher().path.toString, rest),
             env = forkEnv() ++ build.dist.localTestOverridesEnv(),
             cwd = wd,
-            stdout = os.Inherit
+            stdin = os.Inherit,
+            stdout = os.Inherit,
+            stderr = os.Inherit
           )
           mill.api.Result.Success(())
         } catch {

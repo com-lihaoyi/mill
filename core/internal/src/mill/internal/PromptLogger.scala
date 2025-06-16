@@ -310,6 +310,7 @@ private[mill] object PromptLogger {
 
       override def write(dest: OutputStream, buf: Array[Byte], end: Int): Unit = {
         lastCharWritten = buf(end - 1).toChar
+        if (promptShown) dest.write(AnsiNav.clearScreen(0).getBytes)
         if (interactive() && !paused() && promptShown) {
           promptShown = false
         }
@@ -321,7 +322,7 @@ private[mill] object PromptLogger {
           // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
           dest.write(
             new String(buf, 0, end)
-              .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
+              .replaceAll("(\r\n|\n|\t)", "$1" + AnsiNav.clearScreen(0))
               .getBytes
           )
         } else {
