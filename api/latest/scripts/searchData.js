@@ -2206,7 +2206,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/scalalib/RunModule.html#localRunClasspath-0","e":false,"i":"","n":"localRunClasspath","t":"localRunClasspath: Simple[Seq[PathRef]]","d":"mill.scalalib.RunModule","k":"def","x":""},
 {"l":"mill/scalalib/RunModule.html#mainClass-0","e":false,"i":"","n":"mainClass","t":"mainClass: Simple[Option[String]]","d":"mill.scalalib.RunModule","k":"def","x":""},
 {"l":"mill/scalalib/RunModule.html#run-695","e":false,"i":"","n":"run","t":"run(args: Task[Args]): Command[Unit]","d":"mill.scalalib.RunModule","k":"def","x":""},
-{"l":"mill/scalalib/RunModule.html#runBackground-fffff330","e":false,"i":"","n":"runBackground","t":"runBackground(args: String*): Command[Unit]","d":"mill.scalalib.RunModule","k":"def","x":""},
+{"l":"mill/scalalib/RunModule.html#runBackground-695","e":false,"i":"","n":"runBackground","t":"runBackground(args: Task[Args]): Command[Unit]","d":"mill.scalalib.RunModule","k":"def","x":""},
 {"l":"mill/scalalib/RunModule.html#runBackgroundLogToConsole-0","e":false,"i":"","n":"runBackgroundLogToConsole","t":"runBackgroundLogToConsole: Boolean","d":"mill.scalalib.RunModule","k":"def","x":""},
 {"l":"mill/scalalib/RunModule.html#runBackgroundTask-fffff172","e":false,"i":"","n":"runBackgroundTask","t":"runBackgroundTask(mainClass: Task[String], args: Task[Args]): Task[Unit]","d":"mill.scalalib.RunModule","k":"def","x":""},
 {"l":"mill/scalalib/RunModule.html#runClasspath-0","e":false,"i":"","n":"runClasspath","t":"runClasspath: Simple[Seq[PathRef]]","d":"mill.scalalib.RunModule","k":"def","x":""},
