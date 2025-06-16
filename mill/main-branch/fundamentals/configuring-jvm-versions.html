@@ -670,11 +670,6 @@ Java/Scala/Kotlin modules, typically whatever <code>java</code> command you have
 or what you have configured in your <a href="../cli/build-header.html" class="xref page">Build Header Config</a>. This page goes into
 more detail about downloading and using a custom Java home on a per-module basis.</p>
 </div>
-<div class="paragraph">
-<p>To override the default Java home, you can create a custom
-<code>JvmWorkerModule</code> and override the <code>jvmWorker</code> method in your
-<code>JavaModule</code> or <code>ScalaModule</code> by pointing it to that custom object:</p>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -682,7 +677,7 @@ more detail about downloading and using a custom Java home on a per-module basis
 <div class="sectionbody">
 <div class="paragraph">
 <p>Configuring custom JVMs is done by setting the <code>def jvmId</code>
-of any <code>JavaModule, `ScalaModule</code>, or <code>KotlinModule</code></p>
+of any <code>JavaModule</code>, <code>ScalaModule</code>, or <code>KotlinModule</code></p>
 </div>
 <div class="paragraph">
 <p>The <code>jvmId</code> string has the form:</p>
@@ -697,7 +692,7 @@ of any <code>JavaModule, `ScalaModule</code>, or <code>KotlinModule</code></p>
 and architecture <a href="https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json">here</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-28-15d9da-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/depth/javahome/1-custom-jvms">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-29-5c4a9d-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/depth/javahome/1-custom-jvms">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
 import mill.define.ModuleRef
