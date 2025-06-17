@@ -545,7 +545,6 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/define/Module.html#moduleDir-0","e":false,"i":"","n":"moduleDir","t":"moduleDir: Path","d":"mill.define.Module","k":"def","x":""},
 {"l":"mill/define/Module.html#moduleDirJava-0","e":false,"i":"","n":"moduleDirJava","t":"moduleDirJava: Path","d":"mill.define.Module","k":"def","x":""},
 {"l":"mill/define/Module.html#moduleDirectChildren-0","e":false,"i":"","n":"moduleDirectChildren","t":"moduleDirectChildren: Seq[Module]","d":"mill.define.Module","k":"def","x":""},
-{"l":"mill/define/Module.html#moduleNestedCtx-0","e":false,"i":"","n":"moduleNestedCtx","t":"moduleNestedCtx: Nested","d":"mill.define.Module","k":"def","x":""},
 {"l":"mill/define/Module.html#moduleSegments-0","e":false,"i":"","n":"moduleSegments","t":"moduleSegments: Segments","d":"mill.define.Module","k":"def","x":""},
 {"l":"mill/define/Module$moduleInternal$.html#","e":false,"i":"","n":"moduleInternal","t":"moduleInternal extends Internal","d":"mill.define.Module","k":"object","x":""},
 {"l":"mill/define/Module$.html#","e":false,"i":"","n":"Module","t":"Module","d":"mill.define","k":"object","x":""},
