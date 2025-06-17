@@ -3,18 +3,9 @@ package mill.daemon
 import mainargs.{Flag, Leftover, arg}
 
 case class MillCliConfig(
+    // ==================== NORMAL CLI FLAGS ====================
     @arg(doc = "Run without a long-lived background daemon. Must be the first argument.")
     noDaemon: Flag = Flag(),
-    @arg(hidden = true, doc = """Enable BSP server mode.""")
-    bsp: Flag,
-    @arg(hidden = true, doc = """Create mill-bsp.json with Mill details under .bsp/""")
-    bspInstall: Flag,
-    @arg(
-      hidden = true,
-      doc =
-        """Automatically reload the build when its sources change when running the BSP server (defaults to true)."""
-    )
-    bspWatch: Boolean = true,
     @arg(name = "version", short = 'v', doc = "Show mill version information and exit.")
     showVersion: Flag = Flag(),
     @arg(
@@ -24,7 +15,8 @@ case class MillCliConfig(
     )
     ringBell: Flag = Flag(),
     @arg(
-      doc = """Enable or disable the ticker log (e.g. short-lived prints of stages and progress bars)."""
+      doc =
+        """Enable or disable the ticker log (e.g. short-lived prints of stages and progress bars)."""
     )
     ticker: Option[Boolean] = None,
     @arg(name = "debug", short = 'd', doc = "Show debug output on STDOUT")
@@ -65,6 +57,8 @@ case class MillCliConfig(
     interactive: Flag = Flag(),
     @arg(doc = "Print this help message and exit.")
     help: Flag,
+    @arg(doc = "Print a internal or advanced command flags not intended for common usage")
+    helpAdvanced: Flag,
     @arg(short = 'w', doc = "Watch and re-run the given tasks when when their inputs change.")
     watch: Flag = Flag(),
     @arg(
@@ -84,8 +78,20 @@ case class MillCliConfig(
            level 1 the first meta-build in `mill-build/build.mill`, etc."""
     )
     metaLevel: Option[Int] = None,
+
+    // ==================== ADVANCED CLI FLAGS ====================
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
     allowPositional: Flag = Flag(),
+    @arg(hidden = true, doc = """Enable BSP server mode.""")
+    bsp: Flag,
+    @arg(hidden = true, doc = """Create mill-bsp.json with Mill details under .bsp/""")
+    bspInstall: Flag,
+    @arg(
+      hidden = true,
+      doc =
+        """Automatically reload the build when its sources change when running the BSP server (defaults to true)."""
+    )
+    bspWatch: Boolean = true,
     @arg(
       hidden = true,
       doc =
@@ -99,6 +105,7 @@ case class MillCliConfig(
     )
     noWaitForBuildLock: Flag = Flag(),
     @arg(
+      hidden = true,
       doc =
         """Try to work offline.
           |This tells modules that support it to work offline and avoid any access to the internet.
@@ -155,8 +162,14 @@ options:
 
   import mill.define.JsonFormatters.*
 
-  private lazy val parser: ParserForClass[MillCliConfig] =
-    mainargs.ParserForClass[MillCliConfig]
+  private lazy val parser: ParserForClass[MillCliConfig] = mainargs.ParserForClass[MillCliConfig]
+
+  private lazy val helpAdvancedParser: ParserForClass[MillCliConfig] = new ParserForClass(
+    parser.main.copy(argSigs0 = parser.main.argSigs0.collect {
+      case a if a.hidden => a.copy(hidden = false)
+    }),
+    parser.companion
+  )
 
   lazy val shortUsageText: String =
     "Please specify a task to evaluate\n" +
@@ -168,7 +181,14 @@ options:
       customDoc +
       cheatSheet +
       parser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
-      "\nPlease see the documentation at https://mill-build.org for more details"
+      "\nPlease see the documentation at https://mill-build.org for more details,\n" +
+      "or `./mill --help-advanced` for a list including advanced flags"
+
+  lazy val helpAdvancedUsageText: String =
+    customName +
+      customDoc +
+      helpAdvancedParser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
+      "\nAdvanced or internal command-line flags not intended for common usage. Use at your own risk!"
 
   def parse(args: Array[String]): mill.api.Result[MillCliConfig] = {
     mill.api.Result.fromEither(parser.constructEither(
