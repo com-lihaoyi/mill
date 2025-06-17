@@ -43,7 +43,8 @@ private[mill] object BSP {
         argv = Seq(
           millPath,
           "--bsp",
-          "--disable-ticker",
+          "--ticker",
+          "false",
           "--color",
           "false",
           "--jobs",

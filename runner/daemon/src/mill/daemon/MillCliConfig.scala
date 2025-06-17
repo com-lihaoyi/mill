@@ -3,67 +3,23 @@ package mill.daemon
 import mainargs.{Flag, Leftover, arg}
 
 case class MillCliConfig(
-    @deprecated("No longer used", "Mill 0.12.0")
-    @arg(
-      hidden = true,
-      short = 'h',
-      doc =
-        """(internal) The home directory where Mill looks for config and caches."""
-    )
-    home: os.Path = os.home,
-    // We need to keep it, otherwise, a given --repl would be silently parsed as target and result in misleading error messages.
-    // Instead, we fail programmatically when this flag is set.
-    @deprecated("No longer supported.", "Mill 0.11.0-M8")
-    @arg(
-      hidden = true,
-      doc = """This flag is no longer supported."""
-    )
-    repl: Flag = Flag(),
-    @arg(
-      hidden = true,
-      doc = """Run without a background daemon. Must be the first argument."""
-    )
-    noServer: Flag = Flag(),
-    @arg(
-      doc = """Run without a background daemon. Must be the first argument."""
-    )
+    // ==================== NORMAL CLI FLAGS ====================
+    @arg(doc = "Run without a long-lived background daemon. Must be the first argument.")
     noDaemon: Flag = Flag(),
-    @arg(doc = """Enable BSP server mode.""")
-    bsp: Flag,
-    @arg(doc = """Create mill-bsp.json with Mill details under .bsp/""")
-    bspInstall: Flag,
-    @arg(
-      doc =
-        """Automatically reload the build when its sources change when running the BSP server (defaults to true)."""
-    )
-    bspWatch: Boolean = true,
     @arg(name = "version", short = 'v', doc = "Show mill version information and exit.")
     showVersion: Flag = Flag(),
     @arg(
       name = "bell",
       short = 'b',
-      doc = """Ring the bell once if the run completes successfully, twice if it fails."""
+      doc = "Ring the bell once if the run completes successfully, twice if it fails."
     )
     ringBell: Flag = Flag(),
-    @deprecated("No longer supported, use `--ticker false`", "Mill 0.12.0")
-    @arg(
-      hidden = true,
-      doc =
-        """Disable ticker log (e.g. short-lived prints of stages and progress bars)."""
-    )
-    disableTicker: Flag,
     @arg(
       doc =
-        """Enable ticker log (e.g. short-lived prints of stages and progress bars)."""
+        """Enable or disable the ticker log, which provides information on running
+           tasks and where each log line came from"""
     )
     ticker: Option[Boolean] = None,
-    @deprecated("No longer supported, use `--ticker false`", "Mill 0.12.0")
-    @arg(
-      hidden = true,
-      doc =
-        """Enable ticker log (e.g. short-lived prints of stages and progress bars)."""
-    )
-    enableTicker: Option[Boolean] = None,
     @arg(name = "debug", short = 'd', doc = "Show debug output on STDOUT")
     debugLog: Flag = Flag(),
     @arg(
@@ -97,61 +53,47 @@ case class MillCliConfig(
       short = 'i',
       doc =
         """Run Mill in interactive mode, suitable for opening REPLs and taking user input.
-          This implies --no-server. Must be the first argument."""
+          Identical to --no-daemon. Must be the first argument."""
     )
     interactive: Flag = Flag(),
     @arg(doc = "Print this help message and exit.")
     help: Flag,
-    @arg(
-      short = 'w',
-      doc = """Watch and re-run the given tasks when when their inputs change."""
-    )
+    @arg(doc = "Print a internal or advanced command flags not intended for common usage")
+    helpAdvanced: Flag,
+    @arg(short = 'w', doc = "Watch and re-run the given tasks when when their inputs change.")
     watch: Flag = Flag(),
     @arg(
       name = "notify-watch",
       doc = "Use filesystem based file watching instead of polling based one (defaults to true)."
     )
     watchViaFsNotify: Boolean = true,
-    @arg(
-      short = 's',
-      doc =
-        """Make ivy logs during script import resolution go silent instead of printing"""
-    )
-    silent: Flag = Flag(),
-    @arg(
-      name = "task",
-      doc = """The name or a pattern of the tasks(s) you want to build."""
-    )
+    @arg(name = "task", doc = "The name or a query of the tasks(s) you want to build.")
     leftoverArgs: Leftover[String] = Leftover(),
     @arg(doc =
-      """Toggle colored output; by default enabled only if the console is interactive and NO_COLOR environment variable is not set"""
+      """Toggle colored output; by default enabled only if the console is interactive
+         and NO_COLOR environment variable is not set"""
     )
     color: Option[Boolean] = None,
-    @arg(
-      name = "disable-callgraph",
-      doc = """
-        Disables fine-grained invalidation of tasks based on analyzing code changes. If passed, you
-        need to manually run `clean` yourself after build changes.
-      """
-    )
-    disableCallgraph: Flag = Flag(),
     @arg(
       doc =
         """Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`,
            level 1 the first meta-build in `mill-build/build.mill`, etc."""
     )
     metaLevel: Option[Int] = None,
+
+    // ==================== ADVANCED CLI FLAGS ====================
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
     allowPositional: Flag = Flag(),
-    @deprecated("No longer used", "Mill 0.13.0")
+    @arg(hidden = true, doc = """Enable BSP server mode.""")
+    bsp: Flag,
+    @arg(hidden = true, doc = """Create mill-bsp.json with Mill details under .bsp/""")
+    bspInstall: Flag,
     @arg(
-      doc = """
-        Disables the new multi-line status prompt used for showing thread
-        status at the command line and falls back to the legacy ticker
-      """,
-      hidden = true
+      hidden = true,
+      doc =
+        """Automatically reload the build when its sources change when running the BSP server (defaults to true)."""
     )
-    disablePrompt: Flag = Flag(),
+    bspWatch: Boolean = true,
     @arg(
       hidden = true,
       doc =
@@ -184,10 +126,28 @@ case class MillCliConfig(
     @arg(
       doc = """Runs Mill in tab-completion mode"""
     )
-    tabComplete: Flag = Flag()
+    tabComplete: Flag = Flag(),
+
+    // ==================== DEPRECATED CLI FLAGS ====================
+    @arg(hidden = true, short = 'h', doc = "Unsupported")
+    home: os.Path = os.home,
+    @arg(hidden = true, doc = "Unsupported")
+    repl: Flag = Flag(),
+    @arg(hidden = true, doc = "Unsupported")
+    noServer: Flag = Flag(),
+    @arg(short = 's', doc = "Unsupported")
+    silent: Flag = Flag(),
+    @arg(name = "disable-callgraph", doc = "Unsupported")
+    disableCallgraph: Flag = Flag(),
+    @arg(hidden = true, doc = "Unsupported")
+    disablePrompt: Flag = Flag(),
+    @arg(hidden = true, doc = "Unsupported")
+    enableTicker: Option[Boolean] = None,
+    @arg(hidden = true, doc = "Unsupported")
+    disableTicker: Flag
 ) {
   def noDaemonEnabled =
-    Seq(interactive.value, noServer.value, noDaemon.value, bsp.value).count(identity)
+    Seq(interactive.value, noDaemon.value, noServer.value, bsp.value).count(identity)
 }
 
 import mainargs.ParserForClass
@@ -231,8 +191,21 @@ options:
 
   import mill.define.JsonFormatters.*
 
-  private lazy val parser: ParserForClass[MillCliConfig] =
-    mainargs.ParserForClass[MillCliConfig]
+  private lazy val parser: ParserForClass[MillCliConfig] = mainargs.ParserForClass[MillCliConfig]
+
+  private lazy val helpAdvancedParser: ParserForClass[MillCliConfig] = new ParserForClass(
+    parser.main.copy(argSigs0 = parser.main.argSigs0.collect {
+      case a if !a.doc.contains("Unsupported") && a.hidden =>
+        a.copy(
+          hidden = false,
+          // Hack to work around `a.copy` not propagating the name mapping correctly, so we have
+          // to manually map the name ourselves. Doesn't affect runtime behavior since this is
+          // just used for --help-advanced printing and not for argument parsing
+          unMappedName = a.mappedName(mainargs.Util.kebabCaseNameMapper)
+        )
+    }),
+    parser.companion
+  )
 
   lazy val shortUsageText: String =
     "Please specify a task to evaluate\n" +
@@ -244,7 +217,14 @@ options:
       customDoc +
       cheatSheet +
       parser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
-      "\nPlease see the documentation at https://mill-build.org for more details"
+      "\nPlease see the documentation at https://mill-build.org for more details,\n" +
+      "or `./mill --help-advanced` for a list of advanced flags"
+
+  lazy val helpAdvancedUsageText: String =
+    customName +
+      customDoc +
+      helpAdvancedParser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
+      "\nAdvanced or internal command-line flags not intended for common usage. Use at your own risk!"
 
   def parse(args: Array[String]): mill.api.Result[MillCliConfig] = {
     mill.api.Result.fromEither(parser.constructEither(
