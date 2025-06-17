@@ -107,8 +107,8 @@ class ExampleTester(
       check: Boolean = true
   ): Unit = {
     val commandStr = commandStr0 match {
-      case s"mill $rest" => s"./mill$millExt $daemonFlag --disable-ticker $rest"
-      case s"./mill $rest" => s"./mill$millExt $daemonFlag --disable-ticker $rest"
+      case s"mill $rest" => s"./mill$millExt $daemonFlag --ticker false $rest"
+      case s"./mill $rest" => s"./mill$millExt $daemonFlag --ticker false $rest"
       case s"curl $rest" => s"curl --retry 7 --retry-all-errors $rest"
       case s => s
     }

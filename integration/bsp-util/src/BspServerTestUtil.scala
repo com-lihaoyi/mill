@@ -194,7 +194,8 @@ object BspServerTestUtil {
         Seq(
           millExecutableNoBspFile0.toString,
           "--bsp",
-          "--disable-ticker",
+          "--ticker",
+          "false",
           "--color",
           "false",
           "--jobs",
