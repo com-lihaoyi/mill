@@ -2,7 +2,7 @@ package build
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
 
   def sources = Task {
     println("Foo generating sources...")
@@ -38,7 +38,7 @@ object foo extends ScalaModule {
 
 object bar extends ScalaModule {
   def moduleDeps = Seq(foo)
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
 
   def sources = Task {
     println("Bar generating sources...")
@@ -66,7 +66,7 @@ object bar extends ScalaModule {
 }
 
 object qux extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
 
   def sources = Task {
     println("Qux generating sources...")

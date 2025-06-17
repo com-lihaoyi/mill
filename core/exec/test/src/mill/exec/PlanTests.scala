@@ -2,7 +2,7 @@ package mill.exec
 
 import mill.define.Task
 import mill.define.Task.Simple
-import mill.util.TestGraphs
+import mill.define.TestGraphs
 import utest.*
 
 import scala.collection.mutable

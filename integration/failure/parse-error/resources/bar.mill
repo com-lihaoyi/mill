@@ -3,7 +3,7 @@
 // line numbers
 import scala._
 
-def myScalaVersion = "2.13.8"
+def myScalaVersion = "2.13.16"
 // when there
 // are a bunch
 

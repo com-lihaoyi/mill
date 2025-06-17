@@ -60,7 +60,7 @@ object `package` extends PythonModule with PublishModule {
 }
 
 /** Usage
-> mill sdist
+> ./mill sdist
 ...
 hello from custom setup.py!
 ...

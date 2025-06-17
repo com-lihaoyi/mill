@@ -4,6 +4,7 @@ import mill.Task
 import mill.Command
 import mill.TaskModule
 import mill.T
+import mill.define.BuildCtx
 
 trait TestModule extends TaskModule {
   import TestModule.TestResult
@@ -58,7 +59,7 @@ object TestModule {
       }
       runner().run(
         ("-m", "unittest", testArgs, "-v"),
-        workingDir = Task.workspace
+        workingDir = BuildCtx.workspaceRoot
       )
       Seq()
     }
@@ -81,7 +82,7 @@ object TestModule {
           args()
           // format: in
         ),
-        workingDir = Task.workspace
+        workingDir = BuildCtx.workspaceRoot
       )
       Seq()
     }

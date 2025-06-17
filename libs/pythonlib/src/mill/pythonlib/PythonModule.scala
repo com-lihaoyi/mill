@@ -5,8 +5,10 @@ import mill.api.Result
 import mill.constants.DaemonFiles
 import mill.util.Jvm
 import mill.define.TaskCtx
+import mill.scalalib.JavaHomeModule
+import mill.define.BuildCtx
 
-trait PythonModule extends PipModule with TaskModule { outer =>
+trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer =>
 
   /**
    *  The direct dependencies of this module.
@@ -179,7 +181,7 @@ trait PythonModule extends PipModule with TaskModule { outer =>
     val backgroundPaths = mill.scalalib.RunModule.BackgroundPaths(Task.dest)
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
-    mill.define.BuildCtx.withFilesystemCheckerDisabled {
+    BuildCtx.withFilesystemCheckerDisabled {
       Jvm.spawnProcess(
         mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
         classPath = mill.scalalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
@@ -190,14 +192,14 @@ trait PythonModule extends PipModule with TaskModule { outer =>
           pythonExe().path.toString,
           mainScript().path.toString
         ) ++ args.value,
-        cwd = Task.workspace,
+        cwd = BuildCtx.workspaceRoot,
         stdin = "",
         // Hack to forward the background subprocess output to the Mill server process
         // stdout/stderr files, so the output will get properly slurped up by the Mill server
         // and shown to any connected Mill client even if the current command has completed
         stdout = os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stdout),
         stderr = os.PathAppendRedirect(pwd0 / ".." / DaemonFiles.stderr),
-        javaHome = mill.scalalib.JvmWorkerModule.javaHome().map(_.path)
+        javaHome = javaHome().map(_.path)
       )
     }
     ()

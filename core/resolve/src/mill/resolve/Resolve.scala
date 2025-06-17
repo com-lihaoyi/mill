@@ -199,7 +199,7 @@ private[mill] object Resolve {
         allowPositionalCommandArgs
       )
 
-      invoked.head
+      invoked
     }.flatMap(x => x)
   }
 
@@ -210,9 +210,13 @@ private[mill] object Resolve {
       rest: Seq[String],
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
-  ): Option[Result[Task.Command[?]]] = for {
-    ep <- discover.resolveEntrypoint(target.getClass, name)
-  } yield {
+  ): Result[Task.Command[?]] = {
+    val ep = discover.resolveEntrypoint(target.getClass, name)
+      .getOrElse(
+        sys.error(
+          s"Unable to resolve command $name on module $target of class ${target.getClass}"
+        )
+      )
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a
       else if (nullCommandDefaults) {

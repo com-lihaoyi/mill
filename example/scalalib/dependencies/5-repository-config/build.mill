@@ -8,7 +8,7 @@ import mill._, scalalib._
 import mill.define.ModuleRef
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
 
   def mvnDeps = Seq(
     mvn"com.lihaoyi::scalatags:0.13.1",
@@ -59,7 +59,7 @@ object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
 }
 
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
   def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
@@ -76,6 +76,5 @@ object bar extends ScalaModule {
 
 */
 
-// To customize the repositories used to resolve the `//| mvnDeps:` dependencies used in your
-// `build.mill` file, you can add `//| repositories:` to your YAML header which takes a
-// list of strings of the same format.
+// See xref:extending/import-mvn-plugins.adoc[] for customizing repositories used to resolve
+// `//| mvnDeps` used in your `build.mill` file

@@ -10,9 +10,8 @@ import mill.scalalib.api.JvmWorkerUtil
 import millbuild.*
 
 /**
- * This package encapsulates the entire classpath that is available within the `build.mill`
- * file, for use by build authors or plugin authors. All the various language `*lib` modules,
- * the available `core.*` modules, and builtin tasks defined on the top-level `build` object.
+ * This package contains all the default tasks available in a Mill build: `show`, `path`,
+ * `resolve`, etc. along with their respective modules
  */
 object `package` extends MillStableScalaModule {
 
@@ -36,7 +35,4 @@ object `package` extends MillStableScalaModule {
     Deps.jgraphtCore,
     Deps.graphvizWithExcludes
   )
-
-  def testModuleDeps = super.testModuleDeps ++ Seq(build.testkit)
-  def testMvnDeps = Seq(Deps.coursierInterface)
 }

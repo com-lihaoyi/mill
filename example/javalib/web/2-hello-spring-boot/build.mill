@@ -19,14 +19,14 @@ object `package` extends JavaModule {
 
 /** Usage
 
-> mill test
+> ./mill test
 ...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
 
-> mill runBackground
+> ./mill runBackground
 
 > curl http://localhost:8086
 ...<h1>Hello, World!</h1>...
 
-> mill clean runBackground
+> ./mill clean runBackground
 
 */

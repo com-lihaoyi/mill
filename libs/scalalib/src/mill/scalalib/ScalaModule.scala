@@ -9,9 +9,10 @@ import mill.util.Jvm.createJar
 import mill.scalalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mainargs.Flag
 import mill.api.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
-import mill.define.{PathRef, Task}
+import mill.define.{BuildCtx, PathRef, Task}
 import mill.api.internal.{ScalaModuleApi, ScalaPlatform, internal}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
+import mill.define.BuildCtx
 
 // this import requires scala-reflect library to be on the classpath
 // it was duplicated to scala3-compiler, but is that too powerful to add as a dependency?
@@ -276,6 +277,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
+        javaHome = javaHome().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         scalaVersion = sv,
         scalaOrganization = scalaOrganization(),
@@ -316,6 +318,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             scalaOrganization(),
             scalaDocClasspath(),
             scalacPluginClasspath(),
+            javaHome().map(_.path),
             options ++ compileCp ++ scalaDocOptions() ++
               files.map(_.toString())
           ) match {
@@ -610,11 +613,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       if (isMixedProject) Seq.empty else Seq("-Ystop-after:semanticdb-typer")
 
     val additionalScalacOptions = if (JvmWorkerUtil.isScala3(sv)) {
-      Seq("-Xsemanticdb", s"-sourceroot:${Task.workspace}")
+      Seq("-Xsemanticdb", s"-sourceroot:${BuildCtx.workspaceRoot}")
     } else {
       Seq(
         "-Yrangepos",
-        s"-P:semanticdb:sourceroot:${Task.workspace}"
+        s"-P:semanticdb:sourceroot:${BuildCtx.workspaceRoot}"
       ) ++ stopAfterSemanticDbOpts
     }
 
@@ -636,6 +639,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         sources = allSourceFiles().map(_.path),
         compileClasspath =
           (compileClasspath() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
+        javaHome = javaHome().map(_.path),
         javacOptions = javacOpts,
         scalaVersion = sv,
         scalaOrganization = scalaOrganization(),
@@ -647,12 +651,14 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         incrementalCompilation = zincIncrementalCompilation(),
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
       )
-      .map(compileRes =>
-        SemanticDbJavaModule.copySemanticdbFiles(
-          compileRes.classes.path,
-          Task.workspace,
-          Task.dest / "data"
-        )
-      )
+      .map { compileRes =>
+        BuildCtx.withFilesystemCheckerDisabled {
+          SemanticDbJavaModule.copySemanticdbFiles(
+            compileRes.classes.path,
+            BuildCtx.workspaceRoot,
+            Task.dest / "data"
+          )
+        }
+      }
   }
 }

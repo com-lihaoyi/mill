@@ -11,7 +11,7 @@ object `package` extends SbtModule with PublishModule {
 
   def scalaVersion = "2.12.3"
 
-  def scalacOptions = super.scalacOptions() ++ Seq(
+  def scalacOptions = Seq(
     "-unchecked",
     "-feature",
     "-language:existentials",
@@ -23,16 +23,10 @@ object `package` extends SbtModule with PublishModule {
     "utf8"
   )
 
-  def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
-      coursier.maven.MavenRepository(
-        "https://oss.sonatype.org/service/local/repositories/releases/content/"
-      ),
-      coursier.maven.MavenRepository(
-        "https://oss.sonatype.org/content/repositories/snapshots"
-      )
-    )
-  }
+  def repositories = Seq(
+    "https://oss.sonatype.org/service/local/repositories/releases/content/",
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  )
 
   def pomSettings = PomSettings(
     "This is an sbt sample project for testing Mill's init command.",

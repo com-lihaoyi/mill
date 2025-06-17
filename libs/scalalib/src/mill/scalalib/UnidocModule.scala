@@ -1,5 +1,6 @@
 package mill.scalalib
 import mill.*
+import mill.define.BuildCtx
 import mill.scalalib.api.JvmWorkerUtil
 
 /**
@@ -82,7 +83,7 @@ trait UnidocModule extends ScalaModule {
           // Relative path to the workspace
           if (onScala3) s"${Task.workspace}=$url€{FILE_PATH_EXT}" else s"$url€{FILE_PATH_EXT}",
           "-sourcepath",
-          Task.workspace.toString
+          BuildCtx.workspaceRoot.toString
         )
       } ++ unidocOptions()
 
@@ -102,6 +103,7 @@ trait UnidocModule extends ScalaModule {
       scalaOrganization0,
       scalaDocClasspath0,
       scalacPluginClasspath0,
+      javaHome().map(_.path),
       options ++ unidocSourceFiles0.map(_.path.toString)
     ) match {
       case true => PathRef(Task.dest)
@@ -120,7 +122,7 @@ trait UnidocModule extends ScalaModule {
       sourceUrl <- unidocSourceUrl()
       p <- os.walk(Task.dest) if p.ext == "scala"
     } {
-      os.write(p, os.read(p).replace(s"file://${Task.workspace}", sourceUrl))
+      os.write(p, os.read(p).replace(s"file://${BuildCtx.workspaceRoot}", sourceUrl))
     }
     PathRef(Task.dest)
   }

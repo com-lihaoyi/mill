@@ -2,7 +2,7 @@
 
 
 
-While xref:extending/import-mvn-plugins.adoc[import $ivy] is convenient,
+While xref:extending/import-mvn-plugins.adoc[//| mvnDeps] is convenient,
 it comes with limitations as the JVM library it imports is global to your build:
 
 1. The library has to be resolved and downloaded before any part of your build starts.
@@ -12,18 +12,18 @@ it comes with limitations as the JVM library it imports is global to your build:
 2. The library can only have one version across the entire build. This can be an issue if
    you need to have multiple versions of the library used in different parts of your build.
    e.g. different parts of a large Groovy codebase may use different versions of the Groovy
-   interpreter, and so the Groovy interpreter cannot be included via `//| mvnDeps:` because the
+   interpreter, and so the Groovy interpreter cannot be included via `//| mvnDeps` because the
    different versions would collide.
 
 3. The library cannot be built as part of your main build. While it is possible to build
    it as part of your xref:extending/meta-build.adoc[Meta-Build], that comes with additional
    complexity and limitations. In a large codebase, you often end up building modules that
    are shared between production deployments as well as local tooling: in such cases
-   `//| mvnDeps:` is not a good fit
+   `//| mvnDeps` is not a good fit
 
 
 In scenarios where these limitations cause issues, Mill provides other ways to run arbitrary
-JVM code apart from `//| mvnDeps:`.
+JVM code apart from `//| mvnDeps`.
 
 
 == Subprocesses
@@ -38,13 +38,14 @@ include::partial$example/extending/jvmcode/2-classloader.adoc[]
 
 include::partial$example/extending/jvmcode/3-worker.adoc[]
 
-== Running a ScalaModule in a Subprocess
-
-include::partial$example/extending/jvmcode/4-module-run-task.adoc[]
-
 == Running a JavaModule in a Classloader
 
-include::partial$example/extending/jvmcode/5-module-classloader.adoc[]
+include::partial$example/extending/jvmcode/4-module-classloader.adoc[]
+
+== Running a ScalaModule in a Subprocess
+
+include::partial$example/extending/jvmcode/5-module-run-task.adoc[]
+
 
 == Caching and Re-using JVM subprocesses and classloaders
 

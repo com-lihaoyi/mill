@@ -3,7 +3,7 @@ package mill.scalalib
 import java.lang.reflect.Modifier
 
 import scala.util.control.NonFatal
-
+import mill.define.BuildCtx
 import mainargs.arg
 import mill.api.Result
 import mill.api.internal.RunModuleApi
@@ -18,7 +18,7 @@ import mill.{Args, T}
 import os.{Path, ProcessOutput}
 import mill.constants.EnvVars
 
-trait RunModule extends WithJvmWorker with RunModuleApi {
+trait RunModule extends WithJvmWorkerModule with RunModuleApi {
 
   private lazy val bspExt = {
     import BspRunModule.given
@@ -46,11 +46,11 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    */
   def allForkEnv: T[Map[String, String]] = Task {
     forkEnv() ++ Map(
-      EnvVars.MILL_WORKSPACE_ROOT -> Task.workspace.toString
+      EnvVars.MILL_WORKSPACE_ROOT -> BuildCtx.workspaceRoot.toString
     )
   }
 
-  def forkWorkingDir: T[os.Path] = Task { Task.workspace }
+  def forkWorkingDir: T[os.Path] = Task { BuildCtx.workspaceRoot }
 
   /**
    * All classfiles and resources including upstream modules and dependencies
@@ -170,7 +170,7 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
       forkArgs(),
       allForkEnv(),
       runUseArgsFile(),
-      jvmWorker().javaHome().map(_.path)
+      javaHome().map(_.path)
     )
   }
 
@@ -209,8 +209,8 @@ trait RunModule extends WithJvmWorker with RunModuleApi {
    * when ready. This is useful when working on long-running server processes
    * that would otherwise run forever
    */
-  def runBackground(args: String*): Task.Command[Unit] = {
-    val task = runBackgroundTask(finalMainClass, Task.Anon { Args(args) })
+  def runBackground(args: Task[Args]): Task.Command[Unit] = {
+    val task = runBackgroundTask(finalMainClass, args)
     Task.Command(persistent = true) { task() }
   }
 
@@ -307,7 +307,7 @@ object RunModule {
       }
       val env = Option(forkEnv).getOrElse(forkEnv0)
 
-      mill.define.BuildCtx.withFilesystemCheckerDisabled {
+      BuildCtx.withFilesystemCheckerDisabled {
         if (background) {
           val (stdout, stderr) = if (runBackgroundLogToConsole) {
             // Hack to forward the background subprocess output to the Mill server process

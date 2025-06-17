@@ -16,6 +16,7 @@ import scala.xml.Elem
 import scala.collection.mutable
 import mill.api.Logger
 import java.util.concurrent.Executors
+import mill.define.BuildCtx
 
 private final class TestModuleUtil(
     useArgsFile: Boolean,
@@ -152,7 +153,7 @@ private final class TestModuleUtil(
 
     os.makeDir.all(sandbox)
 
-    mill.define.BuildCtx.withFilesystemCheckerDisabled {
+    BuildCtx.withFilesystemCheckerDisabled {
       Jvm.callProcess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),

@@ -47,13 +47,13 @@ object qux extends TypeScriptModule
 // And then invoke the `.run` method on each module from the command line:
 
 /** Usage
-> mill foo.run James
+> ./mill foo.run James
 Hello James Foo
 
-> mill foo.bar.run James
+> ./mill foo.bar.run James
 Hello James Bar
 
-> mill qux.run James
+> ./mill qux.run James
 Hello James Qux
 
 */

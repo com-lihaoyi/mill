@@ -173,7 +173,7 @@ Generating jar
 // This is to stop you from accidentally reading and writing files to the base repository root,
 // which would cause problems with Mill's caches not invalidating properly or files from different
 // tasks colliding and causing issues. In the rare case where
-// you truly need the Mill project root folder, you can access it via `Task.workspace`
+// you truly need the Mill project root folder, you can access it via `mill.define.BuildCtx.workspaceRoot`
 //
 // === Dependent Tasks
 //

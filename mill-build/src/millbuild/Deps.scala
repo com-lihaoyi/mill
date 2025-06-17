@@ -8,7 +8,7 @@ object Deps {
   // The Scala version to use
   // When updating, run "Publish Bridges" Github Actions for the new version
   // and then add to it `bridgeScalaVersions`
-  val scalaVersion = "3.7.0"
+  val scalaVersion = "3.7.1"
   val scala2Version = "2.13.15"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.20"
@@ -16,7 +16,7 @@ object Deps {
 
   val testScala213Version = "2.13.16"
   // Scala Native 4.2 will not get releases for new Scala version
-  val testScala213VersionForScalaNative42 = "2.13.8"
+  val testScala213VersionForScalaNative42 = "2.13.16"
   val testScala212Version = "2.12.6"
   val testScala32Version = "3.2.0"
   val testScala33Version = "3.3.1"
@@ -136,7 +136,7 @@ object Deps {
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.0"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.6"
-  val millModuledefsVersion = "0.11.4"
+  val millModuledefsVersion = "0.11.9"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -165,6 +165,7 @@ object Deps {
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.4"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
+  val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.dep.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.3-M5"
   val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.4.5"
   val upickle = mvn"com.lihaoyi::upickle:4.2.1"
@@ -219,8 +220,8 @@ object Deps {
     val freemarker = mvn"org.freemarker:freemarker:2.3.34"
     val jupiterInterface = mvn"com.github.sbt.junit:jupiter-interface:0.13.3"
     val kotestJvm =
-      mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler-jvm:5.9.1"
-    val kotlinxHtmlJvm = mvn"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+      mvn"io.kotest:kotest-framework-multiplatform-plugin-embeddable-compiler:5.9.1"
+    val kotlinxHtmlJvm = mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
     val koverCli = mvn"org.jetbrains.kotlinx:kover-cli:$koverVersion"
     val koverJvmAgent = mvn"org.jetbrains.kotlinx:kover-jvm-agent:$koverVersion"
     val ktfmt = mvn"com.facebook:ktfmt:0.53"

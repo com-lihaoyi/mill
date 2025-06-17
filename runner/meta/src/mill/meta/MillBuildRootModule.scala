@@ -2,6 +2,7 @@ package mill.meta
 
 import java.nio.file.Path
 
+import mill.define.BuildCtx
 import mill.*
 import mill.api.Result
 import mill.api.internal.internal
@@ -19,7 +20,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
  * Mill module for pre-processing a Mill `build.mill` and related files and then
  * compiling them as a normal [[ScalaModule]]. Parses `build.mill`, walks any
  * `import $file`s, wraps the script files to turn them into valid Scala code
- * and then compiles them with the `mvnDeps` extracted from the `//| mvnDeps:`
+ * and then compiles them with the `mvnDeps` extracted from the `//| mvnDeps`
  * calls within the scripts.
  */
 @internal
@@ -38,7 +39,7 @@ trait MillBuildRootModule()(implicit
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 
-  val scriptSourcesPaths = mill.define.BuildCtx.withFilesystemCheckerDisabled {
+  val scriptSourcesPaths = BuildCtx.withFilesystemCheckerDisabled {
     FileImportGraph
       .walkBuildFiles(rootModuleInfo.projectRoot / os.up, rootModuleInfo.output)
       .sorted
@@ -54,7 +55,7 @@ trait MillBuildRootModule()(implicit
 
   def parseBuildFiles: T[FileImportGraph] = Task {
     scriptSources()
-    mill.define.BuildCtx.withFilesystemCheckerDisabled {
+    BuildCtx.withFilesystemCheckerDisabled {
       MillBuildRootModule.parseBuildFiles(MillScalaParser.current.value, rootModuleInfo)
     }
   }
@@ -281,6 +282,7 @@ trait MillBuildRootModule()(implicit
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = Seq.from(allSourceFiles().map(_.path)),
         compileClasspath = compileClasspath().map(_.path),
+        javaHome = javaHome().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         scalaVersion = scalaVersion(),
         scalaOrganization = scalaOrganization(),

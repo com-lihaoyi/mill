@@ -26,6 +26,42 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/delayed"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/delayed/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/compilation-error"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/errored/compilation-error/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/errored/exception"
+      },
+      "sources": [
+        {
+          "uri": "file:///workspace/errored/exception/src",
+          "kind": 2,
+          "generated": false
+        }
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/hello-java"
       },
       "sources": [
