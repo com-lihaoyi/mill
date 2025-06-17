@@ -78,13 +78,16 @@ trait UnidocModule extends ScalaModule {
           sourceLinksOption,
           "file://€{FILE_PATH_EXT}"
         )
-        else Seq(
-          sourceLinksOption,
-          // Relative path to the workspace
-          if (onScala3) s"${Task.workspace}=$url€{FILE_PATH_EXT}" else s"$url€{FILE_PATH_EXT}",
-          "-sourcepath",
-          BuildCtx.workspaceRoot.toString
-        )
+        else {
+          val workspaceRoot = BuildCtx.workspaceRoot
+          Seq(
+            sourceLinksOption,
+            // Relative path to the workspace
+            if (onScala3) s"$workspaceRoot=$url€{FILE_PATH_EXT}" else s"$url€{FILE_PATH_EXT}",
+            "-sourcepath",
+            workspaceRoot.toString
+          )
+        }
       } ++ unidocOptions()
 
     Task.log.info(
@@ -99,10 +102,10 @@ trait UnidocModule extends ScalaModule {
     )
 
     jvmWorker().worker().docJar(
-      scalaVersion0,
-      scalaOrganization0,
-      scalaDocClasspath0,
-      scalacPluginClasspath0,
+      scalaVersion(),
+      scalaOrganization(),
+      scalaDocClasspath(),
+      scalacPluginClasspath(),
       javaHome().map(_.path),
       options ++ unidocSourceFiles0.map(_.path.toString)
     ) match {
