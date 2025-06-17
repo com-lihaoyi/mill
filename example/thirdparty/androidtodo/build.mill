@@ -60,25 +60,7 @@ object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBu
     mvn"androidx.compose:compose-bom:2024.12.01"
   )
 
-  // versions are resolved with compose-bom
-  def composeDeps = Seq(
-    mvn"androidx.compose.foundation:foundation",
-    mvn"androidx.compose.foundation:foundation-layout",
-    mvn"androidx.compose.animation:animation",
-    mvn"androidx.compose.material3:material3",
-    mvn"androidx.compose.material:material",
-    mvn"androidx.compose.material:material-icons-extended",
-    mvn"androidx.compose.ui:ui-tooling-preview",
-    mvn"androidx.compose.ui:ui",
-    mvn"androidx.compose.ui:ui-unit",
-    mvn"androidx.compose.ui:ui-text",
-    mvn"androidx.compose.ui:ui-graphics",
-    // debug
-    mvn"androidx.compose.ui:ui-tooling",
-    mvn"androidx.compose.ui:ui-test-manifest"
-  )
-
-  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ composeDeps ++ Seq(
+  def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++ Seq(
     mvn"androidx.core:core-ktx:1.15.0",
     mvn"androidx.appcompat:appcompat:1.7.0",
     mvn"androidx.annotation:annotation:1.9.1",
@@ -100,7 +82,23 @@ object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBu
     mvn"androidx.hilt:hilt-navigation-compose:1.2.0",
     mvn"com.google.accompanist:accompanist-swiperefresh:0.36.0",
     mvn"androidx.customview:customview-poolingcontainer:1.0.0",
-    mvn"androidx.tracing:tracing:1.2.0"
+    mvn"androidx.tracing:tracing:1.2.0",
+
+    // versions are resolved with compose-bom
+    mvn"androidx.compose.foundation:foundation",
+    mvn"androidx.compose.foundation:foundation-layout",
+    mvn"androidx.compose.animation:animation",
+    mvn"androidx.compose.material3:material3",
+    mvn"androidx.compose.material:material",
+    mvn"androidx.compose.material:material-icons-extended",
+    mvn"androidx.compose.ui:ui-tooling-preview",
+    mvn"androidx.compose.ui:ui",
+    mvn"androidx.compose.ui:ui-unit",
+    mvn"androidx.compose.ui:ui-text",
+    mvn"androidx.compose.ui:ui-graphics",
+    // debug
+    mvn"androidx.compose.ui:ui-tooling",
+    mvn"androidx.compose.ui:ui-test-manifest"
   )
 
   def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(

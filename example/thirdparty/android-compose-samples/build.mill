@@ -7,8 +7,6 @@ object Versions {
 
   val androidCompileSdk = 33
   val androidMinSdk = 21
-  val androidLifecycleCompose = "2.9.0"
-  val androidXNavigation = "2.9.0"
 }
 
 // Create and configure an Android SDK module to manage Android SDK paths and tools.
