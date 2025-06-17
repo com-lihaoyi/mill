@@ -23,8 +23,7 @@ import mill.resolve.Resolve
 final class EvaluatorImpl private[mill] (
     private[mill] val allowPositionalCommandArgs: Boolean,
     private[mill] val selectiveExecution: Boolean = false,
-    private val execution: Execution,
-    val noFilesystemChecker: Boolean
+    private val execution: Execution
 ) extends Evaluator {
 
   private[mill] def workspace = execution.workspace
@@ -40,8 +39,7 @@ final class EvaluatorImpl private[mill] (
   def withBaseLogger(newBaseLogger: Logger): Evaluator = new EvaluatorImpl(
     allowPositionalCommandArgs,
     selectiveExecution,
-    execution.withBaseLogger(newBaseLogger),
-    noFilesystemChecker
+    execution.withBaseLogger(newBaseLogger)
   )
 
   /**
@@ -54,7 +52,7 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Segments]] = {
-    os.checker.withValue(ResolveChecker(workspace, noFilesystemChecker)) {
+    os.checker.withValue(ResolveChecker(workspace)) {
       Resolve.Segments.resolve(
         rootModule,
         scriptArgs,
@@ -75,7 +73,7 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Task.Named[?]]] = {
-    os.checker.withValue(ResolveChecker(workspace, noFilesystemChecker)) {
+    os.checker.withValue(ResolveChecker(workspace)) {
       Evaluator.withCurrentEvaluator(this) {
         Resolve.Tasks.resolve(
           rootModule,
@@ -93,7 +91,7 @@ final class EvaluatorImpl private[mill] (
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Either[Module, Task.Named[?]]]] = {
-    os.checker.withValue(ResolveChecker(workspace, noFilesystemChecker)) {
+    os.checker.withValue(ResolveChecker(workspace)) {
       Evaluator.withCurrentEvaluator(this) {
         Resolve.Inspect.resolve(
           rootModule,
@@ -251,7 +249,7 @@ final class EvaluatorImpl private[mill] (
       selectMode: SelectMode,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val resolved = os.checker.withValue(ResolveChecker(workspace, noFilesystemChecker)) {
+    val resolved = os.checker.withValue(ResolveChecker(workspace)) {
       Evaluator.withCurrentEvaluator(this) {
         Resolve.Tasks.resolve(
           rootModule,

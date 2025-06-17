@@ -35,7 +35,7 @@ private trait GroupExecution {
   def getEvaluator: () => EvaluatorApi
   def headerData: String
   def offline: Boolean
-  def noFilesystemChecker: Boolean
+
   lazy val parsedHeaderData: Map[String, ujson.Value] = {
     import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
     val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
@@ -319,8 +319,7 @@ private trait GroupExecution {
             counterMsg,
             destCreator,
             getEvaluator().asInstanceOf[Evaluator],
-            terminal,
-            noFilesystemChecker
+            terminal
           ) {
             try {
               task.evaluate(args) match {
@@ -533,15 +532,14 @@ private object GroupExecution {
       counterMsg: String,
       destCreator: DestCreator,
       evaluator: Evaluator,
-      terminal: Task[?],
-      noFilesystemChecker: Boolean
+      terminal: Task[?]
   )(t: => T): T = {
     val isCommand = terminal.isInstanceOf[Task.Command[?]]
     val isInput = terminal.isInstanceOf[Task.Input[?]]
     val executionChecker = new os.Checker {
       def onRead(path: os.ReadablePath): Unit = path match {
         case path: os.Path =>
-          if (!isCommand && !isInput) {
+          if (!isCommand && !isInput && mill.api.FilesystemCheckerEnabled.value) {
             if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
               sys.error(
                 s"Reading from ${path.relativeTo(workspace)} not allowed during execution of `$terminal`"
@@ -552,7 +550,7 @@ private object GroupExecution {
       }
 
       def onWrite(path: os.Path): Unit = {
-        if (!isCommand) {
+        if (!isCommand && mill.api.FilesystemCheckerEnabled.value) {
           if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
             sys.error(
               s"Writing to ${path.relativeTo(workspace)} not allowed during execution of `$terminal`"
@@ -566,7 +564,7 @@ private object GroupExecution {
       else (multiLogger.streams, () => destCreator.makeDest())
 
     os.dynamicPwdFunction.withValue(destFunc) {
-      os.checker.withValue(if (noFilesystemChecker) os.Checker.Nop else executionChecker) {
+      os.checker.withValue(executionChecker) {
         mill.define.SystemStreams.withStreams(streams) {
           val exposedEvaluator =
             if (exclusive) evaluator.asInstanceOf[Evaluator]

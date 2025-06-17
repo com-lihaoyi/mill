@@ -245,29 +245,30 @@ object MillMain0 {
                         // ensure all tasks re-run even though no inputs may have changed
                         if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
                         mill.define.SystemStreams.withStreams(logger.streams) {
-                          tailManager.withOutErr(logger.streams.out, logger.streams.err) {
-
-                            new MillBuildBootstrap(
-                              projectRoot = BuildCtx.workspaceRoot,
-                              output = out,
-                              keepGoing = config.keepGoing.value,
-                              imports = config.imports,
-                              env = env,
-                              ec = ec,
-                              targetsAndParams = targetsAndParams,
-                              prevRunnerState = prevState.getOrElse(stateCache),
-                              logger = logger,
-                              needBuildFile = needBuildFile(config),
-                              requestedMetaLevel = config.metaLevel,
-                              config.allowPositional.value,
-                              systemExit = systemExit,
-                              streams0 = streams,
-                              selectiveExecution = config.watch.value,
-                              offline = config.offline.value,
-                              noFilesystemChecker = config.noFilesystemChecker.value
-                            ).evaluate()
+                          mill.api.FilesystemCheckerEnabled.withValue(
+                            !config.noFilesystemChecker.value
+                          ) {
+                            tailManager.withOutErr(logger.streams.out, logger.streams.err) {
+                              new MillBuildBootstrap(
+                                projectRoot = BuildCtx.workspaceRoot,
+                                output = out,
+                                keepGoing = config.keepGoing.value,
+                                imports = config.imports,
+                                env = env,
+                                ec = ec,
+                                targetsAndParams = targetsAndParams,
+                                prevRunnerState = prevState.getOrElse(stateCache),
+                                logger = logger,
+                                needBuildFile = needBuildFile(config),
+                                requestedMetaLevel = config.metaLevel,
+                                config.allowPositional.value,
+                                systemExit = systemExit,
+                                streams0 = streams,
+                                selectiveExecution = config.watch.value,
+                                offline = config.offline.value
+                              ).evaluate()
+                            }
                           }
-
                         }
                       }
 

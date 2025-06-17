@@ -16,3 +16,8 @@ def baz = Task { 1 }
 if (false) {
   os.write(moduleDir / "file.txt", "hello", createFolders = true)
 }
+
+object allowed extends Module {
+  os.write(moduleDir / "file.txt", "hello", createFolders = true)
+  def allowedTask = Task {}
+}
