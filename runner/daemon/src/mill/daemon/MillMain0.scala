@@ -196,11 +196,7 @@ object MillMain0 {
               }
 
               val (success, nextStateCache) = {
-                if (config.repl.value) {
-                  streams.err.println("The --repl mode is no longer supported.")
-                  (false, stateCache)
-
-                } else if (bspInstallModeJobCountOpt.isDefined) {
+                if (bspInstallModeJobCountOpt.isDefined) {
                   BSP.install(bspInstallModeJobCountOpt.get, config.debugLog.value, streams.err)
                   (true, stateCache)
                 } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
@@ -279,9 +275,7 @@ object MillMain0 {
                             streams,
                             config,
                             enableTicker = config.ticker
-                              .orElse(config.enableTicker)
-                              .orElse(Option.when(config.tabComplete.value)(false))
-                              .orElse(Option.when(config.disableTicker.value)(false)),
+                              .orElse(Option.when(config.tabComplete.value)(false)),
                             daemonDir,
                             colored = colored,
                             colors = colors

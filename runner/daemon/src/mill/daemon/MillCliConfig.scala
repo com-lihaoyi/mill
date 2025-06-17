@@ -111,7 +111,7 @@ case class MillCliConfig(
     tabComplete: Flag = Flag()
 ) {
   def noDaemonEnabled =
-    Seq(interactive.value, noServer.value, noDaemon.value, bsp.value).count(identity)
+    Seq(interactive.value, noDaemon.value, bsp.value).count(identity)
 }
 
 import mainargs.ParserForClass
