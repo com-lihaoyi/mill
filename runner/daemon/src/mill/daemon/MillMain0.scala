@@ -279,7 +279,8 @@ object MillMain0 {
                             streams,
                             config,
                             enableTicker = config.ticker
-                              .orElse(Option.when(config.tabComplete.value)(false)),
+                              .orElse(Option.when(config.tabComplete.value)(false))
+                              .orElse(Option.when(config.disableTicker.value)(false)),
                             daemonDir,
                             colored = colored,
                             colors = colors

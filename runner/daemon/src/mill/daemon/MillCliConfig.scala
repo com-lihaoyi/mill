@@ -81,6 +81,24 @@ case class MillCliConfig(
     )
     metaLevel: Option[Int] = None,
 
+    // ==================== DEPRECATED CLI FLAGS ====================
+    @arg(hidden = true, short = 'h', doc = "Unsupported")
+    home: os.Path = os.home,
+    @arg(hidden = true, doc = "Unsupported")
+    repl: Flag = Flag(),
+    @arg(hidden = true, doc = "Unsupported")
+    noServer: Flag = Flag(),
+    @arg(short = 's', doc = "Unsupported")
+    silent: Flag = Flag(),
+    @arg(name = "disable-callgraph", doc = "Unsupported")
+    disableCallgraph: Flag = Flag(),
+    @arg(hidden = true, doc = "Unsupported")
+    disablePrompt: Flag = Flag(),
+    @arg(hidden = true, doc = "Unsupported")
+    enableTicker: Option[Boolean] = None,
+    @arg(hidden = true, doc = "Unsupported")
+    disableTicker: Flag,
+
     // ==================== ADVANCED CLI FLAGS ====================
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
     allowPositional: Flag = Flag(),
@@ -168,7 +186,14 @@ options:
 
   private lazy val helpAdvancedParser: ParserForClass[MillCliConfig] = new ParserForClass(
     parser.main.copy(argSigs0 = parser.main.argSigs0.collect {
-      case a if a.hidden => a.copy(hidden = false)
+      case a if !a.doc.contains("Unsupported") && a.hidden =>
+        a.copy(
+          hidden = false,
+          // Hack to work around `a.copy` not propagating the name mapping correctly, so we have
+          // to manually map the name ourselves. Doesn't affect runtime behavior since this is
+          // just used for --help-advanced printing and not for argument parsing
+          unMappedName = a.mappedName(mainargs.Util.kebabCaseNameMapper)
+        )
     }),
     parser.companion
   )
