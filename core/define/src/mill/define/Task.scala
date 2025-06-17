@@ -107,16 +107,6 @@ object Task {
     ctx.reporter
 
   /**
-   * This is the `os.Path` pointing to the project root directory.
-   *
-   * This is the preferred access to the project directory, and should
-   * always be prefered over `os.pwd`* (which might also point to the
-   * project directory in classic cli scenarios, but might not in other
-   * use cases like BSP or LSP server usage).
-   */
-  def workspace(implicit ctx: mill.define.TaskCtx): os.Path = ctx.workspace
-
-  /**
    * Provides the `.fork.async` and `.fork.await` APIs for spawning and joining
    * async futures within your task in a Mill-friendly mannter
    */
@@ -148,34 +138,30 @@ object Task {
    * signature for you source files/folders and decides whether or not downstream
    * [[Task.Computed]]s need to be invalidated and re-computed.
    */
-  inline def Sources(inline values: Result[os.Path]*)(implicit
+  inline def Sources(inline values: (os.SubPath | os.FilePath)*)(implicit
       inline ctx: mill.define.ModuleCtx
   ): Simple[Seq[PathRef]] = ${
-    Macros.sourcesImpl('{ Result.sequence(values.map(_.map(PathRef(_)))) })('ctx)
+    Macros.sourcesImpl('{ values.map(p => PathRef(mapToPath(p))) })('ctx)
   }
 
-  inline def Sources(inline values: os.SubPath*)(implicit
-      inline ctx: mill.define.ModuleCtx,
-      dummy: Boolean = true
-  ): Simple[Seq[PathRef]] = ${
-    Macros.sourcesImpl(
-      '{ values.map(sub => PathRef(ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk(sub))) }
-    )('ctx)
+  inline private def mapToPath(value: os.SubPath | os.FilePath)(implicit
+      inline ctx: mill.define.ModuleCtx
+  ): os.Path = value match {
+    // TODO: support "."
+    case str: String => ctx.millSourcePath / os.up / os.PathChunk.segmentsFromString(str)
+    case sub: os.SubPath => ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk(sub)
+    case rel: os.RelPath => ctx.millSourcePath / os.up / os.PathChunk.RelPathChunk(rel)
+    case p: os.Path => p
   }
 
   /**
    * Similar to [[Sources]], but only for a single source file or folder. Defined
    * using `Task.Source`.
    */
-  inline def Source(inline value: Result[os.Path])(implicit
+  inline def Source(inline value: os.SubPath | os.FilePath)(implicit
       inline ctx: mill.define.ModuleCtx
   ): Simple[PathRef] =
-    ${ Macros.sourceImpl('{ value.map(PathRef(_)) })('ctx) }
-
-  inline def Source(inline value: os.SubPath)(implicit
-      inline ctx: mill.define.ModuleCtx
-  ): Simple[PathRef] =
-    ${ Macros.sourceImpl('{ PathRef(ctx.millSourcePath / os.up / value) })('ctx) }
+    ${ Macros.sourceImpl('{ PathRef(mapToPath(value)) })('ctx) }
 
   /**
    * [[Input]]s, normally defined using `Task.Input`, are [[Task.Named]]s that

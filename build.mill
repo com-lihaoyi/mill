@@ -1,4 +1,4 @@
-//| mill-version: 1.0.0-RC1
+//| mill-version: 1.0.0-RC2-4-784a1c
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C"]
 
@@ -20,6 +20,7 @@ import mill.define.SelectMode
 import mill.T
 import mill.define.Cross
 import scala.util.Properties
+import mill.define.BuildCtx
 
 def millVersionIsStable: T[Boolean] = Task.Input {
   Task.env.contains("MILL_STABLE_VERSION")
@@ -71,14 +72,13 @@ def millDownloadUrl = Task {
 
 def millBinPlatform: T[String] = Task {
   val tag = millLastTag()
-  if (tag.contains("-M")) tag
-  else {
-    val pos = if (tag.startsWith("0.")) 2 else 1
-    tag.split("[.]", pos + 1).take(pos).mkString(".")
+  tag match {
+    case s"$_-M$_" | s"$_-RC$_" => tag
+    case tag => tag.split('.').head
   }
 }
 
-def millJvmVersion = Task.Source(Task.workspace / ".mill-jvm-version")
+def millJvmVersion = Task.Source(BuildCtx.workspaceRoot / "default-mill-jvm-version")
 
 val essentialBridgeScalaVersions =
   Seq(Deps.scalaVersion, Deps.scala2Version, Deps.workerScalaVersion212)
@@ -110,7 +110,7 @@ val bridgeScalaVersions = Seq(
   "2.13.5",
   "2.13.6",
   "2.13.7",
-  "2.13.8",
+  "2.13.16",
   "2.13.9",
   "2.13.10",
   "2.13.11",
@@ -127,7 +127,7 @@ val bridgeScalaVersions = Seq(
 // on the fly anyway. For publishing, we publish everything or a specific version
 // if given.
 val compilerBridgeScalaVersions =
-  mill.define.BuildCtx.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
+  BuildCtx.watchValue(sys.env.get("MILL_COMPILER_BRIDGE_VERSIONS")) match {
     case None | Some("") | Some("none") => Seq.empty[String]
     case Some("all") => (essentialBridgeScalaVersions ++ bridgeScalaVersions).distinct
     case Some("essential") => essentialBridgeScalaVersions
@@ -184,7 +184,7 @@ def formatDep(dep: Dep) = {
   s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
 }
 
-def listIn(path: os.Path) = mill.define.BuildCtx.watchValue(os.list(path).map(_.last))
+def listIn(path: os.Path) = BuildCtx.watchValue(os.list(path).map(_.last))
 
 val dummyDeps: Seq[Dep] = Seq(
   Deps.DocDeps.millScip,

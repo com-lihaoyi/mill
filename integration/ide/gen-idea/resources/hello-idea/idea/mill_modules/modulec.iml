@@ -1,6 +1,6 @@
 <module type="JAVA_MODULE" version="4">
     <component name="NewModuleRootManager">
-        <output url="file://$MODULE_DIR$/../../out/moduleC/ideaCompileOutput.dest/classes"/>
+        <output url="file://$MODULE_DIR$/../../out/moduleC/internalGenIdea/ideaCompileOutput.dest/classes"/>
         <exclude-output/>
         <content url="file://$MODULE_DIR$/../../moduleC">
             <sourceFolder url="file://$MODULE_DIR$/../../moduleC/src" isTestSource="false"/>

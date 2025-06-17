@@ -11,12 +11,8 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 object JavaHomeTests extends TestSuite {
 
   object HelloJavaJavaHome11Override extends TestRootModule {
-    object JvmWorkerJava11 extends JvmWorkerModule {
-      def jvmId = "temurin:11.0.24"
-    }
-
     object core extends JavaModule {
-      override def jvmWorker = ModuleRef(JvmWorkerJava11)
+      def jvmId = "temurin:11.0.24"
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
@@ -25,12 +21,9 @@ object JavaHomeTests extends TestSuite {
   }
 
   object HelloJavaJavaHome17Override extends TestRootModule {
-    object JvmWorkerJava17 extends JvmWorkerModule {
-      def jvmId = "temurin:17.0.9"
-    }
 
     object core extends JavaModule {
-      override def jvmWorker = ModuleRef(JvmWorkerJava17)
+      def jvmId = "temurin:17.0.9"
       override def docJarUseArgsFile = false
       object test extends JavaTests with TestModule.Junit4
     }
@@ -38,30 +31,23 @@ object JavaHomeTests extends TestSuite {
   }
 
   object JavaJdk11DoesntCompile extends TestRootModule {
-    object JvmWorkerJava extends JvmWorkerModule {
-      def jvmId = "temurin:11.0.25"
-    }
 
     object javamodule extends JavaModule {
-      override def jvmWorker = ModuleRef(JvmWorkerJava)
+      def jvmId = "temurin:11.0.25"
     }
     object scalamodule extends JavaModule {
-      override def jvmWorker = ModuleRef(JvmWorkerJava)
+      def jvmId = "temurin:11.0.25"
       def scalaVersion = "2.13.14"
     }
     lazy val millDiscover = Discover[this.type]
   }
 
   object JavaJdk17Compiles extends TestRootModule {
-    object JvmWorkerJava extends JvmWorkerModule {
+    object javamodule extends JavaModule {
       def jvmId = "temurin:17.0.13"
     }
-
-    object javamodule extends JavaModule {
-      override def jvmWorker = ModuleRef(JvmWorkerJava)
-    }
     object scalamodule extends JavaModule {
-      override def jvmWorker = ModuleRef(JvmWorkerJava)
+      def jvmId = "temurin:17.0.13"
 
       def scalaVersion = "2.13.14"
     }
@@ -132,7 +118,7 @@ object JavaHomeTests extends TestSuite {
       test("test11") {
         UnitTester(HelloJavaJavaHome11Override, resourcePath).scoped { eval =>
 
-          val Left(ExecResult.Failure(ref1)) =
+          val Left(ExecResult.Failure(_)) =
             eval.apply(HelloJavaJavaHome11Override.core.test.testForked()): @unchecked
 
           //        assert(
@@ -146,7 +132,7 @@ object JavaHomeTests extends TestSuite {
       test("test17") {
         UnitTester(HelloJavaJavaHome17Override, resourcePath).scoped { eval =>
 
-          val Left(ExecResult.Failure(ref1)) =
+          val Left(ExecResult.Failure(_)) =
             eval.apply(HelloJavaJavaHome17Override.core.test.testForked()): @unchecked
 
           //        assert(
@@ -168,7 +154,7 @@ object JavaHomeTests extends TestSuite {
           resourcePathCompile,
           errStream = new PrintStream(baos)
         ).scoped { eval =>
-          val Left(result) = eval.apply(JavaJdk11DoesntCompile.javamodule.compile): @unchecked
+          val Left(_) = eval.apply(JavaJdk11DoesntCompile.javamodule.compile): @unchecked
           assert(baos.toString.contains("cannot find symbol"))
           assert(baos.toString.contains("method indent"))
         }
@@ -176,7 +162,7 @@ object JavaHomeTests extends TestSuite {
 
       test("jdk17java") {
         UnitTester(JavaJdk17Compiles, resourcePathCompile).scoped { eval =>
-          val Right(result) = eval.apply(JavaJdk17Compiles.javamodule.compile): @unchecked
+          val Right(_) = eval.apply(JavaJdk17Compiles.javamodule.compile): @unchecked
         }
       }
 
@@ -190,7 +176,7 @@ object JavaHomeTests extends TestSuite {
 
       test("jdk17scala") {
         UnitTester(JavaJdk17Compiles, resourcePathCompile).scoped { eval =>
-          val Right(result) = eval.apply(JavaJdk17Compiles.scalamodule.compile): @unchecked
+          val Right(_) = eval.apply(JavaJdk17Compiles.scalamodule.compile): @unchecked
         }
       }
     }

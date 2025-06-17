@@ -1,18 +1,26 @@
 package mill.testkit
 
 import mill.Task
+import mill.api.DummyInputStream
+import mill.api.ExecResult
 import mill.api.ExecResult.OuterStack
-import mill.api.{DummyInputStream, ExecResult, Result, SystemStreams, Val}
-import mill.define.{Evaluator, SelectMode, Task}
-import mill.resolve.Resolve
+import mill.api.Result
+import mill.api.SystemStreams
+import mill.api.Val
+import mill.constants.OutFiles.millChromeProfile
+import mill.constants.OutFiles.millProfile
+import mill.define.Evaluator
+import mill.define.SelectMode
 import mill.exec.JsonArrayLogger
-import mill.constants.OutFiles.{millChromeProfile, millProfile}
+import mill.resolve.Resolve
 
-import java.io.{InputStream, PrintStream}
+import java.io.InputStream
+import java.io.PrintStream
 import java.util.concurrent.ThreadPoolExecutor
 
 object UnitTester {
   case class Result[T](value: T, evalCount: Int)
+
   def apply(
       module: mill.testkit.TestRootModule,
       sourceRoot: os.Path,
@@ -27,7 +35,7 @@ object UnitTester {
       offline: Boolean = false
   ) = new UnitTester(
     module = module,
-    sourceRoot = sourceRoot,
+    sourceRoot = Option(sourceRoot),
     failFast = failFast,
     threads = threads,
     outStream = outStream,
@@ -47,7 +55,8 @@ object UnitTester {
  */
 class UnitTester(
     module: mill.testkit.TestRootModule,
-    sourceRoot: os.Path,
+    sourceRoot: Option[os.Path],
+    resetSourcePath: Boolean,
     failFast: Boolean,
     threads: Option[Int],
     outStream: PrintStream,
@@ -55,7 +64,6 @@ class UnitTester(
     inStream: InputStream,
     debugEnabled: Boolean,
     env: Map[String, String],
-    resetSourcePath: Boolean,
     offline: Boolean
 )(implicit fullName: sourcecode.FullName) extends AutoCloseable {
   assert(
@@ -68,8 +76,16 @@ class UnitTester(
     os.remove.all(module.moduleDir)
     os.makeDir.all(module.moduleDir)
 
-    for (sourceFileRoot <- Option(sourceRoot)) {
+    for (sourceFileRoot <- sourceRoot) {
       os.copy.over(sourceFileRoot, module.moduleDir, createFolders = true)
+    }
+  } else {
+    sourceRoot match {
+      case Some(sourceRoot) =>
+        throw new IllegalArgumentException(
+          s"Cannot provide sourceRoot=$sourceRoot when resetSourcePath=false"
+        )
+      case None => // ok
     }
   }
 
@@ -153,6 +169,7 @@ class UnitTester(
       tasks: Seq[Task[?]],
       dummy: DummyImplicit = null
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
+
     val evaluated = evaluator.execute(tasks).executionResults
 
     if (evaluated.transitiveFailing.nonEmpty) Left(evaluated.transitiveFailing.values.head)
@@ -170,6 +187,7 @@ class UnitTester(
 
       Right(UnitTester.Result(values, evalCount))
     }
+
   }
 
   def fail(
@@ -204,8 +222,11 @@ class UnitTester(
   }
 
   def scoped[T](tester: UnitTester => T): T = {
-    try tester(this)
-    finally close()
+    try {
+      mill.define.BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
+        tester(this)
+      }
+    } finally close()
   }
 
   def close(): Unit = {

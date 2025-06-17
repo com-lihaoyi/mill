@@ -1,6 +1,10 @@
 = Case Study: Mill vs Gradle
 :page-aliases: Case_Study_Mill_vs_Gradle.adoc
 
+This page goes into the weeds comparing the Mill and Gradle build tools.
+For a higher-level comparison of Mill vs other tools, and why Mill is interesting,
+see the page xref:comparisons/why-mill.adoc[].
+
 
 Compared to Gradle, Mill tries to improve in the following ways:
 

@@ -58,6 +58,7 @@
 ** xref:cli/flags.adoc[]
 ** xref:cli/builtin-commands.adoc[]
 ** xref:cli/query-syntax.adoc[]
+** xref:cli/build-header.adoc[]
 * xref:migrating/migrating.adoc[]
 ** xref:migrating/maven.adoc[]
 ** xref:migrating/gradle.adoc[]

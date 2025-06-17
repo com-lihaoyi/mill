@@ -11,6 +11,7 @@ import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.*
+import mill.define.BuildCtx
 import mill.coursierutil.TestOverridesRepo
 import mill.define.{PathRef, TaskCtx}
 
@@ -522,7 +523,7 @@ object Jvm {
    *
    * We do not bother breaking this out into the separate JvmWorkerApi classpath,
    * because Coursier is already bundled with mill/Ammonite to support the
-   * `//| mvnDeps:` syntax.
+   * `//| mvnDeps` syntax.
    */
   def resolveDependencies(
       repositories: Seq[Repository],
@@ -550,7 +551,7 @@ object Jvm {
       resolutionParams,
       checkGradleModules = checkGradleModules
     ).map { res =>
-      mill.define.BuildCtx.withFilesystemCheckerDisabled {
+      BuildCtx.withFilesystemCheckerDisabled {
         res.files
           .map(os.Path(_))
           .map(PathRef(_, quick = true))

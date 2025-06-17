@@ -27,11 +27,11 @@ object bartest extends MyTestModule {
 
 /** Usage
 
-> mill __.testForked
+> ./mill __.testForked
 Test foo.FooTests.simple finished, ...
 Test bar.BarTests.simple finished, ...
 ...
 
-> mill resolve foo.upstreamModule._ # This fails since it's a `ModuleRef`, not just a `Module`
+> ./mill resolve foo.upstreamModule._ # This fails since it's a `ModuleRef`, not just a `Module`
 error: resolve Cannot resolve foo.upstreamModule...
 */

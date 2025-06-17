@@ -3,7 +3,7 @@ package millbuild
 import mill.*
 import mill.scalalib.*
 import mill.scalalib.api.JvmWorkerUtil
-
+import mill.define.BuildCtx
 // import com.goyeau.mill.scalafix.ScalafixModule
 
 /**
@@ -18,7 +18,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
     else JvmWorkerUtil.scalaBinaryVersion(sv)
   }
 
-  def scalafixConfig = Task { Some(Task.workspace / ".scalafix.conf") }
+  def scalafixConfig = Task { Some(BuildCtx.workspaceRoot / ".scalafix.conf") }
 
   def semanticDbVersion = Deps.semanticDBscala.version
 
@@ -82,7 +82,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
   lazy val test: MillScalaTests = new MillScalaTests {}
   trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
       /*with ScalafixModule*/ {
-    def scalafixConfig = Task { Some(Task.workspace / ".scalafix.conf") }
+    def scalafixConfig = Task { Some(BuildCtx.workspaceRoot / ".scalafix.conf") }
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps
     def mvnDeps = super.mvnDeps() ++ outer.testMvnDeps()

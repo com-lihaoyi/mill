@@ -12,6 +12,31 @@ endif::[]
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
+[#1-0-0-RC2]
+=== 1.0.0-RC2
+_2025-06-12_
+
+
+:version: 1.0.0-RC2
+:milestone-name: 1.0.0-RC2
+:milestone: 119
+:prev-version: 1.0.0-RC1
+
+Changes since 1.0.0-RC1
+
+* Add support for Bash/Zsh tab-completion, installable via `./mill mill.tabcomplete/install`
+  ({link-pr}/5279[#5279])
+
+* Better classloader re-use for improved performance when compiling Kotlin/Scala.js/Scala-Native
+  modules ({link-pr}/5269[#5269])
+
+* Lots of BSP/Intellij/VSCode bugfixes ({link-pr}/5275[#5275], {link-pr}/5265[#5265],
+  {link-pr}/5220[#5220], {link-pr}/5202[#5202], {link-pr}/5200[#5200])
+
+* Lots of error-reporting improvements ({link-pr}/52825[#5282], {link-pr}/5267[#5267],
+  {link-pr}/5235[#5235], {link-pr}/5233[#5233], {link-pr}/5213[#5213])
+
+
 [#1-0-0-RC1]
 === 1.0.0-RC1
 _2025-05-25_
@@ -60,7 +85,8 @@ echo 1.0.0-RC1 > .mill-version
 
 ==== Major Breaking Changes
 
-* `build.mill` and `package.mill` files are now written in Scala 3.7.0 ({link-pr}/3369[#3369]).
+* `build.mill` and `package.mill` files are now written in Scala 3.7.1 ({link-pr}/3369[#3369],
+  see https://www.youtube.com/watch?v=Aos6vp81I7Q[bishabosha's talk at Scala.IO Paris]). 
   Any third-party libraries used must be Scala 3 compatible (most already are). You may now
   use Scala 3 language features such as https://docs.scala-lang.org/scala3/reference/other-new-features/indentation.html[Optional Braces]
   in your `.mill` files
@@ -829,7 +855,7 @@ frameworks, etc.)
 6. The Mill doc-site at https://mill-build.org/ has undergone a massive overhaul.
 New comparisons with other build tools of (https://mill-build.org/mill/comparisons/maven.html[Maven],
 https://mill-build.org/mill/comparisons/gradle.html[Gradle],
-https://mill-build.org/mill/comparisons/sbt.html[`sbt`]), documentation for
+https://mill-build.org/mill/comparisons/sbt.html[sbt]), documentation for
 https://mill-build.org/mill/extending/new-language.html[adding new language toolchains]
 and https://mill-build.org/mill/extending/running-jvm-code.html[running dynamic JVM code],
 and re-organized the pages for Scala/Java/Kotlin by-use-case to make them more navigable

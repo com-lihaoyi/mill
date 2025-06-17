@@ -2,6 +2,7 @@ package mill.javalib.palantirformat
 
 import mill.define.{TaskCtx, PathRef}
 import mill.define.{Discover, ExternalModule, TaskModule}
+import mill.define.BuildCtx
 import mill.util.Tasks
 import mill.util.TokenReaders.*
 import mill.scalalib.JavaModule
@@ -152,9 +153,9 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
   }
 
   /**
-   * Path to options file for Palantir Java Format CLI at `Task.workspace` `/` `palantirformat.options`.
+   * Path to options file for Palantir Java Format CLI at `mill.define.BuildCtx.workspaceRoot` `/` `palantirformat.options`.
    */
   override def palantirformatOptions: T[PathRef] = Task.Source(
-    Task.workspace / "palantirformat.options"
+    BuildCtx.workspaceRoot / "palantirformat.options"
   )
 }

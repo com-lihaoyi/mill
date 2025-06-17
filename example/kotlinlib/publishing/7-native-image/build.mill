@@ -4,13 +4,8 @@ import mill._, kotlinlib._
 import mill.define.ModuleRef
 
 object foo extends KotlinModule with NativeImageModule {
-
   def kotlinVersion = "1.9.24"
 
-  def jvmWorker = ModuleRef(JvmWorkerGraalvm)
-}
-
-object JvmWorkerGraalvm extends JvmWorkerModule {
   def jvmId = "graalvm-community:17.0.7"
 }
 

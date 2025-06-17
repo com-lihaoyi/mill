@@ -94,7 +94,7 @@ object qux extends TypeScriptModule {
 
 /** Usage
 
-> mill qux.run James Bond
+> ./mill qux.run James Bond
 Hello James Bond Professor
 
 */

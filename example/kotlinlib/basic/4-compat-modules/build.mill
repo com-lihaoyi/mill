@@ -14,7 +14,7 @@ object foo extends KotlinModule with KotlinMavenModule {
 
   object test extends KotlinMavenTests with TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
   }
 }
@@ -38,16 +38,18 @@ object foo extends KotlinModule with KotlinMavenModule {
 
 /** Usage
 
-> mill foo.compile
+> ./mill foo.compile
 Compiling 1 Kotlin source...
 
-> mill foo.test.compile
+> ./mill foo.test.compile
 Compiling 1 Kotlin source...
 
-> mill foo.test.testForked
+> ./mill foo.test.testForked
 ...foo.FooTests hello ...
 
-> mill foo.test
+> ./mill foo.test
 ...foo.FooTests hello ...
 
 */
+
+// For more details on migrating from other build tools, see xref:migrating/migrating.adoc[]

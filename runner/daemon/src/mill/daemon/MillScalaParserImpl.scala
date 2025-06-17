@@ -5,7 +5,6 @@ import dotty.tools.dotc.Driver
 import dotty.tools.dotc.ast.Positioned
 import dotty.tools.dotc.ast.Trees
 import dotty.tools.dotc.ast.untpd
-import dotty.tools.dotc.ast.untpd.ImportSelector
 import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Contexts.ctx
 import dotty.tools.dotc.core.Contexts.inContext
@@ -27,7 +26,7 @@ import dotty.tools.dotc.util.SourceFile
 import dotty.tools.dotc.util.Spans.Span
 import dotty.tools.dotc.util.SourcePosition
 
-import mill.api.internal.{MillScalaParser}
+import mill.api.internal.MillScalaParser
 import mill.api.internal.MillScalaParser.{ObjectData, Snip}
 
 object MillScalaParserImpl extends MillScalaParser {

@@ -199,7 +199,7 @@ private[mill] object Resolve {
         allowPositionalCommandArgs
       )
 
-      invoked.head
+      invoked
     }.flatMap(x => x)
   }
 
@@ -210,9 +210,13 @@ private[mill] object Resolve {
       rest: Seq[String],
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
-  ): Option[Result[Task.Command[?]]] = for {
-    ep <- discover.resolveEntrypoint(target.getClass, name)
-  } yield {
+  ): Result[Task.Command[?]] = {
+    val ep = discover.resolveEntrypoint(target.getClass, name)
+      .getOrElse(
+        sys.error(
+          s"Unable to resolve command $name on module $target of class ${target.getClass}"
+        )
+      )
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
       if (a.default.nonEmpty) a
       else if (nullCommandDefaults) {
@@ -366,19 +370,19 @@ private[mill] trait Resolve[T] {
         case ResolveCore.Error(value) => Result.Failure(value)
       }
 
-    resolved
-      .flatMap(r =>
-        handleResolved(
-          rootModule,
-          r.sortBy(_.segments),
-          args,
-          sel,
-          nullCommandDefaults,
-          allowPositionalCommandArgs,
-          resolveToModuleTasks,
-          cache = cache
-        )
+    resolved.flatMap { r =>
+      val sorted = r.sorted
+      handleResolved(
+        rootModule,
+        sorted,
+        args,
+        sel,
+        nullCommandDefaults,
+        allowPositionalCommandArgs,
+        resolveToModuleTasks,
+        cache = cache
       )
+    }
   }
 
   private[mill] def deduplicate(items: List[T]): List[T] = items
@@ -395,12 +399,12 @@ private[mill] trait Resolve[T] {
           moduleCls <-
             try Result.Success(rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
             catch {
-              case e: ClassNotFoundException =>
+              case _: ClassNotFoundException =>
                 try Result.Success(rootModule.getClass.getClassLoader.loadClass(
                     scoping.render + ".package$"
                   ))
                 catch {
-                  case e: ClassNotFoundException =>
+                  case _: ClassNotFoundException =>
                     Result.Failure("Cannot resolve external module " + scoping.render)
                 }
             }

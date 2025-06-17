@@ -313,17 +313,20 @@ One part of the Mill evaluation model that is skimmed over above is what happens
 and `package.mill` files? This is called bootstrapping, and proceeds roughly in the following phases:
 
 1. Mill's xref:cli/installation-ide.adoc#_bootstrap_scripts[bootstrap script] first checks
-   if the right version of Mill is already present, and if not it downloads the assembly jar
-   to `~/.mill/download`
+   if the right version of Mill is already present, and if not it downloads the launcher executable
+   (either a JVM assembly jar or Graal native image) to `~/.mill/download`
 
-2. Mill instantiates an in-memory `MillBuildRootModule.BootstrapModule`,
+2. The Mill launcher resolves and downloads dependencies for the Mill daemon using Coursier, and
+   spawns the daemon sub-process if necessary.
+
+3. The Mill daemon instantiates an in-memory `MillBuildRootModule.BootstrapModule`,
    which is a hard-coded `build.mill` used for bootstrapping Mill
 
-3. If there is a xref:extending/meta-build.adoc[meta-build] present `mill-build/build.mill`, Mill processes that
+4. If there is a xref:extending/meta-build.adoc[meta-build] present `mill-build/build.mill`, Mill processes that
    first and uses the `MillBuildRootModule` returned for the next steps.
    Otherwise it uses the `MillBuildRootModule.BootstrapModule` directly
 
-4. Mill evaluates the `MillBuildRootModule` to parse the `build.mill`, generate
+5. Mill evaluates the `MillBuildRootModule` to parse the `build.mill`, generate
    a list of `mvnDeps` as well as appropriately wrapped Scala code that we can
    compile, and compiles it to classfiles (<<Compilation>> above)
 

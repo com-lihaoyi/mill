@@ -32,6 +32,11 @@ case class MillCliConfig(
     bsp: Flag,
     @arg(doc = """Create mill-bsp.json with Mill details under .bsp/""")
     bspInstall: Flag,
+    @arg(
+      doc =
+        """Automatically reload the build when its sources change when running the BSP server (defaults to true)."""
+    )
+    bspWatch: Boolean = true,
     @arg(name = "version", short = 'v', doc = "Show mill version information and exit.")
     showVersion: Flag = Flag(),
     @arg(
@@ -175,7 +180,11 @@ case class MillCliConfig(
         need to do something unusual and you are willing to take the risk
       """
     )
-    noFilesystemChecker: Flag = Flag()
+    noFilesystemChecker: Flag = Flag(),
+    @arg(
+      doc = """Runs Mill in tab-completion mode"""
+    )
+    tabComplete: Flag = Flag()
 ) {
   def noDaemonEnabled =
     Seq(interactive.value, noServer.value, noDaemon.value, bsp.value).count(identity)

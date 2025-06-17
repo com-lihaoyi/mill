@@ -7,7 +7,7 @@ import mill.define.*
 import mill.define.SelectMode.Separated
 import mill.define.internal.Watchable
 import mill.moduledefs.Scaladoc
-
+import mill.define.BuildCtx
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
 
@@ -42,7 +42,7 @@ trait MainModule extends BaseModule with MainModuleApi {
 
       resolved.map { resolvedSegmentsList =>
         val resolvedStrings = resolvedSegmentsList.map(_.render)
-        resolvedStrings.sorted.foreach(println)
+        resolvedStrings.foreach(println)
         resolvedStrings
       }
     }
@@ -118,7 +118,7 @@ trait MainModule extends BaseModule with MainModuleApi {
    */
   def show(evaluator: Evaluator, targets: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
-      MainModule.show0(evaluator, targets, Task.log, mill.define.BuildCtx.evalWatch0) { res =>
+      MainModule.show0(evaluator, targets, Task.log, BuildCtx.evalWatch0) { res =>
         res.flatMap(_._2) match {
           case Seq((k, singleValue)) => singleValue
           case multiple => ujson.Obj.from(multiple)
@@ -132,7 +132,7 @@ trait MainModule extends BaseModule with MainModuleApi {
    */
   def showNamed(evaluator: Evaluator, targets: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
-      MainModule.show0(evaluator, targets, Task.log, mill.define.BuildCtx.evalWatch0) { res =>
+      MainModule.show0(evaluator, targets, Task.log, BuildCtx.evalWatch0) { res =>
         ujson.Obj.from(res.flatMap(_._2))
       }
     }

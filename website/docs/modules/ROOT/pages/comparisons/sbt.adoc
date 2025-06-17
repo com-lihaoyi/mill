@@ -1,6 +1,10 @@
 = Case Study: Mill vs `sbt`
 :page-aliases: Case_Study_Mill_vs_sbt.adoc, Case_Study_Mill_vs_SBT.adoc
 
+This page goes into the weeds comparing the Mill and SBT build tools.
+For a higher-level comparison of Mill vs other tools, and why Mill is interesting,
+see the page xref:comparisons/why-mill.adoc[].
+
 
 Compared to `sbt`,
 

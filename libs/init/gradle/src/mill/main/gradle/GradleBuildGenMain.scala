@@ -199,11 +199,10 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       baseInfo: IrBaseInfo,
       build: Node[ProjectModel]
   ): Seq[String] =
-    Seq("mill.Module") ++
-      Option.when(null != build.value.maven().pom() && {
-        val baseTrait = baseInfo.moduleTypedef
-        baseTrait == null || !baseTrait.moduleSupertypes.contains("PublishModule")
-      }) { "PublishModule" } ++
+    Option.when(null != build.value.maven().pom() && {
+      val baseTrait = baseInfo.moduleTypedef
+      baseTrait == null || !baseTrait.moduleSupertypes.contains("PublishModule")
+    }) { "PublishModule" }.toSeq ++
       Option.when(build.dirs.nonEmpty || os.exists(getMillSourcePath(build.value) / "src")) {
         getModuleSupertypes(cfg)
       }.toSeq.flatten
@@ -218,9 +217,7 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
   }
 
   def getRepositories(project: ProjectModel): Seq[String] =
-    project.maven().repositories().asScala.toSeq.sorted.map(uri =>
-      s"coursier.maven.MavenRepository(${escape(uri.toString)})"
-    )
+    project.maven().repositories().asScala.toSeq.sorted.map(uri => escape(uri.toString))
 
   def getPomPackaging(project: ProjectModel): String = {
     val pom = project.maven().pom()

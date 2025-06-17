@@ -4,9 +4,8 @@ import mill.api.Result
 import mill.define.{Discover, ModuleRef, Task, TaskModule}
 import mill.testkit.TestRootModule
 import mill.define.DynamicModule
-import mill.util.TestGraphs
-import mill.util.TestGraphs.*
-import mill.{Cross, Module, Task}
+import mill.define.TestGraphs.*
+import mill.{Cross, Module}
 import utest.*
 
 object ModuleTests extends TestSuite {

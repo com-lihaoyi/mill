@@ -1,7 +1,5 @@
 package mill.androidlib
 
-import coursier.core.VariantSelector.VariantMatcher
-import coursier.params.ResolutionParams
 import mill.define.{ModuleRef, PathRef, Task}
 import mill.kotlinlib.{Dep, DepSyntax}
 import mill.scalalib.TestModule.Junit5
@@ -138,8 +136,6 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
 
     // FIXME: avoid hardcoded version
     def uiToolingVersion: String = "1.7.6"
-
-    override def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
     override def resolvedMvnDeps: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(

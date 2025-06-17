@@ -6,8 +6,10 @@ import millbuild.*
 
 /**
  * This module contains the core data types that are shared between Mill's
- * internal code and user-land code. Should have zero or minimal dependencies
+ * internal code and user-land (`build.mill`, `package.mill`, etc.) code. Should have zero or minimal dependencies
  * to ensure the two codebases are not bound to the same versions of shared libraries
+ *
+ * @see https://github.com/com-lihaoyi/mill/pull/4879
  */
 object `package` extends MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.core.constants)

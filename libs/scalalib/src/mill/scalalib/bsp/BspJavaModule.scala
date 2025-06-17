@@ -152,7 +152,7 @@ private[mill] object BspJavaModule extends ExternalModule {
               forkEnv: Map[String, String]
           )] =
         Task {
-          (jm.allLocalMainClasses(), jm.forkArgs(), jm.forkEnv())
+          (jm.allLocalMainClasses(), jm.forkArgs(), jm.allForkEnv())
         }
 
       override private[mill] def bspLoggingTest = Task.Anon {

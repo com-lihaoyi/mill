@@ -15,8 +15,6 @@ Many of the APIs covered here are listed in the API documentation:
 
 include::partial$example/kotlinlib/dependencies/1-mvn-deps.adoc[]
 
-== Runtime and Compile-time Dependencies
-
 include::partial$example/kotlinlib/dependencies/2-run-compile-deps.adoc[]
 
 == Dependency Management

@@ -18,13 +18,13 @@ object foo extends TaskModule {
 
 /** Usage
 
-> mill foo # same as running foo.bar
+> ./mill foo # same as running foo.bar
 Hello Bar
 
-> mill foo.bar
+> ./mill foo.bar
 Hello Bar
 
-> mill foo.qux
+> ./mill foo.qux
 Hello Qux
 
 */

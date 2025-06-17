@@ -24,12 +24,12 @@ object MacroErrorTests extends TestSuite {
           mill.define.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("`Task.Command` definitions must have 1 parameter list"),
+          e.msg.contains("`Task.Command` definition `method w` must have 1 parameter list"),
           e.pos.contains("def w = ")
         )
       }
 
-      test("target") {
+      test("task") {
         val e = compileError("""
           object foo extends TestRootModule{
             def x() = Task {1}
@@ -38,7 +38,7 @@ object MacroErrorTests extends TestSuite {
           mill.define.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("Target definitions must have 0 parameter lists"),
+          e.msg.contains("Task definition `method x` must have 0 parameter lists"),
           e.pos.contains("def x() = ")
         )
       }
@@ -51,7 +51,7 @@ object MacroErrorTests extends TestSuite {
           mill.define.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("Target definitions must have 0 parameter lists"),
+          e.msg.contains("Task definition `method y` must have 0 parameter lists"),
           e.pos.contains("def y() = ")
         )
       }
@@ -64,7 +64,7 @@ object MacroErrorTests extends TestSuite {
           mill.define.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("Target definitions must have 0 parameter lists"),
+          e.msg.contains("Task definition `method z` must have 0 parameter lists"),
           e.pos.contains("def z() = ")
         )
       }
@@ -77,14 +77,14 @@ object MacroErrorTests extends TestSuite {
           mill.define.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("Target definitions must have 0 parameter lists"),
+          e.msg.contains("Task definition `method a` must have 0 parameter lists"),
           e.pos.contains("def a() = ")
         )
       }
     }
     test("badTmacro") {
       // Make sure we can reference values from outside the Task{...} block as part
-      // of our `Target#apply()` calls, but we cannot reference any values that
+      // of our `Task#apply()` calls, but we cannot reference any values that
       // come from inside the Task{...} block
       test("pos") {
         // This should compile
@@ -116,7 +116,7 @@ object MacroErrorTests extends TestSuite {
       test("neg3") {
 
         val expectedMsg =
-          "Target#apply() call cannot use `val n` defined within the Task{...} block"
+          "Task#apply() call cannot use `val n` defined within the Task{...} block"
         val err = compileError("""
           object foo extends TestRootModule{
             def a = Task { 1 }
@@ -135,7 +135,7 @@ object MacroErrorTests extends TestSuite {
       test("neg4") {
 
         val expectedMsg =
-          "Target#apply() call cannot use `val x` defined within the Task{...} block"
+          "Task#apply() call cannot use `val x` defined within the Task{...} block"
         val err = compileError("""
           object foo extends TestRootModule{
             def a = Task { 1 }

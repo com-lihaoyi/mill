@@ -1,6 +1,8 @@
 package mill.integration
 
 import java.io.ByteArrayOutputStream
+import java.net.URI
+import java.nio.file.Paths
 
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.given
@@ -8,44 +10,25 @@ import scala.util.chaining.given
 import ch.epfl.scala.bsp4j as b
 import mill.api.BuildInfo
 import mill.bsp.Constants
+import mill.constants.OutFiles
 import mill.integration.BspServerTestUtil.*
 import mill.testkit.UtestIntegrationTestSuite
 import mill.testrunner.TestRunnerUtils
 import utest.*
 
 object BspServerTests extends UtestIntegrationTestSuite {
-  def snapshotsPath: os.Path =
+  protected def snapshotsPath: os.Path =
     super.workspaceSourcePath / "snapshots"
   def logsPath: os.Path =
     super.workspaceSourcePath / "logs"
   override protected def workspaceSourcePath: os.Path =
     super.workspaceSourcePath / "project"
 
-  def transitiveDependenciesSubstitutions(
-      dependency: coursierapi.Dependency,
-      filter: coursierapi.Dependency => Boolean
-  ): Seq[(String, String)] = {
-    val fetchRes = coursierapi.Fetch.create()
-      .addDependencies(dependency)
-      .fetchResult()
-    fetchRes.getDependencies.asScala
-      .filter(filter)
-      .map { dep =>
-        val organization = dep.getModule.getOrganization
-        val name = dep.getModule.getName
-        val prefix = (organization.split('.') :+ name).mkString("/")
-        def basePath(version: String): String =
-          s"$prefix/$version/$name-$version"
-        basePath(dep.getVersion) -> basePath(s"<$name-version>")
-      }
-      .toSeq
-  }
-
   def tests: Tests = Tests {
     test("requestSnapshots") - integrationTest { tester =>
       import tester.*
       eval(
-        "--bsp-install",
+        ("--bsp-install", "--jobs", "1"),
         stdout = os.Inherit,
         stderr = os.Inherit,
         check = true,
@@ -56,25 +39,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
         workspacePath,
         millTestSuiteEnv
       ) { (buildServer, initRes) =>
-        val scala2Version = sys.props.getOrElse("TEST_SCALA_2_13_VERSION", ???)
-        val scala3Version = sys.props.getOrElse("MILL_SCALA_3_NEXT_VERSION", ???)
-        val scala2TransitiveSubstitutions = transitiveDependenciesSubstitutions(
-          coursierapi.Dependency.of(
-            "org.scala-lang",
-            "scala-compiler",
-            scala2Version
-          ),
-          _.getModule.getOrganization != "org.scala-lang"
-        )
-        val scala3TransitiveSubstitutions = transitiveDependenciesSubstitutions(
-          coursierapi.Dependency.of(
-            "org.scala-lang",
-            "scala3-compiler_3",
-            scala3Version
-          ),
-          _.getModule.getOrganization != "org.scala-lang"
-        )
-
         val kotlinVersion = sys.props.getOrElse("TEST_KOTLIN_VERSION", ???)
         val kotlinTransitiveSubstitutions = transitiveDependenciesSubstitutions(
           coursierapi.Dependency.of(
@@ -86,14 +50,8 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         val normalizedLocalValues = normalizeLocalValuesForTesting(workspacePath) ++
-          scala2TransitiveSubstitutions ++
-          scala3TransitiveSubstitutions ++
-          kotlinTransitiveSubstitutions ++
-          Seq(
-            scala2Version -> "<scala-version>",
-            scala3Version -> "<scala3-version>",
-            kotlinVersion -> "<kotlin-version>"
-          )
+          scalaVersionNormalizedValues() ++
+          kotlinVersionNormalizedValues()
 
         compareWithGsonSnapshot(
           initRes,
@@ -111,14 +69,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
-        val targetIds = buildTargets
-          .getTargets
-          .asScala
-          .filter(_.getDisplayName != "errored.exception")
-          .filter(_.getDisplayName != "errored.compilation-error")
-          .filter(_.getDisplayName != "delayed")
-          .map(_.getId)
-          .asJava
+        val targetIds = buildTargets.getTargets.asScala.map(_.getId).asJava
         val metaBuildTargetId = new b.BuildTargetIdentifier(
           (workspacePath / "mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
         )
@@ -190,7 +141,23 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         // compile
         compareWithGsonSnapshot(
-          buildServer.buildTargetCompile(new b.CompileParams(targetIds)).get(),
+          buildServer
+            .buildTargetCompile(
+              new b.CompileParams(
+                targetIds
+                  .asScala
+                  // No need to attempt to compile the failing targets.
+                  // The snapshot data for this request basically only contains
+                  // a global status, errored or success. By excluding these,
+                  // we get a success status, and ensure compilation succeeds
+                  // as expected for all other targets.
+                  .filter(!_.getUri.endsWith("/errored/exception"))
+                  .filter(!_.getUri.endsWith("/errored/compilation-error"))
+                  .filter(!_.getUri.endsWith("/delayed"))
+                  .asJava
+              )
+            )
+            .get(),
           snapshotsPath / "build-targets-compile.json",
           normalizedLocalValues = normalizedLocalValues
         )
@@ -206,9 +173,11 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
 
         compareWithGsonSnapshot(
-          buildServer
-            .buildTargetJvmTestEnvironment(new b.JvmTestEnvironmentParams(targetIdsSubset))
-            .get(),
+          cleanUpJvmTestEnvResult(
+            buildServer
+              .buildTargetJvmTestEnvironment(new b.JvmTestEnvironmentParams(targetIdsSubset))
+              .get()
+          ),
           snapshotsPath / "build-targets-jvm-test-environments.json",
           normalizedLocalValues = normalizedLocalValues
         )
@@ -241,6 +210,14 @@ object BspServerTests extends UtestIntegrationTestSuite {
           normalizedLocalValues = normalizedLocalValues
         )
 
+        compareWithGsonSnapshot(
+          buildServer
+            .buildTargetScalaMainClasses(new b.ScalaMainClassesParams(targetIdsSubset))
+            .get(),
+          snapshotsPath / "build-targets-scalac-main-classes.json",
+          normalizedLocalValues = normalizedLocalValues
+        )
+
         // Run without args
         compareWithGsonSnapshot(
           buildServer.buildTargetRun(new b.RunParams(appTargetId)).get(),
@@ -265,13 +242,90 @@ object BspServerTests extends UtestIntegrationTestSuite {
           assert(os.read(run3).trim() == "run-3")
         }
 
+        val scalacOptionsResult = buildServer
+          .buildTargetScalacOptions(new b.ScalacOptionsParams(targetIds))
+          .get()
+
+        val expectedScalaSemDbs = Map(
+          os.sub / "hello-scala" -> Seq(
+            os.sub / "hello-scala/src/Hello.scala.semanticdb"
+          ),
+          os.sub / "hello-scala/test" -> Seq(
+            os.sub / "hello-scala/test/src/HelloTest.scala.semanticdb"
+          ),
+          os.sub / "mill-build" -> Seq(
+            os.sub / "build.mill.semanticdb"
+          ),
+          os.sub / "errored/exception" -> Nil,
+          os.sub / "errored/compilation-error" -> Nil,
+          os.sub / "delayed" -> Nil
+        )
+
+        {
+          // check that semanticdbs are generated for Scala modules
+          val semDbs = scalacOptionsResult
+            .getItems
+            .asScala
+            .map { item =>
+              val shortId = os.Path(Paths.get(new URI(item.getTarget.getUri)))
+                .relativeTo(workspacePath)
+                .asSubPath
+              val semDbs = findSemanticdbs(
+                os.Path(Paths.get(new URI(item.getClassDirectory)))
+              )
+              shortId -> semDbs
+            }
+            .toMap
+          if (expectedScalaSemDbs != semDbs) {
+            pprint.err.log(expectedScalaSemDbs)
+            pprint.err.log(semDbs)
+          }
+          assert(expectedScalaSemDbs == semDbs)
+        }
+
+        {
+          // check that semanticdbs are generated for Java modules
+          val javacOptionsResult = buildServer
+            .buildTargetJavacOptions(new b.JavacOptionsParams(targetIds))
+            .get()
+          val semDbs = javacOptionsResult
+            .getItems
+            .asScala
+            .map { item =>
+              val shortId = os.Path(Paths.get(new URI(item.getTarget.getUri)))
+                .relativeTo(workspacePath)
+                .asSubPath
+              val semDbs = findSemanticdbs(
+                os.Path(Paths.get(new URI(item.getClassDirectory)))
+              )
+              shortId -> semDbs
+            }
+            .toMap
+          val expectedJavaSemDbs = expectedScalaSemDbs ++ Seq(
+            os.sub / "app" -> Seq(
+              os.sub / "app/src/App.java.semanticdb"
+            ),
+            os.sub / "app/test" -> Nil,
+            os.sub / "hello-kotlin" -> Nil,
+            os.sub / "lib" -> Nil,
+            os.sub / "hello-java" -> Nil,
+            os.sub / "hello-java/test" -> Seq(
+              os.sub / "hello-java/test/src/HelloJavaTest.java.semanticdb"
+            )
+          )
+          if (expectedJavaSemDbs != semDbs) {
+            pprint.err.log(expectedJavaSemDbs)
+            pprint.err.log(semDbs)
+          }
+          assert(expectedJavaSemDbs == semDbs)
+        }
       }
     }
 
     test("logging") - integrationTest { tester =>
       import tester.*
       eval(
-        "--bsp-install",
+        ("--bsp-install", "--jobs", "1"),
         stdout = os.Inherit,
         stderr = os.Inherit,
         check = true,
@@ -337,12 +391,14 @@ object BspServerTests extends UtestIntegrationTestSuite {
       compareLogWithSnapshot(
         logs,
         snapshotsPath / "logging",
-        // ignoring compilation warnings that might go away in the future
         ignoreLine = {
+          // ignore watcher logs
+          val watchGlob = TestRunnerUtils.matchesGlob("[bsp-watch] *")
+          // ignoring compilation warnings that might go away in the future
           val warnGlob = TestRunnerUtils.matchesGlob("[bsp-init-build.mill-*] [warn] *")
           val waitingGlob = TestRunnerUtils.matchesGlob("[*] Another Mill process is running *")
           s =>
-            warnGlob(s) || waitingGlob(s) ||
+            watchGlob(s) || warnGlob(s) || waitingGlob(s) ||
               // Ignoring this one, that sometimes comes out of order.
               // If the request hasn't been cancelled, we'd see extra lines making the
               // test fail anyway.
@@ -360,4 +416,32 @@ object BspServerTests extends UtestIntegrationTestSuite {
       assert(expectedMessages == messages0)
     }
   }
+
+  private def cleanUpJvmTestEnvResult(res: b.JvmTestEnvironmentResult): res.type = {
+    for {
+      item <- res.getItems.asScala
+      mc <- item.getMainClasses.asScala
+      if mc.getArguments.size() > 0
+    }
+      // zero-out first arg that contains parts of the Mill class path, whose versions and libraries
+      // should change quite often - no need to track those here
+      mc.setArguments(
+        ("" +: mc.getArguments.asScala.drop(1)).asJava
+      )
+    res
+  }
+
+  private def semDbPrefix = os.sub / "META-INF/semanticdb"
+  private def findSemanticdbs(classDir: os.Path) =
+    if (os.exists(classDir))
+      os.walk(classDir)
+        .filter(os.isFile)
+        .map(_.relativeTo(classDir).asSubPath)
+        .filter(_.last.endsWith(".semanticdb"))
+        .filter(_.startsWith(semDbPrefix))
+        .map(_.relativeTo(semDbPrefix).asSubPath)
+        .filter(!_.startsWith(os.sub / OutFiles.out))
+        .sorted
+    else
+      Nil
 }

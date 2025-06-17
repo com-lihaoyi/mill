@@ -70,7 +70,7 @@ private[mill] class PromptLogger(
       while (!runningState.stopped) {
         try Thread.sleep(promptUpdateIntervalMillis)
         catch {
-          case e: InterruptedException => /*do nothing*/
+          case _: InterruptedException => /*do nothing*/
         }
 
         readTerminalDims(terminfoPath).foreach(termDimensions = _)
@@ -310,18 +310,18 @@ private[mill] object PromptLogger {
 
       override def write(dest: OutputStream, buf: Array[Byte], end: Int): Unit = {
         lastCharWritten = buf(end - 1).toChar
-        if (interactive() && !paused() && promptShown) {
-          promptShown = false
-        }
+        val clearLines = enableTicker && interactive()
+        if (clearLines && promptShown) dest.write(AnsiNav.clearScreen(0).getBytes)
+        if (interactive() && !paused() && promptShown) promptShown = false
 
-        if (enableTicker && interactive()) {
+        if (clearLines) {
           // Clear each line as they are drawn, rather than relying on clearing
           // the entire screen before each batch of writes, to try and reduce the
           // amount of terminal flickering in slow terminals (e.g. windows)
           // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
           dest.write(
             new String(buf, 0, end)
-              .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
+              .replaceAll("(\r\n|\n|\t)", "$1" + AnsiNav.clearScreen(0))
               .getBytes
           )
         } else {
@@ -359,7 +359,7 @@ private[mill] object PromptLogger {
       infoColor: fansi.Attrs
   ) {
     private val statuses = collection.mutable.SortedMap
-      .empty[Seq[String], Status](PromptLoggerUtil.seqStringOrdering)
+      .empty[Seq[String], Status](using PromptLoggerUtil.seqStringOrdering)
 
     private var headerPrefix = ""
     // Pre-compute the prelude and current prompt as byte arrays so that
@@ -418,7 +418,7 @@ private[mill] object PromptLogger {
       val sOptEntry = sOpt.map(StatusEntry(_, now, ""))
       statuses.updateWith(key) {
         case None =>
-          statuses.find { case (k, v) => v.next.isEmpty } match {
+          statuses.find { case (_, v) => v.next.isEmpty } match {
             case Some((reusableKey, reusableValue)) =>
               statuses.remove(reusableKey)
               Some(reusableValue.copy(next = sOptEntry))

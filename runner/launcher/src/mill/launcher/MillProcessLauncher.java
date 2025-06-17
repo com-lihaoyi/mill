@@ -114,7 +114,7 @@ public class MillProcessLauncher {
         if (Files.exists(buildFile)) {
           String[] config = cachedComputedValue(
               "yaml-config-" + key,
-              mill.constants.Util.readYamlHeader(
+              mill.constants.Util.readBuildHeader(
                   buildFile, buildFile.getFileName().toString()),
               () -> {
                 Object conf = mill.launcher.ConfigReader.readYaml(

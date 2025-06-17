@@ -12,6 +12,7 @@ import mill.define.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.define.Cross
+import mill.define.BuildCtx
 
 object `package` extends Module {
   def exampleModules: Seq[ExampleCrossModule] = moduleInternal
@@ -127,7 +128,7 @@ object `package` extends Module {
     override def lineTransform(line: String) = this.moduleSegments.parts.last match {
       case "1-test-suite" => line
           .replace(
-            "mill bar.test bar.BarTests.hello",
+            "./mill bar.test bar.BarTests.hello",
             "kotest_filter_tests='hello' kotest_filter_specs='bar.BarTests' ./mill bar.test"
           )
           .replace("compiling 1 ... source...", "Compiling 1 ... source...")
@@ -247,7 +248,7 @@ object `package` extends Module {
     def rendered = Task {
       var seenCode = false
       var seenFrontMatter = false
-      val examplePath = moduleDir.subRelativeTo(Task.workspace)
+      val examplePath = moduleDir.subRelativeTo(BuildCtx.workspaceRoot)
       val frontMatter = parsed().takeWhile(_._1 == "yaml").map(_._2).mkString("\n")
       val withoutFrontMatter = parsed().dropWhile(_._1 == "yaml")
 

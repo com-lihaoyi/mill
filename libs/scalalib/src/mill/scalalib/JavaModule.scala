@@ -7,9 +7,16 @@ import coursier.params.ResolutionParams
 import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
-import mill.api.{MillException, Result, Segments}
+import mill.api.{MillException, Result}
 import mill.api.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.internal.idea.ResolvedModule
+import mill.api.internal.bsp.{
+  BspBuildTarget,
+  BspJavaModuleApi,
+  BspModuleApi,
+  BspUri,
+  JvmBuildTarget
+}
+import mill.api.internal.idea.GenIdeaInternalApi
 import mill.define.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspJavaModule, BspModule}
@@ -19,21 +26,13 @@ import mill.util.{JarManifest, Jvm}
 import os.Path
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
-import mill.api.internal.bsp.{
-  BspBuildTarget,
-  BspJavaModuleApi,
-  BspModuleApi,
-  BspUri,
-  JvmBuildTarget
-}
-import mill.api.internal.idea.{IdeaConfigFile, JavaFacet, Scoped}
 
 /**
  * Core configuration required to compile a single Java compilation target
  */
 trait JavaModule
     extends mill.define.Module
-    with WithJvmWorker
+    with WithJvmWorkerModule
     with TestModule.JavaModuleBase
     with TaskModule
     with RunModule
@@ -51,6 +50,14 @@ trait JavaModule
   }
   override private[mill] def bspJavaModule: () => BspJavaModuleApi = () => bspExt()
 
+  private lazy val genIdeaInternalExt = {
+    import mill.scalalib.idea.GenIdeaInternal.given
+    ModuleRef(this.internalGenIdea)
+  }
+
+  private[mill] override def genIdeaInternal: () => GenIdeaInternalApi =
+    () => genIdeaInternalExt()
+
   override def jvmWorker: ModuleRef[JvmWorkerModule] = super.jvmWorker
   trait JavaTests extends JavaModule with TestModule {
     // Run some consistence checks
@@ -67,6 +74,19 @@ trait JavaModule
 
     override def javacOptions: T[Seq[String]] = Task { outer.javacOptions() }
     override def jvmWorker: ModuleRef[JvmWorkerModule] = outer.jvmWorker
+
+    def jvmId = outer.jvmId
+
+    def jvmIndexVersion = outer.jvmIndexVersion
+
+    /**
+     * Optional custom Java Home for the JvmWorker to use
+     *
+     * If this value is None, then the JvmWorker uses the same Java used to run
+     * the current mill instance.
+     */
+    def javaHome = outer.javaHome
+
     override def skipIdea: Boolean = outer.skipIdea
     override def runUseArgsFile: T[Boolean] = Task { outer.runUseArgsFile() }
     override def sourcesFolders = outer.sourcesFolders
@@ -811,6 +831,7 @@ trait JavaModule
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
+        javaHome = javaHome().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         reporter = Task.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
@@ -1353,8 +1374,7 @@ trait JavaModule
   @internal
   private[mill] def bspJvmBuildTargetTask: Task[JvmBuildTarget] = Task.Anon {
     JvmBuildTarget(
-      javaHome = jvmWorker()
-        .javaHome()
+      javaHome = javaHome()
         .map(p => BspUri(p.path.toNIO))
         .orElse(Option(System.getProperty("java.home")).map(p => BspUri(os.Path(p).toNIO))),
       javaVersion = Option(System.getProperty("java.version"))
@@ -1408,9 +1428,12 @@ trait JavaModule
     )()
 
     // Merge the compile and resources classpaths.
-    os.copy(compile().classes.path, Task.dest, mergeFolders = true)
+    val compileClasses = compile().classes.path
+    // The `compileClasses` can not exist if we had no sources in the module.
+    if (os.exists(compileClasses)) os.copy(compileClasses, Task.dest, mergeFolders = true)
     resources().foreach { resource =>
-      os.copy(resource.path, Task.dest, mergeFolders = true)
+      // The `resource.path` can not exist if we had no resources in the module.
+      if (os.exists(resource.path)) os.copy(resource.path, Task.dest, mergeFolders = true)
     }
 
     PathRef(Task.dest)
@@ -1424,121 +1447,6 @@ trait JavaModule
     else Task.Anon { compile().classes.path.toNIO }
   }
 
-  private[mill] def genIdeaMetadata(
-      ideaConfigVersion: Int,
-      evaluator: EvaluatorApi,
-      path: Segments
-  ) = {
-
-    val mod = this
-    // same as input of resolvedMvnDeps
-    val allMvnDeps = Task.Anon {
-      Seq(
-        mod.coursierDependency,
-        mod.coursierDependency.withConfiguration(coursier.core.Configuration.provided)
-      ).map(BoundDep(_, force = false))
-    }
-
-    val scalaCompilerClasspath = mod match {
-      case x: ScalaModule => x.scalaCompilerClasspath
-      case _ =>
-        Task.Anon {
-          Seq.empty[PathRef]
-        }
-    }
-
-    val externalLibraryDependencies = Task.Anon {
-      mod.defaultResolver().classpath(mod.mandatoryMvnDeps())
-    }
-
-    val externalDependencies = Task.Anon {
-      mod.resolvedMvnDeps() ++
-        Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
-    }
-    val extCompileMvnDeps = Task.Anon {
-      mod.defaultResolver().classpath(mod.compileMvnDeps())
-    }
-    val extRunMvnDeps = mod.resolvedRunMvnDeps
-
-    val externalSources = Task.Anon {
-      mod.millResolver().classpath(allMvnDeps(), sources = true)
-    }
-
-    val (scalacPluginsMvnDeps, allScalacOptions, scalaVersion) = mod match {
-      case mod: ScalaModule => (
-          Task.Anon(mod.scalacPluginMvnDeps()),
-          Task.Anon(mod.allScalacOptions()),
-          Task.Anon {
-            Some(mod.scalaVersion())
-          }
-        )
-      case _ => (
-          Task.Anon(Seq[Dep]()),
-          Task.Anon(Seq[String]()),
-          Task.Anon(None)
-        )
-    }
-
-    val scalacPluginDependencies = Task.Anon {
-      mod.defaultResolver().classpath(scalacPluginsMvnDeps())
-    }
-
-    val facets = Task.Anon {
-      mod.ideaJavaModuleFacets(ideaConfigVersion)()
-    }
-
-    val configFileContributions = Task.Anon {
-      mod.ideaConfigFiles(ideaConfigVersion)()
-    }
-
-    val compilerOutput = Task.Anon {
-      mod.ideaCompileOutput()
-    }
-
-    Task.Anon {
-      val resolvedCp: Seq[Scoped[os.Path]] =
-        externalDependencies().map(_.path).map(Scoped(_, None)) ++
-          extCompileMvnDeps()
-            .map(_.path)
-            .map(Scoped(_, Some("PROVIDED"))) ++
-          extRunMvnDeps().map(_.path).map(Scoped(_, Some("RUNTIME")))
-      // unused, but we want to trigger sources, to have them available (automatically)
-      // TODO: make this a separate eval to handle resolve errors
-      externalSources()
-      val resolvedSp: Seq[PathRef] = scalacPluginDependencies()
-      val resolvedCompilerCp: Seq[PathRef] =
-        scalaCompilerClasspath()
-      val resolvedLibraryCp: Seq[PathRef] =
-        externalLibraryDependencies()
-      val scalacOpts: Seq[String] = allScalacOptions()
-      val resolvedFacets: Seq[JavaFacet] = facets()
-      val resolvedConfigFileContributions: Seq[IdeaConfigFile] =
-        configFileContributions()
-      val resolvedCompilerOutput = compilerOutput()
-      val resolvedScalaVersion = scalaVersion()
-
-      ResolvedModule(
-        path = path,
-        // FIXME: why do we need to sources in the classpath?
-        // FIXED, was: classpath = resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
-        classpath =
-          resolvedCp.filter(_.value.ext == "jar").map(s => Scoped(s.value.toNIO, s.scope)),
-        module = mod,
-        pluginClasspath = resolvedSp.map(_.path).filter(_.ext == "jar").map(_.toNIO),
-        scalaOptions = scalacOpts,
-        scalaCompilerClasspath = resolvedCompilerCp.map(_.path.toNIO),
-        libraryClasspath = resolvedLibraryCp.map(_.path.toNIO),
-        facets = resolvedFacets,
-        configFileContributions = resolvedConfigFileContributions,
-        compilerOutput = resolvedCompilerOutput.path.toNIO,
-        scalaVersion = resolvedScalaVersion,
-        resources = resources().map(_.path.toNIO),
-        generatedSources = generatedSources().map(_.path.toNIO),
-        allSources = allSources().map(_.path.toNIO)
-      )
-    }
-
-  }
 }
 
 object JavaModule {

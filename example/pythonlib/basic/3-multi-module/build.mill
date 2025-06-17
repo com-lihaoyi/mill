@@ -115,13 +115,13 @@ OK
 
 /** Usage
 
-> mill foo._.typeCheck # Runs `typeCheck` for all direct sub-modules of `foo`
+> ./mill foo._.typeCheck # Runs `typeCheck` for all direct sub-modules of `foo`
 
-> mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
+> ./mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
 
-> mill {foo,bar}.__.testCached # Runs `testCached` for all sub-modules of `foo` and `bar`
+> ./mill {foo,bar}.__.testCached # Runs `testCached` for all sub-modules of `foo` and `bar`
 
-> mill __.typeCheck + foo.__.test # Runs all `typeCheck` tasks and all tests under `foo`.
+> ./mill __.typeCheck + foo.__.test # Runs all `typeCheck` tasks and all tests under `foo`.
 
 */
 

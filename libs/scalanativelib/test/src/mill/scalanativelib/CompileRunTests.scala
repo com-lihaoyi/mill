@@ -92,7 +92,7 @@ object CompileRunTests extends TestSuite {
 
         val outPath = result.value.classes.path
         val outputFiles = os.walk(outPath).filter(os.isFile).map(_.last).toSet
-        val expectedClassfiles = compileClassfiles(scalaVersion, scalaNativeVersion)
+        val expectedClassfiles = compileClassfiles(scalaVersion)
         assert(
           outputFiles == expectedClassfiles,
           result.evalCount > 0
@@ -147,7 +147,7 @@ object CompileRunTests extends TestSuite {
 
   }
 
-  def compileClassfiles(scalaVersion: String, scalaNativeVersion: String) = {
+  def compileClassfiles(scalaVersion: String) = {
     val common = Set(
       "ArgsParser$.class",
       "ArgsParser$.nir",

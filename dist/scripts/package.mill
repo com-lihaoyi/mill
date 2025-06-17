@@ -2,7 +2,7 @@ package build.dist.scripts
 
 import java.nio.file.attribute.PosixFilePermission
 import java.util.regex.Pattern
-
+import mill.define.BuildCtx
 import mill.*
 import mill.scalalib.*
 import mill.api.Result
@@ -21,7 +21,7 @@ object `package` extends mill.Module { scripts =>
       "mill-best-version" -> "0.12.10", // TODO: build.millVersionTruth()
       "mill-download-cache-unix" -> "~/.cache/mill/download",
       "mill-download-cache-win" -> "%USERPROFILE%\\\\.mill\\\\download",
-      "template-file" -> templateFile().path.relativeTo(Task.workspace).toString
+      "template-file" -> templateFile().path.relativeTo(BuildCtx.workspaceRoot).toString
     )
     def substitutionMarkers: T[(String, String)] = ("{{{", "}}}")
     def inRepoDir: Task[os.SubPath] = Task.Anon { os.sub / finalName() }
@@ -89,7 +89,7 @@ object `package` extends mill.Module { scripts =>
     Task.traverse(scriptsModules)(m =>
       Task.Anon {
         val script = m.compile0().path
-        val dest = Task.workspace / m.inRepoDir()
+        val dest = BuildCtx.workspaceRoot / m.inRepoDir()
         if (os.isDir(dest)) {
           sys.error(s"Install destination is a directory: ${dest}")
         } else if (os.exists(dest)) {

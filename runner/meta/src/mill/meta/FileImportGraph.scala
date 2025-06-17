@@ -42,7 +42,8 @@ object FileImportGraph {
   def parseBuildFiles(
       topLevelProjectRoot: os.Path,
       projectRoot: os.Path,
-      output: os.Path
+      output: os.Path,
+      parser: MillScalaParser = MillScalaParser.current.value
   ): FileImportGraph = {
     val seenScripts = mutable.Map.empty[os.Path, String]
     val errors = mutable.Buffer.empty[String]
@@ -52,18 +53,16 @@ object FileImportGraph {
 
         val content = if (useDummy) "" else os.read(s)
         val fileName = s.relativeTo(topLevelProjectRoot).toString
-        val yamlHeaderError =
+        val buildHeaderError =
           if (useDummy) Right(())
           else
-            try Right(mill.constants.Util.readYamlHeader(s.toNIO, s.last))
+            try Right(mill.constants.Util.readBuildHeader(s.toNIO, s.last))
             catch { case e: RuntimeException => Left(e.getMessage) }
 
-        yamlHeaderError.flatMap(_ =>
-          MillScalaParser.current.value.splitScript(content, fileName)
+        buildHeaderError.flatMap(_ =>
+          parser.splitScript(content, fileName)
         ) match {
           case Right((prefix, pkgs, stmts)) =>
-            mill.constants.DebugLog.println("pkgs" + pprint.apply(pkgs).toString)
-            mill.constants.DebugLog.println("stmts " + pprint.apply(stmts).toString)
             val importSegments = pkgs.mkString(".")
 
             val expectedImportSegments0 =
@@ -104,7 +103,7 @@ object FileImportGraph {
 
     val headerData =
       if (!os.exists(projectRoot / foundRootBuildFileName)) ""
-      else mill.constants.Util.readYamlHeader(
+      else mill.constants.Util.readBuildHeader(
         (projectRoot / foundRootBuildFileName).toNIO,
         foundRootBuildFileName
       )

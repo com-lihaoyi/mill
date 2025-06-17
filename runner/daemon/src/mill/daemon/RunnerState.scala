@@ -3,7 +3,7 @@ package mill.daemon
 import mill.api.Val
 import mill.define.JsonFormatters._
 import mill.api.internal.{EvaluatorApi, internal, PathRefApi}
-import mill.define.{PathRef, RootModule0}
+import mill.define.RootModule0
 import mill.define.internal.Watchable
 import mill.api.MillURLClassLoader
 import upickle.default.{ReadWriter, macroRW}
@@ -40,6 +40,9 @@ case class RunnerState(
   ): RunnerState = {
     this.copy(frames = Seq(frame) ++ frames, errorOpt = errorOpt)
   }
+
+  def watched: Seq[Watchable] =
+    frames.flatMap(f => f.evalWatched ++ f.moduleWatched)
 }
 
 object RunnerState {
@@ -63,10 +66,10 @@ object RunnerState {
         workerCache.map { case (k, (i, v)) =>
           (k, Frame.WorkerInfo(System.identityHashCode(v), i))
         },
-        evalWatched.collect { case Watchable.Path(p, quick, sig) =>
+        evalWatched.collect { case Watchable.Path(p, _, _) =>
           os.Path(p)
         },
-        moduleWatched.collect { case Watchable.Path(p, quick, sig) =>
+        moduleWatched.collect { case Watchable.Path(p, _, _) =>
           os.Path(p)
         },
         classLoaderOpt.map(_.identity),

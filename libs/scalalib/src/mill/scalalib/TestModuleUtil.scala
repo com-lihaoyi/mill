@@ -16,6 +16,7 @@ import scala.xml.Elem
 import scala.collection.mutable
 import mill.api.Logger
 import java.util.concurrent.Executors
+import mill.define.BuildCtx
 
 private final class TestModuleUtil(
     useArgsFile: Boolean,
@@ -44,11 +45,6 @@ private final class TestModuleUtil(
   private val testRunnerClasspathArg = scalalibClasspath
     .map(_.path.toNIO.toUri.toURL)
     .mkString(",")
-
-  private val resourceEnv = Map(
-    EnvVars.MILL_TEST_RESOURCE_DIR -> resources.map(_.path).mkString(";"),
-    EnvVars.MILL_WORKSPACE_ROOT -> Task.workspace.toString
-  )
 
   def runTests(): Result[(msg: String, results: Seq[TestResult])] = {
     val globFilter = TestRunnerUtils.globFilter(selectors)
@@ -157,12 +153,12 @@ private final class TestModuleUtil(
 
     os.makeDir.all(sandbox)
 
-    mill.define.BuildCtx.withFilesystemCheckerDisabled {
+    BuildCtx.withFilesystemCheckerDisabled {
       Jvm.callProcess(
         mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        env = forkEnv ++ resourceEnv,
+        env = forkEnv,
         mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Option.when(useArgsFile)(
@@ -239,7 +235,7 @@ private final class TestModuleUtil(
                 groupPromptMessage,
                 priority = -1
               ) {
-                log =>
+                _ =>
                   (
                     folderName,
                     runTestRunnerSubprocess(Task.dest / folderName, testClassList, workerResultSet)
@@ -270,7 +266,7 @@ private final class TestModuleUtil(
       // test-classes folder is used to store the test classes for the children test runners to claim from
       val testClassQueueFolder = base / "test-classes"
       os.makeDir.all(testClassQueueFolder)
-      selectors2.zipWithIndex.foreach { case (s, i) =>
+      selectors2.zipWithIndex.foreach { case (s, _) =>
         os.write.over(testClassQueueFolder / s, Array.empty[Byte])
       }
       testClassQueueFolder
@@ -295,7 +291,7 @@ private final class TestModuleUtil(
             .map(TestRunnerUtils.claimFile(_, claimFolder))
             .collectFirst { case Some(name) => name }
         } catch {
-          case e: Throwable => None
+          case _: Throwable => None
         }
 
       if (force || startingTestClass.nonEmpty) {

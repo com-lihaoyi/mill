@@ -30,7 +30,7 @@ object KotlinJsKotlinVersionsTests extends TestSuite {
         case _ => "0.11.0"
       }
       super.mvnDeps() ++ Seq(
-        mvn"org.jetbrains.kotlinx:kotlinx-html-js:$kotlinxHtmlVersion"
+        mvn"org.jetbrains.kotlinx:kotlinx-html:$kotlinxHtmlVersion"
       )
     }
   }

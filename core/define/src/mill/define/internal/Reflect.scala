@@ -125,7 +125,7 @@ private[mill] object Reflect {
       outerCls: Class[?],
       filter: String => Boolean = Function.const(true),
       getMethods: Class[?] => Array[(java.lang.reflect.Method, String)]
-  ): Array[(String, Class[?], Any => T)] = {
+  ): Array[(name: String, `class`: Class[?], getter: Any => T)] = {
     reflectNestedObjects0[T](outerCls, filter, getMethods).map {
       case (name, m: java.lang.reflect.Method) =>
         (name, m.getReturnType, (outer: Any) => m.invoke(outer).asInstanceOf[T])

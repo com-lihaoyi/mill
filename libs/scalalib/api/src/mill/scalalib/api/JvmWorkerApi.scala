@@ -13,17 +13,19 @@ trait JvmWorkerApi {
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
       compileClasspath: Seq[os.Path],
+      javaHome: Option[os.Path],
       javacOptions: Seq[String],
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
-  )(implicit ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult]
+  )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
   /** Compile a mixed Scala/Java or Scala-only project */
   def compileMixed(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
       compileClasspath: Seq[os.Path],
+      javaHome: Option[os.Path],
       javacOptions: Seq[String],
       scalaVersion: String,
       scalaOrganization: String,
@@ -34,14 +36,15 @@ trait JvmWorkerApi {
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String]
-  )(implicit ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult]
+  )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
   def docJar(
       scalaVersion: String,
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
+      javaHome: Option[os.Path],
       args: Seq[String]
-  )(implicit ctx: JvmWorkerApi.Ctx): Boolean
+  )(using ctx: JvmWorkerApi.Ctx): Boolean
 
 }

@@ -10,7 +10,7 @@ trait SpringBootTools {
       mainClass: String,
       libs: Seq[os.Path],
       assemblyScript: Option[String]
-  )(implicit ctx: TaskCtx): Unit
+  )(using ctx: TaskCtx): Unit
 
   /**
    * Find a SpringBootApplication entry point.

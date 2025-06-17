@@ -43,7 +43,7 @@ object `package` extends BaseModule {
 
   object common extends BaseModule {
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       Deps.`ch.qos.logback:logback-classic`,
       Deps.`com.typesafe.akka:akka-stream`,
       Deps.`com.typesafe.scala-logging:scala-logging`,
@@ -77,7 +77,7 @@ object `package` extends BaseModule {
 
     object tests extends SbtTests with TestModule.ScalaTest {
 
-      def mvnDeps = super.mvnDeps() ++
+      def mvnDeps =
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
       def testSandboxWorkingDir = false
@@ -89,7 +89,7 @@ object `package` extends BaseModule {
 
     def scalacOptions = super.scalacOptions() ++ Seq("-V")
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       Deps.`ch.qos.logback:logback-classic`,
       Deps.`com.github.julien-truffaut:monocle-core`,
       Deps.`com.github.julien-truffaut:monocle-macro`,
@@ -104,7 +104,7 @@ object `package` extends BaseModule {
 
     object tests extends SbtTests with TestModule.ScalaTest {
 
-      def mvnDeps = super.mvnDeps() ++
+      def mvnDeps =
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
       def testSandboxWorkingDir = false
@@ -124,7 +124,7 @@ object `package` extends BaseModule {
       "-deprecation"
     )
 
-    def mvnDeps = super.mvnDeps() ++ Seq(
+    def mvnDeps = Seq(
       Deps.`ch.qos.logback:logback-classic`,
       Deps.`com.github.pureconfig:pureconfig`,
       Deps.`com.typesafe.akka:akka-stream`,
@@ -138,7 +138,7 @@ object `package` extends BaseModule {
 
     object tests extends SbtTests with TestModule.ScalaTest {
 
-      def mvnDeps = super.mvnDeps() ++
+      def mvnDeps =
         Seq(Deps.`org.scalacheck:scalacheck`, Deps.`org.scalatest:scalatest`)
 
       def testSandboxWorkingDir = false
@@ -150,8 +150,7 @@ object `package` extends BaseModule {
 
     object nested extends BaseModule {
 
-      def mvnDeps = super.mvnDeps() ++
-        Seq(Deps.`io.netty:netty-transport-native-epoll`)
+      def mvnDeps = Seq(Deps.`io.netty:netty-transport-native-epoll`)
 
     }
   }
@@ -161,7 +160,7 @@ trait BaseModule extends SbtModule with PublishModule {
 
   def scalaVersion = "2.12.3"
 
-  def scalacOptions = super.scalacOptions() ++ Seq(
+  def scalacOptions = Seq(
     "-unchecked",
     "-feature",
     "-language:existentials",
@@ -196,20 +195,10 @@ trait BaseModule extends SbtModule with PublishModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
-  def repositoriesTask = Task.Anon {
-    super.repositoriesTask() ++ Seq(
-      coursier.maven.MavenRepository(
-        "https://oss.sonatype.org/service/local/repositories/releases/content/"
-      ),
-      coursier.maven.MavenRepository(
-        "https://oss.sonatype.org/content/repositories/snapshots"
-      )
-    )
-  }
+  def repositories = Seq(
+    "https://oss.sonatype.org/service/local/repositories/releases/content/",
+    "https://oss.sonatype.org/content/repositories/snapshots"
+  )
 
-  def jvmWorker = mill.define.ModuleRef(BaseModuleJvmWorker)
-
-  object BaseModuleJvmWorker extends JvmWorkerModule {
-    def jvmId = "11"
-  }
+  def jvmId = "11"
 }

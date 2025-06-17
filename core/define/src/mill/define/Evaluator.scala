@@ -3,6 +3,7 @@ package mill.define
 import mill.api.internal.{CompileProblemReporter, TestReporter}
 import mill.api.*
 import mill.define.internal.Watchable
+import mill.define.BuildCtx
 import mill.api.internal.{EvaluatorApi, TaskApi}
 import scala.util.DynamicVariable
 import scala.collection.mutable
@@ -79,7 +80,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
 
   def evaluate(
       scriptArgs: Seq[String],
-      selectMode: SelectMode,
+      selectMode: SelectMode = SelectMode.Separated,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]]
 
@@ -91,7 +92,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       serialCommandExec: Boolean = false,
       selectiveExecution: Boolean = false
   ): EvaluatorApi.Result[T] = {
-    mill.define.BuildCtx.withFilesystemCheckerDisabled {
+    BuildCtx.withFilesystemCheckerDisabled {
       execute(
         targets.map(_.asInstanceOf[Task[T]]),
         reporter,

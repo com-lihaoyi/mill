@@ -14,7 +14,7 @@ abstract class BaseModule(
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
-) extends Module.BaseClass()(
+) extends Module.BaseClass(using
       mill.define.ModuleCtx.makeRoot(
         implicitly,
         implicitly,
