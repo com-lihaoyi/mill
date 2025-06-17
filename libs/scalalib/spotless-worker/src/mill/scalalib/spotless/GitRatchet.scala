@@ -4,7 +4,7 @@ import mill.define.{PathRef, TaskCtx}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.dircache.DirCacheIterator
-import org.eclipse.jgit.lib.RepositoryBuilder
+import org.eclipse.jgit.lib.{RepositoryBuilder, RepositoryCache}
 import org.eclipse.jgit.revwalk.RevWalk
 import org.eclipse.jgit.treewalk.filter.{AndTreeFilter, PathFilter, TreeFilter}
 import org.eclipse.jgit.treewalk.{CanonicalTreeParser, FileTreeIterator}
@@ -19,6 +19,11 @@ import scala.util.Using
 class GitRatchet(root: os.Path) extends AutoCloseable {
 
   val repository = RepositoryBuilder().setFS(FS.DETECTED).findGitDir(root.toIO).build()
+
+  // HACK:
+  // Forcibly load classes referenced in close to avoid: java.lang.NoClassDefFoundError.
+  RepositoryCache.register(repository)
+  val git = Git.wrap(repository)
 
   def commitTree(rev: String) = {
     val id = repository.resolve(rev) match
@@ -48,7 +53,7 @@ class GitRatchet(root: os.Path) extends AutoCloseable {
           PathFilter.create(root.relativeTo(ctx.workspace).toString()),
           TreeFilter.ANY_DIFF
         )
-    Git.wrap(repository).diff()
+    git.diff()
       .setOldTree(oldTree)
       .setNewTree(newTree)
       .setPathFilter(treeFilter)
