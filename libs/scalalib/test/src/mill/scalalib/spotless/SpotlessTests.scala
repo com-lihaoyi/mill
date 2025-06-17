@@ -162,7 +162,7 @@ object SpotlessTests extends TestSuite {
         log = logStream.toString
         assert(
           log.contains(s"ratchet found changes in ${patch.length} files"),
-          log.contains("files are already formatted")
+          log.contains(s"${patch.length} java files are already formatted")
         )
 
         val pkg = moduleDir / "src/ab"

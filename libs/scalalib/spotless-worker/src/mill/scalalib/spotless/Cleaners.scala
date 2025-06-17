@@ -33,7 +33,7 @@ class Cleaners(
       import format.*
       val charset = Charset.forName(encoding)
       Cleaner(
-        includes.mkString("|"),
+        includes.mkString(" "),
         matches(includes),
         matches(excludes ++ globalExcludes),
         LineEnding.valueOf(lineEnding),
@@ -59,11 +59,13 @@ class Cleaners(
         .filter(include)
         .map(PathRef(_))
         .toSeq
-      if (targets.isEmpty) ctx.log.warn(s"no files for $id")
+      if (targets.isEmpty) ctx.log.warn(s"no files to format for $id")
       else format(check, targets)
     }
 
     def format(check: Boolean, targets: Seq[PathRef])(using ctx: TaskCtx.Log): Unit = {
+      if (targets.isEmpty) return
+
       val fid = targets.iterator
         .map: ref =>
           val ext = ref.path.ext
@@ -114,12 +116,16 @@ class Cleaners(
   }
 
   def format(check: Boolean)(using ctx: TaskCtx.Log) = {
-    for cleaner <- cleaners do cleaner.format(check)
+    for cleaner <- cleaners
+    do cleaner.format(check)
     finish(check)
   }
 
   def format(check: Boolean, files: Seq[PathRef])(using ctx: TaskCtx.Log) = {
-    for cleaner <- cleaners do cleaner.format(check, files.filter(cleaner.isTarget))
+    for
+      cleaner <- cleaners
+      targets = files.filter(cleaner.isTarget)
+    do cleaner.format(check, targets)
     finish(check)
   }
 
