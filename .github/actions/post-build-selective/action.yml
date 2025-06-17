@@ -15,13 +15,14 @@ inputs:
 runs:
   using: "composite"
   steps:
-    # Try to free up some space on the github actions runners by
-    # deleting things we don't care about
-    - run: rm -rfv /usr/local/lib/android
+    # Try to free up some space on the github actions runners by deleting things we
+    # don't care about. Truncate the output using `head` so we can still see some output,
+    # but not so much it floods the logs
+    - run: head -n100 <(rm -rfv /usr/local/lib/android)
       shell: bash
-    - run: rm -rfv /opt/ghc
+    - run: head -n100 <(rm -rfv /opt/ghc)
       shell: bash
-    - run: rm -rfv /usr/local/.ghcup
+    - run: head -n100 <(rm -rfv /usr/local/.ghcup)
       shell: bash
 
     - uses: actions/setup-node@v4
