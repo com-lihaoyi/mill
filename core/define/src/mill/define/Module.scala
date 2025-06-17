@@ -16,7 +16,7 @@ import scala.reflect.ClassTag
  * the concrete instance.
  */
 trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
-  implicit def moduleNestedCtx: ModuleCtx.Nested = moduleCtx
+  protected implicit def moduleNestedCtx: ModuleCtx.Nested = moduleCtx
     .withMillSourcePath(moduleDir)
     .withSegments(moduleSegments)
     .withEnclosingModule(this)
