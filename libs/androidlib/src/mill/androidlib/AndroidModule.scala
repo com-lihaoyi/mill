@@ -120,7 +120,15 @@ trait AndroidModule extends JavaModule {
    * Specifies AAPT options for Android resource compilation.
    */
   def androidAaptOptions: T[Seq[String]] = Task {
-    Seq("--auto-add-overlay")
+    if (androidIsDebug()) {
+      Seq(
+        "--proguard-minimal-keep-rules",
+        "--debug-mode",
+        "--auto-add-overlay"
+      )
+    } else {
+      Seq("--auto-add-overlay")
+    }
   }
 
   /**
@@ -527,12 +535,8 @@ trait AndroidModule extends JavaModule {
       androidVersionName(),
       "--proguard-main-dex",
       mainDexRulesProFile.toString,
-      "--proguard-conditional-keep-rules",
-      // Todo change on debug
-      "--proguard-minimal-keep-rules",
-      "--debug-mode",
-      "--strict-visibility",
-      "--auto-add-overlay",
+      "--proguard-conditional-keep-rules"
+    ) ++ androidAaptOptions() ++ Seq(
       "-o",
       resApkFile.toString
     ) ++ filesToLink.flatMap(flat => Seq("-R", flat.toString()))
