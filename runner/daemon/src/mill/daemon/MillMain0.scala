@@ -114,10 +114,6 @@ object MillMain0 {
               streams.out.println(MillCliConfig.longUsageText)
               (true, RunnerState.empty)
 
-            case Result.Success(config) if config.helpAdvanced.value =>
-              streams.out.println(MillCliConfig.helpAdvancedUsageText)
-              (true, RunnerState.empty)
-
             case Result.Success(config) if config.showVersion.value =>
               def prop(k: String) = System.getProperty(k, s"<unknown $k>")
 
@@ -200,7 +196,11 @@ object MillMain0 {
               }
 
               val (success, nextStateCache) = {
-                if (bspInstallModeJobCountOpt.isDefined) {
+                if (config.repl.value) {
+                  streams.err.println("The --repl mode is no longer supported.")
+                  (false, stateCache)
+
+                } else if (bspInstallModeJobCountOpt.isDefined) {
                   BSP.install(bspInstallModeJobCountOpt.get, config.debugLog.value, streams.err)
                   (true, stateCache)
                 } else if (!bspMode && config.leftoverArgs.value.isEmpty) {
@@ -282,6 +282,7 @@ object MillMain0 {
                             streams,
                             config,
                             enableTicker = config.ticker
+                              .orElse(config.enableTicker)
                               .orElse(Option.when(config.tabComplete.value)(false))
                               .orElse(Option.when(config.disableTicker.value)(false)),
                             daemonDir,
