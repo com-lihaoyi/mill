@@ -18,7 +18,8 @@
     ],
     "steps": [
       {
-        "$type": "ScalaFmt"
+        "$type": "ScalaFmt",
+        "version": "3.8.5"
       }
     ]
   },
@@ -29,6 +30,7 @@
     "steps": [
       {
         "$type": "ScalaFmt",
+        "version": "3.8.5",
         "configFile": ".scalafmt3.conf"
       }
     ]

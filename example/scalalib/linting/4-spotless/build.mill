@@ -34,7 +34,10 @@ object `package` extends SpotlessModule {
 // * All Scala 3 files are to be formatted using `Scalafmt` step with the configuration in `.scalafmt3.conf`.
 
 // NOTE: Most fields have default values and can be omitted in the JSON file.
-// An example is the `ScalaFmt.configFile` that references the `.scalafmt.conf` file.
+// An example is the `ScalaFmt.configFile` field that references the `.scalafmt.conf` file.
+
+// NOTE: If no `.scalafmt.conf` file is provided, the default configuration from `scalafmt` is used.
+// Otherwise, you must also specify the `ScalaFmt.version` field in the JSON file.
 
 // Next, we run the inherited `spotless` command to check/apply the format specifications.
 
