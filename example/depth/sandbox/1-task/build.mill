@@ -83,6 +83,12 @@ def bannedWriteTaskOverridden = Task {
 hello
 */
 
+// You can also disable it globally by passing in `--no-filesystem-checker` to Mill:
+
+/** Usage
+> ./mill --no-filesystem-checker bannedReadTask
+*/
+
 //== `os.pwd` redirection
 
 // === Task `os.pwd` redirection
