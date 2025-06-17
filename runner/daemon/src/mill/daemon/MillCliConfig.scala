@@ -67,7 +67,7 @@ case class MillCliConfig(
       doc = "Use filesystem based file watching instead of polling based one (defaults to true)."
     )
     watchViaFsNotify: Boolean = true,
-    @arg(name = "task", doc = "The name or a pattern of the tasks(s) you want to build.")
+    @arg(name = "task", doc = "The name or a query of the tasks(s) you want to build.")
     leftoverArgs: Leftover[String] = Leftover(),
     @arg(doc =
       """Toggle colored output; by default enabled only if the console is interactive
