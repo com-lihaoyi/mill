@@ -239,6 +239,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/ExecResult$$Success.html#","e":false,"i":"","n":"Success","t":"Success[+T](value: T) extends ExecResult[T]","d":"mill.api.ExecResult","k":"class","x":""},
 {"l":"mill/api/ExecResult$$Success.html#flatMap-c54","e":false,"i":"","n":"flatMap","t":"flatMap[V](f: T => ExecResult[V]): ExecResult[V]","d":"mill.api.ExecResult.Success","k":"def","x":""},
 {"l":"mill/api/ExecResult$$Success.html#map-645","e":false,"i":"","n":"map","t":"map[V](f: T => V): Success[V]","d":"mill.api.ExecResult.Success","k":"def","x":""},
+{"l":"mill/api/FilesystemCheckerEnabled$.html#","e":false,"i":"","n":"FilesystemCheckerEnabled","t":"FilesystemCheckerEnabled extends DynamicVariable[Boolean]","d":"mill.api","k":"object","x":""},
 {"l":"mill/api/Logger.html#","e":false,"i":"","n":"Logger","t":"Logger","d":"mill.api","k":"trait","x":""},
 {"l":"mill/api/Logger.html#debug-571","e":false,"i":"","n":"debug","t":"debug(s: String): Unit","d":"mill.api.Logger","k":"def","x":""},
 {"l":"mill/api/Logger.html#debugEnabled-0","e":false,"i":"","n":"debugEnabled","t":"debugEnabled: Boolean","d":"mill.api.Logger","k":"def","x":""},
