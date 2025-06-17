@@ -157,9 +157,7 @@ object MillMain0 {
               val colors =
                 if (colored) mill.internal.Colors.Default else mill.internal.Colors.BlackWhite
 
-              if (!config.silent.value) {
-                checkMillVersionFromFile(BuildCtx.workspaceRoot, streams.err)
-              }
+              checkMillVersionFromFile(BuildCtx.workspaceRoot, streams.err)
 
               val maybeThreadCount =
                 parseThreadCount(config.threadCountRaw, Runtime.getRuntime.availableProcessors())
