@@ -14,6 +14,7 @@ object foo extends ScalaModule with UnidocModule {
     def moduleDeps = Seq(bar)
   }
 
+  def unidocDocumentTitle = Task { "foo docs" }
   def unidocVersion = Some("0.1.0")
   def unidocSourceUrl = Some("https://github.com/lihaoyi/test/blob/master")
 }
