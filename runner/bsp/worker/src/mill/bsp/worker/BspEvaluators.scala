@@ -5,7 +5,7 @@ import mill.api.internal.bsp.BspModuleApi
 import mill.api.internal.{BaseModuleApi, EvaluatorApi, ModuleApi}
 import mill.define.internal.Watchable
 
-private class BspEvaluators(
+private[mill] class BspEvaluators(
     workspaceDir: os.Path,
     val evaluators: Seq[EvaluatorApi],
     debug: (() => String) => Unit,

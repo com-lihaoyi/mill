@@ -28,7 +28,8 @@ private trait MillJavaBuildServer extends JavaBuildServer { this: MillBuildServe
             sessionInfo.clientWantsSemanticDb
           )
       },
-      requestDescription = "Getting javac options of {}"
+      requestDescription = "Getting javac options of {}",
+      originId = ""
     ) {
       case (ev, _, id, _, f) =>
         val res = f(ev)

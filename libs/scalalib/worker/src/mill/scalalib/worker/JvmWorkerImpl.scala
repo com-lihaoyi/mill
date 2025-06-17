@@ -517,6 +517,19 @@ class JvmWorkerImpl(
   )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
     import JvmWorkerImpl.{ForwardingReporter, TransformingReporter, PositionMapper}
 
+    val requireReporter = ctx.env.get("MILL_JVM_WORKER_REQUIRE_REPORTER").contains("true")
+    if (requireReporter && reporter.isEmpty)
+      sys.error(
+        """A reporter is required, but none was passed. The following allows to get
+          |one from Mill tasks:
+          |
+          |    Task.reporter.apply(hashCode)
+          |
+          |`hashCode` should be the hashCode of the Mill module being compiled. Calling
+          |this in a task defined in a module should work.
+          |""".stripMargin
+      )
+
     os.makeDir.all(ctx.dest)
 
     val classesDir =
