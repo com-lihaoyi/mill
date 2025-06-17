@@ -184,7 +184,7 @@ options:
       cheatSheet +
       parser.helpText(customName = "", totalWidth = 100).stripPrefix("\n") +
       "\nPlease see the documentation at https://mill-build.org for more details,\n" +
-      "or `./mill --help-advanced` for a list including advanced flags"
+      "or `./mill --help-advanced` for a list of advanced flags"
 
   lazy val helpAdvancedUsageText: String =
     customName +
