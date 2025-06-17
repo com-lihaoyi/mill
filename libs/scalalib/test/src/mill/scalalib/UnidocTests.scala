@@ -5,6 +5,7 @@ import mill.define.Discover
 import utest.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
+import scala.util.Properties
 
 object UnidocTests extends TestSuite {
   trait UnidocTestRootModule(scalaVersion: String) extends TestRootModule { self =>
@@ -47,11 +48,17 @@ object UnidocTests extends TestSuite {
         val dest = eval.outPath / "docs" / (if (site) "unidocSite.dest" else "unidocLocal.dest")
         val sandbox = os.pwd
 
+        def fixWindowsPath(path: String) =
+          if (Properties.isWin) path.replace("\\", "/")
+          else path
+
         val baseUrl =
           if (site) "https://github.com/test-org/my-app/blob/main"
           else {
-            if (isScala3) s"file://${module.moduleDir.toString.replace(sandbox.toString, "")}"
-            else module.moduleDir.toString
+            fixWindowsPath(
+              if (isScala3) s"file://${module.moduleDir.toString.replace(sandbox.toString, "")}"
+              else module.moduleDir.toString
+            )
           }
         assert(
           // both modules should be present
