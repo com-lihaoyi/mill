@@ -11,12 +11,13 @@ case class MillCliConfig(
     @arg(
       name = "bell",
       short = 'b',
-      doc = """Ring the bell once if the run completes successfully, twice if it fails."""
+      doc = "Ring the bell once if the run completes successfully, twice if it fails."
     )
     ringBell: Flag = Flag(),
     @arg(
       doc =
-        """Enable or disable the ticker log (e.g. short-lived prints of stages and progress bars)."""
+        """Enable or disable the ticker log, which provides information on running
+           tasks and where each log line came from"""
     )
     ticker: Option[Boolean] = None,
     @arg(name = "debug", short = 'd', doc = "Show debug output on STDOUT")
@@ -69,7 +70,8 @@ case class MillCliConfig(
     @arg(name = "task", doc = "The name or a pattern of the tasks(s) you want to build.")
     leftoverArgs: Leftover[String] = Leftover(),
     @arg(doc =
-      """Toggle colored output; by default enabled only if the console is interactive and NO_COLOR environment variable is not set"""
+      """Toggle colored output; by default enabled only if the console is interactive
+         and NO_COLOR environment variable is not set"""
     )
     color: Option[Boolean] = None,
     @arg(
