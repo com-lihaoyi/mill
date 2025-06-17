@@ -120,7 +120,7 @@ object SpotlessTests extends TestSuite {
       UnitTester(module, resources / "ratchet", errStream = errStream).scoped { eval =>
         import module.moduleDir
 
-        def call(cmd: os.Shellable*) = os.proc(cmd*).call(cwd = moduleDir, stderr = os.Pipe)
+        def call(cmd: os.Shellable*) = os.proc(cmd*).call(cwd = moduleDir)
         def rel(path: os.Path) = path.relativeTo(moduleDir)
 
         val legacy = moduleDir / "src/Dirty.java"
