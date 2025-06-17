@@ -9,12 +9,6 @@ case class MillCliConfig(
     @arg(name = "version", short = 'v', doc = "Show mill version information and exit.")
     showVersion: Flag = Flag(),
     @arg(
-      name = "bell",
-      short = 'b',
-      doc = "Ring the bell once if the run completes successfully, twice if it fails."
-    )
-    ringBell: Flag = Flag(),
-    @arg(
       doc =
         """Enable or disable the ticker log, which provides information on running
            tasks and where each log line came from"""
