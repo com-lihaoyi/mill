@@ -15,7 +15,14 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: jlumbroso/free-disk-space@v1.3.1
+    # Try to free up some space on the github actions runners by
+    # deleting things we don't care about
+    - run: sudo rm -rf /usr/local/lib/android
+      shell: bash
+    - run: sudo rm -rf /opt/ghc
+      shell: bash
+    - run: sudo rm -rf /usr/local/.ghcup
+      shell: bash
 
     - uses: actions/setup-node@v4
       with: { node-version: '22' }
