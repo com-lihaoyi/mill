@@ -35,6 +35,7 @@ private trait GroupExecution {
   def getEvaluator: () => EvaluatorApi
   def headerData: String
   def offline: Boolean
+
   lazy val parsedHeaderData: Map[String, ujson.Value] = {
     import org.snakeyaml.engine.v2.api.{Load, LoadSettings}
     val loaded = new Load(LoadSettings.builder().build()).loadFromString(headerData)
@@ -536,7 +537,7 @@ private object GroupExecution {
     val executionChecker = new os.Checker {
       def onRead(path: os.ReadablePath): Unit = path match {
         case path: os.Path =>
-          if (!isCommand && !isInput) {
+          if (!isCommand && !isInput && mill.api.FilesystemCheckerEnabled.value) {
             if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
               sys.error(
                 s"Reading from ${path.relativeTo(workspace)} not allowed during execution of `$terminal`"
@@ -547,7 +548,7 @@ private object GroupExecution {
       }
 
       def onWrite(path: os.Path): Unit = {
-        if (!isCommand) {
+        if (!isCommand && mill.api.FilesystemCheckerEnabled.value) {
           if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
             sys.error(
               s"Writing to ${path.relativeTo(workspace)} not allowed during execution of `$terminal`"

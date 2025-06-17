@@ -165,14 +165,22 @@ case class MillCliConfig(
     )
     noWaitForBuildLock: Flag = Flag(),
     @arg(
-      doc =
-        """Try to work offline.
-          |This tells modules that support it to work offline and avoid any access to the internet.
-          |This is on a best effort basis.
-          |There are currently no guarantees that modules don't attempt to fetch remote sources."""
-          .stripMargin
+      doc = """
+        Try to work offline.
+        This tells modules that support it to work offline and avoid any access to the internet.
+        This is on a best effort basis.
+        There are currently no guarantees that modules don't attempt to fetch remote sources.
+      """
     )
     offline: Flag = Flag(),
+    @arg(
+      doc = """
+        Globally disables the checks that prevent you from reading and writing to disallowed 
+        files or folders during evaluation. Useful as an escape hatch in case you desperately
+        need to do something unusual and you are willing to take the risk
+      """
+    )
+    noFilesystemChecker: Flag = Flag(),
     @arg(
       doc = """Runs Mill in tab-completion mode"""
     )
