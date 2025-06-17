@@ -4,15 +4,12 @@ import coursier.cache.FileCache
 import coursier.core.Resolution
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import coursier.{Dependency, Repository, Resolve, Type}
+import coursier.{Dependency, Repository}
 import mill.define.Task
-import mill.define.{PathRef}
-import mill.api.{Result}
+import mill.define.PathRef
+import mill.api.Result
 import mill.util.Jvm
 import mill.T
-
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 /**
  * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
@@ -52,7 +49,8 @@ trait CoursierModule extends mill.define.Module {
       coursierCacheCustomizer = coursierCacheCustomizer(),
       resolutionParams = resolutionParams(),
       offline = Task.offline,
-      checkGradleModules = checkGradleModules()
+      checkGradleModules = checkGradleModules(),
+      config = CoursierConfigModule.coursierConfig()
     )
   }
 
@@ -73,7 +71,8 @@ trait CoursierModule extends mill.define.Module {
       coursierCacheCustomizer = coursierCacheCustomizer(),
       resolutionParams = resolutionParams(),
       offline = Task.offline,
-      checkGradleModules = checkGradleModules()
+      checkGradleModules = checkGradleModules(),
+      config = CoursierConfigModule.coursierConfig()
     )
   }
 
@@ -100,7 +99,7 @@ trait CoursierModule extends mill.define.Module {
    * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
   def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-    Jvm.reposFromStrings(repositories(), Resolve.defaultRepositories)
+    Jvm.reposFromStrings(repositories(), CoursierConfigModule.defaultRepositories())
   }
 
   /**
@@ -230,7 +229,8 @@ object CoursierModule {
       ] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       offline: Boolean,
-      checkGradleModules: Boolean
+      checkGradleModules: Boolean,
+      config: mill.util.CoursierConfig
   ) {
 
     /**
@@ -256,7 +256,8 @@ object CoursierModule {
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = Some(ctx),
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams)),
-        checkGradleModules = checkGradleModules
+        checkGradleModules = checkGradleModules,
+        config = config
       ).get
 
     /**
@@ -280,7 +281,8 @@ object CoursierModule {
         ctx = Some(ctx),
         resolutionParams = resolutionParams,
         boms = Nil,
-        checkGradleModules = checkGradleModules
+        checkGradleModules = checkGradleModules,
+        config = config
       ).get
     }
 
@@ -300,7 +302,8 @@ object CoursierModule {
         deps0.map(_.dep),
         sources = sources,
         ctx = Some(ctx),
-        checkGradleModules = checkGradleModules
+        checkGradleModules = checkGradleModules,
+        config = config
       ).get
     }
   }

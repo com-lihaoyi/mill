@@ -445,9 +445,13 @@ object Jvm {
 
   private def coursierCache(
       ctx: Option[mill.define.TaskCtx],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
+      config: CoursierConfig
   ) =
-    FileCache[Task]()
+    FileCache[Task](os.Path(config.cacheLocation).toIO)
+      .withCredentials(config.credentials)
+      .withTtl(config.ttl)
+      .withCachePolicies(config.cachePolicies)
       .pipe { cache =>
         coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
       }
@@ -473,7 +477,8 @@ object Jvm {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      checkGradleModules: Boolean = false
+      checkGradleModules: Boolean = false,
+      config: CoursierConfig
   ): Result[coursier.Artifacts.Result] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
@@ -484,11 +489,12 @@ object Jvm {
       ctx,
       coursierCacheCustomizer,
       resolutionParams,
-      checkGradleModules = checkGradleModules
+      checkGradleModules = checkGradleModules,
+      config = config
     )
 
     resolutionRes.flatMap { resolution =>
-      val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+      val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
 
       val artifactsResultOrError = Artifacts(coursierCache0)
         .withResolution(resolution)
@@ -536,7 +542,8 @@ object Jvm {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      checkGradleModules: Boolean = false
+      checkGradleModules: Boolean = false,
+      config: CoursierConfig
   ): Result[Seq[PathRef]] =
     getArtifacts(
       repositories,
@@ -549,7 +556,8 @@ object Jvm {
       coursierCacheCustomizer,
       artifactTypes,
       resolutionParams,
-      checkGradleModules = checkGradleModules
+      checkGradleModules = checkGradleModules,
+      config = config
     ).map { res =>
       BuildCtx.withFilesystemCheckerDisabled {
         res.files
@@ -560,21 +568,27 @@ object Jvm {
 
   def jvmIndex(
       ctx: Option[mill.define.TaskCtx] = None,
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
+      config: CoursierConfig
   ): JvmIndex = {
-    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
-    jvmIndex0(ctx, coursierCacheCustomizer).unsafeRun()(coursierCache0.ec)
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
+    jvmIndex0(
+      ctx,
+      coursierCacheCustomizer,
+      config = config
+    ).unsafeRun()(coursierCache0.ec)
   }
 
   def jvmIndex0(
       ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      jvmIndexVersion: String = "latest.release"
+      jvmIndexVersion: String = "latest.release",
+      config: CoursierConfig
   ): Task[JvmIndex] = {
-    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
     JvmIndex.load(
       cache = coursierCache0, // the coursier.cache.Cache instance to use
-      repositories = Resolve.defaultRepositories, // repositories to use
+      repositories = config.repositories, // repositories to use
       indexChannel = JvmChannel.module(
         JvmChannel.centralModule(),
         version = jvmIndexVersion
@@ -592,9 +606,10 @@ object Jvm {
       ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       jvmIndexVersion: String = mill.api.BuildInfo.coursierJvmIndexVersion,
-      useShortPaths: Boolean = false
+      useShortPaths: Boolean = false,
+      config: CoursierConfig
   ): Result[os.Path] = {
-    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
     val shortPathDirOpt = Option.when(useShortPaths) {
       if (isWin)
         // On Windows, prefer to use System.getenv over sys.env (or ctx.env for
@@ -613,10 +628,16 @@ object Jvm {
     val jvmCache = JvmCache()
       .withArchiveCache(
         ArchiveCache()
+          .withLocation(os.Path(config.archiveCacheLocation).toIO)
           .withCache(coursierCache0)
           .withShortPathDirectory(shortPathDirOpt.map(_.toIO))
       )
-      .withIndex(jvmIndex0(ctx, coursierCacheCustomizer, jvmIndexVersion))
+      .withIndex(jvmIndex0(
+        ctx,
+        coursierCacheCustomizer,
+        jvmIndexVersion,
+        config = config
+      ))
     val javaHome = JavaHome()
       .withCache(jvmCache)
       // when given a version like "17", always pick highest version in the index
@@ -637,7 +658,8 @@ object Jvm {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       boms: IterableOnce[BomDependency] = Nil,
-      checkGradleModules: Boolean = false
+      checkGradleModules: Boolean = false,
+      config: CoursierConfig
   ): Result[Resolution] = {
 
     val rootDeps = deps.iterator
@@ -650,7 +672,7 @@ object Jvm {
       .toMap
 
     val offlineMode = ctx.fold(false)(_.offline)
-    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
 
     val resolutionParams0 = resolutionParams.addForceVersion(forceVersions.toSeq*)
 
@@ -671,6 +693,8 @@ object Jvm {
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
       .withBoms(boms.iterator.toSeq)
+      .withConfFiles(config.confFiles.map(_.toNIO))
+      .withMirrors(config.mirrors)
 
     resolve.either() match {
       case Left(error) =>

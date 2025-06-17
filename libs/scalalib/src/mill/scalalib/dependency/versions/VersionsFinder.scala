@@ -2,7 +2,7 @@ package mill.scalalib.dependency.versions
 
 import mill.define.{BaseModule, Evaluator, Task}
 import mill.scalalib.dependency.metadata.{MetadataLoader, MetadataLoaderFactory}
-import mill.scalalib.{BoundDep, JavaModule, Lib}
+import mill.scalalib.{BoundDep, CoursierConfigModule, JavaModule, Lib}
 import mill.define.TaskCtx
 
 import java.time.{Clock, Instant, ZoneId}
@@ -76,7 +76,8 @@ private[dependency] object VersionsFinder {
         coursierCacheCustomizer = cacheCustom,
         resolutionParams = coursier.params.ResolutionParams(),
         boms = Nil,
-        checkGradleModules = javaModule.checkGradleModules()
+        checkGradleModules = javaModule.checkGradleModules(),
+        config = CoursierConfigModule.coursierConfig()
       )
 
       x.map { _ =>
