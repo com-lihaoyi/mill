@@ -16,7 +16,7 @@ object GenIdea extends ExternalModule {
     mill.main.RunScript.evaluateTasksNamed(
       ev,
       Seq(
-        "mill.idea.GenIdea/"
+        "mill.idea/"
       ),
       selectMode = SelectMode.Separated
     )

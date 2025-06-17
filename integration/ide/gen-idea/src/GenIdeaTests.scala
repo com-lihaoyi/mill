@@ -56,7 +56,7 @@ object GenIdeaTests extends UtestIntegrationTestSuite {
       val expectedBase = workspacePath / "idea"
       val resources = os.walk(expectedBase).filter(os.isFile).map(_.subRelativeTo(expectedBase))
 
-      eval("mill.idea.GenIdea/")
+      eval("mill.idea/")
 
       val checks = resources.map { resource =>
         Try {

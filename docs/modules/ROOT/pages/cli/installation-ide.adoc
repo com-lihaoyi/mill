@@ -17,26 +17,37 @@ globally.
 The Mill example projects in this documentation come with `./mill` and `./mill.bat`
 bootstrap script, included. You can also download the boostrap script manually:
 
-[source,bash,subs="verbatim,attributes"]
+.Mac/Linux
+[source,console,subs="verbatim,attributes"]
 ----
-# Mac/Linux
-curl -L {mill-download-url}/mill -o mill
-chmod +x mill
-echo {mill-last-tag} > .mill-version
-
-# Windows
-curl -L {mill-download-url}/mill.bat -o mill.bat
-echo {mill-last-tag} > .mill-version
+> curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill
+> chmod +x mill
+> echo {mill-version} > .mill-version
 ----
 
-Downloading a `mill` bootstrap script to the root of your project repository helps make it easier for
+.Windows
+[source,console,subs="verbatim,attributes"]
+----
+> curl -L {mill-download-url}/mill-dist-{mill-version}-mill.bat -o mill.bat
+> echo {mill-version}> .mill-version
+----
+
+[CAUTION]
+--
+*Don't use PowerShell 5.1 to install Mill!*
+ +
+PowerShell 5.1 is known to produce `UTF-16LE` encoded `.mill-version` files, which can't be read by Mill.
+You should update to Powershell 7 or newer.
+--
+
+Downloading a `mill` bootstrap script to the root of your project repository makes it easier for
 new contributors to build your project, as they don't have to install Mill before they can start.
 Anyone who wants to work with the project can simply use the `./mill` script directly.
 
-[source,bash]
+[source,console]
 ----
-./mill --version
-./mill __.compile # double underscore
+> ./mill --version
+> ./mill __.compile # double underscore
 ----
 
 
@@ -153,7 +164,7 @@ run this command to generate the BSP configuration files:
 
 [source,bash]
 ----
-./mill mill.bsp.BSP/install
+./mill mill.bsp/install
 ----
 
 ==== IntelliJ IDEA XML Support
@@ -167,7 +178,7 @@ To generate IntelliJ IDEA project files into `.idea/`, run:
 
 [source,bash]
 ----
-./mill mill.idea.GenIdea/
+./mill mill.idea/
 ----
 
 This will generate the XML files IntelliJ uses to configure your project
@@ -190,7 +201,7 @@ This will generate the XML files IntelliJ uses to configure your project
 
 After the files are generated, you can open the folder in IntelliJ to load the project
 into your IDE. If you make changes to your Mill `build.mill`, you can update the project config
-those updates by running `./mill mill.idea.GenIdea/` again.
+those updates by running `./mill mill.idea/` again.
 
 === VSCode
 

@@ -177,12 +177,12 @@ object MillMain {
 
             if (config.disableTicker.value) {
               streams.err.println(
-                "--disable-ticker will be removed in Mill 0.13.0, use `--ticker false`"
+                "--disable-ticker will be removed in Mill 1.0.0, use `--ticker false`"
               )
             }
             config.enableTicker.foreach { value =>
               streams.err.println(
-                s"--enable-ticker will be removed in Mill 0.13.0, use `--ticker $value`"
+                s"--enable-ticker will be removed in Mill 1.0.0, use `--ticker $value`"
               )
             }
 
@@ -209,7 +209,7 @@ object MillMain {
                 val bspContext =
                   if (bspMode) Some(new BspContext(streams, bspLog, config.home)) else None
 
-                val bspCmd = "mill.bsp.BSP/startSession"
+                val bspCmd = "mill.bsp/startSession"
                 val targetsAndParams =
                   bspContext
                     .map(_ => Seq(bspCmd))
@@ -231,9 +231,13 @@ object MillMain {
                     }
                     val (isSuccess, evalStateOpt) = Watching.watchLoop(
                       ringBell = config.ringBell.value,
-                      watch = config.watch.value,
+                      watch = Option.when(config.watch.value)(Watching.WatchArgs(
+                        setIdle,
+                        colors,
+                        useNotify = config.watchViaFsNotify,
+                        serverDir = serverDir
+                      )),
                       streams = streams,
-                      setIdle = setIdle,
                       evaluate = (enterKeyPressed: Boolean, prevState: Option[RunnerState]) => {
                         adjustJvmProperties(userSpecifiedProperties, initialSystemProperties)
 
@@ -285,8 +289,7 @@ object MillMain {
                             }
                           }
                         }
-                      },
-                      colors = colors
+                      }
                     )
                     bspContext.foreach { ctx =>
                       repeatForBsp =

@@ -119,10 +119,11 @@ object Deps {
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.5.5"
 
   val classgraph = ivy"io.github.classgraph:classgraph:4.8.179"
-  val coursierVersion = "2.1.25-M2"
+  val coursierVersion = "2.1.25-M13"
   val coursier = ivy"io.get-coursier::coursier:$coursierVersion"
   val coursierInterface = ivy"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm = ivy"io.get-coursier::coursier-jvm:$coursierVersion"
+  val coursierJvmIndexVersion = "0.0.4-111-eb6e08"
 
   val cask = ivy"com.lihaoyi::cask:0.9.4"
   val castor = ivy"com.lihaoyi::castor:0.3.0"
@@ -150,7 +151,9 @@ object Deps {
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = ivy"commons-io:commons-io:2.18.0"
   val log4j2Core = ivy"org.apache.logging.log4j:log4j-core:2.24.3"
-  val osLib = ivy"com.lihaoyi::os-lib:0.11.4-M6"
+  val osLibVersion = "0.11.5-M8"
+  val osLib = ivy"com.lihaoyi::os-lib:${osLibVersion}"
+  val osLibWatch = ivy"com.lihaoyi::os-lib-watch:${osLibVersion}"
   val pprint = ivy"com.lihaoyi::pprint:0.9.0"
   val mainargs = ivy"com.lihaoyi::mainargs:0.7.6"
   val millModuledefsVersion = "0.11.2"
@@ -202,7 +205,6 @@ object Deps {
     ivy"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
   val mavenResolverTransportWagon =
     ivy"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
-  val coursierJvmIndexVersion = "0.0.4-84-f852c6"
   val gradleApi = ivy"dev.gradleplugins:gradle-api:8.11.1"
   val sbt = ivy"org.scala-sbt:sbt:1.10.10"
 
@@ -422,6 +424,17 @@ trait MillJavaModule extends JavaModule {
 }
 
 trait MillPublishJavaModule extends MillJavaModule with PublishModule {
+
+  def artifactName = "mill-" + super.artifactName()
+  def publishVersion = millVersion()
+  def publishProperties = super.publishProperties() ++ Map(
+    "info.releaseNotesURL" -> Settings.changelogUrl
+  )
+  def pomSettings = MillPublishJavaModule.commonPomSettings(artifactName())
+  def javacOptions = Seq("-source", "11", "-target", "11", "-encoding", "UTF-8")
+}
+
+object MillPublishJavaModule {
   def commonPomSettings(artifactName: String) = {
     PomSettings(
       description = artifactName,
@@ -435,14 +448,6 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
       )
     )
   }
-
-  def artifactName = "mill-" + super.artifactName()
-  def publishVersion = millVersion()
-  def publishProperties = super.publishProperties() ++ Map(
-    "info.releaseNotesURL" -> Settings.changelogUrl
-  )
-  def pomSettings = commonPomSettings(artifactName())
-  def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
 }
 
 /**
@@ -641,7 +646,7 @@ trait BridgeModule extends MillPublishCrossScalaModule {
   def scalaVersion = crossScalaVersion
   def publishVersion = bridgeVersion
   def artifactName = "mill-scala-compiler-bridge"
-  def pomSettings = commonPomSettings(artifactName())
+  def pomSettings = MillPublishJavaModule.commonPomSettings(artifactName())
   def crossFullScalaVersion = true
   def ivyDeps = Agg(
     ivy"org.scala-sbt:compiler-interface:${Deps.zinc.version}",

@@ -1,18 +1,17 @@
 package mill.scalalib
 
-import java.lang.reflect.Modifier
-
 import mainargs.arg
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, ModuleRef, Task}
+import mill.main.client.ServerFiles
+import mill.scalalib.classgraph.ClassgraphWorkerModule
 import mill.util.Jvm
 import mill.{Agg, Args, T}
-import mill.main.client.ServerFiles
 import os.{Path, ProcessOutput}
-import scala.util.control.NonFatal
 
-import mill.scalalib.classgraph.ClassgraphWorkerModule
+import java.lang.reflect.Modifier
+import scala.util.control.NonFatal
 
 trait RunModule extends WithJvmWorker {
 
@@ -115,7 +114,7 @@ trait RunModule extends WithJvmWorker {
    */
   def runMainBackground(@arg(positional = true) mainClass: String, args: String*): Command[Unit] = {
     val task = runBackgroundTask(Task.Anon { mainClass }, Task.Anon { Args(args) })
-    Task.Command { task() }
+    Task.Command(persistent = true) { task() }
   }
 
   /**
@@ -162,13 +161,10 @@ trait RunModule extends WithJvmWorker {
 
   def runBackgroundTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
-      val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(Task.dest)
+      val backgroundPaths = new RunModule.BackgroundPaths(destDir = Task.dest)
+
       runner().run(
-        args = Seq(
-          procUuidPath.toString,
-          procLockfile.toString,
-          procUuid,
-          runBackgroundRestartDelayMillis().toString,
+        args = backgroundPaths.toArgs ++ Seq(
           mainClass()
         ) ++ args().value,
         mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
@@ -189,6 +185,8 @@ trait RunModule extends WithJvmWorker {
    */
   // TODO: make this a task, to be more dynamic
   def runBackgroundLogToConsole: Boolean = true
+
+  @deprecated("Binary compat shim, no longer used.`", "Mill 0.12.11")
   def runBackgroundRestartDelayMillis: T[Int] = 500
 
   @deprecated("Binary compat shim, use `.runner().run(..., background=true)`", "Mill 0.12.0")
@@ -203,18 +201,15 @@ trait RunModule extends WithJvmWorker {
       runUseArgsFile: Boolean,
       backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]]
   )(args: String*): Ctx => Result[Unit] = ctx => {
-    val (procUuidPath, procLockfile, procUuid) = RunModule.backgroundSetup(taskDest)
+    val backgroundPaths = new RunModule.BackgroundPaths(destDir = taskDest)
+
     try Result.Success(
         Jvm.runSubprocessWithBackgroundOutputs(
           "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
           (runClasspath ++ zwBackgroundWrapperClasspath).map(_.path),
           forkArgs,
           forkEnv,
-          Seq(
-            procUuidPath.toString,
-            procLockfile.toString,
-            procUuid,
-            500.toString,
+          backgroundPaths.toArgs ++ Seq(
             finalMainClass
           ) ++ args,
           workingDir = forkWorkingDir,
@@ -250,13 +245,6 @@ trait RunModule extends WithJvmWorker {
 }
 
 object RunModule {
-
-  private[mill] def backgroundSetup(dest: os.Path): (Path, Path, String) = {
-    val procUuid = java.util.UUID.randomUUID().toString
-    val procUuidPath = dest / ".mill-background-process-uuid"
-    val procLockfile = dest / ".mill-background-process-lock"
-    (procUuidPath, procLockfile, procUuid)
-  }
 
   private[mill] def getMainMethod(mainClassName: String, cl: ClassLoader) = {
     val mainClass = cl.loadClass(mainClassName)
@@ -361,4 +349,19 @@ object RunModule {
     }
   }
 
+  /** @param destDir The `Task.dest`. Needs to be persistent for it to work properly. */
+  private[mill] class BackgroundPaths(val destDir: os.Path) {
+    def newestPidPath: os.Path = destDir / "newest-pid"
+    def currentlyRunningPidPath: os.Path = destDir / "currently-running-pid"
+    def lockPath: os.Path = destDir / "lock"
+    def logPath: os.Path = destDir / "log"
+
+    def toArgs: Seq[String] =
+      Seq(
+        newestPidPath.toString,
+        currentlyRunningPidPath.toString,
+        lockPath.toString,
+        logPath.toString
+      )
+  }
 }

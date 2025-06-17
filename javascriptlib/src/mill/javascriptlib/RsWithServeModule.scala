@@ -9,8 +9,8 @@ trait RsWithServeModule extends ReactScriptsModule {
   }
 
   // serve static Html page
-  def run: Target[CommandResult] = Task {
-    val compiled = compile()._1.path
+  def run: T[CommandResult] = Task {
+    val compiled = compile().path
     val build = bundle().path
     val env = forkEnv()
     os.call(

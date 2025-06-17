@@ -5,12 +5,13 @@ import mill.define.{
   BaseModule,
   Command,
   Discover,
+  ExternalModule,
   Module,
   ModuleTask,
   NamedTask,
   Reflect,
   Segments,
-  Target,
+  Task,
   TaskModule
 }
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
@@ -171,7 +172,7 @@ object Resolve {
       if (a.default.nonEmpty) a
       else if (nullCommandDefaults) {
         a.copy(default =
-          if (a.reader.isInstanceOf[SimpleTaskTokenReader[_]]) Some(_ => Target.task(null))
+          if (a.reader.isInstanceOf[SimpleTaskTokenReader[_]]) Some(_ => Task.Anon(null))
           else Some(_ => null)
         )
       } else a
@@ -383,9 +384,17 @@ trait Resolve[T] {
             try Right(rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
             catch {
               case e: ClassNotFoundException =>
-                Left("Cannot resolve external module " + scoping.render)
+                try Right(rootModule.getClass.getClassLoader.loadClass(
+                    scoping.render + ".package$"
+                  ))
+                catch {
+                  case e: ClassNotFoundException =>
+                    Left("Cannot resolve external module " + scoping.render)
+                }
             }
+
           rootModule <- moduleCls.getField("MODULE$").get(moduleCls) match {
+            case alias: ExternalModule.Alias => Right(alias.value)
             case rootModule: BaseModule => Right(rootModule)
             case _ => Left("Class " + scoping.render + " is not an BaseModule")
           }

@@ -115,7 +115,7 @@ object Discover {
           assertParamListCounts(
             methods,
             (weakTypeOf[mill.define.Command[_]], 1, "`Task.Command`"),
-            (weakTypeOf[mill.define.Target[_]], 0, "Target")
+            (weakTypeOf[mill.define.Task.Simple[_]], 0, "Target")
           )
 
           Tuple3(
@@ -152,7 +152,7 @@ object Discover {
       }
 
       c.Expr[Discover](
-        q"import mill.api.JsonFormatters._; _root_.mill.define.Discover.apply2(_root_.scala.collection.immutable.Map(..$mapping))"
+        q"import _root_.mill.api.JsonFormatters._; _root_.mill.define.Discover.apply2(_root_.scala.collection.immutable.Map(..$mapping))"
       )
     }
   }

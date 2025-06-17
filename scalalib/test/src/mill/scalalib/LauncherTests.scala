@@ -17,7 +17,10 @@ object LauncherTests extends TestSuite {
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "launcher"
 
   def tests: Tests = Tests {
-    def check(executableTask: mill.define.Target[mill.api.PathRef], copyBat: Boolean = false) = {
+    def check(
+        executableTask: mill.define.Task.Simple[mill.api.PathRef],
+        copyBat: Boolean = false
+    ) = {
       val eval = UnitTester(HelloJava, resourcePath)
 
       val Right(result1) = eval.apply(executableTask)

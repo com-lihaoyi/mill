@@ -1,26 +1,23 @@
 package mill
 package scalalib
 
-import coursier.{core => cs}
 import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}
 import coursier.params.ResolutionParams
-import coursier.parse.JavaOrScalaModule
-import coursier.parse.ModuleParser
+import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
-import coursier.{Repository, Type}
+import coursier.{Repository, Type, core => cs}
 import mainargs.{Flag, arg}
 import mill.Agg
-import mill.api.{Ctx, JarManifest, MillException, PathRef, Result, internal}
+import mill.api.{Ctx, MillException, PathRef, Result, internal}
 import mill.define.{Command, ModuleRef, Segment, Task, TaskModule}
-import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspBuildTarget, BspModule, BspUri, JvmBuildTarget}
+import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.publish.Artifact
-import mill.util.Jvm
-
-import os.{Path, ProcessOutput}
+import mill.util.{JarManifest, Jvm}
 
 import scala.annotation.nowarn
+import scala.util.matching.Regex
 
 /**
  * Core configuration required to compile a single Java compilation target
@@ -630,13 +627,19 @@ trait JavaModule
   }
 
   /**
-   * Coursier project of this module and those of all its transitive module dependencies
+   * Coursier projects of all the transitive module dependencies of this module
+   *
+   * Doesn't include the coursier project of the current module, see [[coursierProject]] for that.
    */
-  def transitiveCoursierProjects: Task[Seq[cs.Project]] = Task {
-    (Seq(coursierProject()) ++
-      Task.traverse(
-        (compileModuleDepsChecked ++ moduleDepsChecked ++ runModuleDepsChecked ++ bomModuleDepsChecked).distinct
-      )(_.transitiveCoursierProjects)().flatten).distinctBy(_.module)
+  def transitiveCoursierProjects: Task[Seq[cs.Project]] = {
+    val allModuleDeps =
+      (compileModuleDepsChecked ++ moduleDepsChecked ++ runModuleDepsChecked ++ bomModuleDepsChecked).distinct
+    Task {
+      val allTransitiveProjects =
+        Task.traverse(allModuleDeps)(_.transitiveCoursierProjects)().flatten
+      val allModuleDepsProjects = Task.traverse(allModuleDeps)(_.coursierProject)()
+      (allModuleDepsProjects ++ allTransitiveProjects).distinctBy(_.module.name.value)
+    }
   }
 
   /**
@@ -729,7 +732,18 @@ trait JavaModule
     // (it's respectively provided, runtime, import). The configuration is compile for
     // standard ivyDeps / moduleDeps.
     //
-    JavaModule.InternalRepo(transitiveCoursierProjects().distinctBy(_.module.name.value))
+    val project = coursierProject()
+    // Mark optional direct dependencies as non-optional, so that these are included in the
+    // class paths of this module
+    val project0 = project.withDependencies0(
+      project.dependencies0.map {
+        case (conf, dep) if dep.optional =>
+          (conf, dep.withOptional(false))
+        case other =>
+          other
+      }
+    )
+    JavaModule.InternalRepo(Seq(project0) ++ transitiveCoursierProjects())
   }
 
   /**
@@ -1267,9 +1281,8 @@ trait JavaModule
       // Filter the output, so that the special organization and version used for Mill's own modules
       // don't appear in the output. This only leaves the modules' name built from millModuleSegments.
       val processedTree = tree
-        .replace(" mill-internal:", " ")
-        .replace(":0+mill-internal ", " ")
-        .replace(":0+mill-internal" + System.lineSeparator(), System.lineSeparator())
+        .replace(s" ${JavaModule.internalOrg.value}:", " ")
+        .replaceAll(":" + Regex.quote(JavaModule.internalVersion) + "(\\w*$|\\n)", "$1")
 
       println(processedTree)
 
@@ -1355,15 +1368,15 @@ trait JavaModule
 
   @deprecated("Binary compat shim, use `.runner().run(..., background=true)`", "Mill 0.12.0")
   override protected def doRunBackground(
-      taskDest: Path,
+      taskDest: os.Path,
       runClasspath: Seq[PathRef],
       zwBackgroundWrapperClasspath: Agg[PathRef],
       forkArgs: Seq[String],
       forkEnv: Map[String, String],
       finalMainClass: String,
-      forkWorkingDir: Path,
+      forkWorkingDir: os.Path,
       runUseArgsFile: Boolean,
-      backgroundOutputs: Option[Tuple2[ProcessOutput, ProcessOutput]]
+      backgroundOutputs: Option[Tuple2[os.ProcessOutput, os.ProcessOutput]]
   )(args: String*): Ctx => Result[Unit] = {
     // overridden here for binary compatibility (0.11.x)
     super.doRunBackground(
@@ -1397,7 +1410,7 @@ trait JavaModule
    */
   def runBackground(args: String*): Command[Unit] = {
     val task = runBackgroundTask(finalMainClass, Task.Anon { Args(args) })
-    Task.Command { task() }
+    Task.Command(persistent = true) { task() }
   }
 
   /**
@@ -1451,7 +1464,7 @@ trait JavaModule
    */
   def artifactSuffix: T[String] = platformSuffix()
 
-  override def forkWorkingDir: T[Path] = Task {
+  override def forkWorkingDir: T[os.Path] = Task {
     // overridden here for binary compatibility (0.11.x)
     super.forkWorkingDir()
   }
@@ -1546,7 +1559,12 @@ object JavaModule {
   final case class InternalRepo(projects: Seq[cs.Project])
       extends cs.Repository {
 
-    private lazy val map = projects.map(proj => proj.moduleVersion -> proj).toMap
+    // Reversing the sequence before calling toMap, so that earlier elements have precedence
+    // over later one, in case they have the same module / version.
+    // That's useful for the handling of optional dependencies, where the main project, with
+    // initially optional dependencies marked as non-optional, is put upfront, but might still
+    // be pulled transitively, in that case without the special handling of optional dependencies.
+    private lazy val map = projects.reverseIterator.map(proj => proj.moduleVersion -> proj).toMap
 
     override def toString(): String =
       pprint.apply(this).toString

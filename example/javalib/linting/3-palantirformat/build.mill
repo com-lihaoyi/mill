@@ -28,14 +28,14 @@ error: ...palantirformat aborted due to format error(s) (or invalid plugin setti
 ...checking format in java sources ...
 */
 // You can also use Palantir Java Format globally on all ``JavaModule``s in your build by running
-// `mill.javalib.palantirformat.PalantirFormatModule/`.
+// `mill.javalib.palantirformat/`.
 
 /** Usage
-> ./mill mill.javalib.palantirformat.PalantirFormatModule/ # alternatively, use external module to check/format
+> ./mill mill.javalib.palantirformat/ # alternatively, use external module to check/format
 ...formatting java sources ...
 */
 
 // If entering the long fully-qualified module name
-// `mill.javalib.palantirformat.PalantirFormatModule/` is tedious, you can add
+// `mill.javalib.palantirformat/` is tedious, you can add
 // an xref:fundamentals/modules.adoc#_aliasing_external_modules[External Module Alias]
 // to give it a shorter name that's easier to type

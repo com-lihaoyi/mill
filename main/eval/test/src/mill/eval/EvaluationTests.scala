@@ -2,7 +2,6 @@ package mill.eval
 
 import mill.util.TestUtil.Test
 import mill.define.{TargetImpl, Task}
-import mill.T
 import mill.util.{TestGraphs, TestUtil}
 import mill.testkit.{UnitTester, TestBaseModule}
 import mill.api.Strict.Agg
