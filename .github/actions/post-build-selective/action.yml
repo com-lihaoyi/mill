@@ -17,11 +17,11 @@ runs:
   steps:
     # Try to free up some space on the github actions runners by
     # deleting things we don't care about
-    - run: sudo rm -rfv /usr/local/lib/android
+    - run: rm -rfv /usr/local/lib/android
       shell: bash
-    - run: sudo rm -rfv /opt/ghc
+    - run: rm -rfv /opt/ghc
       shell: bash
-    - run: sudo rm -rfv /usr/local/.ghcup
+    - run: rm -rfv /usr/local/.ghcup
       shell: bash
 
     - uses: actions/setup-node@v4
