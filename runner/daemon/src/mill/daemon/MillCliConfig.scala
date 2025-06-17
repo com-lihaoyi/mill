@@ -81,24 +81,6 @@ case class MillCliConfig(
     )
     metaLevel: Option[Int] = None,
 
-    // ==================== DEPRECATED CLI FLAGS ====================
-    @arg(hidden = true, short = 'h', doc = "Unsupported")
-    home: os.Path = os.home,
-    @arg(hidden = true, doc = "Unsupported")
-    repl: Flag = Flag(),
-    @arg(hidden = true, doc = "Unsupported")
-    noServer: Flag = Flag(),
-    @arg(short = 's', doc = "Unsupported")
-    silent: Flag = Flag(),
-    @arg(name = "disable-callgraph", doc = "Unsupported")
-    disableCallgraph: Flag = Flag(),
-    @arg(hidden = true, doc = "Unsupported")
-    disablePrompt: Flag = Flag(),
-    @arg(hidden = true, doc = "Unsupported")
-    enableTicker: Option[Boolean] = None,
-    @arg(hidden = true, doc = "Unsupported")
-    disableTicker: Flag,
-
     // ==================== ADVANCED CLI FLAGS ====================
     @arg(doc = "Allows command args to be passed positionally without `--arg` by default")
     allowPositional: Flag = Flag(),
@@ -144,7 +126,25 @@ case class MillCliConfig(
     @arg(
       doc = """Runs Mill in tab-completion mode"""
     )
-    tabComplete: Flag = Flag()
+    tabComplete: Flag = Flag(),
+
+    // ==================== DEPRECATED CLI FLAGS ====================
+    @arg(hidden = true, short = 'h', doc = "Unsupported")
+    home: os.Path = os.home,
+    @arg(hidden = true, doc = "Unsupported")
+    repl: Flag = Flag(),
+    @arg(hidden = true, doc = "Unsupported")
+    noServer: Flag = Flag(),
+    @arg(short = 's', doc = "Unsupported")
+    silent: Flag = Flag(),
+    @arg(name = "disable-callgraph", doc = "Unsupported")
+    disableCallgraph: Flag = Flag(),
+    @arg(hidden = true, doc = "Unsupported")
+    disablePrompt: Flag = Flag(),
+    @arg(hidden = true, doc = "Unsupported")
+    enableTicker: Option[Boolean] = None,
+    @arg(hidden = true, doc = "Unsupported")
+    disableTicker: Flag
 ) {
   def noDaemonEnabled =
     Seq(interactive.value, noDaemon.value, bsp.value).count(identity)
