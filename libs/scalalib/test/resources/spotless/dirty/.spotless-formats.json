@@ -1,0 +1,204 @@
+[
+  {
+    "includes": [
+      "glob:**/EndWithNewline"
+    ],
+    "steps": [
+      {
+        "$type": "EndWithNewline"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/FenceToggle"
+    ],
+    "steps": [
+      {
+        "$type": "Fence",
+        "steps": [
+          {
+            "$type": "PalantirJavaFormat"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/FenceWithin"
+    ],
+    "steps": [
+      {
+        "$type": "Fence",
+        "name": "java template",
+        "regex": [
+          "<java>",
+          "</java>"
+        ],
+        "preserve": false,
+        "steps": [
+          {
+            "$type": "PalantirJavaFormat"
+          }
+        ]
+      },
+      {
+        "$type": "Fence",
+        "name": "scala template",
+        "regex": [
+          "<scala>",
+          "</scala>"
+        ],
+        "preserve": false,
+        "steps": [
+          {
+            "$type": "ScalaFmt",
+            "configFile": null
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/Indent"
+    ],
+    "steps": [
+      {
+        "$type": "Indent"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/LicenseHeader"
+    ],
+    "steps": [
+      {
+        "$type": "LicenseHeader",
+        "delimiter": "(package|import|public|class|module) "
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/ReplaceRegex"
+    ],
+    "steps": [
+      {
+        "$type": "ReplaceRegex",
+        "name": "Greetings to Mars",
+        "regex": "(hello) w[a-z]{3}d",
+        "replacement": "$1 mars"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/Replace"
+    ],
+    "steps": [
+      {
+        "$type": "Replace",
+        "name": "Greetings to Mars",
+        "target": "World",
+        "replacement": "Mars"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/TrimTrailingWhitespace"
+    ],
+    "steps": [
+      {
+        "$type": "TrimTrailingWhitespace"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/CleanthatJava"
+    ],
+    "steps": [
+      {
+        "$type": "CleanthatJava",
+        "sourceJdkVersion": "11",
+        "mutators": [
+          "LiteralsFirstInComparisons"
+        ]
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/FormatAnnotations"
+    ],
+    "steps": [
+      {
+        "$type": "FormatAnnotations"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/GoogleJavaFormat"
+    ],
+    "steps": [
+      {
+        "$type": "GoogleJavaFormat"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/ImportOrder"
+    ],
+    "steps": [
+      {
+        "$type": "ImportOrder"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/PalantirJavaFormat"
+    ],
+    "steps": [
+      {
+        "$type": "PalantirJavaFormat"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/RemoveUnusedImports"
+    ],
+    "steps": [
+      {
+        "$type": "RemoveUnusedImports"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/Ktfmt"
+    ],
+    "steps": [
+      {
+        "$type": "Ktfmt"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/ScalaFmt"
+    ],
+    "steps": [
+      {
+        "$type": "ScalaFmt"
+      }
+    ]
+  }
+]
