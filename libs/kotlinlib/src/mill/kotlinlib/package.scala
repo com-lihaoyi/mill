@@ -1,13 +1,8 @@
 package mill
 
 package object kotlinlib {
-  implicit class DepSyntax(ctx: StringContext) {
-    def mvn(args: Any*): Dep = Dep.parse {
-      (
-        ctx.parts.take(args.length).zip(args).flatMap { case (p, a) => Seq(p, a) } ++
-          ctx.parts.drop(args.length)
-      ).mkString
-    }
+  implicit class DepSyntax(ctx: StringContext) extends AnyVal {
+    def mvn(args: Any*): Dep = mill.scalalib.DepSyntax(ctx).mvn(args*)
   }
 
   type Dep = mill.scalalib.Dep
