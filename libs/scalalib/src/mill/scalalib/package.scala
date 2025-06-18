@@ -10,9 +10,10 @@ package object scalalib extends mill.scalalib.JsonFormatters {
     }
 
     @deprecated("Use `mvn` string interpolator instead.", "Mill 0.12.11")
-    def ivy(args: Any*): Dep = mvn(args: _*)
+    def ivy(args: Any*): Dep = mvn(args*)
   }
 
   val CrossVersion = mill.define.CrossVersion
   type CrossVersion = mill.define.CrossVersion
+
 }
