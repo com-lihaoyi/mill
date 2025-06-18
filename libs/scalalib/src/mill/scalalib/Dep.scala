@@ -11,7 +11,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   require(
     !dep.module.name.value.contains("/") &&
       !dep.module.organization.value.contains("/") &&
-      !dep.version.contains("/"),
+      !dep.versionConstraint.asString.contains("/"),
     "Dependency coordinates must not contain `/`s"
   )
 
