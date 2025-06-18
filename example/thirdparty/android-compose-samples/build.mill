@@ -22,6 +22,8 @@ object JetLagged extends mill.define.Module {
 
     def androidIsDebug = true
 
+    // FIXME: ideally R8 should compile without erroring, but the app seems to be working
+    // without some reportedly missing classes.
     override def androidR8Args = Seq("--map-diagnostics", "error", "warning")
 
     override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {

@@ -255,6 +255,12 @@ trait AndroidModule extends JavaModule {
       extractAarFiles(aarFiles, transformDest)
     }
 
+  /**
+   * Runtime deps collected from repackaged content
+   * from (usually) AAR files. Can usually be found in
+   * libs/repackaged.jar.
+   * @return
+   */
   def androidRepackagedDeps: T[Seq[PathRef]] = Task {
     androidTransformAarFiles(Task.Anon(resolvedRunMvnDeps()))()
       .flatMap(_.repackagedJars)
@@ -445,6 +451,12 @@ trait AndroidModule extends JavaModule {
    */
   def androidNamespace: String
 
+  /**
+   * Gets the extracted android resources from the dependencies using [[androidLibraryResources]]
+   * and compiles them into flata files using aapt2. This allows for the resources to be linked
+   * using overlay.
+   * @return
+   */
   def androidCompiledLibResources: T[PathRef] = Task {
     val libAndroidResources: Seq[Path] = androidLibraryResources().map(_.path)
 
@@ -468,6 +480,11 @@ trait AndroidModule extends JavaModule {
     PathRef(Task.dest)
   }
 
+  /**
+   * Gets all the android resources from this module and its
+   * module dependencies and compiles them into flata files.
+   * @return
+   */
   def androidCompiledModuleResources = Task {
 
     val moduleResources =
@@ -495,6 +512,12 @@ trait AndroidModule extends JavaModule {
 
   }
 
+  /**
+   * Links all the resources coming from [[androidCompiledLibResources]] and
+   * [[androidCompiledModuleResources]] using auto overlay to resolve conflicts.
+   * For more information see [[https://developer.android.com/tools/aapt2#link]]
+   * @return a directory which contains the apk, proguard and generated R sources.
+   */
   def androidLinkedResources: T[PathRef] = Task {
     val compiledLibResDir = androidCompiledLibResources().path
     val moduleResDir = androidCompiledModuleResources().path
