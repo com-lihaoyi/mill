@@ -2,12 +2,7 @@ package mill
 
 package object javalib extends mill.scalalib.JsonFormatters {
   implicit class DepSyntax(ctx: StringContext) {
-    def mvn(args: Any*): Dep = Dep.parse {
-      (
-        ctx.parts.take(args.length).zip(args).flatMap { case (p, a) => Seq(p, a) } ++
-          ctx.parts.drop(args.length)
-      ).mkString
-    }
+    def mvn(args: Any*): Dep = mill.scalalib.DepSyntax(ctx).mvn(args*)
   }
 
   val Assembly = mill.scalalib.Assembly
