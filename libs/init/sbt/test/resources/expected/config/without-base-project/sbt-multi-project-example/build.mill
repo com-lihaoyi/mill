@@ -197,8 +197,7 @@ trait BaseModule extends SbtModule with PublishModule {
 
   def repositories = Seq(
     "https://oss.sonatype.org/service/local/repositories/releases/content/",
-    "https://oss.sonatype.org/content/repositories/snapshots",
-    "default"
+    "https://oss.sonatype.org/content/repositories/snapshots"
   )
 
   def jvmId = "11"

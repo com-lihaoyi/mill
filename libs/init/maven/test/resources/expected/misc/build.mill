@@ -12,8 +12,7 @@ object `package` extends PublishModule with MavenModule {
 
   def repositories = Seq(
     "http://repository.jboss.org/nexus/content/groups/public/",
-    "https://maven.java.net/content/repositories/public/",
-    "default"
+    "https://maven.java.net/content/repositories/public/"
   )
 
   def mvnDeps =

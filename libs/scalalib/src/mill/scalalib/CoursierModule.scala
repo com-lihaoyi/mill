@@ -99,7 +99,7 @@ trait CoursierModule extends mill.define.Module {
    * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
   def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-    Jvm.reposFromStrings(repositories(), CoursierConfigModule.defaultRepositories())
+    Jvm.reposFromStrings("default" +: repositories(), CoursierConfigModule.defaultRepositories())
   }
 
   /**
@@ -130,7 +130,7 @@ trait CoursierModule extends mill.define.Module {
    *   The default repositories, that might have been changed via COURSIER_REPOSITORIES in the environment,
    *   the coursier.repositories Java property, or the Scala CLI configuration file
    */
-  def repositories: T[Seq[String]] = Task { Seq("default") }
+  def repositories: T[Seq[String]] = Task { Seq.empty[String] }
 
   /**
    * The repositories used to resolve dependencies

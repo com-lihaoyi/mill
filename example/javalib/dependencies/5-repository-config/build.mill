@@ -10,18 +10,18 @@ object foo extends JavaModule {
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases", "default")
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 
 //// SNIPPET:BUILD2
 
 object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases", "default")
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 
 object bar extends JavaModule {
   def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases", "default")
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }

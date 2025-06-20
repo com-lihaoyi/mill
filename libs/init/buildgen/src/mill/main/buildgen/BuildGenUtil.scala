@@ -443,9 +443,7 @@ object BuildGenUtil {
     renderSeqTargetDefWithSuper(
       "repositories",
       args,
-      // Seq("default") is the default value of the repositories task.
-      // No need to override it to set it to this value.
-      if (superArgs.isEmpty) Seq("\"default\"") else superArgs,
+      superArgs,
       "String",
       identity
     ).getOrElse("")
