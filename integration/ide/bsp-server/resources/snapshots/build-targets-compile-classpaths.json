@@ -37,6 +37,24 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/diag"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/diag/compile-resources"
+      ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/diag/many"
+      },
+      "classpath": [
+        "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-lang/scala-library/<scala-version>/scala-library-<scala-version>.jar",
+        "file:///workspace/diag/many/compile-resources"
+      ]
+    },
+    {
+      "target": {
         "uri": "file:///workspace/errored/compilation-error"
       },
       "classpath": [

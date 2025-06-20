@@ -1,7 +1,8 @@
 package mill.daemon
 
+import ch.epfl.scala.bsp4j.BuildClient
 import mill.api.internal.bsp.{BspServerHandle, BspServerResult}
-import mill.api.internal.internal
+import mill.api.internal.{CompileProblemReporter, EvaluatorApi, internal}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.Lock
@@ -230,7 +231,10 @@ object MillMain0 {
                         targetsAndParams: Seq[String],
                         streams: SystemStreams,
                         millActiveCommandMessage: String,
-                        loggerOpt: Option[Logger] = None
+                        loggerOpt: Option[Logger] = None,
+                        reporter: EvaluatorApi => Int => Option[CompileProblemReporter] =
+                          _ => _ => None,
+                        extraEnv: Seq[(String, String)] = Nil
                     ) = Server.withOutLock(
                       config.noBuildLock.value,
                       config.noWaitForBuildLock.value,
@@ -256,7 +260,7 @@ object MillMain0 {
                                 // in order to give as many results as available in BSP responses
                                 keepGoing = bspMode || config.keepGoing.value,
                                 imports = config.imports,
-                                env = env,
+                                env = env ++ extraEnv,
                                 ec = ec,
                                 targetsAndParams = targetsAndParams,
                                 prevRunnerState = prevState.getOrElse(stateCache),
@@ -267,7 +271,8 @@ object MillMain0 {
                                 systemExit = systemExit,
                                 streams0 = streams,
                                 selectiveExecution = config.watch.value,
-                                offline = config.offline.value
+                                offline = config.offline.value,
+                                reporter = reporter
                               ).evaluate()
                             }
                           }
@@ -309,7 +314,8 @@ object MillMain0 {
                     } else if (bspMode) {
                       val bspLogger = getBspLogger(streams, config)
                       var prevRunnerStateOpt = Option.empty[RunnerState]
-                      val bspServerHandle = startBspServer(streams0, outLock, bspLogger)
+                      val (bspServerHandle, buildClient) =
+                        startBspServer(streams0, outLock, bspLogger)
                       var keepGoing = true
                       var errored = false
                       val initCommandLogger = new PrefixLogger(bspLogger, Seq("init"))
@@ -321,7 +327,21 @@ object MillMain0 {
                           Seq("version"),
                           initCommandLogger.streams,
                           "BSP:initialize",
-                          loggerOpt = Some(initCommandLogger)
+                          loggerOpt = Some(initCommandLogger),
+                          reporter = ev => {
+                            val bspIdByModule = mill.bsp.worker.BspEvaluators(
+                              BuildCtx.workspaceRoot,
+                              Seq(ev),
+                              _ => (),
+                              Nil
+                            ).bspIdByModule
+                            mill.bsp.worker.Utils.getBspLoggedReporterPool(
+                              "",
+                              bspIdByModule,
+                              buildClient
+                            )
+                          },
+                          extraEnv = Seq("MILL_JVM_WORKER_REQUIRE_REPORTER" -> "true")
                         )
 
                         for (err <- watchRes.error)
@@ -450,7 +470,7 @@ object MillMain0 {
       bspStreams: SystemStreams,
       outLock: Lock,
       bspLogger: Logger
-  ): BspServerHandle = {
+  ): (BspServerHandle, BuildClient) = {
     bspLogger.info("Trying to load BSP server...")
 
     val wsRoot = BuildCtx.workspaceRoot

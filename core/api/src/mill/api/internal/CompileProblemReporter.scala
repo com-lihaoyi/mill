@@ -15,6 +15,12 @@ trait CompileProblemReporter {
   def printSummary(): Unit
   def finish(): Unit
   def notifyProgress(percentage: Long, total: Long): Unit
+
+  def maxErrors: Int = CompileProblemReporter.defaultMaxErrors
+}
+
+object CompileProblemReporter {
+  def defaultMaxErrors: Int = 10
 }
 
 /**

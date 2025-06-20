@@ -64,39 +64,28 @@ object BspServerTestUtil {
     // This can be false only when generating test data for the first time.
     // In that case, updateSnapshots needs to be true, so that we write test data on disk.
     val snapshotExists = os.exists(snapshotPath)
-    val expectedValueOpt = Option.when(snapshotExists) {
-      gson.fromJson(
-        normalizeLocalValues(os.read(snapshotPath), inverse = true),
-        implicitly[ClassTag[T]].runtimeClass
-      )
-    }
 
-    lazy val jsonStr = normalizeLocalValues(
+    val jsonStr = normalizeLocalValues(
       gson.toJson(
         value,
         implicitly[ClassTag[T]].runtimeClass
       )
     )
 
-    lazy val expectedJsonStr = expectedValueOpt match {
-      case Some(v) => normalizeLocalValues(gson.toJson(v, implicitly[ClassTag[T]].runtimeClass))
-      case None => ""
-    }
     if (updateSnapshots) {
       System.err.println(if (snapshotExists) s"Updating $snapshotPath"
       else s"Writing $snapshotPath")
       os.write.over(snapshotPath, jsonStr, createFolders = true)
-    } else {
-      Predef.assert(
-        jsonStr == expectedJsonStr,
-        if (snapshotExists) {
-          val diff = os.call((
-            // "git",
-            "diff",
-            "-u",
-            os.temp(expectedJsonStr, suffix = s"${snapshotPath.last}-expectedJsonStr"),
-            os.temp(jsonStr, suffix = s"${snapshotPath.last}-jsonStr")
-          ))
+    } else if (snapshotExists) {
+      val expectedJsonStr = os.read(snapshotPath)
+      if (jsonStr != expectedJsonStr) {
+        val diff = os.call((
+          "diff",
+          "-u",
+          os.temp(expectedJsonStr, suffix = s"${snapshotPath.last}-expectedJsonStr"),
+          os.temp(jsonStr, suffix = s"${snapshotPath.last}-jsonStr")
+        ))
+        sys.error(
           s"""Error: value differs from snapshot in $snapshotPath
              |
              |You might want to set BspServerTestUtil.updateSnapshots to true,
@@ -104,9 +93,10 @@ object BspServerTestUtil {
              |
              |$diff
              |""".stripMargin
-        } else s"Error: no snapshot found at $snapshotPath"
-      )
-    }
+        )
+      }
+    } else
+      sys.error(s"Error: no snapshot found at $snapshotPath")
   }
 
   def compareLogWithSnapshot(

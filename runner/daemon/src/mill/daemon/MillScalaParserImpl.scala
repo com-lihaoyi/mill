@@ -48,9 +48,14 @@ object MillScalaParserImpl extends MillScalaParser {
       trees <- liftErrors(MillParsers.outlineCompilationUnit(source))
       (pkgs, stmts) <- liftErrors(splitTrees(trees))
     yield {
-      val prefix =
-        if (!trees.head.startPos.exists) ""
-        else new String(source.file.toByteArray).take(trees.head.startPos.start)
+      val prefix = trees match {
+        case untpd.PackageDef(untpd.Ident(nme.EMPTY_PACKAGE), _) :: Nil =>
+          // no package directive in build file, YAML header should already be in stmts
+          ""
+        case _ =>
+          if (!trees.head.startPos.exists) ""
+          else new String(source.file.toByteArray).take(trees.head.startPos.start)
+      }
 
       (prefix, pkgs, stmts)
     }
