@@ -3,6 +3,7 @@ package mill.util
 import coursier.Repository
 import mill.api.{BuildInfo, Result}
 import mill.define.PathRef
+import mill.util.CoursierConfig
 
 import java.nio.file.{Files, Paths}
 
@@ -31,7 +32,8 @@ private[mill] object MillModuleUtil {
           coursier.VersionConstraint(BuildInfo.millVersion)
         )
       ),
-      force = Nil
+      force = Nil,
+      config = CoursierConfig.default()
     ).map(_.map(_.withRevalidateOnce))
   }
 
