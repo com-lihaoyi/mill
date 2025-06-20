@@ -158,7 +158,8 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
       .filterNot(_.getId == "central")
       .map(repo => escape(repo.getUrl))
       .toSeq
-      .sorted
+      .sorted ++
+      Seq("\"default\"")
 
   def getPublishProperties(model: Model, cfg: BuildGenUtil.Config): Seq[(String, String)] =
     if (cfg.publishProperties.value) {

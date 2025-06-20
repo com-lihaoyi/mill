@@ -13,13 +13,13 @@ object foo extends KotlinModule {
     mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
   )
 
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases", "default")
 }
 
 //// SNIPPET:BUILD2
 
 object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases", "default")
 }
 
 object bar extends KotlinModule {
@@ -29,5 +29,5 @@ object bar extends KotlinModule {
   def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases", "default")
 }

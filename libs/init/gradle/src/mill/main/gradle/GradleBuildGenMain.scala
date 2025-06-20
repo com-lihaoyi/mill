@@ -220,7 +220,8 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
   }
 
   def getRepositories(project: ProjectModel): Seq[String] =
-    project.maven().repositories().asScala.toSeq.sorted.map(uri => escape(uri.toString))
+    project.maven().repositories().asScala.toSeq.sorted.map(uri => escape(uri.toString)) ++
+      Seq("\"default\"")
 
   def getPomPackaging(project: ProjectModel): String = {
     val pom = project.maven().pom()

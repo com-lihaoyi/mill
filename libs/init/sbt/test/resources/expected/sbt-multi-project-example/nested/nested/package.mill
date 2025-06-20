@@ -23,7 +23,8 @@ object `package` extends SbtModule with PublishModule {
 
   def repositories = Seq(
     "https://oss.sonatype.org/service/local/repositories/releases/content/",
-    "https://oss.sonatype.org/content/repositories/snapshots"
+    "https://oss.sonatype.org/content/repositories/snapshots",
+    "default"
   )
 
   def mvnDeps = Seq(

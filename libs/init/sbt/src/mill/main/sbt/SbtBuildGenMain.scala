@@ -320,7 +320,8 @@ object SbtBuildGenMain
   def getRepositories(buildInfo: BuildInfo): Seq[String] =
     buildInfo.resolvers.getOrElse(Seq.empty).map(resolver =>
       escape(resolver.root)
-    )
+    ) ++
+      Seq("\"default\"")
 
   def getPublishVersion(buildInfo: BuildInfo): String | Null =
     buildInfo.buildPublicationInfo.version.orNull

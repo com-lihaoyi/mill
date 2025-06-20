@@ -1,5 +1,6 @@
 package mill.scalalib
 
+import coursier.cache.FileCache
 import mill.define.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule

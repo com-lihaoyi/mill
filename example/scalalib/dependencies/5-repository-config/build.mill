@@ -15,7 +15,7 @@ object foo extends ScalaModule {
     mvn"com.lihaoyi::mainargs:0.6.2"
   )
 
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases", "default")
 }
 
 //// SNIPPET:END
@@ -55,7 +55,7 @@ object foo extends ScalaModule {
 //// SNIPPET:BUILD2
 
 object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases", "default")
 }
 
 object bar extends ScalaModule {
@@ -63,7 +63,7 @@ object bar extends ScalaModule {
   def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
-  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases", "default")
 }
 
 //// SNIPPET:END
