@@ -2,6 +2,7 @@ package mill.daemon
 
 import mill.api.internal.{
   BuildFileApi,
+  CompileProblemReporter,
   EvaluatorApi,
   MillScalaParser,
   PathRefApi,
@@ -57,7 +58,8 @@ class MillBuildBootstrap(
     systemExit: Int => Nothing,
     streams0: SystemStreams,
     selectiveExecution: Boolean,
-    offline: Boolean
+    offline: Boolean,
+    reporter: EvaluatorApi => Int => Option[CompileProblemReporter]
 ) { outer =>
   import MillBuildBootstrap.*
 
@@ -245,7 +247,8 @@ class MillBuildBootstrap(
       buildFileApi,
       evaluator,
       Seq("millBuildRootModuleResult"),
-      selectiveExecution = false
+      selectiveExecution = false,
+      reporter = reporter(evaluator)
     ) match {
       case (Result.Failure(error), evalWatches, moduleWatches) =>
         val evalState = RunnerState.Frame(
@@ -334,7 +337,8 @@ class MillBuildBootstrap(
       buildFileApi,
       evaluator,
       targetsAndParams,
-      selectiveExecution
+      selectiveExecution,
+      reporter = reporter(evaluator)
     )
     val evalState = RunnerState.Frame(
       evaluator.workerCache.toMap,
@@ -491,7 +495,8 @@ object MillBuildBootstrap {
       buildFileApi: BuildFileApi,
       evaluator: EvaluatorApi,
       targetsAndParams: Seq[String],
-      selectiveExecution: Boolean
+      selectiveExecution: Boolean,
+      reporter: Int => Option[CompileProblemReporter]
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     import buildFileApi._
     evalWatchedValues.clear()
@@ -500,6 +505,7 @@ object MillBuildBootstrap {
         evaluator.evaluate(
           targetsAndParams,
           SelectMode.Separated,
+          reporter = reporter,
           selectiveExecution = selectiveExecution
         )
       }

@@ -25,7 +25,7 @@ object BspWorkerImpl {
       outLock: Lock,
       baseLogger: Logger,
       out: os.Path
-  ): mill.api.Result[BspServerHandle] = {
+  ): mill.api.Result[(BspServerHandle, BuildClient)] = {
 
     try {
       val executor = createJsonrpcExecutor()
@@ -55,8 +55,9 @@ object BspWorkerImpl {
         .setExecutorService(executor)
         .create()
 
-      millServer.onConnectWithClient(launcher.getRemoteProxy)
       lazy val listening = launcher.startListening()
+      val client = launcher.getRemoteProxy
+      millServer.onConnectWithClient(client)
 
       val bspServerHandle = new BspServerHandle {
         override def startSession(
@@ -90,7 +91,7 @@ object BspWorkerImpl {
         executor.shutdown()
       }).start()
 
-      Result.Success(bspServerHandle)
+      Result.Success((bspServerHandle, client))
     } catch {
       case _: CancellationException =>
         Result.Failure("The mill server was shut down.")

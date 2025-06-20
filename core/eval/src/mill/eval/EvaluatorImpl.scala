@@ -247,6 +247,7 @@ final class EvaluatorImpl private[mill] (
   def evaluate(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
+      reporter: Int => Option[CompileProblemReporter] = _ => None,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
     val resolved = os.checker.withValue(ResolveChecker(workspace)) {
@@ -261,7 +262,7 @@ final class EvaluatorImpl private[mill] (
     }
 
     for (targets <- resolved)
-      yield execute(Seq.from(targets), selectiveExecution = selectiveExecution)
+      yield execute(Seq.from(targets), reporter = reporter, selectiveExecution = selectiveExecution)
   }
 
   def close(): Unit = execution.close()

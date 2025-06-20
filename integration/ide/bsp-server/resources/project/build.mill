@@ -91,3 +91,18 @@ object delayed extends scalalib.ScalaModule {
     res
   }
 }
+
+object diag extends scalalib.ScalaModule {
+  def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+  def scalacOptions = Seq("-deprecation")
+
+  @deprecated("deprecated", "0.0.1")
+  def thing = 2
+
+  def theThing = thing
+
+  object many extends scalalib.ScalaModule {
+    def scalaVersion = Option(System.getenv("TEST_SCALA_2_13_VERSION")).getOrElse(???)
+    def scalacOptions = Seq("-deprecation")
+  }
+}

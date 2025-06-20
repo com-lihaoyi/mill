@@ -4,7 +4,7 @@ import mill.api.internal.CompileProblemReporter
 import mill.define.PathRef
 
 object JvmWorkerApi {
-  type Ctx = mill.define.TaskCtx.Dest & mill.define.TaskCtx.Log
+  type Ctx = mill.define.TaskCtx.Dest & mill.define.TaskCtx.Log & mill.define.TaskCtx.Env
 }
 trait JvmWorkerApi {
 

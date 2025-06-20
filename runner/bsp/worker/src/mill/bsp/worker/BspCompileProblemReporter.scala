@@ -5,6 +5,7 @@ import ch.epfl.scala.{bsp4j => bsp}
 import mill.api.internal.{CompileProblemReporter, Problem}
 
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 
 /**
@@ -32,15 +33,41 @@ private class BspCompileProblemReporter(
   private var errors = 0
   private var warnings = 0
 
+  // no need of a limit here, there's no console not to flood in BSP mode
+  override def maxErrors: Int = Int.MaxValue
+
   def hasErrors: Boolean = errors > 0
 
   object diagnostics {
-    private val map = mutable.Map.empty[TextDocumentIdentifier, java.util.List[Diagnostic]]
-    def add(textDocument: TextDocumentIdentifier, diagnostic: Diagnostic): Unit =
-      map.getOrElseUpdate(textDocument, new java.util.ArrayList).add(diagnostic)
+    private class Details(
+        val list: java.util.List[Diagnostic],
+        val set: mutable.HashSet[Diagnostic],
+        var hasNewDiagnostics: Boolean
+    ) {
+      def add(diagnostic: Diagnostic): Boolean =
+        set.add(diagnostic) && {
+          list.add(diagnostic)
+          hasNewDiagnostics = true
+          true
+        }
+    }
+    private val map = mutable.Map.empty[TextDocumentIdentifier, Details]
+    private def details(textDocument: TextDocumentIdentifier): Details =
+      // setting hasNewDiagnostics to true when starting, so that diagnostics
+      // are sent at least once, even when there are none
+      map.getOrElseUpdate(
+        textDocument,
+        new Details(new java.util.ArrayList, new mutable.HashSet, true)
+      )
+    def add(textDocument: TextDocumentIdentifier, diagnostic: Diagnostic): Boolean =
+      details(textDocument).add(diagnostic)
 
-    def getAll(textDocument: TextDocumentIdentifier): java.util.List[Diagnostic] =
-      map.getOrElse(textDocument, new java.util.ArrayList)
+    def getAll(textDocument: TextDocumentIdentifier): (java.util.List[Diagnostic], Boolean) = {
+      val details0 = details(textDocument)
+      val hasNewDiagnostics = details0.hasNewDiagnostics
+      details0.hasNewDiagnostics = false
+      (details0.list, hasNewDiagnostics)
+    }
   }
 
   override def logError(problem: Problem): Unit = {
@@ -77,10 +104,11 @@ private class BspCompileProblemReporter(
           // The extra step invoking `toPath` results in a nicer URI starting with `file:///`
           f.toPath.toUri.toString
         )
-        diagnostics.add(textDocument, diagnostic)
-        val diagnosticList = new java.util.LinkedList[Diagnostic]()
-        diagnosticList.add(diagnostic)
-        sendBuildPublishDiagnostics(textDocument, diagnosticList, reset = false)
+        if (diagnostics.add(textDocument, diagnostic)) {
+          val diagnosticList = new java.util.LinkedList[Diagnostic]()
+          diagnosticList.add(diagnostic)
+          sendBuildPublishDiagnostics(textDocument, diagnosticList, reset = false)
+        }
     }
   }
 
@@ -139,7 +167,9 @@ private class BspCompileProblemReporter(
   override def fileVisited(file: java.nio.file.Path): Unit = {
     val uri = file.toUri.toString
     val textDocument = new TextDocumentIdentifier(uri)
-    sendBuildPublishDiagnostics(textDocument, diagnostics.getAll(textDocument), reset = true)
+    val (diagnostics0, hasNewDiagnostics) = diagnostics.getAll(textDocument)
+    if (hasNewDiagnostics)
+      sendBuildPublishDiagnostics(textDocument, diagnostics0, reset = true)
   }
 
   override def printSummary(): Unit = {

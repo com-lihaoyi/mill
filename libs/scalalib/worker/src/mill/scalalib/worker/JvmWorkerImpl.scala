@@ -517,6 +517,19 @@ class JvmWorkerImpl(
   )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
     import JvmWorkerImpl.{ForwardingReporter, TransformingReporter, PositionMapper}
 
+    val requireReporter = ctx.env.get("MILL_JVM_WORKER_REQUIRE_REPORTER").contains("true")
+    if (requireReporter && reporter.isEmpty)
+      sys.error(
+        """A reporter is required, but none was passed. The following allows to get
+          |one from Mill tasks:
+          |
+          |    Task.reporter.apply(hashCode)
+          |
+          |`hashCode` should be the hashCode of the Mill module being compiled. Calling
+          |this in a task defined in a module should work.
+          |""".stripMargin
+      )
+
     os.makeDir.all(ctx.dest)
 
     val classesDir =
@@ -547,12 +560,14 @@ class JvmWorkerImpl(
     val loggerId = Thread.currentThread().getId.toString
     val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
 
+    val maxErrors = reporter.map(_.maxErrors).getOrElse(CompileProblemReporter.defaultMaxErrors)
+
     def mkNewReporter(mapper: (xsbti.Position => xsbti.Position) | Null) = reporter match {
       case None =>
-        new ManagedLoggedReporter(10, logger) with RecordingReporter
+        new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter
           with TransformingReporter(ctx.log.prompt.colored, mapper) {}
       case Some(forwarder) =>
-        new ManagedLoggedReporter(10, logger)
+        new ManagedLoggedReporter(maxErrors, logger)
           with ForwardingReporter(forwarder)
           with RecordingReporter
           with TransformingReporter(ctx.log.prompt.colored, mapper) {}
@@ -601,18 +616,27 @@ class JvmWorkerImpl(
       }
     }
 
-    val newReporter = mkNewReporter(
-      PositionMapper.create(virtualSources)
-    )
+    val finalScalacOptions = {
+      val addColorNever = !ctx.log.prompt.colored &&
+        compilers.scalac().scalaInstance().version().startsWith("3.") &&
+        !scalacOptions.exists(_.startsWith("-color:")) // might be too broad
+      if (addColorNever)
+        "-color:never" +: scalacOptions
+      else
+        scalacOptions
+    }
+
+    val (originalSourcesMap, posMapperOpt) = PositionMapper.create(virtualSources)
+    val newReporter = mkNewReporter(posMapperOpt.orNull)
 
     val inputs = ic.inputs(
       classpath = classpath,
       sources = virtualSources,
       classesDirectory = classesDir.toNIO,
       earlyJarPath = None,
-      scalacOptions = scalacOptions.toArray,
+      scalacOptions = finalScalacOptions.toArray,
       javacOptions = javacOptions.toArray,
-      maxErrors = 10,
+      maxErrors = maxErrors,
       sourcePositionMappers = Array(),
       order = CompileOrder.Mixed,
       compilers = compilers,
@@ -668,8 +692,14 @@ class JvmWorkerImpl(
       case e: CompileFailed =>
         Result.Failure(e.toString)
     } finally {
-      reporter.foreach(r => sources.foreach(f => r.fileVisited(f.toNIO)))
-      reporter.foreach(_.finish())
+      for (rep <- reporter) {
+        for (f <- sources) {
+          rep.fileVisited(f.toNIO)
+          for (f0 <- originalSourcesMap.get(f))
+            rep.fileVisited(f0.toNIO)
+        }
+        rep.finish()
+      }
       previousScalaColor match {
         case null => sys.props.remove(scalaColorProp)
         case _ => sys.props(scalaColorProp) = previousScalaColor
@@ -712,7 +742,8 @@ object JvmWorkerImpl {
       }
     }
 
-    def create(sources: Array[VirtualFile]): (xsbti.Position => xsbti.Position) | Null = {
+    def create(sources: Array[VirtualFile])
+        : (Map[os.Path, os.Path], Option[xsbti.Position => xsbti.Position]) = {
       val buildSources0 = {
         def isBuild(vf: VirtualFile) =
           CodeGenConstants.buildFileExtensions.asScala.exists(ex =>
@@ -728,11 +759,20 @@ object JvmWorkerImpl {
               .collectFirst { case s"//SOURCECODE_ORIGINAL_FILE_PATH=$rest" => rest.trim }
               .getOrElse(sys.error(vf.id()))
 
-            vf.id() -> remap(lines, adjustedFile)
+            (vf.id(), adjustedFile, remap(lines, adjustedFile))
         })
       }
 
-      if buildSources0.nonEmpty then lookup(buildSources0.toMap) else null
+      val map = buildSources0
+        .map {
+          case (generated, original, _) =>
+            os.Path(generated) -> os.Path(original)
+        }
+        .toMap
+      val lookupOpt = Option.when(buildSources0.nonEmpty) {
+        lookup(buildSources0.map { case (generated, _, f) => (generated, f) }.toMap)
+      }
+      (map, lookupOpt)
     }
 
     private def remap(

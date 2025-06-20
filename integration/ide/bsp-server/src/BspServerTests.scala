@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream
 import java.net.URI
 import java.nio.file.Paths
 
+import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.given
 
@@ -154,6 +155,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
                   .filter(!_.getUri.endsWith("/errored/exception"))
                   .filter(!_.getUri.endsWith("/errored/compilation-error"))
                   .filter(!_.getUri.endsWith("/delayed"))
+                  .filter(!_.getUri.endsWith("/diag/many"))
                   .asJava
               )
             )
@@ -256,9 +258,13 @@ object BspServerTests extends UtestIntegrationTestSuite {
           os.sub / "mill-build" -> Seq(
             os.sub / "build.mill.semanticdb"
           ),
+          os.sub / "diag" -> Seq(
+            os.sub / "diag/src/DiagCheck.scala.semanticdb"
+          ),
           os.sub / "errored/exception" -> Nil,
           os.sub / "errored/compilation-error" -> Nil,
-          os.sub / "delayed" -> Nil
+          os.sub / "delayed" -> Nil,
+          os.sub / "diag/many" -> Nil
         )
 
         {
@@ -414,6 +420,78 @@ object BspServerTests extends UtestIntegrationTestSuite {
         (b.MessageType.ERROR, "Compiling errored.exception failed, see Mill logs for more details")
       )
       assert(expectedMessages == messages0)
+    }
+
+    test("diagnostics") - integrationTest { tester =>
+      import tester.*
+      eval(
+        ("--bsp-install", "--jobs", "1"),
+        stdout = os.Inherit,
+        stderr = os.Inherit,
+        check = true,
+        env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
+      )
+
+      def uriAsSubPath(strUri: String): os.SubPath =
+        os.Path(Paths.get(new URI(strUri))).relativeTo(workspacePath).asSubPath
+
+      val normalizedLocalValues = normalizeLocalValuesForTesting(workspacePath) ++
+        scalaVersionNormalizedValues()
+
+      def runTest(): Unit = {
+        var messages = Seq.empty[b.ShowMessageParams]
+        val diagnostics = new mutable.ListBuffer[b.PublishDiagnosticsParams]
+        val client: b.BuildClient = new DummyBuildClient {
+          override def onBuildPublishDiagnostics(params: b.PublishDiagnosticsParams): Unit = {
+            // Not looking at diagnostics for generated sources of the build
+            val keep =
+              !uriAsSubPath(params.getTextDocument.getUri).startsWith(os.sub / OutFiles.out)
+            if (keep)
+              diagnostics.append(params)
+          }
+          override def onBuildShowMessage(params: b.ShowMessageParams): Unit = {
+            messages = messages :+ params
+          }
+        }
+
+        withBspServer(
+          workspacePath,
+          millTestSuiteEnv,
+          client = client
+        ) { (buildServer, _) =>
+          val targets = buildServer.workspaceBuildTargets().get().getTargets.asScala
+          val diagTargets = targets.filter(_.getDisplayName == "diag").map(_.getId).asJava
+          val diagManyTargets = targets.filter(_.getDisplayName == "diag.many").map(_.getId).asJava
+          assert(!diagTargets.isEmpty())
+          assert(!diagManyTargets.isEmpty())
+
+          buildServer
+            .buildTargetCompile(new b.CompileParams(diagTargets))
+            .get()
+          buildServer
+            .buildTargetCompile(new b.CompileParams(diagManyTargets))
+            .get()
+
+          compareWithGsonSnapshot(
+            diagnostics.asJava,
+            snapshotsPath / "diagnostics.json",
+            normalizedLocalValues = normalizedLocalValues
+          )
+        }
+      }
+
+      runTest()
+
+      // drop "package build" from build.mill, the test should still pass,
+      // diagnostic positions should all be the same
+      val originalBuildMill = os.read(workspacePath / "build.mill")
+      val idx = originalBuildMill.indexOf("package build")
+      assert(idx >= 0)
+      val noPackageBuildMill =
+        originalBuildMill.take(idx) + originalBuildMill.drop(idx + "package build".length)
+      os.write.over(workspacePath / "build.mill", noPackageBuildMill)
+      os.remove.all(workspacePath / OutFiles.out)
+      runTest()
     }
   }
 
