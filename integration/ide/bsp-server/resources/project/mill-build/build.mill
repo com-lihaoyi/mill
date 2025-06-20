@@ -1,0 +1,9 @@
+import mill._
+import mill.meta.MillBuildRootModule
+import mill.scalalib._
+
+object `package` extends MillBuildRootModule {
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::mill-contrib-buildinfo:${mill.api.BuildInfo.millVersion}"
+  )
+}

@@ -83,6 +83,12 @@
         "uri": "file:///workspace/mill-build"
       },
       "resources": []
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/mill-build/mill-build"
+      },
+      "resources": []
     }
   ]
 }

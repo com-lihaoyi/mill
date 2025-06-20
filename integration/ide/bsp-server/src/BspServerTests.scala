@@ -74,8 +74,15 @@ object BspServerTests extends UtestIntegrationTestSuite {
         val metaBuildTargetId = new b.BuildTargetIdentifier(
           (workspacePath / "mill-build").toURI.toASCIIString.stripSuffix("/")
         )
+        val metaBuildBuildTargetId = new b.BuildTargetIdentifier(
+          (workspacePath / "mill-build/mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
+        )
         assert(targetIds.contains(metaBuildTargetId))
-        val targetIdsSubset = targetIds.asScala.filter(_ != metaBuildTargetId).asJava
+        assert(targetIds.contains(metaBuildBuildTargetId))
+        val targetIdsSubset = targetIds.asScala
+          .filter(_ != metaBuildTargetId)
+          .filter(_ != metaBuildBuildTargetId)
+          .asJava
 
         val appTargetId = new b.BuildTargetIdentifier(
           (workspacePath / "app").toURI.toASCIIString.stripSuffix("/")
@@ -257,6 +264,9 @@ object BspServerTests extends UtestIntegrationTestSuite {
           ),
           os.sub / "mill-build" -> Seq(
             os.sub / "build.mill.semanticdb"
+          ),
+          os.sub / "mill-build/mill-build" -> Seq(
+            os.sub / "mill-build/build.mill.semanticdb"
           ),
           os.sub / "diag" -> Seq(
             os.sub / "diag/src/DiagCheck.scala.semanticdb"

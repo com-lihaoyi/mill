@@ -86,6 +86,12 @@
     },
     {
       "target": {
+        "uri": "file:///workspace/mill-build/mill-build"
+      },
+      "outputPaths": []
+    },
+    {
+      "target": {
         "uri": "file:///workspace/mill-synthetic-root-target"
       },
       "outputPaths": [
