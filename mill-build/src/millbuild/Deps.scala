@@ -165,7 +165,7 @@ object Deps {
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.4"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
-  val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.dep.version}"
+  val semanticDbShared = mvn"org.scalameta:semanticdb-shared_2.13:${semanticDBscala.version}"
   val sourcecode = mvn"com.lihaoyi::sourcecode:0.4.3-M5"
   val springBootTools = mvn"org.springframework.boot:spring-boot-loader-tools:3.4.5"
   val upickle = mvn"com.lihaoyi::upickle:4.2.1"
@@ -206,6 +206,10 @@ object Deps {
 
   val sbt = mvn"org.scala-sbt:sbt:1.10.10"
   val snakeyamlEngine = mvn"org.snakeyaml:snakeyaml-engine:2.9"
+  val spotlessLibExtra = mvn"com.diffplug.spotless:spotless-lib-extra:3.1.2"
+  // JGit 6.x series, used by spotlessLibExtra, works on Java 11
+  // subsequent releases require Java 17+
+  val jgit = mvn"org.eclipse.jgit:org.eclipse.jgit:6.10.1.202505221210-r"
 
   object RuntimeDeps {
     val dokkaVersion = "2.0.0"
