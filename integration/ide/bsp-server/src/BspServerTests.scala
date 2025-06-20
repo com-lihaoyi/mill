@@ -214,7 +214,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         compareWithGsonSnapshot(
           buildServer
-            .buildTargetScalaMainClasses(new b.ScalaMainClassesParams(targetIdsSubset))
+            .buildTargetScalaMainClasses(new b.ScalaMainClassesParams(targetIds))
             .get(),
           snapshotsPath / "build-targets-scalac-main-classes.json",
           normalizedLocalValues = normalizedLocalValues

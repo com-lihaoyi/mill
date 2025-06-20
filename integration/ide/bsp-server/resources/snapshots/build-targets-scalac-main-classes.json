@@ -42,6 +42,12 @@
           ]
         }
       ]
+    },
+    {
+      "target": {
+        "uri": "file:///workspace/mill-build"
+      },
+      "classes": []
     }
   ]
 }
