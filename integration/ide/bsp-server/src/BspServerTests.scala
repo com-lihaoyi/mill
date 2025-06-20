@@ -243,7 +243,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
           buildServer
             .buildTargetScalaMainClasses(new b.ScalaMainClassesParams(targetIds))
             .get(),
-          snapshotsPath / "build-targets-scalac-main-classes.json",
+          snapshotsPath / "build-targets-scala-main-classes.json",
           normalizedLocalValues = normalizedLocalValues
         )
 
