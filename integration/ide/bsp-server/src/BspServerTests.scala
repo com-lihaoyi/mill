@@ -89,6 +89,20 @@ object BspServerTests extends UtestIntegrationTestSuite {
         )
         assert(targetIds.contains(appTargetId))
 
+        def inverseSource(src: os.SubPath): Seq[b.BuildTargetIdentifier] =
+          buildServer
+            .buildTargetInverseSources(
+              new b.InverseSourcesParams(
+                new b.TextDocumentIdentifier(
+                  (workspacePath / src).toNIO.toUri.toASCIIString
+                )
+              )
+            )
+            .get()
+            .getTargets
+            .asScala
+            .toSeq
+
         compareWithGsonSnapshot(
           buildServer
             .buildTargetSources(new b.SourcesParams(targetIds))
@@ -113,6 +127,12 @@ object BspServerTests extends UtestIntegrationTestSuite {
             snapshotsPath / "build-targets-inverse-sources.json",
             normalizedLocalValues = normalizedLocalValues
           )
+
+          // check that inverseSources works fine for the build.mill files
+          val buildMillTargetIds = inverseSource(os.sub / "build.mill")
+          assert(buildMillTargetIds == Seq(metaBuildTargetId))
+          val buildBuildMillTargetIds = inverseSource(os.sub / "mill-build/build.mill")
+          assert(buildBuildMillTargetIds == Seq(metaBuildBuildTargetId))
         }
 
         compareWithGsonSnapshot(
