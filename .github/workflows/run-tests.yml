@@ -187,6 +187,11 @@ jobs:
             install-sbt: false
 
           - java-version: 17
+            millargs: "'example.thirdparty[android-compose-samples].local.daemon'"
+            install-android-sdk: true
+            install-sbt: false
+
+          - java-version: 17
             millargs: "'{example,integration}.migrating.__.local.daemon'"
             install-android-sdk: false
             install-sbt: true
