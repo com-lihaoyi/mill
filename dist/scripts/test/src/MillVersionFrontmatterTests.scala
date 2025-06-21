@@ -7,7 +7,9 @@ object MillVersionFrontmatterTests extends TestSuite {
   private val millVersion = "1.0.0-RC1"
 
   val tests: Tests = Tests {
-    def doTest(frontmatter: String, expectedVersion: Option[String] = Some(millVersion))(using testValue: TestPath): Unit = {
+    def doTest(frontmatter: String, expectedVersion: Option[String] = Some(millVersion))(using
+        testValue: TestPath
+    ): Unit = {
       val wd = os.pwd / testValue.value
       os.makeDir.all(wd)
       os.write(
@@ -56,10 +58,10 @@ object MillVersionFrontmatterTests extends TestSuite {
     test("onFirstLine") - doTest(s"""//| mill-version: $millVersion""")
 
     test("onSecondLine") - doTest(
-        s"""
-           |//| mill-version: $millVersion
-           |""".stripMargin
-      )
+      s"""
+         |//| mill-version: $millVersion
+         |""".stripMargin
+    )
 
     test("keyQuotedWithSingleQuote") - doTest(s"""//| 'mill-version': $millVersion""")
 
@@ -73,9 +75,13 @@ object MillVersionFrontmatterTests extends TestSuite {
 
     test("keyAndValueQuotedWithDoubleQuote") - doTest(s"""//| "mill-version": "$millVersion"""")
 
-    test("keyQuotedWithSingleQuoteAndValueQuotedWithDoubleQuote") - doTest(s"""//| 'mill-version': "$millVersion"""")
+    test("keyQuotedWithSingleQuoteAndValueQuotedWithDoubleQuote") - doTest(
+      s"""//| 'mill-version': "$millVersion""""
+    )
 
-    test("keyQuotedWithDoubleQuoteAndValueQuotedWithSingleQuote") - doTest(s"""//| "mill-version": '$millVersion'""")
+    test("keyQuotedWithDoubleQuoteAndValueQuotedWithSingleQuote") - doTest(
+      s"""//| "mill-version": '$millVersion'"""
+    )
 
     test("withCommentAfterTheBuildHeader") - doTest(s"""//| mill-version: $millVersion # comment""")
   }
