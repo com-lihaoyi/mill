@@ -337,14 +337,9 @@ object ScriptTests extends TestSuite {
       )
     )
     test {
-
-      val cmd: os.Shellable =
-        if (!scala.util.Properties.isWin) sys.env("MILL_TEST_SH_SCRIPT")
-        else Seq("cmd.exe", "/c", sys.env("MILL_TEST_BAT_SCRIPT"))
-
       val lines = for (versionPaths <- versions) {
         val res = os.call(
-          cmd = cmd,
+          cmd = millCmd,
           env = Map(
             "MILL_VERSION" -> versionPaths.version,
             "MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"
