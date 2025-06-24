@@ -12,32 +12,15 @@ object MillVersionFrontmatterTests extends TestSuite {
     ): Unit = {
       val wd = os.pwd / testValue.value
       os.makeDir.all(wd)
-      os.write(
-        wd / "build.mill",
-        // if we don't specify a version 0.12.14 will be used which does not have `mill.util.BuildInfo.millVersion`
-        if (expectedVersion.isDefined)
-          s"""$frontmatter
-             |
-             |import mill._
-             |
-             |def myVersion = Task {
-             |  println(s"The version is '$${mill.util.BuildInfo.millVersion}'")
-             |}
-             |""".stripMargin
-        else
-          s"""$frontmatter
-             |
-             |import mill._
-             |
-             |// nothing here
-             |""".stripMargin
-      )
+      os.write(wd / "build.mill", frontmatter)
 
       // If that particular version is not downloaded to the cache, stdout will be polluted by the download messages.
       // Thus, we run our own task to print the version.
-      val cmd = millCmd ++ Seq(if (expectedVersion.isDefined) "myVersion" else "version")
+      val cmd = millCmd ++ Seq("version")
       println(s"Running $cmd in $wd")
-      val res = os.call(cmd, cwd = wd, stderr = os.Pipe, check = false)
+      val res = os.call(
+        cmd, cwd = wd, env = Map("MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"), stderr = os.Pipe, check = false
+      )
       val output = res.out.text().trim
       val errOutput = res.err.text().trim
 
@@ -48,7 +31,7 @@ object MillVersionFrontmatterTests extends TestSuite {
       }
 
       expectedVersion match {
-        case Some(expected) => assert(output.contains(s"The version is '$expected'"))
+        case Some(expected) => assert(output.contains(s"/$expected/"))
         case None => assert(errOutput.contains("No mill version specified."))
       }
     }
