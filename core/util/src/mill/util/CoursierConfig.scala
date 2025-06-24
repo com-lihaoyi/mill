@@ -22,7 +22,7 @@ final case class CoursierConfig(
 object CoursierConfig {
   // as much as possible, prefer using CoursierConfigModule.coursierConfig(),
   // that reads up-to-date values from the environment and from Java properties
-  def default(): CoursierConfig =
+  private[mill] def default(): CoursierConfig =
     CoursierConfig(
       CoursierEnv.defaultRepositories(
         CoursierEnv.repositories.read(),

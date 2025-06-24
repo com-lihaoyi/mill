@@ -1,6 +1,7 @@
 package mill.scalalib.dependency
 
 import mill.define.*
+import mill.scalalib.CoursierConfigModule
 import mill.scalalib.dependency.updates.{
   DependencyUpdates,
   ModuleDependenciesUpdates,
@@ -14,13 +15,14 @@ object DependencyUpdatesImpl {
       evaluator: Evaluator,
       ctx: TaskCtx,
       rootModule: BaseModule,
+      coursierConfigModule: ModuleRef[CoursierConfigModule],
       discover: Discover,
       allowPreRelease: Boolean
   ): Seq[ModuleDependenciesUpdates] = {
 
     // 1. Find all available versions for each dependency
     val allDependencyVersions: Seq[ModuleDependenciesVersions] =
-      VersionsFinder.findVersions(evaluator, ctx, rootModule)
+      VersionsFinder.findVersions(evaluator, ctx, rootModule, coursierConfigModule)
 
     // 2. Extract updated versions from all available versions
     val allUpdates = allDependencyVersions.map { dependencyVersions =>

@@ -5,9 +5,8 @@ import coursier.core.Resolution
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository}
-import mill.define.Task
-import mill.define.PathRef
 import mill.api.Result
+import mill.define.{ModuleRef, PathRef, Task}
 import mill.util.Jvm
 import mill.T
 
@@ -32,6 +31,9 @@ trait CoursierModule extends mill.define.Module {
     BoundDep(Lib.depToDependencyJava(dep), dep.force)
   }
 
+  def coursierConfigModule: ModuleRef[CoursierConfigModule] =
+    ModuleRef(CoursierConfigModule)
+
   /**
    * A [[CoursierModule.Resolver]] to resolve dependencies.
    *
@@ -50,7 +52,7 @@ trait CoursierModule extends mill.define.Module {
       resolutionParams = resolutionParams(),
       offline = Task.offline,
       checkGradleModules = checkGradleModules(),
-      config = CoursierConfigModule.coursierConfig()
+      config = coursierConfigModule().coursierConfig()
     )
   }
 
@@ -72,7 +74,7 @@ trait CoursierModule extends mill.define.Module {
       resolutionParams = resolutionParams(),
       offline = Task.offline,
       checkGradleModules = checkGradleModules(),
-      config = CoursierConfigModule.coursierConfig()
+      config = coursierConfigModule().coursierConfig()
     )
   }
 
@@ -99,7 +101,7 @@ trait CoursierModule extends mill.define.Module {
    * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
   def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-    Jvm.reposFromStrings("default" +: repositories(), CoursierConfigModule.defaultRepositories())
+    Jvm.reposFromStrings("default" +: repositories(), coursierConfigModule().defaultRepositories())
   }
 
   /**

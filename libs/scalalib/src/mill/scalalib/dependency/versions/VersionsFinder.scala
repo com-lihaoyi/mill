@@ -1,6 +1,6 @@
 package mill.scalalib.dependency.versions
 
-import mill.define.{BaseModule, Evaluator, Task}
+import mill.define.{BaseModule, Evaluator, ModuleRef, Task}
 import mill.scalalib.dependency.metadata.{MetadataLoader, MetadataLoaderFactory}
 import mill.scalalib.{BoundDep, CoursierConfigModule, JavaModule, Lib}
 import mill.define.TaskCtx
@@ -13,7 +13,8 @@ private[dependency] object VersionsFinder {
   def findVersions(
       evaluator: Evaluator,
       ctx: TaskCtx,
-      rootModule: BaseModule
+      rootModule: BaseModule,
+      coursierConfigModule: ModuleRef[CoursierConfigModule]
   ): Seq[ModuleDependenciesVersions] = {
 
     val javaModules = rootModule.moduleInternal.modules.collect {
@@ -29,7 +30,7 @@ private[dependency] object VersionsFinder {
 
     val resolvedDependencies = evaluator.execute {
       val progress = new Progress(javaModules.size)
-      javaModules.map(classpath(progress, ctx.offline, clock))
+      javaModules.map(classpath(progress, ctx.offline, clock, coursierConfigModule))
     }.values.get
 
     evaluator.execute {
@@ -43,7 +44,12 @@ private[dependency] object VersionsFinder {
     def next(): Int = counter.getAndIncrement()
   }
 
-  private def classpath(progress: Progress, offline: Boolean, clock: Clock)(
+  private def classpath(
+      progress: Progress,
+      offline: Boolean,
+      clock: Clock,
+      coursierConfigModule: ModuleRef[CoursierConfigModule]
+  )(
       javaModule: JavaModule
   ): Task[ResolvedDependencies] =
     Task.Anon {
@@ -77,7 +83,7 @@ private[dependency] object VersionsFinder {
         resolutionParams = coursier.params.ResolutionParams(),
         boms = Nil,
         checkGradleModules = javaModule.checkGradleModules(),
-        config = CoursierConfigModule.coursierConfig()
+        config = coursierConfigModule().coursierConfig()
       )
 
       x.map { _ =>

@@ -28,7 +28,7 @@ trait JavaHomeModule extends CoursierModule {
         ctx = Some(Task.ctx()),
         jvmIndexVersion = jvmIndexVersion(),
         useShortPaths = useShortJvmPath(id),
-        config = CoursierConfigModule.coursierConfig()
+        config = coursierConfigModule().coursierConfig()
       ).get
       // Java home is externally managed, better revalidate it at least once
       PathRef(path, quick = true).withRevalidateOnce

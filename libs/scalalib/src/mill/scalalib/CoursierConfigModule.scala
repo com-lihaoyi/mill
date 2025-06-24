@@ -11,7 +11,46 @@ import mill.{T, Task}
 
 import scala.concurrent.duration.Duration
 
-object CoursierConfigModule extends ExternalModule {
+/**
+ * Reads coursier environment variables and Java properties
+ *
+ * This module reads environment variables and Java properties, and uses
+ * them to get default values for a number of coursier parameters, such as:
+ *
+ * * the coursier cache location, read from `COURSIER_CACHE` in the environment
+ *   and `coursier.cache` in Java properties. It is recommended to use an
+ *   absolute path rather than a relative one.
+ *
+ * * the coursier archive cache location, read from `COURSIER_ARCHIVE_CACHE` in
+ *   the environment and in `coursier.archive.cache` in Java properties.
+ *
+ * * credentials, read from `COURSIER_CREDENTIALS` in the environment, and
+ *   `coursier.credentials` in Java properties. Its format is documented
+ *   here: https://github.com/coursier/coursier/blob/701e93664855709db38e443cb7a19e36ddc49b78/doc/docs/other-credentials.md
+ *
+ * * TTL for snapshot artifacts / version listings / etc., read from
+ *   `COURSIER_TTL` in the environment and `coursier.ttl` in Java properties.
+ *   This value is parsed with `scala.concurrent.duration.Duration`, and accepts
+ *   formats like "5 hours", "1 day", etc. or just "0".
+ *
+ * * default repositories, read from `COURSIER_REPOSITORIES` in the environment
+ *   and `coursier.repositories` in Java properties. It can be set to values like
+ *   "ivy2Local|central|https://maven.google.com". Its format is documented here:
+ *   https://github.com/coursier/coursier/blob/701e93664855709db38e443cb7a19e36ddc49b78/doc/docs/other-repositories.md
+ *
+ * * mirror repository files, read from `COURSIER_MIRRORS` and `coursier.mirrors`,
+ *   whose file they point to should contains things like
+ *
+ *       google.from=https://repo1.maven.org/maven2
+ *       google.to=https://maven.google.com
+ *
+ * Environment variables always have precedence over Java properties.
+ */
+object CoursierConfigModule extends ExternalModule with CoursierConfigModule {
+  lazy val millDiscover = Discover[this.type]
+}
+
+trait CoursierConfigModule extends Module {
 
   // All environment / Java properties "entries" that we're going to read.
   // These are read all at once via coursierEnv.
@@ -138,6 +177,4 @@ object CoursierConfigModule extends ExternalModule {
       defaultCachePolicies()
     )
   }
-
-  override protected def millDiscover: Discover = Discover[this.type]
 }
