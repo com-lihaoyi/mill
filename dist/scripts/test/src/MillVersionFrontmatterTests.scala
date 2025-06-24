@@ -19,7 +19,11 @@ object MillVersionFrontmatterTests extends TestSuite {
       val cmd = millCmd ++ Seq("version")
       println(s"Running $cmd in $wd")
       val res = os.call(
-        cmd, cwd = wd, env = Map("MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"), stderr = os.Pipe, check = false
+        cmd,
+        cwd = wd,
+        env = Map("MILL_TEST_DRY_RUN_LAUNCHER_SCRIPT" -> "1"),
+        stderr = os.Pipe,
+        check = false
       )
       val output = res.out.text().trim
       val errOutput = res.err.text().trim
