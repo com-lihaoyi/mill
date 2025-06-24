@@ -1,5 +1,4 @@
 import mill._, androidlib._, kotlinlib._
-import hilt.AndroidHiltSupport
 
 object Versions {
   val kotlinVersion = "2.1.20"
@@ -106,6 +105,36 @@ object JetLagged extends mill.define.Module {
 
     def androidMinSdk = Versions.androidMinSdk
 
+    object androidTest extends AndroidAppKotlinInstrumentedTests with AndroidR8AppModule with AndroidTestModule.AndroidJUnit {
+
+      def bomMvnDeps = super.mvnDeps() ++ Seq(
+        mvn"androidx.compose:compose-bom:2025.05.00"
+      )
+
+      // TODO consider defaulting this to the parent app value
+      override def androidEnableCompose = true
+
+      // TODO consider defaulting this to the parent app value
+      override def kotlinUseEmbeddableCompiler: Task[Boolean] = Task {
+        true
+      }
+
+      // FIXME: ideally R8 should compile without erroring, but the app seems to be working
+      // without some reportedly missing classes.
+      override def androidR8Args = Seq("--map-diagnostics", "error", "warning")
+
+      def mvnDeps = super.mvnDeps() ++ Seq(
+        mvn"junit:junit:4.13.2",
+        mvn"androidx.test:core:1.6.1",
+        mvn"androidx.test:runner:1.6.1",
+        mvn"androidx.test.espresso:espresso-core:3.6.1",
+        mvn"androidx.test:rules:1.6.1",
+        mvn"androidx.test.ext:junit:1.2.1",
+        mvn"org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2",
+        mvn"androidx.compose.ui:ui-test",
+        mvn"androidx.compose.ui:ui-test-junit4"
+      )
+    }
   }
 }
 
@@ -131,6 +160,19 @@ object JetLagged extends mill.define.Module {
   "WaitTime: ...",
   "Complete"
 ]
+
+> ./mill show JetLagged.app.androidTest
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.example.jetlagged.AppTest.app_launches",
+      "selector": "com.example.jetlagged.AppTest.app_launches",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
 
 > ./mill show JetLagged.app.stopAndroidEmulator
 
