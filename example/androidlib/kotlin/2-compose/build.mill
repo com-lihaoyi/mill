@@ -35,6 +35,8 @@ object app extends AndroidAppKotlinModule {
 
   def mvnDeps: T[Seq[Dep]] = Seq(
     mvn"androidx.core:core-ktx:1.15.0",
+    mvn"androidx.collection:collection-jvm:1.4.4",
+    mvn"androidx.collection:collection-ktx:1.4.4",
     mvn"androidx.appcompat:appcompat:1.7.0",
     mvn"androidx.annotation:annotation:1.9.1",
     mvn"androidx.activity:activity-compose:1.10.0",

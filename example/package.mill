@@ -319,7 +319,11 @@ $txt
     "arrow" -> ("arrow-kt/arrow", "bc9bf92cc98e01c21bdd2bf8640cf7db0f97204a"),
     "ollama-js" -> ("ollama/ollama-js", "99293abe2c7c27ce7e76e8b4a98cae948f00058d"),
     "androidtodo" -> ("android/architecture-samples", "b3437ab428f6fd91804b28801650d590ff52971c"),
-    "android-endless-tunnel" -> ("android/ndk-samples", "46ac919196faf1efcfe8018a0dcc79d4f8fbeca7")
+    "android-endless-tunnel" -> ("android/ndk-samples", "46ac919196faf1efcfe8018a0dcc79d4f8fbeca7"),
+    "android-compose-samples" -> (
+      "android/compose-samples",
+      "e4e6f0f96618f1ba04aa88d64ca19a166a662424"
+    )
   )
   object thirdparty extends Cross[ThirdPartyModule](build.listIn(moduleDir / "thirdparty"))
   trait ThirdPartyModule extends ExampleCrossModule {

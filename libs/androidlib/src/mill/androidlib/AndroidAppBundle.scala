@@ -28,7 +28,7 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
    */
   def androidBundleZip: T[PathRef] = Task {
     val dexFile = androidDex().path
-    val resFile = androidCompiledResources().resApkFile.path
+    val resFile = androidLinkedResources().path / "apk/res.apk"
     val baseDir = Task.dest / "base"
     val appDir = Task.dest / "app"
 
