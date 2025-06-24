@@ -45,15 +45,16 @@ object IntegrationTester {
 
   /** An [[Impl.eval]] that is prepared for execution but haven't been executed yet. Run it with [[run]]. */
   case class PreparedEval(
-    cmd: os.Shellable,
-    env: Map[String, String],
-    cwd: os.Path,
-    timeout: Duration,
-    check: Boolean,
-    propagateEnv: Boolean = true,
-    shutdownGracePeriod: Long = 100,
-    run: () => EvalResult
+      cmd: os.Shellable,
+      env: Map[String, String],
+      cwd: os.Path,
+      timeout: Duration,
+      check: Boolean,
+      propagateEnv: Boolean = true,
+      shutdownGracePeriod: Long = 100,
+      run: () => EvalResult
   ) {
+
     /** Clues to use for with [[withTestClues]]. */
     def clues: Seq[utest.TestValue] = Seq(
       cmd.asTestValue("eval.cmd.shellable"),

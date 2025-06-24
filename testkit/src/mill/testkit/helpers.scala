@@ -9,14 +9,17 @@ import scala.quoted.*
 
 extension [A](a: A) {
   inline def asTestValue: TestValue =
-    ${ TestValueConversion.impl('{a}, customName = '{None}) }
+    ${ TestValueConversion.impl('{ a }, customName = '{ None }) }
 
   inline def asTestValue(name: String): TestValue =
-    ${ TestValueConversion.impl('{a}, customName = '{Some(name)}) }
+    ${ TestValueConversion.impl('{ a }, customName = '{ Some(name) }) }
 }
 
 object TestValueConversion {
-  def impl[A](a: Expr[A], customName: Expr[Option[String]])(using t: Type[A], ctx: Quotes): Expr[TestValue] = {
+  def impl[A](a: Expr[A], customName: Expr[Option[String]])(using
+      t: Type[A],
+      ctx: Quotes
+  ): Expr[TestValue] = {
     import ctx.reflect.*
 
     // Taken from https://github.com/Somainer/scala3-nameof/blob/ffe2e3c258171e2a70ccd5aa436063911fc3cc91/src/main/scala/com/somainer/nameof/NameOfMacros.scala#L8
@@ -38,7 +41,7 @@ object TestValueConversion {
       case Some(name) => Expr(name)
     }
     val typeName = Expr(Type.show[A])
-    '{ TestValue(${name}, ${typeName}, $a) }
+    '{ TestValue(${ name }, ${ typeName }, $a) }
   }
 }
 
