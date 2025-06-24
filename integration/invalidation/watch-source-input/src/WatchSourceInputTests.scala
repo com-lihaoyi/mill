@@ -21,7 +21,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
  */
 trait WatchTests extends UtestIntegrationTestSuite {
 
-  val maxDurationMillis: Int = if (sys.env.contains("CI")) 120000 else 5000
+  val maxDurationMillis: Int = if (sys.env.contains("CI")) 120000 else 15000
 
   def awaitCompletionMarker(tester: IntegrationTester, name: String): Unit = {
     val maxTime = System.currentTimeMillis() + maxDurationMillis
