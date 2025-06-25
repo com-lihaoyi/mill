@@ -12,6 +12,7 @@ import scala.concurrent.duration.Duration
 import mill.coursierutil.TestOverridesRepo
 
 object CoursierClient {
+
   /**
    * Resolves the classpath for the mill daemon.
    *
@@ -28,12 +29,20 @@ object CoursierClient {
         .withCache(coursierCache0)
         .withDependencies(Seq(
           Dependency(
-            Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), attributes = Map.empty),
+            Module(
+              Organization("com.lihaoyi"),
+              ModuleName("mill-runner-daemon_3"),
+              attributes = Map.empty
+            ),
             VersionConstraint(mill.client.BuildInfo.millVersion)
           )
         ) ++ scalaVersion.map { version =>
           Dependency(
-            Module(Organization("org.scala-lang"), ModuleName("scala3-compiler_3"), attributes = Map.empty),
+            Module(
+              Organization("org.scala-lang"),
+              ModuleName("scala3-compiler_3"),
+              attributes = Map.empty
+            ),
             VersionConstraint(version)
           )
         })
