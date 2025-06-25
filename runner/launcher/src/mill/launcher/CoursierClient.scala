@@ -12,32 +12,44 @@ import scala.concurrent.duration.Duration
 import mill.coursierutil.TestOverridesRepo
 
 object CoursierClient {
-  def resolveMillDaemon() = {
+  /**
+   * Resolves the classpath for the mill daemon.
+   *
+   * @param scalaLibraryVersion the version of the scala library to use. If not specified, the version from the
+   *                            mill build is used.
+   */
+  def resolveMillDaemon(scalaLibraryVersion: Option[String]): Array[String] = {
     val repositories = Await.result(Resolve().finalRepositories.future(), Duration.Inf)
     val coursierCache0 = FileCache[Task]()
       .withLogger(coursier.cache.loggers.RefreshLogger.create())
 
-    val artifactsResultOrError = {
-
+    val artifactsResult = {
       val resolve = Resolve()
         .withCache(coursierCache0)
-        .withDependencies(Seq(Dependency(
-          Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), Map()),
-          VersionConstraint(mill.client.BuildInfo.millVersion)
-        )))
+        .withDependencies(Seq(
+          Dependency(
+            Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), attributes = Map.empty),
+            VersionConstraint(mill.client.BuildInfo.millVersion)
+          )
+        ) ++ scalaLibraryVersion.map { version =>
+          Dependency(
+            Module(Organization("org.scala-lang"), ModuleName("scala3-library_3"), attributes = Map.empty),
+            VersionConstraint(version)
+          )
+        })
         .withRepositories(Seq(TestOverridesRepo) ++ repositories)
 
       resolve.either() match {
         case Left(err) => sys.error(err.toString)
-        case Right(v) =>
+        case Right(resolution) =>
           Artifacts(coursierCache0)
-            .withResolution(v)
+            .withResolution(resolution)
             .eitherResult()
             .right.get
       }
     }
 
-    artifactsResultOrError.artifacts.map(_._2.toString).toArray
+    artifactsResult.artifacts.iterator.map { case (_, file) => file.toString }.toArray
   }
 
   def resolveJavaHome(id: String): java.io.File = {

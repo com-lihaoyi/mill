@@ -19,6 +19,9 @@ import mill.constants.BuildInfo;
 import mill.constants.CodeGenConstants;
 import mill.constants.DaemonFiles;
 import mill.constants.EnvVars;
+import scala.None;
+import scala.None$;
+import scala.Option$;
 
 public class MillProcessLauncher {
 
@@ -120,11 +123,11 @@ public class MillProcessLauncher {
                 Object conf = mill.launcher.ConfigReader.readYaml(
                     buildFile, buildFile.getFileName().toString());
                 if (!(conf instanceof Map)) return new String[] {};
-                Map<String, Object> conf2 = (Map<String, Object>) conf;
+                @SuppressWarnings("unchecked") Map<String, Object> conf2 = (Map<String, Object>) conf;
 
                 if (!conf2.containsKey(key)) return new String[] {};
                 if (conf2.get(key) instanceof List) {
-                  List<String> list = (List<String>) conf2.get(key);
+                  @SuppressWarnings("unchecked") List<String> list = (List<String>) conf2.get(key);
                   String[] arr = new String[list.size()];
                   for (int i = 0; i < arr.length; i++) {
                     arr[i] = mill.constants.Util.interpolateEnvVars(list.get(i), env);
@@ -152,7 +155,15 @@ public class MillProcessLauncher {
   }
 
   static String millJvmVersion() throws Exception {
-    List<String> res = loadMillConfig("mill-jvm-version");
+    return loadMillConfigSingleValue("mill-jvm-version");
+  }
+
+  static String millScalaLibraryVersion() throws Exception {
+    return loadMillConfigSingleValue("mill-scala-library-version");
+  }
+
+  static String loadMillConfigSingleValue(String key) throws Exception {
+    List<String> res = loadMillConfig(key);
     if (res.isEmpty()) return null;
     else return res.get(0);
   }
@@ -228,10 +239,16 @@ public class MillProcessLauncher {
     // extra opts
     vmOptions.addAll(millJvmOpts());
 
+    var maybeScalaLibraryVersion = millScalaLibraryVersion();
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
+    var classPathCacheKey = 
+      "mill:" + BuildInfo.millVersion + 
+      ",scala-library-version:" + (maybeScalaLibraryVersion == null ? "default" : maybeScalaLibraryVersion);
     String[] runnerClasspath = cachedComputedValue0(
-        "resolve-runner", BuildInfo.millVersion, () -> CoursierClient.resolveMillDaemon(), arr -> {
+        "resolve-runner", classPathCacheKey,
+         () -> CoursierClient.resolveMillDaemon(Option$.MODULE$.apply(maybeScalaLibraryVersion)),
+      arr -> {
           for (String s : arr) {
             if (!Files.exists(Paths.get(s))) return false;
           }
@@ -246,6 +263,19 @@ public class MillProcessLauncher {
     return cachedComputedValue0(name, key, block, arr -> true);
   }
 
+  /**
+   * Loads a value from the cache, or computes it if it's not in the cache, or re-computes it if it's
+   * in the cache but invalid.
+   * <p>
+   * The cache is stored in the `out/mill-{name}` file and contains only a single key.
+   *
+   * @param name name of the cached value
+   * @param key key of the value in the cache. If the cache exists but the key doesn't match, the value
+   *     will be re-computed.
+   * @param block block to compute the value
+   * @param validate function to validate the value. If the value is in cache but invalid, it will be
+   *     re-computed.
+   */
   static String[] cachedComputedValue0(
       String name, String key, Supplier<String[]> block, Function<String[], Boolean> validate) {
     try {
