@@ -15,7 +15,7 @@ For example, a build header may look something like:
 //| mill-opts: ["--jobs=0.5C"]
 //| mill-jvm-version: temurin:11
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
-//| mill-scala-library-version: 3.7.2-RC1
+//| mill-scala-version: 3.7.2-RC1
 //| # newlines are allowed too
 //|
 //| repositories:
@@ -126,20 +126,20 @@ _build.mill_
 
 Missing environment variables are converted to the empty string.
 
-== mill-scala-library-version
+== mill-scala-version
 
-Mill allows you to specify the exact scala-library version you want to use for your build
-via a `mill-scala-library-version` key in the build header:
+Mill allows you to specify the Scala version you want to use for your build
+via a `mill-scala-version` key in the build header:
 
 _build.mill_
 
 [source]
 ----
-//| mill-scala-library-version: 3.7.2-RC1
+//| mill-scala-version: 3.7.2-RC1
 ----
 
-This allows you to use newer versions of the scala-library than the version used by Mill
+This allows you to use newer versions of Scala than the version used by Mill
 itself, as long as the version you use is backwards compatible.
 
-If `mill-scala-library-version` is not provided, Mill uses the version of scala-library
+If `mill-scala-version` is not provided, Mill uses the version of Scala
 used by Mill itself.
