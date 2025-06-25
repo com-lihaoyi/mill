@@ -118,11 +118,13 @@ public class MillProcessLauncher {
                 Object conf = mill.launcher.ConfigReader.readYaml(
                     buildFile, buildFile.getFileName().toString());
                 if (!(conf instanceof Map)) return new String[] {};
-                @SuppressWarnings("unchecked") Map<String, Object> conf2 = (Map<String, Object>) conf;
+                @SuppressWarnings("unchecked")
+                Map<String, Object> conf2 = (Map<String, Object>) conf;
 
                 if (!conf2.containsKey(key)) return new String[] {};
                 if (conf2.get(key) instanceof List) {
-                  @SuppressWarnings("unchecked") List<String> list = (List<String>) conf2.get(key);
+                  @SuppressWarnings("unchecked")
+                  List<String> list = (List<String>) conf2.get(key);
                   String[] arr = new String[list.size()];
                   for (int i = 0; i < arr.length; i++) {
                     arr[i] = mill.constants.Util.interpolateEnvVars(list.get(i), env);
@@ -237,13 +239,13 @@ public class MillProcessLauncher {
     var maybeScalaVersion = millScalaVersion();
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
-    var classPathCacheKey = 
-      "mill:" + BuildInfo.millVersion +
-      ",scala:" + (maybeScalaVersion == null ? "default" : maybeScalaVersion);
+    var classPathCacheKey = "mill:" + BuildInfo.millVersion + ",scala:"
+        + (maybeScalaVersion == null ? "default" : maybeScalaVersion);
     String[] runnerClasspath = cachedComputedValue0(
-         CacheFiles.resolveRunner, classPathCacheKey,
-         () -> CoursierClient.resolveMillDaemon(Option$.MODULE$.apply(maybeScalaVersion)),
-      arr -> {
+        CacheFiles.resolveRunner,
+        classPathCacheKey,
+        () -> CoursierClient.resolveMillDaemon(Option$.MODULE$.apply(maybeScalaVersion)),
+        arr -> {
           for (String s : arr) {
             if (!Files.exists(Paths.get(s))) return false;
           }
