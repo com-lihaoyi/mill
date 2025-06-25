@@ -15,10 +15,10 @@ object CoursierClient {
   /**
    * Resolves the classpath for the mill daemon.
    *
-   * @param scalaLibraryVersion the version of the scala library to use. If not specified, the version from the
-   *                            mill build is used.
+   * @param scalaVersion the version of the Scala to use. If not specified, the version that mill uses itself will be
+   *                     used.
    */
-  def resolveMillDaemon(scalaLibraryVersion: Option[String]): Array[String] = {
+  def resolveMillDaemon(scalaVersion: Option[String]): Array[String] = {
     val repositories = Await.result(Resolve().finalRepositories.future(), Duration.Inf)
     val coursierCache0 = FileCache[Task]()
       .withLogger(coursier.cache.loggers.RefreshLogger.create())
@@ -31,9 +31,9 @@ object CoursierClient {
             Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), attributes = Map.empty),
             VersionConstraint(mill.client.BuildInfo.millVersion)
           )
-        ) ++ scalaLibraryVersion.map { version =>
+        ) ++ scalaVersion.map { version =>
           Dependency(
-            Module(Organization("org.scala-lang"), ModuleName("scala3-library_3"), attributes = Map.empty),
+            Module(Organization("org.scala-lang"), ModuleName("scala3-compiler_3"), attributes = Map.empty),
             VersionConstraint(version)
           )
         })

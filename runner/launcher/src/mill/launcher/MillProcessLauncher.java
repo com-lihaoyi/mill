@@ -156,8 +156,8 @@ public class MillProcessLauncher {
     return loadMillConfigSingleValue("mill-jvm-version");
   }
 
-  static String millScalaLibraryVersion() throws Exception {
-    return loadMillConfigSingleValue("mill-scala-library-version");
+  static String millScalaVersion() throws Exception {
+    return loadMillConfigSingleValue("mill-scala-version");
   }
 
   static String loadMillConfigSingleValue(String key) throws Exception {
@@ -237,15 +237,15 @@ public class MillProcessLauncher {
     // extra opts
     vmOptions.addAll(millJvmOpts());
 
-    var maybeScalaLibraryVersion = millScalaLibraryVersion();
+    var maybeScalaVersion = millScalaVersion();
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
     var classPathCacheKey = 
       "mill:" + BuildInfo.millVersion + 
-      ",scala-library-version:" + (maybeScalaLibraryVersion == null ? "default" : maybeScalaLibraryVersion);
+      ",scala:" + (maybeScalaVersion == null ? "default" : maybeScalaVersion);
     String[] runnerClasspath = cachedComputedValue0(
         "resolve-runner", classPathCacheKey,
-         () -> CoursierClient.resolveMillDaemon(Option$.MODULE$.apply(maybeScalaLibraryVersion)),
+         () -> CoursierClient.resolveMillDaemon(Option$.MODULE$.apply(maybeScalaVersion)),
       arr -> {
           for (String s : arr) {
             if (!Files.exists(Paths.get(s))) return false;
