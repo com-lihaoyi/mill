@@ -15,10 +15,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import mill.client.ClientUtil;
-import mill.constants.BuildInfo;
-import mill.constants.CodeGenConstants;
-import mill.constants.DaemonFiles;
-import mill.constants.EnvVars;
+import mill.constants.*;
 import scala.Option$;
 
 public class MillProcessLauncher {
@@ -192,7 +189,7 @@ public class MillProcessLauncher {
     if (jvmId != null) {
       final String jvmIdFinal = jvmId;
       javaHome = cachedComputedValue0(
-          "java-home",
+          CacheFiles.javaHome,
           jvmId,
           () -> new String[] {CoursierClient.resolveJavaHome(jvmIdFinal).getAbsolutePath()},
           // Make sure we check to see if the saved java home exists before using
@@ -241,10 +238,10 @@ public class MillProcessLauncher {
     vmOptions.add("-XX:+HeapDumpOnOutOfMemoryError");
     vmOptions.add("-cp");
     var classPathCacheKey = 
-      "mill:" + BuildInfo.millVersion + 
+      "mill:" + BuildInfo.millVersion +
       ",scala:" + (maybeScalaVersion == null ? "default" : maybeScalaVersion);
     String[] runnerClasspath = cachedComputedValue0(
-        "resolve-runner", classPathCacheKey,
+         CacheFiles.resolveRunner, classPathCacheKey,
          () -> CoursierClient.resolveMillDaemon(Option$.MODULE$.apply(maybeScalaVersion)),
       arr -> {
           for (String s : arr) {
@@ -277,7 +274,7 @@ public class MillProcessLauncher {
   static String[] cachedComputedValue0(
       String name, String key, Supplier<String[]> block, Function<String[], Boolean> validate) {
     try {
-      Path cacheFile = Paths.get(".").resolve(out).resolve("mill-" + name);
+      Path cacheFile = Paths.get(".").resolve(out).resolve(CacheFiles.filename(name));
       String[] value = null;
       if (Files.exists(cacheFile)) {
         String[] savedInfo = Files.readString(cacheFile).split("\n");
