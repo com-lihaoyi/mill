@@ -307,10 +307,6 @@ object `package` extends MillJavaModule with DistModule {
       // "--enable-monitoring=jvmstat,heapdump"
     )
 
-    def jvmWorker = ModuleRef(JvmWorkerGraalvm)
-
-    object JvmWorkerGraalvm extends JvmWorkerModule {
-      def jvmId = Settings.graalvmJvmId
-    }
+    def jvmId = Settings.graalvmJvmId
   }
 }
