@@ -66,9 +66,35 @@ if [!MILL_VERSION!]==[] (
       set /p MILL_VERSION=<.config\mill-version
     ) else (
       if not "%MILL_BUILD_SCRIPT%"=="" (
-        for /f "tokens=1-2*" %%a in ('findstr /C:"//| mill-version:" %MILL_BUILD_SCRIPT%') do (
-          set "MILL_VERSION=%%c"
+        rem Find the line and process it
+        for /f "tokens=*" %%a in ('findstr /R /C:"//\|.*mill-version" "%MILL_BUILD_SCRIPT%"') do (
+            set "line=%%a"
+
+            rem --- 1. Replicate sed 's/.*://' ---
+            rem This removes everything up to and including the first colon
+            set "line=!line:*:=!"
+
+            rem --- 2. Replicate sed 's/#.*//' ---
+            rem Split on '#' and keep the first part
+            for /f "tokens=1 delims=#" %%b in ("!line!") do (
+                set "line=%%b"
+            )
+
+            rem --- 3. Replicate sed 's/['"]//g' ---
+            rem Remove all quotes
+            set "line=!line:'=!"
+            set "line=!line:"=!"
+
+            rem --- 4. NEW: Replicate sed's trim/space removal ---
+            rem Remove all space characters from the result. This is more robust.
+            set "MILL_VERSION=!line: =!"
+
+            rem We found the version, so we can exit the loop
+            goto :version_found
         )
+
+        :version_found
+        rem no-op
       ) else (
         rem no-op
       )
@@ -76,7 +102,11 @@ if [!MILL_VERSION!]==[] (
   )
 )
 
-if [!MILL_VERSION!]==[] set MILL_VERSION=%DEFAULT_MILL_VERSION%
+if [!MILL_VERSION!]==[] (
+    echo No mill version specified. >&2
+    echo You should provide a version via a '//^| mill-version: ' comment or a '.mill-version' file. >&2
+    set MILL_VERSION=%DEFAULT_MILL_VERSION%
+)
 
 if [!MILL_DOWNLOAD_PATH!]==[] set MILL_DOWNLOAD_PATH=%USERPROFILE%\.mill\download
 
