@@ -19,8 +19,6 @@ import mill.constants.BuildInfo;
 import mill.constants.CodeGenConstants;
 import mill.constants.DaemonFiles;
 import mill.constants.EnvVars;
-import scala.None;
-import scala.None$;
 import scala.Option$;
 
 public class MillProcessLauncher {
