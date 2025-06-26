@@ -21,11 +21,18 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   // Add versions?
   def buildInfoMembers = Seq.empty[BuildInfo.Value]
 
-  object hilt extends MillPublishScalaModule {
+  trait MillAndroidModule extends MillPublishScalaModule {
+    override def javacOptions = {
+      val release = Seq("-source", "1.8", "-target", "1.8")
+      release ++ Seq("-encoding", "UTF-8", "-deprecation")
+    }
+
     override def repositoriesTask = Task.Anon {
       super.repositoriesTask() :+ MavenRepository("https://maven.google.com/")
     }
+  }
 
+  object hilt extends MillAndroidModule {
     override def moduleDeps = Seq(build.libs.androidlib)
 
     override def mvnDeps = Seq(
