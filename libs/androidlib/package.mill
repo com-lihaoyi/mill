@@ -1,9 +1,9 @@
 package build.libs.androidlib
 
 import coursier.MavenRepository
-import mill._
+import mill.*
 import mill.contrib.buildinfo.BuildInfo
-import mill.scalalib._
+import mill.scalalib.*
 import millbuild.*
 
 // TODO when android hardcoded versions are fixed, generate a build info
@@ -29,6 +29,16 @@ object `package` extends MillPublishScalaModule with BuildInfo {
 
     override def repositoriesTask = Task.Anon {
       super.repositoriesTask() :+ MavenRepository("https://maven.google.com/")
+    }
+  }
+
+  object api extends MillAndroidModule {
+    def moduleDeps = Seq(build.libs.testrunner)
+
+    override def compileMvnDeps: T[Seq[Dep]] = Task {
+      super.compileMvnDeps() ++ Seq(
+        Deps.androidTools
+      )
     }
   }
 
