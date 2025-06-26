@@ -23,7 +23,7 @@ class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
       if ep.mainName.getOrElse(ep.defaultName) == name
     } yield ep
 
-    res.headOption
+    res.maxByOption(_.argSigs0.length)
   }
 }
 
