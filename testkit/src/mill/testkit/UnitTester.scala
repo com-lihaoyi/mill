@@ -1,6 +1,6 @@
 package mill.testkit
 
-import mill.{Target, Task}
+import mill.Task
 import mill.api.Result.OuterStack
 import mill.api.{DummyInputStream, Result, SystemStreams, Val}
 import mill.define.{InputImpl, TargetImpl}
@@ -155,7 +155,11 @@ class UnitTester(
     }
   }
 
-  def fail(target: Target[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]]): Unit = {
+  def fail(
+      target: Task.Simple[_],
+      expectedFailCount: Int,
+      expectedRawValues: Seq[Result[_]]
+  ): Unit = {
 
     val res = evaluator.evaluate(Agg(target))
 

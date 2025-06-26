@@ -85,8 +85,8 @@ object Module {
     lazy val segmentsToModules: Map[Segments, Module] =
       modules.map(m => (m.moduleSegments, m)).toMap
 
-    lazy val targets: Set[Target[_]] =
-      traverse { _.moduleInternal.reflectAll[Target[_]].toIndexedSeq }.toSet
+    lazy val targets: Set[Task.Simple[_]] =
+      traverse { _.moduleInternal.reflectAll[Task.Simple[_]].toIndexedSeq }.toSet
 
     def reflect[T: ClassTag](filter: String => Boolean): Seq[T] = {
       Reflect.reflect(

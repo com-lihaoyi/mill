@@ -78,7 +78,7 @@ case class MillCliConfig(
     threadCountRaw: Option[String] = None,
     @arg(
       name = "import",
-      doc = """Additional ivy dependencies to load into mill, e.g. plugins."""
+      doc = """Additional ivy/mvn dependencies to load into mill, e.g. plugins."""
     )
     imports: Seq[String] = Nil,
     @arg(
@@ -95,6 +95,12 @@ case class MillCliConfig(
       doc = """Watch and re-run the given tasks when when their inputs change."""
     )
     watch: Flag = Flag(),
+    @arg(
+      name = "notify-watch",
+      doc =
+        "Use filesystem based file watching instead of polling based one (experimental, defaults to false)."
+    )
+    watchViaFsNotify: Boolean = false,
     @arg(
       short = 's',
       doc =

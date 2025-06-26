@@ -4,10 +4,9 @@ import java.util.concurrent.LinkedBlockingQueue
 import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
-import mill.define.{Discover, ExternalModule, NamedTask, Target}
+import mill.define.{Discover, ExternalModule, NamedTask, Task, Worker}
 import mill.util.Util.millProjectModule
 import mill.api.{Loose, PathRef, Result}
-import mill.define.Worker
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
@@ -27,9 +26,9 @@ trait VisualizeModule extends mill.define.TaskModule {
   def repositories: Seq[Repository]
   def defaultCommandName() = "run"
   @deprecated("Use toolsClasspath instead", "0.13.0-M1")
-  def classpath: Target[Loose.Agg[PathRef]] = toolsClasspath
+  def classpath: Task.Simple[Loose.Agg[PathRef]] = toolsClasspath
 
-  def toolsClasspath: Target[Loose.Agg[PathRef]] = Target {
+  def toolsClasspath: Task.Simple[Loose.Agg[PathRef]] = Task {
     millProjectModule("mill-main-graphviz", repositories)
   }
 
@@ -43,7 +42,7 @@ trait VisualizeModule extends mill.define.TaskModule {
   def worker: Worker[(
       LinkedBlockingQueue[(Seq[NamedTask[Any]], Seq[NamedTask[Any]], os.Path)],
       LinkedBlockingQueue[Result[Seq[PathRef]]]
-  )] = Target.worker {
+  )] = Task.Worker {
     val in = new LinkedBlockingQueue[(Seq[NamedTask[Any]], Seq[NamedTask[Any]], os.Path)]()
     val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
 

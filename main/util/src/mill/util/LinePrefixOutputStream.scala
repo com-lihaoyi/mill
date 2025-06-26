@@ -42,7 +42,10 @@ class LinePrefixOutputStream(
       val bufferString = buffer.toString
       if (bufferString.length > 0) {
         val s = fansi.Str.apply(bufferString, errorMode = fansi.ErrorMode.Sanitize)
-        endOfLastLineColor = s.getColor(math.max(0, s.length - 1))
+        if (s.length > 0) {
+          // only change last value if we have some proper ansi string
+          endOfLastLineColor = s.getColor(s.length - 1)
+        }
       }
     }
     out.synchronized { buffer.writeTo(out) }

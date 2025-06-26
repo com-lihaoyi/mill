@@ -215,12 +215,20 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
         }
 
+        // Test for a bug where modifying the sources 2nd time would run tasks from both modules.
+        output0 = Nil
+        modifyFile(workspacePath / "bar/bar.txt", _ + "!")
+        eventually {
+          !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
+        }
+
         output0 = Nil
         modifyFile(workspacePath / "foo/foo.txt", _ + "!")
         eventually {
           output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
         }
       }
+
       test("show-changed-inputs") - integrationTest { tester =>
         import tester._
         @volatile var output0 = List.empty[String]

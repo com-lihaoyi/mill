@@ -2,9 +2,9 @@ package mill.javalib.android
 
 import coursier.Repository
 import mill._
-import mill.scalalib._
 import mill.api.{Logger, PathRef, internal}
 import mill.define.{ModuleRef, Task}
+import mill.scalalib._
 import mill.scalalib.bsp.BspBuildTarget
 import mill.testrunner.TestResult
 import mill.util.Jvm
@@ -300,7 +300,7 @@ trait AndroidAppModule extends JavaModule {
    */
   def androidAaptOptions: T[Seq[String]] = Task { Seq("--auto-add-overlay") }
 
-  def androidTransitiveResources: Target[Seq[PathRef]] = Task {
+  def androidTransitiveResources: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps) { m =>
       Task.Anon(m.resources())
     }().flatten
@@ -594,6 +594,24 @@ trait AndroidAppModule extends JavaModule {
       .flatMap(ref => {
         val dest = Task.dest / ref.path.baseName
         os.unzip(ref.path, dest)
+
+        // Fix permissions of unzipped directories
+        // `os.walk.stream` doesn't work
+        def walkStream(p: os.Path): geny.Generator[os.Path] = {
+          if (!os.isDir(p)) geny.Generator()
+          else {
+            val streamed = os.list.stream(p)
+            streamed ++ streamed.flatMap(walkStream)
+          }
+        }
+
+        for (p <- walkStream(dest) if os.isDir(p)) {
+          import java.nio.file.attribute.PosixFilePermission
+          val newPerms =
+            os.perms(p) + PosixFilePermission.OWNER_READ + PosixFilePermission.OWNER_EXECUTE
+          os.perms.set(p, newPerms)
+        }
+
         val lookupPath = dest / "META-INF"
         if (os.exists(lookupPath)) {
           os.walk(lookupPath)
@@ -927,7 +945,7 @@ trait AndroidAppModule extends JavaModule {
    *
    * @return The name of the device the app was installed to
    */
-  def androidInstall: Target[String] = Task {
+  def androidInstall: T[String] = Task {
     val emulator = runningEmulator()
 
     os.call(
@@ -1103,7 +1121,7 @@ trait AndroidAppModule extends JavaModule {
 
     def testFramework: T[String]
 
-    override def androidInstall: Target[String] = Task {
+    override def androidInstall: T[String] = Task {
       val emulator = runningEmulator()
       os.call(
         (

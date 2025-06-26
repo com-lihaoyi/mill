@@ -51,7 +51,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
     BuildInfo.Value("millBinPlatform", build.millBinPlatform(), "Mill binary platform version."),
     BuildInfo.Value(
       "millDistModule", {
-        val selfDep = dist.publishSelfDependency()
+        val selfDep = dist.artifactMetadata()
         s"${selfDep.group}:${selfDep.id}"
       },
       "Coordinates of the module pulling the whole of Mill"
@@ -64,7 +64,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
           distAllDeps.collect { case m: PublishModule => m }
         ) { mod =>
           Task.Anon {
-            val selfDep = mod.publishSelfDependency()
+            val selfDep = mod.artifactMetadata()
             (
               s"${mod.coursierDependency.module.repr}:${mod.coursierDependency.version}",
               s"${selfDep.group}:${selfDep.id}:${selfDep.version}"
@@ -73,7 +73,7 @@ object `package` extends RootModule with build.MillStableScalaModule with BuildI
         }().toMap
 
         val result = Lib.resolveDependenciesMetadataSafe(
-          repositories = dist.repositoriesTask(),
+          repositories = dist.allRepositories(),
           Seq(BoundDep(dist.coursierDependency, force = false)),
           Some(dist.mapDependencies()),
           dist.resolutionCustomizer(),

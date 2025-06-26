@@ -344,17 +344,17 @@ a build:
 * Scala "project"s with multiple related ``Task``s within them, are just a
  `Trait` you instantiate
 
-* Replacing the default ``Target``s within a project, making them do new
- things or depend on new ``Target``s, is simply `override`-ing them during
+* Replacing the default ``Task``s within a project, making them do new
+ things or depend on new ``Task``s, is simply `override`-ing them during
  inheritance
 
-* Modifying the default ``Target``s within a project, making use of the old value
+* Modifying the default ``Task``s within a project, making use of the old value
  to compute the new value, is simply `override`ing them and using `super.foo()`
 
 * Required configuration parameters within a `project` are `abstract` members
 
 * Cross-builds are modelled as instantiating a (possibly anonymous) class
- multiple times, each instance with its own distinct set of ``Target``s
+ multiple times, each instance with its own distinct set of ``Task``s
 
 In normal Scala, you bundle up common fields & functionality into a `class` you
 can instantiate over and over, and you can override the things you want to

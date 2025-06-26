@@ -1,7 +1,8 @@
 package mill.pythonlib
 
 import mill.api.Result
-import mill.{PathRef, Task, T, Command}
+import mill.scalalib.publish.License
+import mill.{Command, PathRef, T, Task}
 
 /**
  * A python module which also defines how to build and publish source distributions and wheels.
@@ -17,7 +18,11 @@ trait PublishModule extends PythonModule {
   }
 
   override def pythonToolDeps = Task {
-    super.pythonToolDeps() ++ Seq("setuptools>=75.6.0", "build>=1.2.2", "twine>=5.1.1")
+    super.pythonToolDeps() ++ Seq(
+      "setuptools>=75.6.0",
+      "build>=1.2.2",
+      "twine>=5.1.1"
+    )
   }
 
   /**
@@ -236,6 +241,8 @@ trait PublishModule extends PythonModule {
 }
 
 object PublishModule {
+  private implicit lazy val licenseFormat: upickle.default.ReadWriter[License] =
+    upickle.default.macroRW
 
   /**
    * Static metadata about a project.

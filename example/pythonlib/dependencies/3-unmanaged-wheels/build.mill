@@ -8,7 +8,7 @@ import mill._, pythonlib._
 
 object `package` extends RootModule with PythonModule {
   def unmanagedWheels: T[Seq[PathRef]] = Task.Input {
-    Seq.from(os.list(millSourcePath / "lib").map(PathRef(_)))
+    Seq.from(os.list(moduleDir / "lib").map(PathRef(_)))
   }
 }
 

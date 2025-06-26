@@ -37,7 +37,7 @@ private object BspWorker {
           val resources = s"${Constants.serverName}-${mill.main.BuildInfo.millVersion}.resources"
           val cpFile = workspace / Constants.bspDir / resources
           if (!os.exists(cpFile)) return Left(
-            "You need to run `mill mill.bsp.BSP/install` before you can use the BSP server"
+            "You need to run `mill mill.bsp/install` before you can use the BSP server"
           )
 
           // TODO: if outdated, we could regenerate the resource file and re-load the worker

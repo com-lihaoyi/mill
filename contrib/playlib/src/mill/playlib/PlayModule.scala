@@ -5,7 +5,6 @@ import mill.playlib.api.Versions
 import mill.scalalib._
 import mill.{Agg, Args, T}
 import mill.api.PathRef
-import mill.define.Target
 
 trait PlayApiModule extends Dependencies with Router with Server {
   trait PlayTests extends ScalaTests with TestModule.ScalaTest {
@@ -19,7 +18,7 @@ trait PlayApiModule extends Dependencies with Router with Server {
       }
       Agg(ivy"org.scalatestplus.play::scalatestplus-play::${scalatestPlusPlayVersion}")
     }
-    override def sources: Target[Seq[PathRef]] = Task.Sources(moduleDir)
+    override def sources: Task.Simple[Seq[PathRef]] = Task.Sources(moduleDir)
   }
 
   def start(args: Task[Args] = Task.Anon(Args())) = Task.Command { run(args)() }
