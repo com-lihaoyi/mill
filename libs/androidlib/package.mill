@@ -8,14 +8,18 @@ import millbuild.*
 
 // TODO when android hardcoded versions are fixed, generate a build info
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version when androidlib is stable and released.
-object `package` extends MillPublishScalaModule {
+object `package` extends MillPublishScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.libs.scalalib, build.libs.kotlinlib)
-
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(
       build.libs.kotlinlib.worker.localTestOverride()
     )
+
+  def buildInfoPackageName = "mill.androidlib"
+  def buildInfoObjectName = "Versions"
+  // Add versions?
+  def buildInfoMembers = Seq.empty[BuildInfo.Value]
 
   object hilt extends MillPublishScalaModule {
     override def repositoriesTask = Task.Anon {
