@@ -6,6 +6,8 @@ import mill.define.Cached
 import mill.define.SelectMode
 import ujson.Value
 
+import scala.concurrent.duration.*
+
 /**
  * Helper meant for executing Mill integration tests, which runs Mill in a subprocess
  * against a folder with a `build.mill` and project files. Provides APIs such as [[eval]]
@@ -41,6 +43,32 @@ object IntegrationTester {
     def isSuccess = exitCode == 0
   }
 
+  /** An [[Impl.eval]] that is prepared for execution but haven't been executed yet. Run it with [[run]]. */
+  case class PreparedEval(
+      cmd: os.Shellable,
+      env: Map[String, String],
+      cwd: os.Path,
+      timeout: Duration,
+      check: Boolean,
+      propagateEnv: Boolean = true,
+      shutdownGracePeriod: Long = 100,
+      run: () => EvalResult
+  ) {
+
+    /** Clues to use for with [[withTestClues]]. */
+    def clues: Seq[utest.TestValue] = Seq(
+      // Copy-pastable shell command that you can run in bash/zsh/whatever
+      asTestValue("cmd", cmd.value.iterator.map(pprint.Util.literalize(_)).mkString(" ")),
+      asTestValue("cmd.shellable", cmd),
+      asTestValue(env),
+      asTestValue(cwd),
+      asTestValue(timeout),
+      asTestValue(check),
+      asTestValue(propagateEnv),
+      asTestValue(shutdownGracePeriod)
+    ).map(tv => tv.copy(name = "eval." + tv.name))
+  }
+
   trait Impl extends AutoCloseable with IntegrationTesterBase {
 
     def millExecutable: os.Path
@@ -49,6 +77,67 @@ object IntegrationTester {
     val daemonMode: Boolean
 
     def debugLog = false
+
+    /**
+     * Prepares to evaluate a Mill command. Run it with [[IntegrationTester.PreparedEval.run]].
+     *
+     * Useful when you need the [[IntegrationTester.PreparedEval.clues]].
+     */
+    def prepEval(
+        cmd: os.Shellable,
+        env: Map[String, String] = Map.empty,
+        cwd: os.Path = workspacePath,
+        stdin: os.ProcessInput = os.Pipe,
+        stdout: os.ProcessOutput = os.Pipe,
+        stderr: os.ProcessOutput = os.Pipe,
+        mergeErrIntoOut: Boolean = false,
+        timeout: Long = -1,
+        check: Boolean = false,
+        propagateEnv: Boolean = true,
+        timeoutGracePeriod: Long = 100
+    ): IntegrationTester.PreparedEval = {
+      val serverArgs = Option.when(!daemonMode)("--no-daemon")
+
+      val debugArgs = Option.when(debugLog)("--debug")
+
+      val shellable: os.Shellable =
+        (millExecutable, serverArgs, "--ticker", "false", debugArgs, cmd)
+
+      val callEnv = millTestSuiteEnv ++ env
+
+      def run() = {
+        val res0 = os.call(
+          cmd = shellable,
+          env = callEnv,
+          cwd = cwd,
+          stdin = stdin,
+          stdout = stdout,
+          stderr = stderr,
+          mergeErrIntoOut = mergeErrIntoOut,
+          timeout = timeout,
+          check = check,
+          propagateEnv = propagateEnv,
+          shutdownGracePeriod = timeoutGracePeriod
+        )
+
+        IntegrationTester.EvalResult(
+          res0.exitCode,
+          fansi.Str(res0.out.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim,
+          fansi.Str(res0.err.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim
+        )
+      }
+
+      PreparedEval(
+        cmd = shellable,
+        env = callEnv,
+        cwd = cwd,
+        timeout = if (timeout == -1) Duration.Inf else timeout.millis,
+        check = check,
+        propagateEnv = propagateEnv,
+        shutdownGracePeriod = timeoutGracePeriod,
+        run = run
+      )
+    }
 
     /**
      * Evaluates a Mill command. Essentially the same as `os.call`, except it
@@ -69,16 +158,9 @@ object IntegrationTester {
         propagateEnv: Boolean = true,
         timeoutGracePeriod: Long = 100
     ): IntegrationTester.EvalResult = {
-      val serverArgs = Option.when(!daemonMode)("--no-daemon")
-
-      val debugArgs = Option.when(debugLog)("--debug")
-
-      val shellable: os.Shellable =
-        (millExecutable, serverArgs, "--ticker", "false", debugArgs, cmd)
-
-      val res0 = os.call(
-        cmd = shellable,
-        env = millTestSuiteEnv ++ env,
+      prepEval(
+        cmd = cmd,
+        env = env,
         cwd = cwd,
         stdin = stdin,
         stdout = stdout,
@@ -87,14 +169,8 @@ object IntegrationTester {
         timeout = timeout,
         check = check,
         propagateEnv = propagateEnv,
-        shutdownGracePeriod = timeoutGracePeriod
-      )
-
-      IntegrationTester.EvalResult(
-        res0.exitCode,
-        fansi.Str(res0.out.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim,
-        fansi.Str(res0.err.text(), errorMode = fansi.ErrorMode.Strip).plainText.trim
-      )
+        timeoutGracePeriod = timeoutGracePeriod
+      ).run()
     }
 
     /**
