@@ -12,7 +12,6 @@ import guru.nidi.graphviz.engine.{Format, Graphviz}
 import scala.concurrent.{Await, ExecutionContext, Future, duration}
 
 object GraphvizTools {
-
   def main(args: Array[String]): Unit = {
     val executor = Executors.newFixedThreadPool(Runtime.getRuntime.availableProcessors())
 
