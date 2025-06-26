@@ -21,7 +21,6 @@ object myplugin extends ScalaModule with PublishModule {
     def mvnDeps = Seq(mvn"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Task {
       val artifact = s"${myplugin.pomSettings().organization}-${myplugin.artifactId()}"
-
       val localClasspathString = myplugin.localClasspath().map(_.path).mkString("\n")
       Map(
         "MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString,
