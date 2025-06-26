@@ -12,32 +12,53 @@ import scala.concurrent.duration.Duration
 import mill.coursierutil.TestOverridesRepo
 
 object CoursierClient {
-  def resolveMillDaemon() = {
+
+  /**
+   * Resolves the classpath for the mill daemon.
+   *
+   * @param scalaVersion the version of the Scala to use. If not specified, the version that mill uses itself will be
+   *                     used.
+   */
+  def resolveMillDaemon(scalaVersion: Option[String]): Array[String] = {
     val repositories = Await.result(Resolve().finalRepositories.future(), Duration.Inf)
     val coursierCache0 = FileCache[Task]()
       .withLogger(coursier.cache.loggers.RefreshLogger.create())
 
-    val artifactsResultOrError = {
-
+    val artifactsResult = {
       val resolve = Resolve()
         .withCache(coursierCache0)
-        .withDependencies(Seq(Dependency(
-          Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), Map()),
-          VersionConstraint(mill.client.BuildInfo.millVersion)
-        )))
+        .withDependencies(Seq(
+          Dependency(
+            Module(
+              Organization("com.lihaoyi"),
+              ModuleName("mill-runner-daemon_3"),
+              attributes = Map.empty
+            ),
+            VersionConstraint(mill.client.BuildInfo.millVersion)
+          )
+        ) ++ scalaVersion.map { version =>
+          Dependency(
+            Module(
+              Organization("org.scala-lang"),
+              ModuleName("scala3-compiler_3"),
+              attributes = Map.empty
+            ),
+            VersionConstraint(version)
+          )
+        })
         .withRepositories(Seq(TestOverridesRepo) ++ repositories)
 
       resolve.either() match {
         case Left(err) => sys.error(err.toString)
-        case Right(v) =>
+        case Right(resolution) =>
           Artifacts(coursierCache0)
-            .withResolution(v)
+            .withResolution(resolution)
             .eitherResult()
             .right.get
       }
     }
 
-    artifactsResultOrError.artifacts.map(_._2.toString).toArray
+    artifactsResult.artifacts.iterator.map { case (_, file) => file.toString }.toArray
   }
 
   def resolveJavaHome(id: String): java.io.File = {
