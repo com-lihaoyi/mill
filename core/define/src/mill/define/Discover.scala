@@ -25,7 +25,7 @@ class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
 
     // When there are multiple entrypoints matching the class and name,
     // return the one with the longest argument lists, since users may
-    // add additional arguments to a command (with default values) to 
+    // add additional arguments to a command (with default values) to
     // preserve binary compatibility while evolving the method signature
     res.maxByOption(_.argSigs0.length)
   }
