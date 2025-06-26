@@ -70,6 +70,10 @@ def millDownloadUrl = Task {
   s"${millDownloadPrefix()}/${millLastTag()}"
 }
 
+def millDownloadUrlCurrent = Task {
+  s"${millDownloadPrefix()}/${millVersion()}"
+}
+
 def millBinPlatform: T[String] = Task {
   val tag = millLastTag()
   tag match {
