@@ -38,7 +38,7 @@ object Hello {
     "hello.Hello$#used2()int"
   ]
 }
-*/
+ */
 
 /* expected-transitive-call-graph
 {
@@ -80,4 +80,4 @@ object Hello {
     "hello.Hello$#used2()int"
   ]
 }
-*/
+ */
