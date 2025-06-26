@@ -1,4 +1,4 @@
-//| mill-version: 1.0.0-RC2-4-784a1c
+//| mill-version: 1.0.0-RC2-49-2ee59e
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C"]
 
@@ -9,10 +9,10 @@ import millbuild.*
 //import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
 import coursier.VersionConstraint
-import mill.main.VcsVersion
+import mill.vcs.VcsVersion
 //import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
-import mill.main.Tasks
+import mill.util.Tasks
 import mill.scalalib._
 import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
