@@ -57,15 +57,16 @@ object IntegrationTester {
 
     /** Clues to use for with [[withTestClues]]. */
     def clues: Seq[utest.TestValue] = Seq(
-      cmd.asTestValue("eval.cmd.shellable"),
-      cmd.value.iterator.map(s => s"\"$s\"").mkString(" ").asTestValue("eval.cmd"),
-      env.asTestValue("eval.env"),
-      cwd.asTestValue("eval.cwd"),
-      timeout.asTestValue("eval.timeout"),
-      check.asTestValue("eval.check"),
-      propagateEnv.asTestValue("eval.propagateEnv"),
-      shutdownGracePeriod.asTestValue("eval.shutdownGracePeriod")
-    )
+      // Copy-pastable shell command that you can run in bash/zsh/whatever
+      asTestValue("cmd", cmd.value.iterator.map(pprint.Util.literalize(_)).mkString(" ")),
+      asTestValue("cmd.shellable", cmd),
+      asTestValue(env),
+      asTestValue(cwd),
+      asTestValue(timeout),
+      asTestValue(check),
+      asTestValue(propagateEnv),
+      asTestValue(shutdownGracePeriod)
+    ).map(tv => tv.copy(name = "eval." + tv.name))
   }
 
   trait Impl extends AutoCloseable with IntegrationTesterBase {
