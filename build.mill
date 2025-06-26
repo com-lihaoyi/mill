@@ -286,6 +286,10 @@ def millLastTag: T[String] = Task.Input {
   } else "SNAPSHOT"
 }
 
+def millDownloadUrlCurrent = Task {
+  s"${millDownloadPrefix()}/${millVersion()}"
+}
+
 def millDownloadPrefix = Task {
   s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/"
 }
