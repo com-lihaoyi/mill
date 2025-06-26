@@ -286,15 +286,16 @@ def millLastTag: T[String] = Task.Input {
   } else "SNAPSHOT"
 }
 
-def millDownloadUrlCurrent = Task {
-  s"${millDownloadPrefix()}/${millVersion()}"
+def millDownloadPrefix = Task {
+  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist"
 }
 
-def millDownloadPrefix = Task {
-  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/"
-}
 def millDownloadUrl = Task {
-  s"https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/${millLastTag()}"
+  s"${millDownloadPrefix()}/${millLastTag()}"
+}
+
+def millDownloadUrlCurrent = Task {
+  s"${millDownloadPrefix()}/${millVersion()}"
 }
 
 def millBinPlatform: T[String] = Task {
