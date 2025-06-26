@@ -45,6 +45,12 @@ object ExecutionTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  object overloads extends TestRootModule {
+    def overloaded(x: Int) = Task.Command { x + 1 }
+    def overloaded(x: Int, y: Int = 0) = Task.Command { x + y + 1 }
+    lazy val millDiscover = Discover[this.type]
+  }
+
   class Checker[T <: mill.testkit.TestRootModule](module: T)
       extends exec.Checker(module)
 
@@ -446,6 +452,21 @@ object ExecutionTests extends TestSuite {
       UnitTester(anonTaskFailure, null).scoped { tester =>
         val res = tester.evaluator.execute(Seq(anonTaskFailure.task))
         assert(res.executionResults.transitiveFailing.keySet == Set(anonTaskFailure.task))
+      }
+    }
+    test("overloaded") {
+      UnitTester(overloads, null).scoped { tester =>
+        val res = tester.apply(Seq(overloads.overloaded(1)))
+        assert(res == Right(UnitTester.Result(Vector(2), 1)))
+
+        val res2 = tester.apply(Seq(overloads.overloaded(1, 2)))
+        assert(res2 == Right(UnitTester.Result(Vector(4), 1)))
+
+        val res3 = tester.apply("overloaded", "-x", "1")
+        assert(res3 == Right(UnitTester.Result(Vector(2), 1)))
+
+        val res4 = tester.apply("overloaded", "-x", "1", "-y", "2")
+        assert(res4 == Right(UnitTester.Result(Vector(4), 1)))
       }
     }
   }
