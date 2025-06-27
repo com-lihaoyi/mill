@@ -6,6 +6,7 @@ import coursier.cache.FileCache
 import coursier.util.Artifact
 import mill.*
 import mill.api.Result
+import mill.androidlib.Versions
 
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
@@ -35,12 +36,16 @@ trait AndroidSdkModule extends Module {
   /**
    * Specifies the version of the Android Bundle tool to be used.
    */
-  def bundleToolVersion: T[String] = "1.17.2"
+  def bundleToolVersion: T[String] = Task {
+    Versions.bundleToolVersion
+  }
 
   /**
    * Specifies the version of the Manifest Merger.
    */
-  def manifestMergerVersion: T[String] = "31.10.0"
+  def manifestMergerVersion: T[String] = Task {
+    Versions.manifestMergerVersion
+  }
 
   /**
    * Specifies the version of the Android build tools to be used.
@@ -50,14 +55,16 @@ trait AndroidSdkModule extends Module {
   /**
    * Specifies the version of the Android NDK (Native Development Kit) to be used.
    */
-  // TODO: dont have them hardcoded
-  def ndkVersion: T[String] = Task { "27.0.12077973" }
+  def ndkVersion: T[String] = Task {
+    Versions.ndkVersion
+  }
 
   /**
    * Specifies the version of CMake to be used.
    */
-  // TODO: dont have them hardcoded
-  def cmakeVersion: T[String] = Task { "3.22.1" }
+  def cmakeVersion: T[String] = Task {
+    Versions.cmakeVersion
+  }
 
   /**
    * Specifies the Android platform version (e.g., Android API level).
