@@ -99,7 +99,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     def composePreviewRenderer: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          mvn"com.android.tools.compose:compose-preview-renderer:$composePreviewRendererVersion"
+          mvn"com.android.tools.compose:compose-preview-renderer:$composePreviewRendererVersion()"
         )
       )
     }
@@ -107,7 +107,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     final def layoutLibRenderer: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          mvn"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
+          mvn"com.android.tools.layoutlib:layoutlib:$layoutLibVersion()"
         )
       )
     }
@@ -115,7 +115,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     final def layoutLibRuntime: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          mvn"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
+          mvn"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion()"
         )
       )
     }
@@ -123,7 +123,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     final def layoutLibFrameworkRes: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          mvn"com.android.tools.layoutlib:layoutlib-resources:$layoutLibVersion"
+          mvn"com.android.tools.layoutlib:layoutlib-resources:$layoutLibVersion()"
         )
       )
     }
