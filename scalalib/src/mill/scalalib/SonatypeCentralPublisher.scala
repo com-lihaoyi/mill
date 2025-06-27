@@ -46,12 +46,13 @@ class SonatypeCentralPublisher(
     if (snapshots.nonEmpty) {
       val snapshotNames = snapshots.map(_._1)
         .map { case Artifact(group, id, version) => s"$group:$id:$version" }
-      throw new Result.Exception(
+      val ex = new RuntimeException(
         s"""Publishing snapshots to Sonatype Central Portal is currently not supported by Mill.
            |This is tracked under https://github.com/com-lihaoyi/mill/issues/4421
            |The following snapshots will not be published:
            |  ${snapshotNames.mkString("\n  ")}""".stripMargin
       )
+      throw Result.Exception(ex, new Result.OuterStack(ex.getStackTrace().toIndexedSeq))
     }
     if (releases.isEmpty) {
       log.error("No releases to publish to Sonatype Central.")
@@ -60,7 +61,8 @@ class SonatypeCentralPublisher(
           (if (snapshots.nonEmpty)
              "It seems there were only snapshots to publish, which is not supported by Mill, currently."
            else "Please check your build configuration.")
-      throw new Result.Exception(errorMessage)
+      val ex = new Exception(errorMessage)
+      throw Result.Exception(ex, new Result.OuterStack(ex.getStackTrace().toIndexedSeq))
     }
 
     val releaseGroups = releases.groupBy(_._1.group)
