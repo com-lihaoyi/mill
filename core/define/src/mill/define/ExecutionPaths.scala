@@ -11,11 +11,11 @@ object ExecutionPaths {
       segments: Segments
   ): ExecutionPaths = {
     val segmentStrings = segments.parts
-    val targetPath = outPath / segmentStrings.map(sanitizePathSegment)
+    val taskPath = outPath / segmentStrings.map(sanitizePathSegment)
     ExecutionPaths(
-      targetPath / os.up / s"${targetPath.last}.dest",
-      targetPath / os.up / s"${targetPath.last}.json",
-      targetPath / os.up / s"${targetPath.last}.log"
+      taskPath / os.up / s"${taskPath.last}.dest",
+      taskPath / os.up / s"${taskPath.last}.json",
+      taskPath / os.up / s"${taskPath.last}.log"
     )
   }
 

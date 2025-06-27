@@ -698,9 +698,9 @@ private class MillBuildServer(
           case ((msg, cleaned), targetId) =>
             val (module, ev) = state.bspModulesById(targetId)
             val mainModule = ev.rootModule.asInstanceOf[mill.api.internal.MainModuleApi]
-            val compileTargetName = (module.moduleSegments ++ Label("compile")).render
-            logger.debug(s"about to clean: ${compileTargetName}")
-            val cleanTask = mainModule.bspClean(ev, Seq(compileTargetName)*)
+            val compileTaskName = (module.moduleSegments ++ Label("compile")).render
+            logger.debug(s"about to clean: ${compileTaskName}")
+            val cleanTask = mainModule.bspClean(ev, Seq(compileTaskName)*)
             val cleanResult = evaluate(
               ev,
               s"Cleaning cache of ${module.bspDisplayName}",
@@ -711,7 +711,7 @@ private class MillBuildServer(
             val cleanedPaths =
               cleanResult.results.head.get.value.asInstanceOf[Seq[java.nio.file.Path]]
             if (cleanResult.transitiveFailingApi.size > 0) (
-              msg + s" Target ${compileTargetName} could not be cleaned. See message from mill: \n" +
+              msg + s" Target ${compileTaskName} could not be cleaned. See message from mill: \n" +
                 (cleanResult.transitiveResultsApi(cleanTask) match {
                   case ex: ExecResult.Exception => ex.toString()
                   case ExecResult.Skipped => "Task was skipped"

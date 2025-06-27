@@ -17,7 +17,7 @@ different Task types:
 
 [cols="<,<,<,<,<,<,<"]
 |===
-| |Target |Command |Source/Input |Persistent Task |Worker|Anonymous Task
+| | Simple Task |Command |Source/Input |Persistent Task |Worker|Anonymous Task
 
 |Cached to Disk |X | | |X | |
 |JSON Writable |X |X |X|X | |

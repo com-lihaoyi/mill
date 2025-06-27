@@ -70,7 +70,7 @@ object Module {
     lazy val segmentsToModules: Map[Segments, Module] =
       modules.map(m => (m.moduleSegments, m)).toMap
 
-    lazy val targets: Set[Simple[?]] =
+    lazy val simpleTasks: Set[Simple[?]] =
       traverse { _.moduleInternal.reflectAll[Simple[?]].toIndexedSeq }.toSet
 
     def reflect[T: ClassTag](filter: String => Boolean): Seq[T] = {

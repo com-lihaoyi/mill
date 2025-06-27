@@ -110,28 +110,23 @@ final class EvaluatorImpl private[mill] (
    */
   def plan(tasks: Seq[Task[?]]): Plan = PlanImpl.plan(tasks)
 
-  def transitiveTargets(tasks: Seq[Task[?]]) = {
-    PlanImpl.transitiveTargets(tasks)
+  def transitiveTasks(sourceTasks: Seq[Task[?]]) = {
+    PlanImpl.transitiveTasks(sourceTasks)
   }
 
-  def topoSorted(transitive: IndexedSeq[Task[?]]) = {
-    PlanImpl.topoSorted(transitive)
+  def topoSorted(transitiveTasks: IndexedSeq[Task[?]]) = {
+    PlanImpl.topoSorted(transitiveTasks)
   }
 
-  def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)(important: PartialFunction[
+  def groupAroundImportantTasks[T](topoSortedTasks: TopoSorted)(important: PartialFunction[
     Task[?],
     T
   ]) = {
-    PlanImpl.groupAroundImportantTargets(topoSortedTargets)(important)
+    PlanImpl.groupAroundImportantTasks(topoSortedTasks)(important)
   }
 
-  /**
-   * @param targets
-   * @param selectiveExecution
-   * @return
-   */
   def execute[T](
-      targets: Seq[Task[T]],
+      tasks: Seq[Task[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = baseLogger,
@@ -139,13 +134,13 @@ final class EvaluatorImpl private[mill] (
       selectiveExecution: Boolean = false
   ): Evaluator.Result[T] = {
 
-    val selectiveExecutionEnabled = selectiveExecution && !targets.exists(_.isExclusiveCommand)
+    val selectiveExecutionEnabled = selectiveExecution && !tasks.exists(_.isExclusiveCommand)
 
     val selectedTasksOrErr =
-      if (!selectiveExecutionEnabled) (targets, Map.empty, None)
+      if (!selectiveExecutionEnabled) (tasks, Map.empty, None)
       else {
         val (named, unnamed) =
-          targets.partitionMap { case n: Task.Named[?] => Left(n); case t => Right(t) }
+          tasks.partitionMap { case n: Task.Named[?] => Left(n); case t => Right(t) }
         val newComputedMetadata = SelectiveExecutionImpl.Metadata.compute(this, named)
 
         val selectiveExecutionStoredData = for {
@@ -157,7 +152,7 @@ final class EvaluatorImpl private[mill] (
           case None =>
             // Ran when previous selective execution metadata is not available, which happens the first time you run
             // selective execution.
-            (targets, Map.empty, Some(newComputedMetadata.metadata))
+            (tasks, Map.empty, Some(newComputedMetadata.metadata))
           case Some(changedTasks) =>
             val selectedSet = changedTasks.downstreamTasks.map(_.ctx.segments.render).toSet
 
@@ -261,8 +256,8 @@ final class EvaluatorImpl private[mill] (
       }
     }
 
-    for (targets <- resolved)
-      yield execute(Seq.from(targets), reporter = reporter, selectiveExecution = selectiveExecution)
+    for (task <- resolved)
+      yield execute(Seq.from(task), reporter = reporter, selectiveExecution = selectiveExecution)
   }
 
   def close(): Unit = execution.close()

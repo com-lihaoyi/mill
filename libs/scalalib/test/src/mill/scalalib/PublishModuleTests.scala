@@ -72,7 +72,7 @@ object PublishModuleTests extends TestSuite {
       override def mvnDeps = Seq(
         mvn"org.slf4j:slf4j-api:2.0.7"
       )
-      // ensure, these target won't be called
+      // ensure, these tasks won't be called
       override def jar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
       override def docJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }
       override def sourceJar: T[PathRef] = Task { ???.asInstanceOf[PathRef] }

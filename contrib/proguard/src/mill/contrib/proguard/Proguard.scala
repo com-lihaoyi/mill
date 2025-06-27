@@ -10,7 +10,7 @@ import os.{Path, Shellable}
 /**
  * Adds proguard capabilities when mixed-in to a module
  *
- * The target name is `proguard`. This runs proguard on the output jar of `assembly`
+ * The task name is `proguard`. This runs proguard on the output jar of `assembly`
  * and outputs a shrunk/obfuscated/optimized jar under `out.jar` in the `dest/` folder.
  *
  * Sensible defaults are provided, so no members require overriding.

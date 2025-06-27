@@ -15,12 +15,12 @@ object TestGraphs {
     lazy val millDiscover = Discover[this.type]
   }
   object bactickIdentifiers extends TestRootModule {
-    def `up-target` = Task { 1 }
-    def `a-down-target` = Task { `up-target`() + 2 }
+    def `up-task` = Task { 1 }
+    def `a-down-task` = Task { `up-task`() + 2 }
     def `invisible&` = Task { 3 }
 
     object `nested-module` extends Module {
-      def `nested-target` = Task { 4 }
+      def `nested-task` = Task { 4 }
     }
 
     lazy val millDiscover = Discover[this.type]

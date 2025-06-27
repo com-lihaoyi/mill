@@ -12,7 +12,7 @@ import upickle.default.{ReadWriter, macroRW}
  * This contains a list of frames each representing cached data from a single
  * level of `build.mill` evaluation:
  *
- * - `frame(0)` contains the output of evaluating the user-given targets
+ * - `frame(0)` contains the output of evaluating the user-given tasks
  * - `frame(1)` contains the output of `build.mill` file compilation
  * - `frame(2)` contains the output of the in-memory [[MillBuildRootModule.BootstrapModule]]
  * - If there are meta-builds present (e.g. `mill-build/build.mill`), then `frame(2)`

@@ -35,7 +35,7 @@ object VisualizeModule extends ExternalModule {
 
   private[mill] def visualize0(
       evaluator: Evaluator,
-      targets: Seq[String],
+      tasks: Seq[String],
       ctx: mill.define.TaskCtx,
       vizWorker: VizWorker,
       planTasks: Option[List[Task.Named[?]]] = None
@@ -45,9 +45,9 @@ object VisualizeModule extends ExternalModule {
         transitiveTasks: List[Task.Named[Any]]
     ): Result[Seq[PathRef]] = {
       val (in, out) = vizWorker
-      val transitive = evaluator.transitiveTargets(tasks)
+      val transitive = evaluator.transitiveTasks(tasks)
       val topoSorted = evaluator.topoSorted(transitive)
-      val sortedGroups = evaluator.groupAroundImportantTargets(topoSorted) {
+      val sortedGroups = evaluator.groupAroundImportantTasks(topoSorted) {
         case x: Task.Named[Any] if transitiveTasks.contains(x) => x
       }
       val plan = evaluator.plan(transitiveTasks)
@@ -59,7 +59,7 @@ object VisualizeModule extends ExternalModule {
       }
     }
 
-    evaluator.resolveTasks(targets, SelectMode.Multi).flatMap {
+    evaluator.resolveTasks(tasks, SelectMode.Multi).flatMap {
       rs =>
         planTasks match {
           case Some(allRs) => callVisualizeModule(rs, allRs)
