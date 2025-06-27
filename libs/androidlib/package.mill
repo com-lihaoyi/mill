@@ -19,7 +19,13 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   def buildInfoPackageName = "mill.androidlib"
   def buildInfoObjectName = "Versions"
   // Add versions?
-  def buildInfoMembers = Seq.empty[BuildInfo.Value]
+  def buildInfoMembers = Seq(
+    BuildInfo.Value("manifestMergerVersion",Deps.AndroidDeps.manifestMergerVersion, "Version of manifestMerger"),
+    BuildInfo.Value("bundleToolVersion",Deps.AndroidDeps.bundleToolVersion, "Version of bundleTool"),
+    BuildInfo.Value("ndkVersion",Deps.AndroidDeps.ndkVersion, "Version of ndk"),
+    BuildInfo.Value("cmakeVersion",Deps.AndroidDeps.cmakeVersion, "Version of cmake"),
+
+  )
 
   trait MillAndroidModule extends MillPublishScalaModule {
     override def javacOptions = {
@@ -29,16 +35,6 @@ object `package` extends MillPublishScalaModule with BuildInfo {
 
     override def repositoriesTask = Task.Anon {
       super.repositoriesTask() :+ MavenRepository("https://maven.google.com/")
-    }
-  }
-
-  object api extends MillAndroidModule {
-    def moduleDeps = Seq(build.libs.testrunner)
-
-    override def compileMvnDeps: T[Seq[Dep]] = Task {
-      super.compileMvnDeps() ++ Seq(
-        Deps.androidTools
-      )
     }
   }
 
