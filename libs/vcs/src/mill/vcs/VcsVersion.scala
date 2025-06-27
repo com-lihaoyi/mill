@@ -60,7 +60,8 @@ object VcsVersion extends ExternalModule with VcsVersion {
         val actualRevHashDigits =
           if (revHashDigits != -1) currentRevision.take(revHashDigits)
           else {
-            os.call(("git", "rev-parse", "--short", currentRevision),
+            os.call(
+              ("git", "rev-parse", "--short", currentRevision),
               cwd = vcsBasePath,
               stderr = os.Pipe
             ).out.trim()
