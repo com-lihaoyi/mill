@@ -1,6 +1,5 @@
 package mill.define
 
-
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
@@ -179,7 +178,7 @@ trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.def
         case None => // no collision
         case Some(other) => // collision
           throw new mill.api.MillException(
-            s"${ctx.fileName}: Cross module ${ctx.enclosing} contains colliding cross values: ${other} and ${crossValues0}",
+            s"${ctx.fileName}: Cross module ${ctx.enclosing} contains colliding cross values: ${other} and ${crossValues0}"
           )
       }
       val module0 = new Lazy(() =>

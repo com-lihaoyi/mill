@@ -1,7 +1,6 @@
 package mill.define
 
-
-enum CrossVersion derives upickle.default.ReadWriter{
+enum CrossVersion derives upickle.default.ReadWriter {
   import CrossVersion.*
 
   /** If true, the cross-version suffix should start with a platform suffix if it exists */
@@ -35,9 +34,7 @@ enum CrossVersion derives upickle.default.ReadWriter{
 
   case Full(platformed: Boolean)
 
-
 }
 object CrossVersion {
-  def empty(platformed: Boolean): Constant = Constant(value = "", platformed)  
+  def empty(platformed: Boolean): Constant = Constant(value = "", platformed)
 }
-

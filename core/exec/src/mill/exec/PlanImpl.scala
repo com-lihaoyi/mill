@@ -5,7 +5,7 @@ import mill.define.MultiBiMap
 import mill.define.TopoSorted
 
 private[mill] object PlanImpl {
-  def plan(goals: Seq[Task[?]]): Plan  = {
+  def plan(goals: Seq[Task[?]]): Plan = {
     val transitive = PlanImpl.transitiveTargets(goals.toIndexedSeq)
     val goalSet = goals.toSet
     val topoSorted = PlanImpl.topoSorted(transitive)
