@@ -40,7 +40,8 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       "composePreviewRendererVersion",
       Deps.AndroidDeps.cmakeVersion,
       "Version of ComposePreviewRenderer"
-    )
+    ),
+    BuildInfo.Value("uiToolingVersion", Deps.AndroidDeps.uiToolingVersion, "Version of uiTooling")
   )
 
   trait MillAndroidModule extends MillPublishScalaModule {

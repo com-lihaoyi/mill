@@ -288,6 +288,7 @@ object Deps {
     val cmakeVersion = "3.22.1"
     val layoutLibVersion = "15.1.2"
     val composePreviewRendererVersion = "0.0.1-alpha09"
+    val uiToolingVersion = "1.7.6"
   }
 
 }
