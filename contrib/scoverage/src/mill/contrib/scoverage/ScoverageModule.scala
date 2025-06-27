@@ -11,7 +11,7 @@ import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 
 /**
- * Adds targets to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
+ * Adds tasks to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
  *
  * This module allows you to generate code coverage reports for Scala projects with
  * [[https://github.com/scoverage Scoverage]] via the
@@ -140,10 +140,10 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
     /**
      * The persistent data dir used to store scoverage coverage data.
-     * Use to store coverage data at compile-time and by the various report targets.
+     * Use to store coverage data at compile-time and by the various report tasks.
      */
     def data: T[PathRef] = Task(persistent = true) {
-      // via the persistent target, we ensure, the dest dir doesn't get cleared
+      // via the persistent task, we ensure, the dest dir doesn't get cleared
       PathRef(Task.dest)
     }
 

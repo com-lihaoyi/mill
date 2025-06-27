@@ -253,7 +253,7 @@ object `package` extends MillJavaModule with DistModule {
   def publishArtifacts = Task {
     super.publishArtifacts().copy(payload =
       super.publishArtifacts().payload ++
-        exampleZips().map(z => (z, s"${artifactFileNamePrefix()}-${z.path.last}")) ++
+        exampleZips().map(z => (z, z.path.last)) ++
         Seq(
           (bootstrapLauncher(), s"${artifactFileNamePrefix()}-mill.sh"),
           (bootstrapLauncherBat(), s"${artifactFileNamePrefix()}-mill.bat")
@@ -307,10 +307,6 @@ object `package` extends MillJavaModule with DistModule {
       // "--enable-monitoring=jvmstat,heapdump"
     )
 
-    def jvmWorker = ModuleRef(JvmWorkerGraalvm)
-
-    object JvmWorkerGraalvm extends JvmWorkerModule {
-      def jvmId = Settings.graalvmJvmId
-    }
+    def jvmId = Settings.graalvmJvmId
   }
 }

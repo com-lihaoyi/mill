@@ -24,7 +24,7 @@ object Applicative {
 
   type Id[+T] = T
 
-  def impl[M[_]: Type, W[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using
+  private[mill] def impl[M[_]: Type, W[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using
       Quotes
   )(
       traverseCtx: (Expr[Seq[W[Any]]], Expr[(Seq[Any], Ctx) => Z[T]]) => Expr[M[T]],

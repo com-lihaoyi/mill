@@ -563,7 +563,8 @@ object Jvm {
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
   ): JvmIndex = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
-    jvmIndex0(ctx, coursierCacheCustomizer).unsafeRun()(coursierCache0.ec)
+    coursierCache0.logger.use(jvmIndex0(ctx, coursierCacheCustomizer))
+      .unsafeRun()(using coursierCache0.ec)
   }
 
   def jvmIndex0(
@@ -622,7 +623,8 @@ object Jvm {
       // when given a version like "17", always pick highest version in the index
       // rather than the highest already on disk
       .withUpdate(true)
-    val file = javaHome.get(id).unsafeRun()(coursierCache0.ec)
+    val file = coursierCache0.logger.use(javaHome.get(id))
+      .unsafeRun()(using coursierCache0.ec)
     Result.Success(os.Path(file))
 
   }

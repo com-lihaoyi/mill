@@ -386,7 +386,7 @@ object BuildGenUtil {
         else args.iterator.map(transform).mkString("Seq(", ",", ")")
       )
 
-  def renderSeqTargetDefWithSuper(
+  def renderSeqTaskDefWithSuper(
       defName: String,
       args: Seq[String],
       superArgs: Seq[String] = Seq.empty,
@@ -421,7 +421,7 @@ object BuildGenUtil {
     optional("def runModuleDeps = super.runModuleDeps ++ Seq", args)
 
   def renderJavacOptions(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
-    renderSeqTargetDefWithSuper("javacOptions", args, superArgs, "String", escape).getOrElse("")
+    renderSeqTaskDefWithSuper("javacOptions", args, superArgs, "String", escape).getOrElse("")
 
   def renderScalaVersion(arg: Option[String], superArg: Option[String] = None): String =
     if (arg != superArg) arg.fold("")(scalaVersion => s"def scalaVersion = ${escape(scalaVersion)}")
@@ -431,7 +431,7 @@ object BuildGenUtil {
       args: Option[Seq[String]],
       superArgs: Option[Seq[String]] = None
   ): String =
-    renderSeqTargetDefWithSuper(
+    renderSeqTaskDefWithSuper(
       "scalacOptions",
       args.getOrElse(Seq.empty),
       superArgs.getOrElse(Seq.empty),
@@ -440,7 +440,7 @@ object BuildGenUtil {
     ).getOrElse("")
 
   def renderRepositories(args: Seq[String], superArgs: Seq[String] = Seq.empty): String =
-    renderSeqTargetDefWithSuper(
+    renderSeqTaskDefWithSuper(
       "repositories",
       args,
       superArgs,

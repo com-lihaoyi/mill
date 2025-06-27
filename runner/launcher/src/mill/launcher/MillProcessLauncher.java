@@ -113,7 +113,7 @@ public class MillProcessLauncher {
         Path buildFile = Paths.get(rootBuildFileName);
         if (Files.exists(buildFile)) {
           String[] config = cachedComputedValue(
-              "yaml-config-" + key,
+              key,
               mill.constants.Util.readBuildHeader(
                   buildFile, buildFile.getFileName().toString()),
               () -> {
@@ -249,7 +249,7 @@ public class MillProcessLauncher {
   static String[] cachedComputedValue0(
       String name, String key, Supplier<String[]> block, Function<String[], Boolean> validate) {
     try {
-      Path cacheFile = Paths.get(".").resolve(out).resolve("mill-" + name);
+      Path cacheFile = Paths.get(".").resolve(out).resolve("mill-launcher/" + name);
       String[] value = null;
       if (Files.exists(cacheFile)) {
         String[] savedInfo = Files.readString(cacheFile).split("\n");

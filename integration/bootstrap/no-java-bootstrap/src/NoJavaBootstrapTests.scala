@@ -27,7 +27,8 @@ object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
     )
     val jvmCache = JvmCache().withIndex(index)
 
-    val entry = jvmCache.entries(mill.client.BuildInfo.defaultJvmId).unsafeRun()(using cache.ec)
+    val entry = cache.logger.use(jvmCache.entries(mill.client.BuildInfo.defaultJvmId))
+      .unsafeRun()(using cache.ec)
       .left.map(err => sys.error(err))
       .merge
       .last

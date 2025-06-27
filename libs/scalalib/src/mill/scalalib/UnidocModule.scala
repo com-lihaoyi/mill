@@ -4,7 +4,7 @@ import mill.define.BuildCtx
 import mill.scalalib.api.JvmWorkerUtil
 
 /**
- * Mix this in to any [[ScalaModule]] to provide a [[unidocSite]] target that
+ * Mix this in to any [[ScalaModule]] to provide a [[unidocSite]] task that
  * can be used to build a unified scaladoc site for this module and all of
  * its transitive dependencies
  */

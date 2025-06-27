@@ -11,24 +11,24 @@ object ErrorTests extends TestSuite {
   // Wrapper class so that module initialization errors are not fatal
   class ErrorGraphs {
     object moduleInitError extends TestRootModule {
-      def rootTarget = Task { println("Running rootTarget"); "rootTarget Result" }
+      def rootTask = Task { println("Running rootTask"); "rootTask Result" }
       def rootCommand(@arg(positional = true) s: String) =
         Task.Command { println(s"Running rootCommand $s") }
 
       object foo extends Module {
-        def fooTarget = Task { println(s"Running fooTarget"); 123 }
+        def fooTask = Task { println(s"Running fooTask"); 123 }
         def fooCommand(@arg(positional = true) s: String) =
           Task.Command { println(s"Running fooCommand $s") }
         throw new Exception("Foo Boom")
       }
 
       object bar extends Module {
-        def barTarget = Task { println(s"Running barTarget"); "barTarget Result" }
+        def barTask = Task { println(s"Running barTask"); "barTask Result" }
         def barCommand(@arg(positional = true) s: String) =
           Task.Command { println(s"Running barCommand $s") }
 
         object qux extends Module {
-          def quxTarget = Task { println(s"Running quxTarget"); "quxTarget Result" }
+          def quxTask = Task { println(s"Running quxTask"); "quxTask Result" }
           def quxCommand(@arg(positional = true) s: String) =
             Task.Command { println(s"Running quxCommand $s") }
           throw new Exception("Qux Boom")
@@ -41,16 +41,16 @@ object ErrorTests extends TestSuite {
     object moduleDependencyInitError extends TestRootModule {
 
       object foo extends Module {
-        def fooTarget = Task { println(s"Running fooTarget"); 123 }
+        def fooTask = Task { println(s"Running fooTask"); 123 }
         def fooCommand(@arg(positional = true) s: String) =
           Task.Command { println(s"Running fooCommand $s") }
         throw new Exception("Foo Boom")
       }
 
       object bar extends Module {
-        def barTarget = Task {
-          println(s"Running barTarget")
-          s"${foo.fooTarget()} barTarget Result"
+        def barTask = Task {
+          println(s"Running barTask")
+          s"${foo.fooTask()} barTask Result"
         }
         def barCommand(@arg(positional = true) s: String) = Task.Command {
           foo.fooCommand(s)()
@@ -221,13 +221,13 @@ object ErrorTests extends TestSuite {
         val check = new Checker(moduleInitError)
         // We can resolve the root module tasks even when the
         // sub-modules fail to initialize
-        test("rootTarget") - check.checkSeq(
-          Seq("rootTarget"),
-          Result.Success(Set(_.rootTarget)),
-          // Even though instantiating the target fails due to the module
+        test("rootTask") - check.checkSeq(
+          Seq("rootTask"),
+          Result.Success(Set(_.rootTask)),
+          // Even though instantiating the task fails due to the module
           // failing, we can still resolve the task name, since resolving tasks
           // does not require instantiating the module
-          Set("rootTarget")
+          Set("rootTask")
         )
         test("rootCommand") - check.checkSeq(
           Seq("rootCommand", "hello"),
@@ -237,10 +237,10 @@ object ErrorTests extends TestSuite {
 
         // Resolving tasks on a module that fails to initialize is properly
         // caught and reported in the Either result
-        test("fooTarget") - check.checkSeq0(
-          Seq("foo.fooTarget"),
+        test("fooTask") - check.checkSeq0(
+          Seq("foo.fooTask"),
           isShortError(_, "Foo Boom"),
-          _ == Result.Success(List("foo.fooTarget"))
+          _ == Result.Success(List("foo.fooTask"))
         )
         test("fooCommand") - check.checkSeq0(
           Seq("foo.fooCommand", "hello"),
@@ -250,10 +250,10 @@ object ErrorTests extends TestSuite {
 
         // Sub-modules that can initialize allow tasks to be resolved, even
         // if their siblings or children are broken
-        test("barTarget") - check.checkSeq(
-          Seq("bar.barTarget"),
-          Result.Success(Set(_.bar.barTarget)),
-          Set("bar.barTarget")
+        test("barTask") - check.checkSeq(
+          Seq("bar.barTask"),
+          Result.Success(Set(_.bar.barTask)),
+          Set("bar.barTask")
         )
         test("barCommand") - check.checkSeq(
           Seq("bar.barCommand", "hello"),
@@ -262,10 +262,10 @@ object ErrorTests extends TestSuite {
         )
 
         // Nested sub-modules that fail to initialize are properly handled
-        test("quxTarget") - check.checkSeq0(
-          Seq("bar.qux.quxTarget"),
+        test("quxTask") - check.checkSeq0(
+          Seq("bar.qux.quxTask"),
           isShortError(_, "Qux Boom"),
-          _ == Result.Success(List("bar.qux.quxTarget"))
+          _ == Result.Success(List("bar.qux.quxTask"))
         )
         test("quxCommand") - check.checkSeq0(
           Seq("bar.qux.quxCommand", "hello"),
@@ -277,24 +277,24 @@ object ErrorTests extends TestSuite {
       test("dependency") {
         val check = new Checker(moduleDependencyInitError)
 
-        test("fooTarget") - check.checkSeq0(
-          Seq("foo.fooTarget"),
+        test("fooTask") - check.checkSeq0(
+          Seq("foo.fooTask"),
           isShortError(_, "Foo Boom"),
-          _ == Result.Success(List("foo.fooTarget"))
+          _ == Result.Success(List("foo.fooTask"))
         )
         test("fooCommand") - check.checkSeq0(
           Seq("foo.fooCommand", "hello"),
           isShortError(_, "Foo Boom"),
           _ == Result.Success(List("foo.fooCommand"))
         )
-        // Even though the `bar` module doesn't throw, `barTarget` and
-        // `barCommand` depend on the `fooTarget` and `fooCommand` tasks on the
+        // Even though the `bar` module doesn't throw, `barTask` and
+        // `barCommand` depend on the `fooTask` and `fooCommand` tasks on the
         // `foo` module, and the `foo` module blows up. This should turn up as
         // a stack trace when we try to resolve bar
-        test("barTarget") - check.checkSeq0(
-          Seq("bar.barTarget"),
+        test("barTask") - check.checkSeq0(
+          Seq("bar.barTask"),
           isShortError(_, "Foo Boom"),
-          _ == Result.Success(List("bar.barTarget"))
+          _ == Result.Success(List("bar.barTask"))
         )
         test("barCommand") - check.checkSeq0(
           Seq("bar.barCommand", "hello"),

@@ -120,7 +120,7 @@ private[mill] case class Execution(
 
     // Prepare a lookup tables up front of all the method names that each class owns,
     // and the class hierarchy, so during evaluation it is cheap to look up what class
-    // each target belongs to determine of the enclosing class code signature changed.
+    // each task belongs to determine of the enclosing class code signature changed.
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       CodeSigUtils.precomputeMethodNamesPerClass(PlanImpl.transitiveNamed(goals))
 
@@ -190,8 +190,8 @@ private[mill] case class Execution(
 
                 // should we log progress?
                 val inputResults = for {
-                  target <- group.toIndexedSeq.filterNot(upstreamResults.contains)
-                  item <- target.inputs.filterNot(group.contains)
+                  task <- group.toIndexedSeq.filterNot(upstreamResults.contains)
+                  item <- task.inputs.filterNot(group.contains)
                 } yield upstreamResults(item).map(_._1)
                 val logRun = inputResults.forall(_.isInstanceOf[ExecResult.Success[?]])
 
@@ -279,7 +279,7 @@ private[mill] case class Execution(
       case _ => true
     }
 
-    val tasksTransitive = PlanImpl.transitiveTargets(Seq.from(tasks0)).toSet
+    val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(tasks0)).toSet
     val (tasks, leafExclusiveCommands) = terminals0.partition {
       case t: Task.Named[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
       case _ => !serialCommandExec

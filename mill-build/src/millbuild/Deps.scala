@@ -84,7 +84,7 @@ object Deps {
   val asmTree = mvn"org.ow2.asm:asm-tree:9.8"
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
-  val classgraph = mvn"io.github.classgraph:classgraph:4.8.179"
+  val classgraph = mvn"io.github.classgraph:classgraph:4.8.180"
   val coursierVersion = "2.1.25-M13"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierCore =
@@ -131,7 +131,7 @@ object Deps {
   val junitInterface = mvn"com.github.sbt:junit-interface:0.13.3"
   val commonsIo = mvn"commons-io:commons-io:2.18.0"
   val log4j2Core = mvn"org.apache.logging.log4j:log4j-core:2.24.3"
-  val osLibVersion = "0.11.5-M9"
+  val osLibVersion = "0.11.5-M10"
   val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.0"

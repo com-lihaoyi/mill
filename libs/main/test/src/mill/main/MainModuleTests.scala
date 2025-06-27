@@ -62,7 +62,7 @@ object MainModuleTests extends TestSuite {
   object cleanModule extends TestRootModule with MainModule {
 
     trait Cleanable extends Module {
-      def target = Task {
+      def task = Task {
         os.write(Task.dest / "dummy.txt", "dummy text")
         Seq(PathRef(Task.dest))
       }
@@ -72,20 +72,20 @@ object MainModuleTests extends TestSuite {
       object sub extends Cleanable
     }
     object bar extends Cleanable {
-      override def target = Task {
+      override def task = Task {
         os.write(Task.dest / "dummy.txt", "dummy text")
-        super.target() ++ Seq(PathRef(Task.dest))
+        super.task() ++ Seq(PathRef(Task.dest))
       }
     }
     object bazz extends Cross[Bazz]("1", "2", "3")
     trait Bazz extends Cleanable with Cross.Module[String]
 
     def all = Task {
-      foo.target()
-      bar.target()
-      bazz("1").target()
-      bazz("2").target()
-      bazz("3").target()
+      foo.task()
+      bar.task()
+      bazz("1").task()
+      bazz("2").task()
+      bazz("3").task()
     }
     lazy val millDiscover = Discover[this.type]
   }
@@ -425,32 +425,32 @@ object MainModuleTests extends TestSuite {
         }
       }
 
-      test("single-target") {
+      test("single-task") {
         UnitTester(cleanModule, null).scoped { ev =>
           val out = ev.evaluator.outPath
           val r1 = ev.evaluator.execute(Seq(cleanModule.all)).executionResults
           assert(r1.transitiveFailing.size == 0)
           checkExists(out, true)(
-            os.sub / "foo/target.json",
-            os.sub / "foo/target.dest/dummy.txt",
-            os.sub / "bar/target.json",
-            os.sub / "bar/target.dest/dummy.txt"
+            os.sub / "foo/task.json",
+            os.sub / "foo/task.dest/dummy.txt",
+            os.sub / "bar/task.json",
+            os.sub / "bar/task.dest/dummy.txt"
           )
 
           val r2 =
             ev.evaluator.execute(Seq(cleanModule.clean(
               ev.evaluator,
-              "foo.target"
+              "foo.task"
             ))).executionResults
           assert(r2.transitiveFailing.size == 0)
           checkExists(out, false)(
-            os.sub / "foo/target.log",
-            os.sub / "foo/target.json",
-            os.sub / "foo/target.dest/dummy.txt"
+            os.sub / "foo/task.log",
+            os.sub / "foo/task.json",
+            os.sub / "foo/task.dest/dummy.txt"
           )
           checkExists(out, true)(
-            os.sub / "bar/target.json",
-            os.sub / "bar/target.dest/dummy.txt"
+            os.sub / "bar/task.json",
+            os.sub / "bar/task.dest/dummy.txt"
           )
         }
       }
@@ -461,22 +461,22 @@ object MainModuleTests extends TestSuite {
           val r1 = ev.evaluator.execute(Seq(cleanModule.all)).executionResults
           assert(r1.transitiveFailing.size == 0)
           checkExists(out, true)(
-            os.sub / "foo/target.json",
-            os.sub / "foo/target.dest/dummy.txt",
-            os.sub / "bar/target.json",
-            os.sub / "bar/target.dest/dummy.txt"
+            os.sub / "foo/task.json",
+            os.sub / "foo/task.dest/dummy.txt",
+            os.sub / "bar/task.json",
+            os.sub / "bar/task.dest/dummy.txt"
           )
 
           val r2 =
             ev.evaluator.execute(Seq(cleanModule.clean(ev.evaluator, "bar"))).executionResults
           assert(r2.transitiveFailing.size == 0)
           checkExists(out, true)(
-            os.sub / "foo/target.json",
-            os.sub / "foo/target.dest/dummy.txt"
+            os.sub / "foo/task.json",
+            os.sub / "foo/task.dest/dummy.txt"
           )
           checkExists(out, false)(
-            os.sub / "bar/target.json",
-            os.sub / "bar/target.dest/dummy.txt"
+            os.sub / "bar/task.json",
+            os.sub / "bar/task.dest/dummy.txt"
           )
         }
       }
@@ -498,7 +498,7 @@ object MainModuleTests extends TestSuite {
         }
       }
 
-      test("single-target") {
+      test("single-task") {
         val workers = new mutable.HashSet[TestWorker]
         val workerModule = new WorkerModule(workers)
         UnitTester(workerModule, null).scoped { ev =>
@@ -530,7 +530,7 @@ object MainModuleTests extends TestSuite {
         }
       }
 
-      test("single-target via rm") {
+      test("single-task via rm") {
         val workers = new mutable.HashSet[TestWorker]
         val workerModule = new WorkerModule(workers)
         UnitTester(workerModule, null).scoped { ev =>

@@ -79,7 +79,7 @@ private[mill] object CodeSigUtils {
     val methodClass = methodOpt
       .nextOption()
       .getOrElse(throw new MillException(
-        s"Could not detect the parent class of target ${namedTask}. " +
+        s"Could not detect the parent class of task ${namedTask}. " +
           s"Please report this at ${BuildInfo.millReportNewIssueUrl} . "
       ))
       .getDeclaringClass.getName
@@ -87,9 +87,9 @@ private[mill] object CodeSigUtils {
     val expectedName = methodClass + "#" + encodedTaskName + "()mill.define.Task$Simple"
     val expectedName2 = methodClass + "#" + encodedTaskName + "()mill.define.Task$Command"
 
-    // We not only need to look up the code hash of the Target method being called,
+    // We not only need to look up the code hash of the task method being called,
     // but also the code hash of the constructors required to instantiate the Module
-    // that the Target is being called on. This can be done by walking up the nested
+    // that the task is being called on. This can be done by walking up the nested
     // modules and looking at their constructors (they're `object`s and should each
     // have only one)
     val allEnclosingModules = Vector.unfold(namedTask.ctx) {
@@ -99,7 +99,7 @@ private[mill] object CodeSigUtils {
           case null => None
           case m: mill.define.Module => Some((m, m.moduleCtx))
           case unknown =>
-            throw new MillException(s"Unknown ctx of target ${namedTask}: $unknown")
+            throw new MillException(s"Unknown ctx of task ${namedTask}: $unknown")
         }
     }
 

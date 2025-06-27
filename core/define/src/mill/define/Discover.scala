@@ -14,8 +14,8 @@ import scala.collection.mutable
  * the `Task.Command` methods we find. This mapping from `Class[_]` to `MainData`
  * can then be used later to look up the `MainData` for any module.
  */
-class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
-  def resolveEntrypoint(cls: Class[?], name: String) = {
+final class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
+  private[mill] def resolveEntrypoint(cls: Class[?], name: String) = {
     val res = for {
       (cls2, node) <- classInfo
       if cls2.isAssignableFrom(cls)
@@ -23,18 +23,22 @@ class Discover(val classInfo: Map[Class[?], Discover.ClassInfo]) {
       if ep.mainName.getOrElse(ep.defaultName) == name
     } yield ep
 
-    res.headOption
+    // When there are multiple entrypoints matching the class and name,
+    // return the one with the longest argument lists, since users may
+    // add additional arguments to a command (with default values) to
+    // preserve binary compatibility while evolving the method signature
+    res.maxByOption(_.argSigs0.length)
   }
 }
 
 object Discover {
-  class ClassInfo(
+  final class ClassInfo(
       val entryPoints: Seq[mainargs.MainData[?, ?]],
       val declaredTasks: Seq[TaskInfo]
   ) {
     lazy val declaredTaskNameSet = declaredTasks.map(_.name).toSet
   }
-  class TaskInfo(val name: String)
+  final class TaskInfo(val name: String)
 
   inline def apply[T]: Discover = ${ Router.applyImpl[T] }
 

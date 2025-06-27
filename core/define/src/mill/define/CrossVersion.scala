@@ -1,8 +1,6 @@
 package mill.define
 
-import upickle.default.{macroRW, ReadWriter as RW}
-
-sealed trait CrossVersion {
+enum CrossVersion derives upickle.default.ReadWriter {
   import CrossVersion.*
 
   /** If true, the cross-version suffix should start with a platform suffix if it exists */
@@ -29,22 +27,14 @@ sealed trait CrossVersion {
     require(!suffix.contains("/"), "Artifact suffix must not contain `/`s")
     suffix
   }
+
+  case Constant(value: String, platformed: Boolean)
+
+  case Binary(platformed: Boolean)
+
+  case Full(platformed: Boolean)
+
 }
 object CrossVersion {
-  case class Constant(value: String, platformed: Boolean) extends CrossVersion
-  object Constant {
-    implicit def rw: RW[Constant] = macroRW
-  }
-  case class Binary(platformed: Boolean) extends CrossVersion
-  object Binary {
-    implicit def rw: RW[Binary] = macroRW
-  }
-  case class Full(platformed: Boolean) extends CrossVersion
-  object Full {
-    implicit def rw: RW[Full] = macroRW
-  }
-
   def empty(platformed: Boolean): Constant = Constant(value = "", platformed)
-
-  implicit def rw: RW[CrossVersion] = RW.merge(Constant.rw, Binary.rw, Full.rw)
 }

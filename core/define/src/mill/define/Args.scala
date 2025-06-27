@@ -4,7 +4,7 @@ package mill.define
  * Represents an unstructured sequence of command-line arguments that can be
  * passed to Mill commands; similar to `mainargs.Leftover`.
  */
-class Args(val value: Seq[String])
+final class Args(val value: Seq[String])
 object Args {
 
   /**

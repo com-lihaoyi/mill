@@ -204,17 +204,17 @@ private[mill] object Resolve {
   }
 
   private def invokeCommand0(
-      target: mill.define.Module,
+      module: mill.define.Module,
       name: String,
       discover: Discover,
       rest: Seq[String],
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean
   ): Result[Task.Command[?]] = {
-    val ep = discover.resolveEntrypoint(target.getClass, name)
+    val ep = discover.resolveEntrypoint(module.getClass, name)
       .getOrElse(
         sys.error(
-          s"Unable to resolve command $name on module $target of class ${target.getClass}"
+          s"Unable to resolve command $name on module $module of class ${module.getClass}"
         )
       )
     def withNullDefault(a: mainargs.ArgSig): mainargs.ArgSig = {
@@ -245,7 +245,7 @@ private[mill] object Resolve {
         .copy(argSigs0 = mainData.argSigs0.map(withNullDefault))
 
       mainargs.Invoker.invoke(
-        target,
+        module,
         mainDataWithDefaults,
         grouped
       )

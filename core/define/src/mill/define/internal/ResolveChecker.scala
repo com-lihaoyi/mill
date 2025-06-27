@@ -1,6 +1,6 @@
 package mill.define.internal
 
-class ResolveChecker(workspace: os.Path) extends os.Checker {
+private[mill] class ResolveChecker(workspace: os.Path) extends os.Checker {
   def onRead(path: os.ReadablePath): Unit = {
     path match {
       case path: os.Path if mill.api.FilesystemCheckerEnabled.value =>
