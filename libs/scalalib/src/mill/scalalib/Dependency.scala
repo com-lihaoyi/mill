@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.{Task, given}
-import mill.define.{Discover, Evaluator, ExternalModule}
+import mill.define.{Discover, Evaluator, ExternalModule, ModuleRef}
 import mill.scalalib.dependency.{DependencyUpdatesImpl, Format}
 import mill.scalalib.dependency.updates.ModuleDependenciesUpdates
 
@@ -20,6 +20,7 @@ object Dependency extends ExternalModule {
         ev,
         Task.ctx(),
         ev.rootModule,
+        CoursierConfigModule,
         ev.rootModule.moduleCtx.discover,
         allowPreRelease
       )
