@@ -20,10 +20,12 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   def buildInfoObjectName = "Versions"
   // Add versions?
   def buildInfoMembers = Seq(
-    BuildInfo.Value("manifestMergerVersion",Deps.AndroidDeps.manifestMergerVersion, "Version of manifestMerger"),
-    BuildInfo.Value("bundleToolVersion",Deps.AndroidDeps.bundleToolVersion, "Version of bundleTool"),
-    BuildInfo.Value("ndkVersion",Deps.AndroidDeps.ndkVersion, "Version of ndk"),
-    BuildInfo.Value("cmakeVersion",Deps.AndroidDeps.cmakeVersion, "Version of cmake")
+    BuildInfo.Value("manifestMergerVersion",Deps.AndroidDeps.manifestMergerVersion, "Version of ManifestMerger"),
+    BuildInfo.Value("bundleToolVersion",Deps.AndroidDeps.bundleToolVersion, "Version of BundleTool"),
+    BuildInfo.Value("ndkVersion",Deps.AndroidDeps.ndkVersion, "Version of NDK (Native Development Kit)"),
+    BuildInfo.Value("cmakeVersion",Deps.AndroidDeps.cmakeVersion, "Version of cmake"),
+    BuildInfo.Value("layoutLibVersion",Deps.AndroidDeps.cmakeVersion, "Version of LayoutLib"),
+    BuildInfo.Value("composePreviewRendererVersion",Deps.AndroidDeps.cmakeVersion, "Version of ComposePreviewRenderer"),
   )
 
   trait MillAndroidModule extends MillPublishScalaModule {

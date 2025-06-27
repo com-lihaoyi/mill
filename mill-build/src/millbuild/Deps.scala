@@ -282,10 +282,14 @@ object Deps {
   }
 
   object AndroidDeps {
+    // Sdk
     val manifestMergerVersion = "31.10.0"
     val bundleToolVersion = "1.17.2"
     val ndkVersion = "27.0.12077973"
     val cmakeVersion = "3.22.1"
+    // Kotlin
+    val layoutLibVersion = "15.1.2"
+    val composePreviewRendererVersion = "0.0.1-alpha09"
   }
 
 

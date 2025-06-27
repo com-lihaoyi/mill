@@ -6,6 +6,7 @@ import mill.scalalib.TestModule.Junit5
 import mill.scalalib.{JavaModule, TestModule}
 import mill.*
 import mill.define.JsonFormatters.given
+import mill.androidlib.Versions
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -75,10 +76,12 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     override def androidManifest: T[PathRef] = outer.androidManifest()
     override def androidMergedManifest: T[PathRef] = outer.androidMergedManifest()
 
-    // FIXME: avoid hardcoded version
-    def layoutLibVersion: String = "15.1.2"
-    // FIXME: avoid hardcoded version
-    def composePreviewRendererVersion: String = "0.0.1-alpha09"
+    def layoutLibVersion: T[String] = Task {
+      Versions.layoutLibVersion
+    }
+    def composePreviewRendererVersion: T[String] = Task {
+      Versions.composePreviewRendererVersion
+    }
 
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
 
