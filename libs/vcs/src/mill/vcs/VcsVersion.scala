@@ -37,7 +37,7 @@ object VcsVersion extends ExternalModule with VcsVersion {
         countSep: String = "-",
         commitCountPad: Byte = 0,
         revSep: String = "-",
-        revHashDigits: Int = -1,
+        revHashDigits: Int = 6,
         dirtySep: String = "-DIRTY",
         dirtyHashDigits: Int = 8,
         tagModifier: String => String = stripV,
@@ -57,17 +57,7 @@ object VcsVersion extends ExternalModule with VcsVersion {
       } else ""
 
       val revisionPart = if (isUntagged) {
-        val actualRevHashDigits =
-          if (revHashDigits != -1) currentRevision.take(revHashDigits)
-          else {
-            os.call(
-              ("git", "rev-parse", "--short", currentRevision),
-              cwd = vcsBasePath,
-              stderr = os.Pipe
-            ).out.trim()
-          }
-
-        s"$revSep$actualRevHashDigits"
+        s"$revSep${currentRevision.take(revHashDigits)}"
       } else ""
 
       val dirtyPart = dirtyHash match {
