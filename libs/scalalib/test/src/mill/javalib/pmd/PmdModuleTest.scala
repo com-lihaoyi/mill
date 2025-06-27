@@ -33,7 +33,8 @@ object PmdModuleTest extends TestSuite {
         val expectedViolations = javaFiles.flatMap { file =>
           os.read.lines(file).zipWithIndex.collect {
             case (line, idx) if line.contains("// violation") =>
-              (file.relativeTo(modulePath).toString, idx + 1)
+              // Normalize all path separators to '/' for cross-platform compatibility
+              (file.relativeTo(modulePath).toString.replace("\\", "/"), idx + 1)
           }
         }.toSet
 
@@ -42,15 +43,15 @@ object PmdModuleTest extends TestSuite {
         val violationRegex = """(.+):(\d+):\s+.*""".r
         val reportedViolations = reportLines.collect {
           case violationRegex(file, line) =>
-            (file.trim, line.toInt)
+            // Normalize all path separators to '/' for cross-platform compatibility
+            (file.trim.replace("\\", "/"), line.toInt)
         }.toSet
 
         // PMD sometimes reports paths relative to the cwd or absolute; try to normalize
         def normalize(path: String): String =
-          if (path.startsWith(modulePath.toString)) os.Path(path).relativeTo(modulePath).toString
-          else path
+          path.replace("\\", "/")
 
-        val expectedNormalized = expectedViolations.map { case (file, line) => (file, line) }
+        val expectedNormalized = expectedViolations.map { case (file, line) => (normalize(file), line) }
         val reportedNormalized = reportedViolations.map { case (file, line) => (normalize(file), line) }
 
         assert(expectedNormalized == reportedNormalized)
