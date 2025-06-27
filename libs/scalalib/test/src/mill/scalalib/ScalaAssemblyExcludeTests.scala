@@ -12,11 +12,11 @@ import mill.define.Task
 object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {
     def checkExclude[M <: mill.testkit.TestRootModule](
-        module: M,
-        target: Task.Simple[PathRef],
-        resourcePath: os.Path = resourcePath
+                                                        module: M,
+                                                        task: Task.Simple[PathRef],
+                                                        resourcePath: os.Path = resourcePath
     ) = UnitTester(module, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(target): @unchecked
+      val Right(result) = eval.apply(task): @unchecked
 
       Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
         assert(!jarEntries(jarFile).contains("reference.conf"))
@@ -43,11 +43,11 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
     )
 
     def checkRelocate[M <: mill.testkit.TestRootModule](
-        module: M,
-        target: Task.Simple[PathRef],
-        resourcePath: os.Path = resourcePath
+                                                         module: M,
+                                                         task: Task.Simple[PathRef],
+                                                         resourcePath: os.Path = resourcePath
     ) = UnitTester(module, resourcePath).scoped { eval =>
-      val Right(result) = eval.apply(target): @unchecked
+      val Right(result) = eval.apply(task): @unchecked
       Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
         assert(!jarEntries(jarFile).contains("akka/http/scaladsl/model/HttpEntity.class"))
         assert(

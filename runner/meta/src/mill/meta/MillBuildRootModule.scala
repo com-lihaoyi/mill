@@ -142,21 +142,21 @@ trait MillBuildRootModule()(implicit
         classFiles = os.walk(compile().classes.path).filter(_.ext == "class"),
         upstreamClasspath = compileClasspath().toSeq.map(_.path),
         ignoreCall = { (callSiteOpt, calledSig) =>
-          // We can ignore all calls to methods that look like Targets when traversing
-          // the call graph. We can do this because we assume `def` Targets are pure,
+          // We can ignore all calls to methods that look like tasks when traversing
+          // the call graph. We can do this because we assume `def` tasks are pure,
           // and so any changes in their behavior will be picked up by the runtime build
           // graph evaluator without needing to be accounted for in the post-compile
           // bytecode callgraph analysis.
-          def isSimpleTarget(desc: mill.codesig.JvmModel.Desc) =
+          def isSimpleTask(desc: mill.codesig.JvmModel.Desc) =
             (desc.ret.pretty == classOf[Task.Simple[?]].getName ||
               desc.ret.pretty == classOf[Worker[?]].getName) &&
               desc.args.isEmpty
 
           // We avoid ignoring method calls that are simple trait forwarders, because
           // we need the trait forwarders calls to be counted in order to wire up the
-          // method definition that a Target is associated with during evaluation
-          // (e.g. `myModuleObject.myTarget`) with its implementation that may be defined
-          // somewhere else (e.g. `trait MyModuleTrait{ def myTarget }`). Only that one
+          // method definition that a task is associated with during evaluation
+          // (e.g. `myModuleObject.myTask`) with its implementation that may be defined
+          // somewhere else (e.g. `trait MyModuleTrait{ def myTask }`). Only that one
           // step is necessary, after that the runtime build graph invalidation logic can
           // take over
           def isForwarderCallsiteOrLambda =
@@ -168,17 +168,17 @@ trait MillBuildRootModule()(implicit
                 callSiteSig.desc.args.size == 1)
               || (
                 // In Scala 3, lambdas are implemented by private instance methods,
-                // not static methods, so they fall through the crack of "isSimpleTarget".
-                // Here make the assumption that a zero-arg lambda called from a simpleTarget,
+                // not static methods, so they fall through the crack of "isSimpleTask".
+                // Here make the assumption that a zero-arg lambda called from a simpleTask,
                 // should in fact be tracked. e.g. see `integration.invalidation[codesig-hello]`,
-                // where the body of the `def foo` target is a zero-arg lambda i.e. the argument
-                // of `Cacher.cachedTarget`.
+                // where the body of the `def foo` task is a zero-arg lambda i.e. the argument
+                // of `Cacher.cachedTask`.
                 // To be more precise I think ideally we should capture more information in the signature
-                isSimpleTarget(callSiteSig.desc) && calledSig.name.contains("$anonfun")
+                isSimpleTask(callSiteSig.desc) && calledSig.name.contains("$anonfun")
               )
             }
 
-          // We ignore Commands for the same reason as we ignore Targets, and also because
+          // We ignore Commands for the same reason as we ignore tasks, and also because
           // their implementations get gathered up all the via the `Discover` macro, but this
           // is primarily for use as external entrypoints and shouldn't really be counted as
           // part of the `millbuild.build#<init>` transitive call graph they would normally
@@ -196,7 +196,7 @@ trait MillBuildRootModule()(implicit
               calledSig.name == "millDiscover" ||
               callSiteOpt.exists(_.sig.name == "millDiscover")
 
-          (isSimpleTarget(calledSig.desc) && !isForwarderCallsiteOrLambda) ||
+          (isSimpleTask(calledSig.desc) && !isForwarderCallsiteOrLambda) ||
           isCommand ||
           isMillDiscover
         },

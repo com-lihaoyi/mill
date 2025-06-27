@@ -24,7 +24,7 @@ trait TaskTests extends TestSuite {
       superBuildInputCount
     }
 
-    def superBuildTargetOverrideWithInput = Task {
+    def superBuildTaskOverrideWithInput = Task {
       1234
     }
   }
@@ -116,10 +116,10 @@ trait TaskTests extends TestSuite {
       123 + super.superBuildInputOverrideUsingSuper()
     }
 
-    var superBuildTargetOverrideWithInputCount = 0
-    override def superBuildTargetOverrideWithInput = Task.Input {
-      superBuildTargetOverrideWithInputCount += 1
-      superBuildTargetOverrideWithInputCount
+    var superBuildTaskOverrideWithInputCount = 0
+    override def superBuildTaskOverrideWithInput = Task.Input {
+      superBuildTaskOverrideWithInputCount += 1
+      superBuildTaskOverrideWithInputCount
     }
 
     // A task that can fail by using Result.Failure
@@ -264,9 +264,9 @@ trait TaskTests extends TestSuite {
         }
       }
       test("targetWithInput") - withEnv { (build, check) =>
-        check(build.superBuildTargetOverrideWithInput) ==> Right(Result(1, 0))
-        check(build.superBuildTargetOverrideWithInput) ==> Right(Result(2, 0))
-        check(build.superBuildTargetOverrideWithInput) ==> Right(Result(3, 0))
+        check(build.superBuildTaskOverrideWithInput) ==> Right(Result(1, 0))
+        check(build.superBuildTaskOverrideWithInput) ==> Right(Result(2, 0))
+        check(build.superBuildTaskOverrideWithInput) ==> Right(Result(3, 0))
       }
     }
     test("duplicateTaskInResult-issue2958") - withEnv { (build, check) =>

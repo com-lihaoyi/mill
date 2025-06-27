@@ -61,10 +61,10 @@ object ResolveTests extends TestSuite {
     }
     test("backtickIdentifiers") {
       val check = new Checker(bactickIdentifiers)
-      test("pos1") - check("up-target", Result.Success(Set(_.`up-target`)), Set("up-target"))
+      test("pos1") - check("up-target", Result.Success(Set(_.`up-task`)), Set("up-target"))
       test("pos2") - check(
         "a-down-target",
-        Result.Success(Set(_.`a-down-target`)),
+        Result.Success(Set(_.`a-down-task`)),
         Set("a-down-target")
       )
       test("neg1") - check(
@@ -100,7 +100,7 @@ object ResolveTests extends TestSuite {
       test("nested") {
         test("pos") - check(
           "nested-module.nested-target",
-          Result.Success(Set(_.`nested-module`.`nested-target`)),
+          Result.Success(Set(_.`nested-module`.`nested-task`)),
           Set("nested-module.nested-target")
         )
         test("neg") - check(

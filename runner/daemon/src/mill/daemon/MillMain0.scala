@@ -262,7 +262,7 @@ object MillMain0 {
                                 imports = config.imports,
                                 env = env ++ extraEnv,
                                 ec = ec,
-                                targetsAndParams = targetsAndParams,
+                                tasksAndParams = targetsAndParams,
                                 prevRunnerState = prevState.getOrElse(stateCache),
                                 logger = logger,
                                 needBuildFile = needBuildFile(config),

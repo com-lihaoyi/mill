@@ -190,8 +190,8 @@ private[mill] case class Execution(
 
                 // should we log progress?
                 val inputResults = for {
-                  target <- group.toIndexedSeq.filterNot(upstreamResults.contains)
-                  item <- target.inputs.filterNot(group.contains)
+                  task <- group.toIndexedSeq.filterNot(upstreamResults.contains)
+                  item <- task.inputs.filterNot(group.contains)
                 } yield upstreamResults(item).map(_._1)
                 val logRun = inputResults.forall(_.isInstanceOf[ExecResult.Success[?]])
 
@@ -279,7 +279,7 @@ private[mill] case class Execution(
       case _ => true
     }
 
-    val tasksTransitive = PlanImpl.transitiveTargets(Seq.from(tasks0)).toSet
+    val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(tasks0)).toSet
     val (tasks, leafExclusiveCommands) = terminals0.partition {
       case t: Task.Named[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
       case _ => !serialCommandExec

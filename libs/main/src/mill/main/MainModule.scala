@@ -37,9 +37,9 @@ trait MainModule extends BaseModule with MainModuleApi {
   /**
    * Resolves a mill query string and prints out the tasks it resolves to.
    */
-  def resolve(evaluator: Evaluator, targets: String*): Command[List[String]] =
+  def resolve(evaluator: Evaluator, tasks: String*): Command[List[String]] =
     Task.Command(exclusive = true) {
-      val resolved = evaluator.resolveSegments(targets, SelectMode.Multi)
+      val resolved = evaluator.resolveSegments(tasks, SelectMode.Multi)
 
       resolved.map { resolvedSegmentsList =>
         val resolvedStrings = resolvedSegmentsList.map(_.render)
@@ -52,9 +52,9 @@ trait MainModule extends BaseModule with MainModuleApi {
    * Given a set of tasks, prints out the execution plan of what tasks will be
    * executed in what order, without actually executing them.
    */
-  def plan(evaluator: Evaluator, targets: String*): Command[Array[String]] =
+  def plan(evaluator: Evaluator, tasks: String*): Command[Array[String]] =
     Task.Command(exclusive = true) {
-      MainModule.plan0(evaluator, targets).map {
+      MainModule.plan0(evaluator, tasks).map {
         success =>
           val renderedTasks = success.map(_.toString)
           renderedTasks.foreach(println)
@@ -117,9 +117,9 @@ trait MainModule extends BaseModule with MainModuleApi {
    * Runs a given task and prints the JSON result to stdout. This is useful
    * to integrate Mill into external scripts and tooling.
    */
-  def show(evaluator: Evaluator, targets: String*): Command[ujson.Value] =
+  def show(evaluator: Evaluator, tasks: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
-      MainModule.show0(evaluator, targets, Task.log, BuildCtx.evalWatch0) { res =>
+      MainModule.show0(evaluator, tasks, Task.log, BuildCtx.evalWatch0) { res =>
         res.flatMap(_._2) match {
           case Seq((k, singleValue)) => singleValue
           case multiple => ujson.Obj.from(multiple)
@@ -131,25 +131,25 @@ trait MainModule extends BaseModule with MainModuleApi {
    * Runs a given task and prints the results as JSON dictionary to stdout. This is useful
    * to integrate Mill into external scripts and tooling.
    */
-  def showNamed(evaluator: Evaluator, targets: String*): Command[ujson.Value] =
+  def showNamed(evaluator: Evaluator, tasks: String*): Command[ujson.Value] =
     Task.Command(exclusive = true) {
-      MainModule.show0(evaluator, targets, Task.log, BuildCtx.evalWatch0) { res =>
+      MainModule.show0(evaluator, tasks, Task.log, BuildCtx.evalWatch0) { res =>
         ujson.Obj.from(res.flatMap(_._2))
       }
     }
 
   private[mill] def bspClean(
-      evaluator: EvaluatorApi,
-      targets: String*
+                              evaluator: EvaluatorApi,
+                              tasks: String*
   ): TaskApi[Seq[java.nio.file.Path]] = Task.Anon {
-    clean(evaluator.asInstanceOf[Evaluator], targets*)().map(_.path.toNIO)
+    clean(evaluator.asInstanceOf[Evaluator], tasks*)().map(_.path.toNIO)
   }
 
   /**
    * Deletes the given targets from the out directory. Providing no targets
    * will clean everything.
    */
-  def clean(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] =
+  def clean(evaluator: Evaluator, tasks: String*): Command[Seq[PathRef]] =
     Task.Command(exclusive = true) {
       val rootDir = evaluator.outPath
 
@@ -161,10 +161,10 @@ trait MainModule extends BaseModule with MainModuleApi {
       }
 
       val pathsToRemove =
-        if (targets.isEmpty)
+        if (tasks.isEmpty)
           Result.Success((os.list(rootDir).filterNot(keepPath), List(mill.define.Segments())))
         else
-          evaluator.resolveSegments(targets, SelectMode.Multi).map { ts =>
+          evaluator.resolveSegments(tasks, SelectMode.Multi).map { ts =>
             val allPaths = ts.flatMap { segments =>
               val evPaths = ExecutionPaths.resolve(rootDir, segments)
               val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
@@ -202,11 +202,11 @@ trait MainModule extends BaseModule with MainModuleApi {
   /**
    * Renders the dependencies between the given tasks as a SVG for you to look at
    */
-  def visualize(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] =
+  def visualize(evaluator: Evaluator, tasks: String*): Command[Seq[PathRef]] =
     Task.Command(exclusive = true) {
       VisualizeModule.visualize0(
         evaluator,
-        targets,
+        tasks,
         Task.ctx(),
         mill.main.VisualizeModule.worker()
       )
@@ -215,13 +215,13 @@ trait MainModule extends BaseModule with MainModuleApi {
   /**
    * Renders the dependencies between the given tasks, and all their dependencies, as a SVG
    */
-  def visualizePlan(evaluator: Evaluator, targets: String*): Command[Seq[PathRef]] =
+  def visualizePlan(evaluator: Evaluator, tasks: String*): Command[Seq[PathRef]] =
     Task.Command(exclusive = true) {
-      MainModule.plan0(evaluator, targets).flatMap {
+      MainModule.plan0(evaluator, tasks).flatMap {
         planResults =>
           VisualizeModule.visualize0(
             evaluator,
-            targets,
+            tasks,
             Task.ctx(),
             mill.main.VisualizeModule.worker(),
             Some(planResults.toList)
@@ -325,10 +325,10 @@ trait MainModule extends BaseModule with MainModuleApi {
 object MainModule {
 
   private def show0(
-      evaluator: Evaluator,
-      targets: Seq[String],
-      log: Logger,
-      watch0: Watchable => Unit
+                     evaluator: Evaluator,
+                     tasks: Seq[String],
+                     log: Logger,
+                     watch0: Watchable => Unit
   )(f: Seq[(Any, Option[(String, ujson.Value)])] => ujson.Value)
       : Result[ujson.Value] = {
 
@@ -340,7 +340,7 @@ object MainModule {
 
     evaluator.withBaseLogger(redirectLogger)
       .evaluate(
-        targets,
+        tasks,
         Separated,
         selectiveExecution = evaluator.selectiveExecution
       ).flatMap {

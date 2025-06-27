@@ -42,10 +42,10 @@ sealed abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T] with 
    */
   def persistent: Boolean = false
 
-  def asTarget: Option[Task.Simple[T]] = None
-  def asCommand: Option[Task.Command[T]] = None
-  def asWorker: Option[Task.Worker[T]] = None
-  def isExclusiveCommand: Boolean = this match {
+  private[mill] def asSimple: Option[Task.Simple[T]] = None
+  private[mill] def asCommand: Option[Task.Command[T]] = None
+  private[mill] def asWorker: Option[Task.Worker[T]] = None
+  private[mill] def isExclusiveCommand: Boolean = this match {
     case c: Task.Command[_] if c.exclusive => true
     case _ => false
   }
@@ -344,7 +344,7 @@ object Task {
       val isPrivate: Option[Boolean],
       override val persistent: Boolean
   ) extends Simple[T] {
-    override def asTarget: Option[Simple[T]] = Some(this)
+    override def asSimple: Option[Simple[T]] = Some(this)
 
     // FIXME: deprecated return type: Change to Option
     override def readWriterOpt: Some[ReadWriter[?]] = Some(readWriter)

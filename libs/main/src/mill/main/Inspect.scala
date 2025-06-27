@@ -64,7 +64,7 @@ private object Inspect {
         if (seen(t)) Nil // do nothing
         else t match {
           case t: mill.define.Task.Simple[_]
-              if evaluator.rootModule.moduleInternal.targets.contains(t) =>
+              if evaluator.rootModule.moduleInternal.simpleTasks.contains(t) =>
             Seq(t.ctx.segments)
           case _ =>
             seen.add(t)

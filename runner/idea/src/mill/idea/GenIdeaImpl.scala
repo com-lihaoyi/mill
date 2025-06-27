@@ -502,7 +502,7 @@ class GenIdeaImpl(
           .filter(_._2.size > 1)
       if (map.nonEmpty) {
         println(
-          s"Config file collisions detected. Check you `ideaConfigFiles` targets. Colliding files: ${map
+          s"Config file collisions detected. Check you `ideaConfigFiles` tasks. Colliding files: ${map
               .map(_._1)}. All project files: ${map}"
         )
       }

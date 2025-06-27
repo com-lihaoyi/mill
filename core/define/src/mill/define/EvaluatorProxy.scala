@@ -56,37 +56,37 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   }
   def plan(tasks: Seq[Task[?]]): Plan = delegate.plan(tasks)
 
-  def groupAroundImportantTargets[T](topoSortedTargets: mill.define.TopoSorted)(
+  def groupAroundImportantTasks[T](topoSortedTasks: mill.define.TopoSorted)(
       important: PartialFunction[
         Task[?],
         T
       ]
-  ): MultiBiMap[T, Task[?]] = delegate.groupAroundImportantTargets(topoSortedTargets)(important)
+  ): MultiBiMap[T, Task[?]] = delegate.groupAroundImportantTasks(topoSortedTasks)(important)
 
   /**
    * Collects all transitive dependencies (targets) of the given targets,
    * including the given targets.
    */
-  def transitiveTargets(sourceTargets: Seq[Task[?]]): IndexedSeq[Task[?]] =
-    delegate.transitiveTargets(sourceTargets)
+  def transitiveTasks(sourceTasks: Seq[Task[?]]): IndexedSeq[Task[?]] =
+    delegate.transitiveTasks(sourceTasks)
 
   /**
    * Takes the given targets, finds all the targets they transitively depend
    * on, and sort them topologically. Fails if there are dependency cycles
    */
-  def topoSorted(transitiveTargets: IndexedSeq[Task[?]]): mill.define.TopoSorted =
-    delegate.topoSorted(transitiveTargets)
+  def topoSorted(transitiveTasks: IndexedSeq[Task[?]]): mill.define.TopoSorted =
+    delegate.topoSorted(transitiveTasks)
 
   def execute[T](
-      targets: Seq[Task[T]],
-      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = TestReporter.DummyTestReporter,
-      logger: Logger = baseLogger,
-      serialCommandExec: Boolean = false,
-      selectiveExecution: Boolean = false
+                  tasks: Seq[Task[T]],
+                  reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+                  testReporter: TestReporter = TestReporter.DummyTestReporter,
+                  logger: Logger = baseLogger,
+                  serialCommandExec: Boolean = false,
+                  selectiveExecution: Boolean = false
   ): Evaluator.Result[T] = {
     delegate.execute(
-      targets,
+      tasks,
       reporter,
       testReporter,
       logger,

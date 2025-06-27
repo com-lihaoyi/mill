@@ -12,9 +12,9 @@ import mill.define.Task
 
 object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {
-    def checkAppend[M <: mill.testkit.TestRootModule](module: M, target: Task.Simple[PathRef]) =
+    def checkAppend[M <: mill.testkit.TestRootModule](module: M, task: Task.Simple[PathRef]) =
       UnitTester(module, resourcePath).scoped { eval =>
-        val Right(result) = eval.apply(target): @unchecked
+        val Right(result) = eval.apply(task): @unchecked
 
         Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
           assert(jarEntries(jarFile).contains("reference.conf"))
@@ -37,13 +37,13 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
       }
 
     def checkAppendMulti[M <: mill.testkit.TestRootModule](
-        module: M,
-        target: Task.Simple[PathRef]
+                                                            module: M,
+                                                            task: Task.Simple[PathRef]
     ): Unit = UnitTester(
       module,
       sourceRoot = helloWorldMultiResourcePath
     ).scoped { eval =>
-      val Right(result) = eval.apply(target): @unchecked
+      val Right(result) = eval.apply(task): @unchecked
 
       Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
         assert(jarEntries(jarFile).contains("reference.conf"))
@@ -63,13 +63,13 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
     }
 
     def checkAppendWithSeparator[M <: mill.testkit.TestRootModule](
-        module: M,
-        target: Task.Simple[PathRef]
+                                                                    module: M,
+                                                                    task: Task.Simple[PathRef]
     ): Unit = UnitTester(
       module,
       sourceRoot = helloWorldMultiResourcePath
     ).scoped { eval =>
-      val Right(result) = eval.apply(target): @unchecked
+      val Right(result) = eval.apply(task): @unchecked
 
       Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>
         assert(jarEntries(jarFile).contains("without-new-line.conf"))
