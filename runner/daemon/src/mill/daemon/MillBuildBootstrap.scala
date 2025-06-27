@@ -12,8 +12,8 @@ import mill.api.internal.{
 import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.{millBuild, millRunnerState}
-import mill.define.internal.Watchable
-import mill.define.{BuildCtx, PathRef, RootModule0, SelectMode}
+import mill.define.internal.{RootModule0, Watchable}
+import mill.define.{BuildCtx, PathRef, SelectMode}
 import mill.internal.PrefixLogger
 import mill.meta.{FileImportGraph, MillBuildRootModule}
 import mill.meta.CliImports
@@ -49,7 +49,7 @@ class MillBuildBootstrap(
     imports: Seq[String],
     env: Map[String, String],
     ec: Option[ThreadPoolExecutor],
-    targetsAndParams: Seq[String],
+    tasksAndParams: Seq[String],
     prevRunnerState: RunnerState,
     logger: Logger,
     needBuildFile: Boolean,
@@ -95,7 +95,7 @@ class MillBuildBootstrap(
     val (nestedState, headerDataOpt) =
       if (depth == 0) {
         // On this level we typically want to assume a Mill project, which means we want to require an existing `build.mill`.
-        // Unfortunately, some targets also make sense without a `build.mill`, e.g. the `init` command.
+        // Unfortunately, some tasks also make sense without a `build.mill`, e.g. the `init` command.
         // Hence, we only report a missing `build.mill` as a problem if the command itself does not succeed.
         lazy val state = evaluateRec(depth + 1)
         if (
@@ -208,7 +208,7 @@ class MillBuildBootstrap(
               headerData = headerDataOpt.getOrElse("")
             )) { evaluator =>
               if (depth == requestedDepth) {
-                processFinalTargets(nestedState, buildFileApi, evaluator)
+                processFinalTasks(nestedState, buildFileApi, evaluator)
               } else if (depth <= requestedDepth) nestedState
               else {
                 processRunClasspath(
@@ -321,11 +321,11 @@ class MillBuildBootstrap(
   }
 
   /**
-   * Handles the final evaluation of the user-provided targets. Since there are
+   * Handles the final evaluation of the user-provided tasks. Since there are
    * no further levels to evaluate, we do not need to save a `scriptImportGraph`,
    * classloader, or runClasspath.
    */
-  def processFinalTargets(
+  def processFinalTasks(
       nestedState: RunnerState,
       buildFileApi: BuildFileApi,
       evaluator: EvaluatorApi
@@ -336,7 +336,7 @@ class MillBuildBootstrap(
     val (evaled, evalWatched, moduleWatches) = evaluateWithWatches(
       buildFileApi,
       evaluator,
-      targetsAndParams,
+      tasksAndParams,
       selectiveExecution,
       reporter = reporter(evaluator)
     )
@@ -494,7 +494,7 @@ object MillBuildBootstrap {
   def evaluateWithWatches(
       buildFileApi: BuildFileApi,
       evaluator: EvaluatorApi,
-      targetsAndParams: Seq[String],
+      tasksAndParams: Seq[String],
       selectiveExecution: Boolean,
       reporter: Int => Option[CompileProblemReporter]
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
@@ -503,7 +503,7 @@ object MillBuildBootstrap {
     val evalTaskResult =
       mill.api.ClassLoader.withContextClassLoader(rootModule.getClass.getClassLoader) {
         evaluator.evaluate(
-          targetsAndParams,
+          tasksAndParams,
           SelectMode.Separated,
           reporter = reporter,
           selectiveExecution = selectiveExecution

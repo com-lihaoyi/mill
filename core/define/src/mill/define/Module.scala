@@ -36,7 +36,7 @@ trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
     moduleInternal.reflectNestedObjects[Module]().toSeq
 
   def moduleDir: os.Path = moduleCtx.millSourcePath
-  def moduleDirJava = moduleDir.toNIO
+  private[mill] def moduleDirJava = moduleDir.toNIO
 
   def moduleSegments: Segments = moduleCtx.segments
 
@@ -70,7 +70,7 @@ object Module {
     lazy val segmentsToModules: Map[Segments, Module] =
       modules.map(m => (m.moduleSegments, m)).toMap
 
-    lazy val targets: Set[Simple[?]] =
+    lazy val simpleTasks: Set[Simple[?]] =
       traverse { _.moduleInternal.reflectAll[Simple[?]].toIndexedSeq }.toSet
 
     def reflect[T: ClassTag](filter: String => Boolean): Seq[T] = {

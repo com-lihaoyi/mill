@@ -1,6 +1,5 @@
 package mill.scalalib.internal
 
-import mill.api.BuildScriptException
 import mill.api.internal.internal
 
 import scala.annotation.tailrec
@@ -16,7 +15,7 @@ object ModuleUtils {
    * @param name The nane is used in the exception message only
    * @param start the start element
    * @param deps A function provided the direct dependencies
-   * @throws BuildScriptException if there were cycles in the dependencies
+   * @throws mill.api.MillException if there were cycles in the dependencies
    */
   // FIXME: Remove or consolidate with copy in JvmWorkerImpl
   def recursive[T](name: String, start: T, deps: T => Seq[T]): Seq[T] = {
@@ -37,7 +36,7 @@ object ModuleUtils {
                   (cand :: (cand :: trace.takeWhile(_ != cand)).reverse).mkString(" -> ")
                 val msg = s"${name}: cycle detected: ${rendered}"
                 println(msg)
-                throw new BuildScriptException(msg)
+                throw new mill.api.MillException(msg)
               }
               rec(
                 if (seenModules.contains(cand)) seenModules

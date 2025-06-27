@@ -3,7 +3,7 @@ package mill.resolve
 import mill.api.Result
 import mill.define.{Segment, Segments, SelectMode}
 import mill.define.Segment.{Cross, Label}
-import mill.resolve.ParseArgs.TargetSeparator
+import mill.resolve.ParseArgs.TaskSeparator
 import utest.*
 
 object ParseArgsTests extends TestSuite {
@@ -112,7 +112,7 @@ object ParseArgsTests extends TestSuite {
         val parsed = ParseArgs(Seq.empty, selectMode = SelectMode.Separated)
         assert(
           parsed == Result.Failure(
-            "Target selector must not be empty. Try `mill resolve _` to see what's available."
+            "Task selector must not be empty. Try `mill resolve _` to see what's available."
           )
         )
       }
@@ -226,7 +226,7 @@ object ParseArgsTests extends TestSuite {
       val selectMode = SelectMode.Separated
       def parsed(args: String*) = ParseArgs(args, selectMode)
       test("rejectEmpty") {
-        val msg = "Target selector must not be empty. Try `mill resolve _` to see what's available."
+        val msg = "Task selector must not be empty. Try `mill resolve _` to see what's available."
         assert(parsed("") == Result.Failure(msg))
         assert(parsed() == Result.Failure(msg))
       }
@@ -248,7 +248,7 @@ object ParseArgsTests extends TestSuite {
         )
       }
 
-      test("singleTopLevelTarget") {
+      test("singleTopLevelTask") {
         check(
           Seq("compile"),
           Seq(
@@ -258,7 +258,7 @@ object ParseArgsTests extends TestSuite {
           )
         )
       }
-      test("singleTarget") {
+      test("singleTask") {
         check(
           Seq("core.compile"),
           Seq(
@@ -268,9 +268,9 @@ object ParseArgsTests extends TestSuite {
           )
         )
       }
-      test("multiTargets") {
+      test("multiTasks") {
         check(
-          Seq("core.compile", ParseArgs.TargetSeparator, "app.compile"),
+          Seq("core.compile", ParseArgs.TaskSeparator, "app.compile"),
           Seq(
             Seq(
               None -> Seq(Label("core"), Label("compile"))
@@ -281,33 +281,33 @@ object ParseArgsTests extends TestSuite {
           )
         )
       }
-      test("multiTargetsSupportMaskingSeparator") {
+      test("multiTasksSupportMaskingSeparator") {
         check(
           Seq(
             "core.run",
-            """\""" + ParseArgs.TargetSeparator,
+            """\""" + ParseArgs.TaskSeparator,
             "arg2",
             "+",
             "run",
-            """\\""" + ParseArgs.TargetSeparator,
-            """\\\""" + ParseArgs.TargetSeparator,
-            """x\\""" + ParseArgs.TargetSeparator
+            """\\""" + ParseArgs.TaskSeparator,
+            """\\\""" + ParseArgs.TaskSeparator,
+            """x\\""" + ParseArgs.TaskSeparator
           ),
           Seq(
             Seq(
               None -> Seq(Label("core"), Label("run"))
-            ) -> Seq(ParseArgs.TargetSeparator, "arg2"),
+            ) -> Seq(ParseArgs.TaskSeparator, "arg2"),
             Seq(
               None -> Seq(Label("run"))
             ) -> Seq(
-              """\""" + TargetSeparator,
-              """\\""" + TargetSeparator,
-              """x\\""" + TargetSeparator
+              """\""" + TaskSeparator,
+              """\\""" + TaskSeparator,
+              """x\\""" + TaskSeparator
             )
           )
         )
       }
-      test("singleTargetWithArgs") {
+      test("singleTaskWithArgs") {
         check(
           Seq("core.run", "arg1", "arg2"),
           Seq(
@@ -317,9 +317,9 @@ object ParseArgsTests extends TestSuite {
           )
         )
       }
-      test("multiTargetsWithArgs") {
+      test("multiTasksWithArgs") {
         check(
-          Seq("core.run", "arg1", "arg2", ParseArgs.TargetSeparator, "core.runMain", "my.main"),
+          Seq("core.run", "arg1", "arg2", ParseArgs.TaskSeparator, "core.runMain", "my.main"),
           Seq(
             Seq(
               None -> Seq(Label("core"), Label("run"))
@@ -330,13 +330,13 @@ object ParseArgsTests extends TestSuite {
           )
         )
       }
-      test("multiTargetsWithArgsAndBrace") {
+      test("multiTasksWithArgsAndBrace") {
         check(
           Seq(
             "{core,app,test._}.run",
             "arg1",
             "arg2",
-            ParseArgs.TargetSeparator,
+            ParseArgs.TaskSeparator,
             "core.runMain",
             "my.main"
           ),

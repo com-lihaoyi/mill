@@ -4,8 +4,7 @@ import mill.api.internal.internal
 import os.Path
 
 @internal object DiscoverTestsMain {
-  private implicit def PathTokensReader2: mainargs.TokensReader.Simple[os.Path] =
-    mill.define.JsonFormatters.PathTokensReader2
+  import mill.define.JsonFormatters.PathTokensReader
 
   @mainargs.main
   def main(runCp: Seq[os.Path], testCp: Seq[os.Path], framework: String): Unit = {

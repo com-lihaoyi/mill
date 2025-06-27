@@ -82,8 +82,8 @@ trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer
 
   /**
    * Folders containing source files that are generated rather than
-   * handwritten; these files can be generated in this target itself,
-   * or can refer to files generated from other targets
+   * handwritten; these files can be generated in this task itself,
+   * or can refer to files generated from other tasks
    */
   def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 

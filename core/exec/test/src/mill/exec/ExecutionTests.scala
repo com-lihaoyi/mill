@@ -45,6 +45,12 @@ object ExecutionTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
+  object overloads extends TestRootModule {
+    def overloaded(x: Int) = Task.Command { x + 1 }
+    def overloaded(x: Int, y: Int = 0) = Task.Command { x + y + 1 }
+    lazy val millDiscover = Discover[this.type]
+  }
+
   class Checker[T <: mill.testkit.TestRootModule](module: T)
       extends exec.Checker(module)
 
@@ -387,32 +393,32 @@ object ExecutionTests extends TestSuite {
 
       object nullTasks extends TestRootModule {
         val nullString: String = null
-        def nullTask1 = Task.Anon { nullString }
-        def nullTask2 = Task.Anon { nullTask1() }
+        def nullAnonTask1 = Task.Anon { nullString }
+        def nullAnonTask2 = Task.Anon { nullAnonTask1() }
 
-        def nullTarget1 = Task { nullString }
-        def nullTarget2 = Task { nullTarget1() }
-        def nullTarget3 = Task { nullTask1() }
-        def nullTarget4 = Task { nullTask2() }
+        def nullTask1 = Task { nullString }
+        def nullTask2 = Task { nullTask1() }
+        def nullTask3 = Task { nullAnonTask1() }
+        def nullTask4 = Task { nullAnonTask2() }
 
         def nullCommand1() = Task.Command { nullString }
-        def nullCommand2() = Task.Command { nullTarget1() }
-        def nullCommand3() = Task.Command { nullTask1() }
-        def nullCommand4() = Task.Command { nullTask2() }
+        def nullCommand2() = Task.Command { nullTask1() }
+        def nullCommand3() = Task.Command { nullAnonTask1() }
+        def nullCommand4() = Task.Command { nullAnonTask2() }
 
         lazy val millDiscover = Discover[this.type]
       }
 
       import nullTasks._
       val checker = new Checker(nullTasks)
-      checker(nullTarget1, null, Seq(nullTarget1), extraEvaled = -1)
-      checker(nullTarget1, null, Seq(), extraEvaled = -1)
-      checker(nullTarget2, null, Seq(nullTarget2), extraEvaled = -1)
-      checker(nullTarget2, null, Seq(), extraEvaled = -1)
-      checker(nullTarget3, null, Seq(nullTarget3), extraEvaled = -1)
-      checker(nullTarget3, null, Seq(), extraEvaled = -1)
-      checker(nullTarget4, null, Seq(nullTarget4), extraEvaled = -1)
-      checker(nullTarget4, null, Seq(), extraEvaled = -1)
+      checker(nullTask1, null, Seq(nullTask1), extraEvaled = -1)
+      checker(nullTask1, null, Seq(), extraEvaled = -1)
+      checker(nullTask2, null, Seq(nullTask2), extraEvaled = -1)
+      checker(nullTask2, null, Seq(), extraEvaled = -1)
+      checker(nullTask3, null, Seq(nullTask3), extraEvaled = -1)
+      checker(nullTask3, null, Seq(), extraEvaled = -1)
+      checker(nullTask4, null, Seq(nullTask4), extraEvaled = -1)
+      checker(nullTask4, null, Seq(), extraEvaled = -1)
 
       val nc1 = nullCommand1()
       val nc2 = nullCommand2()
@@ -432,13 +438,13 @@ object ExecutionTests extends TestSuite {
     test("backticked") {
       UnitTester(bactickIdentifiers, null).scoped { tester =>
         val Right(UnitTester.Result(1, _)) =
-          tester.apply(bactickIdentifiers.`up-target`): @unchecked
+          tester.apply(bactickIdentifiers.`up-task`): @unchecked
         val Right(UnitTester.Result(3, _)) =
-          tester.apply(bactickIdentifiers.`a-down-target`): @unchecked
+          tester.apply(bactickIdentifiers.`a-down-task`): @unchecked
         val Right(UnitTester.Result(3, _)) =
           tester.apply(bactickIdentifiers.`invisible&`): @unchecked
         val Right(UnitTester.Result(4, _)) =
-          tester.apply(bactickIdentifiers.`nested-module`.`nested-target`): @unchecked
+          tester.apply(bactickIdentifiers.`nested-module`.`nested-task`): @unchecked
       }
     }
 
@@ -446,6 +452,21 @@ object ExecutionTests extends TestSuite {
       UnitTester(anonTaskFailure, null).scoped { tester =>
         val res = tester.evaluator.execute(Seq(anonTaskFailure.task))
         assert(res.executionResults.transitiveFailing.keySet == Set(anonTaskFailure.task))
+      }
+    }
+    test("overloaded") {
+      UnitTester(overloads, null).scoped { tester =>
+        val res = tester.apply(Seq(overloads.overloaded(1)))
+        assert(res == Right(UnitTester.Result(Vector(2), 1)))
+
+        val res2 = tester.apply(Seq(overloads.overloaded(1, 2)))
+        assert(res2 == Right(UnitTester.Result(Vector(4), 1)))
+
+        val res3 = tester.apply("overloaded", "-x", "1")
+        assert(res3 == Right(UnitTester.Result(Vector(2), 1)))
+
+        val res4 = tester.apply("overloaded", "-x", "1", "-y", "2")
+        assert(res4 == Right(UnitTester.Result(Vector(4), 1)))
       }
     }
   }

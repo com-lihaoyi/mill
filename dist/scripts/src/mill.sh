@@ -73,7 +73,19 @@ if [ -z "${MILL_VERSION}" ] ; then
   elif [ -f ".config/mill-version" ] ; then
     MILL_VERSION="$(tr '\r' '\n' < .config/mill-version | head -n 1 2> /dev/null)"
   elif [ -n "${MILL_BUILD_SCRIPT}" ] ; then
-    MILL_VERSION="$(cat ${MILL_BUILD_SCRIPT} | grep '//[|]  *mill-version:  *' | sed 's;//|  *mill-version:  *;;')"
+    # `s/.*://`:
+    #   This is a greedy match that removes everything from the beginning of the line up to (and including) the last
+    #   colon (:). This effectively isolates the value part of the declaration.
+    #
+    #  `s/#.*//`:
+    #    This removes any comments at the end of the line.
+    #
+    #  `s/['\"]//g`:
+    #    This removes all single and double quotes from the string, wherever they appear (g is for "global").
+    #
+    #  `s/^[[:space:]]*//; s/[[:space:]]*$//`:
+    #    These two expressions trim any leading or trailing whitespace ([[:space:]] matches spaces and tabs).
+    MILL_VERSION="$(grep -E "//\|.*mill-version" "${MILL_BUILD_SCRIPT}" | sed -E "s/.*://; s/#.*//; s/['\"]//g; s/^[[:space:]]*//; s/[[:space:]]*$//")"
   fi
 fi
 

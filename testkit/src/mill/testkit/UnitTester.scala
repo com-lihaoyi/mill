@@ -179,7 +179,7 @@ class UnitTester(
         .uncached
         .collect {
           case t: Task.Computed[_]
-              if module.moduleInternal.targets.contains(t)
+              if module.moduleInternal.simpleTasks.contains(t)
                 && !t.ctx.external => t
           case t: Task.Command[_] => t
         }
@@ -191,12 +191,12 @@ class UnitTester(
   }
 
   def fail(
-      target: Task.Simple[?],
+      task: Task.Simple[?],
       expectedFailCount: Int,
       expectedRawValues: Seq[ExecResult[?]]
   ): Unit = {
 
-    val res = evaluator.execute(Seq(target)).executionResults
+    val res = evaluator.execute(Seq(task)).executionResults
 
     val cleaned = res.results.map {
       case ExecResult.Exception(ex, _) => ExecResult.Exception(ex, new OuterStack(Nil))
@@ -208,12 +208,12 @@ class UnitTester(
 
   }
 
-  def check(targets: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
+  def check(tasks: Seq[Task[?]], expected: Seq[Task[?]]): Unit = {
 
-    val evaluated = evaluator.execute(targets).executionResults
+    val evaluated = evaluator.execute(tasks).executionResults
       .uncached
-      .flatMap(_.asTarget)
-      .filter(module.moduleInternal.targets.contains)
+      .flatMap(_.asSimple)
+      .filter(module.moduleInternal.simpleTasks.contains)
       .filter(!_.isInstanceOf[Task.Input[?]])
     assert(
       evaluated.toSet == expected.toSet,

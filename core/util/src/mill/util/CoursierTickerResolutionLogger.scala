@@ -9,7 +9,7 @@ import scala.collection.mutable
  * A Coursier Cache.Logger implementation that updates the ticker with the count and
  * overall byte size of artifacts being downloaded.
  *
- * In practice, this ticker output gets prefixed with the current target for which
+ * In practice, this ticker output gets prefixed with the current task for which
  * dependencies are being resolved, using a [[mill.util.ProxyLogger]] subclass.
  */
 

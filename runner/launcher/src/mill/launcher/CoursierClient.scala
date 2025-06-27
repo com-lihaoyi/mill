@@ -58,6 +58,6 @@ object CoursierClient {
       // rather than the highest already on disk
       .withUpdate(true)
 
-    javaHome.get(id).unsafeRun()(using coursierCache0.ec)
+    coursierCache0.logger.using(javaHome.get(id)).unsafeRun()(using coursierCache0.ec)
   }
 }

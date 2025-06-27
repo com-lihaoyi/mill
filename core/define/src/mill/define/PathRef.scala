@@ -22,7 +22,7 @@ case class PathRef private[mill] (
     sig: Int,
     revalidate: PathRef.Revalidate
 ) extends PathRefApi {
-  def javaPath = path.toNIO
+  private[mill] def javaPath = path.toNIO
 
   def recomputeSig(): Int = PathRef.apply(path, quick).sig
   def validate(): Boolean = recomputeSig() == sig
