@@ -2,12 +2,9 @@ package mill.define
 
 import java.util.regex.Matcher
 
-case class ExecutionPaths private (dest: os.Path, meta: os.Path, log: os.Path) {}
+final case class ExecutionPaths private[mill] (dest: os.Path, meta: os.Path, log: os.Path) {}
 
 object ExecutionPaths {
-
-  def apply(dest: os.Path, meta: os.Path, log: os.Path): ExecutionPaths =
-    new ExecutionPaths(dest, meta, log)
 
   def resolve(
       outPath: os.Path,

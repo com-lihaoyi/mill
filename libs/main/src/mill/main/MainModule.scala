@@ -4,6 +4,7 @@ import mill.*
 import mill.api.*
 import mill.api.internal.{EvaluatorApi, MainModuleApi, TaskApi}
 import mill.define.*
+import mill.define.internal.RootModule0
 import mill.define.SelectMode.Separated
 import mill.define.internal.Watchable
 import mill.moduledefs.Scaladoc

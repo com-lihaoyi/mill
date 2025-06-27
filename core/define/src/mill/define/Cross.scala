@@ -1,6 +1,5 @@
 package mill.define
 
-import mill.api.BuildScriptException
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -179,9 +178,8 @@ trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.def
       seen.get(crossSegments0) match {
         case None => // no collision
         case Some(other) => // collision
-          throw new BuildScriptException(
-            s"Cross module ${ctx.enclosing} contains colliding cross values: ${other} and ${crossValues0}",
-            Option(ctx.fileName).filter(_.nonEmpty)
+          throw new mill.api.MillException(
+            s"${ctx.fileName}: Cross module ${ctx.enclosing} contains colliding cross values: ${other} and ${crossValues0}",
           )
       }
       val module0 = new Lazy(() =>

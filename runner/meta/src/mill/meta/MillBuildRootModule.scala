@@ -8,7 +8,8 @@ import mill.api.Result
 import mill.api.internal.internal
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.constants.OutFiles.*
-import mill.define.{Discover, PathRef, RootModule0, Task}
+import mill.define.{Discover, PathRef, Task}
+import mill.define.internal.RootModule0
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.util.BuildInfo
@@ -35,7 +36,7 @@ trait MillBuildRootModule()(implicit
     .mkString("/")
 
   override def moduleDir: os.Path = rootModuleInfo.projectRoot / os.up / millBuild
-  override def intellijModulePathJava: Path = (moduleDir / os.up).toNIO
+  private[mill] override def intellijModulePathJava: Path = (moduleDir / os.up).toNIO
 
   override def scalaVersion: T[String] = BuildInfo.scalaVersion
 

@@ -2,10 +2,10 @@ package mill.exec
 
 import mill.define.{Task, Plan}
 import mill.define.MultiBiMap
-import mill.define.internal.TopoSorted
+import mill.define.TopoSorted
 
 private[mill] object PlanImpl {
-  def plan(goals: Seq[Task[?]]): Plan = {
+  def plan(goals: Seq[Task[?]]): Plan  = {
     val transitive = PlanImpl.transitiveTargets(goals.toIndexedSeq)
     val goalSet = goals.toSet
     val topoSorted = PlanImpl.topoSorted(transitive)
@@ -17,7 +17,7 @@ private[mill] object PlanImpl {
         case t if goalSet.contains(t) => t
       }
 
-    new Plan(transitive, sortedGroups)
+    new Plan(sortedGroups)
   }
 
   /**

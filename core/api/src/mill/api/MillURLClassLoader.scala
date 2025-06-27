@@ -35,8 +35,11 @@ class MillURLClassLoader(
 }
 
 object MillURLClassLoader {
-  def countOpenClassloaders = countOpenClassloaders0.values.sum
-  def countOpenClassloaders0 = openClassloaders.synchronized { openClassloaders.toMap }
+  /**
+   * Shows a count of what `MillURLClassLoader`s are instantiated and have not yet
+   * been closed. Useful for debugging classloader memory leaks
+   */
+  def countOpenClassloaders = openClassloaders.synchronized { openClassloaders.toMap }
   private[mill] val openClassloaders = collection.mutable.Map.empty[String, Int]
 
   private[mill] def addOpenClassloader(label: String) =

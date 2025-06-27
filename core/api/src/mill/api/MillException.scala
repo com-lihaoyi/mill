@@ -6,9 +6,3 @@ package mill.api
  */
 class MillException(msg: String) extends Exception(msg)
 
-class BuildScriptException(msg: String, script: Option[String])
-    extends MillException(
-      script.map(_ + ": ").getOrElse("") + "Build script contains errors:\n" + msg
-    ) {
-  def this(msg: String) = this(msg, None)
-}

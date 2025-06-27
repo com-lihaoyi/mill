@@ -233,7 +233,7 @@ object CodeGen {
 
     val newParent =
       if (segments.isEmpty) "_root_.mill.main.MainRootModule"
-      else "_root_.mill.define.SubfolderModule(build.millDiscover)"
+      else "_root_.mill.define.internal.SubfolderModule(build.millDiscover)"
 
     objectData.find(o => o.name.text == "`package`") match {
       case Some(objectData) =>
@@ -290,7 +290,7 @@ object CodeGen {
       segments: Seq[String]
   ): String = {
     s"""|object MillMiscInfo
-        |    extends mill.define.SubfolderModule.Info(
+        |    extends mill.define.internal.SubfolderModule.Info(
         |  millSourcePath0 = os.Path(${literalize(scriptFolderPath.toString)}),
         |  segments = _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
         |)

@@ -56,7 +56,7 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
   }
   def plan(tasks: Seq[Task[?]]): Plan = delegate.plan(tasks)
 
-  def groupAroundImportantTargets[T](topoSortedTargets: mill.define.internal.TopoSorted)(
+  def groupAroundImportantTargets[T](topoSortedTargets: mill.define.TopoSorted)(
       important: PartialFunction[
         Task[?],
         T
@@ -74,7 +74,7 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
    * Takes the given targets, finds all the targets they transitively depend
    * on, and sort them topologically. Fails if there are dependency cycles
    */
-  def topoSorted(transitiveTargets: IndexedSeq[Task[?]]): mill.define.internal.TopoSorted =
+  def topoSorted(transitiveTargets: IndexedSeq[Task[?]]): mill.define.TopoSorted =
     delegate.topoSorted(transitiveTargets)
 
   def execute[T](

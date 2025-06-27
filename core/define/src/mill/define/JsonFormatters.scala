@@ -13,14 +13,12 @@ trait JsonFormatters {
 
   /**
    * Additional [[mainargs.TokensReader]] instance to teach it how to read Ammonite paths
-   *
-   * Should be replaced by `PathTokensReader2` but kept for binary compatibility
    */
-  implicit def PathTokensReader: mainargs.TokensReader[os.Path] =
-    JsonFormatters.PathTokensReader0
-
-  def PathTokensReader2: mainargs.TokensReader.Simple[os.Path] =
-    JsonFormatters.PathTokensReader0
+  implicit object PathTokensReader extends mainargs.TokensReader.Simple[os.Path] {
+    def shortName = "path"
+    def read(strs: Seq[String]): Either[String, Path] =
+      Right(os.Path(strs.last, BuildCtx.workspaceRoot))
+  }
 
   implicit val pathReadWrite: RW[os.Path] = upickle.default.readwriter[String]
     .bimap[os.Path](
@@ -49,7 +47,7 @@ trait JsonFormatters {
       str => new geny.Bytes(java.util.Base64.getDecoder.decode(str))
     )
 
-  implicit lazy val crFormat: RW[os.CommandResult] = upickle.default.macroRW
+  implicit val crFormat: RW[os.CommandResult] = upickle.default.macroRW
 
   implicit val stackTraceRW: RW[StackTraceElement] =
     upickle.default.readwriter[ujson.Obj].bimap[StackTraceElement](
@@ -83,10 +81,4 @@ trait JsonFormatters {
   export upickle.implicits.namedTuples.default.given
 }
 
-object JsonFormatters extends JsonFormatters {
-  private object PathTokensReader0 extends mainargs.TokensReader.Simple[os.Path] {
-    def shortName = "path"
-    def read(strs: Seq[String]): Either[String, Path] =
-      Right(os.Path(strs.last, BuildCtx.workspaceRoot))
-  }
-}
+object JsonFormatters extends JsonFormatters

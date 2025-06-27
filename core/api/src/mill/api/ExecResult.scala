@@ -35,7 +35,7 @@ object ExecResult {
    * @param value The value computed by the task.
    * @tparam T The result type of the computed task.
    */
-  case class Success[+T](value: T) extends ExecResult[T] {
+  final case class Success[+T](value: T) extends ExecResult[T] {
     def map[V](f: T => V): Success[V] = ExecResult.Success(f(value))
     def flatMap[V](f: T => ExecResult[V]): ExecResult[V] = f(value)
     override def asSuccess: Option[Success[T]] = Some(this)
@@ -77,7 +77,7 @@ object ExecResult {
    * @param value The optional result value.
    * @tparam T The result type of the computed task.
    */
-  case class Failure[T](msg: String) extends Failing[T] {
+  final case class Failure[T](msg: String) extends Failing[T] {
     def map[V](f: T => V): Failure[V] = ExecResult.Failure(msg)
     def flatMap[V](f: T => ExecResult[V]): Failure[V] = { Failure(msg) }
     override def toString: String = s"Failure($msg)"
@@ -88,7 +88,7 @@ object ExecResult {
    * @param throwable The exception that describes or caused the failure.
    * @param outerStack The [[OuterStack]] of the failed task.
    */
-  case class Exception(throwable: Throwable, outerStack: OuterStack)
+  final case class Exception(throwable: Throwable, outerStack: OuterStack)
       extends java.lang.Exception(throwable) with Failing[Nothing] {
     def map[V](f: Nothing => V): Exception = this
     def flatMap[V](f: Nothing => ExecResult[V]): Exception = this
@@ -112,7 +112,7 @@ object ExecResult {
     }
   }
 
-  class OuterStack(val value: Seq[StackTraceElement]) {
+  final class OuterStack(val value: Seq[StackTraceElement]) {
     def this(value: Array[StackTraceElement]) = this(value.toIndexedSeq)
 
     override def hashCode(): Int = value.hashCode()
