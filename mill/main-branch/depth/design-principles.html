@@ -1096,15 +1096,15 @@ are sure that it will never clash with any other <code>Task</code>s data.</p>
 <svg width="847px" height="321px" viewBox="0.00 0.00 847.08 321.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 317.0)">
 <title>G</title>
-<g id="clust3" class="cluster">
-<title>cluster_2</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="303.84,-81 303.84,-189 831.08,-189 831.08,-81 303.84,-81"></polygon>
-<text text-anchor="middle" x="567.46" y="-172.4" font-family="Times,serif" font-size="14.00">qux</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-197 8,-305 567.65,-305 567.65,-197 8,-197"></polygon>
 <text text-anchor="middle" x="287.82" y="-288.4" font-family="Times,serif" font-size="14.00">foo.bar</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_2</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="303.84,-81 303.84,-189 831.08,-189 831.08,-81 303.84,-81"></polygon>
+<text text-anchor="middle" x="567.46" y="-172.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
@@ -1391,12 +1391,12 @@ a build:</p>
 <code>Trait</code> you instantiate</p>
 </li>
 <li>
-<p>Replacing the default <code>Target</code>s within a project, making them do new
-things or depend on new <code>Target</code>s, is simply <code>override</code>-ing them during
+<p>Replacing the default <code>Task</code>s within a project, making them do new
+things or depend on new <code>Task</code>s, is simply <code>override</code>-ing them during
 inheritance</p>
 </li>
 <li>
-<p>Modifying the default <code>Target</code>s within a project, making use of the old value
+<p>Modifying the default <code>Task</code>s within a project, making use of the old value
 to compute the new value, is simply <code>override`ing them and using `super.foo()</code></p>
 </li>
 <li>
@@ -1404,7 +1404,7 @@ to compute the new value, is simply <code>override`ing them and using `super.foo
 </li>
 <li>
 <p>Cross-builds are modelled as instantiating a (possibly anonymous) class
-multiple times, each instance with its own distinct set of <code>Target</code>s</p>
+multiple times, each instance with its own distinct set of <code>Task</code>s</p>
 </li>
 </ul>
 </div>
@@ -1435,7 +1435,7 @@ graph with an Applicative &quot;idiom bracket&quot; macro) where it makes sense.
 <h3 id="_bazel"><a class="anchor" href="#_bazel"></a>Bazel</h3>
 <div class="paragraph">
 <p>Mill is largely inspired by <a href="https://bazel.build/">Bazel</a>. In particular, the
-single-build-hierarchy, where every Target has an on-disk-cache/output-folder
+single-build-hierarchy, where every Task has an on-disk-cache/output-folder
 according to their position in the hierarchy, comes from Bazel.</p>
 </div>
 <div class="paragraph">

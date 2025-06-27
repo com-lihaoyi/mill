@@ -6,14 +6,14 @@
  <span>mill.define.Task.Named</span>
 </div>
 <div class="main-signature mono-small-block">
- <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a task that can be referenced by its path segments. `Task{...}`\n * targets, `Task.Input`, `Task.Worker`, etc. but not including anonymous\n * `Task.Anon` or `Task.traverse` etc. instances\n */") </span>
+ <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a task that can be referenced by its path segments. `Task{...}`\n * tasks, `Task.Input`, `Task.Worker`, etc. but not including anonymous\n * `Task.Anon` or `Task.traverse` etc. instances\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="Task$$Named.html" t="n" class="documentableName ">Named</a>[<span t="k">+</span><span data-unresolved-link="" t="t">T</span>]<span t="k"> extends </span><a href="Task.html" t="t">Task</a>[<span t="t">T</span>]<span t="k">, </span></span><span class="signature-long"><a href="../api/internal/NamedTaskApi.html" t="t">NamedTaskApi</a>[<span t="t">T</span>]</span>
  </div>
 </div>
 <div class="cover">
  <div class="doc">
-  <p>Represents a task that can be referenced by its path segments. <code>Task{...}</code> targets, <code>Task.Input</code>, <code>Task.Worker</code>, etc. but not including anonymous <code>Task.Anon</code> or <code>Task.traverse</code> etc. instances</p>
+  <p>Represents a task that can be referenced by its path segments. <code>Task{...}</code> tasks, <code>Task.Input</code>, <code>Task.Worker</code>, etc. but not including anonymous <code>Task.Anon</code> or <code>Task.traverse</code> etc. instances</p>
  </div>
  <section id="attributes">
   <h2 class="h500">Attributes</h2>
@@ -473,114 +473,6 @@ node15 -> node0;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="asCommand-0" data-f-inherited="Task">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$$Named.html#asCommand-0" t="n" class="documentableName ">asCommand</a>: <span data-unresolved-link="" t="t">Option</span>[<a href="Task$$Command.html" t="t">Command</a>[<span t="t">T</span>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="Task.html#asCommand-0">Task</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="asTarget-0" data-f-inherited="Task">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$$Named.html#asTarget-0" t="n" class="documentableName ">asTarget</a>: <span data-unresolved-link="" t="t">Option</span>[<a href="Task$$Simple.html" t="t">Simple</a>[<span t="t">T</span>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="Task.html#asTarget-0">Task</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="asWorker-0" data-f-inherited="Task">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$$Named.html#asWorker-0" t="n" class="documentableName ">asWorker</a>: <span data-unresolved-link="" t="t">Option</span>[<a href="Task$$Worker.html" t="t">Worker</a>[<span t="t">T</span>]]
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="Task.html#asWorker-0">Task</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
         <div class="documentableElement" id="filter-fffff9b7" data-f-inherited="Ops">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
@@ -604,42 +496,6 @@ node15 -> node0;
               </dt>
               <dd class="body-medium">
                <a href="Task$$Ops.html#filter-fffff9b7">Ops</a>
-              </dd>
-              <dt class="body-small">
-               Source
-              </dt>
-              <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/core/define/src/mill/define/Task.scala" target="_blank">Task.scala</a>
-              </dd>
-             </dl>
-            </div>
-           </div>
-          </div>
-         </div>
-        </div>
-        <div class="documentableElement" id="isExclusiveCommand-0" data-f-inherited="Task">
-         <div class="documentableElement-expander">
-          <button class="icon-button ar show-content"></button>
-          <div class="header monospace mono-medium">
-           <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$$Named.html#isExclusiveCommand-0" t="n" class="documentableName ">isExclusiveCommand</a>: <span data-unresolved-link="" t="t">Boolean</span>
-           </div>
-          </div>
-         </div>
-         <div class="docs">
-          <span class="modifiers"></span>
-          <div>
-           <div class="originInfo"></div>
-           <div class="memberDocumentation">
-            <div class="cover">
-             <div class="doc"></div>
-             <h2 class="h200">Attributes</h2>
-             <dl class="attributes attributes-small">
-              <dt class="body-small">
-               Inherited from:
-              </dt>
-              <dd class="body-medium">
-               <a href="Task.html#isExclusiveCommand-0">Task</a>
               </dd>
               <dt class="body-small">
                Source

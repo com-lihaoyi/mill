@@ -356,7 +356,7 @@ node6 -> node5;
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="EvaluatorProxy.html#execute-d32" t="n" class="documentableName ">execute</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">targets</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="Task.html" t="t">Task</a>[<span t="t">T</span>]], <span t="k"></span><span data-unresolved-link="" t="n">reporter</span>: <span data-unresolved-link="" t="t">Int</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Option</span>[<a href="../api/internal/CompileProblemReporter.html" t="t">CompileProblemReporter</a>], <span t="k"></span><span data-unresolved-link="" t="n">testReporter</span>: <a href="../api/internal/TestReporter.html" t="t">TestReporter</a>, <span t="k"></span><span data-unresolved-link="" t="n">logger</span>: <a href="../api/Logger.html" t="t">Logger</a>, <span t="k"></span><span data-unresolved-link="" t="n">serialCommandExec</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">selectiveExecution</span>: <span data-unresolved-link="" t="t">Boolean</span>): <a href="Evaluator$$Result.html" t="t">Result</a>[<span data-unresolved-link="" t="t">T</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="EvaluatorProxy.html#execute-d32" t="n" class="documentableName ">execute</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">tasks</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="Task.html" t="t">Task</a>[<span t="t">T</span>]], <span t="k"></span><span data-unresolved-link="" t="n">reporter</span>: <span data-unresolved-link="" t="t">Int</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Option</span>[<a href="../api/internal/CompileProblemReporter.html" t="t">CompileProblemReporter</a>], <span t="k"></span><span data-unresolved-link="" t="n">testReporter</span>: <a href="../api/internal/TestReporter.html" t="t">TestReporter</a>, <span t="k"></span><span data-unresolved-link="" t="n">logger</span>: <a href="../api/Logger.html" t="t">Logger</a>, <span t="k"></span><span data-unresolved-link="" t="n">serialCommandExec</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">selectiveExecution</span>: <span data-unresolved-link="" t="t">Boolean</span>): <a href="Evaluator$$Result.html" t="t">Result</a>[<span data-unresolved-link="" t="t">T</span>]
            </div>
           </div>
          </div>
@@ -381,12 +381,12 @@ node6 -> node5;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="groupAroundImportantTargets-4a5">
+        <div class="documentableElement" id="groupAroundImportantTasks-4a5">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="EvaluatorProxy.html#groupAroundImportantTargets-4a5" t="n" class="documentableName ">groupAroundImportantTargets</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">topoSortedTargets</span>: <a href="TopoSorted.html" t="t">TopoSorted</a>)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">important</span>: <span data-unresolved-link="" t="t">PartialFunction</span>[<a href="Task.html" t="t">Task</a>[<span t="k">_</span>], <span t="t">T</span>]): <span t="t">MultiBiMap</span>[<span data-unresolved-link="" t="t">T</span>, <a href="Task.html" t="t">Task</a>[<span t="k">_</span>]]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="EvaluatorProxy.html#groupAroundImportantTasks-4a5" t="n" class="documentableName ">groupAroundImportantTasks</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">topoSortedTasks</span>: <a href="TopoSorted.html" t="t">TopoSorted</a>)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">important</span>: <span data-unresolved-link="" t="t">PartialFunction</span>[<a href="Task.html" t="t">Task</a>[<span t="k">_</span>], <span t="t">T</span>]): <span t="t">MultiBiMap</span>[<span data-unresolved-link="" t="t">T</span>, <a href="Task.html" t="t">Task</a>[<span t="k">_</span>]]
            </div>
           </div>
          </div>
@@ -721,12 +721,9 @@ node6 -> node5;
         <div class="documentableElement" id="topoSorted-2da">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Takes the given targets, finds all the targets they transitively depend\n * on, and sort them topologically. Fails if there are dependency cycles\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="EvaluatorProxy.html#topoSorted-2da" t="n" class="documentableName ">topoSorted</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">transitiveTargets</span>: <span data-unresolved-link="" t="t">IndexedSeq</span>[<a href="Task.html" t="t">Task</a>[<span t="k">_</span>]]): <a href="TopoSorted.html" t="t">TopoSorted</a>
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="EvaluatorProxy.html#topoSorted-2da" t="n" class="documentableName ">topoSorted</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">transitiveTasks</span>: <span data-unresolved-link="" t="t">IndexedSeq</span>[<a href="Task.html" t="t">Task</a>[<span t="k">_</span>]]): <a href="TopoSorted.html" t="t">TopoSorted</a>
            </div>
           </div>
          </div>
@@ -736,11 +733,11 @@ node6 -> node5;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Takes the given targets, finds all the targets they transitively depend on, and sort them topologically. Fails if there are dependency cycles</p>
+             <p>Takes the given tasks, finds all the tasks they transitively depend on, and sort them topologically. Fails if there are dependency cycles</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Takes the given targets, finds all the targets they transitively depend on, and sort them topologically. Fails if there are dependency cycles</p>
+              <p>Takes the given tasks, finds all the tasks they transitively depend on, and sort them topologically. Fails if there are dependency cycles</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -756,15 +753,12 @@ node6 -> node5;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="transitiveTargets-317">
+        <div class="documentableElement" id="transitiveTasks-317">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Collects all transitive dependencies (targets) of the given targets,\n * including the given targets.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="EvaluatorProxy.html#transitiveTargets-317" t="n" class="documentableName ">transitiveTargets</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">sourceTargets</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="Task.html" t="t">Task</a>[<span t="k">_</span>]]): <span data-unresolved-link="" t="t">IndexedSeq</span>[<a href="Task.html" t="t">Task</a>[<span t="k">_</span>]]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="EvaluatorProxy.html#transitiveTasks-317" t="n" class="documentableName ">transitiveTasks</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">sourceTasks</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="Task.html" t="t">Task</a>[<span t="k">_</span>]]): <span data-unresolved-link="" t="t">IndexedSeq</span>[<a href="Task.html" t="t">Task</a>[<span t="k">_</span>]]
            </div>
           </div>
          </div>
@@ -774,11 +768,11 @@ node6 -> node5;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>Collects all transitive dependencies (targets) of the given targets, including the given targets.</p>
+             <p>Collects all transitive dependencies (tasks) of the given tasks, including the given tasks.</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>Collects all transitive dependencies (targets) of the given targets, including the given targets.</p>
+              <p>Collects all transitive dependencies (tasks) of the given tasks, including the given tasks.</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
