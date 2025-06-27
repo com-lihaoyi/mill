@@ -324,8 +324,7 @@ object `package` extends mill.Module {
           // which is probably the correct one
           val logged = os.call(("git", "log", "--pretty=format:%H")).out.lines()
           logged.find(_.startsWith(prefix)).get
-        }
-        else crossValue2
+        } else crossValue2
 
       val displayVersion =
         if (crossValue3 == "dev") "dev-" + build.latestUnstableVersion()
