@@ -318,7 +318,13 @@ object `package` extends mill.Module {
         else crossValue
 
       val gitVersion =
-        if (crossValue2 == "dev") build.latestUnstableVersion().split('-').last
+        if (crossValue2 == "dev") {
+          val prefix = build.latestUnstableVersion().split('-').last
+          // In case of conflict, pick the latest commit matching the prefix,
+          // which is probably the correct one
+          val logged = os.call(("git", "log", "--pretty=format:%H")).out.lines()
+          logged.find(_.startsWith(prefix)).get
+        }
         else crossValue2
 
       val displayVersion =
