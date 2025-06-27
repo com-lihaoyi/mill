@@ -112,7 +112,7 @@ object ParseArgsTests extends TestSuite {
         val parsed = ParseArgs(Seq.empty, selectMode = SelectMode.Separated)
         assert(
           parsed == Result.Failure(
-            "Target selector must not be empty. Try `mill resolve _` to see what's available."
+            "Task selector must not be empty. Try `mill resolve _` to see what's available."
           )
         )
       }
@@ -226,7 +226,7 @@ object ParseArgsTests extends TestSuite {
       val selectMode = SelectMode.Separated
       def parsed(args: String*) = ParseArgs(args, selectMode)
       test("rejectEmpty") {
-        val msg = "Target selector must not be empty. Try `mill resolve _` to see what's available."
+        val msg = "Task selector must not be empty. Try `mill resolve _` to see what's available."
         assert(parsed("") == Result.Failure(msg))
         assert(parsed() == Result.Failure(msg))
       }

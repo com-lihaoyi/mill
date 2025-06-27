@@ -83,7 +83,7 @@ private[mill] object ParseArgs {
   private def validateSelectors(selectors: Seq[String]): Result[Unit] = {
     if (selectors.isEmpty || selectors.exists(_.isEmpty)) {
       Result.Failure(
-        "Target selector must not be empty. Try `mill resolve _` to see what's available."
+        "Task selector must not be empty. Try `mill resolve _` to see what's available."
       )
     } else Result.Success(())
   }
