@@ -88,7 +88,7 @@ trait ScoverageReport extends Module {
       evaluator: Evaluator,
       reportType: ReportType,
       sources: String,
-      dataTasks: String
+      dataTaskStrings: String
   ): Task[PathRef] = {
     val sourcesTasks: Seq[Task[Seq[PathRef]]] = evaluator.resolveTasks(
       Seq(sources),
@@ -96,7 +96,7 @@ trait ScoverageReport extends Module {
     ).get.asInstanceOf[Seq[Task[Seq[PathRef]]]]
 
     val dataTasks: Seq[Task[PathRef]] = evaluator.resolveTasks(
-      Seq(dataTasks),
+      Seq(dataTaskStrings),
       SelectMode.Separated
     ).get.asInstanceOf[Seq[Task[PathRef]]]
 
