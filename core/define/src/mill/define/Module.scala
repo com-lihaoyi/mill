@@ -36,7 +36,7 @@ trait Module extends Module.BaseClass with ModuleCtx.Wrapper with ModuleApi {
     moduleInternal.reflectNestedObjects[Module]().toSeq
 
   def moduleDir: os.Path = moduleCtx.millSourcePath
-  def moduleDirJava = moduleDir.toNIO
+  private[mill] def moduleDirJava = moduleDir.toNIO
 
   def moduleSegments: Segments = moduleCtx.segments
 

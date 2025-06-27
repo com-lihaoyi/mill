@@ -22,7 +22,7 @@ object Result {
       case e: Result.Exception => Result.Failure(e.error)
     }
 
-  case class Success[+T](value: T) extends Result[T] {
+  final case class Success[+T](value: T) extends Result[T] {
 
     def map[V](f: T => V): Result[V] = Success(f(value))
 
@@ -32,7 +32,7 @@ object Result {
     def toEither: Either[String, T] = Right(value)
     def errorOpt: Option[String] = None
   }
-  case class Failure(error: String) extends Result[Nothing] {
+  final case class Failure(error: String) extends Result[Nothing] {
     def map[V](f: Nothing => V): Result[Nothing] = this
 
     def flatMap[V](f: Nothing => Result[V]): Result[Nothing] = this
@@ -59,5 +59,5 @@ object Result {
       .map(_.result())
   }
 
-  class Exception(val error: String) extends java.lang.Exception(error)
+  final class Exception(val error: String) extends java.lang.Exception(error)
 }

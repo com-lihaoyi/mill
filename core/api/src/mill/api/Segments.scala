@@ -8,7 +8,7 @@ import scala.math.Ordering.Implicits.seqOrdering
  * `.`-separated segments are [[Segment.Label]]s,
  * while `[]`-delimited segments are [[Segment.Cross]]s
  */
-case class Segments private (value: Seq[Segment]) {
+final case class Segments private (value: Seq[Segment]) {
 
   def init: Segments = Segments(value.init)
   def ++(other: Segment): Segments = Segments(value ++ Seq(other))

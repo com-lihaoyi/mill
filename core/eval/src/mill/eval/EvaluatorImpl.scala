@@ -5,7 +5,7 @@ import mill.api.internal.{CompileProblemReporter, ExecutionResultsApi, TestRepor
 import mill.constants.OutFiles
 import mill.constants.OutFiles.*
 import mill.define.{PathRef, *}
-import mill.define.internal.{ResolveChecker, TopoSorted, Watchable}
+import mill.define.internal.{ResolveChecker, Watchable}
 import mill.exec.{Execution, PlanImpl}
 import mill.resolve.Resolve
 

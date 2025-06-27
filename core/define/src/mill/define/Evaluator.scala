@@ -47,7 +47,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
 
   def plan(tasks: Seq[Task[?]]): Plan
 
-  def groupAroundImportantTargets[T](topoSortedTargets: mill.define.internal.TopoSorted)(
+  def groupAroundImportantTargets[T](topoSortedTargets: mill.define.TopoSorted)(
       important: PartialFunction[
         Task[?],
         T
@@ -64,7 +64,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
    * Takes the given targets, finds all the targets they transitively depend
    * on, and sort them topologically. Fails if there are dependency cycles
    */
-  def topoSorted(transitiveTargets: IndexedSeq[Task[?]]): mill.define.internal.TopoSorted
+  def topoSorted(transitiveTargets: IndexedSeq[Task[?]]): mill.define.TopoSorted
 
   private[mill] def executeApi[T](targets: Seq[TaskApi[T]]): Evaluator.Result[T] =
     execute[T](targets.map(_.asInstanceOf[Task[T]]))
@@ -137,7 +137,7 @@ object Evaluator {
    * @param selectedTasks The tasks that actually were selected to be run during this evaluation
    * @param executionResults Detailed information on the results of executing each task
    */
-  case class Result[T](
+  final case class Result[T](
       watchable: Seq[Watchable],
       values: mill.api.Result[Seq[T]],
       selectedTasks: Seq[Task[?]],
