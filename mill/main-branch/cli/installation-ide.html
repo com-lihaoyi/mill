@@ -1050,19 +1050,6 @@ The below command should pass the environment variable to the <code>mill</code> 
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; COURSIER_REPOSITORIES=https://packages.corp.com/artifactory/maven/ mill resolve _</code></pre>
 </div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tbody><tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Currently, you may need to <code>./mill shutdown</code> before calling Mill with the environment variable to make sure it gets properly propagated to Mill’s background daemon.
-There is an <a href="https://github.com/com-lihaoyi/mill/issues/5134">open issue</a> to let Mill  detect these changes automatically.
-</td>
-</tr>
-</tbody></table>
-</div>
 <div class="paragraph">
 <p>If you are using bootstrap script, a more permanent solution could be to set the environment variable
 at the top of the bootstrap script, or as a user environment variable.</p>
