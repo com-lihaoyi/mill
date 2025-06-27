@@ -6,7 +6,7 @@ import com.lumidion.sonatype.central.client.core.{
   SonatypeCredentials
 }
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
-import mill.api.Logger
+import mill.api.{Logger, Result}
 import mill.scalalib.publish.Artifact
 import mill.scalalib.publish.SonatypeHelpers.getArtifactMappings
 
@@ -41,8 +41,29 @@ class SonatypeCentralPublisher(
       artifacts: (Seq[(os.Path, String)], Artifact)*
   ): Unit = {
     val mappings = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
-
-    val (_, releases) = mappings.partition(_._1.isSnapshot)
+    log.info(s"mappings ${pprint.apply(mappings.map { case (a, kvs) => (a, kvs.map(_._1)) })}")
+    val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
+    if (snapshots.nonEmpty) {
+      val snapshotNames = snapshots.map(_._1)
+        .map { case Artifact(group, id, version) => s"$group:$id:$version" }
+      val ex = new RuntimeException(
+        s"""Publishing snapshots to Sonatype Central Portal is currently not supported by Mill.
+           |This is tracked under https://github.com/com-lihaoyi/mill/issues/4421
+           |The following snapshots will not be published:
+           |  ${snapshotNames.mkString("\n  ")}""".stripMargin
+      )
+      throw Result.Exception(ex, new Result.OuterStack(ex.getStackTrace().toIndexedSeq))
+    }
+    if (releases.isEmpty) {
+      log.error("No releases to publish to Sonatype Central.")
+      val errorMessage =
+        "No releases to publish to Sonatype Central." +
+          (if (snapshots.nonEmpty)
+             "It seems there were only snapshots to publish, which is not supported by Mill, currently."
+           else "Please check your build configuration.")
+      val ex = new Exception(errorMessage)
+      throw Result.Exception(ex, new Result.OuterStack(ex.getStackTrace().toIndexedSeq))
+    }
 
     val releaseGroups = releases.groupBy(_._1.group)
     val wd = os.pwd / "out/publish-central"
