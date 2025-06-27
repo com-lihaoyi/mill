@@ -15,7 +15,7 @@ object DependencyUpdatesImpl {
       evaluator: Evaluator,
       ctx: TaskCtx,
       rootModule: BaseModule,
-      coursierConfigModule: ModuleRef[CoursierConfigModule],
+      coursierConfigModule: CoursierConfigModule,
       discover: Discover,
       allowPreRelease: Boolean
   ): Seq[ModuleDependenciesUpdates] = {

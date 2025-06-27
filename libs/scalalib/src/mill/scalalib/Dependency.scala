@@ -20,7 +20,7 @@ object Dependency extends ExternalModule {
         ev,
         Task.ctx(),
         ev.rootModule,
-        ModuleRef(CoursierConfigModule),
+        CoursierConfigModule,
         ev.rootModule.moduleCtx.discover,
         allowPreRelease
       )

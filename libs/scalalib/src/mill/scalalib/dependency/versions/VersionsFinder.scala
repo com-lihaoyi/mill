@@ -14,7 +14,7 @@ private[dependency] object VersionsFinder {
       evaluator: Evaluator,
       ctx: TaskCtx,
       rootModule: BaseModule,
-      coursierConfigModule: ModuleRef[CoursierConfigModule]
+      coursierConfigModule: CoursierConfigModule
   ): Seq[ModuleDependenciesVersions] = {
 
     val javaModules = rootModule.moduleInternal.modules.collect {
@@ -48,7 +48,7 @@ private[dependency] object VersionsFinder {
       progress: Progress,
       offline: Boolean,
       clock: Clock,
-      coursierConfigModule: ModuleRef[CoursierConfigModule]
+      coursierConfigModule: CoursierConfigModule
   )(
       javaModule: JavaModule
   ): Task[ResolvedDependencies] =
@@ -83,7 +83,7 @@ private[dependency] object VersionsFinder {
         resolutionParams = coursier.params.ResolutionParams(),
         boms = Nil,
         checkGradleModules = javaModule.checkGradleModules(),
-        config = coursierConfigModule().coursierConfig()
+        config = coursierConfigModule.coursierConfig()
       )
 
       x.map { _ =>
