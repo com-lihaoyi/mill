@@ -6,9 +6,9 @@ import utest._
 
 object DiscoverTests extends TestSuite {
   val tests = Tests {
-    def check[T <: Module](m: T)(targets: (T => Simple[?])*) = {
+    def check[T <: Module](m: T)(tasks: (T => Simple[?])*) = {
       val discovered = m.moduleInternal.simpleTasks
-      val expected = targets.map(_(m)).toSet
+      val expected = tasks.map(_(m)).toSet
       assert(discovered == expected)
     }
     test("singleton") {

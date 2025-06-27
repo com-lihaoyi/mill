@@ -166,7 +166,7 @@ object PlanTests extends TestSuite {
 
       test("multiTerminalBoundary") {
         // Make sure the following graph ends up as three groups: one for
-        // each cached target, and one for the downstream task we are running
+        // each cached task, and one for the downstream task we are running
         import multiTerminalBoundary._
         val groupCount = countGroups(task2)
         assert(groupCount == 3)

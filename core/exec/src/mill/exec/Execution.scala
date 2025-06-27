@@ -120,7 +120,7 @@ private[mill] case class Execution(
 
     // Prepare a lookup tables up front of all the method names that each class owns,
     // and the class hierarchy, so during evaluation it is cheap to look up what class
-    // each target belongs to determine of the enclosing class code signature changed.
+    // each task belongs to determine of the enclosing class code signature changed.
     val (classToTransitiveClasses, allTransitiveClassMethods) =
       CodeSigUtils.precomputeMethodNamesPerClass(PlanImpl.transitiveNamed(goals))
 

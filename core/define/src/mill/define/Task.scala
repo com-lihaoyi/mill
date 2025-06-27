@@ -60,10 +60,10 @@ object Task {
 
   /**
    * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
-   * that is assigned to every Target or Command. It is cleared before your
+   * that is assigned to every Task or Command. It is cleared before your
    * task runs, and you can use it as a scratch space for temporary files or
    * a place to put returned artifacts. This is guaranteed to be unique for
-   * every Target or Command, so you can be sure that you will not collide or
+   * every Task or Command, so you can be sure that you will not collide or
    * interfere with anyone else writing to those same paths.
    */
   def dest(implicit ctx: mill.define.TaskCtx.Dest): os.Path = ctx.dest
@@ -242,7 +242,7 @@ object Task {
    * Creates an anonymous `Task`. These depend on other tasks and
    * be-depended-upon by other tasks, but cannot be run directly from the
    * command line and do not perform any caching. Typically used as helpers to
-   * implement `Task{...}` targets.
+   * implement `Task{...}` tasks.
    */
   inline def Anon[T](inline t: Result[T])(implicit
       inline enclosing: sourcecode.Enclosing
@@ -253,7 +253,7 @@ object Task {
       inline rw: ReadWriter[T],
       inline ctx: mill.define.ModuleCtx
   ): Simple[T] =
-    ${ Macros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
+    ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
   /**
    * Persistent tasks are defined using
@@ -276,7 +276,7 @@ object Task {
     inline def apply[T](inline t: Result[T])(implicit
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
-    ): Simple[T] = ${ Macros.targetResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
+    ): Simple[T] = ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ persistent }) }
   }
 
   abstract class Ops[+T] { this: Task[T] =>
@@ -307,7 +307,7 @@ object Task {
 
   /**
    * Represents a task that can be referenced by its path segments. `Task{...}`
-   * targets, `Task.Input`, `Task.Worker`, etc. but not including anonymous
+   * tasks, `Task.Input`, `Task.Worker`, etc. but not including anonymous
    * `Task.Anon` or `Task.traverse` etc. instances
    */
   trait Named[+T] extends Task[T] with NamedTaskApi[T] {
@@ -351,7 +351,7 @@ object Task {
   }
 
   /**
-   * A Target is a [[Task.Named]] that is cached on disk; either a
+   * A Simple Task is a [[Task.Named]] that is cached on disk; either a
    * [[Task.Computed]] or an [[Input]]
    */
   trait Simple[+T] extends Task.Named[T]
@@ -359,7 +359,7 @@ object Task {
   object Simple {
 
     /**
-     * A target is the most common [[Task]] a user would encounter, commonly
+     * A simple task is the most common [[Task]] a user would encounter, commonly
      * defined using the `def foo = Task {...}` syntax. [[Task.Computed]]s require that their
      * return type is JSON serializable. In return they automatically caches their
      * return value to disk, only re-computing if upstream [[Task]]s change
@@ -368,13 +368,13 @@ object Task {
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
     ): Simple[T] =
-      ${ Macros.targetResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
+      ${ Macros.taskResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
     implicit inline def create[T](inline t: Result[T])(implicit
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
     ): Simple[T] =
-      ${ Macros.targetResultImpl[T]('t)('rw, 'ctx, '{ false }) }
+      ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
   }
 
@@ -475,7 +475,7 @@ object Task {
       appImpl[Task, T]((in, ev) => '{ new Anon($in, $ev, $enclosing) }, t)
     }
 
-    def targetResultImpl[T: Type](using
+    def taskResultImpl[T: Type](using
         Quotes
     )(t: Expr[Result[T]])(
         rw: Expr[ReadWriter[T]],

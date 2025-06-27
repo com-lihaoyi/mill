@@ -9,20 +9,20 @@ import scala.annotation.tailrec
 
 private[mill] object ParseArgs {
 
-  type TargetsWithParams = (Seq[(Option[Segments], Option[Segments])], Seq[String])
+  type TasksWithParams = (Seq[(Option[Segments], Option[Segments])], Seq[String])
 
-  /** Separator used in multiSelect-mode to separate targets from their args. */
+  /** Separator used in multiSelect-mode to separate tasks from their args. */
   val MultiArgsSeparator = "--"
 
-  /** Separator used in [[SelectMode.Separated]] mode to separate a target-args-tuple from the next target. */
-  val TargetSeparator = "+"
+  /** Separator used in [[SelectMode.Separated]] mode to separate a task-args-tuple from the next target. */
+  val TaskSeparator = "+"
 
   def apply(
       scriptArgs: Seq[String],
       selectMode: SelectMode
-  ): Result[Seq[TargetsWithParams]] = {
+  ): Result[Seq[TasksWithParams]] = {
 
-    val MaskPattern = ("""\\+\Q""" + TargetSeparator + """\E""").r
+    val MaskPattern = ("""\\+\Q""" + TaskSeparator + """\E""").r
 
     /**
      * Partition the arguments in groups using a separator.
@@ -32,7 +32,7 @@ private[mill] object ParseArgs {
     def separated(result: Seq[Seq[String]], rest: Seq[String]): Seq[Seq[String]] = rest match {
       case Seq() => if (result.nonEmpty) result else Seq(Seq())
       case r =>
-        val (next, r2) = r.span(_ != TargetSeparator)
+        val (next, r2) = r.span(_ != TaskSeparator)
         separated(
           result ++ Seq(next.map {
             case x @ MaskPattern(_*) => x.drop(1)
@@ -42,10 +42,10 @@ private[mill] object ParseArgs {
         )
     }
     val parts: Seq[Seq[String]] = separated(Seq() /* start value */, scriptArgs)
-    val parsed: Seq[Result[TargetsWithParams]] =
+    val parsed: Seq[Result[TasksWithParams]] =
       parts.map(extractAndValidate(_, selectMode == SelectMode.Multi))
 
-    val res1: Result[Seq[TargetsWithParams]] = Result.sequence(parsed)
+    val res1: Result[Seq[TasksWithParams]] = Result.sequence(parsed)
 
     res1
   }
@@ -53,7 +53,7 @@ private[mill] object ParseArgs {
   private def extractAndValidate(
       scriptArgs: Seq[String],
       multiSelect: Boolean
-  ): Result[TargetsWithParams] = {
+  ): Result[TasksWithParams] = {
     val (selectors, args) = extractSelsAndArgs(scriptArgs, multiSelect)
     for {
       _ <- validateSelectors(selectors)

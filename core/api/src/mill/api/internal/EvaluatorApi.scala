@@ -12,7 +12,7 @@ trait EvaluatorApi extends AutoCloseable {
   ): Result[EvaluatorApi.Result[Any]]
 
   private[mill] def executeApi[T](
-      targets: Seq[TaskApi[T]],
+      tasks: Seq[TaskApi[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = null,

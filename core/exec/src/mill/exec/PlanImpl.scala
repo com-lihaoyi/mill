@@ -27,15 +27,13 @@ private[mill] object PlanImpl {
    * @see [[PlanImpl.topoSorted]]
    */
 
-  def groupAroundImportantTasks[T](topoSortedTargets: TopoSorted)(important: PartialFunction[
+  def groupAroundImportantTasks[T](topoSortedTasks: TopoSorted)(important: PartialFunction[
     Task[?],
     T
   ]): MultiBiMap[T, Task[?]] = {
 
     val output = new MultiBiMap.Mutable[T, Task[?]]()
-    for (
-      (task, t) <- topoSortedTargets.values.flatMap(t => important.lift(t).map((t, _))).iterator
-    ) {
+    for ((task, t) <- topoSortedTasks.values.flatMap(t => important.lift(t).map((t, _))).iterator) {
 
       val transitiveTasks = collection.mutable.LinkedHashSet[Task[?]]()
       def rec(t: Task[?]): Unit = {
@@ -82,7 +80,7 @@ private[mill] object PlanImpl {
   }
 
   /**
-   * Takes the given targets, finds all the targets they transitively depend
+   * Takes the given tasks, finds all the targets they transitively depend
    * on, and sort them topologically. Fails if there are dependency cycles
    */
   def topoSorted(transitiveTasks: IndexedSeq[Task[?]]): TopoSorted = {

@@ -228,7 +228,7 @@ object MillMain0 {
                     def runMillBootstrap(
                         enterKeyPressed: Boolean,
                         prevState: Option[RunnerState],
-                        targetsAndParams: Seq[String],
+                        tasksAndParams: Seq[String],
                         streams: SystemStreams,
                         millActiveCommandMessage: String,
                         loggerOpt: Option[Logger] = None,
@@ -262,7 +262,7 @@ object MillMain0 {
                                 imports = config.imports,
                                 env = env ++ extraEnv,
                                 ec = ec,
-                                tasksAndParams = targetsAndParams,
+                                tasksAndParams = tasksAndParams,
                                 prevRunnerState = prevState.getOrElse(stateCache),
                                 logger = logger,
                                 needBuildFile = needBuildFile(config),
@@ -559,9 +559,9 @@ object MillMain0 {
       "version",
       "mill.scalalib.giter8.Giter8Module/init"
     )
-    val targetsAndParams = config.leftoverArgs.value
+    val tasksAndParams = config.leftoverArgs.value
     val whitelistMatch =
-      targetsAndParams.nonEmpty && noBuildFileTaskWhitelist.exists(targetsAndParams.head == _)
+      tasksAndParams.nonEmpty && noBuildFileTaskWhitelist.exists(tasksAndParams.head == _)
     // Has the user additional/extra imports
     // (which could provide additional commands that could make sense without a build.mill)
     val extraPlugins = config.imports.nonEmpty

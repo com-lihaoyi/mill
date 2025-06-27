@@ -47,7 +47,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
 
   def plan(tasks: Seq[Task[?]]): Plan
 
-  def groupAroundImportantTasks[T](topoSortedTargets: mill.define.TopoSorted)(
+  def groupAroundImportantTasks[T](topoSortedTasks: mill.define.TopoSorted)(
       important: PartialFunction[
         Task[?],
         T
@@ -55,22 +55,22 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   ): MultiBiMap[T, Task[?]]
 
   /**
-   * Collects all transitive dependencies (targets) of the given targets,
-   * including the given targets.
+   * Collects all transitive dependencies (tasks) of the given tasks,
+   * including the given tasks.
    */
   def transitiveTasks(sourceTasks: Seq[Task[?]]): IndexedSeq[Task[?]]
 
   /**
-   * Takes the given targets, finds all the targets they transitively depend
+   * Takes the given tasks, finds all the tasks they transitively depend
    * on, and sort them topologically. Fails if there are dependency cycles
    */
   def topoSorted(transitiveTasks: IndexedSeq[Task[?]]): mill.define.TopoSorted
 
-  private[mill] def executeApi[T](targets: Seq[TaskApi[T]]): Evaluator.Result[T] =
-    execute[T](targets.map(_.asInstanceOf[Task[T]]))
+  private[mill] def executeApi[T](tasks: Seq[TaskApi[T]]): Evaluator.Result[T] =
+    execute[T](tasks.map(_.asInstanceOf[Task[T]]))
 
   def execute[T](
-      targets: Seq[Task[T]],
+      tasks: Seq[Task[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = baseLogger,
@@ -86,7 +86,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   ): mill.api.Result[Evaluator.Result[Any]]
 
   private[mill] def executeApi[T](
-      targets: Seq[TaskApi[T]],
+      tasks: Seq[TaskApi[T]],
       reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
       logger: Logger = null,
@@ -95,7 +95,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   ): EvaluatorApi.Result[T] = {
     BuildCtx.withFilesystemCheckerDisabled {
       execute(
-        targets.map(_.asInstanceOf[Task[T]]),
+        tasks.map(_.asInstanceOf[Task[T]]),
         reporter,
         testReporter,
         logger,
@@ -112,7 +112,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
 }
 object Evaluator {
   // This needs to be a ThreadLocal because we need to pass it into the body of
-  // the TargetScopt#read call, which does not accept additional parameters.
+  // the EvaluatorTokenReader#read call, which does not accept additional parameters.
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
   // in directly) we are forced to pass it in via a ThreadLocal
   private val currentEvaluator0 = new DynamicVariable[Evaluator](null)

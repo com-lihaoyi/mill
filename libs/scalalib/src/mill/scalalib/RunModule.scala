@@ -103,7 +103,7 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   }
 
   /**
-   * Control whether `run*`-targets should use an args file to pass command line args, if possible.
+   * Control whether `run*`-tasks should use an args file to pass command line args, if possible.
    */
   def runUseArgsFile: T[Boolean] = Task { scala.util.Properties.isWin }
 
