@@ -43,23 +43,23 @@ import scala.collection.mutable.Buffer
  */
 @internal
 class MillBuildBootstrap(
-                          projectRoot: os.Path,
-                          output: os.Path,
-                          keepGoing: Boolean,
-                          imports: Seq[String],
-                          env: Map[String, String],
-                          ec: Option[ThreadPoolExecutor],
-                          tasksAndParams: Seq[String],
-                          prevRunnerState: RunnerState,
-                          logger: Logger,
-                          needBuildFile: Boolean,
-                          requestedMetaLevel: Option[Int],
-                          allowPositionalCommandArgs: Boolean,
-                          systemExit: Int => Nothing,
-                          streams0: SystemStreams,
-                          selectiveExecution: Boolean,
-                          offline: Boolean,
-                          reporter: EvaluatorApi => Int => Option[CompileProblemReporter]
+    projectRoot: os.Path,
+    output: os.Path,
+    keepGoing: Boolean,
+    imports: Seq[String],
+    env: Map[String, String],
+    ec: Option[ThreadPoolExecutor],
+    tasksAndParams: Seq[String],
+    prevRunnerState: RunnerState,
+    logger: Logger,
+    needBuildFile: Boolean,
+    requestedMetaLevel: Option[Int],
+    allowPositionalCommandArgs: Boolean,
+    systemExit: Int => Nothing,
+    streams0: SystemStreams,
+    selectiveExecution: Boolean,
+    offline: Boolean,
+    reporter: EvaluatorApi => Int => Option[CompileProblemReporter]
 ) { outer =>
   import MillBuildBootstrap.*
 
@@ -492,11 +492,11 @@ object MillBuildBootstrap {
   }
 
   def evaluateWithWatches(
-                           buildFileApi: BuildFileApi,
-                           evaluator: EvaluatorApi,
-                           tasksAndParams: Seq[String],
-                           selectiveExecution: Boolean,
-                           reporter: Int => Option[CompileProblemReporter]
+      buildFileApi: BuildFileApi,
+      evaluator: EvaluatorApi,
+      tasksAndParams: Seq[String],
+      selectiveExecution: Boolean,
+      reporter: Int => Option[CompileProblemReporter]
   ): (Result[Seq[Any]], Seq[Watchable], Seq[Watchable]) = {
     import buildFileApi._
     evalWatchedValues.clear()

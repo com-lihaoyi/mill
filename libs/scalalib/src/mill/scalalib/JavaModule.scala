@@ -28,7 +28,7 @@ import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
 
 /**
- * Core configuration required to compile a single Java module 
+ * Core configuration required to compile a single Java module
  */
 trait JavaModule
     extends mill.define.Module

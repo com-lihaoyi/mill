@@ -139,8 +139,8 @@ trait MainModule extends BaseModule with MainModuleApi {
     }
 
   private[mill] def bspClean(
-                              evaluator: EvaluatorApi,
-                              tasks: String*
+      evaluator: EvaluatorApi,
+      tasks: String*
   ): TaskApi[Seq[java.nio.file.Path]] = Task.Anon {
     clean(evaluator.asInstanceOf[Evaluator], tasks*)().map(_.path.toNIO)
   }
@@ -325,10 +325,10 @@ trait MainModule extends BaseModule with MainModuleApi {
 object MainModule {
 
   private def show0(
-                     evaluator: Evaluator,
-                     tasks: Seq[String],
-                     log: Logger,
-                     watch0: Watchable => Unit
+      evaluator: Evaluator,
+      tasks: Seq[String],
+      log: Logger,
+      watch0: Watchable => Unit
   )(f: Seq[(Any, Option[(String, ujson.Value)])] => ujson.Value)
       : Result[ujson.Value] = {
 

@@ -191,9 +191,9 @@ class UnitTester(
   }
 
   def fail(
-            task: Task.Simple[?],
-            expectedFailCount: Int,
-            expectedRawValues: Seq[ExecResult[?]]
+      task: Task.Simple[?],
+      expectedFailCount: Int,
+      expectedRawValues: Seq[ExecResult[?]]
   ): Unit = {
 
     val res = evaluator.execute(Seq(task)).executionResults

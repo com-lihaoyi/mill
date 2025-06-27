@@ -37,8 +37,8 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
       }
 
     def checkAppendMulti[M <: mill.testkit.TestRootModule](
-                                                            module: M,
-                                                            task: Task.Simple[PathRef]
+        module: M,
+        task: Task.Simple[PathRef]
     ): Unit = UnitTester(
       module,
       sourceRoot = helloWorldMultiResourcePath
@@ -63,8 +63,8 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
     }
 
     def checkAppendWithSeparator[M <: mill.testkit.TestRootModule](
-                                                                    module: M,
-                                                                    task: Task.Simple[PathRef]
+        module: M,
+        task: Task.Simple[PathRef]
     ): Unit = UnitTester(
       module,
       sourceRoot = helloWorldMultiResourcePath

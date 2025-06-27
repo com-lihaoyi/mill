@@ -125,14 +125,13 @@ final class EvaluatorImpl private[mill] (
     PlanImpl.groupAroundImportantTasks(topoSortedTasks)(important)
   }
 
-  
   def execute[T](
-                  tasks: Seq[Task[T]],
-                  reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-                  testReporter: TestReporter = TestReporter.DummyTestReporter,
-                  logger: Logger = baseLogger,
-                  serialCommandExec: Boolean = false,
-                  selectiveExecution: Boolean = false
+      tasks: Seq[Task[T]],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
+      logger: Logger = baseLogger,
+      serialCommandExec: Boolean = false,
+      selectiveExecution: Boolean = false
   ): Evaluator.Result[T] = {
 
     val selectiveExecutionEnabled = selectiveExecution && !tasks.exists(_.isExclusiveCommand)

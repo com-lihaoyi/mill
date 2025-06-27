@@ -204,12 +204,12 @@ private[mill] object Resolve {
   }
 
   private def invokeCommand0(
-                              module: mill.define.Module,
-                              name: String,
-                              discover: Discover,
-                              rest: Seq[String],
-                              nullCommandDefaults: Boolean,
-                              allowPositionalCommandArgs: Boolean
+      module: mill.define.Module,
+      name: String,
+      discover: Discover,
+      rest: Seq[String],
+      nullCommandDefaults: Boolean,
+      allowPositionalCommandArgs: Boolean
   ): Result[Task.Command[?]] = {
     val ep = discover.resolveEntrypoint(module.getClass, name)
       .getOrElse(

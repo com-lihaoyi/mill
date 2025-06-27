@@ -249,20 +249,20 @@ private trait GroupExecution {
   }
 
   private def executeGroup(
-                            group: Seq[Task[?]],
-                            results: Map[Task[?], ExecResult[(Val, Int)]],
-                            inputsHash: Int,
-                            paths: Option[ExecutionPaths],
-                            taskLabelOpt: Option[String],
-                            counterMsg: String,
-                            reporter: Int => Option[CompileProblemReporter],
-                            testReporter: TestReporter,
-                            logger: mill.api.Logger,
-                            executionContext: mill.define.TaskCtx.Fork.Api,
-                            exclusive: Boolean,
-                            deps: Seq[Task[?]],
-                            upstreamPathRefs: Seq[PathRef],
-                            terminal: Task[?]
+      group: Seq[Task[?]],
+      results: Map[Task[?], ExecResult[(Val, Int)]],
+      inputsHash: Int,
+      paths: Option[ExecutionPaths],
+      taskLabelOpt: Option[String],
+      counterMsg: String,
+      reporter: Int => Option[CompileProblemReporter],
+      testReporter: TestReporter,
+      logger: mill.api.Logger,
+      executionContext: mill.define.TaskCtx.Fork.Api,
+      exclusive: Boolean,
+      deps: Seq[Task[?]],
+      upstreamPathRefs: Seq[PathRef],
+      terminal: Task[?]
   ): (Map[Task[?], ExecResult[(Val, Int)]], mutable.Buffer[Task[?]]) = {
     val newEvaluated = mutable.Buffer.empty[Task[?]]
     val newResults = mutable.Map.empty[Task[?], ExecResult[(Val, Int)]]

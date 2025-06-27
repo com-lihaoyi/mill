@@ -34,11 +34,11 @@ object VisualizeModule extends ExternalModule {
   )
 
   private[mill] def visualize0(
-                                evaluator: Evaluator,
-                                tasks: Seq[String],
-                                ctx: mill.define.TaskCtx,
-                                vizWorker: VizWorker,
-                                planTasks: Option[List[Task.Named[?]]] = None
+      evaluator: Evaluator,
+      tasks: Seq[String],
+      ctx: mill.define.TaskCtx,
+      vizWorker: VizWorker,
+      planTasks: Option[List[Task.Named[?]]] = None
   ): Result[Seq[PathRef]] = {
     def callVisualizeModule(
         tasks: List[Task.Named[Any]],

@@ -12,9 +12,9 @@ import mill.define.Task
 object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {
     def checkExclude[M <: mill.testkit.TestRootModule](
-                                                        module: M,
-                                                        task: Task.Simple[PathRef],
-                                                        resourcePath: os.Path = resourcePath
+        module: M,
+        task: Task.Simple[PathRef],
+        resourcePath: os.Path = resourcePath
     ) = UnitTester(module, resourcePath).scoped { eval =>
       val Right(result) = eval.apply(task): @unchecked
 
@@ -43,9 +43,9 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
     )
 
     def checkRelocate[M <: mill.testkit.TestRootModule](
-                                                         module: M,
-                                                         task: Task.Simple[PathRef],
-                                                         resourcePath: os.Path = resourcePath
+        module: M,
+        task: Task.Simple[PathRef],
+        resourcePath: os.Path = resourcePath
     ) = UnitTester(module, resourcePath).scoped { eval =>
       val Right(result) = eval.apply(task): @unchecked
       Using.resource(new JarFile(result.value.path.toIO)) { jarFile =>

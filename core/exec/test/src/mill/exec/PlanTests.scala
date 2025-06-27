@@ -61,9 +61,9 @@ object PlanTests extends TestSuite {
     }
     test("groupAroundNamedTasks") {
       def check[T, R <: Simple[Int]](base: T)(
-        task: T => R,
-        important0: Seq[T => Simple[?]],
-        expected: Seq[(R, Int)]
+          task: T => R,
+          important0: Seq[T => Simple[?]],
+          expected: Seq[(R, Int)]
       ) = {
 
         val topoSorted = PlanImpl.topoSorted(PlanImpl.transitiveTasks(Seq(task(base))))

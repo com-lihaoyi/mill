@@ -15,16 +15,16 @@ class Checker[T <: mill.testkit.TestRootModule](
   val execution = UnitTester(module, sourceRoot, threads = threadCount).execution
 
   def apply(
-             task: Task[?],
-             expValue: Any,
-             expEvaled: Seq[Task[?]],
-             // How many "other" tasks were evaluated other than those listed above.
-             // Pass in -1 to skip the check entirely
-             extraEvaled: Int = 0,
-             // Perform a second evaluation of the same tasks, and make sure the
-             // outputs are the same but nothing was evaluated. Disable this if you
-             // are directly evaluating tasks which need to re-evaluate every time
-             secondRunNoOp: Boolean = true
+      task: Task[?],
+      expValue: Any,
+      expEvaled: Seq[Task[?]],
+      // How many "other" tasks were evaluated other than those listed above.
+      // Pass in -1 to skip the check entirely
+      extraEvaled: Int = 0,
+      // Perform a second evaluation of the same tasks, and make sure the
+      // outputs are the same but nothing was evaluated. Disable this if you
+      // are directly evaluating tasks which need to re-evaluate every time
+      secondRunNoOp: Boolean = true
   ) = {
 
     val evaled = execution.executeTasks(Seq(task))

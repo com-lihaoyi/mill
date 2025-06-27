@@ -78,12 +78,12 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
     delegate.topoSorted(transitiveTasks)
 
   def execute[T](
-                  tasks: Seq[Task[T]],
-                  reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-                  testReporter: TestReporter = TestReporter.DummyTestReporter,
-                  logger: Logger = baseLogger,
-                  serialCommandExec: Boolean = false,
-                  selectiveExecution: Boolean = false
+      tasks: Seq[Task[T]],
+      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
+      testReporter: TestReporter = TestReporter.DummyTestReporter,
+      logger: Logger = baseLogger,
+      serialCommandExec: Boolean = false,
+      selectiveExecution: Boolean = false
   ): Evaluator.Result[T] = {
     delegate.execute(
       tasks,
