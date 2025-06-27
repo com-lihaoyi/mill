@@ -312,7 +312,7 @@ object CodeGen {
   ): String = {
     s"""|@_root_.scala.annotation.nowarn
         |object MillMiscInfo 
-        |    extends mill.define.RootModule0.Info(
+        |    extends mill.define.internal.RootModule0.Info(
         |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
         |  output0 = ${literalize(output.toString)},
         |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}
