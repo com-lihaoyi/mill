@@ -51,8 +51,12 @@ object PmdModuleTest extends TestSuite {
         def normalize(path: String): String =
           path.replace("\\", "/")
 
-        val expectedNormalized = expectedViolations.map { case (file, line) => (normalize(file), line) }
-        val reportedNormalized = reportedViolations.map { case (file, line) => (normalize(file), line) }
+        val expectedNormalized = expectedViolations.map { case (file, line) =>
+          (normalize(file), line)
+        }
+        val reportedNormalized = reportedViolations.map { case (file, line) =>
+          (normalize(file), line)
+        }
 
         assert(expectedNormalized == reportedNormalized)
       }
