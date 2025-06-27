@@ -35,10 +35,10 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       "Version of NDK (Native Development Kit)"
     ),
     BuildInfo.Value("cmakeVersion", Deps.AndroidDeps.cmakeVersion, "Version of cmake"),
-    BuildInfo.Value("layoutLibVersion", Deps.AndroidDeps.cmakeVersion, "Version of LayoutLib"),
+    BuildInfo.Value("layoutLibVersion", Deps.AndroidDeps.layoutLibVersion, "Version of LayoutLib"),
     BuildInfo.Value(
       "composePreviewRendererVersion",
-      Deps.AndroidDeps.cmakeVersion,
+      Deps.AndroidDeps.composePreviewRendererVersion,
       "Version of ComposePreviewRenderer"
     ),
     BuildInfo.Value("uiToolingVersion", Deps.AndroidDeps.uiToolingVersion, "Version of uiTooling")
