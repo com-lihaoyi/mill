@@ -4,8 +4,10 @@ import mill.*
 import scalalib.*
 import define.{ExternalModule, ModuleRef}
 
+@deprecated("Use mill.scalalib.SonatypeCentralPublishModule instead", "Mill 0.12.15")
 trait SonatypeCentralPublishModule extends mill.scalalib.SonatypeCentralPublishModule
 
+@deprecated("Use mill.scalalib.SonatypeCentralPublishModule instead", "Mill 0.12.15")
 object SonatypeCentralPublishModule extends ExternalModule {
 
   private lazy val other = ModuleRef(mill.scalalib.SonatypeCentralPublishModule)

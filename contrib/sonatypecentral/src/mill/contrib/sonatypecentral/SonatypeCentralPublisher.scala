@@ -3,6 +3,7 @@ package mill.contrib.sonatypecentral
 import com.lumidion.sonatype.central.client.core.SonatypeCredentials
 import mill.api.Logger
 
+@deprecated("Use mill.scalalib.SonatypeCentralPublisher instead", "Mill 0.12.15")
 class SonatypeCentralPublisher(
     credentials: SonatypeCredentials,
     gpgArgs: Seq[String],
