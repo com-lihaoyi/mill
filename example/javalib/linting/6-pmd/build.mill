@@ -1,0 +1,44 @@
+// :api-pmd: {site-url}/api/latest/mill/javalib/pmd
+
+// The `PmdModule` enables support for analyzing sources with
+// https://docs.pmd-code.org/latest/index.html[PMD] (Programming Mistake Detector).
+
+package build
+
+import mill.javalib.JavaModule
+import mill.javalib.pmd.PmdModule
+
+object `package` extends JavaModule with PmdModule
+
+/** See Also: src/Foo.java */
+/** See Also: ruleset.xml */
+
+// TIP: XML files, with name starting with "ruleset", under the module folder are auto-detected.
+// If no rulesets are found, the search is repeated for the workspace folder.
+
+// We specify the
+// https://docs.pmd-code.org/latest/pmd_rules_java_bestpractices.html#systemprintln[SystemPrintln]
+// rule, in an ruleset XML file, to be applied on sources.
+
+// Running the `pmd` command lists violations, if any.
+
+/** Usage
+> ./mill pmd
+...Foo.java:4:	SystemPrintln:	Usage of System.out/err
+error: ...violation(s) found
+
+> ./mill pmd --no-fail-on-violation  # suppress violations
+no violations found
+*/
+
+// You can also run the companion `PmdModule` xref:fundamentals/modules.adoc#_external_modules[globally]
+// if you prefer not to have to extend the trait in your build.
+
+/** Usage
+> ./mill mill.javalib.pmd.PmdModule/
+...Foo.java:4:	SystemPrintln:	Usage of System.out/err
+error: ...violation(s) found
+*/
+
+// For the full list of configuration options, please refer to the
+// link:{api-pmd}/PmdModule.html[API documentation].
