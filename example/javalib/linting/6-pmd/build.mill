@@ -1,0 +1,37 @@
+// `CheckstyleModule` Performs quality checks on Java source files using
+// https://checkstyle.org[Checkstyle] and generates reports from these checks.
+
+package build
+import mill._, javalib._, pmd._
+
+object `package` extends JavaModule with PmdModule {
+  def pmdVersion = "7.15.0"
+}
+
+// PMD is a source code analyzer for Java that finds common programming flaws like unused variables,
+// empty catch blocks, unnecessary object creation, and more.
+// Mill supports integrating PMD into your Java build via the `PmdModule`.
+
+// To use this plugin in a Java module,
+//
+// 1. Extend JavaModule with PmdModule.
+// 2. Define a PMD ruleset file(s) with `pmdRulesets` (default is `pmd-rules.xml`).
+// 3. Run the `pmd` command.
+
+// PMD flags:
+// The `pmd` command accepts several flags to customize its behavior:
+// --rulesets / -R
+//	Required Path to a ruleset xml file.
+//
+// --format / -f
+//  Output format for the report (`text`, `xml`, `html`). Defaults to `text`.
+//
+// --[no-]fail-on-error
+//  Specifies whether PMD exits with non-zero status if recoverable errors occurred.
+//
+// --[no-]fail-on-violation
+//  Specifies whether PMD exits with non-zero status if violations are found.
+//
+// For a full list of PMD options, see the PMD documentation:
+// https://pmd.github.io/pmd/pmd_userdocs_cli_reference.html).
+
