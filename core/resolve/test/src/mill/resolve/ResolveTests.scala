@@ -55,36 +55,36 @@ object ResolveTests extends TestSuite {
       test("neg7") - check(
         "",
         Result.Failure(
-          "Target selector must not be empty. Try `mill resolve _` to see what's available."
+          "Task selector must not be empty. Try `mill resolve _` to see what's available."
         )
       )
     }
     test("backtickIdentifiers") {
       val check = new Checker(bactickIdentifiers)
-      test("pos1") - check("up-target", Result.Success(Set(_.`up-target`)), Set("up-target"))
+      test("pos1") - check("up-task", Result.Success(Set(_.`up-task`)), Set("up-task"))
       test("pos2") - check(
-        "a-down-target",
-        Result.Success(Set(_.`a-down-target`)),
-        Set("a-down-target")
+        "a-down-task",
+        Result.Success(Set(_.`a-down-task`)),
+        Set("a-down-task")
       )
       test("neg1") - check(
-        "uptarget",
-        Result.Failure("Cannot resolve uptarget. Did you mean up-target?")
+        "uptask",
+        Result.Failure("Cannot resolve uptask. Did you mean up-task?")
       )
       test("neg2") - check(
-        "upt-arget",
-        Result.Failure("Cannot resolve upt-arget. Did you mean up-target?")
+        "upt-ask",
+        Result.Failure("Cannot resolve upt-ask. Did you mean up-task?")
       )
       test("neg3") - check(
-        "up-target.doesntExist",
+        "up-task.doesntExist",
         Result.Failure(
-          "Cannot resolve up-target.doesntExist. up-target resolves to a Task with no children."
+          "Cannot resolve up-task.doesntExist. up-task resolves to a Task with no children."
         )
       )
       test("neg4") - check(
         "",
         Result.Failure(
-          "Target selector must not be empty. Try `mill resolve _` to see what's available."
+          "Task selector must not be empty. Try `mill resolve _` to see what's available."
         )
       )
       test("neg5") - check(
@@ -99,9 +99,9 @@ object ResolveTests extends TestSuite {
       )
       test("nested") {
         test("pos") - check(
-          "nested-module.nested-target",
-          Result.Success(Set(_.`nested-module`.`nested-target`)),
-          Set("nested-module.nested-target")
+          "nested-module.nested-task",
+          Result.Success(Set(_.`nested-module`.`nested-task`)),
+          Set("nested-module.nested-task")
         )
         test("neg") - check(
           "nested-module.doesntExist",

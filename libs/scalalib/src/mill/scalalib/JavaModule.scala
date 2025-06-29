@@ -28,7 +28,7 @@ import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
 
 /**
- * Core configuration required to compile a single Java compilation target
+ * Core configuration required to compile a single Java module
  */
 trait JavaModule
     extends mill.define.Module
@@ -149,7 +149,7 @@ trait JavaModule
 
   /**
    * Aggregation of mandatoryMvnDeps and mvnDeps.
-   * In most cases, instead of overriding this Target you want to override `mvnDeps` instead.
+   * In most cases, instead of overriding this task you want to override `mvnDeps` instead.
    */
   def allMvnDeps: T[Seq[Dep]] = Task { mvnDeps() ++ mandatoryMvnDeps() }
 
@@ -784,8 +784,8 @@ trait JavaModule
 
   /**
    * Folders containing source files that are generated rather than
-   * handwritten; these files can be generated in this target itself,
-   * or can refer to files generated from other targets
+   * handwritten; these files can be generated in this task itself,
+   * or can refer to files generated from other tasks
    */
   def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
@@ -1058,7 +1058,7 @@ trait JavaModule
   /**
    * Additional options to be used by the javadoc tool.
    * You should not set the `-d` setting for specifying the target directory,
-   * as that is done in the [[docJar]] target.
+   * as that is done in the [[docJar]] task.
    */
   def javadocOptions: T[Seq[String]] = Task { Seq[String]() }
 
@@ -1080,7 +1080,7 @@ trait JavaModule
   def docResources: T[Seq[PathRef]] = Task.Sources("docs")
 
   /**
-   * Control whether `docJar`-target should use a file to pass command line arguments to the javadoc tool.
+   * Control whether `docJar`-task should use a file to pass command line arguments to the javadoc tool.
    * Defaults to `true` on Windows.
    * Beware: Using an args-file is probably not supported for very old javadoc versions.
    */
@@ -1186,7 +1186,8 @@ trait JavaModule
         customizer = resolutionCustomizer(),
         coursierCacheCustomizer = coursierCacheCustomizer(),
         resolutionParams = resolutionParams(),
-        checkGradleModules = checkGradleModules()
+        checkGradleModules = checkGradleModules(),
+        config = coursierConfigModule().coursierConfig()
       ).get
 
       val roots = whatDependsOn match {

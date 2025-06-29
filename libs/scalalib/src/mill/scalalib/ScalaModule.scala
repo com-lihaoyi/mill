@@ -21,7 +21,7 @@ import scala.reflect.internal.util.ScalaClassLoader
 import scala.util.Using
 
 /**
- * Core configuration required to compile a single Scala compilation target
+ * Core configuration required to compile a single Scala module
  */
 trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     with ScalaModuleApi { outer =>
@@ -197,7 +197,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
   /**
    * Aggregation of all the options passed to the Scala compiler.
-   * In most cases, instead of overriding this Target you want to override `scalacOptions` instead.
+   * In most cases, instead of overriding this task you want to override `scalacOptions` instead.
    */
   def allScalacOptions: T[Seq[String]] = Task {
     mandatoryScalacOptions() ++ enablePluginScalacOptions() ++ scalacOptions()

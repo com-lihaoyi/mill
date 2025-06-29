@@ -2,23 +2,20 @@ package mill.define
 
 import java.util.regex.Matcher
 
-case class ExecutionPaths private (dest: os.Path, meta: os.Path, log: os.Path) {}
+final case class ExecutionPaths private[mill] (dest: os.Path, meta: os.Path, log: os.Path) {}
 
 object ExecutionPaths {
-
-  def apply(dest: os.Path, meta: os.Path, log: os.Path): ExecutionPaths =
-    new ExecutionPaths(dest, meta, log)
 
   def resolve(
       outPath: os.Path,
       segments: Segments
   ): ExecutionPaths = {
     val segmentStrings = segments.parts
-    val targetPath = outPath / segmentStrings.map(sanitizePathSegment)
+    val taskPath = outPath / segmentStrings.map(sanitizePathSegment)
     ExecutionPaths(
-      targetPath / os.up / s"${targetPath.last}.dest",
-      targetPath / os.up / s"${targetPath.last}.json",
-      targetPath / os.up / s"${targetPath.last}.log"
+      taskPath / os.up / s"${taskPath.last}.dest",
+      taskPath / os.up / s"${taskPath.last}.json",
+      taskPath / os.up / s"${taskPath.last}.log"
     )
   }
 

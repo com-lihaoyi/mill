@@ -27,7 +27,7 @@ trait TaskCtx extends TaskCtx.Dest
 }
 
 /**
- * Provides access to various resources in the context of a current execution Target.
+ * Provides access to various resources in the context of a current execution task.
  */
 object TaskCtx {
 
@@ -61,16 +61,16 @@ object TaskCtx {
   implicit def taskCtx: TaskCtx = ???
 
   /**
-   * Access to the targets [[dest]] path.
+   * Access to the tasks [[dest]] path.
    */
   trait Dest {
 
     /**
      * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)
-     * that is assigned to every Target or Command. It is cleared before your
+     * that is assigned to every task or Command. It is cleared before your
      * task runs, and you can use it as a scratch space for temporary files or
      * a place to put returned artifacts. This is guaranteed to be unique for
-     * every Target or Command, so you can be sure that you will not collide or
+     * every Task or Command, so you can be sure that you will not collide or
      * interfere with anyone else writing to those same paths.
      */
     def dest: os.Path
@@ -79,7 +79,7 @@ object TaskCtx {
     implicit def pathToCtx(path: os.Path): Dest = new Dest { def dest = path }
   }
 
-  /** Access to the targets [[Logger]] instance. */
+  /** Access to the tasks [[Logger]] instance. */
   trait Log {
 
     /**

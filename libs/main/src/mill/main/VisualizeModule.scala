@@ -1,25 +1,16 @@
 package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
-import coursier.LocalRepositories
-import coursier.core.Repository
-import coursier.maven.MavenRepository
 import mill.define.{PathRef, Discover, Evaluator, ExternalModule, MultiBiMap, SelectMode}
 import mill.*
-import mill.util.MillModuleUtil.millProjectModule
+import mill.scalalib.{CoursierModule, Dep}
 import mill.api.{Result}
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
 import mill.define.BuildCtx
 
-object VisualizeModule extends ExternalModule {
-  def repositories: Seq[Repository] = Seq(
-    LocalRepositories.ivy2Local,
-    MavenRepository("https://repo1.maven.org/maven2"),
-    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-  )
-
+object VisualizeModule extends ExternalModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
 
   private type VizWorker = (
@@ -35,7 +26,7 @@ object VisualizeModule extends ExternalModule {
 
   private[mill] def visualize0(
       evaluator: Evaluator,
-      targets: Seq[String],
+      tasks: Seq[String],
       ctx: mill.define.TaskCtx,
       vizWorker: VizWorker,
       planTasks: Option[List[Task.Named[?]]] = None
@@ -45,9 +36,9 @@ object VisualizeModule extends ExternalModule {
         transitiveTasks: List[Task.Named[Any]]
     ): Result[Seq[PathRef]] = {
       val (in, out) = vizWorker
-      val transitive = evaluator.transitiveTargets(tasks)
+      val transitive = evaluator.transitiveTasks(tasks)
       val topoSorted = evaluator.topoSorted(transitive)
-      val sortedGroups = evaluator.groupAroundImportantTargets(topoSorted) {
+      val sortedGroups = evaluator.groupAroundImportantTasks(topoSorted) {
         case x: Task.Named[Any] if transitiveTasks.contains(x) => x
       }
       val plan = evaluator.plan(transitiveTasks)
@@ -59,7 +50,7 @@ object VisualizeModule extends ExternalModule {
       }
     }
 
-    evaluator.resolveTasks(targets, SelectMode.Multi).flatMap {
+    evaluator.resolveTasks(tasks, SelectMode.Multi).flatMap {
       rs =>
         planTasks match {
           case Some(allRs) => callVisualizeModule(rs, allRs)
@@ -72,7 +63,7 @@ object VisualizeModule extends ExternalModule {
   def classpath = toolsClasspath
 
   def toolsClasspath: T[Seq[PathRef]] = Task {
-    millProjectModule("mill-libs-graphviz", repositories)
+    defaultResolver().classpath(Seq(Dep.millProjectModule("mill-libs-graphviz")))
   }
 
   /**

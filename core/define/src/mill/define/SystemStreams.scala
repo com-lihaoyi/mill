@@ -5,6 +5,10 @@ import mill.constants.InputPumper
 
 import java.io.{InputStream, OutputStream, PrintStream}
 
+/**
+ * Utilities for managing and redirecting the [[SystemStreams]] modelling
+ * the stdin/stdout/stderr of the process
+ */
 object SystemStreams {
 
   /**

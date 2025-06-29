@@ -334,7 +334,7 @@ object LocalSummary {
         )
 
         // HACK: we skip any constants that get passed to `sourcecode.Line()`,
-        // because we use that extensively in defining Mill targets, but it is
+        // because we use that extensively in defining Mill tasks, but it is
         // generally not something we want to affect the output of a build
         val sourcecodeLineCall = st.MethodCall(
           JCls.fromSlashed("sourcecode/Line"),

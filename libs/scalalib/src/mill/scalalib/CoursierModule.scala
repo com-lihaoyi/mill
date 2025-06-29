@@ -4,15 +4,11 @@ import coursier.cache.FileCache
 import coursier.core.Resolution
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import coursier.{Dependency, Repository, Resolve, Type}
-import mill.define.Task
-import mill.define.{PathRef}
-import mill.api.{Result}
+import coursier.{Dependency, Repository}
+import mill.api.Result
+import mill.define.{ModuleRef, PathRef, Task}
 import mill.util.Jvm
 import mill.T
-
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 /**
  * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
@@ -35,6 +31,9 @@ trait CoursierModule extends mill.define.Module {
     BoundDep(Lib.depToDependencyJava(dep), dep.force)
   }
 
+  def coursierConfigModule: ModuleRef[CoursierConfigModule] =
+    ModuleRef(CoursierConfigModule)
+
   /**
    * A [[CoursierModule.Resolver]] to resolve dependencies.
    *
@@ -52,7 +51,8 @@ trait CoursierModule extends mill.define.Module {
       coursierCacheCustomizer = coursierCacheCustomizer(),
       resolutionParams = resolutionParams(),
       offline = Task.offline,
-      checkGradleModules = checkGradleModules()
+      checkGradleModules = checkGradleModules(),
+      config = coursierConfigModule().coursierConfig()
     )
   }
 
@@ -73,7 +73,8 @@ trait CoursierModule extends mill.define.Module {
       coursierCacheCustomizer = coursierCacheCustomizer(),
       resolutionParams = resolutionParams(),
       offline = Task.offline,
-      checkGradleModules = checkGradleModules()
+      checkGradleModules = checkGradleModules(),
+      config = coursierConfigModule().coursierConfig()
     )
   }
 
@@ -100,12 +101,7 @@ trait CoursierModule extends mill.define.Module {
    * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
   def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-    val resolve = Resolve()
-    val repos = Await.result(
-      resolve.finalRepositories.future()(using resolve.cache.ec),
-      Duration.Inf
-    )
-    Jvm.reposFromStrings(repositories()).map(_ ++ repos)
+    Jvm.reposFromStrings("default" +: repositories(), coursierConfigModule().defaultRepositories())
   }
 
   /**
@@ -131,6 +127,10 @@ trait CoursierModule extends mill.define.Module {
    *
    * - https://maven.google.com
    *   Google-managed repository that distributes some Android artifacts in particular
+   *
+   * - default
+   *   The default repositories, that might have been changed via COURSIER_REPOSITORIES in the environment,
+   *   the coursier.repositories Java property, or the Scala CLI configuration file
    */
   def repositories: T[Seq[String]] = Task { Seq.empty[String] }
 
@@ -231,7 +231,8 @@ object CoursierModule {
       ] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       offline: Boolean,
-      checkGradleModules: Boolean
+      checkGradleModules: Boolean,
+      config: mill.util.CoursierConfig
   ) {
 
     /**
@@ -257,7 +258,8 @@ object CoursierModule {
         coursierCacheCustomizer = coursierCacheCustomizer,
         ctx = Some(ctx),
         resolutionParams = resolutionParamsMapOpt.fold(resolutionParams)(_(resolutionParams)),
-        checkGradleModules = checkGradleModules
+        checkGradleModules = checkGradleModules,
+        config = config
       ).get
 
     /**
@@ -281,7 +283,8 @@ object CoursierModule {
         ctx = Some(ctx),
         resolutionParams = resolutionParams,
         boms = Nil,
-        checkGradleModules = checkGradleModules
+        checkGradleModules = checkGradleModules,
+        config = config
       ).get
     }
 
@@ -301,7 +304,8 @@ object CoursierModule {
         deps0.map(_.dep),
         sources = sources,
         ctx = Some(ctx),
-        checkGradleModules = checkGradleModules
+        checkGradleModules = checkGradleModules,
+        config = config
       ).get
     }
   }

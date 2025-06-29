@@ -94,9 +94,9 @@ object OverrideTests extends TestSuite {
     import utest._
 
     test("overrideSuperTask") {
-      // Make sure you can override targets, call their supers, and have the
-      // overridden target be allocated a spot within the overridden/ folder of
-      // the main publicly-available target
+      // Make sure you can override tasks, call their supers, and have the
+      // overridden task be allocated a spot within the overridden/ folder of
+      // the main publicly-available task
       import canOverrideSuper._
 
       val checker = new Checker(canOverrideSuper)
@@ -230,7 +230,7 @@ object OverrideTests extends TestSuite {
       }
     }
     test("privateTasksInMixedTraits") {
-      // Make sure we can have private cached targets in different trait with the same name,
+      // Make sure we can have private cached tasks in different trait with the same name,
       // and caching still works when these traits are mixed together
       import PrivateTasksInMixedTraits._
       val checker = new Checker(PrivateTasksInMixedTraits)
@@ -241,7 +241,7 @@ object OverrideTests extends TestSuite {
         extraEvaled = -1
       )
       // If we evaluate to "foo-m1" instead of "foo-m2",
-      // we don't properly distinguish between the two private `foo` targets
+      // we don't properly distinguish between the two private `foo` tasks
       checker(
         mod.baz,
         "foo-m2",

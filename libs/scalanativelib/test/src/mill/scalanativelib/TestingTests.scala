@@ -57,18 +57,18 @@ object TestingTests extends TestSuite {
       )
     }
 
-    def checkInheritedTargets[A](target: ScalaNativeModule => T[A], expected: A) =
+    def checkInheritedTasks[A](task: ScalaNativeModule => T[A], expected: A) =
       UnitTester(HelloNativeWorld, millSourcePath).scoped { eval =>
-        val Right(mainResult) = eval(target(HelloNativeWorld.inherited)): @unchecked
-        val Right(testResult) = eval(target(HelloNativeWorld.inherited.test)): @unchecked
+        val Right(mainResult) = eval(task(HelloNativeWorld.inherited)): @unchecked
+        val Right(testResult) = eval(task(HelloNativeWorld.inherited.test)): @unchecked
         assert(mainResult.value == expected)
         assert(testResult.value == expected)
       }
     test("test-scalacOptions") {
-      checkInheritedTargets(_.scalacOptions, Seq("-deprecation"))
+      checkInheritedTasks(_.scalacOptions, Seq("-deprecation"))
     }
     test("test-scalaOrganization") {
-      checkInheritedTargets(_.scalaOrganization, "org.example")
+      checkInheritedTasks(_.scalaOrganization, "org.example")
     }
   }
 

@@ -20,7 +20,7 @@ object BuildCtx {
    */
   def workspaceRoot: os.Path = workspaceRoot0.value
 
-  val workspaceRoot0: scala.util.DynamicVariable[os.Path] =
+  private[mill] val workspaceRoot0: scala.util.DynamicVariable[os.Path] =
     DynamicVariable(sys.env.get(EnvVars.MILL_WORKSPACE_ROOT).fold(os.pwd)(os.Path(_, os.pwd)))
 
   /**

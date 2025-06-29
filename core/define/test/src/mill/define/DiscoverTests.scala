@@ -6,9 +6,9 @@ import utest._
 
 object DiscoverTests extends TestSuite {
   val tests = Tests {
-    def check[T <: Module](m: T)(targets: (T => Simple[?])*) = {
-      val discovered = m.moduleInternal.targets
-      val expected = targets.map(_(m)).toSet
+    def check[T <: Module](m: T)(tasks: (T => Simple[?])*) = {
+      val discovered = m.moduleInternal.simpleTasks
+      val expected = tasks.map(_(m)).toSet
       assert(discovered == expected)
     }
     test("singleton") {
@@ -16,9 +16,9 @@ object DiscoverTests extends TestSuite {
     }
     test("backtickIdentifiers") {
       check(TestGraphs.bactickIdentifiers)(
-        _.`up-target`,
-        _.`a-down-target`,
-        _.`nested-module`.`nested-target`
+        _.`up-task`,
+        _.`a-down-task`,
+        _.`nested-module`.`nested-task`
       )
     }
     test("separateGroups") {

@@ -6,7 +6,7 @@ import scala.quoted.*
 trait Cacher extends mill.moduledefs.Cacher {
   private lazy val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Any]
 
-  protected def cachedTarget[T](t: => T)(implicit c: sourcecode.Enclosing): T = synchronized {
+  protected def cachedTask[T](t: => T)(implicit c: sourcecode.Enclosing): T = synchronized {
     cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
   }
 }
@@ -48,7 +48,7 @@ private[mill] object Cacher {
       )
 
       val thisSel = This(owner.owner).asExprOf[Cacher]
-      '{ $thisSel.cachedTarget[T](${ t })(using $enclosingCtx) }
+      '{ $thisSel.cachedTask[T](${ t })(using $enclosingCtx) }
     } else report.errorAndAbort(
       "Task{} members must be defs defined in a Module class/trait/object body",
       Position.ofMacroExpansion

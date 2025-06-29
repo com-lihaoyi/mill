@@ -178,7 +178,7 @@ private trait GroupExecution {
                       results = results,
                       inputsHash = inputsHash,
                       paths = Some(paths),
-                      maybeTargetLabel = Some(terminal.toString),
+                      taskLabelOpt = Some(terminal.toString),
                       counterMsg = countMsg,
                       reporter = zincProblemReporter,
                       testReporter = testReporter,
@@ -223,7 +223,7 @@ private trait GroupExecution {
             results = results,
             inputsHash = inputsHash,
             paths = None,
-            maybeTargetLabel = None,
+            taskLabelOpt = None,
             counterMsg = countMsg,
             reporter = zincProblemReporter,
             testReporter = testReporter,
@@ -253,7 +253,7 @@ private trait GroupExecution {
       results: Map[Task[?], ExecResult[(Val, Int)]],
       inputsHash: Int,
       paths: Option[ExecutionPaths],
-      maybeTargetLabel: Option[String],
+      taskLabelOpt: Option[String],
       counterMsg: String,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
@@ -267,22 +267,22 @@ private trait GroupExecution {
     val newEvaluated = mutable.Buffer.empty[Task[?]]
     val newResults = mutable.Map.empty[Task[?], ExecResult[(Val, Int)]]
 
-    val nonEvaluatedTargets = group.toIndexedSeq.filterNot(results.contains)
+    val nonEvaluatedTasks = group.toIndexedSeq.filterNot(results.contains)
     val (multiLogger, fileLoggerOpt) = resolveLogger(paths.map(_.log), logger)
 
     val destCreator = new GroupExecution.DestCreator(paths)
 
-    for (task <- nonEvaluatedTargets) {
+    for (task <- nonEvaluatedTasks) {
       newEvaluated.append(task)
-      val targetInputValues = task.inputs
+      val taskInputValues = task.inputs
         .map { x => newResults.getOrElse(x, results(x)) }
         .collect { case ExecResult.Success((v, _)) => v }
 
       val res = {
-        if (targetInputValues.length != task.inputs.length) ExecResult.Skipped
+        if (taskInputValues.length != task.inputs.length) ExecResult.Skipped
         else {
           val args = new mill.define.TaskCtx.Impl(
-            args = targetInputValues.map(_.value).toIndexedSeq,
+            args = taskInputValues.map(_.value).toIndexedSeq,
             dest0 = () => destCreator.makeDest(),
             log = multiLogger,
             env = env,
@@ -342,10 +342,10 @@ private trait GroupExecution {
 
     fileLoggerOpt.foreach(_.close())
 
-    if (!failFast) maybeTargetLabel.foreach { targetLabel =>
+    if (!failFast) taskLabelOpt.foreach { taskLabel =>
       val taskFailed = newResults.exists(task => task._2.isInstanceOf[ExecResult.Failing[?]])
       if (taskFailed) {
-        logger.error(s"$targetLabel failed")
+        logger.error(s"$taskLabel failed")
       }
     }
 
@@ -353,7 +353,7 @@ private trait GroupExecution {
   }
 
   // Include the classloader identity hash as part of the worker hash. This is
-  // because unlike other targets, workers are long-lived in memory objects,
+  // because unlike other tasks, workers are long-lived in memory objects,
   // and are not re-instantiated every run. Thus, we need to make sure we
   // invalidate workers in the scenario where a worker classloader is
   // re-created - so the worker *class* changes - but the *value* inputs to the
@@ -362,7 +362,7 @@ private trait GroupExecution {
   // non-bootstrap classloader which can be re-created when the `build.mill` file
   // changes.
   //
-  // We do not want to do this for normal targets, because those are always
+  // We do not want to do this for normal tasks, because those are always
   // read from disk and re-instantiated every time, so whether the
   // classloader/class is the same or different doesn't matter.
   def workerCacheHash(inputHash: Int): Int = inputHash + classLoaderIdentityHash

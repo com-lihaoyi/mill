@@ -52,43 +52,43 @@ trait ScoverageReport extends Module {
   def htmlReportAll(
       evaluator: Evaluator,
       sources: String = "__.allSources",
-      dataTargets: String = "__.scoverage.data"
+      dataTasks: String = "__.scoverage.data"
   ): Command[PathRef] = Task.Command(exclusive = true) {
-    reportTask(evaluator, ReportType.Html, sources, dataTargets)()
+    reportTask(evaluator, ReportType.Html, sources, dataTasks)()
   }
 
   /** Generates report in xml format for all modules */
   def xmlReportAll(
       evaluator: Evaluator,
       sources: String = "__.allSources",
-      dataTargets: String = "__.scoverage.data"
+      dataTasks: String = "__.scoverage.data"
   ): Command[PathRef] = Task.Command(exclusive = true) {
-    reportTask(evaluator, ReportType.Xml, sources, dataTargets)()
+    reportTask(evaluator, ReportType.Xml, sources, dataTasks)()
   }
 
   /** Generates report in Cobertura's xml format for all modules */
   def xmlCoberturaReportAll(
       evaluator: Evaluator,
       sources: String = "__.allSources",
-      dataTargets: String = "__.scoverage.data"
+      dataTasks: String = "__.scoverage.data"
   ): Command[PathRef] = Task.Command(exclusive = true) {
-    reportTask(evaluator, ReportType.XmlCobertura, sources, dataTargets)()
+    reportTask(evaluator, ReportType.XmlCobertura, sources, dataTasks)()
   }
 
   /** Reports to the console for all modules */
   def consoleReportAll(
       evaluator: Evaluator,
       sources: String = "__.allSources",
-      dataTargets: String = "__.scoverage.data"
+      dataTasks: String = "__.scoverage.data"
   ): Command[PathRef] = Task.Command(exclusive = true) {
-    reportTask(evaluator, ReportType.Console, sources, dataTargets)()
+    reportTask(evaluator, ReportType.Console, sources, dataTasks)()
   }
 
   def reportTask(
       evaluator: Evaluator,
       reportType: ReportType,
       sources: String,
-      dataTargets: String
+      dataTaskStrings: String
   ): Task[PathRef] = {
     val sourcesTasks: Seq[Task[Seq[PathRef]]] = evaluator.resolveTasks(
       Seq(sources),
@@ -96,7 +96,7 @@ trait ScoverageReport extends Module {
     ).get.asInstanceOf[Seq[Task[Seq[PathRef]]]]
 
     val dataTasks: Seq[Task[PathRef]] = evaluator.resolveTasks(
-      Seq(dataTargets),
+      Seq(dataTaskStrings),
       SelectMode.Separated
     ).get.asInstanceOf[Seq[Task[PathRef]]]
 
