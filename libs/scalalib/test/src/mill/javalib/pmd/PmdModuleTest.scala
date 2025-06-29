@@ -20,7 +20,12 @@ object PmdModuleTest extends TestSuite {
       UnitTester(module, modulePath).scoped { eval =>
         val format = "text"
         // Run with check = false so it does not throw on violations
-        eval(module.pmd(PmdArgs(check = false, stdout = false, format = format, sources = Leftover("sources"))))
+        eval(module.pmd(PmdArgs(
+          check = false,
+          stdout = false,
+          format = format,
+          sources = Leftover("sources")
+        )))
 
         // Compute the expected output report path directly
         val outputReportPath = eval.outPath / "pmd.dest" / s"pmd-output.$format"

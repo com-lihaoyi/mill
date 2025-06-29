@@ -21,44 +21,45 @@ trait PmdModule extends JavaModule {
     pmdHandleErrors(pmdArgs.stdout, pmdArgs.check, exitCode, output)
   }
 
-  protected def pmd0(stdout: Boolean, format: String, leftover: mainargs.Leftover[String]) = Task.Anon {
-    val output = Task.dest / s"pmd-output.$format"
-    val args = pmdOptions() ++
-      Seq(
-        "-d",
-        (if (leftover.value.nonEmpty) leftover.value.mkString(",")
-        else sources().map(_.path.toString()).mkString(",")),
-        "-R",
-        pmdRulesets().map(_.path.toString).mkString(","),
-        "-f",
-        format
-      ) ++
-      (if (stdout) Seq.empty else Seq("-r", output.toString))
-    val jvmArgs = pmdLanguage().map(lang => s"-Duser.language=$lang").toSeq
+  protected def pmd0(stdout: Boolean, format: String, leftover: mainargs.Leftover[String]) =
+    Task.Anon {
+      val output = Task.dest / s"pmd-output.$format"
+      val args = pmdOptions() ++
+        Seq(
+          "-d",
+          (if (leftover.value.nonEmpty) leftover.value.mkString(",")
+           else sources().map(_.path.toString()).mkString(",")),
+          "-R",
+          pmdRulesets().map(_.path.toString).mkString(","),
+          "-f",
+          format
+        ) ++
+        (if (stdout) Seq.empty else Seq("-r", output.toString))
+      val jvmArgs = pmdLanguage().map(lang => s"-Duser.language=$lang").toSeq
 
-    Task.log.info("running pmd ...")
-    Task.log.debug(s"with $args")
+      Task.log.info("running pmd ...")
+      Task.log.debug(s"with $args")
 
-    val exitCode = Jvm.callProcess(
-      mainClass = "net.sourceforge.pmd.PMD",
-      classPath = pmdClasspath().map(_.path).toVector,
-      mainArgs = args,
-      cwd = moduleDir,
-      stdin = os.Inherit,
-      stdout = os.Inherit,
-      check = false,
-      jvmArgs = jvmArgs
-    ).exitCode
+      val exitCode = Jvm.callProcess(
+        mainClass = "net.sourceforge.pmd.PMD",
+        classPath = pmdClasspath().map(_.path).toVector,
+        mainArgs = args,
+        cwd = moduleDir,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        check = false,
+        jvmArgs = jvmArgs
+      ).exitCode
 
-    (output, exitCode)
-  }
+      (output, exitCode)
+    }
 
   protected def pmdHandleErrors(
-                                 stdout: Boolean,
-                                 check: Boolean,
-                                 exitCode: Int,
-                                 output: os.Path
-                               )(implicit ctx: mill.define.TaskCtx): Int = {
+      stdout: Boolean,
+      check: Boolean,
+      exitCode: Int,
+      output: os.Path
+  )(implicit ctx: mill.define.TaskCtx): Int = {
 
     val reported = os.exists(output)
     if (reported) {
