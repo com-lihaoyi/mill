@@ -1,7 +1,7 @@
 package mill.javalib
 package pmd
 
-import mainargs.{Flag, Leftover}
+import mainargs.Flag
 import mill.constants.OutFiles.out
 import mill.define.*
 import mill.scalalib.{JavaHomeModule, OfflineSupportModule}
@@ -15,7 +15,7 @@ import mill.util.Jvm
 trait PmdModule extends CoursierModule, OfflineSupportModule {
 
   /**
-   * Paths to [[https://docs.pmd-code.org/latest/pmd_userdocs_making_rulesets.html rulesets]].
+   * [[https://docs.pmd-code.org/latest/pmd_userdocs_making_rulesets.html Rulesets]] for analysis.
    * Defaults to XML files, with name prefix ''ruleset'', in one of [[moduleDir]] or ''workspace''.
    */
   def pmdRulesets: Task[Seq[PathRef]] = Task {
@@ -30,7 +30,10 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
 
       rulesetsIn(moduleDir)
         .orElse(rulesetsIn(Task.ctx().workspace))
-        .getOrElse(Task.fail("rulesets not found"))
+        .getOrElse {
+          Task.log.warn("no rulesets found, must be overridden or specified inline with -R option")
+          Seq()
+        }
     }
   }
 
@@ -41,7 +44,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
   def pmdUseVersion: Task[Map[String, String]] = Task(Map.empty[String, String])
 
   /**
-   * File to which report output is written. If empty, the report is rendered to standard output.
+   * File to which output report is written. If empty, the report is rendered to standard output.
    */
   def pmdReportFile: Task[Option[PathRef]] = Task(Option.empty[PathRef])
 
@@ -62,6 +65,11 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
             .toSeq
         }
       }
+
+  /**
+   * Files/folders, in [[pmdInputs]], to not analyze.
+   */
+  def pmdExcludes: Task[Seq[PathRef]] = Task(Seq.empty[PathRef])
 
   /**
    * Classpath containing the PMD distribution dependency.
@@ -93,46 +101,40 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
    *  - recoverable errors occur
    *
    * Additional [[https://docs.pmd-code.org/latest/pmd_userdocs_cli_reference.html#options options]]
-   * can be passed, excluding
+   * can be passed, except
    *  - `--cache`
    *  - `-z`
-   *  - `-R`
-   *  - `--use-version`, if [[pmdUseVersion]] is not empty
-   *  - `-r`, if [[pmdReportFile]] is not empty
+   *  - `-r`, if [[pmdReportFile]] is defined
    * @note The analyzer is run with [[JavaHomeModule.javaHome]], if defined.
    *       This should eliminate the need for specifying the
    *       [[https://docs.pmd-code.org/latest/pmd_languages_java.html#providing-the-auxiliary-classpath --aux-classpath]] option.
    */
-  def pmd(
-      @mainargs.arg(short = 'f')
-      format: String = "text",
-      options: Leftover[String]
-  ): Task.Command[Unit] = {
+  def pmd(options: String*): Task.Command[Unit] = {
     val javaHomeTask = this match
       case self: JavaHomeModule => Task.Anon(self.javaHome().map(_.path))
       case _ => Task.Anon(Option.empty[os.Path])
     Task.Command {
       val cliArgs =
         Seq("check") // sub-command
-          ++ options.value
-          ++ Seq("--cache", (Task.dest / "cache").toString) // for incremental analysis
-          ++ Seq("-z", Task.ctx().workspace.toString) // to relativize paths in output report
-          ++ Seq("-R", pmdRulesets().iterator.map(_.path).mkString(","))
-          ++ pmdUseVersion().flatMap((lang, version) => Seq("--use-version", s"$lang-$version"))
+          ++ options
+          // for incremental analysis, must be absolute path
+          ++ Seq("--cache", (Task.dest / "cache").toString)
+          // relativize paths in output report
+          ++ Seq("-z", Task.ctx().workspace.toString)
           ++ pmdReportFile().iterator.flatMap(ref => Seq("-r", ref.path.toString))
-          ++ Seq("-f", format)
-          ++ pmdInputs().map(
-            _.path.toString
-          ) // quirk: positional inputs require -f option in penultimate position
+          ++ pmdUseVersion().iterator.flatMap((lng, ver) => Seq("--use-version", s"$lng-$ver"))
+          ++ pmdRulesets().iterator.flatMap(ref => Seq("-R", ref.path.toString))
+          ++ pmdExcludes().iterator.flatMap(ref => Seq("--exclude", ref.path.toString))
+          ++ pmdInputs().iterator.flatMap(ref => Seq("-d", ref.path.toString))
       val exitCode = Jvm.callProcess(
         mainClass = "net.sourceforge.pmd.cli.PmdCli",
         mainArgs = cliArgs,
         javaHome = javaHomeTask(),
         jvmArgs = pmdJavaOptions(),
         classPath = pmdClasspath().map(_.path),
-        cwd = moduleDir, // to support relative paths in CLI args
+        cwd = moduleDir, // support relative paths in CLI args
         check = false,
-        stdout = os.Inherit // for logging file violations
+        stdout = os.Inherit // log file violations
       ).exitCode
       exitCode match
         case 0 => Task.log.info("no violations found")

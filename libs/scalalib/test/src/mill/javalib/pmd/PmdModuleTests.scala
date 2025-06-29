@@ -1,6 +1,6 @@
 package mill.javalib.pmd
 
-import mill.define.Discover
+import mill.define.{Discover, Task}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
@@ -29,13 +29,34 @@ object PmdModuleTests extends TestSuite {
         resources / "violations",
         outStream = PrintStream(logStream, true)
       ).scoped { eval =>
-        val Left(_) = eval("pmd", "--no-progress")
+        val Left(_) = eval("pmd")
         val log = logStream.toString()
-        for msg <- Seq(
+        for violation <- Seq(
             "ImmutableField.java:2:\tImmutableField:\tField 'x' may be declared final",
             "LooseCoupling.java:5:\tLooseCoupling:\tAvoid using implementation types like 'HashSet'; use the interface instead"
           )
-        do assert(log.contains(msg))
+        do assert(log.contains(violation))
+      }
+    }
+
+    test("exclude") {
+      val logStream = ByteArrayOutputStream()
+      object module extends SingleModule {
+        def pmdExcludes = Task.Sources("src/ImmutableField.java")
+      }
+      UnitTester(
+        module,
+        resources / "violations",
+        outStream = PrintStream(logStream, true)
+      ).scoped { eval =>
+        val Left(_) = eval("pmd")
+        val log = logStream.toString()
+        assert(
+          !log.contains("ImmutableField.java:2:\tImmutableField:\tField 'x' may be declared final"),
+          log.contains(
+            "LooseCoupling.java:5:\tLooseCoupling:\tAvoid using implementation types like 'HashSet'; use the interface instead"
+          )
+        )
       }
     }
 
