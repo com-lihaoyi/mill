@@ -52,6 +52,8 @@ object SonatypeHelpers {
     val fileName = file.toString
     val command = "gpg" +: args :+ fileName
 
+    println(s"Running GPG: ${command.map(pprint.Util.literalize(_)).mkString(" ")}")
+
     os.call(
       command,
       env,

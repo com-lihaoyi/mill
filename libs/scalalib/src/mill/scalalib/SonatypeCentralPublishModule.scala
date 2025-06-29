@@ -24,8 +24,11 @@ import mill.define.BuildCtx
 
 @experimental
 trait SonatypeCentralPublishModule extends PublishModule {
-  def sonatypeCentralGpgArgs: T[String] = Task {
-    PublishModule.defaultGpgArgsForPassphrase(Task.env.get("MILL_PGP_PASSPHRASE")).mkString(",")
+  /**
+   * @return (maybeKeyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
+   */
+  def sonatypeCentralGpgArgs: Task[Option[String] => Seq[String]] = Task.Anon { (maybeKeyId: Option[String]) =>
+    PublishModule.makeGpgArgs(Task.env, maybeKeyId = maybeKeyId, providedGpgArgs = Seq.empty)
   }
 
   def sonatypeCentralConnectTimeout: T[Int] = Task { defaultConnectTimeout }
@@ -45,10 +48,11 @@ trait SonatypeCentralPublishModule extends PublishModule {
       val fileMapping = publishData.withConcretePath._1
       val artifact = publishData.meta
       val finalCredentials = getSonatypeCredentials(username, password)()
-      PublishModule.pgpImportSecretIfProvided(Task.env)
+      val maybeKeyId = PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
+      val gpgArgs = sonatypeCentralGpgArgs()(maybeKeyId)
       val publisher = new SonatypeCentralPublisher(
         credentials = finalCredentials,
-        gpgArgs = sonatypeCentralGpgArgs().split(",").toIndexedSeq,
+        gpgArgs = gpgArgs,
         connectTimeout = sonatypeCentralConnectTimeout(),
         readTimeout = sonatypeCentralReadTimeout(),
         log = Task.log,
@@ -65,7 +69,6 @@ trait SonatypeCentralPublishModule extends PublishModule {
 }
 
 object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
-
   val defaultCredentials: String = ""
   val defaultReadTimeout: Int = 60000
   val defaultConnectTimeout: Int = 5000
@@ -81,7 +84,7 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
       username: String = defaultCredentials,
       password: String = defaultCredentials,
       shouldRelease: Boolean = defaultShouldRelease,
-      gpgArgs: String = "",
+      gpgArgs: Seq[String] = Seq.empty,
       readTimeout: Int = defaultReadTimeout,
       connectTimeout: Int = defaultConnectTimeout,
       awaitTimeout: Int = defaultAwaitTimeout,
@@ -95,13 +98,10 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val finalCredentials = getSonatypeCredentials(username, password)()
-    PublishModule.pgpImportSecretIfProvided(Task.env)
+    val gpgArgs0 = PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, gpgArgs)
     val publisher = new SonatypeCentralPublisher(
       credentials = finalCredentials,
-      gpgArgs = gpgArgs match {
-        case "" => PublishModule.defaultGpgArgsForPassphrase(Task.env.get("MILL_PGP_PASSPHRASE"))
-        case gpgArgs => gpgArgs.split(",").toIndexedSeq
-      },
+      gpgArgs = gpgArgs0,
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
       log = Task.log,
