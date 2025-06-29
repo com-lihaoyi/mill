@@ -7,6 +7,8 @@ case class PmdArgs(
     check: Boolean = false,
     @arg(name = "stdout", short = 's', doc = "Output to stdout")
     stdout: Boolean = false,
+    @arg(name = "format", short = 'f', doc = "Output format (text, xml, html, etc.)")
+    format: String = "text",
     @arg(doc = "Specify sources to check")
     sources: Leftover[String]
 )

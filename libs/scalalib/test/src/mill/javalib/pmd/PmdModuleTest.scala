@@ -18,15 +18,12 @@ object PmdModuleTest extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
       UnitTester(module, modulePath).scoped { eval =>
+        val format = "text"
         // Run with check = false so it does not throw on violations
-        eval(module.pmd(PmdArgs(check = false, stdout = false, sources = Leftover("sources"))))
+        eval(module.pmd(PmdArgs(check = false, stdout = false, format = format, sources = Leftover("sources"))))
 
-        val outputReportEither = eval(module.pmdOutput)
-        val outputReportPath = outputReportEither match {
-          case Right(result) => result.value.path
-          case Left(failing) =>
-            throw new Exception(s"PMD output generation failed: $failing")
-        }
+        // Compute the expected output report path directly
+        val outputReportPath = eval.outPath / "pmd.dest" / s"pmd-output.$format"
 
         // Find all expected violations from source files
         val javaFiles = os.walk(modulePath).filter(_.ext == "java")
