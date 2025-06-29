@@ -20,25 +20,33 @@ object `package` extends JavaModule with PmdModule
 // https://docs.pmd-code.org/latest/pmd_rules_java_bestpractices.html#systemprintln[SystemPrintln]
 // rule, in an ruleset XML file, to be applied on sources.
 
-// Running the `pmd` command lists violations, if any.
+// Running the `pmd` command lists violations in one of the available
+// https://docs.pmd-code.org/latest/pmd_userdocs_report_formats.html[report formats].
 
 /** Usage
-> ./mill pmd
+> ./mill pmd                # default format is text
 ...Foo.java:4:	SystemPrintln:	Usage of System.out/err
 error: ...violation(s) found
 
-> ./mill pmd --no-fail-on-violation  # suppress violations
-no violations found
+> ./mill pmd -f textcolor   # same violation as above
+...Foo.java
+    src:  Foo.java:4:4
+    rule: SystemPrintln
+    msg:  Usage of System.out/err
+    code: System.out.println("Entering test");
+Summary:
+* warnings: 1
+error: ...violation(s) found
 */
 
 // You can also run the companion `PmdModule` xref:fundamentals/modules.adoc#_external_modules[globally]
 // if you prefer not to have to extend the trait in your build.
 
 /** Usage
-> ./mill mill.javalib.pmd.PmdModule/
+> ./mill mill.javalib.pmd.PmdModule/  # same violation as above
 ...Foo.java:4:	SystemPrintln:	Usage of System.out/err
 error: ...violation(s) found
 */
 
-// For the full list of configuration options, please refer to the
+// For the full list of configuration and command options, please refer to the
 // link:{api-pmd}/PmdModule.html[API documentation].

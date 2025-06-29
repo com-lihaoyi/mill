@@ -1,7 +1,7 @@
 package mill.javalib
 package pmd
 
-import mainargs.Flag
+import mainargs.{Flag, Leftover}
 import mill.constants.OutFiles.out
 import mill.define.*
 import mill.scalalib.{JavaHomeModule, OfflineSupportModule}
@@ -15,20 +15,16 @@ import mill.util.Jvm
 trait PmdModule extends CoursierModule, OfflineSupportModule {
 
   /**
-   * Paths to [[https://docs.pmd-code.org/latest/pmd_userdocs_making_rulesets.html rulesets]]
-   * defining analysis rules to be executed. Defaults to XML files, starting with name ''ruleset'',
-   * under
-   *  - [[moduleDir]], if rulesets exist
-   *  - ''workspace'', otherwise
-   * @note Path values can be specified relative to [[moduleDir]].
+   * Paths to [[https://docs.pmd-code.org/latest/pmd_userdocs_making_rulesets.html rulesets]].
+   * Defaults to XML files, with name prefix ''ruleset'', in one of [[moduleDir]] or ''workspace''.
    */
-  def pmdRulesets: Task[Seq[String]] = Task {
+  def pmdRulesets: Task[Seq[PathRef]] = Task {
     BuildCtx.withFilesystemCheckerDisabled {
       def isRulesetFile(name: String) = name.startsWith("ruleset") && name.endsWith(".xml")
       def rulesetsIn(root: os.Path) =
         val rulesets = os.list.stream(root)
           .collect:
-            case path if os.isFile(path) && isRulesetFile(path.last) => path.toString()
+            case path if os.isFile(path) && isRulesetFile(path.last) => PathRef(path)
           .toSeq
         Option.when(rulesets.nonEmpty)(rulesets)
 
@@ -39,37 +35,30 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
   }
 
   /**
-   * Output [[https://docs.pmd-code.org/latest/pmd_userdocs_report_formats.html format]] of the
-   * analysis report. Defaults to ''text''.
-   */
-  def pmdFormat: Task[String] = Task("text")
-
-  /**
    * The specific [[https://docs.pmd-code.org/latest/pmd_userdocs_cli_reference.html#supported-languages language]]
-   * version PMD should use when parsing source code for a given language.
+   * and version to use when parsing source code for a given language.
    */
   def pmdUseVersion: Task[Map[String, String]] = Task(Map.empty[String, String])
 
   /**
-   * Path to a file to which report output is written. If not specified, the report is rendered to
-   * standard output.
+   * File to which report output is written. If empty, the report is rendered to standard output.
    */
   def pmdReportFile: Task[Option[PathRef]] = Task(Option.empty[PathRef])
 
   /**
-   * Paths to files/folders to analyze. Defaults to
+   * Files/folders to analyze. Defaults to
    *  - `sources`, for a [[JavaModule]]
-   *  - folders under [[moduleDir]] with name starting with ''src'', otherwise
-   * @note Path values can be specified relative to [[moduleDir]].
+   *  - folders under [[moduleDir]] with name prefix ''src'', otherwise
    */
-  def pmdInputs: Task[Seq[String]] = this match
-    case self: JavaModule => Task(self.sources().map(_.path.toString))
+  def pmdInputs: Task[Seq[PathRef]] = this match
+    case self: JavaModule => Task(self.sources())
     case _ => Task {
         BuildCtx.withFilesystemCheckerDisabled {
           os.list.stream(moduleDir)
-            .filter(os.isDir)
-            .map(_.relativeTo(moduleDir).toString())
-            .filter(_.startsWith("src"))
+            .collect:
+              case path
+                  if os.isDir(path) && path.relativeTo(moduleDir).segments.head.startsWith("src") =>
+                PathRef(path)
             .toSeq
         }
       }
@@ -87,13 +76,8 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       - Java preview features require passing a runtime option.
         See https://docs.pmd-code.org/latest/pmd_languages_java.html#using-java-preview-features.
      */
-    defaultResolver().classpath(Seq(mvn"net.sourceforge.pmd:pmd-dist:${pmdVersion()}"))
+    defaultResolver().classpath(Seq(mvn"${mill.scalalib.api.Versions.pmdDist}"))
   }
-
-  /**
-   * PMD version to use. Defaults to ''7.15.0''.
-   */
-  def pmdVersion: Task[String] = Task { "7.15.0" }
 
   /**
    * Java runtime options, like `--enable-preview`, for running the analyzer. Defaults to
@@ -115,26 +99,31 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
    *  - `-R`
    *  - `--use-version`, if [[pmdUseVersion]] is not empty
    *  - `-r`, if [[pmdReportFile]] is not empty
-   *  - `-f`
    * @note The analyzer is run with [[JavaHomeModule.javaHome]], if defined.
    *       This should eliminate the need for specifying the
    *       [[https://docs.pmd-code.org/latest/pmd_languages_java.html#providing-the-auxiliary-classpath --aux-classpath]] option.
    */
-  def pmd(options: String*): Task.Command[Unit] = {
+  def pmd(
+      @mainargs.arg(short = 'f')
+      format: String = "text",
+      options: Leftover[String]
+  ): Task.Command[Unit] = {
     val javaHomeTask = this match
       case self: JavaHomeModule => Task.Anon(self.javaHome().map(_.path))
       case _ => Task.Anon(Option.empty[os.Path])
     Task.Command {
       val cliArgs =
         Seq("check") // sub-command
-          ++ options
+          ++ options.value
           ++ Seq("--cache", (Task.dest / "cache").toString) // for incremental analysis
           ++ Seq("-z", Task.ctx().workspace.toString) // to relativize paths in output report
-          ++ Seq("-R", pmdRulesets().mkString(","))
+          ++ Seq("-R", pmdRulesets().iterator.map(_.path).mkString(","))
           ++ pmdUseVersion().flatMap((lang, version) => Seq("--use-version", s"$lang-$version"))
           ++ pmdReportFile().iterator.flatMap(ref => Seq("-r", ref.path.toString))
-          ++ Seq("-f", pmdFormat())
-          ++ pmdInputs() // quirk: positional inputs require -f option in penultimate position
+          ++ Seq("-f", format)
+          ++ pmdInputs().map(
+            _.path.toString
+          ) // quirk: positional inputs require -f option in penultimate position
       val exitCode = Jvm.callProcess(
         mainClass = "net.sourceforge.pmd.cli.PmdCli",
         mainArgs = cliArgs,
@@ -165,8 +154,7 @@ object PmdModule extends ExternalModule, TaskModule, PmdModule {
   def defaultCommandName() = "pmd"
 
   /**
-   * Defaults to line separated values in ''.pmd-use-version''. Each language and version pair in
-   * a value must also be in separate lines.
+   * Defaults to language and version values, each in a separate line, in ''.pmd-use-version''.
    */
   override def pmdUseVersion = Task {
     BuildCtx.withFilesystemCheckerDisabled {
@@ -182,20 +170,20 @@ object PmdModule extends ExternalModule, TaskModule, PmdModule {
   }
 
   /**
-   * Defaults to all sub-folders in workspace, except hidden folders and [[out]] folder.
+   * Defaults to folders in workspace, except hidden folders and [[out]] folder.
    */
   override def pmdInputs = Task {
     BuildCtx.withFilesystemCheckerDisabled {
+      def skipDir(name: String) = name.startsWith(".") || name == out
       os.list.stream(moduleDir)
         .collect:
-          case path if os.isDir(path) => path.last
-        .filter(name => !(name.startsWith(".") || name == out))
+          case path if os.isDir(path) && !skipDir(path.last) => PathRef(path)
         .toSeq
     }
   }
 
   /**
-   * Defaults to line separated values in ''.pmd_java_opts''.
+   * Defaults to runtime option values, each in a separate line, in ''.pmd_java_opts''.
    */
   override def pmdJavaOptions = Task {
     BuildCtx.withFilesystemCheckerDisabled {
