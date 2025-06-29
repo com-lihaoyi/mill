@@ -88,9 +88,7 @@ trait PmdModule extends JavaModule {
   }
 
   /** PMD rulesets files. Defaults to `pmd-ruleset.xml`. */
-  def pmdRulesets: T[Seq[PathRef]] = Task {
-    Seq(PathRef(moduleDir / "pmd-ruleset.xml"))
-  }
+  def pmdRulesets: Sources = Task.Sources(moduleDir / "pmd-ruleset.xml")
 
   /** PMD output format (`text`, `xml`, `html`, etc). Defaults to `text`. */
   def pmdFormat: T[String] = Task {
