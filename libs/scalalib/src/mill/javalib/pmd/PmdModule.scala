@@ -29,7 +29,7 @@ trait PmdModule extends JavaModule {
         (if (leftover.value.nonEmpty) leftover.value.mkString(",")
          else sources().map(_.path.toString()).mkString(",")),
         "-R",
-        pmdRuleset().path.toString(),
+        pmdRulesets().map(_.path.toString).mkString(","),
         "-f",
         pmdFormat()
       ) ++
@@ -87,9 +87,9 @@ trait PmdModule extends JavaModule {
     )
   }
 
-  /** PMD ruleset file. Defaults to `pmd-ruleset.xml`. */
-  def pmdRuleset: T[PathRef] = Task.Source {
-    BuildCtx.workspaceRoot / "pmd-ruleset.xml"
+  /** PMD rulesets files. Defaults to `pmd-ruleset.xml`. */
+  def pmdRulesets: T[Seq[PathRef]] = Task {
+    Seq(PathRef(moduleDir / "pmd-ruleset.xml"))
   }
 
   /** PMD output format (`text`, `xml`, `html`, etc). Defaults to `text`. */
