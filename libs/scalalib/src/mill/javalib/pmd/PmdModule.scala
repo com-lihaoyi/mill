@@ -1,10 +1,8 @@
 package mill.javalib.pmd
 
-import mill.*
-import mill.{PathRef, Task}
 import mill.scalalib.{DepSyntax, JavaModule}
 import mill.util.Jvm
-import mill.define.BuildCtx
+import mill.*
 
 /**
  * Checks Java source files with PMD static code analyzer [[https://pmd.github.io/]].
@@ -107,7 +105,5 @@ trait PmdModule extends JavaModule {
   def pmdOutput: T[PathRef] = Task { PathRef(Task.dest / s"pmd-output.${pmdFormat()}") }
 
   /** PMD version. */
-  def pmdVersion: T[String] = Task {
-    "6.55.0"
-  }
+  def pmdVersion: T[String]
 }

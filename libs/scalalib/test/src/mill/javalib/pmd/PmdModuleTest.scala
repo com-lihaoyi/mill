@@ -16,6 +16,7 @@ object PmdModuleTest extends TestSuite {
       val modulePath = resources / "example"
       object module extends TestRootModule with JavaModule with PmdModule {
         lazy val millDiscover = Discover[this.type]
+        def pmdVersion: T[String] = { "6.55.0" }
       }
       UnitTester(module, modulePath).scoped { eval =>
         val format = "text"
