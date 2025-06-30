@@ -3,65 +3,81 @@ package mill.javalib.pmd
 import mill.*
 import mainargs.Leftover
 import mill.define.Discover
-import mill.scalalib.{JavaModule, ScalaModule}
+import mill.scalalib.JavaModule
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
 object PmdModuleTest extends TestSuite {
 
-  def tests: Tests = Tests {
-    val resources: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "pmd"
+  val resources: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "pmd"
+  val modulePath: os.Path = resources / "example"
 
-    test("Pmd matches violation comments in example sources") {
-      val modulePath = resources / "example"
-      object module extends TestRootModule with JavaModule with PmdModule {
+  def runTest(module: TestRootModule with PmdModule with JavaModule): Unit = {
+    UnitTester(module, modulePath).scoped { eval =>
+      val format = "text"
+      eval(module.pmd(PmdArgs(
+        check = false,
+        stdout = false,
+        format = format,
+        sources = Leftover("sources")
+      )))
+
+      val outputReportPath = eval.outPath / "pmd.dest" / s"pmd-output.$format"
+
+      val javaFiles = os.walk(modulePath).filter(_.ext == "java")
+      val expectedViolations = javaFiles.flatMap { file =>
+        os.read.lines(file).zipWithIndex.collect {
+          case (line, idx) if line.contains("// violation") =>
+            (file.relativeTo(modulePath).toString.replace("\\", "/"), idx + 1)
+        }
+      }.toSet
+
+      val reportLines = os.read.lines(outputReportPath)
+      val violationRegex = """(.+):(\d+):\s+.*""".r
+      val reportedViolations = reportLines.collect {
+        case violationRegex(file, line) =>
+          (file.trim.replace("\\", "/"), line.toInt)
+      }.toSet
+
+      def normalize(path: String): String =
+        path.replace("\\", "/")
+
+      val expectedNormalized = expectedViolations.map { case (file, line) =>
+        (normalize(file), line)
+      }
+      val reportedNormalized = reportedViolations.map { case (file, line) =>
+        (normalize(file), line)
+      }
+
+      assert(expectedNormalized == reportedNormalized)
+    }
+  }
+
+  def tests: Tests = Tests {
+    // Default test
+    test("Pmd matches violation comments in example sources (default)") {
+      val module = new TestRootModule with PmdModule with JavaModule {
         lazy val millDiscover = Discover[this.type]
       }
-      UnitTester(module, modulePath).scoped { eval =>
-        val format = "text"
-        // Run with check = false so it does not throw on violations
-        eval(module.pmd(PmdArgs(
-          check = false,
-          stdout = false,
-          format = format,
-          sources = Leftover("sources")
-        )))
+      runTest(module)
+    }
 
-        // Compute the expected output report path directly
-        val outputReportPath = eval.outPath / "pmd.dest" / s"pmd-output.$format"
-
-        // Find all expected violations from source files
-        val javaFiles = os.walk(modulePath).filter(_.ext == "java")
-        val expectedViolations = javaFiles.flatMap { file =>
-          os.read.lines(file).zipWithIndex.collect {
-            case (line, idx) if line.contains("// violation") =>
-              // Normalize all path separators to '/' for cross-platform compatibility
-              (file.relativeTo(modulePath).toString.replace("\\", "/"), idx + 1)
-          }
-        }.toSet
-
-        // Parse PMD report for actual violations (text format assumed)
-        val reportLines = os.read.lines(outputReportPath)
-        val violationRegex = """(.+):(\d+):\s+.*""".r
-        val reportedViolations = reportLines.collect {
-          case violationRegex(file, line) =>
-            // Normalize all path separators to '/' for cross-platform compatibility
-            (file.trim.replace("\\", "/"), line.toInt)
-        }.toSet
-
-        // PMD sometimes reports paths relative to the cwd or absolute; try to normalize
-        def normalize(path: String): String =
-          path.replace("\\", "/")
-
-        val expectedNormalized = expectedViolations.map { case (file, line) =>
-          (normalize(file), line)
-        }
-        val reportedNormalized = reportedViolations.map { case (file, line) =>
-          (normalize(file), line)
-        }
-
-        assert(expectedNormalized == reportedNormalized)
+    // Older PMD version test
+    test("Pmd matches violation comments in example sources (pmd6)") {
+      val module = new TestRootModule with PmdModule with JavaModule {
+        override def pmdVersion = Task { "6.55.0" }
+        lazy val millDiscover = Discover[this.type]
       }
+      runTest(module)
+    }
+
+    // PMD 7.x test
+    test("Pmd matches violation comments in example sources (pmd7)") {
+      val module = new TestRootModule with PmdModule with JavaModule {
+        override def pmdVersion = Task { "7.15.0" }
+        lazy val millDiscover = Discover[this.type]
+      }
+      runTest(module)
     }
   }
 }

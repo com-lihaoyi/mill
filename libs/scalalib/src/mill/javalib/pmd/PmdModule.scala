@@ -1,11 +1,11 @@
 package mill.javalib.pmd
 
-import mill.scalalib.{CoursierModule, DepSyntax, JavaModule, OfflineSupportModule}
-import mill.util.Jvm
 import mill.*
 import mill.define.{Discover, ExternalModule}
-import mill.define.Task.args
+import mill.scalalib.api.Versions
 import mill.scalalib.scalafmt.ScalafmtModule.sources
+import mill.scalalib.{CoursierModule, DepSyntax, OfflineSupportModule}
+import mill.util.Jvm
 
 /**
  * Checks Java source files with PMD static code analyzer [[https://pmd.github.io/]].
@@ -25,26 +25,30 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
   protected def pmd0(stdout: Boolean, format: String, leftover: mainargs.Leftover[String]) =
     Task.Anon {
       val output = Task.dest / s"pmd-output.$format"
-      val args = {
-        val baseArgs = Seq(
-          "-d",
-          (if (leftover.value.nonEmpty) leftover.value.mkString(",")
-           else sources().map(_.path.toString()).mkString(",")),
-          "-R",
-          pmdRulesets().map(_.path.toString).mkString(","),
-          "-f",
-          format
-        ) ++ (if (stdout) Seq.empty else Seq("-r", output.toString))
-        pmdOptions() ++ (if (isPmd7) Seq("check") ++ baseArgs else baseArgs)
-      }
-      val mainCls = if (isPmd7) "net.sourceforge.pmd.cli.PmdCli" else "net.sourceforge.pmd.PMD"
+      os.makeDir.all(output / os.up)
+      val baseArgs = Seq(
+        "-d",
+        (if (leftover.value.nonEmpty) leftover.value.mkString(",")
+        else sources().map(_.path.toString()).mkString(",")),
+        "-R",
+        pmdRulesets().map(_.path.toString).mkString(","),
+        "-f",
+        format
+      ) ++ (if (stdout) Seq.empty else Seq("-r", output.toString))
+
+      val args =
+        if (isPmd6OrOlder(this.pmdVersion())) pmdOptions() ++ baseArgs
+        else pmdOptions() ++ (Seq("check") ++ baseArgs)
+      val mainCls =
+        if (isPmd6OrOlder(this.pmdVersion())) "net.sourceforge.pmd.PMD"
+        else "net.sourceforge.pmd.cli.PmdCli"
       val jvmArgs = pmdLanguage().map(lang => s"-Duser.language=$lang").toSeq
 
       Task.log.info("running pmd ...")
       Task.log.debug(s"with $args")
 
       val exitCode = Jvm.callProcess(
-        mainClass = "net.sourceforge.pmd.cli.PmdCli",
+        mainCls,
         classPath = pmdClasspath().map(_.path).toVector,
         mainArgs = args,
         cwd = moduleDir,
@@ -112,16 +116,16 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
   /** PMD output report. */
   def pmdOutput: T[PathRef] = Task { PathRef(Task.dest / s"pmd-output.${pmdFormat()}") }
 
-  /** Helper to check if the version is >= 7 */
-  private def isPmd7: Boolean = {
-    mill.scalalib.api.Versions.pmdDist
+  /** Helper to check if the version is <= 6. False by default. */
+  private def isPmd6OrOlder(version: String): Boolean = {
+    version
       .split(":").lastOption
       .flatMap(_.takeWhile(_ != '.').toIntOption)
-      .exists(_ >= 7)
+      .exists(_ < 7)
   }
 
   /** PMD version. */
-  def pmdVersion: T[Option[String]] = Task { None }
+  def pmdVersion: T[String] = Task { Versions.pmdDist }
 }
 
 /**
