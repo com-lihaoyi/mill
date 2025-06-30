@@ -18,23 +18,21 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
    * [[https://docs.pmd-code.org/latest/pmd_userdocs_making_rulesets.html Rulesets]] for analysis.
    * Defaults to XML files, with name prefix ''ruleset'', in one of [[moduleDir]] or ''workspace''.
    */
-  def pmdRulesets: Task[Seq[PathRef]] = Task {
-    BuildCtx.withFilesystemCheckerDisabled {
-      def isRulesetFile(name: String) = name.startsWith("ruleset") && name.endsWith(".xml")
-      def rulesetsIn(root: os.Path) =
-        val rulesets = os.list.stream(root)
-          .collect:
-            case path if os.isFile(path) && isRulesetFile(path.last) => PathRef(path)
-          .toSeq
-        Option.when(rulesets.nonEmpty)(rulesets)
+  def pmdRulesets: Task[Seq[PathRef]] = {
+    def isRulesetFile(name: String) = name.startsWith("ruleset") && name.endsWith(".xml")
+    def rulesetsIn(root: os.Path) =
+      val rulesets = os.list.stream(root)
+        .filter(os.isFile)
+        .filter(file => isRulesetFile(file.last))
+        .toSeq
+      Option.when(rulesets.nonEmpty)(rulesets)
 
-      rulesetsIn(moduleDir)
-        .orElse(rulesetsIn(Task.ctx().workspace))
-        .getOrElse {
-          Task.log.warn("no rulesets found, must be overridden or specified inline with -R option")
-          Seq()
-        }
-    }
+    Task.Sources(rulesetsIn(moduleDir)
+      .orElse(rulesetsIn(Task.ctx().workspace))
+      .getOrElse({
+        Task.log.warn("no rulesets found, override pmdRulesets or specify files with -R option")
+        Seq()
+      })*)
   }
 
   /**
@@ -44,27 +42,16 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
   def pmdUseVersion: Task[Map[String, String]] = Task(Map.empty[String, String])
 
   /**
-   * File to which output report is written. If empty, the report is rendered to standard output.
-   */
-  def pmdReportFile: Task[Option[PathRef]] = Task(Option.empty[PathRef])
-
-  /**
    * Files/folders to analyze. Defaults to
    *  - `sources`, for a [[JavaModule]]
    *  - folders under [[moduleDir]] with name prefix ''src'', otherwise
    */
   def pmdInputs: Task[Seq[PathRef]] = this match
     case self: JavaModule => Task(self.sources())
-    case _ => Task {
-        BuildCtx.withFilesystemCheckerDisabled {
-          os.list.stream(moduleDir)
-            .collect:
-              case path
-                  if os.isDir(path) && path.relativeTo(moduleDir).segments.head.startsWith("src") =>
-                PathRef(path)
-            .toSeq
-        }
-      }
+    case _ => Task.Sources(os.list.stream(moduleDir)
+        .filter(os.isDir)
+        .filter(_.relativeTo(moduleDir).segments.head.startsWith("src"))
+        .toSeq*)
 
   /**
    * Files/folders, in [[pmdInputs]], to not analyze.
@@ -121,7 +108,6 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
           ++ Seq("--cache", (Task.dest / "cache").toString)
           // relativize paths in output report
           ++ Seq("-z", Task.ctx().workspace.toString)
-          ++ pmdReportFile().iterator.flatMap(ref => Seq("-r", ref.path.toString))
           ++ pmdUseVersion().iterator.flatMap((lng, ver) => Seq("--use-version", s"$lng-$ver"))
           ++ pmdRulesets().iterator.flatMap(ref => Seq("-R", ref.path.toString))
           ++ pmdExcludes().iterator.flatMap(ref => Seq("--exclude", ref.path.toString))
@@ -174,15 +160,14 @@ object PmdModule extends ExternalModule, TaskModule, PmdModule {
   /**
    * Defaults to folders in workspace, except hidden folders and [[out]] folder.
    */
-  override def pmdInputs = Task {
-    BuildCtx.withFilesystemCheckerDisabled {
-      def skipDir(name: String) = name.startsWith(".") || name == out
-      os.list.stream(moduleDir)
-        .collect:
-          case path if os.isDir(path) && !skipDir(path.last) => PathRef(path)
-        .toSeq
-    }
-  }
+  override def pmdInputs = Task.Sources(os.list.stream(moduleDir)
+    .filter(path =>
+      os.isDir(path) && {
+        val name = path.last
+        !(name.startsWith(".") || name == out)
+      }
+    )
+    .toSeq*)
 
   /**
    * Defaults to runtime option values, each in a separate line, in ''.pmd_java_opts''.
