@@ -19,7 +19,7 @@ object `package` extends JavaModule with PmdModule {
 
 /** Usage
 > ./mill pmd # default format is text
- PMD found 1 violation(s)
+PMD found 1 violation(s)
 */
 
 // PMD flags:
