@@ -88,15 +88,24 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
     exitCode
   }
 
-  /** Classpath for running PMD. */
+  /** Classpath for running PMD.
+   * If pmdVersion is set as a plain version (like "7.15.0"), it constructs the Maven dependency.
+   * If it returns a Maven coordinate string (like "net.sourceforge.pmd:pmd-dist:7.15.0"), it uses that directly.
+   * If nothing is set, it falls back to the default from mill.scalalib.api.Versions.pmdDist.
+   */
   def pmdClasspath: T[Seq[PathRef]] = Task {
-    val version = pmdVersion()
-    if (version.nonEmpty)
-      defaultResolver().classpath(Seq(mvn"net.sourceforge.pmd:pmd-dist:$version"))
-    else
-      defaultResolver().classpath(Seq(mvn"${mill.scalalib.api.Versions.pmdDist}"))
+    val versionOrDep = pmdVersion().trim
+    val dep: mill.scalalib.Dep =
+      if (versionOrDep.matches("""^\d+(\.\d+)*$""")) {
+        mvn"net.sourceforge.pmd:pmd-dist:$versionOrDep"
+      } else if (versionOrDep.startsWith("net.sourceforge.pmd:pmd-dist:")) {
+        mvn"${versionOrDep}"
+      } else {
+        // If it's not a version, try to cast to Dep (e.g. from Deps.RuntimeDeps.pmdDist)
+        mill.scalalib.api.Versions.pmdDist.asInstanceOf[mill.scalalib.Dep]
+      }
+    defaultResolver().classpath(Seq(dep))
   }
-
   /** PMD rulesets files. Defaults to `pmd-ruleset.xml`. */
   def pmdRulesets: Sources = Task.Sources(moduleDir / "pmd-ruleset.xml")
 
