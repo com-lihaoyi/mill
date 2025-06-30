@@ -88,7 +88,8 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
     exitCode
   }
 
-  /** Classpath for running PMD.
+  /**
+   * Classpath for running PMD.
    * If pmdVersion is set as a plain version (like "7.15.0"), it constructs the Maven dependency.
    * If it returns a Maven coordinate string (like "net.sourceforge.pmd:pmd-dist:7.15.0"), it uses that directly.
    * If nothing is set, it falls back to the default from mill.scalalib.api.Versions.pmdDist.
@@ -106,6 +107,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       }
     defaultResolver().classpath(Seq(dep))
   }
+
   /** PMD rulesets files. Defaults to `pmd-ruleset.xml`. */
   def pmdRulesets: Sources = Task.Sources(moduleDir / "pmd-ruleset.xml")
 
