@@ -84,7 +84,11 @@ trait PmdModule extends JavaModule {
 
   /** Classpath for running PMD. */
   def pmdClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(Seq(mvn"${mill.scalalib.api.Versions.pmdDist}"))
+    val version = pmdVersion()
+    if (version.nonEmpty)
+      defaultResolver().classpath(Seq(mvn"net.sourceforge.pmd:pmd-dist:$version"))
+    else
+      defaultResolver().classpath(Seq(mvn"${mill.scalalib.api.Versions.pmdDist}"))
   }
 
   /** PMD rulesets files. Defaults to `pmd-ruleset.xml`. */
@@ -113,4 +117,7 @@ trait PmdModule extends JavaModule {
       .flatMap(_.takeWhile(_ != '.').toIntOption)
       .exists(_ >= 7)
   }
+
+  /** PMD version. */
+  def pmdVersion: T[Option[String]] = Task { None }
 }
