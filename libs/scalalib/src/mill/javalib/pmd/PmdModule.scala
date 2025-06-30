@@ -67,13 +67,22 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       exitCode: Int,
       output: os.Path
   )(implicit ctx: mill.define.TaskCtx): Int = {
-
     val reported = os.exists(output)
     if (reported) {
       Task.log.info(s"pmd output report at $output")
+      try {
+        val lines = os.read.lines(output)
+        if (lines.nonEmpty) {
+          Task.log.info("PMD violations:")
+          lines.foreach(line => Task.log.info(line))
+        }
+      } catch {
+        case ex: Throwable =>
+          Task.log.error(s"Failed to read PMD output report: $ex")
+      }
     }
 
-    if (exitCode == 0) {} // do nothing
+    if (exitCode == 0) {}
     else if (exitCode < 0 || !(reported || stdout)) {
       Task.log.error(
         s"pmd exit($exitCode); please check command arguments, plugin settings or try with another version"
