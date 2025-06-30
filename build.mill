@@ -4,6 +4,7 @@
 
 package build
 
+import coursier.{MavenRepository, Repository}
 import millbuild.*
 
 //import com.github.lolgab.mill.mima.Mima
@@ -200,7 +201,7 @@ val dummyDeps: Seq[Dep] = Seq(
   Deps.scalacScoverage2Plugin,
   mvn"com.lihaoyi:::ammonite:${Deps.ammoniteVersion}",
   mvn"io.get-coursier.jvm.indices:index-darwin-arm64:${Deps.coursierJvmIndexVersion}"
-) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.updateable ++ Deps.AndroidDeps.updateable
+) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.updateable
 
 implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
       val depString = formatDep(dep)
@@ -217,4 +218,13 @@ object dummy extends Cross[DependencyFetchDummy](dummyDeps)
 trait DependencyFetchDummy extends ScalaModule with Cross.Module[Dep] {
   def scalaVersion = Deps.scala2Version
   def compileMvnDeps = Seq(crossValue)
+}
+
+val androidDummyDeps: Seq[Dep] = Deps.AndroidDeps.updateable
+
+object dummyAndroid extends Cross[AndroidDependencyFetchDummy](androidDummyDeps)
+trait AndroidDependencyFetchDummy extends DependencyFetchDummy {
+  override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+    super.repositoriesTask() :+ MavenRepository("https://maven.google.com/")
+  }
 }

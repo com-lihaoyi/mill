@@ -289,7 +289,8 @@ object Deps {
     val layoutLibVersion = "15.1.2"
     val layoutLibRenderer = mvn"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
     val layoutLibRuntime = mvn"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
-    val composePreviewRenderer = mvn"com.android.tools.compose:compose-preview-renderer-model:0.0.1-alpha09"
+    val composePreviewRenderer =
+      mvn"com.android.tools.compose:compose-preview-renderer-model:0.0.1-alpha09"
     val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
 
     def updateable = Seq(
