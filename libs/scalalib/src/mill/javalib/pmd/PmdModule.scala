@@ -1,14 +1,16 @@
 package mill.javalib.pmd
 
-import mill.scalalib.{DepSyntax, JavaModule}
+import mill.scalalib.{CoursierModule, DepSyntax, JavaModule, OfflineSupportModule}
 import mill.util.Jvm
 import mill.*
+import mill.define.{Discover, ExternalModule}
 import mill.define.Task.args
+import mill.scalalib.scalafmt.ScalafmtModule.sources
 
 /**
  * Checks Java source files with PMD static code analyzer [[https://pmd.github.io/]].
  */
-trait PmdModule extends JavaModule {
+trait PmdModule extends CoursierModule, OfflineSupportModule {
 
   /**
    * Runs PMD and returns the number of violations found (exit code).
@@ -120,4 +122,14 @@ trait PmdModule extends JavaModule {
 
   /** PMD version. */
   def pmdVersion: T[Option[String]] = Task { None }
+}
+
+/**
+ * External module for PMD integration.
+ * Allows usage via `import mill.javalib.pmd.PmdModule` in build.sc.
+ */
+object PmdModule extends ExternalModule, PmdModule {
+  lazy val millDiscover = Discover[this.type]
+
+  def defaultCommandName() = "pmd"
 }
