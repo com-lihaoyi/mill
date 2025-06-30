@@ -35,13 +35,13 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       "Version of NDK (Native Development Kit)"
     ),
     BuildInfo.Value("cmakeVersion", Deps.AndroidDeps.cmakeVersion, "Version of cmake"),
-    BuildInfo.Value("layoutLibVersion", Deps.AndroidDeps.layoutLibVersion, "Version of LayoutLib"),
+    BuildInfo.Value("layoutLibVersion", Deps.AndroidDeps.layoutLib.version, "Version of LayoutLib"),
     BuildInfo.Value(
       "composePreviewRendererVersion",
-      Deps.AndroidDeps.composePreviewRendererVersion,
+      Deps.AndroidDeps.composePreviewRenderer.version,
       "Version of ComposePreviewRenderer"
     ),
-    BuildInfo.Value("uiToolingVersion", Deps.AndroidDeps.uiToolingVersion, "Version of uiTooling")
+    BuildInfo.Value("uiToolingVersion", Deps.AndroidDeps.uiTooling.version, "Version of uiTooling")
   )
 
   trait MillAndroidModule extends MillPublishScalaModule {

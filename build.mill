@@ -200,7 +200,7 @@ val dummyDeps: Seq[Dep] = Seq(
   Deps.scalacScoverage2Plugin,
   mvn"com.lihaoyi:::ammonite:${Deps.ammoniteVersion}",
   mvn"io.get-coursier.jvm.indices:index-darwin-arm64:${Deps.coursierJvmIndexVersion}"
-) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.all
+) ++ Deps.transitiveDeps ++ Deps.RuntimeDeps.updateable ++ Deps.AndroidDeps.updateable
 
 implicit object DepSegment extends Cross.ToSegments[Dep]({ dep =>
       val depString = formatDep(dep)
