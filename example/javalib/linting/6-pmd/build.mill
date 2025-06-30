@@ -1,5 +1,4 @@
-// `CheckstyleModule` Performs quality checks on Java source files using
-// https://checkstyle.org[Checkstyle] and generates reports from these checks.
+// `PmdModule` Performs checks on Java source files using https://pmd.github.io/ and generates reports from these checks.
 
 package build
 import mill._, javalib._, pmd._
