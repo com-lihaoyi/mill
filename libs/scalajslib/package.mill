@@ -39,7 +39,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
     )
   }
 
-  object api extends MillPublishScalaModule {
+  object api extends MillStableScalaModule {
     def mvnDeps = Seq(Deps.sbtTestInterface)
   }
 
