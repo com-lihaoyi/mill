@@ -6,7 +6,7 @@ import mill._, javalib._, pmd._
 object `package` extends JavaModule with PmdModule {
   def pmdVersion = "7.15.0"
 }
-
+/** See Also: pmd-ruleset.xml */
 // PMD is a source code analyzer for Java that finds common programming flaws like unused variables,
 // empty catch blocks, unnecessary object creation, and more.
 // Mill supports integrating PMD into your Java build via the `PmdModule`.
