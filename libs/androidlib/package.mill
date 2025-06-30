@@ -1,27 +1,71 @@
 package build.libs.androidlib
 
 import coursier.MavenRepository
-import mill._
+import mill.*
 import mill.contrib.buildinfo.BuildInfo
-import mill.scalalib._
+import mill.scalalib.*
 import millbuild.*
 
 // TODO when android hardcoded versions are fixed, generate a build info
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version when androidlib is stable and released.
-object `package` extends MillPublishScalaModule {
+object `package` extends MillPublishScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.libs.scalalib, build.libs.kotlinlib)
-
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(
       build.libs.kotlinlib.worker.localTestOverride()
     )
 
-  object hilt extends MillPublishScalaModule {
+  def buildInfoPackageName = "mill.androidlib"
+  def buildInfoObjectName = "Versions"
+  def buildInfoMembers = Seq(
+    BuildInfo.Value(
+      "manifestMergerVersion",
+      Deps.AndroidDeps.manifestMergerVersion,
+      "Version of ManifestMerger"
+    ),
+    BuildInfo.Value(
+      "bundleToolVersion",
+      Deps.AndroidDeps.bundleToolVersion,
+      "Version of BundleTool"
+    ),
+    BuildInfo.Value(
+      "ndkVersion",
+      Deps.AndroidDeps.ndkVersion,
+      "Version of NDK (Native Development Kit)"
+    ),
+    BuildInfo.Value("cmakeVersion", Deps.AndroidDeps.cmakeVersion, "Version of cmake"),
+    BuildInfo.Value("layoutLibVersion", Deps.AndroidDeps.layoutLibVersion, "Version of LayoutLib"),
+    BuildInfo.Value(
+      "composePreviewRendererVersion",
+      Deps.AndroidDeps.composePreviewRendererVersion,
+      "Version of ComposePreviewRenderer"
+    ),
+    BuildInfo.Value("uiToolingVersion", Deps.AndroidDeps.uiToolingVersion, "Version of uiTooling")
+  )
+
+  trait MillAndroidModule extends MillPublishScalaModule {
+    override def javacOptions = {
+      val release = Seq("-source", "1.8", "-target", "1.8")
+      release ++ Seq("-encoding", "UTF-8", "-deprecation")
+    }
+
     override def repositoriesTask = Task.Anon {
       super.repositoriesTask() :+ MavenRepository("https://maven.google.com/")
     }
+  }
 
+  object api extends MillAndroidModule {
+    def moduleDeps = Seq(build.libs.testrunner)
+
+    override def compileMvnDeps: T[Seq[Dep]] = Task {
+      super.compileMvnDeps() ++ Seq(
+        Deps.androidTools
+      )
+    }
+  }
+
+  object hilt extends MillAndroidModule {
     override def moduleDeps = Seq(build.libs.androidlib)
 
     override def mvnDeps = Seq(

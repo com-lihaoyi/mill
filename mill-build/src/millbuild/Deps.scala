@@ -280,4 +280,15 @@ object Deps {
   object DocDeps {
     val millScip = mvn"io.chris-kipp::mill-scip_mill0.11:0.3.7"
   }
+
+  object AndroidDeps {
+    val manifestMergerVersion = "31.10.0"
+    val bundleToolVersion = "1.17.2"
+    val ndkVersion = "27.0.12077973"
+    val cmakeVersion = "3.22.1"
+    val layoutLibVersion = "15.1.2"
+    val composePreviewRendererVersion = "0.0.1-alpha09"
+    val uiToolingVersion = "1.7.6"
+  }
+
 }
