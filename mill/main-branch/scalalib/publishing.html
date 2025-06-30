@@ -677,7 +677,7 @@
 jar from any JVM module. You can also customize the assembly jar as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/publishing/1-assembly-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/publishing/1-assembly-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -685,8 +685,8 @@ import mill.scalalib.Assembly._
 
 object foo extends ScalaModule {
   def moduleDeps = Seq(bar)
-  def scalaVersion = &quot;2.13.16&quot;
-  def mvnDeps = Seq(mvn&quot;com.lihaoyi::os-lib:0.10.7&quot;)
+  def scalaVersion = &quot;3.7.1&quot;
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::os-lib:0.11.4&quot;)
   def assemblyRules = Seq(
     // all application.conf files will be concatenated into single file
     Rule.Append(&quot;application.conf&quot;),
@@ -703,7 +703,7 @@ object foo extends ScalaModule {
 }
 
 object bar extends ScalaModule {
-  def scalaVersion = &quot;2.13.16&quot;
+  def scalaVersion = &quot;3.7.1&quot;
 }</code></pre>
 </div>
 </div>
@@ -750,14 +750,14 @@ Loaded test.property: 1337</code></pre>
 <h2 id="_building_native_image_binaries_with_graal_vm"><a class="anchor" href="#_building_native_image_binaries_with_graal_vm"></a>Building Native Image Binaries with Graal VM</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-publishing-7-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/publishing/7-native-image">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-publishing-7-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/publishing/7-native-image">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 import mill.define.ModuleRef
 
 object foo extends ScalaModule with NativeImageModule {
-  def scalaVersion = &quot;2.13.11&quot;
+  def scalaVersion = &quot;3.7.1&quot;
 
   def jvmId = &quot;graalvm-community:17.0.7&quot;
 
@@ -785,20 +785,20 @@ Hello, World!</code></pre>
 image, see below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-publishing-8-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/publishing/8-native-image-libs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-publishing-8-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/publishing/8-native-image-libs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 import mill.define.ModuleRef
 
 object foo extends ScalaModule with NativeImageModule {
-  def scalaVersion = &quot;2.13.11&quot;
+  def scalaVersion = &quot;3.7.1&quot;
 
   def nativeImageOptions = Seq(&quot;--no-fallback&quot;, &quot;-Os&quot;)
 
   def mvnDeps = Seq(
     mvn&quot;com.lihaoyi::scalatags:0.13.1&quot;,
-    mvn&quot;com.lihaoyi::mainargs:0.6.2&quot;
+    mvn&quot;com.lihaoyi::mainargs:0.7.6&quot;
   )
 
   def jvmId = &quot;graalvm-community:23.0.1&quot;
@@ -859,13 +859,13 @@ if you want to experiment it or view its <code>--help</code> text to see what yo
 <h2 id="_publishing_locally"><a class="anchor" href="#_publishing_locally"></a>Publishing Locally</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/publishing/2-publish-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/publishing/2-publish-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, publish._
 
 object foo extends ScalaModule with PublishModule {
-  def scalaVersion = &quot;2.13.16&quot;
+  def scalaVersion = &quot;3.7.1&quot;
   def publishVersion = &quot;0.0.1&quot;
 
   def pomSettings = PomSettings(
@@ -891,7 +891,7 @@ machine or to the central maven repository</p>
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.publishLocal # publish specific modules
 
 &gt; ./mill __.publishLocal # publish every eligible module
-Publishing Artifact(com.lihaoyi,foo_2.13,0.0.1) to ivy repo...</code></pre>
+Publishing Artifact(com.lihaoyi,foo_3,0.0.1) to ivy repo...</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -920,13 +920,13 @@ can be resolved from the local repository, with no missing dependencies.</p>
 <h2 id="_publlishing_to_sonatype_maven_central"><a class="anchor" href="#_publlishing_to_sonatype_maven_central"></a>Publlishing to Sonatype Maven Central</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/publishing/3-publish-module-sonatype">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/publishing/3-publish-module-sonatype">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, publish._
 
 object foo extends ScalaModule with SonatypeCentralPublishModule {
-  def scalaVersion = &quot;2.13.16&quot;
+  def scalaVersion = &quot;3.7.1&quot;
   def publishVersion = &quot;0.0.1&quot;
 
   def pomSettings = PomSettings(

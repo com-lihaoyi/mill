@@ -692,7 +692,7 @@ so its sources will live in the top-level <code>src/</code> folder and its tasks
 called directly via <code>compile</code> or <code>run</code> without needing a <code>foo.</code> module prefix.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/1-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -702,8 +702,8 @@ object `package` extends ScalaModule {
 
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
-    mvn&quot;com.lihaoyi::scalatags:0.8.2&quot;,
-    mvn&quot;com.lihaoyi::os-lib:0.10.7&quot;
+    mvn&quot;com.lihaoyi::scalatags:0.13.1&quot;,
+    mvn&quot;com.lihaoyi::os-lib:0.11.4&quot;
   )
 
   // Choose a main class to use for `.run` if there are multiple present
@@ -840,13 +840,13 @@ error: ...Implicit injection of + is deprecated. Convert to String to call +...<
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/4-compilation-execution-flags">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
 object `package` extends ScalaModule {
-  def scalaVersion = &quot;2.13.16&quot;
+  def scalaVersion = &quot;3.7.1&quot;
   def scalacOptions = Seq(&quot;-Ydelambdafy:inline&quot;)
   def forkArgs = Seq(&quot;-Xmx4g&quot;, &quot;-Dmy.jvm.property=hello&quot;)
   def forkEnv = Map(&quot;MY_ENV_VAR&quot; -&gt; &quot;WORLD&quot;)
@@ -895,19 +895,19 @@ them after the <code>foo.run</code>/<code>foo.runLocal</code>:</p>
 <h2 id="_classpath_and_filesystem_resources"><a class="anchor" href="#_classpath_and_filesystem_resources"></a>Classpath and Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/7-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-module-7-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/7-resources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.16&quot;
+  def scalaVersion = &quot;3.7.1&quot;
   def mvnDeps = Seq(
-    mvn&quot;com.lihaoyi::os-lib:0.10.7&quot;
+    mvn&quot;com.lihaoyi::os-lib:0.11.4&quot;
   )
 
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.5&quot;)
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::utest:0.8.7&quot;)
     def testFramework = &quot;utest.runner.Framework&quot;
 
     def otherFiles = Task.Source(&quot;other-files&quot;)
@@ -1052,7 +1052,7 @@ the sandbox and make the tests run in the project root.</p>
 <h2 id="_scala_compiler_plugins"><a class="anchor" href="#_scala_compiler_plugins"></a>Scala Compiler Plugins</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-module-8-scala-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/8-scala-compiler-plugins">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-module-8-scala-compiler-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/8-scala-compiler-plugins">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1106,7 +1106,7 @@ error:   def x = Foo.y</code></pre>
 like to create the docs for, configured via <code>scalaDocOptions</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/9-docjar">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-module-9-docjar.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/9-docjar">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1192,13 +1192,13 @@ documentation.</p>
 <h2 id="_specifying_the_main_class"><a class="anchor" href="#_specifying_the_main_class"></a>Specifying the Main Class</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/11-main-class">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-module-11-main-class.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/11-main-class">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
 object `package` extends ScalaModule {
-  def scalaVersion = &quot;2.13.16&quot;
+  def scalaVersion = &quot;3.7.1&quot;
   def mainClass = Some(&quot;foo.Qux&quot;)
 }</code></pre>
 </div>
@@ -1224,7 +1224,7 @@ main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p>
 <h2 id="_cross_scala_version_modules"><a class="anchor" href="#_cross_scala_version_modules"></a>Cross-Scala-Version Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-module-14-cross-scala-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/14-cross-scala-version">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-module-14-cross-scala-version.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/14-cross-scala-version">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
@@ -1299,21 +1299,21 @@ trait Bar2Module extends CrossScalaModule</code></pre>
 <h2 id="_unidoc"><a class="anchor" href="#_unidoc"></a>Unidoc</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-module-15-unidoc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/15-unidoc">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-module-15-unidoc.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/15-unidoc">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
 object foo extends ScalaModule with UnidocModule {
-  def scalaVersion = &quot;2.13.16&quot;
+  def scalaVersion = &quot;3.7.1&quot;
   def moduleDeps = Seq(bar, qux)
 
   object bar extends ScalaModule {
-    def scalaVersion = &quot;2.13.16&quot;
+    def scalaVersion = &quot;3.7.1&quot;
   }
 
   object qux extends ScalaModule {
-    def scalaVersion = &quot;2.13.16&quot;
+    def scalaVersion = &quot;3.7.1&quot;
     def moduleDeps = Seq(bar)
   }
 
@@ -1368,13 +1368,13 @@ sources as browsable from the <code>unidocSourceUrl</code> base (e.g. on Github)
 <h2 id="_generated_sources"><a class="anchor" href="#_generated_sources"></a>Generated Sources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-module-3-generated-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/3-generated-sources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-module-3-generated-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/3-generated-sources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = &quot;2.13.16&quot;
+  def scalaVersion = &quot;3.7.1&quot;
 
   def generatedSources = Task {
     os.write(
@@ -1428,14 +1428,14 @@ count at runtime using <code>sys.props</code> and print it when the program runs
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-71-495b96-example-scalalib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/2-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-72-e57c72-example-scalalib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/module/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._
 
 object `package` extends ScalaModule {
-  def scalaVersion = &quot;2.13.16&quot;
-  def mvnDeps = Seq(mvn&quot;com.lihaoyi::mainargs:0.4.0&quot;)
+  def scalaVersion = &quot;3.7.1&quot;
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::mainargs:0.7.6&quot;)
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val prettyMvnDeps = for (ivyDep &lt;- mvnDeps()) yield {
@@ -1614,7 +1614,7 @@ implementation.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run --text hello
 text: hello
-MyDeps.value: List((com.lihaoyi,mainargs,0.4.0))
+MyDeps.value: List((com.lihaoyi,mainargs,0.7.6))
 my.line.count: 14
 
 &gt; ./mill show lineCount
