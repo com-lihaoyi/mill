@@ -8,7 +8,7 @@ import mill.scalalib.Assembly._
 
 object foo extends ScalaModule {
   def moduleDeps = Seq(bar)
-  def scalaVersion = "2.13.16"
+  def scalaVersion = "3.7.1"
   def mvnDeps = Seq(mvn"com.lihaoyi::os-lib:0.10.7")
   def assemblyRules = Seq(
     // all application.conf files will be concatenated into single file
@@ -26,7 +26,7 @@ object foo extends ScalaModule {
 }
 
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.16"
+  def scalaVersion = "3.7.1"
 }
 //// SNIPPET:END
 

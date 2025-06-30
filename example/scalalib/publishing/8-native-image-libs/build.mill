@@ -4,7 +4,7 @@ import mill._, scalalib._
 import mill.define.ModuleRef
 
 object foo extends ScalaModule with NativeImageModule {
-  def scalaVersion = "2.13.11"
+  def scalaVersion = "3.7.1"
 
   def nativeImageOptions = Seq("--no-fallback", "-Os")
 

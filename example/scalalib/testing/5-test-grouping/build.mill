@@ -8,7 +8,7 @@ package build
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.16"
+  def scalaVersion = "3.7.1"
   object test extends ScalaTests with TestModule.Utest {
     def utestVersion = "0.8.5"
 

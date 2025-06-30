@@ -3,7 +3,7 @@ package build
 import mill._, scalalib._
 
 trait MyModule extends ScalaModule {
-  def scalaVersion = "2.13.11"
+  def scalaVersion = "3.7.1"
   object test extends ScalaTests {
     def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
@@ -16,7 +16,7 @@ object foo extends MyModule {
 }
 
 object bar extends MyModule {
-  def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.8.2")
+  def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.12.0")
 }
 //// SNIPPET:END
 

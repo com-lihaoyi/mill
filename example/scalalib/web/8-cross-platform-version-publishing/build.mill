@@ -21,7 +21,7 @@ trait SharedTestModule extends TestModule.Utest {
 }
 
 trait SharedJS extends Shared with ScalaJSModule {
-  def scalaJSVersion = "1.16.0"
+  def scalaJSVersion = "1.19.0"
 }
 
 val scalaVersions = Seq("2.13.14", "3.3.3")

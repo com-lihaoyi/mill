@@ -24,7 +24,7 @@ trait FooModule extends Cross.Module[String] {
   }
 
   trait SharedJS extends Shared with ScalaJSModule {
-    def scalaJSVersion = "1.16.0"
+    def scalaJSVersion = "1.19.0"
   }
 
   object bar extends Module {

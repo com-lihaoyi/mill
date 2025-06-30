@@ -14,7 +14,7 @@ object `package` extends ScalaModule {
 
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
-    mvn"com.lihaoyi::scalatags:0.8.2",
+    mvn"com.lihaoyi::scalatags:0.12.0",
     mvn"com.lihaoyi::os-lib:0.10.7"
   )
 

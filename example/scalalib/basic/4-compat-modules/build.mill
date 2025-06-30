@@ -9,7 +9,7 @@ package build
 import mill._, scalalib._
 
 object foo extends SbtModule {
-  def scalaVersion = "2.13.16"
+  def scalaVersion = "3.7.1"
   object test extends SbtTests {
     def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
     def testFramework = "utest.runner.Framework"
