@@ -17,6 +17,12 @@ object `package` extends JavaModule with PmdModule {
 // 2. Define a PMD ruleset file(s) with `pmdRulesets` (default is `pmd-rules.xml`).
 // 3. Run the `pmd` command.
 
+/** Usage
+ > ./mill pmd # default format is text
+ ...Foo.java:4:	UnusedLocalVariable:
+ error: ...violation(s) found
+ **/
+
 // PMD flags:
 // The `pmd` command accepts several flags to customize its behavior:
 // --rulesets / -R
