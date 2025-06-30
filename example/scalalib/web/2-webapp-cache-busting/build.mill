@@ -27,7 +27,7 @@ object `package` extends ScalaModule {
 
   object test extends ScalaTests with TestModule.Utest {
     def mvnDeps = Seq(
-      mvn"com.lihaoyi::utest::0.8.5",
+      mvn"com.lihaoyi::utest::0.8.7",
       mvn"com.lihaoyi::requests::0.6.9"
     )
   }

@@ -10,10 +10,10 @@ object qux extends ScalaModule {
   def scalaVersion = "3.7.1"
 
   object test extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.5"
+    def utestVersion = "0.8.7"
   }
   object integration extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.5"
+    def utestVersion = "0.8.7"
   }
 }
 //// SNIPPET:END

@@ -20,7 +20,7 @@ object `package` extends ScalaModule {
   }
 
   object test extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.5"
+    def utestVersion = "0.8.7"
     def mvnDeps = Seq(
       mvn"com.lihaoyi::requests::0.6.9"
     )

@@ -6,7 +6,7 @@ object foo extends ScalaJSModule {
   def scalaJSVersion = "1.19.0"
   def mvnDeps = Seq(mvn"com.lihaoyi::scalatags::0.13.1")
   object test extends ScalaJSTests with TestModule.Utest {
-    def utestVersion = "0.8.5"
+    def utestVersion = "0.8.7"
   }
 }
 
