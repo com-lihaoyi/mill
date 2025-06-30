@@ -9,7 +9,7 @@ package build
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.11"
+  def scalaVersion = "3.7.1"
 
   /** Total number of lines in module source files */
   def lineCount = Task {

@@ -6,7 +6,7 @@ trait AppScalaModule extends ScalaModule {
 }
 
 trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
-  def scalaJSVersion = "1.16.0"
+  def scalaJSVersion = "1.19.0"
 }
 
 object `package` extends AppScalaModule {
@@ -22,7 +22,7 @@ object `package` extends AppScalaModule {
   }
 
   object test extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.5"
+    def utestVersion = "0.8.7"
     def mvnDeps = Seq(
       mvn"com.lihaoyi::requests::0.6.9"
     )
@@ -32,7 +32,7 @@ object `package` extends AppScalaModule {
     trait SharedModule extends AppScalaModule with PlatformScalaModule {
       def mvnDeps = Seq(
         mvn"com.lihaoyi::scalatags::0.13.1",
-        mvn"com.lihaoyi::upickle::3.0.0"
+        mvn"com.lihaoyi::upickle::4.1.0"
       )
     }
 

@@ -3,7 +3,7 @@ import mill._, scalalib._, scalanativelib._
 
 object `package` extends ScalaNativeModule {
   def scalaVersion = "3.3.4"
-  def scalaNativeVersion = "0.5.5"
+  def scalaNativeVersion = "0.5.8"
 
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
@@ -11,7 +11,7 @@ object `package` extends ScalaNativeModule {
   )
 
   object test extends ScalaNativeTests with TestModule.Utest {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.5")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.7")
     def testFramework = "utest.runner.Framework"
   }
 }
