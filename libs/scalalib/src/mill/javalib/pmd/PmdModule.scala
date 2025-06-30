@@ -27,7 +27,7 @@ trait PmdModule extends JavaModule {
         val baseArgs = Seq(
           "-d",
           (if (leftover.value.nonEmpty) leftover.value.mkString(",")
-          else sources().map(_.path.toString()).mkString(",")),
+           else sources().map(_.path.toString()).mkString(",")),
           "-R",
           pmdRulesets().map(_.path.toString).mkString(","),
           "-f",
