@@ -1,5 +1,4 @@
-// `CheckstyleModule` Performs quality checks on Java source files using
-// https://checkstyle.org[Checkstyle] and generates reports from these checks.
+// `PmdModule` Performs checks on Java source files using https://pmd.github.io/[PMD] and generates reports from these checks.
 
 package build
 import mill._, javalib._, pmd._
@@ -34,4 +33,3 @@ object `package` extends JavaModule with PmdModule {
 //
 // For a full list of PMD options, see the PMD documentation:
 // https://pmd.github.io/pmd/pmd_userdocs_cli_reference.html).
-
