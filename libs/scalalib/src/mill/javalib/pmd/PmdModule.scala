@@ -3,6 +3,7 @@ package mill.javalib.pmd
 import mill.scalalib.{DepSyntax, JavaModule}
 import mill.util.Jvm
 import mill.*
+import mill.define.Task.args
 
 /**
  * Checks Java source files with PMD static code analyzer [[https://pmd.github.io/]].
@@ -22,18 +23,19 @@ trait PmdModule extends JavaModule {
   protected def pmd0(stdout: Boolean, format: String, leftover: mainargs.Leftover[String]) =
     Task.Anon {
       val output = Task.dest / s"pmd-output.$format"
-      val args = pmdOptions() ++
-        Seq(
-          "check",
+      val args = {
+        val baseArgs = Seq(
           "-d",
           (if (leftover.value.nonEmpty) leftover.value.mkString(",")
-           else sources().map(_.path.toString()).mkString(",")),
+          else sources().map(_.path.toString()).mkString(",")),
           "-R",
           pmdRulesets().map(_.path.toString).mkString(","),
           "-f",
           format
-        ) ++
-        (if (stdout) Seq.empty else Seq("-r", output.toString))
+        ) ++ (if (stdout) Seq.empty else Seq("-r", output.toString))
+        pmdOptions() ++ (if (isPmd7) Seq("check") ++ baseArgs else baseArgs)
+      }
+      val mainCls = if (isPmd7) "net.sourceforge.pmd.cli.PmdCli" else "net.sourceforge.pmd.PMD"
       val jvmArgs = pmdLanguage().map(lang => s"-Duser.language=$lang").toSeq
 
       Task.log.info("running pmd ...")
@@ -103,4 +105,12 @@ trait PmdModule extends JavaModule {
 
   /** PMD output report. */
   def pmdOutput: T[PathRef] = Task { PathRef(Task.dest / s"pmd-output.${pmdFormat()}") }
+
+  /** Helper to check if the version is >= 7 */
+  private def isPmd7: Boolean = {
+    mill.scalalib.api.Versions.pmdDist
+      .split(":").lastOption
+      .flatMap(_.takeWhile(_ != '.').toIntOption)
+      .exists(_ >= 7)
+  }
 }
