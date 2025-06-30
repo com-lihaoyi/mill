@@ -19,7 +19,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
    */
   def pmd(@mainargs.arg pmdArgs: PmdArgs): Command[Int] = Task.Command {
     val (output, exitCode) = pmd0(pmdArgs.stdout, pmdArgs.format, pmdArgs.sources)()
-    pmdHandleErrors(pmdArgs.stdout, pmdArgs.check, exitCode, output)
+    pmdHandleErrors(pmdArgs.stdout, pmdArgs.check, exitCode, output, pmdArgs.format)
   }
 
   protected def pmd0(stdout: Boolean, format: String, leftover: mainargs.Leftover[String]) =
@@ -65,9 +65,13 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       stdout: Boolean,
       check: Boolean,
       exitCode: Int,
-      output: os.Path
+      output: os.Path,
+      format: String
   )(implicit ctx: mill.define.TaskCtx): Int = {
+
     val reported = os.exists(output)
+    var violationCount: Option[Int] = None
+
     if (reported) {
       Task.log.info(s"pmd output report at $output")
       try {
@@ -75,6 +79,16 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
         if (lines.nonEmpty) {
           Task.log.info("PMD violations:")
           lines.foreach(line => Task.log.info(line))
+          // For "text" format: each line is a violation
+          if (format == "text") {
+            violationCount = Some(lines.size)
+          }
+          // For "xml" format: count <violation ...> tags
+          else if (format == "xml") {
+            violationCount = Some(lines.count(_.trim.startsWith("<violation")))
+          }
+        } else {
+          violationCount = Some(0)
         }
       } catch {
         case ex: Throwable =>
@@ -85,13 +99,17 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
     if (exitCode == 0) {}
     else if (exitCode < 0 || !(reported || stdout)) {
       Task.log.error(
-        s"pmd exit($exitCode); please check command arguments, plugin settings or try with another version"
+        s"PMD exit($exitCode); please check command arguments, plugin settings or try with another version"
       )
       throw new UnsupportedOperationException(s"pmd exit($exitCode)")
     } else if (check) {
-      throw new RuntimeException(s"pmd found $exitCode violation(s)")
+      throw new RuntimeException(
+        s"PMD found ${violationCount.getOrElse("unknown number of")} violation(s)"
+      )
     } else {
-      Task.log.error(s"pmd found $exitCode violation(s)")
+      Task.log.error(
+        s"PMD found ${violationCount.getOrElse("unknown number of")} violation(s)"
+      )
     }
 
     exitCode

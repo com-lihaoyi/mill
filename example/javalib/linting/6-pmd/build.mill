@@ -19,8 +19,8 @@ object `package` extends JavaModule with PmdModule {
 
 /** Usage
 > ./mill pmd # default format is text
-...EmptyCatchBlock.java:7:	EmptyCatchBlock:	Avoid empty catch blocks
-**/
+ PMD found 1 violation(s)
+*/
 
 // PMD flags:
 // The `pmd` command accepts several flags to customize its behavior:
