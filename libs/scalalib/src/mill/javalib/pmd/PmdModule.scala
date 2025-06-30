@@ -24,6 +24,7 @@ trait PmdModule extends JavaModule {
       val output = Task.dest / s"pmd-output.$format"
       val args = pmdOptions() ++
         Seq(
+          "check",
           "-d",
           (if (leftover.value.nonEmpty) leftover.value.mkString(",")
            else sources().map(_.path.toString()).mkString(",")),
@@ -39,7 +40,7 @@ trait PmdModule extends JavaModule {
       Task.log.debug(s"with $args")
 
       val exitCode = Jvm.callProcess(
-        mainClass = "net.sourceforge.pmd.PMD",
+        mainClass = "net.sourceforge.pmd.cli.PmdCli",
         classPath = pmdClasspath().map(_.path).toVector,
         mainArgs = args,
         cwd = moduleDir,
@@ -81,9 +82,7 @@ trait PmdModule extends JavaModule {
 
   /** Classpath for running PMD. */
   def pmdClasspath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
-      Seq(mvn"net.sourceforge.pmd:pmd-dist:${pmdVersion()}")
-    )
+    defaultResolver().classpath(Seq(mvn"${mill.scalalib.api.Versions.pmdDist}"))
   }
 
   /** PMD rulesets files. Defaults to `pmd-ruleset.xml`. */
@@ -104,7 +103,4 @@ trait PmdModule extends JavaModule {
 
   /** PMD output report. */
   def pmdOutput: T[PathRef] = Task { PathRef(Task.dest / s"pmd-output.${pmdFormat()}") }
-
-  /** PMD version. */
-  def pmdVersion: T[String]
 }
