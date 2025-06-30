@@ -37,10 +37,10 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       ) ++ (if (stdout) Seq.empty else Seq("-r", output.toString))
 
       val args =
-        if (isPmd6OrOlder(this.pmdVersion())) pmdOptions() ++ baseArgs
+        if (isPmd6OrOlder(this.pmdDistVersion())) pmdOptions() ++ baseArgs
         else pmdOptions() ++ (Seq("check") ++ baseArgs)
       val mainCls =
-        if (isPmd6OrOlder(this.pmdVersion())) "net.sourceforge.pmd.PMD"
+        if (isPmd6OrOlder(this.pmdDistVersion())) "net.sourceforge.pmd.PMD"
         else "net.sourceforge.pmd.cli.PmdCli"
       val jvmArgs = pmdLanguage().map(lang => s"-Duser.language=$lang").toSeq
 
@@ -117,29 +117,17 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
 
   /**
    * Classpath for running PMD.
-   * If pmdVersion is set as a plain version (like "7.15.0"), it constructs the Maven dependency.
-   * If it returns a Maven coordinate string (like "net.sourceforge.pmd:pmd-dist:7.15.0"), it uses that directly.
-   * If nothing is set, it falls back to the default from mill.scalalib.api.Versions.pmdDist.
    */
   def pmdClasspath: T[Seq[PathRef]] = Task {
-    val versionOrDep = pmdVersion().trim
-    val dep: mill.scalalib.Dep =
-      if (versionOrDep.matches("""^\d+(\.\d+)*$""")) {
-        mvn"net.sourceforge.pmd:pmd-dist:$versionOrDep"
-      } else if (versionOrDep.startsWith("net.sourceforge.pmd:pmd-dist:")) {
-        mvn"${versionOrDep}"
-      } else {
-        // If it's not a version, try to cast to Dep (e.g. from Deps.RuntimeDeps.pmdDist)
-        mill.scalalib.api.Versions.pmdDist.asInstanceOf[mill.scalalib.Dep]
-      }
-    defaultResolver().classpath(Seq(dep))
+    val version = pmdDistVersion()
+    if (version.nonEmpty)
+      defaultResolver().classpath(Seq(mvn"net.sourceforge.pmd:pmd-dist:$version"))
+    else
+      defaultResolver().classpath(Seq(mvn"${mill.scalalib.api.Versions.pmdDistVersion}"))
   }
 
   /** PMD rulesets files. Defaults to `pmd-ruleset.xml`. */
   def pmdRulesets: Sources = Task.Sources(moduleDir / "pmd-ruleset.xml")
-
-  /** PMD output format (`text`, `xml`, `html`, etc). Defaults to `text`. */
-  def pmdFormat: T[String] = Task { "text" }
 
   /** Additional arguments for PMD. */
   def pmdOptions: T[Seq[String]] = Task {
@@ -151,9 +139,6 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
     sys.props.get("user.language")
   }
 
-  /** PMD output report. */
-  def pmdOutput: T[PathRef] = Task { PathRef(Task.dest / s"pmd-output.${pmdFormat()}") }
-
   /** Helper to check if the version is <= 6. False by default. */
   private def isPmd6OrOlder(version: String): Boolean = {
     version
@@ -162,8 +147,8 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       .exists(_ < 7)
   }
 
-  /** PMD version. */
-  def pmdVersion: T[String] = Task { Versions.pmdDist }
+  /** PMD dependency version. */
+  def pmdDistVersion: T[String] = Task { Versions.pmdDistVersion }
 }
 
 /**

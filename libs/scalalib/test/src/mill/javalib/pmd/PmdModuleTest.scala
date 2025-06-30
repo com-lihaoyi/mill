@@ -65,7 +65,7 @@ object PmdModuleTest extends TestSuite {
     // Older PMD version test
     test("Pmd matches violation comments in example sources (pmd6)") {
       val module = new TestRootModule with PmdModule with JavaModule {
-        override def pmdVersion = Task { "6.55.0" }
+        override def pmdDistVersion = Task { "6.55.0" }
         lazy val millDiscover = Discover[this.type]
       }
       runTest(module)
@@ -74,7 +74,7 @@ object PmdModuleTest extends TestSuite {
     // PMD 7.x test
     test("Pmd matches violation comments in example sources (pmd7)") {
       val module = new TestRootModule with PmdModule with JavaModule {
-        override def pmdVersion = Task { "7.15.0" }
+        override def pmdDistVersion = Task { "7.15.0" }
         lazy val millDiscover = Discover[this.type]
       }
       runTest(module)
