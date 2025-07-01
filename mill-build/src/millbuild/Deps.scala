@@ -97,6 +97,8 @@ object Deps {
   val coursierInterface = mvn"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
+  // https://mvnrepository.com/artifact/io.get-coursier.publish/publish
+  val coursierPublish = mvn"io.get-coursier.publish::publish:0.3.0"
 
   val cask = mvn"com.lihaoyi::cask:0.9.4"
   val castor = mvn"com.lihaoyi::castor:0.3.0"
@@ -182,12 +184,12 @@ object Deps {
     mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.1".withDottyCompat(scalaVersion)
   val requests = mvn"com.lihaoyi::requests:0.9.0"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.17"
-  val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.3.0"
+  val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
   val kotlinVersion = "2.1.20"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
   val mavenVersion = "3.9.9"
   val mavenEmbedder = mvn"org.apache.maven:maven-embedder:$mavenVersion"
-  val mavenResolverVersion = "1.9.22"
+  val mavenResolverVersion = "1.9.23"
   val mavenResolverConnectorBasic =
     mvn"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion"
   val mavenResolverSupplier =

@@ -25,10 +25,10 @@ import mill.define.BuildCtx
 @experimental
 trait SonatypeCentralPublishModule extends PublishModule {
   /**
-   * @return (maybeKeyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
+   * @return (keyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
    */
-  def sonatypeCentralGpgArgs: Task[Option[String] => Seq[String]] = Task.Anon { (maybeKeyId: Option[String]) =>
-    PublishModule.makeGpgArgs(Task.env, maybeKeyId = maybeKeyId, providedGpgArgs = Seq.empty)
+  def sonatypeCentralGpgArgs: Task[String => Seq[String]] = Task.Anon { (keyId: String) =>
+    PublishModule.makeGpgArgs(Task.env, maybeKeyId = Some(keyId), providedGpgArgs = Seq.empty)
   }
 
   def sonatypeCentralConnectTimeout: T[Int] = Task { defaultConnectTimeout }
@@ -49,7 +49,11 @@ trait SonatypeCentralPublishModule extends PublishModule {
       val artifact = publishData.meta
       val finalCredentials = getSonatypeCredentials(username, password)()
       val maybeKeyId = PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
-      val gpgArgs = sonatypeCentralGpgArgs()(maybeKeyId)
+      val keyId = maybeKeyId.getOrElse(throw new IllegalArgumentException(
+        s"Publishing to Sonatype Central requires a PGP key. Please set the '${PublishModule.EnvVarPgpSecretBase64}' " +
+          s"and '${PublishModule.EnvVarPgpPassphrase}' (if needed) environment variables."
+      ))
+      val gpgArgs = sonatypeCentralGpgArgs()(keyId)
       val publisher = new SonatypeCentralPublisher(
         credentials = finalCredentials,
         gpgArgs = gpgArgs,

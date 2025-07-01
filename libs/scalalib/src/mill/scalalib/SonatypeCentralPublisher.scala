@@ -25,11 +25,11 @@ class SonatypeCentralPublisher(
     awaitTimeout: Int
 ) {
   private val sonatypeCentralClient =
-    new SyncSonatypeClient(credentials, readTimeout = readTimeout, connectTimeout = connectTimeout) {
+    new SyncSonatypeClient(credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)/* {
       override protected val clientBaseUrl         = s"https://central.sonatype.com/repository/maven-snapshots/"
       override protected val clientUploadBundleUrl = s"$clientBaseUrl/upload"
       override protected val clientCheckStatusUrl  = s"$clientBaseUrl/status"
-    }
+    }*/
 
   def publish(
       fileMapping: Seq[(os.Path, String)],
@@ -45,7 +45,9 @@ class SonatypeCentralPublisher(
       artifacts: (Seq[(os.Path, String)], Artifact)*
   ): Unit = {
     val mappings = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
-    log.info(s"mappings ${pprint.apply(mappings.map { case (a, kvs) => (a, kvs.map(_._1)) })}")
+    log.info(s"mappings ${pprint.apply(
+      mappings.map { case (a, fileSetContents) => (a, fileSetContents.keysSorted.map(_.toString)) }
+    )}")
     val releases = mappings
 //    val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
 //    if (snapshots.nonEmpty) {

@@ -1,7 +1,7 @@
 package mill.scalalib.publish
 
 import mill.api.Logger
-
+import mill.scalalib.FileSetContents
 import mill.scalalib.publish.SonatypeHelpers.getArtifactMappings
 
 class SonatypePublisher(
@@ -30,7 +30,7 @@ class SonatypePublisher(
     publishAll(release, fileMapping -> artifact)
   }
 
-  def publishAll(release: Boolean, artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
+  def publishAll(release: Boolean, artifacts: (FileSetContents.Path, Artifact)*): Unit = {
     val mappings = getArtifactMappings(signed, gpgArgs, workspace, env, artifacts)
 
     val (snapshots, releases) = mappings.partition(_._1.isSnapshot)

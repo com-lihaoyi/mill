@@ -1,5 +1,8 @@
 package mill.scalalib.publish
 
+import mill.scalalib.FileSetContents
+import os.RelPath
+
 import java.math.BigInteger
 import java.security.MessageDigest
 
@@ -14,35 +17,38 @@ object SonatypeHelpers {
       gpgArgs: Seq[String],
       workspace: os.Path,
       env: Map[String, String],
-      artifacts: Seq[(Seq[(os.Path, String)], Artifact)]
-  ): Seq[(Artifact, Seq[(String, Array[Byte])])] = {
+      artifacts: Seq[(FileSetContents.Path, Artifact)]
+  ): Seq[(Artifact, FileSetContents.Bytes)] = {
     for ((fileMapping0, artifact) <- artifacts) yield {
-      val publishPath = Seq(
-        artifact.group.replace(".", "/"),
-        artifact.id,
-        artifact.version
-      ).mkString("/")
-      val fileMapping = fileMapping0.map { case (file, name) => (file, publishPath + "/" + name) }
+      val publishPath = RelPath(artifact.group.replace(".", "/")) / artifact.id / artifact.version
+      val fileMapping = fileMapping0.mapPaths(publishPath / _)
 
       val signedArtifacts =
         if (isSigned) fileMapping.map {
-          case (file, name) =>
-            gpgSigned(file = file, args = gpgArgs, workspace = workspace, env = env) -> s"$name.asc"
+          case (name, file) =>
+            val signatureFile = gpgSigned(file = file.path, args = gpgArgs, workspace = workspace, env = env)
+            RelPath(s"$name.asc") -> FileSetContents.Contents.Path(signatureFile)
         }
-        else Seq()
+        else FileSetContents.empty
 
-      artifact -> (fileMapping ++ signedArtifacts).flatMap {
-        case (file, name) =>
-          val content = os.read.bytes(file)
+      val allFiles = (fileMapping ++ signedArtifacts).flatMap { case (name, file) =>
+        val content = os.read.bytes(file.path)
 
-          Seq(
-            name -> content,
-            (name + ".md5") -> md5hex(content),
-            (name + ".sha1") -> sha1hex(content)
-          )
+        Map(
+          name -> FileSetContents.Contents.Bytes(IArray.unsafeFromArray(content)),
+          RelPath(s"$name.md5") -> FileSetContents.Contents.Bytes(IArray.unsafeFromArray(md5hex(content))),
+          RelPath(s"$name.sha1") -> FileSetContents.Contents.Bytes(IArray.unsafeFromArray(sha1hex(content)))
+        )
       }
+
+      artifact -> allFiles
     }
   }
+
+  /** Signs a file with GPG.
+   *
+   * @return The path of the signature file.
+   * */
   private def gpgSigned(
       file: os.Path,
       args: Seq[String],

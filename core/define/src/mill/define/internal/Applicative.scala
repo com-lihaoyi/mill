@@ -76,7 +76,10 @@ object Applicative {
               val sym = x.symbol
               if (sym != Symbol.noSymbol && defs(sym) && !localDefs(sym)) {
                 macroError(
-                  "Task#apply() call cannot use `" + x.symbol + "` defined within the Task{...} block",
+                  s"Task#apply() call cannot use `$sym` defined within the Task{...} block.\n" +
+                    s"defs(symbol) = ${ defs(sym) }\n" +
+                    s"localDefs(symbol) = ${ localDefs(sym) }\n" +
+                    s"fun = $fun",
                   x.pos
                 )
               }
