@@ -10,7 +10,7 @@ import mill.{Command, T, Task, TaskModule}
 @mill.api.experimental
 trait BuildGenModule extends CoursierModule with TaskModule {
 
-  def defaultCommandName(): String = "init"
+  def defaultTask(): String = "init"
 
   def buildGenDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 

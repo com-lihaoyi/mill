@@ -46,7 +46,7 @@ object MainModuleTests extends TestSuite {
 
     /** Sub module */
     object sub extends TaskModule {
-      override def defaultCommandName(): String = "hello"
+      override def defaultTask(): String = "hello"
       def hello() = Task.Command {
         println("hello")
       }

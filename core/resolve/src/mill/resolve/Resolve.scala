@@ -105,7 +105,7 @@ private[mill] object Resolve {
             val directChildrenOrErr = ResolveCore.resolveDirectChildren(
               rootModule,
               value.getClass,
-              Some(value.defaultCommandName()),
+              Some(value.defaultTask()),
               value.moduleSegments,
               cache = cache
             )
