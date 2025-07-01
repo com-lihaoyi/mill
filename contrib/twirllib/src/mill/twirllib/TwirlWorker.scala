@@ -5,7 +5,7 @@ import java.io.File
 import java.net.URLClassLoader
 
 import mill.api.PathRef
-import mill.scalalib.api.CompilationResult
+import mill.jvmlib.api.CompilationResult
 
 import scala.jdk.CollectionConverters._
 import scala.io.Codec

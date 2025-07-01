@@ -274,7 +274,7 @@ trait MainModule extends BaseModule with MainModuleApi {
           )
         else if (args.headOption.exists(_.toLowerCase.endsWith(".g8")))
           evaluator.evaluate(
-            Seq("mill.scalalib.giter8.Giter8Module/init") ++ args,
+            Seq("mill.init.Giter8Module/init") ++ args,
             SelectMode.Separated
           )
         else

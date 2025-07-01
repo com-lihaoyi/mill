@@ -3,7 +3,7 @@ package mill.scalanativelib
 import mill._
 import mill.api.Discover
 import mill.api.ExecutionPaths
-import mill.scalalib.api.JvmWorkerUtil
+import mill.jvmlib.api.JvmWorkerUtil
 import mill.scalalib.{PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
