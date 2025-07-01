@@ -29,7 +29,7 @@ trait TestModule
     with TaskModule
     with TestModuleApi {
 
-  override def defaultCommandName() = "testForked"
+  override def defaultTask() = "testForked"
 
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.

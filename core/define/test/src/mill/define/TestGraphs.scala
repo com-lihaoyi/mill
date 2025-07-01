@@ -232,7 +232,7 @@ object TestGraphs {
       object cross2 extends mill.Cross[Cross2]("jvm", "js", "native")
       trait Cross2 extends mill.Cross.Module[String] with TaskModule {
         def platform = crossValue
-        override def defaultCommandName(): String = "suffixCmd"
+        override def defaultTask(): String = "suffixCmd"
         def suffixCmd(@arg(positional = true) suffix: String = "default"): Command[String] =
           Task.Command {
             scalaVersion + "_" + platform + "_" + suffix

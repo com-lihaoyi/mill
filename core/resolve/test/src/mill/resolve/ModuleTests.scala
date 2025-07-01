@@ -17,7 +17,7 @@ object ModuleTests extends TestSuite {
       }
 
       object test2 extends TaskModule {
-        override def defaultCommandName() = "test2"
+        override def defaultTask() = "test2"
 
         def test2() = Task.Command {}
       }
@@ -28,7 +28,7 @@ object ModuleTests extends TestSuite {
     }
 
     object test4 extends TaskModule {
-      override def defaultCommandName() = "test4"
+      override def defaultTask() = "test4"
 
       def test4() = Task.Command {}
     }

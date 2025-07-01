@@ -73,7 +73,7 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
   val defaultShouldRelease: Boolean = true
 
   // Set the default command to "publishAll"
-  def defaultCommandName(): String = "publishAll"
+  def defaultTask(): String = "publishAll"
 
   def publishAll(
       publishArtifacts: mill.util.Tasks[PublishModule.PublishData] =

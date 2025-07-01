@@ -129,7 +129,7 @@ trait JavaModule
     }
   }
 
-  def defaultCommandName(): String = "run"
+  def defaultTask(): String = "run"
   def resolvePublishDependency: Task[Dep => publish.Dependency] = Task.Anon {
     Artifact.fromDepJava(_: Dep)
   }
