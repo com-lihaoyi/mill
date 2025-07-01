@@ -7,6 +7,6 @@ import millbuild.*
  * Scala logic for tab-completion in Bash and Zsh, delegated to by the `complete.sh`
  * script that runs in both shells
  */
-object `package` extends MillStableScalaModule {
+object `package` extends MillPublishScalaModule {
   def moduleDeps = Seq(build.core.define, build.libs.main)
 }
