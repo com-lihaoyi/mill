@@ -26,7 +26,7 @@ object `package` extends JavaModule with PmdModule {
 
 /** Usage
 > ./mill pmd # default format is text
-...EmptyCatchBlock.java:7:     EmptyCatchBlock:        Avoid empty catch blocks...
+...src/EmptyCatchBlock.java:7:	EmptyCatchBlock:	Avoid empty catch blocks...
 PMD found 1 violation(s)
 */
 
