@@ -5,7 +5,8 @@ import mainargs.{Flag, arg}
 import mill.api.shared.internal.{ScalaJSModuleApi, ScalaPlatform, internal}
 import mill.api.shared.internal.bsp.ScalaBuildTarget
 import mill.api.Result
-import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
+import mill.api.CrossVersion
+import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
 import mill.scalalib.api.JvmWorkerUtil
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalajslib.api.*

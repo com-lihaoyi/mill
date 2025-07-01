@@ -16,6 +16,7 @@ import mill.api.shared.internal.bsp.{
   BspUri,
   JvmBuildTarget
 }
+import mill.scalalib.*
 import mill.api.shared.internal.idea.GenIdeaInternalApi
 import mill.api.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.scalalib.api.CompilationResult
