@@ -4,8 +4,8 @@ import java.nio.file.Path
 
 import mill.api.internal.bsp.BspRunModuleApi
 import mill.api.internal.internal
-import mill.define.{Discover, ExternalModule, ModuleCtx}
-import mill.define.JsonFormatters.given
+import mill.api.{Discover, ExternalModule, ModuleCtx}
+import mill.api.JsonFormatters.given
 import mill.scalalib.{JavaModule, RunModule, TestModule}
 import mill.{Args, Task}
 
@@ -18,13 +18,13 @@ private[mill] object BspRunModule extends ExternalModule {
   // Hack-ish way to have some BSP state in the module context
   @internal
   implicit class EmbeddableBspRunModule(runModule: RunModule)
-      extends mill.define.Module {
+      extends mill.api.Module {
     // We act in the context of the module
     override def moduleCtx: ModuleCtx = runModule.moduleCtx
 
     // We keep all BSP-related tasks/state in this sub-module
     @internal
-    object internalBspRunModule extends mill.define.Module with BspRunModuleApi {
+    object internalBspRunModule extends mill.api.Module with BspRunModuleApi {
 
       override private[mill] def bspRun(args: Seq[String]): Task[Unit] = Task.Anon {
         runModule.run(Task.Anon(Args(args)))()

@@ -1,7 +1,7 @@
 package mill.playlib
 
 import mill.api.ExecResult
-import mill.define.{Cross, Discover}
+import mill.api.{Cross, Discover}
 import mill.scalalib.ScalaModule
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}

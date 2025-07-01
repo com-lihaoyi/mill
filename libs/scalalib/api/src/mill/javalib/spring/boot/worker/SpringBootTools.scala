@@ -1,6 +1,6 @@
 package mill.javalib.spring.boot.worker
 
-import mill.define.TaskCtx
+import mill.api.TaskCtx
 
 @mill.api.experimental
 trait SpringBootTools {

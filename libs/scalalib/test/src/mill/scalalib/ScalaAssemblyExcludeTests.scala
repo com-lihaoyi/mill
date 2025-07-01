@@ -8,7 +8,7 @@ import java.util.jar.JarFile
 import scala.util.Using
 
 import HelloWorldTests.*
-import mill.define.Task
+import mill.api.Task
 object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {
     def checkExclude[M <: mill.testkit.TestRootModule](

@@ -1,6 +1,6 @@
 package mill.scalalib
 import mill.*
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 import mill.scalalib.api.JvmWorkerUtil
 
 /**

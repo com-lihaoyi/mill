@@ -1,6 +1,6 @@
 package mill.scalalib.dependency
 
-import mill.define.*
+import mill.api.*
 import mill.scalalib.CoursierConfigModule
 import mill.scalalib.dependency.updates.{
   DependencyUpdates,

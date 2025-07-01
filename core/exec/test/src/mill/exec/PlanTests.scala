@@ -1,8 +1,8 @@
 package mill.exec
 
-import mill.define.Task
-import mill.define.Task.Simple
-import mill.define.TestGraphs
+import mill.api.Task
+import mill.api.Task.Simple
+import mill.api.TestGraphs
 import utest.*
 
 import scala.collection.mutable

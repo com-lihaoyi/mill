@@ -9,7 +9,7 @@ import org.flywaydb.core.internal.info.MigrationInfoDumper
 import scala.jdk.CollectionConverters._
 
 import mill.*
-import mill.define.PathRef
+import mill.api.PathRef
 import mill.scalalib.{Dep, JavaModule}
 import org.flywaydb.core.api.output.{BaselineResult, CleanResult, MigrateOutput, MigrateResult}
 

@@ -2,19 +2,19 @@ package mill.meta
 
 import java.nio.file.Path
 
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 import mill.*
 import mill.api.Result
 import mill.api.internal.internal
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.constants.OutFiles.*
-import mill.define.{Discover, PathRef, Task}
-import mill.define.internal.RootModule0
+import mill.api.{Discover, PathRef, Task}
+import mill.api.internal.RootModule0
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.scalalib.api.{CompilationResult, Versions}
 import mill.util.BuildInfo
 import mill.api.internal.MillScalaParser
-import mill.define.JsonFormatters.given
+import mill.api.JsonFormatters.given
 import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**

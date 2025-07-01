@@ -6,9 +6,9 @@ import mill.Task
 import mill.api.Segments
 import mill.api.internal.idea.{GenIdeaInternalApi, ResolvedModule}
 import mill.api.internal.internal
-import mill.define.{Discover, ExternalModule, ModuleCtx, PathRef}
+import mill.api.{Discover, ExternalModule, ModuleCtx, PathRef}
 import mill.scalalib.{BoundDep, Dep, JavaModule, ScalaModule}
-import mill.define.JsonFormatters.given
+import mill.api.JsonFormatters.given
 
 @internal
 private[mill] object GenIdeaInternal extends ExternalModule {
@@ -19,7 +19,7 @@ private[mill] object GenIdeaInternal extends ExternalModule {
   // Hack-ish way to have some BSP state in the module context
   @internal
   implicit class EmbeddableGenIdeaModuleInternal(javaModule: JavaModule)
-      extends mill.define.Module {
+      extends mill.api.Module {
     // We act in the context of the module
     override def moduleCtx: ModuleCtx = javaModule.moduleCtx
 
@@ -29,7 +29,7 @@ private[mill] object GenIdeaInternal extends ExternalModule {
 
     // We keep all GenIdea-related tasks/state in this sub-module
     @internal
-    object internalGenIdea extends mill.define.Module with GenIdeaInternalApi {
+    object internalGenIdea extends mill.api.Module with GenIdeaInternalApi {
 
       private def allMvnDeps = Task {
         Seq(

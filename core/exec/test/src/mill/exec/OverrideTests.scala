@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.define.{Discover, Task}
+import mill.api.{Discover, Task}
 import mill.Module
 import mill.testkit.TestRootModule
 

@@ -31,7 +31,7 @@ case class FileImportGraph(
 @internal
 object FileImportGraph {
 
-  import mill.define.JsonFormatters.pathReadWrite
+  import mill.api.JsonFormatters.pathReadWrite
   implicit val readWriter: upickle.default.ReadWriter[FileImportGraph] = upickle.default.macroRW
 
   /**

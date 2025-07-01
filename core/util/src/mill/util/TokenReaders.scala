@@ -2,7 +2,7 @@ package mill.util
 
 import mainargs.TokensReader
 import mill.api.internal.EvaluatorApi
-import mill.define.*
+import mill.api.*
 private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[Evaluator] {
   def read(): Either[String, Evaluator] = Right(
     new EvaluatorProxy(() => Evaluator.currentEvaluator)
@@ -12,7 +12,7 @@ private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Cons
 private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[T, ?])
     extends mainargs.TokensReader.Leftover[Task[T], T] {
   def read(strs: Seq[String]): Either[String, Task[T]] =
-    tokensReaderOfT.read(strs).map(t => mill.define.Task.Anon(t))
+    tokensReaderOfT.read(strs).map(t => mill.api.Task.Anon(t))
   def shortName = tokensReaderOfT.shortName
 }
 

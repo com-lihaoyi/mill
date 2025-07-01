@@ -1,9 +1,9 @@
 package mill.scalalib
 
 import mainargs.Flag
-import mill.define.{PathRef, Task}
+import mill.api.{PathRef, Task}
 
-trait OfflineSupportModule extends mill.define.Module {
+trait OfflineSupportModule extends mill.api.Module {
 
   /**
    * Prepare the module for working offline. This should typically fetch (missing) resources like Maven dependencies.

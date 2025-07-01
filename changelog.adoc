@@ -162,14 +162,14 @@ package build
 
 * `import $packages` and `import $meta` are no longer necessary and have been removed
 
-* `mill.api.Ctx` is now `mill.define.TaskCtx`, and `mill.define.Ctx` is now `mill.define.ModuleCtx`,
+* `mill.api.Ctx` is now `mill.api.TaskCtx`, and `mill.api.Ctx` is now `mill.api.ModuleCtx`,
   to avoid confusion over the name `Ctx` being overloaded to refer to two different classes
 
 * `interp.watch`, `interp.watchValue` and `mill.api.Workspace.workspaceRoot` have been moved
-  to a new `mill.define.BuildCtx` object that centralizes all these build-level APIs
+  to a new `mill.api.BuildCtx` object that centralizes all these build-level APIs
   ({link-pr}/5142[#5142])
 
-* Many Task-related renamings in `mill.define`: `Target` -> `Task.Simple`, `TargetImpl` -> `Task.Computed`, 
+* Many Task-related renamings in `mill.api`: `Target` -> `Task.Simple`, `TargetImpl` -> `Task.Computed`,
   `Worker` -> `Task.Worker`, `Command` -> `Task.Command`, `AnonImpl` -> `Task.Anon`, `InputImpl` -> `Task.Input`,
   `SourcesImpl` -> `Task.Sources`, `SourceImpl` -> `Task.Sources` ({link-pr}/5168[#5168]).
 
@@ -210,7 +210,7 @@ package build
 
 ** These restrictions are best effort guardrails to guide users towards best practices, and
    are not intended to be a fully-hermetic sandbox. You can disable them via
-   `mill.define.BuildCtx.withFilesystemCheckerDisabled { ... }` if you need to do something
+   `mill.api.BuildCtx.withFilesystemCheckerDisabled { ... }` if you need to do something
    outside of the sandbox and are sure you know what you are doing.
 
 * `build.mill` files are now compiled with a minimized classpath containing only
@@ -226,7 +226,7 @@ package build
 ** `mill.resolve`, `mill.runner`, `mill.eval`, etc. are no longer on the classpath.
    In general, a lot of Mill packages that were previously
    on the classpath by happenstance have been removed, and only the core APIs you really
-   need remain exposed under `mill.api`, `mill.define`, `mill.util`, and the various
+   need remain exposed under `mill.api`, `mill.api`, `mill.util`, and the various
    `mill.foolib` packages.
 
 ** Similarly, many third-party libraries that were on the Mill classpath by happenstance
@@ -235,12 +235,12 @@ package build
    `build.mill` code. You can re-include any third party libraries you need
    via the `//| mvnDeps: ` YAML header
 
-** `mill.api`, `mill.define` and `mill.util` have been re-organized. Many classes have been
+** `mill.api`, `mill.api` and `mill.util` have been re-organized. Many classes have been
    moved around, so if your imports no longer compile you may need to try the other two packages
    to see where the class ended up.
 
 *** `mill.api` now contains `build.mill` code that has zero third-party dependencies
-*** `mill.define` contains the code used in `build.mill` that has dependencies
+*** `mill.api` contains the code used in `build.mill` that has dependencies
 *** `mill.util` contains code used in `build.mill` that is also used in other parts of Mill.
 
 * Root modules in `build.mill` and `package.mill` files no longer need an explicit `extends RootModule`
@@ -1585,7 +1585,7 @@ _2023-06-23_
 
 _Changes since {prev-version}:_
 
-* `mill.define.Cross`: Introduced default cross segments and some CLI convenience
+* `mill.api.Cross`: Introduced default cross segments and some CLI convenience
 * `mill.testrunner`: Fixed exception when running ScalaTest or ZIOTest frameworks
 * `mill.runner`: Removed some obsolete / defunct cli options
 * `mill.runner`: Properly distinct-ify commands when resolving wide matching target patterns
@@ -1671,7 +1671,7 @@ _2023-05-24_
 
 _Changes since {prev-version}:_
 
-* Make `mill.define.Module` a `trait` to allow abstract/virtual modules to be ``trait``s rather than ``class``es
+* Make `mill.api.Module` a `trait` to allow abstract/virtual modules to be ``trait``s rather than ``class``es
 {link-pr}/2536[#2536]
 
 * Move `mill.BuildInfo` to `mill.util.BuildInfo` to avoid name conflicts with
@@ -1996,7 +1996,7 @@ _Changes since {prev-version}:_
 This version especially aids the transition from Mill 0.10 to Mill 0.11.
 
 * Backport of Java 20 compatibility
-* Deprecated `mill.define.SelectMode.Single`
+* Deprecated `mill.api.SelectMode.Single`
 * Backport of `mill.eval.Evaluator.evalOrThrow`
 * Deprecated all inner `Tests` traits of modules derived from `JavaModule` and provide type aliases to use their successors
 * Dependency updates: Ammonite 2.5.11, Coursier 2.1.7, jarjar-abrams 1.9.0, Junixxocket 2.8.2, Play 2.8.21, Scalameta Trees 4.8.12, Scala Native 0.4.16, Scoverage 2.0.11, Zinc 1.9.5

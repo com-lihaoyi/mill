@@ -1,6 +1,6 @@
 package mill.util
 
-import mill.define.TaskCtx
+import mill.api.TaskCtx
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets

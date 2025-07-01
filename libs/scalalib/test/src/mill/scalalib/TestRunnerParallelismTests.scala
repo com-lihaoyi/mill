@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.T
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.util.TokenReaders.*

@@ -1,25 +1,25 @@
-package object mill extends mill.define.JsonFormatters with mill.util.TokenReaders0 {
-  type T[+T] = define.Task.Simple[T]
-  val PathRef = mill.define.PathRef
-  type PathRef = mill.define.PathRef
-  type Module = define.Module
-  type Cross[T <: Cross.Module[?]] = define.Cross[T]
-  val Cross = define.Cross
+package object mill extends mill.api.JsonFormatters with mill.util.TokenReaders0 {
+  type T[+T] = api.Task.Simple[T]
+  val PathRef = mill.api.PathRef
+  type PathRef = mill.api.PathRef
+  type Module = api.Module
+  type Cross[T <: Cross.Module[?]] = api.Cross[T]
+  val Cross = api.Cross
   @deprecated("Use Seq[T] instead", "Mill 0.13.0-M1")
   type Agg[T] = Seq[T]
   @deprecated("Use Seq instead", "Mill 0.13.0-M1")
   val Agg = Seq
 
-  type Args = define.Args
-  val Args = define.Args
+  type Args = api.Args
+  val Args = api.Args
 
-  val Task = define.Task
-  type Task[+T] = define.Task[T]
+  val Task = api.Task
+  type Task[+T] = api.Task[T]
 
-  type Command[+T] = define.Task.Command[T]
-  type Worker[+T] = define.Task.Worker[T]
-  type Source = define.Task.Simple[PathRef]
-  type Sources = define.Task.Simple[Seq[PathRef]]
+  type Command[+T] = api.Task.Command[T]
+  type Worker[+T] = api.Task.Worker[T]
+  type Source = api.Task.Simple[PathRef]
+  type Sources = api.Task.Simple[Seq[PathRef]]
 
-  type TaskModule = define.TaskModule
+  type TaskModule = api.TaskModule
 }

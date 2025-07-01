@@ -17,7 +17,7 @@ import mill.api.internal.bsp.{
   JvmBuildTarget
 }
 import mill.api.internal.idea.GenIdeaInternalApi
-import mill.define.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
+import mill.api.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspJavaModule, BspModule}
 import mill.scalalib.internal.ModuleUtils
@@ -31,7 +31,7 @@ import scala.util.matching.Regex
  * Core configuration required to compile a single Java module
  */
 trait JavaModule
-    extends mill.define.Module
+    extends mill.api.Module
     with WithJvmWorkerModule
     with TestModule.JavaModuleBase
     with TaskModule

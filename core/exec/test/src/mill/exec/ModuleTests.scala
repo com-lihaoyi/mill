@@ -4,13 +4,13 @@ import mill.testkit.UnitTester
 import mill.testkit.UnitTester.Result
 import mill.testkit.TestRootModule
 import mill.Task
-import mill.define.Discover
-import mill.define.ExternalModule
+import mill.api.Discover
+import mill.api.ExternalModule
 
 import utest._
 
 object `package` extends ExternalModule.Alias(TestExternalModule)
-object TestExternalModule extends mill.define.ExternalModule with mill.define.TaskModule {
+object TestExternalModule extends mill.api.ExternalModule with mill.api.TaskModule {
   def defaultCommandName() = "x"
   def x = Task { 13 }
   trait Trait extends mill.Module {
@@ -66,7 +66,7 @@ object ModuleTests extends TestSuite {
     }
     test("externalModuleMustBeGlobalStatic") {
 
-      object Build extends mill.define.ExternalModule {
+      object Build extends mill.api.ExternalModule {
 
         def z = Task { TestExternalModule.x() + TestExternalModule.inner.y() }
         lazy val millDiscover = Discover[this.type]

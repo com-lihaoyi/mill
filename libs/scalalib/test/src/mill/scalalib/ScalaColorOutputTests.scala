@@ -6,7 +6,7 @@ import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import HelloWorldTests.*
-import mill.define.Discover
+import mill.api.Discover
 import mill.util.TokenReaders._
 object ScalaColorOutputTests extends TestSuite {
 

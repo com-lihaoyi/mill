@@ -5,7 +5,7 @@
 package build
 
 import mill._, javalib._
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 // TODO:
 //   testsuite-shading

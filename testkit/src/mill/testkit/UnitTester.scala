@@ -9,8 +9,8 @@ import mill.api.SystemStreams
 import mill.api.Val
 import mill.constants.OutFiles.millChromeProfile
 import mill.constants.OutFiles.millProfile
-import mill.define.Evaluator
-import mill.define.SelectMode
+import mill.api.Evaluator
+import mill.api.SelectMode
 import mill.exec.JsonArrayLogger
 import mill.resolve.Resolve
 
@@ -223,7 +223,7 @@ class UnitTester(
 
   def scoped[T](tester: UnitTester => T): T = {
     try {
-      mill.define.BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
+      mill.api.BuildCtx.workspaceRoot0.withValue(module.moduleDir) {
         tester(this)
       }
     } finally close()

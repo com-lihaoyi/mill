@@ -7,7 +7,7 @@ import java.net.URL
 
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
-import mill.define.{TaskCtx as _, *}
+import mill.api.{TaskCtx as _, *}
 import mill.api.internal.{
   EvaluatorApi,
   ExecutionResultsApi,
@@ -823,7 +823,7 @@ object GenIdeaImpl {
   def allClassloaders(classloader: ClassLoader): mutable.Buffer[ClassLoader] = {
     val all = mutable.Buffer.empty[ClassLoader]
     var current = classloader
-    while (current != null && current != ClassLoader.getSystemClassLoader) {
+    while (current != null && current != java.lang.ClassLoader.getSystemClassLoader) {
       all.append(current)
       current = current.getParent
     }

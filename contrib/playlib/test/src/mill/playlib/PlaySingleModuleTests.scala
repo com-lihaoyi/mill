@@ -1,6 +1,6 @@
 package mill.playlib
 
-import mill.define.Discover
+import mill.api.Discover
 import mill.Task
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}

@@ -4,7 +4,7 @@ import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
 
-import mill.define.Discover
+import mill.api.Discover
 
 object Giter8Tests extends TestSuite {
 

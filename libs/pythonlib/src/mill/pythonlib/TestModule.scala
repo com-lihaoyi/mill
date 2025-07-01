@@ -4,7 +4,7 @@ import mill.Task
 import mill.Command
 import mill.TaskModule
 import mill.T
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 trait TestModule extends TaskModule {
   import TestModule.TestResult

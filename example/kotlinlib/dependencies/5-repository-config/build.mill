@@ -2,7 +2,7 @@
 package build
 import mill._, kotlinlib._
 import mill.javalib.{JvmWorkerModule, CoursierModule}
-import mill.define.ModuleRef
+import mill.api.ModuleRef
 
 object foo extends KotlinModule {
 

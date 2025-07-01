@@ -1,10 +1,10 @@
 package mill.daemon
 
 import mill.api.Val
-import mill.define.JsonFormatters._
+import mill.api.JsonFormatters._
 import mill.api.internal.{EvaluatorApi, internal, PathRefApi}
-import mill.define.internal.RootModule0
-import mill.define.internal.Watchable
+import mill.api.internal.RootModule0
+import mill.api.internal.Watchable
 import mill.api.MillURLClassLoader
 import upickle.default.{ReadWriter, macroRW}
 

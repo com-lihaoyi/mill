@@ -13,7 +13,7 @@ trait Logger {
 
   /**
    * This Logger's versions of stdin, stdout, and stderr. Typically enabled
-   * thread-locally while the logger is being used via `SystemStreams.withStreams`,
+   * thread-locally while the logger is being used via `SystemStreamsUtils.withStreams`,
    * such that every `println` or `System.err.println` goes through the logger
    */
   def streams: SystemStreams

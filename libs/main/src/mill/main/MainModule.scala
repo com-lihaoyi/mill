@@ -3,12 +3,12 @@ package mill.main
 import mill.*
 import mill.api.*
 import mill.api.internal.{EvaluatorApi, MainModuleApi, TaskApi}
-import mill.define.*
-import mill.define.internal.RootModule0
-import mill.define.SelectMode.Separated
-import mill.define.internal.Watchable
+import mill.api.*
+import mill.api.internal.RootModule0
+import mill.api.SelectMode.Separated
+import mill.api.internal.Watchable
 import mill.moduledefs.Scaladoc
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
 
@@ -20,7 +20,7 @@ abstract class MainRootModule()(implicit
 ) extends RootModule0 with MainModule
 
 /**
- * [[mill.define.Module]] containing all the default tasks that Mill provides: [[resolve]],
+ * [[mill.api.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
  */
 trait MainModule extends BaseModule with MainModuleApi {
@@ -162,7 +162,7 @@ trait MainModule extends BaseModule with MainModuleApi {
 
       val pathsToRemove =
         if (tasks.isEmpty)
-          Result.Success((os.list(rootDir).filterNot(keepPath), List(mill.define.Segments())))
+          Result.Success((os.list(rootDir).filterNot(keepPath), List(mill.api.Segments())))
         else
           evaluator.resolveSegments(tasks, SelectMode.Multi).map { ts =>
             val allPaths = ts.flatMap { segments =>
@@ -351,7 +351,7 @@ object MainModule {
         case Evaluator.Result(watched, Result.Success(res), selectedTasks, executionResults) =>
           val namesAndJson = for (t <- selectedTasks) yield {
             t match {
-              case t: mill.define.Task.Named[_] =>
+              case t: mill.api.Task.Named[_] =>
                 val jsonFile = ExecutionPaths.resolve(evaluator.outPath, t).meta
                 val metadata = upickle.default.read[Cached](ujson.read(jsonFile.toIO))
                 Some((t.toString, metadata.value))

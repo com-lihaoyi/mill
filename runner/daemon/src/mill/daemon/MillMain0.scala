@@ -7,7 +7,7 @@ import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.Lock
 import mill.constants.{DaemonFiles, OutFiles}
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 import mill.internal.{Colors, MultiStream, PrefixLogger, PromptLogger, SimpleLogger}
 import mill.server.Server
 import mill.util.BuildInfo
@@ -69,7 +69,7 @@ object MillMain0 {
           err = new MultiStream(streams.err, errFileStream),
           in = InputStream.nullInputStream()
         )
-        mill.define.SystemStreams.withStreams(streams0) {
+        mill.api.SystemStreamsUtils.withStreams(streams0) {
           thunk(streams0)
         }
       } finally {
@@ -77,7 +77,7 @@ object MillMain0 {
         outFileStream.close()
       }
     } else
-      mill.define.SystemStreams.withStreams(streams) {
+      mill.api.SystemStreamsUtils.withStreams(streams) {
         thunk(streams)
       }
 
@@ -247,7 +247,7 @@ object MillMain0 {
                         // Enter key pressed, removing mill-selective-execution.json to
                         // ensure all tasks re-run even though no inputs may have changed
                         if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
-                        mill.define.SystemStreams.withStreams(logger.streams) {
+                        mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                           mill.api.FilesystemCheckerEnabled.withValue(
                             !config.noFilesystemChecker.value
                           ) {

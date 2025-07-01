@@ -5,7 +5,7 @@ import mill.client.ClientUtil
 import mill.client.lock.{DoubleLock, Lock, Locks}
 import mill.constants.OutFiles
 import sun.misc.{Signal, SignalHandler}
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 import scala.util.Try
 
 object MillDaemonMain {
@@ -14,7 +14,7 @@ object MillDaemonMain {
     if (System.getenv("MILL_DAEMON_CRASH") == "true")
       sys.error("Mill daemon early crash requested")
 
-    mill.define.SystemStreams.withTopLevelSystemStreamProxy {
+    mill.api.SystemStreams.withTopLevelSystemStreamProxy {
       // Disable SIGINT interrupt signal in the Mill server.
       //
       // This gets passed through from the client to server whenever the user

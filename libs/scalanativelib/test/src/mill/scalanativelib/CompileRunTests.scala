@@ -1,8 +1,8 @@
 package mill.scalanativelib
 
 import mill._
-import mill.define.Discover
-import mill.define.ExecutionPaths
+import mill.api.Discover
+import mill.api.ExecutionPaths
 import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.{PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}

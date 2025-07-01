@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.define.{ModuleRef, Task}
+import mill.api.{ModuleRef, Task}
 import mill.{Module, PathRef, T}
 import mill.api.internal.idea.{GenIdeaModuleApi, IdeaConfigFile, JavaFacet}
 

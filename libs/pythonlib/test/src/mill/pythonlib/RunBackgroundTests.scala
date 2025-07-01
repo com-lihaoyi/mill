@@ -4,7 +4,7 @@ import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.*
 import mill.client.lock.Lock
-import mill.define.Discover
+import mill.api.Discover
 
 object RunBackgroundTests extends TestSuite {
 

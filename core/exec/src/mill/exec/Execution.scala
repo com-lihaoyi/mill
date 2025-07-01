@@ -3,7 +3,7 @@ package mill.exec
 import mill.api.*
 import mill.api.internal.*
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
-import mill.define.*
+import mill.api.*
 import mill.internal.PrefixLogger
 import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
@@ -362,5 +362,5 @@ private[mill] object Execution {
       results: Seq[ExecResult[Val]],
       uncached: Seq[Task[?]],
       transitiveResults: Map[Task[?], ExecResult[Val]]
-  ) extends mill.define.ExecutionResults
+  ) extends mill.api.ExecutionResults
 }

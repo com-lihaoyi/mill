@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.T
-import mill.define.{Module, ModuleRef, PathRef, Task}
+import mill.api.{Module, ModuleRef, PathRef, Task}
 
 /**
  * Common trait for modules that use either a custom or a globally shared [[JvmWorkerModule]].

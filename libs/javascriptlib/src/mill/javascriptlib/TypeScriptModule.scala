@@ -6,7 +6,7 @@ import os.*
 import scala.annotation.tailrec
 import scala.util.Try
 import mill.scalalib.publish.licenseFormat
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 trait TypeScriptModule extends Module { outer =>
   // custom module names
@@ -552,7 +552,7 @@ trait TypeScriptModule extends Module { outer =>
 
   def executionFlags: T[Map[String, String]] = Task { Map.empty[String, String] }
 
-  def run(args: mill.define.Args): Command[CommandResult] = Task.Command {
+  def run(args: mill.api.Args): Command[CommandResult] = Task.Command {
     val mainFile = mainFilePath()
     val env = forkEnv()
 

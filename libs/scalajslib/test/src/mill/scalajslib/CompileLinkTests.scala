@@ -1,7 +1,7 @@
 package mill.scalajslib
 
 import mill._
-import mill.define.Discover
+import mill.api.Discover
 import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.testkit.UnitTester

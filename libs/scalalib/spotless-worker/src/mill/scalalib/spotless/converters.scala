@@ -8,7 +8,7 @@ import com.diffplug.spotless.{FileSignature, FormatterStep, LintSuppression, Pro
 import coursier.core.Configuration
 import coursier.core.VariantSelector.ConfigurationBased
 import coursier.parse.DependencyParser
-import mill.define.TaskCtx
+import mill.api.TaskCtx
 import mill.scalalib.CoursierModule
 import mill.scalalib.spotless.Format.*
 import os.Path

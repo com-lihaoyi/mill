@@ -5,18 +5,18 @@
 package mill.kotlinlib.kover
 
 import mill.*
-import mill.define.{PathRef}
+import mill.api.{PathRef}
 import mill.api.{Result}
-import mill.define.{Discover, Evaluator, ExternalModule}
+import mill.api.{Discover, Evaluator, ExternalModule}
 import ReportType.{Html, Xml}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, TestModule, Versions}
-import mill.define.SelectMode
+import mill.api.SelectMode
 import mill.scalalib.api.CompilationResult
 import mill.util.Jvm
 import os.Path
 
 import java.util.Locale
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 /**
  * Adds targets to a [[mill.kotlinlib.KotlinModule]] to create test coverage reports.
@@ -202,7 +202,7 @@ object Kover extends ExternalModule with KoverReportBaseModule {
       reportType: ReportType,
       classpath: Seq[Path],
       workingDir: os.Path
-  )(implicit ctx: mill.define.TaskCtx): PathRef = {
+  )(implicit ctx: mill.api.TaskCtx): PathRef = {
     val args = Seq.newBuilder[String]
     args += "report"
     args ++= binaryReportsPaths.map(_.toString())

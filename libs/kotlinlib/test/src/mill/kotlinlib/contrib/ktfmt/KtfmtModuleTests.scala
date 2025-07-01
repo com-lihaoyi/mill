@@ -1,6 +1,6 @@
 package mill.kotlinlib.ktfmt
 
-import mill.define.Discover
+import mill.api.Discover
 import mill.{PathRef, T, api}
 import mill.kotlinlib.KotlinModule
 import mill.util.Tasks
@@ -99,7 +99,7 @@ object KtfmtModuleTests extends TestSuite {
       style: String = "kotlin",
       format: Boolean = true,
       removeUnusedImports: Boolean = true,
-      sources: Seq[mill.define.Task.Named[Seq[PathRef]]] = Seq.empty
+      sources: Seq[mill.api.Task.Named[Seq[PathRef]]] = Seq.empty
   ): Seq[os.Path] = {
 
     UnitTester(module, moduleRoot).scoped { eval =>

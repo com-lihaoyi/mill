@@ -6,7 +6,7 @@ import coursier.core.Repository
 import coursier.credentials.Credentials
 import coursier.params.Mirror
 import coursier.util.{EnvEntry, EnvValues}
-import mill.define.*
+import mill.api.*
 import mill.{T, Task}
 
 import scala.concurrent.duration.Duration

@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.define.Task
+import mill.api.Task
 import mill.testkit.{TestRootModule, UnitTester}
 
 import utest.*

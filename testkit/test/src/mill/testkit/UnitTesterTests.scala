@@ -1,7 +1,7 @@
 package mill.testkit
 
 import mill.*
-import mill.define.Discover
+import mill.api.Discover
 import utest.*
 
 object UnitTesterTests extends TestSuite {

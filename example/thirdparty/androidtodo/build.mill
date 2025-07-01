@@ -46,7 +46,7 @@ object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBu
   // TODO change this to com.example.android.architecture.blueprints.main when mill supports build variants
   def androidApplicationId = "com.example.android.architecture.blueprints.main"
 
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
   def androidCompileSdk = Versions.androidCompileSdk
 
@@ -216,7 +216,7 @@ object `shared-test` extends AndroidKotlinModule with AndroidHiltSupport {
   def kspVersion = Versions.kspVersion
   def androidIsDebug = true
 
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidCompileSdk = Versions.androidCompileSdk
   def androidMinSdk = Versions.androidMinSdk
 

@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, intercept, test}

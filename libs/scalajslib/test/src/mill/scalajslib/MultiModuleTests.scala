@@ -1,8 +1,8 @@
 package mill.scalajslib
 
 import mill._
-import mill.define.Discover
-import mill.define.ExecutionPaths
+import mill.api.Discover
+import mill.api.ExecutionPaths
 import mill.scalalib._
 import mill.testkit.{UnitTester, TestRootModule}
 import utest._

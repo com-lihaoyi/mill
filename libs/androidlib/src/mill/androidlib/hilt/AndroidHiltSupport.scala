@@ -1,7 +1,7 @@
 package mill.androidlib.hilt
 
 import mill.androidlib.AndroidKotlinModule
-import mill.define.{ModuleRef, PathRef}
+import mill.api.{ModuleRef, PathRef}
 import mill.kotlinlib.DepSyntax
 import mill.kotlinlib.ksp.KspModule
 import mill.scalalib.Dep

@@ -3,7 +3,7 @@ package mill.exec
 import mill.api.ExecResult.{OuterStack, Success}
 
 import mill.api.*
-import mill.define.*
+import mill.api.*
 import mill.internal.MultiLogger
 import mill.internal.FileLogger
 
@@ -87,7 +87,7 @@ private trait GroupExecution {
       deps: Seq[Task[?]],
       classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]],
       allTransitiveClassMethods: Map[Class[?], Map[String, Method]],
-      executionContext: mill.define.TaskCtx.Fork.Api,
+      executionContext: mill.api.TaskCtx.Fork.Api,
       exclusive: Boolean,
       upstreamPathRefs: Seq[PathRef]
   ): GroupExecution.Results = {
@@ -258,7 +258,7 @@ private trait GroupExecution {
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter,
       logger: mill.api.Logger,
-      executionContext: mill.define.TaskCtx.Fork.Api,
+      executionContext: mill.api.TaskCtx.Fork.Api,
       exclusive: Boolean,
       deps: Seq[Task[?]],
       upstreamPathRefs: Seq[PathRef],
@@ -281,7 +281,7 @@ private trait GroupExecution {
       val res = {
         if (taskInputValues.length != task.inputs.length) ExecResult.Skipped
         else {
-          val args = new mill.define.TaskCtx.Impl(
+          val args = new mill.api.TaskCtx.Impl(
             args = taskInputValues.map(_.value).toIndexedSeq,
             dest0 = () => destCreator.makeDest(),
             log = multiLogger,
@@ -400,7 +400,7 @@ private trait GroupExecution {
         os.write.over(
           metaPath,
           upickle.default.stream(
-            mill.define.Cached(json, hashCode, inputsHash),
+            mill.api.Cached(json, hashCode, inputsHash),
             indent = 4
           ),
           createFolders = true
@@ -563,7 +563,7 @@ private object GroupExecution {
 
     os.dynamicPwdFunction.withValue(destFunc) {
       os.checker.withValue(executionChecker) {
-        mill.define.SystemStreams.withStreams(streams) {
+        mill.api.SystemStreamsUtils.withStreams(streams) {
           val exposedEvaluator =
             if (exclusive) evaluator.asInstanceOf[Evaluator]
             else new EvaluatorProxy(() =>

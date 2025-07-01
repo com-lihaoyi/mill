@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.api.{BuildInfo, MillException}
-import mill.define.{Task, Segment}
+import mill.api.{Task, Segment}
 
 import scala.reflect.NameTransformer.encode
 import java.lang.reflect.Method
@@ -84,8 +84,8 @@ private[mill] object CodeSigUtils {
       ))
       .getDeclaringClass.getName
 
-    val expectedName = methodClass + "#" + encodedTaskName + "()mill.define.Task$Simple"
-    val expectedName2 = methodClass + "#" + encodedTaskName + "()mill.define.Task$Command"
+    val expectedName = methodClass + "#" + encodedTaskName + "()mill.api.Task$Simple"
+    val expectedName2 = methodClass + "#" + encodedTaskName + "()mill.api.Task$Command"
 
     // We not only need to look up the code hash of the task method being called,
     // but also the code hash of the constructors required to instantiate the Module
@@ -97,7 +97,7 @@ private[mill] object CodeSigUtils {
       case ctx =>
         ctx.enclosingModule match {
           case null => None
-          case m: mill.define.Module => Some((m, m.moduleCtx))
+          case m: mill.api.Module => Some((m, m.moduleCtx))
           case unknown =>
             throw new MillException(s"Unknown ctx of task ${namedTask}: $unknown")
         }

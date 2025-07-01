@@ -1,7 +1,7 @@
 package mill.resolve
 
-import mill.define.*
-import mill.define.internal.Reflect
+import mill.api.*
+import mill.api.internal.Reflect
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -14,7 +14,7 @@ import java.lang.reflect.Method
  * Returns only the [[Segments]] of the things it resolved, without reflecting
  * on the `java.lang.reflect.Member`s or instantiating the final tasks. Those
  * are left to downstream callers to do, with the except of instantiating
- * [[mill.define.Cross]] modules which is needed to identify their cross
+ * [[mill.api.Cross]] modules which is needed to identify their cross
  * values which is necessary for resolving tasks within them.
  *
  * Returns a [[Result]], either containing a [[Success]] containing the

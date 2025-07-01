@@ -14,7 +14,7 @@ package object scalalib extends mill.scalalib.JsonFormatters {
     def ivy(args: Any*): Dep = mvn(args*)
   }
 
-  val CrossVersion = mill.define.CrossVersion
-  type CrossVersion = mill.define.CrossVersion
+  val CrossVersion = mill.api.CrossVersion
+  type CrossVersion = mill.api.CrossVersion
 
 }

@@ -2,7 +2,7 @@ package mill.daemon
 
 import mill.client.FileToStreamTailer
 import mill.constants.DaemonFiles
-import mill.define.SystemStreams.ThreadLocalStreams
+import mill.api.SystemStreams.ThreadLocalStreams
 
 import java.io.{OutputStream, PrintStream}
 

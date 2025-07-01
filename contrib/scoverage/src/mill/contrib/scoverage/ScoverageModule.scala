@@ -2,8 +2,8 @@ package mill.contrib.scoverage
 
 import coursier.Repository
 import mill._
-import mill.define.{PathRef}
-import mill.define.BuildCtx
+import mill.api.{PathRef}
+import mill.api.BuildCtx
 import mill.api.{Result}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
 import mill.util.BuildInfo

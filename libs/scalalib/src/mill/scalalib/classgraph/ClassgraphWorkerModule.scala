@@ -2,8 +2,8 @@ package mill.scalalib.classgraph
 
 import mainargs.Flag
 import mill.{Command, T, Task}
-import mill.define.{TaskCtx, PathRef}
-import mill.define.{Discover, ExternalModule}
+import mill.api.{TaskCtx, PathRef}
+import mill.api.{Discover, ExternalModule}
 import mill.scalalib.{CoursierModule, OfflineSupportModule, Dep}
 import mill.util.Jvm
 

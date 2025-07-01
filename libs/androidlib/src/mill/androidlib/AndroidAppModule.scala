@@ -4,7 +4,7 @@ import coursier.params.ResolutionParams
 import mill.*
 import mill.api.Logger
 import mill.api.internal.{internal, *}
-import mill.define.{ModuleRef, PathRef, Task}
+import mill.api.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.testrunner.TestResult
 import os.{Path, RelPath, zip}

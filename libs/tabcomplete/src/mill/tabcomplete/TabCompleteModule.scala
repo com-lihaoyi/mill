@@ -2,7 +2,7 @@ package mill.tabcomplete
 
 import mill.*
 import mill.api.{SelectMode, Result}
-import mill.define.{Discover, Evaluator, ExternalModule}
+import mill.api.{Discover, Evaluator, ExternalModule}
 
 import mainargs.arg
 

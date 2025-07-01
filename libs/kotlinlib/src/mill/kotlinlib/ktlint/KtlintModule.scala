@@ -2,13 +2,13 @@ package mill.kotlinlib.ktlint
 
 import mainargs.arg
 import mill._
-import mill.define.{PathRef}
-import mill.define.{Discover, ExternalModule}
+import mill.api.{PathRef}
+import mill.api.{Discover, ExternalModule}
 import mill.javalib.JavaModule
 import mill.kotlinlib.{DepSyntax, KotlinModule}
 import mill.util.Tasks
 import mill.util.Jvm
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 /**
  * Performs formatting checks on Kotlin source files using [[https://pinterest.github.io/ktlint/latest/install/integrations/ Ktlint]].
@@ -103,7 +103,7 @@ object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
       config: Option[PathRef],
       options: Seq[String],
       classPath: Seq[PathRef]
-  )(implicit ctx: mill.define.TaskCtx): Unit = {
+  )(implicit ctx: mill.api.TaskCtx): Unit = {
     if (ktlintArgs.check) {
       ctx.log.info("checking format in kotlin sources ...")
     } else {

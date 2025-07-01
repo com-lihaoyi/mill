@@ -9,7 +9,7 @@ package kotlinlib
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.api.Result
-import mill.define.ModuleRef
+import mill.api.ModuleRef
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.scalalib.api.{CompilationResult, JvmWorkerApi}
 import mill.api.internal.{CompileProblemReporter, internal}
