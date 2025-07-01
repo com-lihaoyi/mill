@@ -1,6 +1,6 @@
 package mill.javalib.pmd
 
-import mainargs.{Leftover, ParserForClass, TokensReader, arg}
+import mainargs.{Leftover, ParserForClass, arg}
 
 case class PmdArgs(
     @arg(name = "check", short = 'c', doc = "Fail if violations are found")
@@ -14,5 +14,5 @@ case class PmdArgs(
 )
 
 object PmdArgs {
-  implicit val PFC: TokensReader[PmdArgs] = ParserForClass[PmdArgs]
+  implicit val PFC: ParserForClass[PmdArgs] = ParserForClass[PmdArgs]
 }
