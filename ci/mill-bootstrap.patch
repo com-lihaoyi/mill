@@ -1,10 +1,9 @@
 diff --git a/build.mill b/build.mill
-index 8aa7b85b2a5..2bff3a4f37e 100644
+
+index 7ab1e24f562..726ce732088 100644
 --- a/build.mill
 +++ b/build.mill
-@@ -14,13 +14,13 @@ import mill.vcs.VcsVersion
- import mill._
- import mill.util.Tasks
+@@ -17,11 +17,11 @@ import mill.util.Tasks
  import mill.scalalib._
 -import mill.scalalib.api.JvmWorkerUtil
 +import mill.jvmlib.api.JvmWorkerUtil
@@ -17,9 +16,9 @@ index 8aa7b85b2a5..2bff3a4f37e 100644
  import scala.util.Properties
 -import mill.define.BuildCtx
 +import mill.api.BuildCtx
+ import mill.androidlib.AndroidSdkModule
  
  def millVersionIsStable: T[Boolean] = Task.Input {
-   Task.env.contains("MILL_STABLE_VERSION")
 diff --git a/contrib/package.mill b/contrib/package.mill
 index 165c6a63a1d..fabe7cd94df 100644
 --- a/contrib/package.mill
