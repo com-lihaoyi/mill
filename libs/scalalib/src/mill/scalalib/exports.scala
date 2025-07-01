@@ -17,6 +17,8 @@ type CoursierModule = mill.javalib.CoursierModule
 lazy val Dep = mill.javalib.Dep
 type Dep = mill.javalib.Dep
 
+object Dependency extends ExternalModule.Alias(mill.javalib.Dependency)
+
 // lazy val GenIdeaModule = mill.javalib.GenIdeaModule
 type GenIdeaModule = mill.javalib.GenIdeaModule
 
@@ -65,8 +67,7 @@ type RunModule = mill.javalib.RunModule
 // lazy val SonatypeCentralPublisher = mill.javalib.SonatypeCentralPublisher.self
 type SonatypeCentralPublisher = mill.javalib.SonatypeCentralPublisher
 
-lazy val SonatypeCentralPublishModule = mill.javalib.SonatypeCentralPublishModule
-type SonatypeCentralPublishModule = mill.javalib.SonatypeCentralPublishModule
+object SonatypeCentralPublishModule extends ExternalModule.Alias(mill.javalib.SonatypeCentralPublishModule)
 
 lazy val TestModule = mill.javalib.TestModule
 type TestModule = mill.javalib.TestModule
