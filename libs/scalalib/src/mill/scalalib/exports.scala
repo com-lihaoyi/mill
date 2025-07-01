@@ -17,9 +17,6 @@ type CoursierModule = mill.javalib.CoursierModule
 lazy val Dep = mill.javalib.Dep
 type Dep = mill.javalib.Dep
 
-lazy val Dependency = mill.javalib.Dependency
-// type Dependency = mill.javalib.Dependency
-
 // lazy val GenIdeaModule = mill.javalib.GenIdeaModule
 type GenIdeaModule = mill.javalib.GenIdeaModule
 
