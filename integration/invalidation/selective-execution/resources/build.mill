@@ -26,5 +26,5 @@ object bar extends mill.api.TaskModule {
     barHelper(barTask().path)
   }
 
-  def defaultCommandName(): String = "barCommand"
+  def defaultTask(): String = "barCommand"
 }

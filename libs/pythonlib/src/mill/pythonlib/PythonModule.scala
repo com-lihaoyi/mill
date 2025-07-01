@@ -205,7 +205,7 @@ trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer
     ()
   }
 
-  override def defaultCommandName(): String = "run"
+  override def defaultTask(): String = "run"
 
   /**
    * Opens up a Python console with your module and all dependencies present,

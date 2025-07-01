@@ -70,7 +70,7 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
 
   lazy val millDiscover = Discover[this.type]
 
-  override def defaultCommandName(): String = "formatAll"
+  override def defaultTask(): String = "formatAll"
 
   /**
    * Runs [[https://github.com/facebook/ktfmt Ktfmt]].

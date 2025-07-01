@@ -123,5 +123,5 @@ trait SpotlessModule extends CoursierModule, OfflineSupportModule {
 @mill.api.experimental
 object SpotlessModule extends ExternalModule, TaskModule, SpotlessModule {
   lazy val millDiscover = Discover[this.type]
-  def defaultCommandName() = "spotless"
+  def defaultTask() = "spotless"
 }
