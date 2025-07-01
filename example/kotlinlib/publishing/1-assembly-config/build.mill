@@ -1,7 +1,7 @@
 //// SNIPPET:BUILD
 package build
-import mill._, kotlinlib._
-import mill.javalib.Assembly._
+import mill.*, kotlinlib.*
+import mill.javalib.Assembly.*
 
 object foo extends KotlinModule {
 

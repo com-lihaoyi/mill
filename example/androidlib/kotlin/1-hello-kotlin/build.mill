@@ -9,7 +9,7 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._, androidlib._, kotlinlib._, scalalib._
+import mill.*, androidlib.*, kotlinlib.*, scalalib.*
 
 import coursier.maven.MavenRepository
 

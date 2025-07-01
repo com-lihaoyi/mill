@@ -2,7 +2,7 @@
 // so far into a worked example: implementing our own minimal version of
 // `mill.scalalib.JavaModule` from first principles.
 package build
-import mill._
+import mill.*
 
 trait DiyJavaModule extends Module {
   def moduleDeps: Seq[DiyJavaModule] = Nil

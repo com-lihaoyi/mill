@@ -14,7 +14,7 @@
 // idiosyncracies (e.g. classpaths) that Mill provides helper methods specifically for them.
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 import mill.util.Jvm
 
 object foo extends JavaModule {

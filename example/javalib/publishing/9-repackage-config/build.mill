@@ -4,7 +4,7 @@
 
 package build
 
-import mill._, javalib._, publish._
+import mill.*, javalib.*, publish.*
 import mill.javalib.repackage.RepackageModule
 
 trait MyModule extends JavaModule with PublishModule {

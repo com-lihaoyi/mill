@@ -3,8 +3,8 @@ package myplugin
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.api.Discover
 import mill.PathRef
-import mill.util.TokenReaders._
-import utest._
+import mill.util.TokenReaders.*
+import utest.*
 
 object UnitTests extends TestSuite {
   def tests: Tests = Tests {

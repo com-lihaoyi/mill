@@ -1,5 +1,5 @@
 package build
-import mill._, kotlinlib._, util.Jvm
+import mill.*, kotlinlib.*, util.Jvm
 
 object `package` extends KotlinModule {
 

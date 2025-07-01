@@ -1,6 +1,6 @@
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object bar extends TypeScriptModule {
   def npmDeps = Seq("immutable@4.3.7")

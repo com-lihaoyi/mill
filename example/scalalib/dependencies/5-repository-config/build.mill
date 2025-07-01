@@ -4,7 +4,7 @@
 
 //// SNIPPET:BUILD1
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 import mill.api.ModuleRef
 
 object foo extends ScalaModule {

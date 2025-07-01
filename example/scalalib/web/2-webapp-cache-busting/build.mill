@@ -1,5 +1,5 @@
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 import java.util.Arrays
 
 object `package` extends ScalaModule {
@@ -27,7 +27,7 @@ object `package` extends ScalaModule {
 
   object test extends ScalaTests with TestModule.Utest {
     def mvnDeps = Seq(
-      mvn"com.lihaoyi::utest::0.8.7",
+      mvn"com.lihaoyi::utest::0.8.8",
       mvn"com.lihaoyi::requests::0.6.9"
     )
   }

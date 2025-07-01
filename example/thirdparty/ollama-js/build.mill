@@ -22,9 +22,9 @@
 
 package build
 
-import mill._, javascriptlib._
-import os._
-import ujson._
+import mill.*, javascriptlib.*
+import os.*
+import ujson.*
 
 trait OllamaModule extends TypeScriptModule {
   def moduleName = "ollama"

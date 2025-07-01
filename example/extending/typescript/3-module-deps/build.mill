@@ -12,7 +12,7 @@
 //    use in `compile`, and `compiledJavascript` for use in `run`
 
 package build
-import mill._
+import mill.*
 
 trait TypeScriptModule extends Module {
   def moduleDeps: Seq[TypeScriptModule] = Nil

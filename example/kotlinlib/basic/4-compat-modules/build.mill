@@ -6,7 +6,7 @@
 // Maven or Gradle build:
 
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 
 object foo extends KotlinModule with KotlinMavenModule {
 

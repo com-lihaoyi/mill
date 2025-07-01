@@ -4,7 +4,7 @@
 
 // == Project Configuration
 package build
-import mill._, scalalib._, publish._
+import mill.*, scalalib.*, publish.*
 import mill.util.BuildInfo.{millVersion, millBinPlatform}
 
 object myplugin extends ScalaModule with PublishModule {

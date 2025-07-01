@@ -4,7 +4,7 @@
 // the module:
 
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 

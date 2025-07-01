@@ -6,7 +6,7 @@
 //   making deployment easier.
 
 package build
-import mill._
+import mill.*
 import mill.api.BuildCtx
 
 trait PythonModule extends Module {

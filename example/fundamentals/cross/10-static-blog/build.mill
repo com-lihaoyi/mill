@@ -8,7 +8,7 @@
 // HTML generation respectively:
 package build
 
-import scalatags.Text.all._
+import scalatags.Text.all.*
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
 import mill.api.BuildCtx
@@ -19,7 +19,7 @@ import mill.api.BuildCtx
 // and a `render` task that parses the file's markdown and generates a HTML
 // output file
 
-import mill._
+import mill.*
 
 def mdNameToHtml(s: String) = s.toLowerCase.replace(".md", ".html")
 def mdNameToTitle(s: String) =

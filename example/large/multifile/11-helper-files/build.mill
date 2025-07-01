@@ -3,7 +3,7 @@
 // as your `build.mill` or a `package.mill`.
 
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object `package` extends MyModule {
   def forkEnv = Map(

@@ -40,7 +40,7 @@ shared between all builds which use that library:
 [source,scala]
 ----
 package foo
-import mill._
+import mill.*
 
 object Bar extends mill.api.ExternalModule {
   def baz = Task { 1 }

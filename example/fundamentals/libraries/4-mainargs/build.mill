@@ -1,6 +1,6 @@
 // Mill uses MainArgs to handle argument parsing for ``Task.Command``s that
 // are run from the command line.
-import mill._
+import mill.*
 
 def commandSimple(str: String, i: Int, bool: Boolean = true) = Task.Command {
   println(s"$str $i $bool")

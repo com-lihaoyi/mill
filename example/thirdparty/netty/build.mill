@@ -4,7 +4,7 @@
 //| - ant:ant-optional:1.5.3-1
 package build
 
-import mill._, javalib._
+import mill.*, javalib.*
 import mill.api.BuildCtx
 
 // TODO:

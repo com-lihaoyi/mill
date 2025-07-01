@@ -1,6 +1,6 @@
 //// SNIPPET:BUILD3
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 object qux extends KotlinModule {
 
   def kotlinVersion = "1.9.24"

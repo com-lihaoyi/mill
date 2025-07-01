@@ -1,5 +1,5 @@
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 trait MyModule extends PythonModule {
   def resources = super.resources() ++ Seq(PathRef(moduleDir / "res"))
