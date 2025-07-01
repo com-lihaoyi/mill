@@ -8,14 +8,16 @@ import mill.scalalib.{JavaHomeModule, OfflineSupportModule}
 import mill.util.Jvm
 
 /**
- * Adds support for analyzing sources with [[https://docs.pmd-code.org/latest/index.html PMD]].
+ * Adds support for analyzing sources with the [[pmd]] command.
+ * @see [[https://docs.pmd-code.org/latest/index.html PMD]]
  */
 @mill.api.experimental
 trait PmdModule extends CoursierModule, OfflineSupportModule {
 
   /**
-   * [[https://docs.pmd-code.org/latest/pmd_userdocs_making_rulesets.html Rulesets]] for analysis.
-   * Defaults to XML files with name prefix ''ruleset'' in one of [[moduleDir]] or ''workspace''.
+   * Configuration files containing rules for analysis. Defaults to XML files in [[moduleDir]]
+   * (or ''workspace'') with name starting with ''ruleset''.
+   * @see [[https://docs.pmd-code.org/latest/pmd_userdocs_making_rulesets.html Rulesets]]
    */
   def pmdRulesets: Task[Seq[PathRef]] = {
     def rulesetsIn(root: os.Path) = {
@@ -35,9 +37,9 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
 
   /**
    * Files (or folders containing the files) to analyze. Defaults to
-   *  - (non-hidden) folders in workspace, for a [[BaseModule]]
+   *  - (non-hidden) folders in workspace, for a [[BaseModule root module]]
    *  - `sources`, for a [[JavaModule]]
-   *  - folders under [[moduleDir]] with name prefix ''src'', otherwise
+   *  - folders under [[moduleDir]] with name starting with ''src'', otherwise
    * @note Values in [[pmdExcludes]] supersede values in this list.
    */
   def pmdIncludes: Task[Seq[PathRef]] = this match
@@ -56,14 +58,14 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
 
   /**
    * Files or folders to exclude from analysis.
-   * @note This is intended to be used in conjunction with [[pmdIncludes]].
+   * @note This is intended for use in conjunction with [[pmdIncludes]].
    */
   def pmdExcludes: Task[Seq[PathRef]] = Task(Seq.empty[PathRef])
 
   /**
-   * The specific [[https://docs.pmd-code.org/latest/pmd_userdocs_cli_reference.html#supported-languages language]]
-   * and version to use when parsing source code for a given language. Defaults to line delimited
+   * The specific language and version to use when parsing source code. Defaults to line delimited
    * values in ''.pmd-use-version''.
+   * @see `--use-version` in [[https://docs.pmd-code.org/latest/pmd_userdocs_cli_reference.html#options options]]
    */
   def pmdUseVersion: Task[Map[String, String]] = Task.Input(BuildCtx.withFilesystemCheckerDisabled:
     val file = moduleDir / ".pmd-use-version"
@@ -82,18 +84,14 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
    * `transitiveCompileClasspath`/dependency to this classpath.
    */
   def pmdClasspath: Task[Seq[PathRef]] = Task {
-    /*
-      This classpath cannot be cached in a task worker.
-      - The CLI main class calls System.exit.
-      - We need the ability to pass Java runtime options like --enable-preview.
-     */
     defaultResolver().classpath(Seq(mvn"${mill.scalalib.api.Versions.pmdDist}"))
   }
 
   /**
-   * Java runtime options, like `--enable-preview`, for running the analyzer. Defaults to
+   * Java runtime options for running the analyzer. Defaults to
    *  - `forkArgs`, for a [[RunModule]]
-   *  - line delimited values in ''.pmd_java_opts'', if the file exists
+   *  - line delimited values in ''.pmd_java_optswith'', if the file exists
+   * @see [[https://docs.pmd-code.org/latest/pmd_languages_java.html#using-java-preview-features Using java preview features]]
    */
   def pmdJavaOptions: Task[Seq[String]] = this match
     case self: RunModule => Task(self.forkArgs())
@@ -102,16 +100,14 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
         if os.exists(file) then os.read.lines(file) else Seq())
 
   /**
-   * Analyzes [[pmdIncludes files]] and fails on [[pmdRulesets ruleset]] violations. Extra
-   * [[https://docs.pmd-code.org/latest/pmd_userdocs_cli_reference.html#options options]],
-   * such as `-f textcolor`, can be passed as arguments.
+   * Analyzes [[pmdIncludes files]] with [[pmdRulesets rulesets]] and fails on violations.
+   * @param options Additional PMD CLI options.
    * @note The `--cache` option is reserved for internal use.
+   * @see [[https://docs.pmd-code.org/latest/pmd_userdocs_cli_reference.html#options PMD CLI options]]
    */
   def pmd(options: String*): Task.Command[Unit] = {
-    /*
-    Running with the module's Java home should obviate the need for the --aux-classpath option.
-    See https://docs.pmd-code.org/latest/pmd_languages_java.html#providing-the-auxiliary-classpath.
-     */
+    // running PMD with the module's Java home should obviate the need for
+    // https://docs.pmd-code.org/latest/pmd_languages_java.html#providing-the-auxiliary-classpath
     val javaHomeTask = this match
       case self: JavaHomeModule => Task.Anon(self.javaHome().map(_.path))
       case _ => Task.Anon(Option.empty[os.Path])
@@ -134,7 +130,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
         stdout = os.Inherit // log violations
       ).exitCode
       exitCode match
-        case 0 => Task.log.info("no violations found")
+        case 0 => Task.log.info("no violation found")
         case 2 => Task.fail("invalid/missing options")
         case 4 => Task.fail("violation(s) found")
         case 5 => Task.fail("recoverable error(s) occurred")

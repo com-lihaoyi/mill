@@ -1,7 +1,8 @@
-// :api-pmd: {site-url}/api/latest/mill/javalib/pmd
-
-// The `PmdModule` enables support for analyzing sources with
+// The `PmdModule` trait enables support for analyzing sources with
 // https://docs.pmd-code.org/latest/index.html[PMD].
+
+// We define a Java project that extends the `PmdModule` trait and provide a
+// https://docs.pmd-code.org/latest/pmd_rules_java.html[ruleset] in an XML file.
 
 package build
 
@@ -10,19 +11,17 @@ import mill.javalib.pmd.PmdModule
 
 object `package` extends JavaModule with PmdModule
 
-/** See Also: src/Foo.java */
 /** See Also: ruleset.xml */
+/** See Also: src/Foo.java */
 
-// NOTE: Mill auto-selects XML ruleset files, with name prefix "ruleset", in the module folder.
-// If the search returns empty, it is repeated in the workspace folder.
+// NOTE: Mill auto-detects rulesets by searching the module (or workspace) folder for XML files with
+// name starting with "ruleset".
 
-// Here, we specify the
-// https://docs.pmd-code.org/latest/pmd_rules_java_bestpractices.html#systemprintln[SystemPrintln]
-// rule to be checked. The `pmd` command applies the rule on all sources and reports violations in
-// one of the available https://docs.pmd-code.org/latest/pmd_userdocs_report_formats.html[formats].
+// Running the `pmd` command applies the rule on all sources and reports violations in one of the
+// available https://docs.pmd-code.org/latest/pmd_userdocs_report_formats.html[formats].
 
 /** Usage
-> ./mill pmd                # task fails on violation
+> ./mill pmd                # violations are reported and task fails
 ...Foo.java:4:	SystemPrintln:	Usage of System.out/err
 error: ...violation(s) found
 
@@ -35,16 +34,13 @@ error: ...violation(s) found
 Summary:
 * warnings: 1
 error: ...violation(s) found
-
-> ./mill pmd --minimum-priority High  # violation is suppressed when run with higher threshold
-no violations found
 */
 
-// TIP: For multi-module projects, it is sufficient to extend the `PmdModule` in the root module if
-// the same rulesets are to be applied in all modules.
+// TIP: For multi-module projects that share rulesets across all modules, it is sufficient to extend
+// the `PmdModule` trait in the root module only.
 
-// You can also run the companion `PmdModule` xref:fundamentals/modules.adoc#_external_modules[globally]
-// if you prefer not to have to extend the trait in your build.
+// The same result can be achieved by running the companion
+// xref:fundamentals/modules.adoc#_external_modules[external module].
 
 /** Usage
 > ./mill mill.javalib.pmd.PmdModule/
@@ -53,4 +49,4 @@ error: ...violation(s) found
 */
 
 // For the full list of configuration options, please refer to the
-// link:{api-pmd}/PmdModule.html[API documentation].
+// link:{site-url}/api/latest/mill/javalib/pmd/PmdModule.html[API documentation].
