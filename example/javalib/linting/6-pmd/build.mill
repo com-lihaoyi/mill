@@ -1,8 +1,8 @@
 // `PmdModule` Performs checks on Java source files using https://pmd.github.io/[PMD] and generates reports from these checks.
-
+//
 // PMD is a source code analyzer for Java that finds common programming flaws like unused variables,
 // empty catch blocks, unnecessary object creation, and more.
-
+//
 // To use this plugin in a Java module:
 //
 // 1. Extend JavaModule with PmdModule.
@@ -18,7 +18,7 @@ object `package` extends JavaModule with PmdModule {
 }
 
 // Here's an example of simple PMD ruleset file, which is used to setup analysis rules.
-
+//
 // Be careful, rule formats can differ for different PMD versions.
 /** See Also: pmd-ruleset.xml */
 
@@ -29,16 +29,16 @@ PMD found 1 violation(s)
 */
 
 // The `pmd` command accepts several options to customize its behavior. Mill supports:
-
+//
 // * --stdout / -s : Enables output to stdout
-
+//
 // * --format / -f : Output format of the report (`text`, `xml`, `html`). Defaults to `text`.
-
+//
 // * --check / -c : Fail if violations are found
-
+//
 // For a full list of PMD options, see the PMD documentation:
 // https://pmd.github.io/pmd/pmd_userdocs_cli_reference.html.
-
+//
 // Here's an example of producing HTML report:
 /** Usage
  > ./mill pmd -f "html"

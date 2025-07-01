@@ -153,7 +153,6 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
  * Allows usage via `import mill.javalib.pmd.PmdModule` in build.sc.
  */
 object PmdModule extends ExternalModule, PmdModule {
-  lazy val millDiscover = Discover[this.type]
-
+  lazy val millDiscover: Discover = Discover[this.type]
   def defaultCommandName() = "pmd"
 }
