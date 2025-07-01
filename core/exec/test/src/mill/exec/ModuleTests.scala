@@ -11,7 +11,7 @@ import utest._
 
 object `package` extends ExternalModule.Alias(TestExternalModule)
 object TestExternalModule extends mill.define.ExternalModule with mill.define.TaskModule {
-  def defaultCommandName() = "x"
+  def defaultTask() = "x"
   def x = Task { 13 }
   trait Trait extends mill.Module {
     def overridden = Task { 19 }
