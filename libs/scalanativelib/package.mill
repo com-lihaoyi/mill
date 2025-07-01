@@ -10,7 +10,7 @@ object `package` extends MillStableScalaModule {
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(worker("0.5").localTestOverride())
 
-  object api extends MillPublishScalaModule {
+  object api extends MillStableScalaModule {
     def mvnDeps = Seq(Deps.sbtTestInterface)
   }
 
