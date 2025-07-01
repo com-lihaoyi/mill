@@ -1,4 +1,4 @@
-package mill.scalalib
+package mill.javalib
 
 import mill.api.{TaskCtx, PathRef}
 import mill.api.{Result}
@@ -451,7 +451,7 @@ private final class TestModuleUtil(
 
 }
 
-private[scalalib] object TestModuleUtil {
+private[mill] object TestModuleUtil {
 
   private def withTestProgressTickerThread[T](totalClassCount: Long)(
       body: (
@@ -516,7 +516,7 @@ private[scalalib] object TestModuleUtil {
     }
   }
 
-  private[scalalib] def handleResults(
+  private[mill] def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
       ctx: Option[TaskCtx.Env]
@@ -543,7 +543,7 @@ private[scalalib] object TestModuleUtil {
     }
   }
 
-  private[scalalib] def handleResults(
+  private[mill] def handleResults(
       doneMsg: String,
       results: Seq[TestResult],
       ctx: TaskCtx.Env & TaskCtx.Dest,
@@ -565,7 +565,7 @@ private[scalalib] object TestModuleUtil {
   private val SkippedStates =
     Set(Status.Ignored.name(), Status.Skipped.name(), Status.Pending.name())
 
-  private[scalalib] def genTestXmlReport(
+  private[mill] def genTestXmlReport(
       results0: Seq[TestResult],
       timestamp: Instant,
       props: Map[String, String]

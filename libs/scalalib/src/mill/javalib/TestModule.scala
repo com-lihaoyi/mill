@@ -1,4 +1,4 @@
-package mill.scalalib
+package mill.javalib
 
 import mill.T
 import mill.api.Result

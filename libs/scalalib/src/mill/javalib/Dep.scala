@@ -1,4 +1,4 @@
-package mill.scalalib
+package mill.javalib
 
 import upickle.default.{macroRW, ReadWriter as RW}
 import mill.api.CrossVersion.*

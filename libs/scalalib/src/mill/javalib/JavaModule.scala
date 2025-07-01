@@ -1,5 +1,5 @@
 package mill
-package scalalib
+package javalib
 
 import coursier.{Repository, Type, core as cs}
 import coursier.core.{BomDependency, Configuration, DependencyManagement, Resolution}

@@ -1,5 +1,5 @@
 package mill
-package scalalib
+package javalib
 
 import coursier.core.{Configuration, DependencyManagement}
 import mill.api.{ExternalModule, Task, TaskModule}
@@ -660,7 +660,7 @@ object PublishModule extends ExternalModule with TaskModule {
     )
   }
 
-  private[scalalib] def checkSonatypeCreds(sonatypeCreds: String): Task[String] =
+  private[mill] def checkSonatypeCreds(sonatypeCreds: String): Task[String] =
     if (sonatypeCreds.isEmpty) {
       for {
         (username, password) <- getSonatypeCredsFromEnv

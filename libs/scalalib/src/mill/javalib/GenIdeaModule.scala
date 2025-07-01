@@ -1,4 +1,4 @@
-package mill.scalalib
+package mill.javalib
 
 import mill.api.{ModuleRef, Task}
 import mill.{Module, PathRef, T}

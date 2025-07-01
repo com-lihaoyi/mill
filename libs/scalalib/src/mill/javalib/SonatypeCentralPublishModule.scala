@@ -1,4 +1,4 @@
-package mill.scalalib
+package mill.javalib
 
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import mill._

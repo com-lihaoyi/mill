@@ -1,4 +1,4 @@
-package mill.scalalib
+package mill.javalib
 
 import mill.{Task, given}
 import mill.api.{Discover, Evaluator, ExternalModule}

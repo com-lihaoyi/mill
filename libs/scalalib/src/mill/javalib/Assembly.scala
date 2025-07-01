@@ -1,4 +1,4 @@
-package mill.scalalib
+package mill.javalib
 
 import mill.api.PathRef
 import mill.util.JarManifest
@@ -137,20 +137,20 @@ object Assembly {
 
   type UnopenedInputStream = () => InputStream
 
-  private[scalalib] sealed trait GroupedEntry {
+  private[mill] sealed trait GroupedEntry {
     def append(entry: UnopenedInputStream): GroupedEntry
   }
-  private[scalalib] object AppendEntry {
+  private[mill] object AppendEntry {
     val empty: AppendEntry = AppendEntry(Nil, defaultSeparator)
   }
-  private[scalalib] case class AppendEntry(
+  private[mill] case class AppendEntry(
       inputStreams: Seq[UnopenedInputStream],
       separator: String
   ) extends GroupedEntry {
     def append(inputStream: UnopenedInputStream): GroupedEntry =
       copy(inputStreams = inputStreams :+ inputStream)
   }
-  private[scalalib] case class WriteOnceEntry(inputStream: UnopenedInputStream)
+  private[mill] case class WriteOnceEntry(inputStream: UnopenedInputStream)
       extends GroupedEntry {
     def append(entry: UnopenedInputStream): GroupedEntry = this
   }

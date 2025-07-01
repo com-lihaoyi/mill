@@ -1,5 +1,5 @@
 package mill
-package scalalib
+package javalib
 
 import mill._
 import mill.util.Jvm

@@ -1,4 +1,4 @@
-package mill.scalalib
+package mill.javalib
 
 import mainargs.Flag
 import mill.api.{PathRef, Task}

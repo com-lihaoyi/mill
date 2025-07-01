@@ -1,4 +1,4 @@
-package mill.scalalib
+package mill.javalib
 
 import coursier.cache.FileCache
 import coursier.core.Resolution

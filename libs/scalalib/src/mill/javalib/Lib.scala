@@ -1,5 +1,5 @@
 package mill
-package scalalib
+package javalib
 
 import coursier.core.BomDependency
 import coursier.params.ResolutionParams
