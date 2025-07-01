@@ -22,6 +22,7 @@ import mill.T
 import mill.define.Cross
 import scala.util.Properties
 import mill.define.BuildCtx
+import mill.androidlib.AndroidSdkModule
 
 def millVersionIsStable: T[Boolean] = Task.Input {
   Task.env.contains("MILL_STABLE_VERSION")
@@ -225,6 +226,6 @@ val androidDummyDeps: Seq[Dep] = Deps.AndroidDeps.updateable
 object dummyAndroid extends Cross[AndroidDependencyFetchDummy](androidDummyDeps)
 trait AndroidDependencyFetchDummy extends DependencyFetchDummy {
   override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
-    super.repositoriesTask() :+ MavenRepository("https://maven.google.com/")
+    super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
   }
 }
