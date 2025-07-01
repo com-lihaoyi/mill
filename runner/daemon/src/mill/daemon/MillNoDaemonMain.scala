@@ -9,7 +9,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.Properties
 
 object MillNoDaemonMain {
-  def main(args: Array[String]): Unit = mill.api.SystemStreams.withTopLevelSystemStreamProxy {
+  def main(args: Array[String]): Unit = mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
     val initialSystemStreams = mill.api.SystemStreams.original
 
     if (Properties.isWin && Util.hasConsole())

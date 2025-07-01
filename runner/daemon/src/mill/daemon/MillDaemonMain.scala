@@ -14,7 +14,7 @@ object MillDaemonMain {
     if (System.getenv("MILL_DAEMON_CRASH") == "true")
       sys.error("Mill daemon early crash requested")
 
-    mill.api.SystemStreams.withTopLevelSystemStreamProxy {
+    mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
       // Disable SIGINT interrupt signal in the Mill server.
       //
       // This gets passed through from the client to server whenever the user

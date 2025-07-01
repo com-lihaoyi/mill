@@ -12,7 +12,8 @@ import upickle.default.*
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
 
-import mill.api.internal.bsp.BspBuildTarget
+import mill.api.shared.internal.bsp.BspBuildTarget
+import mill.api.shared.internal.EvaluatorApi
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats

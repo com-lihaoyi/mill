@@ -1,6 +1,6 @@
 package mill.daemon
 
-import mill.api.internal.{
+import mill.api.shared.internal.{
   BuildFileApi,
   CompileProblemReporter,
   EvaluatorApi,

@@ -5,13 +5,7 @@ import mill.{Cross, Task}
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.testkit.UnitTester.Result
 import mill.api.TestGraphs
-import mill.api.TestGraphs.{
-  crossResolved,
-  doubleCross,
-  nestedCrosses,
-  nonStringCross,
-  singleCross
-}
+import mill.api.TestGraphs.{crossResolved, doubleCross, nestedCrosses, nonStringCross, singleCross}
 import utest.*
 
 object CrossTests extends TestSuite {

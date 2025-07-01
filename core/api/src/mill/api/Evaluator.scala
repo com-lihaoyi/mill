@@ -1,10 +1,10 @@
 package mill.api
 
-import mill.api.internal.{CompileProblemReporter, TestReporter}
+import mill.api.shared.internal.{CompileProblemReporter, TestReporter}
 import mill.api.*
 import mill.api.internal.Watchable
 import mill.api.BuildCtx
-import mill.api.internal.{EvaluatorApi, TaskApi}
+import mill.api.shared.internal.{EvaluatorApi, TaskApi}
 import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*

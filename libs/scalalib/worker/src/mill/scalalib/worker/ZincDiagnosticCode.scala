@@ -1,6 +1,6 @@
 package mill.scalalib.worker
 
-import mill.api.internal.{DiagnosticCode, internal}
+import mill.api.shared.internal.{DiagnosticCode, internal}
 
 import scala.jdk.OptionConverters._
 

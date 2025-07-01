@@ -12,8 +12,6 @@ import java.io.{InputStream, OutputStream, PrintStream}
 object SystemStreamsUtils {
   import SystemStreams.*
 
-
-
   private class PumpedProcessOutput(dest: OutputStream) extends os.ProcessOutput {
     def redirectTo = ProcessBuilder.Redirect.PIPE
     def processOutput(processOut: => os.SubProcess.OutputStream): Some[InputPumper] =

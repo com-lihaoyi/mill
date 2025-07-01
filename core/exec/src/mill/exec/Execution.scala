@@ -2,6 +2,7 @@ package mill.exec
 
 import mill.api.*
 import mill.api.internal.*
+import mill.api.shared.internal.*
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
 import mill.api.*
 import mill.internal.PrefixLogger

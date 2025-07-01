@@ -1,7 +1,7 @@
 package mill.api
 
 import mill.api.*
-import mill.api.internal.{TaskApi, ExecutionResultsApi}
+import mill.api.shared.internal.{TaskApi, ExecutionResultsApi}
 
 trait ExecutionResults extends ExecutionResultsApi {
 

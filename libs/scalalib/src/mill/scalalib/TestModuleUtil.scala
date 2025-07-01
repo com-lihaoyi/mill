@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.api.{TaskCtx, PathRef}
 import mill.api.{Result}
 import mill.constants.EnvVars
-import mill.api.internal.TestReporter
+import mill.api.shared.internal.TestReporter
 import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import mill.util.{Jvm, Util}
 import mill.Task

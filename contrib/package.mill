@@ -134,7 +134,7 @@ object `package` extends mill.Module {
     object worker2 extends MillPublishScalaModule {
       def localTestOverridePaths = Task { Seq(compile().classes) }
       def compileModuleDeps = Seq(
-        build.core.`api-shared`,
+        build.core.api.shared,
         scoverage.api
       )
       def compileMvnDeps = Task {

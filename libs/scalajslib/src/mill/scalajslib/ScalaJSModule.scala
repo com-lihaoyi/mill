@@ -2,8 +2,8 @@ package mill
 package scalajslib
 
 import mainargs.{Flag, arg}
-import mill.api.internal.{ScalaJSModuleApi, ScalaPlatform, internal}
-import mill.api.internal.bsp.ScalaBuildTarget
+import mill.api.shared.internal.{ScalaJSModuleApi, ScalaPlatform, internal}
+import mill.api.shared.internal.bsp.ScalaBuildTarget
 import mill.api.Result
 import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
 import mill.scalalib.api.JvmWorkerUtil
