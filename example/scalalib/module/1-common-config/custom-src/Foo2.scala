@@ -1,5 +1,5 @@
 package foo
-import scalatags.Text.all.*
+import scalatags.Text.all._
 object Foo2 {
   val value = h1("hello2")
   def main(args: Array[String]): Unit = {
