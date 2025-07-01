@@ -15,13 +15,13 @@ import mill.vcs.VcsVersion
 import mill._
 import mill.util.Tasks
 import mill.scalalib._
-import mill.scalalib.api.JvmWorkerUtil
+import mill.jvmlib.api.JvmWorkerUtil
 import mill.scalalib.publish._
-import mill.define.SelectMode
+import mill.api.SelectMode
 import mill.T
-import mill.define.Cross
+import mill.api.Cross
 import scala.util.Properties
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 import mill.androidlib.AndroidSdkModule
 
 def millVersionIsStable: T[Boolean] = Task.Input {

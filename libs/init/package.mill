@@ -6,7 +6,7 @@ import mill.scalalib.Assembly.Rule
 import mill.scalalib.ScalaModule
 import mill.util.Jvm
 import millbuild.*
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 object `package` extends MillPublishScalaModule {
 

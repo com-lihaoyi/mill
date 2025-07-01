@@ -5,7 +5,7 @@ import mill._
 import mill.scalalib._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
-import mill.define.Cross
+import mill.api.Cross
 import millbuild.*
 
 object `package` extends MillStableScalaModule with BuildInfo {
