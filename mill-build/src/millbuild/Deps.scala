@@ -236,7 +236,7 @@ object Deps {
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
     val pmdDist = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
 
-    def all = Seq(
+    def updateable = Seq(
       detektCli,
       dokkaAnalysisDescriptors,
       dokkaBase,
@@ -274,7 +274,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
-    val utest = mvn"com.lihaoyi::utest:0.8.5"
+    val utest = mvn"com.lihaoyi::utest:0.8.7"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
 
@@ -284,13 +284,26 @@ object Deps {
   }
 
   object AndroidDeps {
-    val manifestMergerVersion = "31.10.0"
-    val bundleToolVersion = "1.17.2"
+    val manifestMerger = mvn"com.android.tools.build:manifest-merger:31.10.0"
+    val bundleTool = mvn"com.android.tools.build:bundletool:1.17.2"
     val ndkVersion = "27.0.12077973"
     val cmakeVersion = "3.22.1"
     val layoutLibVersion = "15.1.2"
-    val composePreviewRendererVersion = "0.0.1-alpha09"
-    val uiToolingVersion = "1.7.6"
+    val layoutLibRenderer = mvn"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
+    val layoutLibRuntime = mvn"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
+    val composePreviewRenderer =
+      mvn"com.android.tools.compose:compose-preview-renderer-model:0.0.1-alpha09"
+    val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
+
+    def updateable = Seq(
+      manifestMerger,
+      bundleTool,
+      layoutLibRenderer,
+      layoutLibRuntime,
+      composePreviewRenderer,
+      uiTooling
+    )
+
   }
 
 }

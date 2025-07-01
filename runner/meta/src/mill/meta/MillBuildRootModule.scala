@@ -11,7 +11,7 @@ import mill.constants.OutFiles.*
 import mill.api.{Discover, PathRef, Task}
 import mill.api.internal.RootModule0
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
-import mill.scalalib.api.{CompilationResult, Versions}
+import mill.jvmlib.api.{CompilationResult, Versions}
 import mill.util.BuildInfo
 import mill.api.shared.internal.MillScalaParser
 import mill.api.JsonFormatters.given
