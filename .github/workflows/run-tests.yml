@@ -139,7 +139,7 @@ jobs:
             install-sbt: true
 
           - java-version: 17
-            millargs: "'libs.{main,scalalib,testrunner,vcs,androidlib,graphviz,init,tabcomplete}.__.test'"
+            millargs: "'libs.{main,jvmlib,testrunner,vcs,androidlib,graphviz,init,tabcomplete}.__.test'"
             install-android-sdk: false
             install-sbt: true
 
