@@ -11,7 +11,9 @@
 // 3. Run the `pmd` command.
 
 package build
+
 import mill._, javalib._
+import mill.javalib.pmd.PmdModule
 
 object `package` extends JavaModule with PmdModule {
   def pmdVersion = "7.15.0"
