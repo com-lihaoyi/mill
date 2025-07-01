@@ -22,7 +22,6 @@ object `package` extends JavaModule with PmdModule {
 // Be careful, rule formats can differ for different PMD versions.
 /** See Also: pmd-ruleset.xml */
 
-
 /** Usage
 > ./mill pmd # default format is text
 ...EmptyCatchBlock.java:7:     EmptyCatchBlock:        Avoid empty catch blocks
