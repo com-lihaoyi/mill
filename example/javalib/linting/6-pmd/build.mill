@@ -35,6 +35,8 @@ PMD found 1 violation(s)
 
 // * --format / -f : Output format of the report (`text`, `xml`, `html`). Defaults to `text`.
 
+// * --check / -c : Fail if violations are found
+
 // For a full list of PMD options, see the PMD documentation:
 // https://pmd.github.io/pmd/pmd_userdocs_cli_reference.html.
 
