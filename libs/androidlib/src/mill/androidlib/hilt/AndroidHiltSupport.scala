@@ -5,7 +5,7 @@ import mill.api.{ModuleRef, PathRef}
 import mill.kotlinlib.DepSyntax
 import mill.kotlinlib.ksp.KspModule
 import mill.scalalib.Dep
-import mill.scalalib.api.CompilationResult
+import mill.jvmlib.api.CompilationResult
 import mill.{T, Task}
 
 /**

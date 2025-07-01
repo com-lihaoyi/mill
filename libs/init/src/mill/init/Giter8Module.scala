@@ -3,7 +3,7 @@ package mill.init
 import mill.Task
 import mill.api.{Discover, ExternalModule}
 import mill.util.Jvm
-import mill.scalalib.api.JvmWorkerUtil
+import mill.jvmlib.api.JvmWorkerUtil
 import mill.scalalib._
 import mill.util.BuildInfo
 import mill.api.BuildCtx

@@ -6,7 +6,7 @@ import mill.{api => _, *}
 import mill.api.Result
 import mill.api.CrossVersion
 import mill.api.shared.internal.bsp.ScalaBuildTarget
-import mill.scalalib.api.JvmWorkerUtil
+import mill.jvmlib.api.JvmWorkerUtil
 import mill.api.shared.internal.{ScalaNativeModuleApi, ScalaPlatform, internal}
 import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
