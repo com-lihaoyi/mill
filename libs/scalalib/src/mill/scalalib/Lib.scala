@@ -1,17 +1,13 @@
 package mill
 package scalalib
 
-import coursier.cache.{CacheDefaults, CachePolicy}
 import coursier.core.BomDependency
-import coursier.credentials.Credentials
-import coursier.params.{Mirror, ResolutionParams}
+import coursier.params.ResolutionParams
 import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
 import mill.api.{TaskCtx, PathRef}
 import mill.api.Result
 import mill.scalalib.api.JvmWorkerUtil
-
-import scala.concurrent.duration.Duration
 
 object Lib {
   def depToDependencyJava(dep: Dep, platformSuffix: String = ""): Dependency = {
@@ -40,8 +36,7 @@ object Lib {
       ] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       boms: IterableOnce[BomDependency] = Nil,
-      checkGradleModules: Boolean = false,
-      config: mill.util.CoursierConfig
+      checkGradleModules: Boolean = false
   ): Result[Resolution] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependenciesMetadataSafe(
@@ -54,8 +49,7 @@ object Lib {
       coursierCacheCustomizer = coursierCacheCustomizer,
       resolutionParams = resolutionParams,
       boms = boms,
-      checkGradleModules = checkGradleModules,
-      config = config
+      checkGradleModules = checkGradleModules
     )
   }
 
@@ -78,8 +72,7 @@ object Lib {
       ] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      checkGradleModules: Boolean = false,
-      config: mill.util.CoursierConfig
+      checkGradleModules: Boolean = false
   ): Result[Seq[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     val res = mill.util.Jvm.resolveDependencies(
@@ -93,8 +86,7 @@ object Lib {
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
       resolutionParams = resolutionParams,
-      checkGradleModules = checkGradleModules,
-      config = config
+      checkGradleModules = checkGradleModules
     )
 
     res.map(_.map(_.withRevalidateOnce))

@@ -10,7 +10,6 @@ import mill.api.{Result}
 import mill.api.{Discover, Task}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
-import mill.util.CoursierConfig
 import mill.util.TokenReaders._
 object ResolveDepsTests extends TestSuite {
   val scala212Version = sys.props.getOrElse("TEST_SCALA_2_12_VERSION", ???)
@@ -19,8 +18,7 @@ object ResolveDepsTests extends TestSuite {
 
   def evalDeps(deps: Seq[Dep]): Result[Seq[PathRef]] = Lib.resolveDependencies(
     repos,
-    deps.map(Lib.depToBoundDep(_, scala212Version, "")),
-    config = CoursierConfig.default()
+    deps.map(Lib.depToBoundDep(_, scala212Version, ""))
   )
 
   def assertRoundTrip(deps: Seq[Dep], simplified: Boolean) = {
