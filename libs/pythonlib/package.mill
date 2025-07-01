@@ -8,10 +8,10 @@ import millbuild.*
 object `package` extends MillPublishScalaModule {
   // we depend on scalalib for re-using some common infrastructure (e.g. License
   // management of projects), NOT for reusing build logic
-  def moduleDeps = Seq(build.libs.scalalib)
+  def moduleDeps = Seq(build.libs.jvmlib)
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(
-      build.libs.scalalib.backgroundwrapper.localTestOverride()
+      build.libs.jvmlib.backgroundwrapper.localTestOverride()
     )
 
   def testModuleDeps = super.testModuleDeps ++ Seq(build.runner.client)

@@ -1,10 +1,12 @@
 diff --git a/build.mill b/build.mill
+
 index 7ab1e24f562..726ce732088 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -17,11 +17,11 @@ import mill.util.Tasks
  import mill.scalalib._
- import mill.scalalib.api.JvmWorkerUtil
+-import mill.scalalib.api.JvmWorkerUtil
++import mill.jvmlib.api.JvmWorkerUtil
  import mill.scalalib.publish._
 -import mill.define.SelectMode
 +import mill.api.SelectMode
@@ -18,11 +20,15 @@ index 7ab1e24f562..726ce732088 100644
  
  def millVersionIsStable: T[Boolean] = Task.Input {
 diff --git a/contrib/package.mill b/contrib/package.mill
-index 11897208900..3ddf80dd936 100644
+index 165c6a63a1d..fabe7cd94df 100644
 --- a/contrib/package.mill
 +++ b/contrib/package.mill
-@@ -8,10 +8,10 @@ import mill.scalalib._
- import mill.scalalib.api.JvmWorkerUtil
+@@ -5,13 +5,13 @@ import coursier.maven.MavenRepository
+ import mill._
+ import mill.util.Tasks
+ import mill.scalalib._
+-import mill.scalalib.api.JvmWorkerUtil
++import mill.jvmlib.api.JvmWorkerUtil
  import mill.scalalib.publish._
  import mill.util.Jvm
 -import mill.define.SelectMode
@@ -66,11 +72,15 @@ index ef100556258..a20fe070bc4 100644
  import mill.scalalib.*
  import mill.api.Result
 diff --git a/example/package.mill b/example/package.mill
-index 5462a2f419d..1d30c032b7d 100644
+index 5462a2f419d..d96dfe4f4b9 100644
 --- a/example/package.mill
 +++ b/example/package.mill
-@@ -8,11 +8,11 @@ import mill.scalalib._
- import mill.scalalib.api.JvmWorkerUtil
+@@ -5,14 +5,14 @@ import coursier.maven.MavenRepository
+ import mill._
+ import mill.util.Tasks
+ import mill.scalalib._
+-import mill.scalalib.api.JvmWorkerUtil
++import mill.jvmlib.api.JvmWorkerUtil
  import mill.scalalib.publish._
  import mill.util.Jvm
 -import mill.define.SelectMode
@@ -85,11 +95,15 @@ index 5462a2f419d..1d30c032b7d 100644
  object `package` extends Module {
    def exampleModules: Seq[ExampleCrossModule] = moduleInternal
 diff --git a/integration/package.mill b/integration/package.mill
-index 3bc20415933..759b6be0e06 100644
+index 3bc20415933..ad6bccb516e 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
-@@ -8,14 +8,14 @@ import mill.scalalib._
- import mill.scalalib.api.JvmWorkerUtil
+@@ -5,17 +5,17 @@ import coursier.maven.MavenRepository
+ import mill._
+ import mill.util.Tasks
+ import mill.scalalib._
+-import mill.scalalib.api.JvmWorkerUtil
++import mill.jvmlib.api.JvmWorkerUtil
  import mill.scalalib.publish._
  import mill.util.Jvm
 -import mill.define.SelectMode
@@ -107,7 +121,7 @@ index 3bc20415933..759b6be0e06 100644
  object `package` extends mill.Module {
    // We compile the test code once and then offer multiple modes to
 diff --git a/libs/init/package.mill b/libs/init/package.mill
-index 8059e547c9a..fbe4265795d 100644
+index f75201701fc..33cdac4fdda 100644
 --- a/libs/init/package.mill
 +++ b/libs/init/package.mill
 @@ -6,7 +6,7 @@ import mill.scalalib.Assembly.Rule
@@ -119,38 +133,16 @@ index 8059e547c9a..fbe4265795d 100644
  
  object `package` extends MillPublishScalaModule {
  
-diff --git a/libs/main/package.mill b/libs/main/package.mill
-index 48a1aa34a6d..184a1ecd3ac 100644
---- a/libs/main/package.mill
-+++ b/libs/main/package.mill
-@@ -5,7 +5,7 @@ import mill._
+diff --git a/libs/jvmlib/package.mill b/libs/jvmlib/package.mill
+index c248f68a760..b78fb58dad9 100644
+--- a/libs/jvmlib/package.mill
++++ b/libs/jvmlib/package.mill
+@@ -6,13 +6,13 @@ import coursier.maven.MavenRepository
+ import mill._
+ import mill.util.Tasks
  import mill.scalalib._
- import mill.contrib.buildinfo.BuildInfo
- import mill.T
--import mill.define.Cross
-+import mill.api.Cross
- import mill.scalalib.api.JvmWorkerUtil
- import millbuild.*
- 
-diff --git a/libs/scalajslib/package.mill b/libs/scalajslib/package.mill
-index 303e0d96ae6..1f43fb2feb7 100644
---- a/libs/scalajslib/package.mill
-+++ b/libs/scalajslib/package.mill
-@@ -5,7 +5,7 @@ import mill._
- import mill.scalalib._
- import mill.contrib.buildinfo.BuildInfo
- import mill.T
--import mill.define.Cross
-+import mill.api.Cross
- import millbuild.*
- 
- object `package` extends MillStableScalaModule with BuildInfo {
-diff --git a/libs/scalalib/package.mill b/libs/scalalib/package.mill
-index ec4ee56f211..2caa5b3b9ce 100644
---- a/libs/scalalib/package.mill
-+++ b/libs/scalalib/package.mill
-@@ -9,10 +9,10 @@ import mill.scalalib._
- import mill.scalalib.api.JvmWorkerUtil
+-import mill.scalalib.api.JvmWorkerUtil
++import mill.jvmlib.api.JvmWorkerUtil
  import mill.scalalib.publish._
  import mill.util.Jvm
 -import mill.define.SelectMode
@@ -162,8 +154,49 @@ index ec4ee56f211..2caa5b3b9ce 100644
  import millbuild.*
  
  object `package` extends MillStableScalaModule {
+diff --git a/libs/jvmlib/test/src/mill/scalalib/TestModuleUtilTests.scala b/libs/jvmlib/test/src/mill/scalalib/TestModuleUtilTests.scala
+index 7d2f7c21280..6b54392a351 100644
+--- a/libs/jvmlib/test/src/mill/scalalib/TestModuleUtilTests.scala
++++ b/libs/jvmlib/test/src/mill/scalalib/TestModuleUtilTests.scala
+@@ -334,7 +334,7 @@ object TestModuleUtilTests extends TestSuite {
+           "mill.scalalib.UtestTestRunnerTests",
+           "mill.scalalib.VersionContolTests",
+           "mill.scalalib.ZiotestTestRunnerTests",
+-          "mill.scalalib.api.JvmWorkerUtilTests",
++          "mill.jvmlib.api.JvmWorkerUtilTests",
+           "mill.scalalib.bsp.BspModuleTests",
+           "mill.scalalib.dependency.metadata.MetadataLoaderFactoryTests",
+           "mill.scalalib.dependency.updates.UpdatesFinderTests",
+diff --git a/libs/main/package.mill b/libs/main/package.mill
+index 48a1aa34a6d..42e62cbb9c1 100644
+--- a/libs/main/package.mill
++++ b/libs/main/package.mill
+@@ -5,8 +5,8 @@ import mill._
+ import mill.scalalib._
+ import mill.contrib.buildinfo.BuildInfo
+ import mill.T
+-import mill.define.Cross
+-import mill.scalalib.api.JvmWorkerUtil
++import mill.api.Cross
++import mill.jvmlib.api.JvmWorkerUtil
+ import millbuild.*
+ 
+ /**
+diff --git a/libs/scalajslib/package.mill b/libs/scalajslib/package.mill
+index 831229339aa..6c4deb2f37c 100644
+--- a/libs/scalajslib/package.mill
++++ b/libs/scalajslib/package.mill
+@@ -5,7 +5,7 @@ import mill._
+ import mill.scalalib._
+ import mill.contrib.buildinfo.BuildInfo
+ import mill.T
+-import mill.define.Cross
++import mill.api.Cross
+ import millbuild.*
+ 
+ object `package` extends MillStableScalaModule with BuildInfo {
 diff --git a/libs/scalanativelib/package.mill b/libs/scalanativelib/package.mill
-index 7641a935a36..687a8a456a9 100644
+index cced7af7af8..e1d1d25a61f 100644
 --- a/libs/scalanativelib/package.mill
 +++ b/libs/scalanativelib/package.mill
 @@ -2,7 +2,7 @@ package build.libs.scalanativelib
@@ -175,15 +208,30 @@ index 7641a935a36..687a8a456a9 100644
  import millbuild.*
  
  object `package` extends MillStableScalaModule {
+diff --git a/mill-build/src/millbuild/Deps.scala b/mill-build/src/millbuild/Deps.scala
+index eb8fa6871fc..41cff9499c0 100644
+--- a/mill-build/src/millbuild/Deps.scala
++++ b/mill-build/src/millbuild/Deps.scala
+@@ -1,7 +1,7 @@
+ package millbuild
+ 
+ import mill.scalalib.*
+-import mill.scalalib.api.*
++import mill.jvmlib.api.*
+ 
+ object Deps {
+ 
 diff --git a/mill-build/src/millbuild/MillScalaModule.scala b/mill-build/src/millbuild/MillScalaModule.scala
-index 1786e3df877..592218abaed 100644
+index 1786e3df877..e6ff5b9451f 100644
 --- a/mill-build/src/millbuild/MillScalaModule.scala
 +++ b/mill-build/src/millbuild/MillScalaModule.scala
-@@ -3,7 +3,7 @@ package millbuild
+@@ -2,8 +2,8 @@ package millbuild
+ 
  import mill.*
  import mill.scalalib.*
- import mill.scalalib.api.JvmWorkerUtil
+-import mill.scalalib.api.JvmWorkerUtil
 -import mill.define.BuildCtx
++import mill.jvmlib.api.JvmWorkerUtil
 +import mill.api.BuildCtx
  // import com.goyeau.mill.scalafix.ScalafixModule
  

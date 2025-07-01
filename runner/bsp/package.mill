@@ -6,7 +6,7 @@ import mill.T
 import millbuild.*
 
 object `package` extends MillPublishScalaModule with BuildInfo {
-  def compileModuleDeps = Seq(build.libs.scalalib)
+  def compileModuleDeps = Seq(build.libs.jvmlib)
   def testModuleDeps = super.testModuleDeps ++ compileModuleDeps
   def buildInfoPackageName = "mill.bsp"
 
@@ -40,8 +40,8 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       build.runner.client,
       build.core.api.shared,
       build.core.internal,
-      build.libs.scalalib
-    ) ++ build.libs.scalalib.compileModuleDeps
+      build.libs.jvmlib
+    ) ++ build.libs.jvmlib.compileModuleDeps
     def mvnDeps = Seq(
       Deps.bsp4j,
       // Pulled transitively by bsp4j, that only depends on an interval for it, [2.9.1,2.11)

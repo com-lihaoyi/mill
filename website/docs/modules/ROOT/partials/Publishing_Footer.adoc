@@ -57,11 +57,11 @@ export MILL_PGP_PASSPHRASE=...
 === Publishing
 
 You can publish all eligible modules in your Mill project using 
-`mill.scalalib.SonatypeCentralPublishModule/`:
+`mill.javalib.SonatypeCentralPublishModule/`:
 
 [source,console]
 ----
-> mill mill.scalalib.SonatypeCentralPublishModule/
+> mill mill.javalib.SonatypeCentralPublishModule/
 ----
 
 You can also specify individual modules you want to publish in two ways:
@@ -73,7 +73,7 @@ You can also specify individual modules you want to publish in two ways:
 
 [source.console]
 ----
-> mill mill.scalalib.SonatypeCentralPublishModule/ --publishArtifacts foo.publishArtifacts
+> mill mill.javalib.SonatypeCentralPublishModule/ --publishArtifacts foo.publishArtifacts
 ----
 
 === Publishing Using Github Actions
@@ -98,7 +98,7 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-      - run: ./mill mill.scalalib.SonatypeCentralPublishModule/
+      - run: ./mill mill.javalib.SonatypeCentralPublishModule/
         env:
           MILL_PGP_PASSPHRASE: ${{ secrets.MILL_PGP_PASSPHRASE }}
           MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
@@ -255,7 +255,7 @@ object mymodule extends SonatypeCentralPublishModule {
 The `publishAll` task can be called from the CLI. If a required value is not provided via the CLI option,
 it will fall back to an environment variable (if available) or raise an error if missing.
 
-The `./mill mill.scalalib.SonatypeCentralPublishModule/publishAll` takes the following options:
+The `./mill mill.javalib.SonatypeCentralPublishModule/publishAll` takes the following options:
 
 `username`: The username for calling the Sonatype Central publishing api. Defaults to the `SONATYPE_USERNAME` environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown. +
 
@@ -279,7 +279,7 @@ The `./mill mill.scalalib.SonatypeCentralPublishModule/publishAll` takes the fol
 
 ----
 $ mill -i \
-mill.scalalib.SonatypeCentralPublishModule/publishAll \
+mill.javalib.SonatypeCentralPublishModule/publishAll \
 --username myusername \
 --password mypassword \
 --gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \

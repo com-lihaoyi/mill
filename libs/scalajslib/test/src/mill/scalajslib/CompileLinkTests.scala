@@ -8,7 +8,7 @@ import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest._
 
-import mill.scalalib.api.JvmWorkerUtil
+import mill.jvmlib.api.JvmWorkerUtil
 
 object CompileLinkTests extends TestSuite {
   trait HelloJSWorldModule
