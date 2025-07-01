@@ -4,7 +4,7 @@
 // line count of all the source files in that module
 
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 

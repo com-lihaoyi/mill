@@ -1,5 +1,5 @@
 package build
-import mill._, scalalib._, scalajslib._, publish._
+import mill.*, scalalib.*, scalajslib.*, publish.*
 
 trait Shared extends CrossScalaModule with PlatformScalaModule with PublishModule {
   def publishVersion = "0.0.1"

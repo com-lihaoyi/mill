@@ -12,7 +12,7 @@
 // each task is lazily initialized when `Task.dest` is referenced and used:
 
 package build
-import mill._
+import mill.*
 import mill.api.BuildCtx
 
 object foo extends Module {

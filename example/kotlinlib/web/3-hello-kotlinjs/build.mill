@@ -8,7 +8,7 @@
 // * https://github.com/com-lihaoyi/mill/issues/3611
 
 package build
-import mill._, kotlinlib._, kotlinlib.js._
+import mill.*, kotlinlib.*, kotlinlib.js.*
 
 object `package` extends KotlinJsModule {
   override def kotlinJsModuleKind = ModuleKind.ESModule

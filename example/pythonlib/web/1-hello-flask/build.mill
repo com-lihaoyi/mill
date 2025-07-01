@@ -2,7 +2,7 @@
 // at the root URL (`/`), with Flask installed as a dependency
 // and tests enabled using `unittest`.
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 

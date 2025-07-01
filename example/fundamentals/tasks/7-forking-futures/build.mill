@@ -5,7 +5,7 @@
 
 package build
 
-import mill._
+import mill.*
 
 def taskSpawningFutures = Task {
   val f1 = Task.fork.async(dest = Task.dest / "future-1", key = "1", message = "First Future") {

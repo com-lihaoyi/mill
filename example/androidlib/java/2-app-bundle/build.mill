@@ -7,7 +7,7 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._, androidlib._
+import mill.*, androidlib.*
 
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"

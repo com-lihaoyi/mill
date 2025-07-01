@@ -9,7 +9,7 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._, androidlib._, kotlinlib._
+import mill.*, androidlib.*, kotlinlib.*
 
 import coursier.core.{MinimizedExclusions, ModuleName, Organization}
 import coursier.params.ResolutionParams

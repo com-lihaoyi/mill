@@ -1,5 +1,5 @@
 package webapp
-import scalatags.Text.all._
+import scalatags.Text.all.*
 import scalatags.Text.tags2
 import shared.{Shared, Todo}
 

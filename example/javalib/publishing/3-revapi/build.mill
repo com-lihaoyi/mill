@@ -1,6 +1,6 @@
 //// SNIPPET:BUILD
 package build
-import mill._, javalib._, publish._, revapi._
+import mill.*, javalib.*, publish.*, revapi.*
 
 object bar extends JavaModule with RevapiModule {
   def publishVersion = "0.0.1"

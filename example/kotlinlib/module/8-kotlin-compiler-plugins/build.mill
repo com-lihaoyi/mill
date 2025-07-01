@@ -4,7 +4,7 @@
 
 package build
 
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 import java.io.File
 
 object foo extends KotlinModule {

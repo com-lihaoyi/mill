@@ -1,6 +1,6 @@
 //// SNIPPET:BUILD
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 import mill.api.ModuleRef
 
 object foo extends KotlinModule with NativeImageModule {

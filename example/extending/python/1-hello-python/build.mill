@@ -4,7 +4,7 @@
 // type hints, helping to catch errors in development.
 
 package build
-import mill._
+import mill.*
 
 def pythonExe: T[PathRef] = Task {
 

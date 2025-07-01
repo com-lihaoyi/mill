@@ -4,7 +4,7 @@
 
 //// SNIPPET:BUILD3
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object qux extends ScalaModule {
   def scalaVersion = "3.7.1"

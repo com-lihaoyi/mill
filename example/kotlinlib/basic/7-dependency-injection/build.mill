@@ -1,7 +1,7 @@
 //// SNIPPET:BUILD
 
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 import kotlinlib.ksp.KspModule
 
 object dagger extends KspModule {

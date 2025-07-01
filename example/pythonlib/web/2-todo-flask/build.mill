@@ -3,7 +3,7 @@
 // Tasks can be filtered as `all`, `active`, or `completed` based on their state.
 // The application demonstrates dynamic rendering using Flask's routing and templating features.
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object todo extends PythonModule {
 

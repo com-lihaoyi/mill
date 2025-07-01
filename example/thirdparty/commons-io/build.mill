@@ -2,7 +2,7 @@
 //| - com.lihaoyi::mill-contrib-jmh:$MILL_VERSION
 package build
 
-import mill._, javalib._, publish._
+import mill.*, javalib.*, publish.*
 import mill.api.ModuleRef
 import contrib.jmh.JmhModule
 

@@ -1,7 +1,7 @@
 // All packaging and publishing functionality is defined in `PublishModule`.
 // Start by extending it.
 
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object `package` extends PythonModule with PublishModule {
 

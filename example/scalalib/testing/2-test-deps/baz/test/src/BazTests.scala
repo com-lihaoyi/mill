@@ -1,5 +1,5 @@
 package baz
-import utest._
+import utest.*
 object BazTests extends TestSuite {
   def tests = Tests {
     test("simple") {

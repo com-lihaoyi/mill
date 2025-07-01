@@ -1,5 +1,5 @@
 package build
-import mill._, scalalib._, scalajslib._, publish._
+import mill.*, scalalib.*, scalajslib.*, publish.*
 
 object foo extends Cross[FooModule]("2.13.14", "3.3.3")
 trait FooModule extends Cross.Module[String] {
