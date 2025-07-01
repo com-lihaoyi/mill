@@ -1,8 +1,8 @@
 package mill.kotlinlib.ktfmt
 
 import mill._
-import mill.define.{PathRef}
-import mill.define.{Discover, ExternalModule}
+import mill.api.{PathRef}
+import mill.api.{Discover, ExternalModule}
 import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.util.Tasks
 import mill.scalalib.JavaModule
@@ -100,7 +100,7 @@ object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
       sources: IterableOnce[PathRef],
       classPath: Seq[PathRef],
       options: Seq[String]
-  )(implicit ctx: mill.define.TaskCtx): Unit = {
+  )(implicit ctx: mill.api.TaskCtx): Unit = {
 
     ctx.log.info("running ktfmt ...")
 

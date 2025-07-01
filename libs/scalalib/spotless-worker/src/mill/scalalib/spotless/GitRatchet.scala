@@ -1,6 +1,6 @@
 package mill.scalalib.spotless
 
-import mill.define.{PathRef, TaskCtx}
+import mill.api.{PathRef, TaskCtx}
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.dircache.DirCacheIterator

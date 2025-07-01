@@ -1,8 +1,8 @@
 package mill.init
 
 import mainargs.{Flag, arg}
-import mill.define.{Discover, ExternalModule}
-import mill.define.BuildCtx
+import mill.api.{Discover, ExternalModule}
+import mill.api.BuildCtx
 import mill.{Command, Module, Task}
 
 import scala.util.{Failure, Success, Try, Using}

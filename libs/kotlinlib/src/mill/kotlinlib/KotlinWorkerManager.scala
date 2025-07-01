@@ -6,7 +6,7 @@
 package mill.kotlinlib
 
 import mill.*
-import mill.define.{Discover, ExternalModule, TaskCtx}
+import mill.api.{Discover, ExternalModule, TaskCtx}
 import mill.kotlinlib.worker.api.KotlinWorker
 import mill.util.ClassLoaderCachedFactory
 

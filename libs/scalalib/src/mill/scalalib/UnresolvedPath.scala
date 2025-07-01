@@ -1,7 +1,7 @@
 package mill.scalalib
 
-import mill.api.internal.UnresolvedPathApi
-import mill.define.{ExecutionPaths, Segment, Segments}
+import mill.api.shared.internal.UnresolvedPathApi
+import mill.api.{ExecutionPaths, Segment, Segments}
 import upickle.default.{ReadWriter, macroRW}
 
 /**

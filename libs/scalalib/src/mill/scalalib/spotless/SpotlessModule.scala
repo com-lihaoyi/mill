@@ -2,7 +2,7 @@ package mill.scalalib.spotless
 
 import mainargs.Flag
 import mill.constants.OutFiles.out
-import mill.define.*
+import mill.api.*
 import mill.scalalib.{CoursierModule, Dep, OfflineSupportModule}
 import mill.util.Jvm
 

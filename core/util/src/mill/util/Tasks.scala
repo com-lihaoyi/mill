@@ -1,8 +1,8 @@
 package mill.util
 
-import mill.define.{Evaluator, SelectMode}
+import mill.api.{Evaluator, SelectMode}
 
-case class Tasks[T](value: Seq[mill.define.Task.Named[T]])
+case class Tasks[T](value: Seq[mill.api.Task.Named[T]])
 
 object Tasks {
   def resolveMainDefault[T](tokens: String*): Tasks[T] = {
@@ -16,7 +16,7 @@ object Tasks {
       Evaluator.currentEvaluator.resolveTasks(
         s,
         SelectMode.Separated
-      ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.Task.Named[T]]]))
+      ).map(x => Tasks(x.asInstanceOf[Seq[mill.api.Task.Named[T]]]))
         .toEither
     }
     override def alwaysRepeatable = false

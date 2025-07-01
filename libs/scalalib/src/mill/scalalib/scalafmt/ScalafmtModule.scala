@@ -5,12 +5,12 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.*
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.api.Result
-import mill.define.{Discover, ExternalModule, TaskModule}
+import mill.api.{Discover, ExternalModule, TaskModule}
 import mill.scalalib.*
 import mainargs.arg
 import mill.util.Tasks
 import mill.util.Jvm
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 trait ScalafmtModule extends JavaModule {
 

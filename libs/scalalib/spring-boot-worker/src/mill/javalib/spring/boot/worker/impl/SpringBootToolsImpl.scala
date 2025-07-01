@@ -10,7 +10,7 @@ import org.springframework.boot.loader.tools.{
   Repackager
 }
 import os.Path
-import mill.define.TaskCtx
+import mill.api.TaskCtx
 
 class SpringBootToolsImpl() extends SpringBootTools {
 

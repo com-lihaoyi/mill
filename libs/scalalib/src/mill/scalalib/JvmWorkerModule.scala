@@ -3,8 +3,8 @@ package mill.scalalib
 import mainargs.Flag
 import mill._
 import mill.api.Result
-import mill.define.{TaskCtx, PathRef}
-import mill.define.{Discover, ExternalModule, Task}
+import mill.api.{TaskCtx, PathRef}
+import mill.api.{Discover, ExternalModule, Task}
 import mill.scalalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.{Versions, JvmWorkerApi, JvmWorkerUtil}
 import mill.scalalib.CoursierModule.Resolver

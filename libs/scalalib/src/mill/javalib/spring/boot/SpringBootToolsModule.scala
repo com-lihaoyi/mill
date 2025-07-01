@@ -2,7 +2,7 @@ package mill.javalib.spring.boot
 
 import java.net.{URL, URLClassLoader}
 import mill.*
-import mill.define.{Discover, ExternalModule}
+import mill.api.{Discover, ExternalModule}
 import mill.javalib.spring.boot.worker.SpringBootTools
 import mill.javalib.{CoursierModule, Dep, DepSyntax}
 import mill.scalalib.api.Versions

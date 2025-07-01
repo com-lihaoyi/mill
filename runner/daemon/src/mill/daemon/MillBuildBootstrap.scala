@@ -1,6 +1,6 @@
 package mill.daemon
 
-import mill.api.internal.{
+import mill.api.shared.internal.{
   BuildFileApi,
   CompileProblemReporter,
   EvaluatorApi,
@@ -12,8 +12,8 @@ import mill.api.internal.{
 import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.{millBuild, millRunnerState}
-import mill.define.internal.{RootModule0, Watchable}
-import mill.define.{BuildCtx, PathRef, SelectMode}
+import mill.api.internal.{RootModule0, Watchable}
+import mill.api.{BuildCtx, PathRef, SelectMode}
 import mill.internal.PrefixLogger
 import mill.meta.{FileImportGraph, MillBuildRootModule}
 import mill.meta.CliImports
@@ -296,7 +296,7 @@ class MillBuildBootstrap(
             runClasspath.map(p => os.Path(p.javaPath)),
             null,
             sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
-            sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api")
+            sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api.shared")
           )
           cl
         } else {

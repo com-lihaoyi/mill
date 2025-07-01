@@ -7,7 +7,7 @@
 
 package build
 import mill._
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 trait PythonModule extends Module {
   def moduleDeps: Seq[PythonModule] = Nil
@@ -48,7 +48,7 @@ trait PythonModule extends Module {
     }
   }
 
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
     gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
 
     os.call(

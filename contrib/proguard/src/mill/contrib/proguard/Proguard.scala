@@ -1,7 +1,7 @@
 package mill.contrib.proguard
 
 import mill.{T, Task}
-import mill.define.{PathRef}
+import mill.api.{PathRef}
 import mill.constants.Util
 import mill.util.Jvm
 import mill.scalalib.{DepSyntax, ScalaModule}

@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
-import mill.define.Discover
+import mill.api.Discover
 import mill.util.TokenReaders._
 
 object ScalaMixedProjectSemanticDbTests extends TestSuite {

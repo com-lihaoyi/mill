@@ -8,7 +8,7 @@ import java.util.jar.JarFile
 import scala.util.Using
 
 import HelloWorldTests.*
-import mill.define.Task
+import mill.api.Task
 
 object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
   def tests: Tests = Tests {

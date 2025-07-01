@@ -2,11 +2,11 @@ package mill.scalalib
 
 import mill.api.Result
 import mill.api.SelectMode.Separated
-import mill.define.Discover
-import mill.define.Evaluator
-import mill.define.ExternalModule
-import mill.define.PathRef
-import mill.define.Task
+import mill.api.Discover
+import mill.api.Evaluator
+import mill.api.ExternalModule
+import mill.api.PathRef
+import mill.api.Task
 import mill.util.TokenReaders.given
 
 object OfflineSupport extends ExternalModule {

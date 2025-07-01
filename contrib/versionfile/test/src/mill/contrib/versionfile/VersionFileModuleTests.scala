@@ -4,7 +4,7 @@ import mill.Task
 import mill.testkit.{UnitTester, TestRootModule}
 import utest.{TestSuite, Tests, assert, test}
 import mill.util.TokenReaders._
-import mill.define.Discover
+import mill.api.Discover
 object VersionFileModuleTests extends TestSuite {
 
   object TestModule extends TestRootModule {

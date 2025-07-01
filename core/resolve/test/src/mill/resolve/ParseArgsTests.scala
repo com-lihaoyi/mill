@@ -1,8 +1,8 @@
 package mill.resolve
 
 import mill.api.Result
-import mill.define.{Segment, Segments, SelectMode}
-import mill.define.Segment.{Cross, Label}
+import mill.api.{Segment, Segments, SelectMode}
+import mill.api.Segment.{Cross, Label}
 import mill.resolve.ParseArgs.TaskSeparator
 import utest.*
 

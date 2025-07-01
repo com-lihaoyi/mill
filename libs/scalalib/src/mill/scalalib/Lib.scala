@@ -5,7 +5,7 @@ import coursier.core.BomDependency
 import coursier.params.ResolutionParams
 import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
-import mill.define.{TaskCtx, PathRef}
+import mill.api.{TaskCtx, PathRef}
 import mill.api.Result
 import mill.scalalib.api.JvmWorkerUtil
 

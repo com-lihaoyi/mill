@@ -11,9 +11,9 @@ import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.*
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 import mill.coursierutil.TestOverridesRepo
-import mill.define.{PathRef, TaskCtx}
+import mill.api.{PathRef, TaskCtx}
 
 import java.io.BufferedOutputStream
 import java.io.File
@@ -444,7 +444,7 @@ object Jvm {
   }
 
   private def coursierCache(
-      ctx: Option[mill.define.TaskCtx],
+      ctx: Option[mill.api.TaskCtx],
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
   ) =
     FileCache[Task]()
@@ -469,7 +469,7 @@ object Jvm {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.define.TaskCtx] = None,
+      ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
@@ -532,7 +532,7 @@ object Jvm {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.define.TaskCtx] = None,
+      ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
@@ -559,7 +559,7 @@ object Jvm {
     }
 
   def jvmIndex(
-      ctx: Option[mill.define.TaskCtx] = None,
+      ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
   ): JvmIndex = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
@@ -568,7 +568,7 @@ object Jvm {
   }
 
   def jvmIndex0(
-      ctx: Option[mill.define.TaskCtx] = None,
+      ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       jvmIndexVersion: String = "latest.release"
   ): Task[JvmIndex] = {
@@ -590,7 +590,7 @@ object Jvm {
    */
   def resolveJavaHome(
       id: String,
-      ctx: Option[mill.define.TaskCtx] = None,
+      ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       jvmIndexVersion: String = mill.api.BuildInfo.coursierJvmIndexVersion,
       useShortPaths: Boolean = false
@@ -635,7 +635,7 @@ object Jvm {
       force: IterableOnce[Dependency],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.define.TaskCtx] = None,
+      ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       boms: IterableOnce[BomDependency] = Nil,

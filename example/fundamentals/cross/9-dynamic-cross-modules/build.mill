@@ -1,6 +1,6 @@
 package build
 import mill._, scalalib._
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 val moduleNames = BuildCtx.watchValue(os.list(moduleDir / "modules").map(_.last))
 
@@ -16,7 +16,7 @@ trait FolderModule extends ScalaModule with Cross.Module[String] {
 // filesystem.
 //
 // In those cases, you can write arbitrary code to populate the cross-module
-// cases, as long as you wrap the value in a `mill.define.BuildCtx.watchValue`. This ensures
+// cases, as long as you wrap the value in a `mill.api.BuildCtx.watchValue`. This ensures
 // that Mill is aware that the module structure depends on that value, and will
 // re-compute the value and re-create the module structure if the value changes.
 

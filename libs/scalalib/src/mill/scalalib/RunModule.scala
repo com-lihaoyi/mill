@@ -3,14 +3,14 @@ package mill.scalalib
 import java.lang.reflect.Modifier
 
 import scala.util.control.NonFatal
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 import mainargs.arg
 import mill.api.Result
-import mill.api.internal.RunModuleApi
-import mill.api.internal.bsp.BspRunModuleApi
+import mill.api.shared.internal.RunModuleApi
+import mill.api.shared.internal.bsp.BspRunModuleApi
 import mill.constants.DaemonFiles
-import mill.define.JsonFormatters.pathReadWrite
-import mill.define.{ModuleCtx, ModuleRef, PathRef, Task, TaskCtx}
+import mill.api.JsonFormatters.pathReadWrite
+import mill.api.{ModuleCtx, ModuleRef, PathRef, Task, TaskCtx}
 import mill.scalalib.bsp.BspRunModule
 import mill.scalalib.classgraph.ClassgraphWorkerModule
 import mill.util.Jvm

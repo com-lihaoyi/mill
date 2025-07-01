@@ -1,5 +1,5 @@
 package mill.scalalib
 
-import mill.define.ExternalModule
+import mill.api.ExternalModule
 
 package object spotless extends ExternalModule.Alias(SpotlessModule)

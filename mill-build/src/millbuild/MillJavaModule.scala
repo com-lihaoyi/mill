@@ -42,8 +42,8 @@ trait MillJavaModule extends JavaModule {
   def testMvnDeps: T[Seq[Dep]] = Seq(Deps.TestDeps.utest)
   def testForkEnv: T[Map[String, String]] = forkEnv() ++ localTestOverridesEnv()
   def testModuleDeps: Seq[JavaModule] =
-    if (this == build.core.define) Seq(build.core.define)
-    else Seq(this, build.core.define.test)
+    if (this == build.core.api) Seq(build.core.api)
+    else Seq(this, build.core.api.test)
 
   def localTestOverridesEnv = Task {
     transitiveLocalTestOverrides()

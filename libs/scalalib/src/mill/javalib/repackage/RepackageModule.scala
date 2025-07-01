@@ -2,8 +2,8 @@ package mill.javalib.repackage
 
 import mill.{T, Task}
 import mill.api.Result
-import mill.define.ModuleRef
-import mill.define.PathRef
+import mill.api.ModuleRef
+import mill.api.PathRef
 import mill.javalib.JavaModule
 import mill.util.Jvm
 import mill.scalalib.PublishModule
@@ -18,7 +18,7 @@ import mill.javalib.spring.boot.SpringBootToolsModule
  *
  * This is an alternative to the [[mill.scalalib.AssemblyModule]].
  */
-trait RepackageModule extends mill.define.Module {
+trait RepackageModule extends mill.api.Module {
 
   /**
    * The Module holding the Spring Boot tools.
@@ -126,9 +126,9 @@ trait RepackageModule extends mill.define.Module {
   }
 
   // Hack-ish way to attach some generated resources under the context of the task dependency
-  private implicit class EmbeddableSpringBootModule(jm: JavaModule) extends mill.define.Module {
+  private implicit class EmbeddableSpringBootModule(jm: JavaModule) extends mill.api.Module {
     override def moduleCtx = jm.moduleCtx
-    object springBootAssemblyModule extends mill.define.Module {
+    object springBootAssemblyModule extends mill.api.Module {
 
       /** Same as [[jar]] but with a unique name to avoid name collisions. */
       def artifactJar: T[PathRef] = jm match {

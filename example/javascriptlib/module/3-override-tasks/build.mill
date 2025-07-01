@@ -28,7 +28,7 @@ object `package` extends TypeScriptModule {
     super.compile()
   }
 
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
     println("Running... " + args.value.mkString(" "))
     super.run(args)()
   }

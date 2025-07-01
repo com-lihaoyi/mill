@@ -1,7 +1,7 @@
 //// SNIPPET:BUILD
 package build
 import mill._, javalib._
-import mill.define.ModuleRef
+import mill.api.ModuleRef
 
 object foo extends JavaModule with NativeImageModule {
   def mvnDeps = Seq(

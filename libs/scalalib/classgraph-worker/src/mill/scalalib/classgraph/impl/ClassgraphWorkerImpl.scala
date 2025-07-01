@@ -6,7 +6,7 @@ import scala.jdk.CollectionConverters._
 import scala.util.Using
 
 import io.github.classgraph.ClassGraph
-import mill.define.TaskCtx
+import mill.api.TaskCtx
 import mill.scalalib.classgraph.ClassgraphWorker
 
 class ClassgraphWorkerImpl() extends ClassgraphWorker {

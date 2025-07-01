@@ -6,7 +6,7 @@ import utest.*
 
 import scala.util.Properties
 import HelloWorldTests.*
-import mill.define.Discover
+import mill.api.Discover
 object ScalaMacrosTests extends TestSuite {
 
   object HelloWorldMacros212 extends TestRootModule {

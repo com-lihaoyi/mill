@@ -8,11 +8,11 @@ import mill.util.Jvm
 import mill.util.Jvm.createJar
 import mill.scalalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mainargs.Flag
-import mill.api.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
-import mill.define.{BuildCtx, PathRef, Task}
-import mill.api.internal.{ScalaModuleApi, ScalaPlatform, internal}
+import mill.api.shared.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
+import mill.api.{BuildCtx, PathRef, Task}
+import mill.api.shared.internal.{ScalaModuleApi, ScalaPlatform, internal}
 import mill.scalalib.dependency.versions.{ValidVersion, Version}
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 // this import requires scala-reflect library to be on the classpath
 // it was duplicated to scala3-compiler, but is that too powerful to add as a dependency?

@@ -1,9 +1,9 @@
 package mill.scalalib
 
 import mill.{T, Task}
-import mill.define.{PathRef}
+import mill.api.{PathRef}
 import mill.api.ExecResult
-import mill.define.{Discover, Evaluator}
+import mill.api.{Discover, Evaluator}
 import mill.scalalib.publish.{
   Developer,
   License,

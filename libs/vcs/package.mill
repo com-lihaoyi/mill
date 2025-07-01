@@ -3,5 +3,5 @@ import mill._
 import millbuild.*
 
 object `package` extends MillStableScalaModule {
-  def moduleDeps = Seq(build.core.define)
+  def moduleDeps = Seq(build.core.api)
 }

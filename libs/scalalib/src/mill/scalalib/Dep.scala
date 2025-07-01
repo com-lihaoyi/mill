@@ -1,8 +1,8 @@
 package mill.scalalib
 
 import upickle.default.{macroRW, ReadWriter as RW}
-import mill.define.CrossVersion.*
-import mill.define.CrossVersion
+import mill.api.CrossVersion.*
+import mill.api.CrossVersion
 import coursier.core.{Configuration, Dependency, MinimizedExclusions}
 import mill.scalalib.api.{Versions, JvmWorkerUtil}
 import scala.annotation.unused

@@ -11,14 +11,14 @@
 package build
 
 import mill._, androidlib._, scalalib._
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"
 }
 
 object app extends AndroidNativeAppModule { // <1>
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
   def androidApplicationId = "com.helloworld.app"
@@ -44,7 +44,7 @@ object app extends AndroidNativeAppModule { // <1>
 
   // Instrumented tests (runs on emulator)
   object it extends AndroidAppInstrumentedTests with AndroidTestModule.AndroidJUnit {
-    def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+    def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
     /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
      * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency

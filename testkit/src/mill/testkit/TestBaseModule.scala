@@ -1,7 +1,7 @@
 package mill.testkit
 
 /**
- * A wrapper of [[mill.define.BaseModule]] meant for easy instantiation in test suites.
+ * A wrapper of [[mill.api.BaseModule]] meant for easy instantiation in test suites.
  */
 abstract class TestRootModule(
     baseModuleSourcePath: os.Path
@@ -9,7 +9,7 @@ abstract class TestRootModule(
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millModuleFile0: sourcecode.File
-) extends mill.define.BaseModule(millSourcePath0 = baseModuleSourcePath)(
+) extends mill.api.BaseModule(millSourcePath0 = baseModuleSourcePath)(
       millModuleEnclosing0,
       millModuleLine0,
       millModuleFile0

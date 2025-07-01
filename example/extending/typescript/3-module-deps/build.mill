@@ -56,7 +56,7 @@ trait TypeScriptModule extends Module {
   }
 
   def mainFileName = Task { s"${moduleDir.last}.js" }
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
 
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
     for (((jsDir, tTsDir), mod) <- upstream) {
