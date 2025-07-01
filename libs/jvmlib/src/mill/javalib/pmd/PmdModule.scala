@@ -87,6 +87,10 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
           else if (format == "xml") {
             violationCount = Some(lines.count(_.trim.startsWith("<violation")))
           }
+          // For "html" format: count lines with <tr but skip the header row
+          else if (format == "html") {
+            violationCount = Some(lines.count(line => line.trim.startsWith("<tr") && !line.contains("<th")))
+          }
         } else {
           violationCount = Some(0)
         }
@@ -104,11 +108,11 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       throw new UnsupportedOperationException(s"pmd exit($exitCode)")
     } else if (check) {
       throw new RuntimeException(
-        s"PMD found ${violationCount.getOrElse("unknown number of")} violation(s)"
+        s"PMD found ${violationCount.getOrElse("")} violation(s)"
       )
     } else {
       Task.log.error(
-        s"PMD found ${violationCount.getOrElse("unknown number of")} violation(s)"
+        s"PMD found ${violationCount.getOrElse("")} violation(s)"
       )
     }
 
