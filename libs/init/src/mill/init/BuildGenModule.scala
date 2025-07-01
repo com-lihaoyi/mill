@@ -8,7 +8,7 @@ import mill.util.Jvm
 import mill.{Command, T, Task, TaskModule}
 
 @mill.api.experimental
-trait BuildGenModule extends CoursierModule with TaskModule {
+private[mill] trait BuildGenModule extends CoursierModule with TaskModule {
 
   def defaultTask(): String = "init"
 
