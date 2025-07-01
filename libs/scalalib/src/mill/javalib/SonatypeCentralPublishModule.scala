@@ -7,7 +7,7 @@ import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.api.TaskModule
 import mill.api.{Result, experimental}
-import mill.scalalib.SonatypeCentralPublishModule.{
+import mill.javalib.SonatypeCentralPublishModule.{
   defaultAwaitTimeout,
   defaultConnectTimeout,
   defaultCredentials,
