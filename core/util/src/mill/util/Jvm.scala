@@ -559,14 +559,8 @@ object Jvm {
     }
 
   def jvmIndex(
-<<<<<<< HEAD
       ctx: Option[mill.api.TaskCtx] = None,
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      config: CoursierConfig
-=======
-      ctx: Option[mill.define.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
->>>>>>> main
   ): JvmIndex = {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
     coursierCache0.logger.use(jvmIndex0(ctx, coursierCacheCustomizer))
