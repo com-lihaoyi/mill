@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.*
-import mill.define.Discover
+import mill.api.Discover
 import mill.util.Jvm
 import mill.testkit.TestRootModule
 
@@ -11,7 +11,7 @@ trait AssemblyTestUtils {
     trait Setup extends ScalaModule {
       def scalaVersion = "2.13.11"
 
-      def sources = Task.Sources(mill.define.BuildCtx.workspaceRoot / "src")
+      def sources = Task.Sources(mill.api.BuildCtx.workspaceRoot / "src")
 
       def mvnDeps = super.mvnDeps() ++ Seq(
         mvn"com.lihaoyi::scalatags:0.8.2",

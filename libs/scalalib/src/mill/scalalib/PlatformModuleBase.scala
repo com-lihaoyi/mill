@@ -12,7 +12,7 @@ trait PlatformModuleBase extends JavaModule {
    */
   def platformCrossSuffix: String = moduleSegments
     .value
-    .collect { case l: mill.define.Segment.Label => l.value }
+    .collect { case l: mill.api.Segment.Label => l.value }
     .last
 
   override def sourcesFolders: Seq[os.SubPath] = super.sourcesFolders.flatMap {

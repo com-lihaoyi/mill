@@ -1,10 +1,10 @@
 package mill.javalib.checkstyle
 
 import mill._
-import mill.define.{PathRef}
+import mill.api.{PathRef}
 import mill.scalalib.{DepSyntax, JavaModule}
 import mill.util.Jvm
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 /**
  * Performs quality checks on Java source files using [[https://checkstyle.org/ Checkstyle]].
@@ -58,7 +58,7 @@ trait CheckstyleModule extends JavaModule {
       check: Boolean,
       exitCode: Int,
       output: os.Path
-  )(implicit ctx: mill.define.TaskCtx): Int = {
+  )(implicit ctx: mill.api.TaskCtx): Int = {
 
     val reported = os.exists(output)
     if (reported) {

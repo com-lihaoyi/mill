@@ -3,7 +3,7 @@ package mill.contrib.scoverage
 import mill.*
 import mill.api.ExecResult
 import mill.contrib.buildinfo.BuildInfo
-import mill.define.Discover
+import mill.api.Discover
 import mill.scalalib.{DepSyntax, SbtModule, ScalaModule, TestModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule

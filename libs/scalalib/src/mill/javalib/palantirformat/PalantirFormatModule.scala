@@ -1,8 +1,8 @@
 package mill.javalib.palantirformat
 
-import mill.define.{TaskCtx, PathRef}
-import mill.define.{Discover, ExternalModule, TaskModule}
-import mill.define.BuildCtx
+import mill.api.{TaskCtx, PathRef}
+import mill.api.{Discover, ExternalModule, TaskModule}
+import mill.api.BuildCtx
 import mill.util.Tasks
 import mill.util.TokenReaders.*
 import mill.scalalib.JavaModule
@@ -44,7 +44,7 @@ trait PalantirFormatModule extends JavaModule with PalantirFormatBaseModule {
 
 object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule with TaskModule {
 
-  override def defaultCommandName(): String = "formatAll"
+  override def defaultTask(): String = "formatAll"
 
   /**
    * Formats Java source files.
@@ -153,7 +153,7 @@ object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
   }
 
   /**
-   * Path to options file for Palantir Java Format CLI at `mill.define.BuildCtx.workspaceRoot` `/` `palantirformat.options`.
+   * Path to options file for Palantir Java Format CLI at `mill.api.BuildCtx.workspaceRoot` `/` `palantirformat.options`.
    */
   override def palantirformatOptions: T[PathRef] = Task.Source(
     BuildCtx.workspaceRoot / "palantirformat.options"

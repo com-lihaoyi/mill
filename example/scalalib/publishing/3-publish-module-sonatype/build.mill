@@ -3,7 +3,7 @@ package build
 import mill._, scalalib._, publish._
 
 object foo extends ScalaModule with SonatypeCentralPublishModule {
-  def scalaVersion = "2.13.16"
+  def scalaVersion = "3.7.1"
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(

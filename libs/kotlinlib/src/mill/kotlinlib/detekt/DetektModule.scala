@@ -1,10 +1,10 @@
 package mill.kotlinlib.detekt
 
 import mill._
-import mill.define.{PathRef}
+import mill.api.{PathRef}
 import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.util.Jvm
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 /**
  * Performs quality checks on Kotlin source files using [[https://detekt.dev// Detekt]].
@@ -40,7 +40,7 @@ trait DetektModule extends KotlinModule {
   }
 
   private def detektHandleErrors(check: Boolean, exitCode: Int)(implicit
-      ctx: mill.define.TaskCtx
+      ctx: mill.api.TaskCtx
   ) = {
 
     if (exitCode == 0) {} // do nothing

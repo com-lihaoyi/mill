@@ -6,7 +6,7 @@ import mill.constants.{CodeGenConstants as CGConst}
 import mill.api.Result
 import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
-import mill.api.internal.MillScalaParser
+import mill.api.shared.internal.MillScalaParser
 import scala.util.control.Breaks.*
 
 object CodeGen {
@@ -182,7 +182,7 @@ object CodeGen {
     s"""|$generatedFileHeader
         |package $pkg
         |
-        |object BuildFileImpl extends mill.define.internal.BuildFileCls(${CGConst.wrapperObjectName})
+        |object BuildFileImpl extends mill.api.internal.BuildFileCls(${CGConst.wrapperObjectName})
         |""".stripMargin
   }
 
@@ -208,7 +208,7 @@ object CodeGen {
     val prelude =
       s"""|import MillMiscInfo._
           |import _root_.mill.util.TokenReaders.given
-          |import _root_.mill.define.JsonFormatters.given
+          |import _root_.mill.api.JsonFormatters.given
           |""".stripMargin
 
     val objectData = parser.parseObjectData(scriptCode)
@@ -233,7 +233,7 @@ object CodeGen {
 
     val newParent =
       if (segments.isEmpty) "_root_.mill.main.MainRootModule"
-      else "_root_.mill.define.internal.SubfolderModule(build.millDiscover)"
+      else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
 
     objectData.find(o => o.name.text == "`package`") match {
       case Some(objectData) =>
@@ -290,7 +290,7 @@ object CodeGen {
       segments: Seq[String]
   ): String = {
     s"""|object MillMiscInfo
-        |    extends mill.define.internal.SubfolderModule.Info(
+        |    extends mill.api.internal.SubfolderModule.Info(
         |  millSourcePath0 = os.Path(${literalize(scriptFolderPath.toString)}),
         |  segments = _root_.scala.Seq(${segments.map(pprint.Util.literalize(_)).mkString(", ")})
         |)
@@ -300,8 +300,8 @@ object CodeGen {
   def millDiscover(segmentsNonEmpty: Boolean): String = {
     if (segmentsNonEmpty) ""
     else {
-      val rhs = "_root_.mill.define.Discover[this.type]"
-      s"override lazy val millDiscover: _root_.mill.define.Discover = $rhs"
+      val rhs = "_root_.mill.api.Discover[this.type]"
+      s"override lazy val millDiscover: _root_.mill.api.Discover = $rhs"
     }
   }
 
@@ -312,7 +312,7 @@ object CodeGen {
   ): String = {
     s"""|@_root_.scala.annotation.nowarn
         |object MillMiscInfo 
-        |    extends mill.define.internal.RootModule0.Info(
+        |    extends mill.api.internal.RootModule0.Info(
         |  projectRoot0 = ${literalize(scriptFolderPath.toString)},
         |  output0 = ${literalize(output.toString)},
         |  topLevelProjectRoot0 = ${literalize(millTopLevelProjectRoot.toString)}

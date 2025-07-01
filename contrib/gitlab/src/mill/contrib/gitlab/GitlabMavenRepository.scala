@@ -4,8 +4,8 @@ import coursier.core.Authentication
 import coursier.maven.MavenRepository
 import mill.api.Result
 import mill.api.Result.{Failure, Success}
-import mill.define.Task
-import mill.define.BuildCtx
+import mill.api.Task
+import mill.api.BuildCtx
 
 trait GitlabMavenRepository {
 

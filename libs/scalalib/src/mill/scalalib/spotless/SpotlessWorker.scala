@@ -1,6 +1,6 @@
 package mill.scalalib.spotless
 
-import mill.define.{PathRef, TaskCtx}
+import mill.api.{PathRef, TaskCtx}
 
 @mill.api.internal.internal
 trait SpotlessWorker extends AutoCloseable {

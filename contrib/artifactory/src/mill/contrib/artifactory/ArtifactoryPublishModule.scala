@@ -4,7 +4,7 @@ import mill._
 import mill.api.Result
 import scalalib._
 import mill.contrib.artifactory.ArtifactoryPublishModule.checkArtifactoryCreds
-import mill.define.{ExternalModule, Task}
+import mill.api.{ExternalModule, Task}
 
 trait ArtifactoryPublishModule extends PublishModule {
   def artifactoryUri: String
@@ -93,5 +93,5 @@ object ArtifactoryPublishModule extends ExternalModule {
     }
   }
 
-  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.api.Discover = mill.api.Discover[this.type]
 }

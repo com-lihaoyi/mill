@@ -1,6 +1,6 @@
 package mill.scalalib.publish
 
-import mill.define.TaskCtx
+import mill.api.TaskCtx
 
 class LocalIvyPublisher(localIvyRepo: os.Path) {
 

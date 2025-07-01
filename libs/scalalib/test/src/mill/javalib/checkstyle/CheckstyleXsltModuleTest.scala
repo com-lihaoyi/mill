@@ -2,7 +2,7 @@ package mill.javalib.checkstyle
 
 import mill.*
 import mainargs.Leftover
-import mill.define.Discover
+import mill.api.Discover
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*

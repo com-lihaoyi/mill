@@ -1,6 +1,6 @@
 package mill.scalalib.spotless
 
-import mill.define.{Discover, PathRef}
+import mill.api.{Discover, PathRef}
 import mill.scalalib.{JavaModule, ScalaModule}
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.given

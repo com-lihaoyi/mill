@@ -2,12 +2,12 @@ package mill.scalalib.bsp
 
 import java.nio.file.Path
 
-import mill.api.internal.bsp.BspJavaModuleApi
+import mill.api.shared.internal.bsp.BspJavaModuleApi
 import mill.Task
-import mill.api.internal.{EvaluatorApi, TaskApi, internal}
-import mill.define.{Discover, ExternalModule, ModuleCtx}
+import mill.api.shared.internal.{EvaluatorApi, TaskApi, internal}
+import mill.api.{Discover, ExternalModule, ModuleCtx}
 import mill.scalalib.{JavaModule, ScalaModule, SemanticDbJavaModule}
-import mill.define.JsonFormatters.given
+import mill.api.JsonFormatters.given
 
 @internal
 private[mill] object BspJavaModule extends ExternalModule {
@@ -18,13 +18,13 @@ private[mill] object BspJavaModule extends ExternalModule {
   // Hack-ish way to have some BSP state in the module context
   @internal
   implicit class EmbeddableBspJavaModule(jm: JavaModule & BspModule)
-      extends mill.define.Module {
+      extends mill.api.Module {
     // We act in the context of the module
     override def moduleCtx: ModuleCtx = jm.moduleCtx
 
     // We keep all BSP-related tasks/state in this sub-module
     @internal
-    object internalBspJavaModule extends mill.define.Module with BspJavaModuleApi {
+    object internalBspJavaModule extends mill.api.Module with BspJavaModuleApi {
 
       override private[mill] def bspBuildTargetInverseSources[T](
           id: T,

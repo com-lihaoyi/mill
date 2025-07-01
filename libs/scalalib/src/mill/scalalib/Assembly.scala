@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.define.PathRef
+import mill.api.PathRef
 import mill.util.JarManifest
 import os.Generator
 

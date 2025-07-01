@@ -1,17 +1,11 @@
 package mill.exec
 
-import mill.define.Discover
+import mill.api.Discover
 import mill.{Cross, Task}
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.testkit.UnitTester.Result
-import mill.define.TestGraphs
-import mill.define.TestGraphs.{
-  crossResolved,
-  doubleCross,
-  nestedCrosses,
-  nonStringCross,
-  singleCross
-}
+import mill.api.TestGraphs
+import mill.api.TestGraphs.{crossResolved, doubleCross, nestedCrosses, nonStringCross, singleCross}
 import utest.*
 
 object CrossTests extends TestSuite {

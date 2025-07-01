@@ -1,11 +1,11 @@
 package mill.eval
 
 import mill.api.*
-import mill.api.internal.{CompileProblemReporter, ExecutionResultsApi, TestReporter}
+import mill.api.shared.internal.{CompileProblemReporter, ExecutionResultsApi, TestReporter}
 import mill.constants.OutFiles
 import mill.constants.OutFiles.*
-import mill.define.{PathRef, *}
-import mill.define.internal.{ResolveChecker, Watchable}
+import mill.api.{PathRef, *}
+import mill.api.internal.{ResolveChecker, Watchable}
 import mill.exec.{Execution, PlanImpl}
 import mill.resolve.Resolve
 
@@ -185,7 +185,7 @@ final class EvaluatorImpl private[mill] (
               Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
             case (t: Task.Input[_], result) =>
 
-              val ctx = new mill.define.TaskCtx.Impl(
+              val ctx = new mill.api.TaskCtx.Impl(
                 args = Vector(),
                 dest0 = () => null,
                 log = logger,

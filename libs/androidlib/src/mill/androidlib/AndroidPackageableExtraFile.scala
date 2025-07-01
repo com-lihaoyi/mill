@@ -1,7 +1,7 @@
 package mill.androidlib
 
-import mill.define.JsonFormatters.relPathRW
-import mill.define.PathRef
+import mill.api.JsonFormatters.relPathRW
+import mill.api.PathRef
 
 case class AndroidPackageableExtraFile(source: PathRef, destination: os.RelPath)
 

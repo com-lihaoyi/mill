@@ -2,8 +2,8 @@ package mill
 package scalalib
 
 import coursier.core.{Configuration, DependencyManagement}
-import mill.define.{ExternalModule, Task, TaskModule}
-import mill.define.PathRef
+import mill.api.{ExternalModule, Task, TaskModule}
+import mill.api.PathRef
 import mill.api.Result
 import mill.util.JarManifest
 import mill.util.Tasks
@@ -14,7 +14,7 @@ import mill.scalalib.publish.SonatypeHelpers.{
 }
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 import os.Path
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 /**
  * Configuration necessary for publishing a Scala module to Maven Central or similar
@@ -543,7 +543,7 @@ trait PublishModule extends JavaModule { outer =>
 }
 
 object PublishModule extends ExternalModule with TaskModule {
-  def defaultCommandName(): String = "publishAll"
+  def defaultTask(): String = "publishAll"
   val defaultGpgArgs: Seq[String] = defaultGpgArgsForPassphrase(None)
   def pgpImportSecretIfProvided(env: Map[String, String]): Unit = {
     for (secret <- env.get("MILL_PGP_SECRET_BASE64")) {
@@ -677,6 +677,6 @@ object PublishModule extends ExternalModule with TaskModule {
       }
     }
 
-  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.api.Discover = mill.api.Discover[this.type]
 
 }

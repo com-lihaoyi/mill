@@ -3,7 +3,7 @@ package mill.contrib.gitlab
 import mill._
 import mill.api.Result.{Failure, Success}
 import mill.api.Result
-import mill.define.{ExternalModule, Task}
+import mill.api.{ExternalModule, Task}
 import scalalib._
 
 trait GitlabPublishModule extends PublishModule { outer =>
@@ -18,7 +18,7 @@ trait GitlabPublishModule extends PublishModule { outer =>
       systemProps: Map[String, String] = sys.props.toMap
   ): Task[GitlabAuthHeaders] = Task.Anon {
     val auth =
-      tokenLookup.resolveGitlabToken(Task.env, systemProps, mill.define.BuildCtx.workspaceRoot)
+      tokenLookup.resolveGitlabToken(Task.env, systemProps, mill.api.BuildCtx.workspaceRoot)
     auth match {
       case Result.Failure(msg) =>
         Failure(
@@ -77,5 +77,5 @@ object GitlabPublishModule extends ExternalModule {
     )
   }
 
-  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.api.Discover = mill.api.Discover[this.type]
 }

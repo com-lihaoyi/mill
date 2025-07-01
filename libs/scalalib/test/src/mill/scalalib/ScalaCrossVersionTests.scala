@@ -4,7 +4,7 @@ import mill.*
 import mill.testkit.TestRootModule
 import utest.*
 import HelloWorldTests.*
-import mill.define.Discover
+import mill.api.Discover
 
 object ScalaCrossVersionTests extends TestSuite {
 

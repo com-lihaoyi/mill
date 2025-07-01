@@ -1,10 +1,10 @@
 package mill.playlib
 
-import mill.define.Task
+import mill.api.Task
 import mill.playlib.api.Versions
 import mill.scalalib._
 import mill.{Args, T}
-import mill.define.PathRef
+import mill.api.PathRef
 
 trait PlayApiModule extends Dependencies with Router with Server {
   trait PlayTests extends ScalaTests with TestModule.ScalaTest {

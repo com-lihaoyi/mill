@@ -9,7 +9,7 @@ import mill.api.Segment.Label
 import mill.bsp.Constants
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
 import mill.client.lock.Lock
-import mill.define.internal.WatchSig
+import mill.api.internal.WatchSig
 import mill.internal.PrefixLogger
 import mill.server.Server
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
@@ -24,7 +24,13 @@ import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-import mill.api.internal.bsp.{BspModuleApi, BspServerResult, JvmBuildTarget, ScalaBuildTarget}
+import mill.api.shared.internal.bsp.{
+  BspModuleApi,
+  BspServerResult,
+  JvmBuildTarget,
+  ScalaBuildTarget
+}
+import mill.api.shared.internal.*
 
 private class MillBuildServer(
     topLevelProjectRoot: os.Path,
@@ -697,7 +703,7 @@ private class MillBuildServer(
         )) {
           case ((msg, cleaned), targetId) =>
             val (module, ev) = state.bspModulesById(targetId)
-            val mainModule = ev.rootModule.asInstanceOf[mill.api.internal.MainModuleApi]
+            val mainModule = ev.rootModule.asInstanceOf[mill.api.shared.internal.MainModuleApi]
             val compileTaskName = (module.moduleSegments ++ Label("compile")).render
             logger.debug(s"about to clean: ${compileTaskName}")
             val cleanTask = mainModule.bspClean(ev, Seq(compileTaskName)*)

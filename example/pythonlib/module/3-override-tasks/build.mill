@@ -27,7 +27,7 @@ object foo extends PythonModule {
     super.typeCheck()
   }
 
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
     typeCheck()
     println("Running..." + args.value.mkString(" "))
     super.run(args)()

@@ -260,7 +260,7 @@ below, which can be rendered using the `javap -c -p` command on the relevant com
 
 [source,java]
 ----
-  private final mill.api.Result barTask$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq, mill.define.TaskCtx);
+  private final mill.api.Result barTask$$anonfun$1$$anonfun$1(scala.collection.immutable.Seq, mill.api.TaskCtx);
     Code:
        0: getstatic     #183        // Field mill/api/Result$.MODULE$:Lmill/api/Result$;
        3: getstatic     #314        // Field scala/Predef$.MODULE$:Lscala/Predef$;

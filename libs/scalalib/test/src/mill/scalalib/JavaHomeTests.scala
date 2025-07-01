@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.define.{Args, Discover, ModuleRef, Task}
+import mill.api.{Args, Discover, ModuleRef, Task}
 import mill.api.ExecResult
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*

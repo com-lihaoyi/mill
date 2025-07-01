@@ -1,8 +1,8 @@
 package mill.exec
 
-import mill.define.{Task, Plan}
-import mill.define.MultiBiMap
-import mill.define.TopoSorted
+import mill.api.{Task, Plan}
+import mill.api.MultiBiMap
+import mill.api.TopoSorted
 
 private[mill] object PlanImpl {
   def plan(goals: Seq[Task[?]]): Plan = {

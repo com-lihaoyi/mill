@@ -3,12 +3,12 @@ package contrib.scalapblib
 
 import java.io.File
 
-import mill.define.PathRef
-import mill.define.{Discover, ExternalModule}
+import mill.api.PathRef
+import mill.api.{Discover, ExternalModule}
 
 class ScalaPBWorker {
 
-  private def scalaPB(scalaPBClasspath: Seq[PathRef])(implicit ctx: mill.define.TaskCtx) = {
+  private def scalaPB(scalaPBClasspath: Seq[PathRef])(implicit ctx: mill.api.TaskCtx) = {
     val instance = new ScalaPBWorkerApi {
       override def compileScalaPB(
           roots: Seq[File],
@@ -71,7 +71,7 @@ class ScalaPBWorker {
       scalaPBOptions: String,
       dest: os.Path,
       scalaPBCExtraArgs: Seq[String]
-  )(implicit ctx: mill.define.TaskCtx): mill.api.Result[PathRef] = {
+  )(implicit ctx: mill.api.TaskCtx): mill.api.Result[PathRef] = {
     val compiler = scalaPB(scalaPBClasspath)
     val sources = scalaPBSources.flatMap {
       path =>

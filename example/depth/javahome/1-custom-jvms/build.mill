@@ -13,7 +13,7 @@
 // To see what Jvms are available for download look at the index for your os
 // and architecture {link-jvm-indices}[here].
 import mill._, javalib._
-import mill.define.ModuleRef
+import mill.api.ModuleRef
 
 object foo extends JavaModule {
   def jvmId = "temurin:18.0.2"

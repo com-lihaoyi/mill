@@ -1,6 +1,6 @@
 package mill.scalalib.spotless
 
-import mill.define.{BuildCtx, PathRef}
+import mill.api.{BuildCtx, PathRef}
 import upickle.core.Visitor
 import upickle.default.*
 

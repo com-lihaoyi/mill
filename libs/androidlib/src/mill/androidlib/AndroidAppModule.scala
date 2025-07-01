@@ -4,7 +4,7 @@ import coursier.params.ResolutionParams
 import mill.*
 import mill.api.Logger
 import mill.api.internal.{internal, *}
-import mill.define.{ModuleRef, PathRef, Task}
+import mill.api.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
 import mill.testrunner.TestResult
 import os.{Path, RelPath, zip}
@@ -12,7 +12,8 @@ import upickle.default.*
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
 
-import mill.api.internal.bsp.BspBuildTarget
+import mill.api.shared.internal.bsp.BspBuildTarget
+import mill.api.shared.internal.EvaluatorApi
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats

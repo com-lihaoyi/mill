@@ -1,11 +1,12 @@
 package mill.androidlib
 
-import mill.define.{ModuleRef, PathRef, Task}
+import mill.api.{ModuleRef, PathRef, Task}
 import mill.kotlinlib.{Dep, DepSyntax}
 import mill.scalalib.TestModule.Junit5
 import mill.scalalib.{JavaModule, TestModule}
 import mill.*
-import mill.define.JsonFormatters.given
+import mill.api.JsonFormatters.given
+import mill.androidlib.Versions
 
 /**
  * Trait for building Android applications using the Mill build tool.
@@ -75,10 +76,12 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     override def androidManifest: T[PathRef] = outer.androidManifest()
     override def androidMergedManifest: T[PathRef] = outer.androidMergedManifest()
 
-    // FIXME: avoid hardcoded version
-    def layoutLibVersion: String = "15.1.2"
-    // FIXME: avoid hardcoded version
-    def composePreviewRendererVersion: String = "0.0.1-alpha09"
+    def layoutLibVersion: T[String] = Task {
+      Versions.layoutLibVersion
+    }
+    def composePreviewRendererVersion: T[String] = Task {
+      Versions.composePreviewRendererVersion
+    }
 
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
 
@@ -96,7 +99,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     def composePreviewRenderer: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          mvn"com.android.tools.compose:compose-preview-renderer:$composePreviewRendererVersion"
+          mvn"com.android.tools.compose:compose-preview-renderer:${composePreviewRendererVersion()}"
         )
       )
     }
@@ -104,7 +107,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     final def layoutLibRenderer: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          mvn"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
+          mvn"com.android.tools.layoutlib:layoutlib:${layoutLibVersion()}"
         )
       )
     }
@@ -112,7 +115,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     final def layoutLibRuntime: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          mvn"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
+          mvn"com.android.tools.layoutlib:layoutlib-runtime:${layoutLibVersion()}"
         )
       )
     }
@@ -120,7 +123,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     final def layoutLibFrameworkRes: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          mvn"com.android.tools.layoutlib:layoutlib-resources:$layoutLibVersion"
+          mvn"com.android.tools.layoutlib:layoutlib-resources:${layoutLibVersion()}"
         )
       )
     }
@@ -134,8 +137,9 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
       PathRef(extractDestination)
     }
 
-    // FIXME: avoid hardcoded version
-    def uiToolingVersion: String = "1.7.6"
+    def uiToolingVersion: T[String] = Task {
+      Versions.uiToolingVersion
+    }
 
     override def resolvedMvnDeps: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
@@ -145,10 +149,10 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
 
     override def mvnDeps: T[Seq[Dep]] = super.mvnDeps() ++
       Seq(
-        mvn"androidx.compose.ui:ui:$uiToolingVersion",
-        mvn"androidx.compose.ui:ui-tooling:$uiToolingVersion",
-        mvn"androidx.compose.ui:ui-test-manifest:$uiToolingVersion",
-        mvn"androidx.compose.ui:ui-tooling-preview-android:$uiToolingVersion"
+        mvn"androidx.compose.ui:ui:${uiToolingVersion()}",
+        mvn"androidx.compose.ui:ui-tooling:${uiToolingVersion()}",
+        mvn"androidx.compose.ui:ui-test-manifest:${uiToolingVersion()}",
+        mvn"androidx.compose.ui:ui-tooling-preview-android:${uiToolingVersion()}"
       )
 
     /** The location to store the generated preview summary */

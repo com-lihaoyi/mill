@@ -3,9 +3,10 @@ package mill.androidlib.manifestmerger
 import coursier.Repository
 import mill.*
 import mill.androidlib.AndroidSdkModule
-import mill.define.{Discover, ExternalModule}
+import mill.api.{Discover, ExternalModule}
 import mill.scalalib.*
 import mill.util.Jvm
+import mill.androidlib.Versions
 
 @mill.api.experimental
 trait AndroidManifestMerger extends ExternalModule with JvmWorkerModule {
@@ -14,11 +15,12 @@ trait AndroidManifestMerger extends ExternalModule with JvmWorkerModule {
     super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
   }
 
-  // TODO: dont have them hardcoded
   /**
    * Specifies the version of the Manifest Merger.
    */
-  def manifestMergerVersion: T[String] = "31.10.0"
+  def manifestMergerVersion: T[String] = Task {
+    Versions.manifestMergerVersion
+  }
 
   /**
    * Classpath for the manifest merger run.

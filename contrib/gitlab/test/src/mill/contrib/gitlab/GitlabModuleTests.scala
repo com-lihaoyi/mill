@@ -2,7 +2,7 @@ package mill.contrib.gitlab
 
 import mill.T
 import mill.api.ExecResult.Failure
-import mill.define.Discover
+import mill.api.Discover
 import mill.scalalib.publish.PomSettings
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule

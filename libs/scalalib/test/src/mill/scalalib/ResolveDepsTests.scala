@@ -4,10 +4,10 @@ import coursier.core.VariantSelector.VariantMatcher
 import coursier.maven.MavenRepository
 import coursier.params.ResolutionParams
 import mill.api.Result.{Failure, Success}
-import mill.define.{PathRef}
+import mill.api.{PathRef}
 import mill.api.{Result}
 
-import mill.define.{Discover, Task}
+import mill.api.{Discover, Task}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.util.TokenReaders._

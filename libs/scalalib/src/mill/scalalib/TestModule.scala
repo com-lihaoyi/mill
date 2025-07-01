@@ -2,20 +2,20 @@ package mill.scalalib
 
 import mill.T
 import mill.api.Result
-import mill.api.internal.TestModuleApi
-import mill.api.internal.TestReporter
-import mill.api.internal.bsp.{BspBuildTarget, BspModuleApi}
-import mill.define.PathRef
-import mill.define.Task
-import mill.define.TaskCtx
-import mill.define.TaskModule
+import mill.api.shared.internal.TestModuleApi
+import mill.api.shared.internal.TestReporter
+import mill.api.shared.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.api.PathRef
+import mill.api.Task
+import mill.api.TaskCtx
+import mill.api.TaskModule
 import mill.scalalib.bsp.BspModule
 import mill.testrunner.Framework
 import mill.testrunner.TestArgs
 import mill.testrunner.TestResult
 import mill.testrunner.TestRunner
 import mill.util.Jvm
-import mill.define.JsonFormatters.given
+import mill.api.JsonFormatters.given
 import mill.constants.EnvVars
 
 import java.nio.file.Path
@@ -29,7 +29,7 @@ trait TestModule
     with TaskModule
     with TestModuleApi {
 
-  override def defaultCommandName() = "testForked"
+  override def defaultTask() = "testForked"
 
   /**
    * The classpath containing the tests. This is most likely the output of the compilation target.

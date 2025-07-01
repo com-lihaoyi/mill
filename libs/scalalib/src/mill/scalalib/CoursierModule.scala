@@ -5,8 +5,8 @@ import coursier.core.Resolution
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import coursier.{Dependency, Repository, Resolve, Type}
-import mill.define.Task
-import mill.define.{PathRef}
+import mill.api.Task
+import mill.api.{PathRef}
 import mill.api.{Result}
 import mill.util.Jvm
 import mill.T
@@ -20,7 +20,7 @@ import scala.concurrent.duration.Duration
  * It's mainly used in [[JavaModule]], but can also be used stand-alone,
  * in which case you must provide repositories by overriding [[CoursierModule.repositoriesTask]].
  */
-trait CoursierModule extends mill.define.Module {
+trait CoursierModule extends mill.api.Module {
 
   /**
    * Whether to enable Gradle Module support when fetching dependencies
@@ -246,7 +246,7 @@ object CoursierModule {
         artifactTypes: Option[Set[coursier.Type]] = None,
         resolutionParamsMapOpt: Option[ResolutionParams => ResolutionParams] = None,
         mapDependencies: Option[Dependency => Dependency] = null
-    )(implicit ctx: mill.define.TaskCtx): Seq[PathRef] =
+    )(implicit ctx: mill.api.TaskCtx): Seq[PathRef] =
       Lib.resolveDependencies(
         repositories = repositories,
         deps = deps.iterator.map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind)),
@@ -267,7 +267,7 @@ object CoursierModule {
      */
     def resolution[T: CoursierModule.Resolvable](
         deps: IterableOnce[T]
-    )(implicit ctx: mill.define.TaskCtx): coursier.core.Resolution = {
+    )(implicit ctx: mill.api.TaskCtx): coursier.core.Resolution = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))
@@ -291,7 +291,7 @@ object CoursierModule {
     def artifacts[T: CoursierModule.Resolvable](
         deps: IterableOnce[T],
         sources: Boolean = false
-    )(implicit ctx: mill.define.TaskCtx): coursier.Artifacts.Result = {
+    )(implicit ctx: mill.api.TaskCtx): coursier.Artifacts.Result = {
       val deps0 = deps
         .iterator
         .map(implicitly[CoursierModule.Resolvable[T]].bind(_, bind))

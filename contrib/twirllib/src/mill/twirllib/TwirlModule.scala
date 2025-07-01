@@ -2,10 +2,10 @@ package mill
 package twirllib
 
 import coursier.Repository
-import mill.define.PathRef
+import mill.api.PathRef
 import mill.scalalib.*
 
-import mill.define.Task
+import mill.api.Task
 import mill.util.BuildInfo
 
 import scala.io.Codec

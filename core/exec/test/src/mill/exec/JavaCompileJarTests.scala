@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.util.Jvm
-import mill.define.TaskCtx.Dest
+import mill.api.TaskCtx.Dest
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 
@@ -9,7 +9,7 @@ import mill.util.JarManifest
 
 import utest.*
 import mill.*
-import mill.define.{Discover, Task}
+import mill.api.{Discover, Task}
 
 object JavaCompileJarTests extends TestSuite {
   def compileAll(sources: Seq[PathRef])(implicit ctx: Dest) = {

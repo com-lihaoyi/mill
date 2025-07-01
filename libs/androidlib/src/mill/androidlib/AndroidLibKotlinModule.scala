@@ -1,7 +1,7 @@
 package mill.androidlib
 
 import mill.{T, Task}
-import mill.define.PathRef
+import mill.api.PathRef
 
 trait AndroidLibKotlinModule extends AndroidLibModule with AndroidKotlinModule { outer =>
 

@@ -6,7 +6,7 @@
 package mill.kotlinlib.worker.impl
 
 import mill.api.Result
-import mill.define.TaskCtx
+import mill.api.TaskCtx
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import org.jetbrains.kotlin.cli.js.K2JSCompiler
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
