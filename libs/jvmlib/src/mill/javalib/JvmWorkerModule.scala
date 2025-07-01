@@ -25,13 +25,13 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
 
   def classpath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-libs-scalalib-worker")
+      Dep.millProjectModule("mill-libs-jvmlib-worker")
     ))
   }
 
   def scalalibClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-libs-scalalib")
+      Dep.millProjectModule("mill-libs-jvmlib")
     ))
   }
 
@@ -43,7 +43,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
 
   def backgroundWrapperClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-libs-scalalib-backgroundwrapper", artifactSuffix = "")
+      Dep.millProjectModule("mill-libs-jvmlib-backgroundwrapper", artifactSuffix = "")
     ))
   }
 
@@ -57,7 +57,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       getClass.getClassLoader
     )
 
-    val cls = cl.loadClass("mill.scalalib.worker.JvmWorkerImpl")
+    val cls = cl.loadClass("mill.jvmlib.worker.JvmWorkerImpl")
     val instance = cls.getConstructor(
       classOf[
         Either[

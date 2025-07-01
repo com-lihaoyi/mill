@@ -190,7 +190,7 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
         args = RunModule.BackgroundPaths(dest).toArgs ++ Seq(
           mainClass()
         ) ++ args().value,
-        mainClass = "mill.scalalib.backgroundwrapper.MillBackgroundWrapper",
+        mainClass = "mill.jvmlib.backgroundwrapper.MillBackgroundWrapper",
         workingDir = forkWorkingDir(),
         extraRunClasspath = jvmWorker().backgroundWrapperClasspath().map(_.path).toSeq,
         background = true,

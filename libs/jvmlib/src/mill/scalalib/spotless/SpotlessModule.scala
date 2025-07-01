@@ -80,7 +80,7 @@ trait SpotlessModule extends CoursierModule, OfflineSupportModule {
     case _ => Task { Seq.empty[String] }
 
   private def spotlessWorkerClasspath = Task {
-    defaultResolver().classpath(Seq(Dep.millProjectModule("mill-libs-scalalib-spotless-worker")))
+    defaultResolver().classpath(Seq(Dep.millProjectModule("mill-libs-jvmlib-spotless-worker")))
   }
 
   private def spotlessWorkerClassloader = Task.Worker {
@@ -93,7 +93,7 @@ trait SpotlessModule extends CoursierModule, OfflineSupportModule {
   private def spotlessWorker = Task.Worker {
     BuildCtx.withFilesystemCheckerDisabled {
       spotlessWorkerClassloader()
-        .loadClass("mill.scalalib.spotless.SpotlessWorkerImpl")
+        .loadClass("mill.jvmlib.spotless.SpotlessWorkerImpl")
         .getConstructor(
           classOf[os.Path],
           classOf[Seq[String]],

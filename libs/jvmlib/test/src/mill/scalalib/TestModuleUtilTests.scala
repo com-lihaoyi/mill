@@ -334,7 +334,7 @@ object TestModuleUtilTests extends TestSuite {
           "mill.scalalib.UtestTestRunnerTests",
           "mill.scalalib.VersionContolTests",
           "mill.scalalib.ZiotestTestRunnerTests",
-          "mill.jvmlib.api.JvmWorkerUtilTests",
+          "mill.scalalib.api.JvmWorkerUtilTests",
           "mill.scalalib.bsp.BspModuleTests",
           "mill.scalalib.dependency.metadata.MetadataLoaderFactoryTests",
           "mill.scalalib.dependency.updates.UpdatesFinderTests",

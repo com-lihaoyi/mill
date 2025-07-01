@@ -153,7 +153,7 @@ object AssemblyModule extends ExternalModule with CoursierModule with OfflineSup
 
   def jarjarabramsWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-libs-scalalib-jarjarabrams-worker")
+      Dep.millProjectModule("mill-libs-jvmlib-jarjarabrams-worker")
     ))
   }
 
@@ -178,7 +178,7 @@ object AssemblyModule extends ExternalModule with CoursierModule with OfflineSup
       )]] = Task.Worker {
     (relocates: Seq[(String, String)], name: String, is: UnopenedInputStream) =>
       jarjarabramsWorkerClassloader()
-        .loadClass("mill.scalalib.jarjarabrams.impl.JarJarAbramsWorkerImpl")
+        .loadClass("mill.jvmlib.jarjarabrams.impl.JarJarAbramsWorkerImpl")
         .getMethods
         .filter(_.getName == "apply")
         .head
