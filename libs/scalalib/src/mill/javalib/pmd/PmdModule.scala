@@ -1,7 +1,7 @@
 package mill.javalib.pmd
 
 import mill.*
-import mill.define.{Discover, ExternalModule, TaskCtx}
+import mill.api.{Discover, ExternalModule, TaskCtx}
 import mill.scalalib.api.Versions
 import mill.scalalib.scalafmt.ScalafmtModule.sources
 import mill.scalalib.{CoursierModule, DepSyntax, OfflineSupportModule}
