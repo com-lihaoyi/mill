@@ -28,6 +28,10 @@ include::partial$example/javalib/linting/4-spotless.adoc[]
 
 include::partial$example/javalib/linting/5-spotless-ratchet.adoc[]
 
+== Static analysis with PMD
+
+include::partial$example/javalib/linting/6-pmd.adoc[]
+
 == Code Coverage with Jacoco
 
 Mill supports Java code coverage analysis via the mill-jacoco plugin. See the
