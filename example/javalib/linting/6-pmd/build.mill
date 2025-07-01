@@ -39,3 +39,18 @@ PMD found 1 violation(s)
 // For a full list of PMD options, see the PMD documentation:
 // https://pmd.github.io/pmd/pmd_userdocs_cli_reference.html.
 //
+// Here's an example of producing HTML report:
+/** Usage
+ > ./mill pmd -f "html"
+<html><head><title>PMD</title></head><body>
+<center><h3>PMD report</h3></center><center><h3>Problems found</h3></center><table align="center" cellspacing="0" cellpadding="3"><tr>
+<th>#</th><th>File</th><th>Line</th><th>Problem</th></tr>
+<tr bgcolor="lightgrey">
+<td align="center">1</td>
+<td width="*%">src/EmptyCatchBlock.java</td>
+<td align="center" width="5%">7</td>
+<td width="*"><a href="https://docs.pmd-code.org/snapshot/pmd_rules_java_errorprone.html#emptycatchblock">Avoid empty catch blocks</a></td>
+</tr>
+</table></body></html>
+PMD found 1 violation(s)
+ */
