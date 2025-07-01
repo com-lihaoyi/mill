@@ -111,14 +111,14 @@ trait Logger {
   final def debugEnabled = prompt.debugEnabled
 }
 
-private[mill] object Logger {
+object Logger {
 
   /**
    * APIs that allow a logger to interact with the global prompt: setting and unsetting
    * lines, enabling or disabling the prompt, etc. Normally passed through from logger
    * to logger unchanged without any customization.
    */
-  trait Prompt {
+  private[mill] trait Prompt {
 
     private[mill] def setPromptDetail(key: Seq[String], s: String): Unit
     private[mill] def reportKey(key: Seq[String]): Unit
@@ -138,7 +138,7 @@ private[mill] object Logger {
     def errorColor(s: String): String
     def colored: Boolean
   }
-  object Prompt {
+  private[mill] object Prompt {
     class NoOp extends Prompt {
       private[mill] def setPromptDetail(key: Seq[String], s: String): Unit = ()
       private[mill] def reportKey(key: Seq[String]): Unit = ()
