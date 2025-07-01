@@ -89,7 +89,8 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
           }
           // For "html" format: count lines with <tr but skip the header row
           else if (format == "html") {
-            violationCount = Some(lines.count(line => line.trim.startsWith("<tr") && !line.contains("<th")))
+            violationCount =
+              Some(lines.count(line => line.trim.startsWith("<tr") && !line.contains("<th")))
           }
         } else {
           violationCount = Some(0)
