@@ -2,7 +2,7 @@ package build.dist.scripts
 
 import java.nio.file.attribute.PosixFilePermission
 import java.util.regex.Pattern
-import mill.api.BuildCtx
+import mill.define.BuildCtx
 import mill.*
 import mill.scalalib.*
 import mill.api.Result

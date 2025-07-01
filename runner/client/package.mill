@@ -3,7 +3,7 @@ import mill.*
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.*
 import millbuild.*
-import mill.api.BuildCtx
+import mill.define.BuildCtx
 
 /**
  * This module contains the core logic around the Mill command line client,

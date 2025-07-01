@@ -5,14 +5,14 @@ import coursier.maven.MavenRepository
 import mill._
 import mill.util.Tasks
 import mill.scalalib._
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.scalalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
-import mill.api.SelectMode
+import mill.define.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
-import mill.api.Cross
-import mill.api.BuildCtx
+import mill.define.Cross
+import mill.define.BuildCtx
 
 object `package` extends Module {
   def exampleModules: Seq[ExampleCrossModule] = moduleInternal
