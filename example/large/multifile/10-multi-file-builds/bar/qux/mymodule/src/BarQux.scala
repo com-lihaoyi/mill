@@ -1,5 +1,5 @@
 package bar.qux
-import scalatags.Text.all.*
+import scalatags.Text.all._
 object BarQux {
   def printText(text: String): Unit = {
     val value = p("world")
