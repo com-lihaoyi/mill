@@ -2,7 +2,7 @@
 // It features a simple view that returns `<h1>Hello, Mill!</h1>` and
 // includes `Django's` core functionality for `testing` and `running` a development server.
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 

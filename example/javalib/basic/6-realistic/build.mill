@@ -1,6 +1,6 @@
 //// SNIPPET:ALL
 package build
-import mill._, javalib._, publish._
+import mill.*, javalib.*, publish.*
 
 trait MyModule extends JavaModule with PublishModule {
   def publishVersion = "0.0.1"

@@ -2,7 +2,7 @@
 // as the root module of the file:
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object `package` extends JavaModule {
   def mvnDeps = Seq(

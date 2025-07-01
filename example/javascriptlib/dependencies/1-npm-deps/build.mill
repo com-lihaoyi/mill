@@ -1,5 +1,5 @@
 package build
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object foo extends TypeScriptModule {
   def npmDeps = Seq("lodash@4.17.21")

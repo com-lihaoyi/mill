@@ -10,7 +10,7 @@
 // The following examples will be assuming the `build.mill` file given below:
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 trait MyModule extends JavaModule {
   object test extends JavaTests with TestModule.Junit4

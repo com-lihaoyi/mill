@@ -1,5 +1,5 @@
 package myplugin
-import mill._
+import mill.*
 
 /**
  * Example Mill plugin trait that adds a `line-count.txt`

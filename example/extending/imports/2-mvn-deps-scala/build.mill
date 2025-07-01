@@ -5,8 +5,8 @@
 // a HTML generation library that does the string concatenation/construction internally
 // and also escapes the input strings on your behalf:
 
-import mill._, scalalib._
-import scalatags.Text.all._
+import mill.*, scalalib.*
+import scalatags.Text.all.*
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.16"

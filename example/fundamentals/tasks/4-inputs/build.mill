@@ -1,5 +1,5 @@
 package build
-import mill._
+import mill.*
 import mill.api.BuildCtx
 
 def myInput = Task.Input {

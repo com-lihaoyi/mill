@@ -1,5 +1,5 @@
 package build
-import mill._
+import mill.*
 
 trait MyModule extends Module {
   def crossValue: String

@@ -34,7 +34,7 @@
 // where `bar` depends on `foo` but `qux` is standalone:
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 trait MyModule extends JavaModule {
   object test extends JavaTests with TestModule.Junit4

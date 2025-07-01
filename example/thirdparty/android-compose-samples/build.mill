@@ -1,4 +1,4 @@
-import mill._, androidlib._, kotlinlib._
+import mill.*, androidlib.*, kotlinlib.*
 
 object Versions {
   val kotlinVersion = "2.1.20"

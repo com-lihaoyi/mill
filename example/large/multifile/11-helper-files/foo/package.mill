@@ -1,5 +1,5 @@
 package build.foo
-import mill._, scalalib._
+import mill.*, scalalib.*
 object `package` extends build.MyModule {
   def forkEnv = Map(
     "MY_SCALA_VERSION" -> build.myScalaVersion,

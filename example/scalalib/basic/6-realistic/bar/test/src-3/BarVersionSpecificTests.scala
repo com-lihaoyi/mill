@@ -1,5 +1,5 @@
 package bar
-import utest._
+import utest.*
 object BarVersionSpecificTests extends TestSuite {
   def tests = Tests {
     test("test") {
