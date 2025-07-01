@@ -1,7 +1,7 @@
 package mill.javalib.pmd
 
 import mill.*
-import mill.define.{Discover, ExternalModule}
+import mill.define.{Discover, ExternalModule, TaskCtx}
 import mill.scalalib.api.Versions
 import mill.scalalib.scalafmt.ScalafmtModule.sources
 import mill.scalalib.{CoursierModule, DepSyntax, OfflineSupportModule}
@@ -67,7 +67,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       exitCode: Int,
       output: os.Path,
       format: String
-  )(implicit ctx: mill.define.TaskCtx): Int = {
+  )(implicit ctx: TaskCtx): Int = {
 
     val reported = os.exists(output)
     var violationCount: Option[Int] = None
