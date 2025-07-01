@@ -1,6 +1,6 @@
 package mill.javalib.pmd
 
-import mill.define.{Discover, Module, Task}
+import mill.api.{Discover, Module, Task}
 import mill.scalalib.JavaHomeModule
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
@@ -106,16 +106,26 @@ object PmdModuleTests extends TestSuite {
         ).scoped { eval =>
           val Left(_) = eval("bar.pmd")
           var log = logStream.toString()
-          assert(log.contains(
-            "ImmutableField.java:2:\tImmutableField:\tField 'x' may be declared final"
-          ))
+          assert(
+            log.contains(
+              "ImmutableField.java:2:\tImmutableField:\tField 'x' may be declared final"
+            ),
+            !log.contains(
+              "LooseCoupling.java:5:\tLooseCoupling:\tAvoid using implementation types like 'HashSet'; use the interface instead"
+            )
+          )
 
           logStream.reset()
           val Left(_) = eval("foo.pmd")
           log = logStream.toString()
-          assert(log.contains(
-            "LooseCoupling.java:5:\tLooseCoupling:\tAvoid using implementation types like 'HashSet'; use the interface instead"
-          ))
+          assert(
+            !log.contains(
+              "ImmutableField.java:2:\tImmutableField:\tField 'x' may be declared final"
+            ),
+            log.contains(
+              "LooseCoupling.java:5:\tLooseCoupling:\tAvoid using implementation types like 'HashSet'; use the interface instead"
+            )
+          )
         }
       }
 

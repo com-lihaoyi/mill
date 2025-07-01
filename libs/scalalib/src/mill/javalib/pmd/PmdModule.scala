@@ -2,8 +2,8 @@ package mill.javalib
 package pmd
 
 import mainargs.Flag
+import mill.api.*
 import mill.constants.OutFiles.out
-import mill.define.*
 import mill.scalalib.{JavaHomeModule, OfflineSupportModule}
 import mill.util.Jvm
 
