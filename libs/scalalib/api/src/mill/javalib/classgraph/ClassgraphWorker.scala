@@ -1,4 +1,4 @@
-package mill.scalalib.classgraph
+package mill.javalib.classgraph
 
 import mill.api.TaskCtx
 

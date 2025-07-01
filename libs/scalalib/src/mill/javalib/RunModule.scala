@@ -12,7 +12,7 @@ import mill.constants.DaemonFiles
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{ModuleCtx, ModuleRef, PathRef, Task, TaskCtx}
 import mill.scalalib.bsp.BspRunModule
-import mill.scalalib.classgraph.ClassgraphWorkerModule
+import mill.javalib.classgraph.ClassgraphWorkerModule
 import mill.util.Jvm
 import mill.{Args, T}
 import os.{Path, ProcessOutput}

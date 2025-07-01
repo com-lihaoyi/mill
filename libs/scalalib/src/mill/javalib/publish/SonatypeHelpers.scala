@@ -1,4 +1,4 @@
-package mill.scalalib.publish
+package mill.javalib.publish
 
 import java.math.BigInteger
 import java.security.MessageDigest

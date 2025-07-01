@@ -1,6 +1,5 @@
 package mill.scalalib
 
-
 val Assembly = mill.javalib.Assembly
 type Assembly = mill.javalib.Assembly
 
@@ -80,4 +79,3 @@ val TestModuleUtil = mill.javalib.TestModuleUtil
 
 // val WithJvmWorkerModule = mill.javalib.WithJvmWorkerModule
 type WithJvmWorkerModule = mill.javalib.WithJvmWorkerModule
-

@@ -1,4 +1,4 @@
-package mill.scalalib.classgraph
+package mill.javalib.classgraph
 
 import mainargs.Flag
 import mill.{Command, T, Task}

@@ -1,4 +1,4 @@
-package mill.scalalib.publish
+package mill.javalib.publish
 
 import java.util.Base64
 

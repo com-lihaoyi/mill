@@ -1,4 +1,4 @@
-package mill.scalalib.publish
+package mill.javalib.publish
 
 // https://maven.apache.org/pom.html#SCM
 /*

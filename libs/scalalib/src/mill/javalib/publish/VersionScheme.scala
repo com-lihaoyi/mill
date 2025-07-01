@@ -1,4 +1,4 @@
-package mill.scalalib.publish
+package mill.javalib.publish
 import upickle.default.{macroRW, ReadWriter}
 sealed abstract class VersionScheme(val value: String) {
   def toProperty: (String, String) = "info.versionScheme" -> value

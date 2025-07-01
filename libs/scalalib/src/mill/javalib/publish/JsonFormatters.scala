@@ -1,4 +1,4 @@
-package mill.scalalib.publish
+package mill.javalib.publish
 
 import upickle.default.{ReadWriter => RW}
 
@@ -9,3 +9,4 @@ trait JsonFormatters {
   implicit lazy val versionControlFormat: RW[VersionControl] = upickle.default.macroRW
   implicit lazy val pomSettingsFormat: RW[PomSettings] = upickle.default.macroRW
 }
+object JsonFormatters extends JsonFormatters

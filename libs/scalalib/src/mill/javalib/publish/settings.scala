@@ -1,8 +1,8 @@
-package mill.scalalib.publish
+package mill.javalib.publish
 
-import mill.scalalib.Dep
+import mill.javalib.Dep
 import upickle.default.ReadWriter as RW
-
+import JsonFormatters._
 case class Artifact(group: String, id: String, version: String) derives RW {
   require(
     !group.contains("/") &&

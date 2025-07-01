@@ -1,4 +1,4 @@
-package mill.scalalib.publish
+package mill.javalib.publish
 
 import scala.xml.{Atom, Elem, NodeSeq, PrettyPrinter}
 

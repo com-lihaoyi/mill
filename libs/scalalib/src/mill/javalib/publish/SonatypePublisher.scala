@@ -1,8 +1,8 @@
-package mill.scalalib.publish
+package mill.javalib.publish
 
 import mill.api.Logger
 
-import mill.scalalib.publish.SonatypeHelpers.getArtifactMappings
+import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
 
 class SonatypePublisher(
     uri: String,

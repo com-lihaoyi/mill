@@ -1,9 +1,8 @@
-package mill.scalalib.giter8
+package mill.init
 
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
-
 import mill.api.Discover
 
 object Giter8Tests extends TestSuite {
