@@ -15,7 +15,7 @@ object GenIdeaExtendedTests extends UtestIntegrationTestSuite {
       import tester._
       val expectedBase = workspacePath / "idea"
       val resources = os.walk(expectedBase).filter(os.isFile).map(_.subRelativeTo(expectedBase))
-
+      eval("version", check = true, stdout = os.Inherit, stderr = os.Inherit)
       eval("mill.idea.GenIdea/", check = true, stdout = os.Inherit, stderr = os.Inherit)
 
       for (resource <- resources)
