@@ -37,10 +37,10 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       ) ++ (if (stdout) Seq.empty else Seq("-r", output.toString))
 
       val args =
-        if (isPmd6OrOlder(this.pmdDistVersion())) pmdOptions() ++ baseArgs
+        if (isPmd6OrOlder(this.pmdVersion())) pmdOptions() ++ baseArgs
         else pmdOptions() ++ (Seq("check") ++ baseArgs)
       val mainCls =
-        if (isPmd6OrOlder(this.pmdDistVersion())) "net.sourceforge.pmd.PMD"
+        if (isPmd6OrOlder(this.pmdVersion())) "net.sourceforge.pmd.PMD"
         else "net.sourceforge.pmd.cli.PmdCli"
       val jvmArgs = pmdLanguage().map(lang => s"-Duser.language=$lang").toSeq
 
@@ -119,11 +119,8 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
    * Classpath for running PMD.
    */
   def pmdClasspath: T[Seq[PathRef]] = Task {
-    val version = pmdDistVersion()
-    if (version.nonEmpty)
-      defaultResolver().classpath(Seq(mvn"net.sourceforge.pmd:pmd-dist:$version"))
-    else
-      defaultResolver().classpath(Seq(mvn"${mill.scalalib.api.Versions.pmdDistVersion}"))
+    val version = pmdVersion()
+    defaultResolver().classpath(Seq(mvn"net.sourceforge.pmd:pmd-dist:$version"))
   }
 
   /** PMD rulesets files. Defaults to `pmd-ruleset.xml`. */
@@ -147,8 +144,8 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       .exists(_ < 7)
   }
 
-  /** PMD dependency version. */
-  def pmdDistVersion: T[String] = Task { Versions.pmdDistVersion }
+  /** PMD version. */
+  def pmdVersion: T[String] = Task { Versions.pmdDistVersion }
 }
 
 /**
