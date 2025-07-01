@@ -1,6 +1,6 @@
 package mill.javalib.pmd
 
-import mill.define.{Discover, Task}
+import mill.define.{Discover, Module, Task}
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
@@ -20,6 +20,12 @@ object PmdModuleTests extends TestSuite {
     object foo extends PmdModule
   }
 
+  abstract class RootModule extends TestRootModule, PmdModule {
+    lazy val millDiscover = Discover[this.type]
+    object bar extends Module
+    object foo extends Module
+  }
+
   def tests = Tests {
     test("violations") {
       val logStream = ByteArrayOutputStream()
@@ -31,15 +37,30 @@ object PmdModuleTests extends TestSuite {
       ).scoped { eval =>
         val Left(_) = eval("pmd")
         val log = logStream.toString()
-        for violation <- Seq(
-            "ImmutableField.java:2:\tImmutableField:\tField 'x' may be declared final",
+        assert(
+          log.contains("ImmutableField.java:2:\tImmutableField:\tField 'x' may be declared final"),
+          log.contains(
             "LooseCoupling.java:5:\tLooseCoupling:\tAvoid using implementation types like 'HashSet'; use the interface instead"
           )
-        do assert(log.contains(violation))
+        )
       }
     }
 
-    test("exclude") {
+    test("no violations") {
+      object module extends SingleModule
+      val logStream = ByteArrayOutputStream()
+      UnitTester(
+        module,
+        resources / "no-violations",
+        errStream = PrintStream(logStream, true)
+      ).scoped { eval =>
+        val Right(_) = eval("pmd")
+        val log = logStream.toString()
+        assert(log.contains("no violations found"))
+      }
+    }
+
+    test("excludes") {
       val logStream = ByteArrayOutputStream()
       object module extends SingleModule {
         def pmdExcludes = Task.Sources("src/ImmutableField.java")
@@ -60,17 +81,21 @@ object PmdModuleTests extends TestSuite {
       }
     }
 
-    test("no violations") {
-      object module extends SingleModule
+    test("use-version") {
       val logStream = ByteArrayOutputStream()
+      object module extends SingleModule
       UnitTester(
         module,
-        resources / "no-violations",
-        errStream = PrintStream(logStream, true)
+        resources / "use-version",
+        outStream = PrintStream(logStream, true)
       ).scoped { eval =>
-        val Right(_) = eval("pmd")
+        val Left(_) = eval("pmd")
         val log = logStream.toString()
-        assert(log.contains("no violations found"))
+        assert(
+          log.contains(
+            "AccessorClassGeneration.java:6:\tAccessorClassGeneration:\tAvoid instantiation through private constructors from outside of the constructors class."
+          )
+        )
       }
     }
 
@@ -94,6 +119,25 @@ object PmdModuleTests extends TestSuite {
         assert(log.contains(
           "LooseCoupling.java:5:\tLooseCoupling:\tAvoid using implementation types like 'HashSet'; use the interface instead"
         ))
+      }
+    }
+
+    test("root-module") {
+      val logStream = ByteArrayOutputStream()
+      object module extends RootModule
+      UnitTester(
+        module,
+        resources / "multi-module",
+        outStream = PrintStream(logStream, true)
+      ).scoped { eval =>
+        val Left(_) = eval("pmd")
+        val log = logStream.toString()
+        assert(
+          log.contains("ImmutableField.java:2:\tImmutableField:\tField 'x' may be declared final"),
+          log.contains(
+            "LooseCoupling.java:5:\tLooseCoupling:\tAvoid using implementation types like 'HashSet'; use the interface instead"
+          )
+        )
       }
     }
   }

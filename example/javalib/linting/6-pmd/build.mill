@@ -1,7 +1,7 @@
 // :api-pmd: {site-url}/api/latest/mill/javalib/pmd
 
 // The `PmdModule` enables support for analyzing sources with
-// https://docs.pmd-code.org/latest/index.html[PMD] (Programming Mistake Detector).
+// https://docs.pmd-code.org/latest/index.html[PMD].
 
 package build
 
@@ -13,22 +13,20 @@ object `package` extends JavaModule with PmdModule
 /** See Also: src/Foo.java */
 /** See Also: ruleset.xml */
 
-// TIP: XML files, with name starting with "ruleset", under the module folder are auto-detected.
-// If no rulesets are found, the search is repeated for the workspace folder.
+// NOTE: Mill auto-selects XML ruleset files, with name prefix "ruleset", in the module folder.
+// If the search returns empty, it is repeated in the workspace folder.
 
-// We specify the
+// Here, we specify the
 // https://docs.pmd-code.org/latest/pmd_rules_java_bestpractices.html#systemprintln[SystemPrintln]
-// rule, in an ruleset XML file, to be applied on sources.
-
-// Running the `pmd` command lists violations in one of the available
-// https://docs.pmd-code.org/latest/pmd_userdocs_report_formats.html[report formats].
+// rule to be checked. The `pmd` command applies the rule on all sources and reports violations in
+// one of the available https://docs.pmd-code.org/latest/pmd_userdocs_report_formats.html[formats].
 
 /** Usage
-> ./mill pmd                # default format is text
+> ./mill pmd                # task fails on violation
 ...Foo.java:4:	SystemPrintln:	Usage of System.out/err
 error: ...violation(s) found
 
-> ./mill pmd -f textcolor   # same violation as above
+> ./mill pmd -f textcolor   # same as above with different report format
 ...Foo.java
     src:  Foo.java:4:4
     rule: SystemPrintln
@@ -37,16 +35,22 @@ error: ...violation(s) found
 Summary:
 * warnings: 1
 error: ...violation(s) found
+
+> ./mill pmd --minimum-priority High  # violation is suppressed when run with higher threshold
+no violations found
 */
+
+// TIP: For multi-module projects, it is sufficient to extend the `PmdModule` in the root module if
+// the same rulesets are to be applied in all modules.
 
 // You can also run the companion `PmdModule` xref:fundamentals/modules.adoc#_external_modules[globally]
 // if you prefer not to have to extend the trait in your build.
 
 /** Usage
-> ./mill mill.javalib.pmd.PmdModule/  # same violation as above
+> ./mill mill.javalib.pmd.PmdModule/
 ...Foo.java:4:	SystemPrintln:	Usage of System.out/err
 error: ...violation(s) found
 */
 
-// For the full list of configuration and command options, please refer to the
+// For the full list of configuration options, please refer to the
 // link:{api-pmd}/PmdModule.html[API documentation].
