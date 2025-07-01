@@ -145,7 +145,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
   }
 
   /** PMD version. */
-  def pmdVersion: T[String] = Task { Versions.pmdDistVersion }
+  def pmdVersion: T[String] = Task { Versions.pmdVersion }
 }
 
 /**

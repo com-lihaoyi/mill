@@ -2,7 +2,7 @@ package mill.javalib.pmd
 
 import mill.*
 import mainargs.Leftover
-import mill.define.Discover
+import mill.api.Discover
 import mill.scalalib.JavaModule
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
