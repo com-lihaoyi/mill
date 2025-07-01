@@ -103,15 +103,12 @@ object `package` extends mill.Module {
     }
   }
 
-  object failure extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "failure"))
-  object feature extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "feature"))
-  object invalidation
-      extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "invalidation"))
-  object ide extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "ide"))
-  object bootstrap
-      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "bootstrap"))
-  object migrating
-      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "migrating"))
+  object failure extends Cross[IntegrationCrossModule](build.listIn)
+  object feature extends Cross[IntegrationCrossModule](build.listIn)
+  object invalidation extends Cross[IntegrationCrossModule](build.listIn)
+  object ide extends Cross[IdeIntegrationCrossModule](build.listIn)
+  object bootstrap extends Cross[IdeIntegrationCrossModule](build.listIn)
+  object migrating extends Cross[IdeIntegrationCrossModule](build.listIn)
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkEnv = super.forkEnv() ++ Seq(
