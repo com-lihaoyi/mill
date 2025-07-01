@@ -5,7 +5,7 @@ import mill.api.{Discover, ExternalModule}
 import mill.scalalib.Dep
 
 @mill.api.experimental
-object InitMavenModule extends ExternalModule with BuildGenModule {
+private[mill] object InitMavenModule extends ExternalModule with BuildGenModule {
 
   lazy val millDiscover = Discover[this.type]
 
