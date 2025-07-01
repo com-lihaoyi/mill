@@ -19,7 +19,7 @@ object NoJavaBootstrapTests extends UtestIntegrationTestSuite {
     val cache = FileCache()
     val index = JvmIndex.load(
       cache = cache,
-      repositories = Resolve.defaultRepositories,
+      repositories = Resolve().repositories,
       indexChannel = JvmChannel.module(
         JvmChannel.centralModule(),
         version = mill.api.BuildInfo.coursierJvmIndexVersion
