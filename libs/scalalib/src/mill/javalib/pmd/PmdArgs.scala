@@ -1,7 +1,8 @@
 package mill.javalib.pmd
 
-import mainargs.{Leftover, ParserForClass, arg}
+import mainargs.{Leftover, ParserForClass, arg, main}
 
+@main(doc = "Arguments for PmdModule")
 case class PmdArgs(
     @arg(name = "check", short = 'c', doc = "Fail if violations are found")
     check: Boolean = false,
