@@ -1161,7 +1161,7 @@ rather than the <code>&quot;resources/&quot;</code> folder directly in code, sin
 <a href="../depth/sandboxing.html" class="xref page">Sandboxes</a> that guard against unwanted filesystem access.</p>
 </li>
 <li>
-<p>Similarly, you may need to use <code>mill.define.BuildCtx.workspaceRoot</code> or <code>WorkspaceRoot.workspaceRoot</code>
+<p>Similarly, you may need to use <code>mill.api.BuildCtx.workspaceRoot</code> or <code>WorkspaceRoot.workspaceRoot</code>
 to access the project root folder in custom build tasks, since the Mill build process
 also runs in a sandbox by default</p>
 </li>

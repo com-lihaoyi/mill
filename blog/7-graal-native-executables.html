@@ -321,7 +321,7 @@ program using common third-party dependencies.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
-import mill.define.ModuleRef
+import mill.api.ModuleRef
 
 object foo extends JavaModule {
   def mvnDeps = Seq(
@@ -372,7 +372,7 @@ above:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, javalib._
-import mill.define.ModuleRef
+import mill.api.ModuleRef
 
 object foo extends JavaModule with NativeImageModule {
   def mvnDeps = Seq(

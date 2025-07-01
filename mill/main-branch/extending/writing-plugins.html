@@ -675,7 +675,7 @@ via <a href="import-mvn-plugins.html" class="xref page">//| mvnDeps</a>.</p>
 <h2 id="_project_configuration"><a class="anchor" href="#_project_configuration"></a>Project Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-75-1d47b4-example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-76-146c50-example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill._, scalalib._, publish._
@@ -871,7 +871,7 @@ the results in-memory:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 
 import mill.testkit.{TestRootModule, UnitTester}
-import mill.define.Discover
+import mill.api.Discover
 import mill.PathRef
 import mill.util.TokenReaders._
 import utest._
