@@ -46,7 +46,7 @@ object PmdModuleTests extends TestSuite {
       }
     }
 
-    test("no violations") {
+    test("no-violations") {
       object module extends SingleModule
       val logStream = ByteArrayOutputStream()
       UnitTester(

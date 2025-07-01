@@ -149,5 +149,5 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
 @mill.api.experimental
 object PmdModule extends ExternalModule, TaskModule, PmdModule {
   lazy val millDiscover = Discover[this.type]
-  def defaultCommandName() = "pmd"
+  def defaultTask() = "pmd"
 }
