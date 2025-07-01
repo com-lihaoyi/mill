@@ -8,6 +8,6 @@ import millbuild.*
  * task graph after it has been resolved.
  */
 object `package` extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.core.define, build.core.internal)
+  def moduleDeps = Seq(build.core.api, build.core.internal)
   def mvnDeps = Seq(Deps.snakeyamlEngine)
 }

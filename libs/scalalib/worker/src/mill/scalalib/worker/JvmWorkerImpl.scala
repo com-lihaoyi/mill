@@ -2,9 +2,10 @@ package mill.scalalib.worker
 
 import mill.util.CachedFactory
 import mill.api._
+import mill.api.shared._
 import mill.api.internal.internal
-import mill.api.internal.CompileProblemReporter
-import mill.define.PathRef
+import mill.api.shared.internal.CompileProblemReporter
+import mill.api.PathRef
 import mill.constants.CodeGenConstants
 import mill.scalalib.api.{CompilationResult, Versions, JvmWorkerApi, JvmWorkerUtil}
 import mill.util.RefCountedClassLoaderCache

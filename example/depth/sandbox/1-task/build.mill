@@ -13,7 +13,7 @@
 
 package build
 import mill._
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 object foo extends Module {
   def tDestTask = Task { println(Task.dest.toString) }

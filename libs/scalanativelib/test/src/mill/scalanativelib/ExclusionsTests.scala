@@ -2,7 +2,7 @@ package mill.scalanativelib
 
 import mill.given
 import mill.scalalib._
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest._

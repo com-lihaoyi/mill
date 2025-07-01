@@ -1,6 +1,6 @@
 package mill.scalalib.spotless
 
-import mill.define.TaskCtx
+import mill.api.TaskCtx
 import mill.scalalib.CoursierModule
 
 class SpotlessWorkerImpl(cleaners: Cleaners, git: GitRatchet) extends SpotlessWorker {

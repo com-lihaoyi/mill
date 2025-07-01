@@ -1,6 +1,6 @@
 package build
 import mill.*
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 println("Setting up build.mill")
 

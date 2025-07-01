@@ -1,6 +1,6 @@
 package mill.scalalib.publish
 
-import mill.define.{TaskCtx, PathRef}
+import mill.api.{TaskCtx, PathRef}
 import mill.api.{Logger}
 import mill.internal.DummyLogger
 import utest.{TestSuite, Tests, assert, test}

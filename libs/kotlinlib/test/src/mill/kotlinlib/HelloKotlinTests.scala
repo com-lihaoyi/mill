@@ -4,7 +4,7 @@ package kotlinlib
 import mill.scalalib.TestModule
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.api.ExecResult
-import mill.define.Discover
+import mill.api.Discover
 import utest.*
 
 object HelloKotlinTests extends TestSuite {

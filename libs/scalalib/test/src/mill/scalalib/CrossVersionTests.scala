@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.define.Discover
+import mill.api.Discover
 import mill.util.TokenReaders.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule

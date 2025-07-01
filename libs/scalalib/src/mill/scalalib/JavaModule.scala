@@ -8,16 +8,16 @@ import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
 import mill.api.{MillException, Result}
-import mill.api.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.internal.bsp.{
+import mill.api.shared.internal.{EvaluatorApi, JavaModuleApi, internal}
+import mill.api.shared.internal.bsp.{
   BspBuildTarget,
   BspJavaModuleApi,
   BspModuleApi,
   BspUri,
   JvmBuildTarget
 }
-import mill.api.internal.idea.GenIdeaInternalApi
-import mill.define.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
+import mill.api.shared.internal.idea.GenIdeaInternalApi
+import mill.api.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.bsp.{BspJavaModule, BspModule}
 import mill.scalalib.internal.ModuleUtils
@@ -31,7 +31,7 @@ import scala.util.matching.Regex
  * Core configuration required to compile a single Java module
  */
 trait JavaModule
-    extends mill.define.Module
+    extends mill.api.Module
     with WithJvmWorkerModule
     with TestModule.JavaModuleBase
     with TaskModule

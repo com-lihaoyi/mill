@@ -3,10 +3,10 @@ package mill.scalajslib.worker
 import mill.*
 import mill.scalajslib.api
 import mill.scalajslib.worker.{api => workerApi}
-import mill.define.TaskCtx
+import mill.api.TaskCtx
 import mill.api.Result
 import mill.api.internal.internal
-import mill.define.Discover
+import mill.api.Discover
 import mill.util.CachedFactory
 
 import java.io.File
@@ -229,7 +229,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
 }
 
 @internal
-private[scalajslib] object ScalaJSWorkerExternalModule extends mill.define.ExternalModule {
+private[scalajslib] object ScalaJSWorkerExternalModule extends mill.api.ExternalModule {
 
   def scalaJSWorker: Worker[ScalaJSWorker] =
     Task.Worker { new ScalaJSWorker(Task.ctx().jobs) }

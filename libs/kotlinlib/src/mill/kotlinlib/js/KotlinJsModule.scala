@@ -3,10 +3,10 @@ package mill.kotlinlib.js
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mainargs.arg
-import mill.define.PathRef
+import mill.api.PathRef
 import mill.api.Result
-import mill.define.Task.Command
-import mill.define.Task
+import mill.api.Task.Command
+import mill.api.Task
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
 import mill.scalalib.Lib
@@ -15,7 +15,7 @@ import mill.testrunner.TestResult
 import mill.util.Jvm
 import mill.{Args, T}
 import sbt.testing.Status
-import mill.define.JsonFormatters.given
+import mill.api.JsonFormatters.given
 
 import java.io.{File, FileNotFoundException}
 import java.util.zip.ZipFile
@@ -158,7 +158,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       artifactId: String,
       envArgs: Map[String, String] = Map.empty[String, String],
       workingDir: os.Path
-  )(implicit ctx: mill.define.TaskCtx): Result[Int] = {
+  )(implicit ctx: mill.api.TaskCtx): Result[Int] = {
     if (binaryKind.isEmpty || binaryKind.get != BinaryKind.Executable) {
       return Result.Failure("Run action is only allowed for the executable binary")
     }
@@ -292,7 +292,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
       explicitApi: Boolean,
       extraKotlinArgs: Seq[String],
       worker: KotlinWorker
-  )(implicit ctx: mill.define.TaskCtx): Result[CompilationResult] = {
+  )(implicit ctx: mill.api.TaskCtx): Result[CompilationResult] = {
     val versionAllowed = kotlinVersion.split("\\.").map(_.toInt) match {
       case Array(1, 8, z) => z >= 20
       case Array(1, y, _) => y >= 9
@@ -439,7 +439,7 @@ trait KotlinJsModule extends KotlinModule { outer =>
     }
 
   // **NOTE**: This logic may (and probably is) be incomplete
-  private def isKotlinJsLibrary(path: os.Path)(implicit ctx: mill.define.TaskCtx): Boolean = {
+  private def isKotlinJsLibrary(path: os.Path)(implicit ctx: mill.api.TaskCtx): Boolean = {
     if (os.isDir(path)) {
       true
     } else if (path.ext == "klib") {

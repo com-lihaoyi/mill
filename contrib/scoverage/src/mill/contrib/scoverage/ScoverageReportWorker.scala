@@ -1,9 +1,9 @@
 package mill.contrib.scoverage
 
 import mill.Task
-import mill.define.{TaskCtx, PathRef}
+import mill.api.{TaskCtx, PathRef}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2
-import mill.define.{Discover, ExternalModule}
+import mill.api.{Discover, ExternalModule}
 
 import ScoverageReportWorker.ScoverageReportWorkerApiBridge
 import ScoverageReportWorkerApi2.ReportType

@@ -3,7 +3,7 @@ package mill.scalalib
 import mill._
 import mill.testkit.{TestRootModule, UnitTester}
 import utest._
-import mill.define.Discover
+import mill.api.Discover
 import mill.util.TokenReaders._
 import HelloWorldTests._
 object ScalaMultiModuleClasspathsTests extends TestSuite {

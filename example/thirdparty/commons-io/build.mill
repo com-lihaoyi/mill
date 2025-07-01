@@ -3,7 +3,7 @@
 package build
 
 import mill._, javalib._, publish._
-import mill.define.ModuleRef
+import mill.api.ModuleRef
 import contrib.jmh.JmhModule
 
 object `package` extends PublishModule with MavenModule {

@@ -84,7 +84,7 @@ trait TypeScriptModule extends Module {
     (mainFile, env)
   }
 
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
     val (mainFile, env) = prepareRun()
     os.call(("node", mainFile, args.value), stdout = os.Inherit, env = env)
   }

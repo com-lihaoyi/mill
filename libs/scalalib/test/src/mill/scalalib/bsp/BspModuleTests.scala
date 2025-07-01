@@ -1,7 +1,7 @@
 package mill.scalalib.bsp
 
-import mill.define.{Cross, Discover}
-import mill.define.ExecutionPaths
+import mill.api.{Cross, Discover}
+import mill.api.ExecutionPaths
 import mill.T
 import mill.scalalib.{DepSyntax, JavaModule, ScalaModule}
 import mill.testkit.UnitTester

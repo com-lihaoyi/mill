@@ -4,14 +4,14 @@ import java.util.concurrent.LinkedBlockingQueue
 import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
-import mill.define.{PathRef, Discover, Evaluator, ExternalModule, MultiBiMap, SelectMode}
+import mill.api.{PathRef, Discover, Evaluator, ExternalModule, MultiBiMap, SelectMode}
 import mill.*
 import mill.util.MillModuleUtil.millProjectModule
 import mill.api.{Result}
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
 import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 object VisualizeModule extends ExternalModule {
   def repositories: Seq[Repository] = Seq(
@@ -27,7 +27,7 @@ object VisualizeModule extends ExternalModule {
           scala.Seq[Task.Named[Any]],
           scala.Seq[Task.Named[Any]],
           MultiBiMap[Task.Named[Any], Task[?]],
-          mill.define.Plan,
+          mill.api.Plan,
           os.Path
       )],
       LinkedBlockingQueue[Result[scala.Seq[PathRef]]]
@@ -36,7 +36,7 @@ object VisualizeModule extends ExternalModule {
   private[mill] def visualize0(
       evaluator: Evaluator,
       tasks: Seq[String],
-      ctx: mill.define.TaskCtx,
+      ctx: mill.api.TaskCtx,
       vizWorker: VizWorker,
       planTasks: Option[List[Task.Named[?]]] = None
   ): Result[Seq[PathRef]] = {
@@ -87,17 +87,17 @@ object VisualizeModule extends ExternalModule {
           scala.Seq[Task.Named[Any]],
           scala.Seq[Task.Named[Any]],
           MultiBiMap[Task.Named[Any], Task[?]],
-          mill.define.Plan,
+          mill.api.Plan,
           os.Path
       )],
       LinkedBlockingQueue[Result[Seq[PathRef]]]
-  )] = mill.define.Task.Worker {
+  )] = mill.api.Task.Worker {
     val in =
       new LinkedBlockingQueue[(
           scala.Seq[Task.Named[Any]],
           scala.Seq[Task.Named[Any]],
           MultiBiMap[Task.Named[Any], Task[?]],
-          mill.define.Plan,
+          mill.api.Plan,
           os.Path
       )]()
     val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
@@ -114,7 +114,7 @@ object VisualizeModule extends ExternalModule {
                 k,
                 for {
                   v <- vs
-                  dest <- v.inputs.collect { case v: mill.define.Task.Named[Any] => v }
+                  dest <- v.inputs.collect { case v: mill.api.Task.Named[Any] => v }
                   if goalSet.contains(dest)
                 } yield dest
               )

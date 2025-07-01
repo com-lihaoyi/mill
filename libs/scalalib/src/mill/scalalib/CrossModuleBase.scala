@@ -1,8 +1,8 @@
 package mill.scalalib
 
 import mill.{T, Task}
-import mill.define.Cross
-import mill.define.Cross.Resolver
+import mill.api.Cross
+import mill.api.Cross.Resolver
 import mill.scalalib.api.JvmWorkerUtil
 
 trait CrossModuleBase extends ScalaModule with Cross.Module[String] {

@@ -1,16 +1,16 @@
 package mill.eval
 
-import mill.api.internal.TestReporter
+import mill.api.shared.internal.TestReporter
 import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles
-import mill.define.SelectiveExecution.ChangedTasks
-import mill.define.*
+import mill.api.SelectiveExecution.ChangedTasks
+import mill.api.*
 import mill.exec.{CodeSigUtils, Execution, PlanImpl}
 import mill.internal.SpanningForest
 import mill.internal.SpanningForest.breadthFirst
 
 private[mill] class SelectiveExecutionImpl(evaluator: Evaluator)
-    extends mill.define.SelectiveExecution {
+    extends mill.api.SelectiveExecution {
 
   def computeHashCodeSignatures(
       transitiveNamed: Seq[Task.Named[?]],
@@ -208,7 +208,7 @@ object SelectiveExecutionImpl {
     ): SelectiveExecution.Metadata.Computed = {
       val results: Map[Task.Named[?], mill.api.Result[Val]] = transitiveNamed
         .collect { case task: Task.Input[_] =>
-          val ctx = new mill.define.TaskCtx.Impl(
+          val ctx = new mill.api.TaskCtx.Impl(
             args = Vector(),
             dest0 = () => null,
             log = evaluator.baseLogger,

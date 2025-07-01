@@ -16,7 +16,7 @@ object ExecutionContexts {
    * spawning a separate thread or thread-pool. Used to turn parallel-async
    * Future code into nice single-threaded code without needing to rewrite it
    */
-  object RunNow extends mill.define.TaskCtx.Fork.Impl {
+  object RunNow extends mill.api.TaskCtx.Fork.Impl {
     def await[T](t: Future[T]): T = Await.result(t, Duration.Inf)
     def execute(runnable: Runnable): Unit = runnable.run()
     def reportFailure(cause: Throwable): Unit = {}
@@ -24,7 +24,7 @@ object ExecutionContexts {
 
     def blocking[T](t: => T): T = t
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
-        ctx: mill.define.TaskCtx
+        ctx: mill.api.TaskCtx
     ): Future[T] =
       Future.successful(t(ctx.log))
   }
@@ -33,7 +33,7 @@ object ExecutionContexts {
    * A simple thread-pool-based ExecutionContext with configurable thread count
    * and AutoCloseable support
    */
-  class ThreadPool(executor: ThreadPoolExecutor) extends mill.define.TaskCtx.Fork.Impl {
+  class ThreadPool(executor: ThreadPoolExecutor) extends mill.api.TaskCtx.Fork.Impl {
     def await[T](t: Future[T]): T = blocking { Await.result(t, Duration.Inf) }
 
     def updateThreadCount(delta: Int): Unit = synchronized {
@@ -61,7 +61,7 @@ object ExecutionContexts {
         0,
         () =>
           os.dynamicPwdFunction.withValue(() => submitterPwd) {
-            mill.define.SystemStreams.withStreams(submitterStreams) {
+            mill.api.SystemStreamsUtils.withStreams(submitterStreams) {
               runnable.run()
             }
           }
@@ -103,7 +103,7 @@ object ExecutionContexts {
      * [[t]], to avoid conflict with other tasks that may be running concurrently
      */
     def async[T](dest: Path, key: String, message: String, priority: Int)(t: Logger => T)(implicit
-        ctx: mill.define.TaskCtx
+        ctx: mill.api.TaskCtx
     ): Future[T] = {
       val logger = new MultiLogger(
         new PrefixLogger(ctx.log, Seq(key), ctx.log.keySuffix, message),
@@ -126,7 +126,7 @@ object ExecutionContexts {
         run0 = () => {
           val result = scala.util.Try(logger.withPromptLine {
             os.dynamicPwdFunction.withValue(() => makeDest()) {
-              mill.define.SystemStreams.withStreams(logger.streams) {
+              mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                 t(logger)
               }
             }

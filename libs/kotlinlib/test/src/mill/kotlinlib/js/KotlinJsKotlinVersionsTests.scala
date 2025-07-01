@@ -4,7 +4,7 @@ package js
 
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.Cross
-import mill.define.Discover
+import mill.api.Discover
 import utest.{TestSuite, Tests, test}
 
 object KotlinJsKotlinVersionsTests extends TestSuite {

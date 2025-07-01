@@ -1,6 +1,6 @@
 package mill.contrib.bintray
 
-import mill.define.PathRef
+import mill.api.PathRef
 import mill.scalalib.publish.Artifact
 
 case class BintrayPublishData(

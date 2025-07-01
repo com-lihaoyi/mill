@@ -3,7 +3,7 @@ package mill.main
 import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles
 import mill.{Task, given}
-import mill.define.{PathRef, Cross, Discover, Module, TaskModule}
+import mill.api.{PathRef, Cross, Discover, Module, TaskModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, test}

@@ -1,6 +1,6 @@
 package mill.javalib.junit5
 
-import mill.define.Discover
+import mill.api.Discover
 import mill.scalalib.JavaModule
 import mill.scalalib.TestModule
 import mill.testkit.{TestRootModule, UnitTester}

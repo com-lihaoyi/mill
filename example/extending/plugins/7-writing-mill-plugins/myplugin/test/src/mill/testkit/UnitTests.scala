@@ -1,7 +1,7 @@
 package myplugin
 
 import mill.testkit.{TestRootModule, UnitTester}
-import mill.define.Discover
+import mill.api.Discover
 import mill.PathRef
 import mill.util.TokenReaders._
 import utest._

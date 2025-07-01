@@ -28,9 +28,9 @@
 [4-compile] errored.exception.compile java.lang.RuntimeException: nope
 [4-compile]     scala.sys.package$.error(package.scala:*)
 [4-compile]     build_.package_.build_*(build.mill:*)
-[4-compile]     mill.define.Task$Named.evaluate(Task.scala:*)
-[4-compile]     mill.define.Task$Named.evaluate$(Task.scala:*)
-[4-compile]     mill.define.Task$Computed.evaluate(Task.scala:*)
+[4-compile]     mill.api.Task$Named.evaluate(Task.scala:*)
+[4-compile]     mill.api.Task$Named.evaluate$(Task.scala:*)
+[4-compile]     mill.api.Task$Computed.evaluate(Task.scala:*)
 [4-compile] Failed
 [4-compile] buildTargetCompile took * msec
 [5-compile] Entered buildTargetCompile

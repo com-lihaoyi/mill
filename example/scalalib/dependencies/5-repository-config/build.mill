@@ -5,7 +5,7 @@
 //// SNIPPET:BUILD1
 package build
 import mill._, scalalib._
-import mill.define.ModuleRef
+import mill.api.ModuleRef
 
 object foo extends ScalaModule {
   def scalaVersion = "3.7.1"

@@ -5,7 +5,7 @@
  */
 package mill.kotlinlib.worker.api
 
-import mill.define.{TaskCtx}
+import mill.api.{TaskCtx}
 import mill.api.{Result}
 
 trait KotlinWorker {

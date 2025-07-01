@@ -2,8 +2,8 @@ package mill.daemon
 
 import mill.api.SystemStreams
 import mill.api.internal.internal
-import mill.define.internal.Watchable
-import mill.define.BuildCtx
+import mill.api.internal.Watchable
+import mill.api.BuildCtx
 import mill.internal.Colors
 
 import java.io.InputStream
@@ -281,11 +281,11 @@ object Watching {
 
   /** @return true if the watchable did not change. */
   def haveNotChanged(w: Watchable): Boolean =
-    mill.define.internal.WatchSig.haveNotChanged(w)
+    mill.api.internal.WatchSig.haveNotChanged(w)
 
   def poll(w: Watchable): Long =
-    mill.define.internal.WatchSig.poll(w)
+    mill.api.internal.WatchSig.poll(w)
 
   def signature(w: Watchable): Long =
-    mill.define.internal.WatchSig.signature(w)
+    mill.api.internal.WatchSig.signature(w)
 }

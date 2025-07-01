@@ -109,7 +109,7 @@ console.log("Hello " + user.firstName + " " + user.lastName);
 // call `node` along with the main Javascript file:
 
 def mainFileName = Task { "hello.js" }
-def run(args: mill.define.Args) = Task.Command {
+def run(args: mill.api.Args) = Task.Command {
   os.call(
     ("node", compile().path / mainFileName(), args.value),
     stdout = os.Inherit

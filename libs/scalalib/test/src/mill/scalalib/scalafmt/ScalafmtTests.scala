@@ -1,7 +1,7 @@
 package mill.scalalib.scalafmt
 
 import mill.*
-import mill.define.Discover
+import mill.api.Discover
 import mill.util.Tasks
 import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester

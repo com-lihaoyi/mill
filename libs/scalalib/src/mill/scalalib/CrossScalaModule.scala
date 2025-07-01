@@ -1,7 +1,7 @@
 package mill.scalalib
 
 /**
- * A [[ScalaModule]] which is suited to be used with [[mill.define.Cross]].
+ * A [[ScalaModule]] which is suited to be used with [[mill.api.Cross]].
  * It supports additional source directories with the scala version pattern
  * as suffix (`src-{scalaversionprefix}`), e.g.
  *

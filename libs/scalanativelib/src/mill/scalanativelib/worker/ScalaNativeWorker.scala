@@ -1,6 +1,6 @@
 package mill.scalanativelib.worker
 
-import mill.define.{Discover}
+import mill.api.{Discover}
 import mill.{Task, Worker}
 import mill.scalanativelib.worker.{api => workerApi}
 
@@ -15,7 +15,7 @@ private[scalanativelib] class ScalaNativeWorker(jobs: Int)
     .asInstanceOf[workerApi.ScalaNativeWorkerApi]
 }
 
-private[scalanativelib] object ScalaNativeWorkerExternalModule extends mill.define.ExternalModule {
+private[scalanativelib] object ScalaNativeWorkerExternalModule extends mill.api.ExternalModule {
   def scalaNativeWorker: Worker[ScalaNativeWorker] =
     Task.Worker { new ScalaNativeWorker(Task.ctx().jobs) }
   lazy val millDiscover = Discover[this.type]

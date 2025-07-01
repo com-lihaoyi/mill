@@ -1,6 +1,6 @@
 package mill.androidlib
 
-import mill.define.JsonFormatters.pathReadWrite
+import mill.api.JsonFormatters.pathReadWrite
 
 /**
  * Build type settings for

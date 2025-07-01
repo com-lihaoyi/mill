@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.*
-import mill.define.{Discover, Task}
+import mill.api.{Discover, Task}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*

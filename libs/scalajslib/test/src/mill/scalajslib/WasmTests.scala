@@ -1,7 +1,7 @@
 package mill.scalajslib
 
 import mill.api.ExecResult
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest._

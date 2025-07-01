@@ -4,7 +4,7 @@ package playlib
 import mill.scalalib.api.JvmWorkerUtil
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
-import mill.define.Discover
+import mill.api.Discover
 
 object PlayModuleTests extends TestSuite with PlayTestSuite {
 

@@ -7,7 +7,7 @@
 
 package build
 import mill._, javalib._
-import mill.define.ModuleRef
+import mill.api.ModuleRef
 
 object foo extends JavaModule
 object bar extends JavaModule

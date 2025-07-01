@@ -6,8 +6,8 @@ import scala.jdk.CollectionConverters.*
 import scala.util.Using
 import mill.*
 import mill.api.ExecResult
-import mill.define.Discover
-import mill.define.ExecutionPaths
+import mill.api.Discover
+import mill.api.ExecutionPaths
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*

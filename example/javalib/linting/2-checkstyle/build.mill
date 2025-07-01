@@ -96,7 +96,7 @@ Audit done.
 //   trait MyModule extends JavaModule with CheckstyleModule {
 //
 //     override def checkstyleConfig = Task {
-//       api.PathRef(mill.define.BuildCtx.workspaceRoot / "checkstyle-config.xml")
+//       api.PathRef(mill.api.BuildCtx.workspaceRoot / "checkstyle-config.xml")
 //     }
 //   }
 // }
@@ -139,7 +139,7 @@ Audit done.
 // [source,scala]
 // ----
 // import mill._
-// import mill.define.PathRef
+// import mill.api.PathRef
 // import mill.contrib.checkstyle.CheckstyleXsltModule
 // import mill.contrib.checkstyle.CheckstyleXsltReport
 // import mill.scalalib._

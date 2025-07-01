@@ -55,7 +55,7 @@ def typeCheck: T[Unit] = Task {
 // with output displayed in the console.
 
 def mainFileName: T[String] = Task { "main.py" }
-def run(args: mill.define.Args) = Task.Command {
+def run(args: mill.api.Args) = Task.Command {
   os.call(
     (pythonExe().path, sources().path / mainFileName(), args.value),
     stdout = os.Inherit
