@@ -191,7 +191,7 @@ def formatDep(dep: Dep) = {
 }
 
 
-def listIn(implicit ctx: mill.define.ModuleCtx) = BuildCtx.watchValue {
+def listCross(implicit ctx: mill.define.ModuleCtx) = BuildCtx.watchValue {
   // millSourcePath is protected, so we need to access it via reflection
   import scala.reflect.Selectable.reflectiveSelectable
   os.list(ctx.asInstanceOf[ {def millSourcePath: os.Path}].millSourcePath).map(_.last)
