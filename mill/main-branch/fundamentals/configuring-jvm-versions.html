@@ -692,9 +692,9 @@ of any <code>JavaModule</code>, <code>ScalaModule</code>, or <code>KotlinModule<
 and architecture <a href="https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json">here</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-81-d44511-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/depth/javahome/1-custom-jvms">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-82-37fe25-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/depth/javahome/1-custom-jvms">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, javalib.*
 import mill.api.ModuleRef
 
 object foo extends JavaModule {
@@ -746,7 +746,7 @@ time as new releases are published:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import scalalib.*
 
 object bar extends ScalaModule {
   def scalaVersion = &quot;2.13.12&quot;
@@ -775,7 +775,7 @@ OS/CPU combinations</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import kotlinlib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import kotlinlib.*
 
 object qux extends KotlinModule {
   def kotlinVersion = &quot;2.0.20&quot;
