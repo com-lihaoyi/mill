@@ -1,9 +1,10 @@
 diff --git a/build.mill b/build.mill
-
-index 7ab1e24f562..726ce732088 100644
+index 2851dfbacf1..f69fa6fed16 100644
 --- a/build.mill
 +++ b/build.mill
-@@ -17,11 +17,11 @@ import mill.util.Tasks
+@@ -15,13 +15,13 @@ import mill.vcs.VcsVersion
+ import mill._
+ import mill.util.Tasks
  import mill.scalalib._
 -import mill.scalalib.api.JvmWorkerUtil
 +import mill.jvmlib.api.JvmWorkerUtil
@@ -19,6 +20,15 @@ index 7ab1e24f562..726ce732088 100644
  import mill.androidlib.AndroidSdkModule
  
  def millVersionIsStable: T[Boolean] = Task.Input {
+@@ -191,7 +191,7 @@ def formatDep(dep: Dep) = {
+ }
+ 
+ 
+-def listCross(implicit ctx: mill.define.ModuleCtx) = BuildCtx.watchValue {
++def listCross(implicit ctx: mill.api.ModuleCtx) = BuildCtx.watchValue {
+   // millSourcePath is protected, so we need to access it via reflection
+   import scala.reflect.Selectable.reflectiveSelectable
+   os.list(ctx.asInstanceOf[ {def millSourcePath: os.Path}].millSourcePath).map(_.last)
 diff --git a/contrib/package.mill b/contrib/package.mill
 index 165c6a63a1d..fabe7cd94df 100644
 --- a/contrib/package.mill
@@ -72,7 +82,7 @@ index ef100556258..a20fe070bc4 100644
  import mill.scalalib.*
  import mill.api.Result
 diff --git a/example/package.mill b/example/package.mill
-index 5462a2f419d..d96dfe4f4b9 100644
+index 3bdbc09d9b6..ea062c6408a 100644
 --- a/example/package.mill
 +++ b/example/package.mill
 @@ -5,14 +5,14 @@ import coursier.maven.MavenRepository
@@ -95,7 +105,7 @@ index 5462a2f419d..d96dfe4f4b9 100644
  object `package` extends Module {
    def exampleModules: Seq[ExampleCrossModule] = moduleInternal
 diff --git a/integration/package.mill b/integration/package.mill
-index 3bc20415933..ad6bccb516e 100644
+index a2d73acb2f9..93fe5588459 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
 @@ -5,17 +5,17 @@ import coursier.maven.MavenRepository
@@ -209,7 +219,7 @@ index cced7af7af8..e1d1d25a61f 100644
  
  object `package` extends MillStableScalaModule {
 diff --git a/mill-build/src/millbuild/Deps.scala b/mill-build/src/millbuild/Deps.scala
-index eb8fa6871fc..41cff9499c0 100644
+index aa31cf84d5f..32ed2a0aaa8 100644
 --- a/mill-build/src/millbuild/Deps.scala
 +++ b/mill-build/src/millbuild/Deps.scala
 @@ -1,7 +1,7 @@
