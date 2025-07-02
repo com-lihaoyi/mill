@@ -681,10 +681,10 @@ property. This is available within any task, and gives you access to the
 each task is lazily initialized when <code>Task.dest</code> is referenced and used:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-82-37fe25-example-depth-sandbox-1-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/depth/sandbox/1-task">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-80-99f04f-example-depth-sandbox-1-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/depth/sandbox/1-task">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*
+import mill._
 import mill.api.BuildCtx
 
 object foo extends Module {
@@ -862,10 +862,10 @@ following build with two modules <code>foo</code> and <code>bar</code>, and thei
 <code>foo.test</code> and <code>bar.test</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-82-37fe25-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/depth/sandbox/2-test">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-80-99f04f-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/depth/sandbox/2-test">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
+import mill._, javalib._
 
 trait MyModule extends JavaModule {
   object test extends JavaTests with TestModule.Junit4

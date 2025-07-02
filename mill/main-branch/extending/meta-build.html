@@ -730,12 +730,12 @@ de.tototec:de.tobiasroeser.mill.vcs.version_mill0.11_2.13 : 0.3.1-&gt; 0.4.0</pr
 <h2 id="_sharing_libraries_between_build_mill_and_application_code"><a class="anchor" href="#_sharing_libraries_between_build_mill_and_application_code"></a>Sharing Libraries between <code>build.mill</code> and Application Code</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-82-37fe25-example-extending-metabuild-4-meta-build.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/metabuild/4-meta-build">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-80-99f04f-example-extending-metabuild-4-meta-build.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/metabuild/4-meta-build">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill.*, scalalib.*
-import scalatags.Text.all.*
+import mill._, scalalib._
+import scalatags.Text.all._
 
 object `package` extends ScalaModule {
   def scalaVersion = &quot;2.13.4&quot;
@@ -754,17 +754,17 @@ object `package` extends ScalaModule {
 </div>
 <div class="paragraph">
 <p>This example illustrates usage of the <code>mill-build/</code> folder. Mill’s <code>build.mill</code>
-file and it’s <code>//| mvnDeps</code> syntax are a shorthand syntax for defining
+file and it’s <code>import $file</code> and <code>$ivy</code> are a shorthand syntax for defining
 a Mill <code>ScalaModule</code>, with sources and <code>mvnDeps</code> and so on, which is
 compiled and executed to perform your build. This &quot;meta-build&quot; module lives in
-<code>mill-build/build.mill</code>:</p>
+<code>mill-build/</code>, and can be enabled via the <code>import $meta._</code> statement above.</p>
 </div>
 <div class="listingblock">
 <div class="title">mill-build/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/metabuild/4-meta-build/mill-build/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill.*, scalalib.*
+import mill._, scalalib._
 import mill.meta.MillBuildRootModule
 
 object `package` extends MillBuildRootModule {
@@ -833,12 +833,12 @@ Run-time HTML snippet: &lt;p&gt;world&lt;/p&gt;</code></pre>
 <div class="paragraph">
 <p>This example is trivial, but in larger builds there may be much more scenarios
 where you may want to keep the libraries used in your <code>build.mill</code> and the libraries
-used in your application code consistent. With the <code>mill-build/build.mill</code> configuration,
-this becomes possible.</p>
+used in your application code consistent. With the <code>mill-build/build.mill</code> configuration
+enabled by <code>import $meta._</code>, this becomes possible.</p>
 </div>
 <div class="paragraph">
 <p>You can customize the <code>mill-build/</code> module with more flexibility than is
-provided by <code>//| mvnDeps</code>, overriding any tasks that are
+provided by <code>//| mvnDeps</code> or <code>import $file</code>, overriding any tasks that are
 present on a typical <code>ScalaModule</code>: <code>scalacOptions</code>, <code>generatedSources</code>, etc.
 This is useful for large projects where the build itself is a non-trivial
 module which requires its own non-trivial customization.</p>
@@ -868,11 +868,11 @@ cli option.</p>
 <h2 id="_sharing_source_code_between_build_mill_and_application_code"><a class="anchor" href="#_sharing_source_code_between_build_mill_and_application_code"></a>Sharing Source Code between <code>build.mill</code> and Application Code</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-82-37fe25-example-extending-metabuild-5-meta-shared-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/metabuild/5-meta-shared-sources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-80-99f04f-example-extending-metabuild-5-meta-shared-sources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/metabuild/5-meta-shared-sources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill.*, scalalib.*
+import mill._, scalalib._
 
 object `package` extends ScalaModule {
   def scalaVersion = millbuild.ScalaVersion.myScalaVersion
@@ -887,7 +887,7 @@ object `package` extends ScalaModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill.*
+import mill._
 import mill.meta.MillBuildRootModule
 
 object `package` extends MillBuildRootModule</code></pre>

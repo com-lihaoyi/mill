@@ -708,7 +708,7 @@ dependencies, you can compile, run, or test your project:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
 package build
-import mill.*, javalib.*
+import mill._, javalib._
 
 object foo extends JavaModule {
   def mvnDeps = Seq(
@@ -1113,7 +1113,7 @@ assembly configuration, default compiler flags, and so on.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
+import mill._, javalib._
 
 object foo extends JavaModule {
 }</code></pre>
@@ -1133,7 +1133,7 @@ can depend on other tasks such as <code>allSourceFiles()</code> below:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
+import mill._, javalib._
 
 object foo extends JavaModule {
   /** Total number of lines in module source files */
@@ -1174,7 +1174,7 @@ to its existing value <code>super.resources()</code>:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
+import mill._, javalib._
 
 object foo extends JavaModule {
   /** Total number of lines in module source files */
@@ -1229,7 +1229,7 @@ Thymeleaf classes available for you to import and use in your build as below:</p
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;org.thymeleaf:thymeleaf:3.1.1.RELEASE&quot;]
 package build
 
-import mill.*, javalib.*
+import mill._, javalib._
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 
@@ -1483,6 +1483,11 @@ define templated, customizable graph-computations when setting up their build pi
 <svg width="767px" height="364px" viewBox="0.00 0.00 767.02 364.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-124 126.09,-232 617.74,-232 617.74,-124 126.09,-124"></polygon>
+<text text-anchor="middle" x="371.92" y="-215.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
 <g id="clust3" class="cluster">
 <title>cluster_2</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="250.41,-8 250.41,-116 751.02,-116 751.02,-8 250.41,-8"></polygon>
@@ -1492,11 +1497,6 @@ define templated, customizable graph-computations when setting up their build pi
 <title>cluster_0</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 484.87,-348 484.87,-240 8,-240"></polygon>
 <text text-anchor="middle" x="246.43" y="-331.4" font-family="Times,serif" font-size="14.00">foo</text>
-</g>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-124 126.09,-232 617.74,-232 617.74,-124 126.09,-124"></polygon>
-<text text-anchor="middle" x="371.92" y="-215.4" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">
@@ -1747,7 +1747,7 @@ override the respective methods to customize the build call graph to your liking
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
+import mill._, javalib._
 
 object foo extends JavaModule {
 }</code></pre>
@@ -1834,7 +1834,7 @@ and call <code>super</code>:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
+import mill._, javalib._
 
 object foo extends JavaModule {
   /** Total number of lines in module source files */
@@ -1963,7 +1963,7 @@ by <code>object foo</code> and <code>object bar</code> to share the configuratio
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
+import mill._, javalib._
 
 object foo extends MyJavaModule
 object bar extends MyJavaModule

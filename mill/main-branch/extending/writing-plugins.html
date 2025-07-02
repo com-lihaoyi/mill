@@ -675,10 +675,10 @@ via <a href="import-mvn-plugins.html" class="xref page">//| mvnDeps</a>.</p>
 <h2 id="_project_configuration"><a class="anchor" href="#_project_configuration"></a>Project Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-82-37fe25-example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-80-99f04f-example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, scalalib.*, publish.*
+import mill._, scalalib._, publish._
 import mill.util.BuildInfo.{millVersion, millBinPlatform}
 
 object myplugin extends ScalaModule with PublishModule {
@@ -799,7 +799,7 @@ it defines an abstract <code>def lineCountResourceFileName</code> task, it adds 
 <div class="title">myplugin/src/LineCountJavaModule.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/plugins/7-writing-mill-plugins/myplugin/src/LineCountJavaModule.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
-import mill.*
+import mill._
 
 /**
  * Example Mill plugin trait that adds a `line-count.txt`
@@ -873,8 +873,8 @@ the results in-memory:</p>
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.api.Discover
 import mill.PathRef
-import mill.util.TokenReaders.*
-import utest.*
+import mill.util.TokenReaders._
+import utest._
 
 object UnitTests extends TestSuite {
   def tests: Tests = Tests {
@@ -975,7 +975,7 @@ parsed <code>ujson.Value</code> ASTs (<code>.json</code>), or parsed into a type
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 import mill.testkit.IntegrationTester
-import utest.*
+import utest._
 
 object IntegrationTests extends TestSuite {
 
@@ -1043,7 +1043,7 @@ public class Foo {
 //| - com.lihaoyi::myplugin::0.0.1
 package build
 
-import mill.*, myplugin.*
+import mill._, myplugin._
 
 object `package` extends LineCountJavaModule {
   def lineCountResourceFileName = &quot;line-count.txt&quot;
@@ -1074,7 +1074,7 @@ output they should expect:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 import mill.testkit.ExampleTester
-import utest.*
+import utest._
 
 object ExampleTests extends TestSuite {
 
@@ -1121,7 +1121,7 @@ public class Foo {
 //| - com.lihaoyi::myplugin::0.0.1
 package build
 
-import mill.*, myplugin.*
+import mill._, myplugin._
 
 object `package` extends LineCountJavaModule {
   def lineCountResourceFileName = &quot;line-count.txt&quot;

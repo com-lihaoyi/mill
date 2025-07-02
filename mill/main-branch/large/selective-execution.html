@@ -711,10 +711,10 @@ request branch, you can do that as follows:</p>
 where <code>bar</code> depends on <code>foo</code> but <code>qux</code> is standalone:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-82-37fe25-example-large-selective-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/selective/9-selective-execution">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-80-99f04f-example-large-selective-9-selective-execution.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/selective/9-selective-execution">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill.*, javalib.*
+import mill._, javalib._
 
 trait MyModule extends JavaModule {
   object test extends JavaTests with TestModule.Junit4
