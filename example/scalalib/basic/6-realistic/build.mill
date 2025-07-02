@@ -20,7 +20,7 @@ trait MyModule extends PublishModule {
   )
 }
 
-trait MyScalaModule extends MyModule with CrossScalaModule {
+trait MyScalaModule extends MyModule, CrossScalaModule {
   def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.13.1")
   object test extends ScalaTests {
     def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.8")
@@ -53,7 +53,7 @@ trait BarModule extends MyScalaModule {
   def moduleDeps = Seq(qux)
 }
 
-object qux extends JavaModule with MyModule
+object qux extends JavaModule, MyModule
 
 // A semi-realistic build setup, combining all the individual Mill concepts:
 //

@@ -19,7 +19,7 @@ object foo extends TypeScriptModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 
 }
 

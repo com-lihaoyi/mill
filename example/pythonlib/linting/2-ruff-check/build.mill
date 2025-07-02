@@ -1,7 +1,7 @@
 package build
 import mill.*, pythonlib.*
 
-object `package` extends PythonModule with RuffModule {}
+object `package` extends PythonModule, RuffModule {}
 
 /** See Also: src/main.py */
 

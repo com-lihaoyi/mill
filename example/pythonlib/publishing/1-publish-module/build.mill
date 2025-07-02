@@ -3,7 +3,7 @@
 
 import mill.*, pythonlib.*
 
-object `package` extends PythonModule with PublishModule {
+object `package` extends PythonModule, PublishModule {
 
   // information about dependencies will be included in the published package
   def pythonDeps = Seq("jinja2==3.1.4")

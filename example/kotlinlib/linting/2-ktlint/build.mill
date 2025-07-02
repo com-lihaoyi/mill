@@ -7,7 +7,7 @@ import kotlinlib.KotlinModule
 import kotlinlib.ktlint.KtlintModule
 import mill.api.BuildCtx
 
-object `package` extends KotlinModule with KtlintModule {
+object `package` extends KotlinModule, KtlintModule {
   def kotlinVersion = "1.9.24"
 
   def ktlintConfig0 = Task.Source(BuildCtx.workspaceRoot / ".editorconfig")
