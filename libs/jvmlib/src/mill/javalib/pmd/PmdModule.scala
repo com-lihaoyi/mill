@@ -86,8 +86,8 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       case 4 =>
         reportViolations(noFailOnViolation, countViolations(output, format, stdout))
       case 5 =>
-        Task.log.error("At least one recoverable PMD error has occurred.")
         reportViolations(noFailOnViolation, countViolations(output, format, stdout))
+        throw new RuntimeException("At least one recoverable PMD error has occurred.")
       case x => Task.log.error(s"Unsupported PMD exit code: $x")
     exitCode
   }
