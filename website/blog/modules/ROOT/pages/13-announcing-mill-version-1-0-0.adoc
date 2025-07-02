@@ -237,7 +237,9 @@ These are areas where
 
 Mill has always had a best-in-class IDE experience, with the ability to get autocompletion
 and code-navigation within your build files that far surpasses anything you can do in
-Maven, Gradle, or SBT. But even so, there was a ton of room for improvement.
+Maven, Gradle, or SBT.
+
+But even so, there was a ton of room for improvement.
 
 
 Many PRs went into improving Mill's IDE support with IntelliJ and VSCode, which
