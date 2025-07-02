@@ -3,7 +3,7 @@ package build
 import mill.*, javalib.*
 
 object foo extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4 {
+  object test extends JavaTests, TestModule.Junit4 {
     def otherFiles = Task.Source("other-files")
 
     def forkEnv = super.forkEnv() ++ Map(

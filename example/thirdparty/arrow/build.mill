@@ -126,7 +126,7 @@ object `package` extends Module {
       s"-Xcommon-sources=${files.mkString(",")}"
     }
 
-    trait ArrowPlatformModule extends KotlinMavenModule with PlatformKotlinModule { outer =>
+    trait ArrowPlatformModule extends KotlinMavenModule, PlatformKotlinModule { outer =>
       def kotlinVersion = libraries.versions.kotlin
       def kotlinLanguageVersion = majorVersion(kotlinVersion())
       def kotlinApiVersion = majorVersion(kotlinVersion())
@@ -170,26 +170,26 @@ object `package` extends Module {
 
     def jvm: ArrowPlatformJvmModule
 
-    trait ArrowPlatformJvmModule extends ArrowPlatformModule with KoverModule {
+    trait ArrowPlatformJvmModule extends ArrowPlatformModule, KoverModule {
       def test: ArrowPlatformJvmTests
-      trait ArrowPlatformJvmTests extends KotlinMavenTests with KoverTests with TestModule.Junit5
-          with ArrowPlatformTests {}
+      trait ArrowPlatformJvmTests extends KotlinMavenTests, KoverTests, TestModule.Junit5,
+            ArrowPlatformTests {}
     }
 
     def js: ArrowPlatformJsModule
-    trait ArrowPlatformJsModule extends ArrowPlatformModule with KotlinJsModule {
+    trait ArrowPlatformJsModule extends ArrowPlatformModule, KotlinJsModule {
 
       def kotlinJsRunTarget = Some(RunTarget.Node)
 
       def test: ArrowPlatformJsTests
-      trait ArrowPlatformJsTests extends KotlinMavenTests with KotlinTestPackageTests
-          with ArrowPlatformTests {
+      trait ArrowPlatformJsTests extends KotlinMavenTests, KotlinTestPackageTests,
+            ArrowPlatformTests {
         def testTimeout = 30_000L
       }
     }
   }
 
-  trait ArrowJvmModule extends KotlinMavenModule with KoverModule { jvmRoot =>
+  trait ArrowJvmModule extends KotlinMavenModule, KoverModule { jvmRoot =>
 
     def kotlinVersion = libraries.versions.kotlin
     def kotlinExplicitApi = true
@@ -197,7 +197,7 @@ object `package` extends Module {
     def kotlinApiVersion = majorVersion(kotlinVersion())
 
     def test: ArrowJvmTests
-    trait ArrowJvmTests extends KotlinMavenTests with KoverTests with TestModule.Junit5 {
+    trait ArrowJvmTests extends KotlinMavenTests, KoverTests, TestModule.Junit5 {
       override def compile: T[CompilationResult] =
         if (modulesWithTestingEnabled(jvmRoot)) super.compile
         else Task { CompilationResult(Task.dest, PathRef(Task.dest)) }

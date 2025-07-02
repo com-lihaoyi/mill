@@ -2,7 +2,7 @@
 package build
 import mill.*, javalib.*, publish.*
 
-object foo extends JavaModule with PublishModule {
+object foo extends JavaModule, PublishModule {
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(

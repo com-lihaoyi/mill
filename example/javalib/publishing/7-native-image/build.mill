@@ -3,7 +3,7 @@ package build
 import mill.*, javalib.*
 import mill.api.ModuleRef
 
-object foo extends JavaModule with NativeImageModule {
+object foo extends JavaModule, NativeImageModule {
   def jvmId = "graalvm-community:17.0.7"
 
   def nativeImageOptions = Seq("--no-fallback")

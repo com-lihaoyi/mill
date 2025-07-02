@@ -14,7 +14,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 }
 
 object JetLagged extends mill.api.Module {
-  object app extends AndroidAppKotlinModule with AndroidR8AppModule {
+  object app extends AndroidAppKotlinModule, AndroidR8AppModule {
     def kotlinVersion = Versions.kotlinVersion
 
     def kotlinLanguageVersion = Versions.kotlinLanguageVersion
@@ -105,8 +105,8 @@ object JetLagged extends mill.api.Module {
 
     def androidMinSdk = Versions.androidMinSdk
 
-    object androidTest extends AndroidAppKotlinInstrumentedTests with AndroidR8AppModule
-        with AndroidTestModule.AndroidJUnit {
+    object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
+          AndroidTestModule.AndroidJUnit {
 
       def bomMvnDeps = super.mvnDeps() ++ Seq(
         mvn"androidx.compose:compose-bom:2025.05.00"

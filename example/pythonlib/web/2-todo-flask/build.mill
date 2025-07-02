@@ -11,8 +11,8 @@ object todo extends PythonModule {
 
   def pythonDeps = Seq("flask==3.1.0", "Flask-SQLAlchemy==3.1.1", "Flask-WTF==1.2.2")
 
-  object test extends PythonTests with TestModule.Unittest
-  object itest extends PythonTests with TestModule.Unittest
+  object test extends PythonTests, TestModule.Unittest
+  object itest extends PythonTests, TestModule.Unittest
 
 }
 

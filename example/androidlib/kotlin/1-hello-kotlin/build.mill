@@ -43,11 +43,11 @@ object app extends AndroidAppKotlinModule {
 
   override def androidIsDebug: T[Boolean] = Task { false }
 
-  object test extends AndroidAppKotlinTests with TestModule.Junit4 {
+  object test extends AndroidAppKotlinTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
   }
 
-  object it extends AndroidAppKotlinInstrumentedTests with AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppKotlinInstrumentedTests, AndroidTestModule.AndroidJUnit {
 
     // TODO currently instrumented tests debug mode
     // is coupled with the app debug mode. Fix so

@@ -28,7 +28,7 @@ object foo extends PythonModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends PythonTests with TestModule.Unittest
+  object test extends PythonTests, TestModule.Unittest
 }
 
 // The addition of `lineCount` and `resources` overrides the previous `resource` folder

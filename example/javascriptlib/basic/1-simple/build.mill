@@ -4,7 +4,7 @@ import mill.*, javascriptlib.*
 
 object foo extends TypeScriptModule {
   def npmDeps = Seq("immutable@4.3.7")
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 }
 
 // Documentation for mill.example.javascriptlib

@@ -12,7 +12,7 @@ package build
 import mill.kotlinlib.KotlinModule
 import mill.scalalib.spotless.SpotlessModule
 
-object `package` extends KotlinModule with SpotlessModule {
+object `package` extends KotlinModule, SpotlessModule {
   def kotlinVersion = "2.1.20"
 }
 
@@ -29,7 +29,10 @@ object `package` extends KotlinModule with SpotlessModule {
 
 // NOTE: Most fields have default values and can be omitted in the JSON file.
 // An example is the `LicenseHeader.header` field that references the `LICENSE` file.
-
+//
+// NOTE: as `.mill` files use Scala 3 syntax, we need the `.scalafmt.conf` above to
+// configure ScalaFmt to use Scala 3 compatible formatting
+//
 // Next, we run the inherited `spotless` command to check/apply the format specifications.
 
 /** Usage
