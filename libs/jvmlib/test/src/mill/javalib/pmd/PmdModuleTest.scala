@@ -16,7 +16,7 @@ object PmdModuleTest extends TestSuite {
     UnitTester(module, modulePath).scoped { eval =>
       val format = "text"
       eval(module.pmd(PmdArgs(
-        check = false,
+        failOnViolation = false,
         stdout = false,
         format = format,
         sources = Leftover("sources")

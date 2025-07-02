@@ -4,8 +4,8 @@ import mainargs.{Leftover, ParserForClass, arg, main}
 
 @main(doc = "Arguments for PmdModule")
 case class PmdArgs(
-    @arg(name = "check", short = 'c', doc = "Fail if violations are found")
-    check: Boolean = false,
+    @arg(name = "no-fail-on-violation", short = 'n', doc = "Disable failing if violations are found")
+    noFailOnViolation: Boolean = false,
     @arg(name = "stdout", short = 's', doc = "Output to stdout")
     stdout: Boolean = false,
     @arg(name = "format", short = 'f', doc = "Output format (text, xml, html, etc.)")

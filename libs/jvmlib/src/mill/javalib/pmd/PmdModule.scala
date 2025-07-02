@@ -17,24 +17,34 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
    *
    * @note [[sources]] are processed when no [[PmdArgs.sources]] are specified.
    */
-  def pmd(@mainargs.arg pmdArgs: PmdArgs): Command[Int] = Task.Command {
-    val (output, exitCode) = pmd0(pmdArgs.stdout, pmdArgs.format, pmdArgs.sources)()
-    pmdHandleErrors(pmdArgs.stdout, pmdArgs.check, exitCode, output, pmdArgs.format)
-  }
+  def pmd(@mainargs.arg pmdArgs: PmdArgs): Command[(exitCode: Int, outputPath: PathRef)] =
+    Task.Command {
+      val (outputPath, exitCode) = pmd0(pmdArgs.format, pmdArgs.sources)()
+      pmdHandleExitCode(
+        pmdArgs.stdout,
+        pmdArgs.noFailOnViolation,
+        exitCode,
+        outputPath,
+        pmdArgs.format
+      )
+      (exitCode, outputPath)
+    }
 
-  protected def pmd0(stdout: Boolean, format: String, leftover: mainargs.Leftover[String]) =
+  protected def pmd0(format: String, leftover: mainargs.Leftover[String]) =
     Task.Anon {
       val output = Task.dest / s"pmd-output.$format"
       os.makeDir.all(output / os.up)
       val baseArgs = Seq(
         "-d",
-        (if (leftover.value.nonEmpty) leftover.value.mkString(",")
-         else sources().map(_.path.toString()).mkString(",")),
+        if (leftover.value.nonEmpty) leftover.value.mkString(",")
+        else sources().map(_.path.toString()).mkString(","),
         "-R",
         pmdRulesets().map(_.path.toString).mkString(","),
         "-f",
-        format
-      ) ++ (if (stdout) Seq.empty else Seq("-r", output.toString))
+        format,
+        "-r",
+        output.toString
+      )
 
       val args =
         if (isPmd6OrOlder(this.pmdVersion())) pmdOptions() ++ baseArgs
@@ -44,8 +54,9 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
         else "net.sourceforge.pmd.cli.PmdCli"
       val jvmArgs = pmdLanguage().map(lang => s"-Duser.language=$lang").toSeq
 
-      Task.log.info("running pmd ...")
+      Task.log.info("Running PMD...")
       Task.log.debug(s"with $args")
+      Task.log.info(s"Writing PMD output to: $output...")
 
       val exitCode = Jvm.callProcess(
         mainCls,
@@ -58,66 +69,68 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
         jvmArgs = jvmArgs
       ).exitCode
 
-      (output, exitCode)
+      (PathRef(output), exitCode)
     }
 
-  protected def pmdHandleErrors(
+  private def pmdHandleExitCode(
       stdout: Boolean,
-      check: Boolean,
+      noFailOnViolation: Boolean,
       exitCode: Int,
-      output: os.Path,
+      output: PathRef,
       format: String
   )(implicit ctx: TaskCtx): Int = {
-
-    val reported = os.exists(output)
-    var violationCount: Option[Int] = None
-
-    if (reported) {
-      Task.log.info(s"pmd output report at $output")
-      try {
-        val lines = os.read.lines(output)
-        if (lines.nonEmpty) {
-          Task.log.info("PMD violations:")
-          lines.foreach(line => Task.log.info(line))
-          // For "text" format: each line is a violation
-          if (format == "text") {
-            violationCount = Some(lines.size)
-          }
-          // For "xml" format: count <violation ...> tags
-          else if (format == "xml") {
-            violationCount = Some(lines.count(_.trim.startsWith("<violation")))
-          }
-          // For "html" format: count lines with <tr but skip the header row
-          else if (format == "html") {
-            violationCount =
-              Some(lines.count(line => line.trim.startsWith("<tr") && !line.contains("<th")))
-          }
-        } else {
-          violationCount = Some(0)
-        }
-      } catch {
-        case ex: Throwable =>
-          Task.log.error(s"Failed to read PMD output report: $ex")
-      }
-    }
-
-    if (exitCode == 0) {}
-    else if (exitCode < 0 || !(reported || stdout)) {
-      Task.log.error(
-        s"PMD exit($exitCode); please check command arguments, plugin settings or try with another version"
-      )
-      throw new UnsupportedOperationException(s"pmd exit($exitCode)")
-    } else if (check) {
-      throw new RuntimeException(
-        s"PMD found ${violationCount.getOrElse("")} violation(s)"
-      )
-    } else {
-      Task.log.error(
-        s"PMD found ${violationCount.getOrElse("")} violation(s)"
-      )
-    }
-
+    exitCode match
+      case 0 => Task.log.info("No violations found and no recoverable error occurred.")
+      case 1 => Task.log.error("PMD finished with an exception.")
+      case 2 => Task.log.error("PMD command-line parameters are invalid or missing.")
+      case 4 =>
+        reportViolations(noFailOnViolation, countViolations(output, format, stdout))
+      case 5 =>
+        Task.log.error("At least one recoverable PMD error has occurred.")
+        reportViolations(noFailOnViolation, countViolations(output, format, stdout))
+      case x => Task.log.error(s"Unsupported PMD exit code: $x")
     exitCode
+  }
+
+  private def countViolations(
+      output: PathRef,
+      format: String,
+      stdout: Boolean
+  )(implicit ctx: TaskCtx): Option[Int] = {
+    var violationCount: Option[Int] = None
+    val lines = os.read.lines(output.path)
+    if (lines.nonEmpty) {
+      if (stdout) {
+        Task.log.info("PMD violations:")
+        lines.foreach(line => Task.log.info(line))
+      }
+      // For "text" format: each line is a violation
+      if (format == "text") {
+        violationCount = Some(lines.size)
+      }
+      // For "xml" format: count <violation ...> tags
+      else if (format == "xml") {
+        violationCount = Some(lines.count(_.trim.startsWith("<violation")))
+      }
+      // For "html" format: count lines with <tr but skip the header row
+      else if (format == "html") {
+        violationCount =
+          Some(lines.count(line => line.trim.startsWith("<tr") && !line.contains("<th")))
+      }
+    } else {
+      violationCount = Some(0)
+    }
+    violationCount
+  }
+
+  private def reportViolations(
+      noFailOnViolation: Boolean,
+      violationCount: Option[Int]
+  )(implicit ctx: TaskCtx): Unit = {
+    if (noFailOnViolation)
+      Task.log.error(s"PMD found ${violationCount.getOrElse("some")} violation(s)")
+    else
+      throw new RuntimeException(s"PMD found ${violationCount.getOrElse("some")} violation(s)")
   }
 
   /**
