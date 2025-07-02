@@ -1,0 +1,12 @@
+package build.libs.init.importer
+
+import mill.api.{Cross, Module}
+import millbuild.{Deps, MillPublishCrossScalaModule}
+
+object `package` extends Module {
+
+  object ir extends Cross[IrModule](Deps.scalaVersion, Deps.sbtScalaVersion212)
+  trait IrModule extends MillPublishCrossScalaModule {
+    def mvnDeps = Seq(Deps.upickle)
+  }
+}
