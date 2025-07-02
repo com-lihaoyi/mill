@@ -110,9 +110,10 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Runs this module's code in a subprocess and waits for it to finish
    */
-  def run(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] = Task.Command(exclusive = true) {
-    runForkedTask(finalMainClass, args)()
-  }
+  def run(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] =
+    Task.Command(exclusive = true) {
+      runForkedTask(finalMainClass, args)()
+    }
 
   /**
    * Runs this module's code in-process within an isolated classloader. This is
@@ -120,9 +121,10 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
    * since the code can dirty the parent Mill process and potentially leave it
    * in a bad state.
    */
-  def runLocal(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] = Task.Command(exclusive = true) {
-    runLocalTask(finalMainClass, args)()
-  }
+  def runLocal(args: Task[Args] = Task.Anon(Args())): Task.Command[Unit] =
+    Task.Command(exclusive = true) {
+      runLocalTask(finalMainClass, args)()
+    }
 
   /**
    * Same as `run`, but lets you specify a main class to run
