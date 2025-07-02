@@ -703,7 +703,7 @@ The usage examples given here are most probably incomplete and sometimes outdate
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.carlosedp::mill-aliases::0.2.1&quot;]
 
-import mill._, scalalib._
+import mill.*, scalalib.*
 import com.carlosedp.aliases._
 
 object foo extends ScalaModule {
@@ -775,7 +775,7 @@ object foo extends ScalaModule with AntlrModule {
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;de.tototec::de.tobiasroeser.mill.aspectj_mill0.9:0.3.1-12-89db01&quot;]
 
-import mill._
+import mill.*
 import mill.scalalib._
 import mill.api._
 
@@ -975,7 +975,7 @@ parameters for your application using the <code>DockerNativeConfig</code> trait 
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.carlosedp::mill-docker-nativeimage::0.6.0&quot;]
 
-import mill._, mill.scalalib._, mill.scalalib.scalafmt._
+import mill.*, mill.scalalib._, mill.scalalib.scalafmt._
 import com.carlosedp.milldockernative.DockerNative
 
 object hello extends ScalaModule with DockerNative {
@@ -1264,7 +1264,7 @@ sbt-header.</p>
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, mill.scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, mill.scalalib._
 
 object demo extends ScalaModule with PublishModule {
   // ...
@@ -1358,7 +1358,7 @@ you can use the following line instead, which ensures you will use the correct l
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;de.tototec::de.tobiasroeser.mill.jbake:0.1.0&quot;]
 
-import mill._
+import mill.*
 import de.tobiasroeser.mill.jbake._
 
 object site extends JBakeModule {
@@ -1524,7 +1524,7 @@ And set the previous artifacts you want to check binary compatibility.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.github.lolgab::mill-mima_mill0.9:0.0.2&quot;]
 
-import mill._, scalalib._
+import mill.*, scalalib.*
 import com.github.lolgab.mill.mima._
 
 object main extends ScalaModule with Mima {
@@ -1652,7 +1652,7 @@ and more, check the project readme.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;de.tototec::de.tobiasroeser.mill.osgi:0.0.5&quot;]
 
-import mill._, mill.scalalib._
+import mill.*, mill.scalalib._
 import de.tobiasroeser.mill.osgi._
 
 object project extends ScalaModule with OsgiBundleModule {
@@ -1727,7 +1727,7 @@ set-up a <code>package.json</code> file with your TypeScript dependencies.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;com.github.lolgab::mill-scalablytyped::0.0.2&quot;]
 
-import mill._, scalalib._
+import mill.*, scalalib.*
 import com.github.lolgab.mill.scalablytyped._
 
 object main extends ScalaJSModule with ScalablyTyped {
@@ -1910,7 +1910,7 @@ Mill build will generate an index and place it at the root of your project.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
 import mill.scalalib._
 import de.tobiasroeser.mill.spring.boot.SpringBootModule
 
@@ -1940,7 +1940,7 @@ $ mill app.springBootAssembly</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;ba.sake::mill-squery-generator_mill0.11:0.6.2&quot;]
 
-import mill._
+import mill.*
 import mill.scalalib._
 import ba.sake.squery.generator._
 import ba.sake.squery.generator.mill.SqueryGeneratorModule
@@ -2010,7 +2010,7 @@ When used with its defaults, the outcome is identical to the version scheme that
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2&quot;]
 
-import mill._
+import mill.*
 import mill.scalalib._
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 

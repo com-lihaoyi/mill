@@ -702,11 +702,11 @@ build.mill</pre>
 <div class="sect2">
 <h3 id="_example_project"><a class="anchor" href="#_example_project"></a>Example Project</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-80-99f04f-example-large-multifile-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multifile/10-multi-file-builds">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-large-multifile-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multifile/10-multi-file-builds">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 trait MyModule extends ScalaModule {
   def scalaVersion = &quot;2.13.11&quot;
@@ -717,7 +717,7 @@ trait MyModule extends ScalaModule {
 <div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multifile/10-multi-file-builds/foo/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object `package` extends build.MyModule {
   def moduleDeps = Seq(build.bar.qux.mymodule)
@@ -735,7 +735,7 @@ object `package` extends build.MyModule {
 <div class="title">bar/qux/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multifile/10-multi-file-builds/bar/qux/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.bar.qux
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object mymodule extends build.MyModule {
   def mvnDeps = Seq(mvn&quot;com.lihaoyi::scalatags:0.8.2&quot;)
@@ -792,10 +792,10 @@ also allows you to have helper code in any <code>*.mill</code> file in the same 
 as your <code>build.mill</code> or a <code>package.mill</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-80-99f04f-example-large-multifile-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multifile/11-helper-files">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-large-multifile-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multifile/11-helper-files">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object `package` extends MyModule {
   def forkEnv = Map(
@@ -809,7 +809,7 @@ object `package` extends MyModule {
 <div class="title">util.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multifile/11-helper-files/util.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 def myScalaVersion = &quot;2.13.14&quot;
 
@@ -822,7 +822,7 @@ trait MyModule extends ScalaModule {
 <div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multifile/11-helper-files/foo/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
-import mill._, scalalib._
+import mill.*, scalalib.*
 object `package` extends build.MyModule {
   def forkEnv = Map(
     &quot;MY_SCALA_VERSION&quot; -&gt; build.myScalaVersion,
