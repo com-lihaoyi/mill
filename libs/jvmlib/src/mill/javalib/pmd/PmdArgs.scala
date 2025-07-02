@@ -4,7 +4,7 @@ import mainargs.{Leftover, ParserForClass, arg, main}
 
 @main(doc = "Arguments for PmdModule")
 case class PmdArgs(
-    @arg(name = "fail-on-violation", short = 'n', doc = "Fail if violations are found")
+    @arg(name = "fail-on-violation", short = 'v', doc = "Fail if violations are found")
     failOnViolation: Boolean = true,
     @arg(name = "stdout", short = 's', doc = "Output to stdout")
     stdout: Boolean = false,

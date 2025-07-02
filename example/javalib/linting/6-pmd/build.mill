@@ -25,7 +25,7 @@ object `package` extends JavaModule with PmdModule {
 /** See Also: pmd-ruleset.xml */
 
 /** Usage
-> ./mill pmd -s true # default format is text
+> ./mill pmd -s true -v false # default format is text
 ...src/EmptyCatchBlock.java:7:	EmptyCatchBlock:	Avoid empty catch blocks...
 PMD found 1 violation(s)
 */
@@ -43,7 +43,7 @@ PMD found 1 violation(s)
 //
 // Here's an example of producing HTML report:
 /** Usage
- > ./mill pmd -f "html" -s true
+ > ./mill pmd -f "html" -s true -v false
 ...<html><head><title>PMD</title></head><body>...
 ...<center><h3>PMD report</h3></center><center><h3>Problems found</h3></center><table align="center" cellspacing="0" cellpadding="3"><tr>...
 ...<th>#</th><th>File</th><th>Line</th><th>Problem</th></tr>...
