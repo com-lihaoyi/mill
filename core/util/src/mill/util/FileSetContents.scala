@@ -18,10 +18,17 @@ case class FileSetContents[+Contents](
     FileSetContents(contents.map { case (to, content) => to -> f(content) })
 
   def map[Contents2](f: (SubPath, Contents) => (SubPath, Contents2)): FileSetContents[Contents2] =
-    FileSetContents[Contents2](contents.iterator.map { case (path, contents) => f(path, contents) }.toMap)
+    FileSetContents[Contents2](contents.iterator.map { case (path, contents) =>
+      f(path, contents)
+    }.toMap)
 
-  def flatMap[Contents2](f: (SubPath, Contents) => Map[SubPath, Contents2]): FileSetContents[Contents2] =
-    FileSetContents[Contents2](contents.iterator.flatMap { case (path, contents) => f(path, contents) }.toMap)
+  def flatMap[Contents2](f: (
+      SubPath,
+      Contents
+  ) => Map[SubPath, Contents2]): FileSetContents[Contents2] =
+    FileSetContents[Contents2](contents.iterator.flatMap { case (path, contents) =>
+      f(path, contents)
+    }.toMap)
 
   /** Merges two sets together. */
   def ++[Contents2 >: Contents](other: Map[SubPath, Contents2]): FileSetContents[Contents2] =
@@ -57,7 +64,8 @@ case class FileSetContents[+Contents](
   }
 }
 object FileSetContents {
-  given upickleRw[Contents: upickle.default.ReadWriter]: upickle.default.ReadWriter[FileSetContents[Contents]] = {
+  given upickleRw[Contents: upickle.default.ReadWriter]
+      : upickle.default.ReadWriter[FileSetContents[Contents]] = {
     given upickle.default.ReadWriter[SubPath] =
       upickle.default.readwriter[java.lang.String].bimap(_.toString, SubPath(_))
     upickle.default.macroRW
@@ -79,8 +87,10 @@ object FileSetContents {
   def empty[Contents]: FileSetContents[Contents] =
     apply(Map.empty)
 
-  /** @note Not an enum because we actually want the most specific type when referring to cases for the generics in
-   *       [[FileSetContents]] to work properly. */
+  /**
+   * @note Not an enum because we actually want the most specific type when referring to cases for the generics in
+   *       [[FileSetContents]] to work properly.
+   */
   sealed trait Contents
   object Contents {
 
@@ -101,6 +111,7 @@ object FileSetContents {
     }
   }
 
-  def mergeAll[Contents](contents: IterableOnce[FileSetContents[Contents]]): FileSetContents[Contents] =
+  def mergeAll[Contents](contents: IterableOnce[FileSetContents[Contents]])
+      : FileSetContents[Contents] =
     contents.iterator.foldLeft(empty[Contents])(_ ++ _)
 }

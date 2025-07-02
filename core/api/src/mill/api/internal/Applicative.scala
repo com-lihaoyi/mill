@@ -77,8 +77,8 @@ object Applicative {
               if (sym != Symbol.noSymbol && defs(sym) && !localDefs(sym)) {
                 macroError(
                   s"Task#apply() call cannot use `$sym` defined within the Task{...} block.\n" +
-                    s"defs(symbol) = ${ defs(sym) }\n" +
-                    s"localDefs(symbol) = ${ localDefs(sym) }\n" +
+                    s"defs(symbol) = ${defs(sym)}\n" +
+                    s"localDefs(symbol) = ${localDefs(sym)}\n" +
                     s"fun = $fun",
                   x.pos
                 )

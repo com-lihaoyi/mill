@@ -66,7 +66,11 @@ class CodeartifactPublisher(
     val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
 
     if (snapshots.nonEmpty) {
-      publishToRepo(snapshotUri, FileSetContents.mergeAll(snapshots.iterator.map(_._2)), snapshots.map(_._1))
+      publishToRepo(
+        snapshotUri,
+        FileSetContents.mergeAll(snapshots.iterator.map(_._2)),
+        snapshots.map(_._1)
+      )
 
       val artifact = snapshots.head._1
       api.upload(
@@ -75,7 +79,11 @@ class CodeartifactPublisher(
       )
     }
     if (releases.nonEmpty) {
-      publishToRepo(releaseUri, FileSetContents.mergeAll(releases.iterator.map(_._2)), releases.map(_._1))
+      publishToRepo(
+        releaseUri,
+        FileSetContents.mergeAll(releases.iterator.map(_._2)),
+        releases.map(_._1)
+      )
 
       val artifact = releases.head._1
       api.upload(
