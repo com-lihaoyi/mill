@@ -1,7 +1,7 @@
 package mill.exec
 
 import mill.constants.OutFiles
-import mill.define.Task
+import mill.api.Task
 import mill.internal.SpanningForest
 
 import java.util.concurrent.ConcurrentHashMap

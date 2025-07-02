@@ -10,7 +10,7 @@ import millbuild.*
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version when androidlib is stable and released.
 object `package` extends MillPublishScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.libs.scalalib, build.libs.kotlinlib)
+  def moduleDeps = Seq(build.libs.jvmlib, build.libs.kotlinlib)
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(
       build.libs.kotlinlib.worker.localTestOverride()
@@ -21,12 +21,12 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   def buildInfoMembers = Seq(
     BuildInfo.Value(
       "manifestMergerVersion",
-      Deps.AndroidDeps.manifestMergerVersion,
+      Deps.AndroidDeps.manifestMerger.version,
       "Version of ManifestMerger"
     ),
     BuildInfo.Value(
       "bundleToolVersion",
-      Deps.AndroidDeps.bundleToolVersion,
+      Deps.AndroidDeps.bundleTool.version,
       "Version of BundleTool"
     ),
     BuildInfo.Value(
@@ -38,10 +38,10 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     BuildInfo.Value("layoutLibVersion", Deps.AndroidDeps.layoutLibVersion, "Version of LayoutLib"),
     BuildInfo.Value(
       "composePreviewRendererVersion",
-      Deps.AndroidDeps.composePreviewRendererVersion,
+      Deps.AndroidDeps.composePreviewRenderer.version,
       "Version of ComposePreviewRenderer"
     ),
-    BuildInfo.Value("uiToolingVersion", Deps.AndroidDeps.uiToolingVersion, "Version of uiTooling")
+    BuildInfo.Value("uiToolingVersion", Deps.AndroidDeps.uiTooling.version, "Version of uiTooling")
   )
 
   trait MillAndroidModule extends MillPublishScalaModule {

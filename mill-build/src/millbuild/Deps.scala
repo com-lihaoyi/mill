@@ -85,7 +85,7 @@ object Deps {
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.180"
-  val coursierVersion = "2.1.25-M14"
+  val coursierVersion = "2.1.25-M13"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierCore =
     mvn"io.get-coursier::coursier-core:$coursierVersion".withDottyCompat(scalaVersion)
@@ -161,7 +161,7 @@ object Deps {
     mvn"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = mvn"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
-  val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
+  val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.3.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.4"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
@@ -235,7 +235,7 @@ object Deps {
     val revApi = mvn"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
 
-    def all = Seq(
+    def updateable = Seq(
       detektCli,
       dokkaAnalysisDescriptors,
       dokkaBase,
@@ -272,7 +272,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
-    val utest = mvn"com.lihaoyi::utest:0.8.5"
+    val utest = mvn"com.lihaoyi::utest:0.8.7"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
 
@@ -282,13 +282,26 @@ object Deps {
   }
 
   object AndroidDeps {
-    val manifestMergerVersion = "31.10.0"
-    val bundleToolVersion = "1.17.2"
+    val manifestMerger = mvn"com.android.tools.build:manifest-merger:31.10.0"
+    val bundleTool = mvn"com.android.tools.build:bundletool:1.17.2"
     val ndkVersion = "27.0.12077973"
     val cmakeVersion = "3.22.1"
     val layoutLibVersion = "15.1.2"
-    val composePreviewRendererVersion = "0.0.1-alpha09"
-    val uiToolingVersion = "1.7.6"
+    val layoutLibRenderer = mvn"com.android.tools.layoutlib:layoutlib:$layoutLibVersion"
+    val layoutLibRuntime = mvn"com.android.tools.layoutlib:layoutlib-runtime:$layoutLibVersion"
+    val composePreviewRenderer =
+      mvn"com.android.tools.compose:compose-preview-renderer-model:0.0.1-alpha09"
+    val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
+
+    def updateable = Seq(
+      manifestMerger,
+      bundleTool,
+      layoutLibRenderer,
+      layoutLibRuntime,
+      composePreviewRenderer,
+      uiTooling
+    )
+
   }
 
 }

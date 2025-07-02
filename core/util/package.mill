@@ -11,9 +11,9 @@ import millbuild.*
  */
 object `package` extends MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(
-    build.core.api,
+    build.core.api.shared,
     build.core.constants,
-    build.core.define,
+    build.core.api,
     build.core.coursierutil
   )
 

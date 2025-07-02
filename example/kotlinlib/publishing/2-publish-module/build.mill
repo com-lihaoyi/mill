@@ -1,8 +1,8 @@
 //// SNIPPET:BUILD
 package build
-import mill._, kotlinlib._, publish._
+import mill.*, kotlinlib.*, publish.*
 
-object foo extends KotlinModule with PublishModule {
+object foo extends KotlinModule, PublishModule {
 
   def kotlinVersion = "1.9.24"
 

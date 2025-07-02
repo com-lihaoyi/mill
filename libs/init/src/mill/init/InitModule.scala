@@ -1,17 +1,17 @@
 package mill.init
 
 import mainargs.{Flag, arg}
-import mill.define.{Discover, ExternalModule}
-import mill.define.BuildCtx
+import mill.api.{Discover, ExternalModule}
+import mill.api.BuildCtx
 import mill.{Command, Module, Task}
 
 import scala.util.{Failure, Success, Try, Using}
 
-object InitModule extends ExternalModule with InitModule {
+private[mill] object InitModule extends ExternalModule with InitModule {
   lazy val millDiscover = Discover[this.type]
 }
 
-trait InitModule extends Module {
+private[mill] trait InitModule extends Module {
 
   type ExampleUrl = String
   type ExampleId = String

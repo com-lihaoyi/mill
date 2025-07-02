@@ -3,7 +3,7 @@
 // You only need a `.scalafmt.conf` config file which at least needs configure the Scalafmt version.
 
 package build
-import mill._
+import mill.*
 
 object foo extends Module { def task = Task { "2.13.4" } }
 

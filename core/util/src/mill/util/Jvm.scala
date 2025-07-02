@@ -11,9 +11,9 @@ import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.*
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 import mill.coursierutil.TestOverridesRepo
-import mill.define.{PathRef, TaskCtx}
+import mill.api.{PathRef, TaskCtx}
 
 import java.io.BufferedOutputStream
 import java.io.File
@@ -444,14 +444,10 @@ object Jvm {
   }
 
   private def coursierCache(
-      ctx: Option[mill.define.TaskCtx],
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]],
-      config: CoursierConfig
+      ctx: Option[mill.api.TaskCtx],
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]]
   ) =
-    FileCache[Task](os.Path(config.cacheLocation).toIO)
-      .withCredentials(config.credentials)
-      .withTtl(config.ttl)
-      .withCachePolicies(config.cachePolicies)
+    FileCache[Task]()
       .pipe { cache =>
         coursierCacheCustomizer.fold(cache)(c => c.apply(cache))
       }
@@ -473,12 +469,11 @@ object Jvm {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.define.TaskCtx] = None,
+      ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      checkGradleModules: Boolean = false,
-      config: CoursierConfig
+      checkGradleModules: Boolean = false
   ): Result[coursier.Artifacts.Result] = {
     val resolutionRes = resolveDependenciesMetadataSafe(
       repositories,
@@ -489,12 +484,11 @@ object Jvm {
       ctx,
       coursierCacheCustomizer,
       resolutionParams,
-      checkGradleModules = checkGradleModules,
-      config = config
+      checkGradleModules = checkGradleModules
     )
 
     resolutionRes.flatMap { resolution =>
-      val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
+      val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
       val artifactsResultOrError = Artifacts(coursierCache0)
         .withResolution(resolution)
@@ -538,12 +532,11 @@ object Jvm {
       sources: Boolean = false,
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.define.TaskCtx] = None,
+      ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      checkGradleModules: Boolean = false,
-      config: CoursierConfig
+      checkGradleModules: Boolean = false
   ): Result[Seq[PathRef]] =
     getArtifacts(
       repositories,
@@ -556,8 +549,7 @@ object Jvm {
       coursierCacheCustomizer,
       artifactTypes,
       resolutionParams,
-      checkGradleModules = checkGradleModules,
-      config = config
+      checkGradleModules = checkGradleModules
     ).map { res =>
       BuildCtx.withFilesystemCheckerDisabled {
         res.files
@@ -567,25 +559,23 @@ object Jvm {
     }
 
   def jvmIndex(
-      ctx: Option[mill.define.TaskCtx] = None,
-      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      config: CoursierConfig
+      ctx: Option[mill.api.TaskCtx] = None,
+      coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None
   ): JvmIndex = {
-    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
-    coursierCache0.logger.use(jvmIndex0(ctx, coursierCacheCustomizer, config = config))
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
+    coursierCache0.logger.use(jvmIndex0(ctx, coursierCacheCustomizer))
       .unsafeRun()(using coursierCache0.ec)
   }
 
   def jvmIndex0(
-      ctx: Option[mill.define.TaskCtx] = None,
+      ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
-      jvmIndexVersion: String = "latest.release",
-      config: CoursierConfig
+      jvmIndexVersion: String = "latest.release"
   ): Task[JvmIndex] = {
-    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
     JvmIndex.load(
       cache = coursierCache0, // the coursier.cache.Cache instance to use
-      repositories = config.repositories, // repositories to use
+      repositories = Resolve().repositories, // repositories to use
       indexChannel = JvmChannel.module(
         JvmChannel.centralModule(),
         version = jvmIndexVersion
@@ -600,13 +590,12 @@ object Jvm {
    */
   def resolveJavaHome(
       id: String,
-      ctx: Option[mill.define.TaskCtx] = None,
+      ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       jvmIndexVersion: String = mill.api.BuildInfo.coursierJvmIndexVersion,
-      useShortPaths: Boolean = false,
-      config: CoursierConfig
+      useShortPaths: Boolean = false
   ): Result[os.Path] = {
-    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
     val shortPathDirOpt = Option.when(useShortPaths) {
       if (isWin)
         // On Windows, prefer to use System.getenv over sys.env (or ctx.env for
@@ -625,16 +614,10 @@ object Jvm {
     val jvmCache = JvmCache()
       .withArchiveCache(
         ArchiveCache()
-          .withLocation(os.Path(config.archiveCacheLocation).toIO)
           .withCache(coursierCache0)
           .withShortPathDirectory(shortPathDirOpt.map(_.toIO))
       )
-      .withIndex(jvmIndex0(
-        ctx,
-        coursierCacheCustomizer,
-        jvmIndexVersion,
-        config = config
-      ))
+      .withIndex(jvmIndex0(ctx, coursierCacheCustomizer, jvmIndexVersion))
     val javaHome = JavaHome()
       .withCache(jvmCache)
       // when given a version like "17", always pick highest version in the index
@@ -652,12 +635,11 @@ object Jvm {
       force: IterableOnce[Dependency],
       mapDependencies: Option[Dependency => Dependency] = None,
       customizer: Option[Resolution => Resolution] = None,
-      ctx: Option[mill.define.TaskCtx] = None,
+      ctx: Option[mill.api.TaskCtx] = None,
       coursierCacheCustomizer: Option[FileCache[Task] => FileCache[Task]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       boms: IterableOnce[BomDependency] = Nil,
-      checkGradleModules: Boolean = false,
-      config: CoursierConfig
+      checkGradleModules: Boolean = false
   ): Result[Resolution] = {
 
     val rootDeps = deps.iterator
@@ -670,7 +652,7 @@ object Jvm {
       .toMap
 
     val offlineMode = ctx.fold(false)(_.offline)
-    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer, config)
+    val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
 
     val resolutionParams0 = resolutionParams.addForceVersion(forceVersions.toSeq*)
 
@@ -691,8 +673,6 @@ object Jvm {
       .withResolutionParams(resolutionParams0)
       .withMapDependenciesOpt(mapDependencies)
       .withBoms(boms.iterator.toSeq)
-      .withConfFiles(config.confFiles.map(_.toNIO))
-      .withMirrors(config.mirrors)
 
     resolve.either() match {
       case Left(error) =>
@@ -743,11 +723,8 @@ object Jvm {
   }
 
   // Parse a list of repositories from their string representation
-  private[mill] def reposFromStrings(
-      repoList: Seq[String],
-      defaultRepos: Seq[Repository]
-  ): Result[Seq[Repository]] = {
-    RepositoryParser.repositories(repoList, defaultRepos).either match {
+  private[mill] def reposFromStrings(repoList: Seq[String]): Result[Seq[Repository]] = {
+    RepositoryParser.repositories(repoList).either match {
       case Left(errs) =>
         val msg =
           s"Invalid repository string:" + System.lineSeparator() +

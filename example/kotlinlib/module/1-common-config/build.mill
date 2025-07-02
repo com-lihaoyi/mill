@@ -1,6 +1,6 @@
 //// SNIPPET:BUILD
 package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 
 object `package` extends KotlinModule {
   // You can have arbitrary numbers of third-party dependencies

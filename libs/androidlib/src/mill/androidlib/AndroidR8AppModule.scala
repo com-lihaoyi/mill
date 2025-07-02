@@ -1,8 +1,8 @@
 package mill.androidlib
 
 import mill.*
-import mill.define.{PathRef, Task}
-import mill.define.BuildCtx
+import mill.api.{PathRef, Task}
+import mill.api.BuildCtx
 import mill.scalalib.{Dep, DepSyntax}
 
 @mill.api.experimental

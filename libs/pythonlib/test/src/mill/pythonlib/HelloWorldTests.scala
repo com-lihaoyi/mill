@@ -1,7 +1,7 @@
 package mill
 package pythonlib
 
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 

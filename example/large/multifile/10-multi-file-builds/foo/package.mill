@@ -1,5 +1,5 @@
 package build.foo
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object `package` extends build.MyModule {
   def moduleDeps = Seq(build.bar.qux.mymodule)

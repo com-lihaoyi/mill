@@ -2,10 +2,10 @@ package mill
 package twirllib
 
 import coursier.Repository
-import mill.define.PathRef
+import mill.api.PathRef
 import mill.scalalib.*
 
-import mill.define.Task
+import mill.api.Task
 import mill.util.BuildInfo
 
 import scala.io.Codec
@@ -96,7 +96,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
 
   def twirlInclusiveDot: Boolean = false
 
-  def compileTwirl: T[mill.scalalib.api.CompilationResult] = Task(persistent = true) {
+  def compileTwirl: T[mill.jvmlib.api.CompilationResult] = Task(persistent = true) {
     TwirlWorker
       .compile(
         twirlClassLoader(),

@@ -1,14 +1,14 @@
 package mill.scalajslib
 
 import mill._
-import mill.define.Discover
+import mill.api.Discover
 import mill.scalalib.{DepSyntax, PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest._
 
-import mill.scalalib.api.JvmWorkerUtil
+import mill.jvmlib.api.JvmWorkerUtil
 
 object CompileLinkTests extends TestSuite {
   trait HelloJSWorldModule

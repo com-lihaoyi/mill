@@ -1,7 +1,7 @@
 package mill.javascriptlib
 
 import mill.*
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 trait TestModule extends TaskModule {
   import TestModule.TestResult
@@ -19,7 +19,7 @@ trait TestModule extends TaskModule {
 
   protected def testTask(args: Task[Seq[String]]): Task[TestResult]
 
-  override def defaultCommandName() = "testForked"
+  override def defaultTask() = "testForked"
 }
 
 object TestModule {

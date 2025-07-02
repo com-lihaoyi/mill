@@ -3,7 +3,7 @@ package mill.androidlib.manifestmerger
 import coursier.Repository
 import mill.*
 import mill.androidlib.AndroidSdkModule
-import mill.define.{Discover, ExternalModule}
+import mill.api.{Discover, ExternalModule}
 import mill.scalalib.*
 import mill.util.Jvm
 import mill.androidlib.Versions

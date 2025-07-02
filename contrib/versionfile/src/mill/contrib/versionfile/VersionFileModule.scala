@@ -80,7 +80,7 @@ trait VersionFileModule extends Module {
     )
 }
 
-object VersionFileModule extends define.ExternalModule {
+object VersionFileModule extends api.ExternalModule {
 
   /** Executes the given processes. */
   def exec(procs: mill.util.Tasks[Seq[os.proc]]) = Task.Command {
@@ -90,5 +90,5 @@ object VersionFileModule extends define.ExternalModule {
     } yield proc.call()
   }
 
-  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.api.Discover = mill.api.Discover[this.type]
 }

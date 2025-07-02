@@ -1,6 +1,6 @@
 package mill.kotlinlib.js
 
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.{Cross, T}
 import utest.{TestSuite, Tests, assert, test}

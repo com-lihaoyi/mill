@@ -2,7 +2,7 @@
 // code using JNI.
 
 package build
-import mill._, javalib._, util.Jvm
+import mill.*, javalib.*, util.Jvm
 
 object `package` extends JavaModule {
   // Additional source folder to put C sources
@@ -44,7 +44,7 @@ object `package` extends JavaModule {
 
   def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
 
-  object test extends JavaTests with TestModule.Junit4 {
+  object test extends JavaTests, TestModule.Junit4 {
     def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
   }
 }

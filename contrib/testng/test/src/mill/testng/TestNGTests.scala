@@ -1,7 +1,7 @@
 package mill.testng
 
 import mill.*
-import mill.define.Discover
+import mill.api.Discover
 import mill.scalalib.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule

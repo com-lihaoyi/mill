@@ -8,18 +8,18 @@
 // HTML generation respectively:
 package build
 
-import scalatags.Text.all._
+import scalatags.Text.all.*
 import org.commonmark.parser.Parser
 import org.commonmark.renderer.html.HtmlRenderer
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
-// Next, we use `os.list` and `mill.define.BuildCtx.watchValue` on the `post/` folder to
+// Next, we use `os.list` and `mill.api.BuildCtx.watchValue` on the `post/` folder to
 // build a `Cross[PostModule]` whose entries depend no the markdown files we
 // find in that folder. Each post has a `source` pointing at the markdown file,
 // and a `render` task that parses the file's markdown and generates a HTML
 // output file
 
-import mill._
+import mill.*
 
 def mdNameToHtml(s: String) = s.toLowerCase.replace(".md", ".html")
 def mdNameToTitle(s: String) =

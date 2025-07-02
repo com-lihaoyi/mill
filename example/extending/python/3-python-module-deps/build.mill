@@ -6,7 +6,7 @@
 // make them available during `typeCheck` and `run`:
 
 package build
-import mill._
+import mill.*
 
 trait PythonModule extends Module {
 
@@ -43,7 +43,7 @@ trait PythonModule extends Module {
     }
   }
 
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
     gatherScripts(Task.traverse(moduleDeps)(_.sources)().zip(moduleDeps))
 
     os.call(

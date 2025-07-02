@@ -1,5 +1,5 @@
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 val scalaVersions = Seq("2.12.17", "2.13.16")
 

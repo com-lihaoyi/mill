@@ -1,9 +1,9 @@
 package mill.playlib
 
-import mill.define.PathRef
+import mill.api.PathRef
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib._
-import mill.scalalib.api._
+import mill.jvmlib.api._
 import mill.{T, Task}
 
 trait RouterModule extends ScalaModule with Version {

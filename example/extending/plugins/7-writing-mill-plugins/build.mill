@@ -4,10 +4,10 @@
 
 // == Project Configuration
 package build
-import mill._, scalalib._, publish._
+import mill.*, scalalib.*, publish.*
 import mill.util.BuildInfo.{millVersion, millBinPlatform}
 
-object myplugin extends ScalaModule with PublishModule {
+object myplugin extends ScalaModule, PublishModule {
   def scalaVersion = "3.7.1"
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
@@ -17,12 +17,12 @@ object myplugin extends ScalaModule with PublishModule {
   def mvnDeps = Seq(mvn"com.lihaoyi::mill-libs:$millVersion")
 
   // Unit test submodule
-  object test extends ScalaTests with TestModule.Utest {
+  object test extends ScalaTests, TestModule.Utest {
     def mvnDeps = Seq(mvn"com.lihaoyi::mill-testkit:$millVersion")
   }
 
   // Setup for integration/example tests
-  object integration extends ScalaTests with TestModule.Utest {
+  object integration extends ScalaTests, TestModule.Utest {
     def mvnDeps = Seq(mvn"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Task {
       val artifact = s"${myplugin.pomSettings().organization}-${myplugin.artifactId()}"

@@ -8,9 +8,9 @@ import millbuild.*
 
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version with kotlinlib is released,
 //  because currently there is no previous artifact version
-object `package` extends MillPublishScalaModule with BuildInfo {
+object `package` extends MillStableScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.libs.scalalib, build.libs.testrunner, api)
+  def moduleDeps = Seq(build.libs.jvmlib, build.libs.testrunner, api)
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(worker.localTestOverride())
 

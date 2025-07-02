@@ -1,6 +1,6 @@
 //// SNIPPET:BUILD
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object `package` extends JavaModule {
   def mvnDeps = Seq(mvn"net.sourceforge.argparse4j:argparse4j:0.9.0")

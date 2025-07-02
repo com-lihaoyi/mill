@@ -1,8 +1,8 @@
 package mill
 package contrib.jmh
 
-import mill.define.Discover
-import mill.define.ExecutionPaths
+import mill.api.Discover
+import mill.api.ExecutionPaths
 import mill.scalalib.ScalaModule
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule

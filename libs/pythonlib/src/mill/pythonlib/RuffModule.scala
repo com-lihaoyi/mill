@@ -1,7 +1,7 @@
 package mill.pythonlib
 
 import mill._
-import mill.define.{Args, ExternalModule, Discover}
+import mill.api.{Args, ExternalModule, Discover}
 import mill.util.Tasks
 
 /**
@@ -81,7 +81,7 @@ trait RuffModule extends PythonModule {
 
 object RuffModule extends ExternalModule with RuffModule with TaskModule {
 
-  override def defaultCommandName(): String = "formatAll"
+  override def defaultTask(): String = "formatAll"
 
   def formatAll(
       sources: Tasks[Seq[PathRef]] = Tasks.resolveMainDefault("__.sources"),

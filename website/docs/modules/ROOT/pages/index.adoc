@@ -1,6 +1,6 @@
 = Mill: A Better JVM Build Tool
 
-https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=stable-version&versionPrefix={mill-version}&versionSuffix={mill-version}[d]]
+https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=stable-version&versionSuffix={mill-version}[d]]
 https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=unstable-dev-version[Maven Central Version]]
 
 Mill is a JVM build tool that supports Java, Scala, and Kotlin:

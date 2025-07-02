@@ -1,8 +1,8 @@
 //// SNIPPET:ALL
 package build
-import mill._, kotlinlib._, publish._
+import mill.*, kotlinlib.*, publish.*
 
-trait MyModule extends KotlinModule with PublishModule {
+trait MyModule extends KotlinModule, PublishModule {
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
@@ -18,7 +18,7 @@ trait MyModule extends KotlinModule with PublishModule {
 
   def mvnDeps = Seq(mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0")
 
-  object test extends KotlinTests with TestModule.Junit5 {
+  object test extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )

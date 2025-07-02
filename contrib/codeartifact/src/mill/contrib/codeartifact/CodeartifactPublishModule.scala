@@ -2,7 +2,7 @@ package mill.contrib.codeartifact
 
 import mill._
 import scalalib._
-import define.ExternalModule
+import mill.api.ExternalModule
 
 trait CodeartifactPublishModule extends PublishModule {
   def codeartifactUri: String
@@ -57,6 +57,6 @@ object CodeartifactPublishModule extends ExternalModule {
       )
     }
 
-  lazy val millDiscover: mill.define.Discover =
-    mill.define.Discover[this.type]
+  lazy val millDiscover: mill.api.Discover =
+    mill.api.Discover[this.type]
 }

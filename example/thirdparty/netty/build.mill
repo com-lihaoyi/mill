@@ -4,8 +4,8 @@
 //| - ant:ant-optional:1.5.3-1
 package build
 
-import mill._, javalib._
-import mill.define.BuildCtx
+import mill.*, javalib.*
+import mill.api.BuildCtx
 
 // TODO:
 //   testsuite-shading
@@ -17,7 +17,7 @@ def isOSX = System.getProperty("os.name").toLowerCase.contains("mac")
 trait NettyBaseModule extends MavenModule {
   def javacOptions = Seq("-source", "1.8", "-target", "1.8")
 }
-trait NettyBaseTestSuiteModule extends NettyBaseModule with TestModule.Junit5 {
+trait NettyBaseTestSuiteModule extends NettyBaseModule, TestModule.Junit5 {
   def testSandboxWorkingDir = false
   def mvnDeps = Seq(
     mvn"com.github.sbt.junit:jupiter-interface:0.11.2",
@@ -62,7 +62,7 @@ trait NettyBaseTestSuiteModule extends NettyBaseModule with TestModule.Junit5 {
     "-enableassertions"
   )
 
-  def testLogLevel = mill.api.internal.TestReporter.LogLevel.Info
+  def testLogLevel = mill.api.shared.internal.TestReporter.LogLevel.Info
 
   def compile = Task {
     // Hack to satisfy fragile tests that look for /test-classes/ in the file paths
@@ -77,7 +77,7 @@ trait NettyModule extends NettyBaseModule {
   def testModuleDeps: Seq[MavenModule] = Nil
   def testMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
 
-  object test extends NettyBaseTestSuiteModule with MavenTests {
+  object test extends NettyBaseTestSuiteModule, MavenTests {
     def moduleDeps = super.moduleDeps ++ testModuleDeps
     def mvnDeps = super.mvnDeps() ++ testMvnDeps()
     def forkWorkingDir = NettyModule.this.moduleDir

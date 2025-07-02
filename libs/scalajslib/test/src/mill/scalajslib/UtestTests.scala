@@ -8,7 +8,7 @@ import utest._
 
 object UtestTests extends TestSuite {
   import CompileLinkTests._
-  def runTests(testTask: define.Task.Named[(msg: String, results: Seq[TestResult])])
+  def runTests(testTask: api.Task.Named[(msg: String, results: Seq[TestResult])])
       : Unit =
     UnitTester(HelloJSWorld, millSourcePath).scoped { eval =>
       val Left(ExecResult.Failure(_)) = eval(testTask): @unchecked

@@ -1,9 +1,9 @@
 package mill.contrib.scalapblib
 
 import mill.*
-import mill.define.PathRef
+import mill.api.PathRef
 import mill.constants.Util
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, *}

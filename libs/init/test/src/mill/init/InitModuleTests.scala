@@ -1,7 +1,7 @@
 package mill.init
 
 import mill.api.Val
-import mill.define.Discover
+import mill.api.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest._

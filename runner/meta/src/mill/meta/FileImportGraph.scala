@@ -3,7 +3,7 @@ package mill.meta
 import mill.api.internal.internal
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.*
-import mill.api.internal.MillScalaParser
+import mill.api.shared.internal.MillScalaParser
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.internal.Util.backtickWrap
@@ -31,7 +31,7 @@ case class FileImportGraph(
 @internal
 object FileImportGraph {
 
-  import mill.define.JsonFormatters.pathReadWrite
+  import mill.api.JsonFormatters.pathReadWrite
   implicit val readWriter: upickle.default.ReadWriter[FileImportGraph] = upickle.default.macroRW
 
   /**

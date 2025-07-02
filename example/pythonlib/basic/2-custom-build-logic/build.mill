@@ -4,7 +4,7 @@
 // line count of all the source files in that module
 
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 
@@ -28,7 +28,7 @@ object foo extends PythonModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends PythonTests with TestModule.Unittest
+  object test extends PythonTests, TestModule.Unittest
 }
 
 // The addition of `lineCount` and `resources` overrides the previous `resource` folder

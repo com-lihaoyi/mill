@@ -6,7 +6,7 @@ import mill.api.internal.internal
 import mill.constants.CodeGenConstants.{nestedBuildFileNames, rootBuildFileNames, rootModuleAlias}
 import mill.main.buildgen.BuildObject.Companions
 import mill.internal.Util.backtickWrap
-import mill.define.CrossVersion
+import mill.api.CrossVersion
 
 import scala.collection.immutable.SortedSet
 import scala.util.boundary
@@ -487,7 +487,7 @@ object BuildGenUtil {
   }
 
   def renderJvmWorker(moduleName: String): String =
-    s"def jvmWorker = mill.define.ModuleRef($moduleName)"
+    s"def jvmWorker = mill.api.ModuleRef($moduleName)"
 
   val testModulesByGroup: Map[String, String] = Map(
     "junit" -> "TestModule.Junit4",

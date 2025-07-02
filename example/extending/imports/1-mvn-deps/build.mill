@@ -5,7 +5,7 @@
 // in your resource path for your application to use.
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 
