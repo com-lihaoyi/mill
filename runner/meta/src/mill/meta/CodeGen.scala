@@ -266,7 +266,8 @@ object CodeGen {
           } else {
             // `extends` clauses can have the parent followed by either `with` or `,`
             // separators, but it needs to be consistent. So we need to try and see if
-            // any separators are already present and if so follow suite
+            // any separators are already present and if so follow suite. Not 100%
+            // precise, but probably works well enough people will rarely hit issues
             val postParent = newScriptCode.drop(objectData.parent.end).trim
             val sep = {
               if (postParent.startsWith(",")) ", "
