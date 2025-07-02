@@ -2,7 +2,7 @@ package build.runner.codesig
 import mill._
 import mill.scalalib._
 import millbuild.*
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 /**
  * The CodeSig module implements a conservative call-graph analyzer at the JVM

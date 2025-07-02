@@ -5,17 +5,17 @@ import coursier.maven.MavenRepository
 import mill._
 import mill.util.Tasks
 import mill.scalalib._
-import mill.scalalib.api.JvmWorkerUtil
+import mill.jvmlib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
-import mill.define.SelectMode
+import mill.api.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
-import mill.define.Cross
+import mill.api.Cross
 import mill.testrunner.TestResult
 import millbuild.*
 import upickle.implicits.namedTuples.default.given
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 object `package` extends mill.Module {
   // We compile the test code once and then offer multiple modes to

@@ -15,13 +15,13 @@ import mill.vcs.VcsVersion
 import mill._
 import mill.util.Tasks
 import mill.scalalib._
-import mill.scalalib.api.JvmWorkerUtil
+import mill.jvmlib.api.JvmWorkerUtil
 import mill.scalalib.publish._
-import mill.define.SelectMode
+import mill.api.SelectMode
 import mill.T
-import mill.define.Cross
+import mill.api.Cross
 import scala.util.Properties
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 import mill.androidlib.AndroidSdkModule
 
 def millVersionIsStable: T[Boolean] = Task.Input {
@@ -190,7 +190,7 @@ def formatDep(dep: Dep) = {
   s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}"
 }
 
-def listCross(implicit ctx: mill.define.ModuleCtx) = BuildCtx.watchValue {
+def listCross(implicit ctx: mill.api.ModuleCtx) = BuildCtx.watchValue {
   // millSourcePath is protected, so we need to access it via reflection
   import scala.reflect.Selectable.reflectiveSelectable
   os.list(ctx.asInstanceOf[{ def millSourcePath: os.Path }].millSourcePath).map(_.last)
