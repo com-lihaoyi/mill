@@ -1,5 +1,8 @@
 = v1.0.0 of the Mill Build Tool is out!
 
+:link-github: https://github.com/com-lihaoyi/mill
+:link-pr: {link-github}/pull
+
 // tag::header[]
 :author: Li Haoyi
 :revdate: ???
@@ -177,8 +180,110 @@ dependency configuration and code, similar to
 https://docs.astral.sh/uv/guides/scripts/#running-a-script-without-dependencies[uv scripts]
 in Python.
 
-=== Major improvements to Android build support
+=== Android build support
+
+A huge amount of work went into improving Mill's support for Android builds. Android
+apps have traditionally only been buildable using Gradle, and Mill is one of the only
+other build tools that you can use as an alternative. While
+in 0.12.x Android support was a demo-quality example build, in 1.0.0 it has been
+fleshed out into a robust and complete framework for building android apps.
+
+For example, Mill is now able to build, run, and test the https://github.com/android/compose-samples/tree/main/JetLagged[JetLagged Android Example App]:
+
+image:blog::AndroidJetLagged.png[]
+
+As well as the https://android.googlesource.com/platform/ndk/+/froyo-release/samples/san-angeles[San Angeles NDK example]:
+
+image:blog::AndroidSanAngeles.png[]
+
+This work was done by https://www.vaslabs.io/[VasLabs], who put in an immense amount
+of work improving the support.
+
+* ({link-pr}/4485[#4485], {link-pr}/4540[#4540], {link-pr}/4583[#4583],
+{link-pr}/4626[#4626], {link-pr}/4759[#4759], {link-pr}/4892[#4892], {link-pr}/4947[#4947],
+{link-pr}/5013[#5013], {link-pr}/5053[#5053])
+
+
+Updating the xref:mill::android/java.adoc[Mill Android documentation for Java] and
+the xref:mill::android/java.adoc[Mill Android documentation for Kotlin] is a work in
+progress, but if you are unsatisfied with Gradle and interested in trying out an
+alternate Android build tool, you should definitely take a look and try it out. We
+will be fleshing out the Mill Android docs over the following weeks and months and
+writing up blog posts on our experience integrating Mill with the Android toolchain
 
 == Quality Highlights
+
+Apart from concrete features, a lot of work in the Mill 1.0.0 series went into quality.
+These are areas where
+
+=== IDE Support
+
+Mill has always had a best-in-class IDE experience, with the ability to get autocompletion
+and code-navigation within your build files that far surpasses anything you can do in
+Maven, Gradle, or SBT. But even so, there was a ton of room for improvement.
+
+
+Many PRs went into improving Mill's IDE support with IntelliJ and VSCode, which
+goes through the "BSP" https://github.com/build-server-protocol/build-server-protocol[build-server-protocol]:
+
+- {link-pr}/5275[#5275], {link-pr}/5265[#5265],
+{link-pr}/5220[#5220], {link-pr}/5202[#5202], {link-pr}/5200[#5200])
+
+- {link-pr}/4851[#4851],{link-pr}/4873[#4873],
+{link-pr}/4876[#4876], {link-pr}/4881[#4881], {link-pr}/4873[#4873],
+{link-pr}/4940[#4940], {link-pr}/4941[#4941]
+
+There were also some fixes on the IDE side on IntelliJ:
+
+- https://youtrack.jetbrains.com/issue/SCL-23262/Mill-import-highlighting-error[SCL-23262 Mill import highlighting error]
+- https://youtrack.jetbrains.com/issue/SCL-23198/Direct-references-to-package-objects-should-be-allowed-in-.mill-files[SCL-23198 Direct references to package objects should be allowed in `.mill` files]
+- https://youtrack.jetbrains.com/issue/SCL-23961/Mill-projects-sometimes-get-into-bad-state-during-importing[SCL-23961 Mill projects sometimes get into bad state during importing]
+- https://youtrack.jetbrains.com/issue/SCL-23975/Stop-Mill-BSP-import-progress-indicator-from-blocking-usage-of-iDE[SCL-23976 Stop Mill BSP import progress indicator from blocking usage of IDE]
+
+and VSCode:
+
+- https://github.com/scalameta/metals/issues/7149[#7149 Metals does not automatically setup the Mill BSP server]
+- https://github.com/scalameta/metals/issues/7218[#7218 Support toe BSP "no-ide" build-target tag]
+
+As Mill builds is able to leverage the existing IntelliJ/VSCode IDE infrastructure,
+we did not need to implement support for the Mill build tool from scratch in its
+own plugin. But nevertheless there was still a lot of work to properly wire up
+Mill to talk to these IDEs and pass the necessary data so the IDEs can do their thing.
+
+Improving IDE support is a slog: lots of fiddling with undocumented APIs and
+undocumented behavior, with bugs randomly scattered across organizational boundaries
+(some in Mill, some in IntelliJ, some in VSCode). But hopefully this work will provide
+a smoother experience for anyone getting using Mill, and improve upon Mill's
+ability to provide a best-in-class IDE experience for your build system.
+
+=== Classpath Cleanup and Stabilization
+
+Mill 1.0.0 runs with a much cleaner JVM classpath than Mill 0.12.x and below.
+We expect that this will both speed up compiles, and also allow better long-term
+backwards compatibility as the Mill project itself and user's Mill builds both evolve
+over time.
+
+- Mill 0.12.x compiled and ran your `build.mill` with the entire Mill assembly jar
+  on the classpath. That meant that
+  your `build.mill` could access all of Mill's internal code and dependencies,
+  and versions of dependencies used by Mill are pinned and unchangeable
+  (e.g. see https://github.com/com-lihaoyi/mill/issues/2985[#2985])
+
+- Mill 1.0.0 compiles and runs your `build.mill` with only the code and
+  dependencies that it actually requires on the classpath, with the rest of
+  Mill's internal code and internal dependencies isolated via subprocess or
+  classloader isolation. The only exception is the Scala standard library jar
+  `scala-library` that continues to be fixed
+
+While this may seem like an esoteric improvement, concretely it means two things:
+
+- You are now much free-er to use or upgrade third-party dependencies
+  in your `build.mill` via `//| mvnDeps`. They will not conflict with Mill's internal
+  dependencies, and are not pinned to the versions that Mill uses
+
+- Mill can evolve much more freely without worrying about breaking user code. All
+  of Mill's internal code is now completely hidden from the user, so users don't
+  need to worry about accidentally depending on some internal class or static method
+  that may break in a newer version of Mill
 
 == Upgrading to Mill 1.0.0
