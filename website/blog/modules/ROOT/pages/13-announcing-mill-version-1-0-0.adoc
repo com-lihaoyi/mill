@@ -11,9 +11,10 @@ _{author}, {revdate}_
 
 {mill-doc-url}[Mill] is a JVM build tool that targets Java/Scala/Kotlin, and aims to
 xref:mill::comparisons/why-mill.adoc[improve upon existing build tools like Maven, Gradle, or SBT].
-https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#100[Mill 1.0.0] is
-a major breaking release of the Mill project focused on setting a solid technical
-foundation for the next several years of development, and this article explores some
+Mill 1.0.0 is a major breaking release of the Mill project focused on setting a solid technical
+foundation for the next several years of development. While the
+https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#100[Changelog] contains a thorough
+listing of the various changes, this article instead spends more time discussing some of the
 highlights of the Mill 1.0.0 release.
 
 // end::header[]
@@ -177,7 +178,7 @@ dependency configuration and code, similar to
 https://docs.astral.sh/uv/guides/scripts/#running-a-script-without-dependencies[uv scripts]
 in Python.
 
-=== Android build support
+=== Android Build Support
 
 A huge amount of work went into improving Mill's support for Android builds. Android
 apps have traditionally only been buildable using Gradle, and Mill is one of the only
@@ -203,10 +204,29 @@ of work improving the support.
 
 Updating the xref:mill::android/java.adoc[Mill Android documentation for Java] and
 the xref:mill::android/java.adoc[Mill Android documentation for Kotlin] is a work in
-progress, but if you are unsatisfied with Gradle and interested in trying out an
-alternate Android build tool, you should definitely take a look and try it out. We
+progress. We
 will be fleshing out the Mill Android docs over the following weeks and months and
 writing up blog posts on our experience integrating Mill with the Android toolchain
+But if you are unsatisfied with Gradle and interested in trying out an
+alternate Android build tool, you should definitely take a look and try it out
+and let us know how it goes in https://github.com/com-lihaoyi/mill/discussions[Mill's Github Discussions].
+
+=== Kotlin Support is now Stable
+
+Mill 1.0.0 includes substantial improvements for building Kotlin projects with Mill:
+
+* ({link-pr}/4557[#4557], {link-pr}/4786[#4786], {link-pr}/4771[#4771],
+{link-pr}/4779[#4779], {link-pr}/4797[#4797], {link-pr}/4963[#4963])
+
+These PRs really flesh out the previously-experimental support for Kotlin projects in Mill:
+main class discovery, compiler plugins, BuildInfo support, etc.. Other PRs upstream in the
+https://get-coursier.io/[Coursier] add support for resolving Kotlin Multiplatform dependencies.
+And the work on Android
+
+With 1.0.0, Kotlin support in Mill is no longer experimental, and we are enabling
+binary-compatibility enforcement for `mill.kotlinlib` just as we already have for
+`mill.javalib` and `mill.scalalib`. We hope that you will try out Mill in your Kotlin
+projects, and let us know how it goes in https://github.com/com-lihaoyi/mill/discussions[Mill's Github Discussions].
 
 == Quality Highlights
 
@@ -283,4 +303,4 @@ While this may seem like an esoteric improvement, concretely it means two things
   need to worry about accidentally depending on some internal class or static method
   that may break in a newer version of Mill
 
-== Upgrading to Mill 1.0.0
+== Try out Mill 1.0.0!
