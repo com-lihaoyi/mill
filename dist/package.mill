@@ -3,11 +3,11 @@ package build.dist
 import mill.*
 import scalalib.*
 import publish.*
-import mill.define.ModuleRef
+import mill.api.ModuleRef
 import mill.util.Jvm
 //import de.tobiasroeser.mill.vcs.version.VcsVersion
 import millbuild.*
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 import scala.util.Using
 
 trait DistModule extends Module {
