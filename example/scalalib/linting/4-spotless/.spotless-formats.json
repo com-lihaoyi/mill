@@ -25,7 +25,8 @@
   },
   {
     "includes": [
-      "glob:**/src-3**"
+      "glob:**/src-3**",
+      "glob:build.mill"
     ],
     "steps": [
       {

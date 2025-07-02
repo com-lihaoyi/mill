@@ -38,7 +38,10 @@ object `package` extends SpotlessModule {
 
 // NOTE: If no `.scalafmt.conf` file is provided, the default configuration from `scalafmt` is used.
 // Otherwise, you must also specify the `ScalaFmt.version` field in the JSON file.
-
+//
+// NOTE: as `.mill` files use Scala 3 syntax, we need the `.scalafmt.conf` above to
+// configure ScalaFmt to use Scala 3 compatible formatting
+//
 // Next, we run the inherited `spotless` command to check/apply the format specifications.
 
 /** Usage
@@ -49,14 +52,17 @@ checking format in 1 scala files
 format errors in lib/src-2/B.scala
 checking format in 1 scala files
 format errors in lib/src-3/B.scala
-format errors in 3 files
-error: ...format check failed for 3 files
+checking format in 1 scala files
+format errors in build.mill
+format errors in 4 files
+error: ...format check failed for 4 files
 
 > ./mill spotless             # auto-fix format
 formatting lib/src/A.java
 formatting lib/src-2/B.scala
 formatting lib/src-3/B.scala
-formatted 3 files
+formatting build.mill
+formatted 4 files
 
 > ./mill spotless           # fast incremental format
 1 java files are already formatted
