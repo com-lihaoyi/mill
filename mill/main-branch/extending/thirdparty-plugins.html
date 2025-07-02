@@ -753,7 +753,7 @@ object MyAliases extends Aliases {
 
 import net.mlbox.millantlr.AntlrModule
 
-object foo extends ScalaModule with AntlrModule {
+object foo extends ScalaModule, AntlrModule {
   override def antlrGrammarSources = Task.Sources {
     Seq(os.pwd/&quot;someGrammar.g4&quot;).map(PathRef(_))
   }
@@ -884,7 +884,7 @@ of code-generating templates.</p>
 
 import com.mchange.milldaemon.DaemonModule
 
-object coolproj extends RootModule with DaemonModule {
+object coolproj extends RootModule, DaemonModule {
   override def runDaemonPidFile = Some( os.pwd / &quot;coolproj.pid&quot; )
 }</pre>
 </div>
@@ -978,7 +978,7 @@ parameters for your application using the <code>DockerNativeConfig</code> trait 
 import mill.*, mill.scalalib._, mill.scalalib.scalafmt._
 import com.carlosedp.milldockernative.DockerNative
 
-object hello extends ScalaModule with DockerNative {
+object hello extends ScalaModule, DockerNative {
   def scalaVersion = &quot;3.3.0&quot;
   object dockerNative extends DockerNativeConfig {
     // Native Image parameters
@@ -1080,7 +1080,7 @@ and also check the provided example code.</p>
 
 import io.github.kierendavies.mill.explicitdeps.ExplicitDepsModule
 
-object foo extends ScalaModule with ExplicitDepsModule {
+object foo extends ScalaModule, ExplicitDepsModule {
     // ...
 }</code></pre>
 </div>
@@ -1159,7 +1159,7 @@ import com.goyeau.mill.git.GitVersionedPublishModule
 import mill.scalalib.JavaModule
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 
-object `jvm-project` extends JavaModule with GitVersionedPublishModule {
+object `jvm-project` extends JavaModule, GitVersionedPublishModule {
   override def pomSettings = PomSettings(
     description = &quot;JVM Project&quot;,
     organization = &quot;com.goyeau&quot;,
@@ -1266,7 +1266,7 @@ sbt-header.</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, mill.scalalib._
 
-object demo extends ScalaModule with PublishModule {
+object demo extends ScalaModule, PublishModule {
   // ...
 }</code></pre>
 </div>
@@ -1281,7 +1281,7 @@ object demo extends ScalaModule with PublishModule {
 
 import de.tobiasroeser.mill.integrationtest._
 
-object demo extends ScalaModule with PublishModule {
+object demo extends ScalaModule, PublishModule {
   // ...
 }
 
@@ -1527,7 +1527,7 @@ And set the previous artifacts you want to check binary compatibility.</p>
 import mill.*, scalalib.*
 import com.github.lolgab.mill.mima._
 
-object main extends ScalaModule with Mima {
+object main extends ScalaModule, Mima {
 
   def mimaPreviousArtifacts = Seq(
     mvn&quot;my_group_id::main:my_previous_version&quot;
@@ -1599,7 +1599,7 @@ configuration options:</p>
 
 import io.github.alexarchambault.millnativeimage.NativeImage
 
-object hello extends ScalaModule with NativeImage {
+object hello extends ScalaModule, NativeImage {
   def scalaVersion = &quot;3.3.0&quot;
   def mvnDeps = ... // Your deps here
 
@@ -1655,7 +1655,7 @@ and more, check the project readme.</p>
 import mill.*, mill.scalalib._
 import de.tobiasroeser.mill.osgi._
 
-object project extends ScalaModule with OsgiBundleModule {
+object project extends ScalaModule, OsgiBundleModule {
 
   def bundleSymbolicName = &quot;com.example.project&quot;
 
@@ -1730,7 +1730,7 @@ set-up a <code>package.json</code> file with your TypeScript dependencies.</p>
 import mill.*, scalalib.*
 import com.github.lolgab.mill.scalablytyped._
 
-object main extends ScalaJSModule with ScalablyTyped {
+object main extends ScalaJSModule, ScalablyTyped {
   // other settings ...
 }</code></pre>
 </div>
@@ -1758,7 +1758,7 @@ object main extends ScalaJSModule with ScalablyTyped {
 
 import io.github.hoangmaihuy.scalatsi._
 
-object example extends ScalaModule with ScalaTsiModule {
+object example extends ScalaModule, ScalaTsiModule {
 // The classes that you want to generate typescript interfaces for
 override def typescriptExports = Seq(&quot;MyClass&quot;)
 // The output file which will contain the typescript interfaces
@@ -1816,7 +1816,7 @@ override def typescriptGenerationImports = Seq(&quot;mymodel._&quot;, &quot;MyTy
 import com.goyeau.mill.scalafix.ScalafixModule
 import mill.scalalib._
 
-object project extends ScalaModule with ScalafixModule {
+object project extends ScalaModule, ScalafixModule {
   def scalaVersion = &quot;2.12.11&quot;
 }</code></pre>
 </div>
@@ -1914,7 +1914,7 @@ Mill build will generate an index and place it at the root of your project.</p>
 import mill.scalalib._
 import de.tobiasroeser.mill.spring.boot.SpringBootModule
 
-object app extends MavenModule with SpringBootModule {
+object app extends MavenModule, SpringBootModule {
   override def springBootToolsVersion = &quot;2.7.13&quot;
 }</code></pre>
 </div>
@@ -1945,7 +1945,7 @@ import mill.scalalib._
 import ba.sake.squery.generator._
 import ba.sake.squery.generator.mill.SqueryGeneratorModule
 
-object app extends ScalaModule with SqueryGeneratorModule {
+object app extends ScalaModule, SqueryGeneratorModule {
   // use Task.Input(Task.ctx.env(&quot;MY_ENV_VAR&quot;)) to set sensitive variables like password etc
   def squeryJdbcUrl = &quot;jdbc:...&quot;
   def squeryUsername = &quot;..&quot;
@@ -2014,7 +2014,7 @@ import mill.*
 import mill.scalalib._
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 
-object main extends JavaModule with PublishModule {
+object main extends JavaModule, PublishModule {
   override def publishVersion: T[String] = VcsVersion.vcsState().format()
 }</code></pre>
 </div>

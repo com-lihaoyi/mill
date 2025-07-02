@@ -677,7 +677,7 @@
 jar from any JVM module. You can also customize the assembly jar as shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/publishing/1-assembly-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-publishing-1-assembly-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/publishing/1-assembly-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -748,13 +748,13 @@ Loaded test.property: 1337</code></pre>
 <h2 id="_building_native_image_binaries_with_graal_vm"><a class="anchor" href="#_building_native_image_binaries_with_graal_vm"></a>Building Native Image Binaries with Graal VM</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-publishing-7-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/publishing/7-native-image">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-publishing-7-native-image.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/publishing/7-native-image">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
 import mill.api.ModuleRef
 
-object foo extends KotlinModule with NativeImageModule {
+object foo extends KotlinModule, NativeImageModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   def jvmId = &quot;graalvm-community:17.0.7&quot;
@@ -781,13 +781,13 @@ Hello, World!</code></pre>
 image, see below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-publishing-8-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/publishing/8-native-image-libs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-publishing-8-native-image-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/publishing/8-native-image-libs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
 import mill.api.ModuleRef
 
-object foo extends KotlinModule with NativeImageModule {
+object foo extends KotlinModule, NativeImageModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   def nativeImageOptions = Seq(
@@ -861,12 +861,12 @@ if you want to experiment it or view its <code>--help</code> text to see what yo
 <h2 id="_publishing_locally"><a class="anchor" href="#_publishing_locally"></a>Publishing Locally</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/publishing/2-publish-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-publishing-2-publish-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/publishing/2-publish-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*, publish.*
 
-object foo extends KotlinModule with PublishModule {
+object foo extends KotlinModule, PublishModule {
 
   def kotlinVersion = &quot;1.9.24&quot;
 
@@ -933,7 +933,7 @@ can be resolved from the local repository, with no missing dependencies.</p>
 <h2 id="_publishing_to_sonatype_maven_central"><a class="anchor" href="#_publishing_to_sonatype_maven_central"></a>Publishing to Sonatype Maven Central</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/publishing/3-publish-module-sonatype">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-publishing-3-publish-module-sonatype.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/publishing/3-publish-module-sonatype">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -941,7 +941,7 @@ import mill.*, kotlinlib.*, publish.*
 
 import mill.scalalib.SonatypeCentralPublishModule
 
-object foo extends KotlinModule with SonatypeCentralPublishModule {
+object foo extends KotlinModule, SonatypeCentralPublishModule {
   def scalaVersion = &quot;2.13.16&quot;
   def publishVersion = &quot;0.0.1&quot;
 

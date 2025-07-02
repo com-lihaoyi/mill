@@ -668,7 +668,7 @@ running a <code>spring boot webserver</code> serving a <code>react client</code>
 through the web-server api.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-large-multilang-14-multi-language.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multilang/14-multi-language">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-large-multilang-14-multi-language.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/large/multilang/14-multi-language">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javascriptlib.*, pythonlib.*, javalib.*
@@ -680,7 +680,7 @@ object `sentiment-analysis` extends PythonModule {
 
   def pythonDeps = Seq(&quot;textblob==0.19.0&quot;)
 
-  object test extends PythonTests with pythonlib.TestModule.Unittest
+  object test extends PythonTests, pythonlib.TestModule.Unittest
 }
 
 object server extends JavaModule {
@@ -697,7 +697,7 @@ object server extends JavaModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends JavaTests with javalib.TestModule.Junit5 {
+  object test extends JavaTests, javalib.TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
     )

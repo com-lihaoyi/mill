@@ -675,13 +675,13 @@ via <a href="import-mvn-plugins.html" class="xref page">//| mvnDeps</a>.</p>
 <h2 id="_project_configuration"><a class="anchor" href="#_project_configuration"></a>Project Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*
 import mill.util.BuildInfo.{millVersion, millBinPlatform}
 
-object myplugin extends ScalaModule with PublishModule {
+object myplugin extends ScalaModule, PublishModule {
   def scalaVersion = &quot;3.7.1&quot;
 
   // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
@@ -691,12 +691,12 @@ object myplugin extends ScalaModule with PublishModule {
   def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-libs:$millVersion&quot;)
 
   // Unit test submodule
-  object test extends ScalaTests with TestModule.Utest {
+  object test extends ScalaTests, TestModule.Utest {
     def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-testkit:$millVersion&quot;)
   }
 
   // Setup for integration/example tests
-  object integration extends ScalaTests with TestModule.Utest {
+  object integration extends ScalaTests, TestModule.Utest {
     def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-testkit:$millVersion&quot;)
     def forkEnv = Task {
       val artifact = s&quot;${myplugin.pomSettings().organization}-${myplugin.artifactId()}&quot;

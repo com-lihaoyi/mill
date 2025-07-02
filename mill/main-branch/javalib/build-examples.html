@@ -672,7 +672,7 @@ demonstrating how Mill can be used to build code outside of tiny example codebas
 <div class="sect2">
 <h3 id="_jimfs"><a class="anchor" href="#_jimfs"></a>JimFS</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-thirdparty-jimfs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/thirdparty/jimfs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-thirdparty-jimfs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/thirdparty/jimfs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*, publish.*
@@ -686,7 +686,7 @@ def sharedCompileMvnDeps = Task {
   )
 }
 
-object jimfs extends PublishModule with MavenModule {
+object jimfs extends PublishModule, MavenModule {
   def publishVersion = &quot;1.3.3.7&quot;
 
   def pomSettings = PomSettings(
@@ -704,7 +704,7 @@ object jimfs extends PublishModule with MavenModule {
 
   def javacOptions = Seq(&quot;-processor&quot;, &quot;com.google.auto.service.processor.AutoServiceProcessor&quot;)
 
-  object test extends MavenTests with TestModule.Junit4 {
+  object test extends MavenTests, TestModule.Junit4 {
     def junit4Version = &quot;4.13.2&quot;
     def mvnDeps = sharedCompileMvnDeps() ++ Seq(
       mvn&quot;com.google.guava:guava-testlib:31.1-android&quot;,
@@ -742,7 +742,7 @@ Test run com.google.common.jimfs.FileTest finished: 0 failed, 0 ignored, 7 total
 <div class="sect2">
 <h3 id="_apache_commons_io"><a class="anchor" href="#_apache_commons_io"></a>Apache Commons IO</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-thirdparty-commons-io.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/thirdparty/commons-io">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-thirdparty-commons-io.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/thirdparty/commons-io">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
 //| - com.lihaoyi::mill-contrib-jmh:$MILL_VERSION
@@ -753,7 +753,7 @@ import mill.*, javalib.*, publish.*
 import mill.api.ModuleRef
 import contrib.jmh.JmhModule
 
-object `package` extends PublishModule with MavenModule {
+object `package` extends PublishModule, MavenModule {
 
   object JvmWorkerJava11 extends JvmWorkerModule {
     def jvmId = &quot;temurin:11.0.24&quot;
@@ -772,7 +772,7 @@ object `package` extends PublishModule with MavenModule {
     developers = Nil
   )
 
-  object test extends MavenTests with TestModule.Junit5 with JmhModule {
+  object test extends MavenTests, TestModule.Junit5, JmhModule {
     def testSandboxWorkingDir = false
     def jmhCoreVersion = &quot;1.37&quot;
     def mvnDeps = super.mvnDeps() ++ Seq(

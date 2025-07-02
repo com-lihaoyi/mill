@@ -674,7 +674,7 @@ It covers setting up a basic backend server with a variety of server frameworks<
 <h2 id="_jetty_hello_world_app"><a class="anchor" href="#_jetty_hello_world_app"></a>Jetty Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-javalib-web-1-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/1-hello-jetty">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-javalib-web-1-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/1-hello-jetty">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -685,7 +685,7 @@ object `package` extends JavaModule {
     mvn&quot;javax.servlet:javax.servlet-api:4.0.1&quot;
   )
 
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }</code></pre>
 </div>
 </div>
@@ -712,7 +712,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <h2 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-javalib-web-2-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/2-hello-spring-boot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-javalib-web-2-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/2-hello-spring-boot">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -723,7 +723,7 @@ object `package` extends JavaModule {
     mvn&quot;org.springframework.boot:spring-boot-starter-actuator:2.5.6&quot;
   )
 
-  object test extends JavaTests with TestModule.Junit5 {
+  object test extends JavaTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
     )
@@ -754,7 +754,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <h2 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-javalib-web-3-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/3-todo-spring-boot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-javalib-web-3-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/3-todo-spring-boot">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -771,7 +771,7 @@ object `package` extends JavaModule {
     mvn&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;
   )
 
-  trait HelloTests extends JavaTests with TestModule.Junit5 {
+  trait HelloTests extends JavaTests, TestModule.Junit5 {
     def mainClass = Some(&quot;com.example.TodomvcApplication&quot;)
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
@@ -843,7 +843,7 @@ this example also demonstrates:</p>
 <h2 id="_micronaut_hello_world_app"><a class="anchor" href="#_micronaut_hello_world_app"></a>Micronaut Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-javalib-web-4-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/4-hello-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-javalib-web-4-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/4-hello-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -856,7 +856,7 @@ object `package` extends MicronautModule {
     mvn&quot;ch.qos.logback:logback-classic:1.5.3&quot;
   )
 
-  object test extends MavenTests with TestModule.Junit5 {
+  object test extends MavenTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn&quot;io.micronaut:micronaut-http-client:$micronautVersion&quot;,
       mvn&quot;io.micronaut.test:micronaut-test-junit5:4.4.0&quot;,
@@ -936,7 +936,7 @@ extended with more features as necessary.</p>
 <h2 id="_micronaut_todomvc_app"><a class="anchor" href="#_micronaut_todomvc_app"></a>Micronaut TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-javalib-web-5-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/5-todo-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-javalib-web-5-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/web/5-todo-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -961,7 +961,7 @@ object `package` extends MicronautModule {
     mvn&quot;org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10&quot;
   )
 
-  object test extends MavenTests with TestModule.Junit5 {
+  object test extends MavenTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn&quot;com.h2database:h2:2.2.224&quot;,
       mvn&quot;io.micronaut:micronaut-http-client:$micronautVersion&quot;,

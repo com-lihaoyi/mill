@@ -676,7 +676,7 @@ integrated with your backend Scala-JVM web server.</p>
 <h2 id="_todomvc_web_app"><a class="anchor" href="#_todomvc_web_app"></a>TodoMVC Web App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-scalalib-web-1-todo-webapp.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/1-todo-webapp">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-scalalib-web-1-todo-webapp.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/1-todo-webapp">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -688,7 +688,7 @@ object `package` extends ScalaModule {
     mvn&quot;com.lihaoyi::scalatags:0.13.1&quot;
   )
 
-  object test extends ScalaTests with TestModule.Utest {
+  object test extends ScalaTests, TestModule.Utest {
     def mvnDeps = Seq(
       mvn&quot;com.lihaoyi::utest::0.8.8&quot;,
       mvn&quot;com.lihaoyi::requests::0.6.9&quot;
@@ -722,7 +722,7 @@ that spins up the web server locally and makes HTTP requests against it.</p>
 <h2 id="_webapp_cache_busting"><a class="anchor" href="#_webapp_cache_busting"></a>Webapp Cache Busting</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-scalalib-web-2-webapp-cache-busting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/2-webapp-cache-busting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-scalalib-web-2-webapp-cache-busting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/2-webapp-cache-busting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -751,7 +751,7 @@ object `package` extends ScalaModule {
     Seq(PathRef(Task.dest))
   }
 
-  object test extends ScalaTests with TestModule.Utest {
+  object test extends ScalaTests, TestModule.Utest {
     def mvnDeps = Seq(
       mvn&quot;com.lihaoyi::utest::0.8.8&quot;,
       mvn&quot;com.lihaoyi::requests::0.6.9&quot;
@@ -810,7 +810,7 @@ initListeners()
 <h2 id="_todomvc_http4s_web_app"><a class="anchor" href="#_todomvc_http4s_web_app"></a>TodoMVC http4s Web App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-scalalib-web-3-todo-http4s.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/3-todo-http4s">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-scalalib-web-3-todo-http4s.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/3-todo-http4s">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -824,7 +824,7 @@ object `package` extends ScalaModule {
     mvn&quot;io.circe::circe-generic::0.14.10&quot;
   )
 
-  object test extends ScalaTests with TestModule.Utest {
+  object test extends ScalaTests, TestModule.Utest {
     def mvnDeps = Seq(
       mvn&quot;com.lihaoyi::utest::0.8.8&quot;,
       mvn&quot;org.typelevel::cats-effect-testing-utest::1.6.0&quot;,
@@ -860,7 +860,7 @@ that spins up the web server locally and makes HTTP requests against it.</p>
 <h2 id="_scala_js_modules"><a class="anchor" href="#_scala_js_modules"></a>Scala.js Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-scalalib-web-4-scalajs-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/4-scalajs-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-scalalib-web-4-scalajs-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/4-scalajs-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, scalajslib.*
@@ -869,7 +869,7 @@ object foo extends ScalaJSModule {
   def scalaVersion = &quot;3.7.1&quot;
   def scalaJSVersion = &quot;1.19.0&quot;
   def mvnDeps = Seq(mvn&quot;com.lihaoyi::scalatags::0.13.1&quot;)
-  object test extends ScalaJSTests with TestModule.Utest {
+  object test extends ScalaJSTests, TestModule.Utest {
     def utestVersion = &quot;0.8.8&quot;
   }
 }</code></pre>
@@ -927,7 +927,7 @@ runtime to be installed on your machine.</p>
 <h2 id="_scala_js_webserver_integration"><a class="anchor" href="#_scala_js_webserver_integration"></a>Scala.js Webserver Integration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-scalalib-web-5-webapp-scalajs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/5-webapp-scalajs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-scalalib-web-5-webapp-scalajs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/5-webapp-scalajs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, scalajslib.*
@@ -950,7 +950,7 @@ object `package` extends ScalaModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends ScalaTests with TestModule.Utest {
+  object test extends ScalaTests, TestModule.Utest {
     def utestVersion = &quot;0.8.8&quot;
     def mvnDeps = Seq(
       mvn&quot;com.lihaoyi::requests::0.6.9&quot;
@@ -1002,7 +1002,7 @@ scope of this example.</p>
 <h2 id="_scala_jsscala_jvm_code_sharing"><a class="anchor" href="#_scala_jsscala_jvm_code_sharing"></a>Scala.js/Scala-JVM Code Sharing</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-scalalib-web-6-webapp-scalajs-shared.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/6-webapp-scalajs-shared">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-scalalib-web-6-webapp-scalajs-shared.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/6-webapp-scalajs-shared">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, scalajslib.*
@@ -1011,7 +1011,7 @@ trait AppScalaModule extends ScalaModule {
   def scalaVersion = &quot;3.3.3&quot;
 }
 
-trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
+trait AppScalaJSModule extends AppScalaModule, ScalaJSModule {
   def scalaJSVersion = &quot;1.19.0&quot;
 }
 
@@ -1027,7 +1027,7 @@ object `package` extends AppScalaModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends ScalaTests with TestModule.Utest {
+  object test extends ScalaTests, TestModule.Utest {
     def utestVersion = &quot;0.8.8&quot;
     def mvnDeps = Seq(
       mvn&quot;com.lihaoyi::requests::0.6.9&quot;
@@ -1035,7 +1035,7 @@ object `package` extends AppScalaModule {
   }
 
   object shared extends Module {
-    trait SharedModule extends AppScalaModule with PlatformScalaModule {
+    trait SharedModule extends AppScalaModule, PlatformScalaModule {
       def mvnDeps = Seq(
         mvn&quot;com.lihaoyi::scalatags::0.13.1&quot;,
         mvn&quot;com.lihaoyi::upickle::4.1.0&quot;
@@ -1043,7 +1043,7 @@ object `package` extends AppScalaModule {
     }
 
     object jvm extends SharedModule
-    object js extends SharedModule with AppScalaJSModule
+    object js extends SharedModule, AppScalaJSModule
   }
 
   object client extends AppScalaJSModule {
@@ -1097,15 +1097,14 @@ is beyond the scope of this example.</p>
 <h2 id="_publishing_cross_platform_scala_modules"><a class="anchor" href="#_publishing_cross_platform_scala_modules"></a>Publishing Cross-Platform Scala Modules</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-scalalib-web-7-cross-version-platform-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/7-cross-version-platform-publishing">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-scalalib-web-7-cross-version-platform-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/7-cross-version-platform-publishing">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, scalajslib.*, publish.*
 
 object foo extends Cross[FooModule](&quot;2.13.14&quot;, &quot;3.3.3&quot;)
 trait FooModule extends Cross.Module[String] {
-  trait Shared extends CrossScalaModule with CrossValue with PlatformScalaModule
-      with PublishModule {
+  trait Shared extends CrossScalaModule, CrossValue, PlatformScalaModule, PublishModule {
     def publishVersion = &quot;0.0.1&quot;
 
     def pomSettings = PomSettings(
@@ -1124,16 +1123,16 @@ trait FooModule extends Cross.Module[String] {
     def utestVersion = &quot;0.8.8&quot;
   }
 
-  trait SharedJS extends Shared with ScalaJSModule {
+  trait SharedJS extends Shared, ScalaJSModule {
     def scalaJSVersion = &quot;1.19.0&quot;
   }
 
   object bar extends Module {
     object jvm extends Shared {
-      object test extends ScalaTests with FooTestModule
+      object test extends ScalaTests, FooTestModule
     }
     object js extends SharedJS {
-      object test extends ScalaJSTests with FooTestModule
+      object test extends ScalaJSTests, FooTestModule
     }
   }
 
@@ -1142,13 +1141,13 @@ trait FooModule extends Cross.Module[String] {
       def moduleDeps = Seq(bar.jvm)
       def mvnDeps = super.mvnDeps() ++ Seq(mvn&quot;com.lihaoyi::upickle::4.1.0&quot;)
 
-      object test extends ScalaTests with FooTestModule
+      object test extends ScalaTests, FooTestModule
     }
 
     object js extends SharedJS {
       def moduleDeps = Seq(bar.js)
 
-      object test extends ScalaJSTests with FooTestModule
+      object test extends ScalaJSTests, FooTestModule
     }
   }
 }</code></pre>
@@ -1216,12 +1215,12 @@ Publishing Artifact(com.lihaoyi,foo-qux_3,0.0.1) to ivy repo...</code></pre>
 <h2 id="_publishing_cross_platform_scala_modules_alternative"><a class="anchor" href="#_publishing_cross_platform_scala_modules_alternative"></a>Publishing Cross-Platform Scala Modules Alternative</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-scalalib-web-8-cross-platform-version-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/8-cross-platform-version-publishing">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-scalalib-web-8-cross-platform-version-publishing.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/8-cross-platform-version-publishing">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, scalajslib.*, publish.*
 
-trait Shared extends CrossScalaModule with PlatformScalaModule with PublishModule {
+trait Shared extends CrossScalaModule, PlatformScalaModule, PublishModule {
   def publishVersion = &quot;0.0.1&quot;
 
   def pomSettings = PomSettings(
@@ -1240,7 +1239,7 @@ trait SharedTestModule extends TestModule.Utest {
   def utestVersion = &quot;0.8.8&quot;
 }
 
-trait SharedJS extends Shared with ScalaJSModule {
+trait SharedJS extends Shared, ScalaJSModule {
   def scalaJSVersion = &quot;1.19.0&quot;
 }
 
@@ -1249,12 +1248,12 @@ val scalaVersions = Seq(&quot;2.13.14&quot;, &quot;3.3.3&quot;)
 object bar extends Module {
   object jvm extends Cross[JvmModule](scalaVersions)
   trait JvmModule extends Shared {
-    object test extends ScalaTests with SharedTestModule
+    object test extends ScalaTests, SharedTestModule
   }
 
   object js extends Cross[JsModule](scalaVersions)
   trait JsModule extends SharedJS {
-    object test extends ScalaJSTests with SharedTestModule
+    object test extends ScalaJSTests, SharedTestModule
   }
 }
 
@@ -1264,14 +1263,14 @@ object qux extends Module {
     def moduleDeps = Seq(bar.jvm())
     def mvnDeps = super.mvnDeps() ++ Seq(mvn&quot;com.lihaoyi::upickle::4.1.0&quot;)
 
-    object test extends ScalaTests with SharedTestModule
+    object test extends ScalaTests, SharedTestModule
   }
 
   object js extends Cross[JsModule](scalaVersions)
   trait JsModule extends SharedJS {
     def moduleDeps = Seq(bar.js())
 
-    object test extends ScalaJSTests with SharedTestModule
+    object test extends ScalaJSTests, SharedTestModule
   }
 }</code></pre>
 </div>
@@ -1338,7 +1337,7 @@ Publishing Artifact(com.lihaoyi,qux_3,0.0.1) to ivy repo...</code></pre>
 <h2 id="_scala_js_webassembly_example"><a class="anchor" href="#_scala_js_webassembly_example"></a>Scala.js WebAssembly Example</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-scalalib-web-9-wasm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/9-wasm">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-scalalib-web-9-wasm.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/scalalib/web/9-wasm">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, scalajslib.*

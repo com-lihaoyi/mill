@@ -698,7 +698,7 @@ package.json
 tsconfig.json
 
 
-.build.mill ({mill-download-url}/mill-dist-1.0.0-RC2-83-7f675c-example-thirdparty-ollama-js.zip[download], {mill-example-url}/example/thirdparty/ollama-js[browse])
+.build.mill ({mill-download-url}/mill-dist-1.0.0-RC2-84-ac14db-example-thirdparty-ollama-js.zip[download], {mill-example-url}/example/thirdparty/ollama-js[browse])
 [source,scala,subs=&quot;attributes,verbatim&quot;]</code></pre>
 </div>
 </div>
@@ -858,7 +858,7 @@ reusable traits specific to our many mini example usage projects found in `ollam
 </div>
 </div>
 <div class="paragraph">
-<p>object <code>package</code> extends OllamaModule with TsLintModule {
+<p>object <code>package</code> extends OllamaModule, TsLintModule {
   def npmLintDeps = Seq(
     &quot;prettier@3.2.4&quot;,
     &quot;eslint@8.29.0&quot;,
@@ -868,7 +868,7 @@ reusable traits specific to our many mini example usage projects found in `ollam
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>object test extends TypeScriptTests with TestModule.Vitest</pre>
+<pre>object test extends TypeScriptTests, TestModule.Vitest</pre>
 </div>
 </div>
 <div class="literalblock">

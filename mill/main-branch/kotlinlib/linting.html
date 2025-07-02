@@ -674,7 +674,7 @@ codebases using the Mill build tool</p>
 <h2 id="_linting_with_detekt"><a class="anchor" href="#_linting_with_detekt"></a>Linting with Detekt</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-linting-1-detekt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/linting/1-detekt">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-linting-1-detekt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/linting/1-detekt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -682,7 +682,7 @@ import mill.*
 import kotlinlib.KotlinModule
 import kotlinlib.detekt.DetektModule
 
-object `package` extends KotlinModule with DetektModule {
+object `package` extends KotlinModule, DetektModule {
   def kotlinVersion = &quot;1.9.24&quot;
 }</code></pre>
 </div>
@@ -731,7 +731,7 @@ error: ...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]
 <h2 id="_linting_with_ktlint"><a class="anchor" href="#_linting_with_ktlint"></a>Linting with KtLint</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-linting-2-ktlint.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/linting/2-ktlint">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-linting-2-ktlint.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/linting/2-ktlint">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -742,7 +742,7 @@ import kotlinlib.KotlinModule
 import kotlinlib.ktlint.KtlintModule
 import mill.api.BuildCtx
 
-object `package` extends KotlinModule with KtlintModule {
+object `package` extends KotlinModule, KtlintModule {
   def kotlinVersion = &quot;1.9.24&quot;
 
   def ktlintConfig0 = Task.Source(BuildCtx.workspaceRoot / &quot;.editorconfig&quot;)
@@ -776,7 +776,7 @@ error: ...src/example/FooWrong.kt:6:28: Missing newline before &quot;)&quot; (st
 <h2 id="_autoformatting_with_ktfmt"><a class="anchor" href="#_autoformatting_with_ktfmt"></a>Autoformatting with KtFmt</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-linting-3-ktfmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/linting/3-ktfmt">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-linting-3-ktfmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/linting/3-ktfmt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -786,7 +786,7 @@ import mill.util.Jvm
 import kotlinlib.KotlinModule
 import kotlinlib.ktfmt.KtfmtModule
 
-object `package` extends KotlinModule with KtfmtModule {
+object `package` extends KotlinModule, KtfmtModule {
   def kotlinVersion = &quot;1.9.24&quot;
 }</code></pre>
 </div>
@@ -825,14 +825,14 @@ as opposed to using a different plugin/command for each group.</p>
 provide a JSON configuration file with the format specifications.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-linting-5-spotless.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/linting/5-spotless">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-linting-5-spotless.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/linting/5-spotless">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill.kotlinlib.KotlinModule
 import mill.scalalib.spotless.SpotlessModule
 
-object `package` extends KotlinModule with SpotlessModule {
+object `package` extends KotlinModule, SpotlessModule {
   def kotlinVersion = &quot;2.1.20&quot;
 }</code></pre>
 </div>
@@ -953,6 +953,19 @@ An example is the <code>LicenseHeader.header</code> field that references the <c
 </tr>
 </tbody></table>
 </div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+as <code>.mill</code> files use Scala 3 syntax, we need the <code>.scalafmt.conf</code> above to
+configure ScalaFmt to use Scala 3 compatible formatting
+</td>
+</tr>
+</tbody></table>
+</div>
 <div class="paragraph">
 <p>Next, we run the inherited <code>spotless</code> command to check/apply the format specifications.</p>
 </div>
@@ -1023,7 +1036,7 @@ enforce formatting gradually aka <a href="https://github.com/diffplug/spotless/t
 <p>We define a module with an incorrectly formatted file.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-javalib-linting-5-spotless-ratchet.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/5-spotless-ratchet">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-javalib-linting-5-spotless-ratchet.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/5-spotless-ratchet">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1155,14 +1168,14 @@ ratchet found changes in 1 files</code></pre>
 <h2 id="_code_coverage_with_kover"><a class="anchor" href="#_code_coverage_with_kover"></a>Code Coverage with Kover</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-linting-4-kover.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/linting/4-kover">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-linting-4-kover.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/linting/4-kover">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill.*, kotlinlib.*
 import kotlinlib.kover.KoverModule
 
-object `package` extends KotlinModule with KoverModule {
+object `package` extends KotlinModule, KoverModule {
 
   trait KotestTests extends TestModule.Junit5 {
     override def forkArgs: T[Seq[String]] = Task {
@@ -1178,11 +1191,11 @@ object `package` extends KotlinModule with KoverModule {
 
   override def koverVersion = &quot;0.8.3&quot;
 
-  object test extends KotlinTests with KotestTests with KoverTests
+  object test extends KotlinTests, KotestTests, KoverTests
 
-  object bar extends KotlinModule with KoverModule {
+  object bar extends KotlinModule, KoverModule {
     def kotlinVersion = &quot;1.9.24&quot;
-    object test extends KotlinTests with KotestTests with KoverTests
+    object test extends KotlinTests, KotestTests, KoverTests
   }
 }</code></pre>
 </div>

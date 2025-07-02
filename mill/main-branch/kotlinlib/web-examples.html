@@ -674,7 +674,7 @@ It covers setting up a basic backend server with a variety of server frameworks<
 <h2 id="_ktor_hello_world_app"><a class="anchor" href="#_ktor_hello_world_app"></a>Ktor Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-web-1-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/web/1-hello-ktor">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-web-1-hello-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/web/1-hello-ktor">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -690,7 +690,7 @@ object `package` extends KotlinModule {
     mvn&quot;io.ktor:ktor-server-netty:2.3.12&quot;
   )
 
-  object test extends KotlinTests with TestModule.Junit5 {
+  object test extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;,
       mvn&quot;io.ktor:ktor-server-test-host:2.3.12&quot;
@@ -782,7 +782,7 @@ Test com.example.HelloKtorTest HelloKtorTest finished, took...
 <a href="https://todomvc.com/">TodoMVC</a> example app using Kotlin and Ktor.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-web-2-todo-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/web/2-todo-ktor">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-web-2-todo-ktor.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/web/2-todo-ktor">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -811,7 +811,7 @@ object `package` extends KotlinModule {
     mvn&quot;ch.qos.logback:logback-classic:1.4.14&quot;
   )
 
-  object test extends KotlinTests with TestModule.Junit5 {
+  object test extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;,
       mvn&quot;io.ktor:ktor-server-test-host:2.3.12&quot;
@@ -873,7 +873,7 @@ fully developing Kotlin/JS support, see the following ticket:</p>
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-web-3-hello-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/web/3-hello-kotlinjs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-web-3-hello-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/web/3-hello-kotlinjs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*, kotlinlib.js.*
@@ -885,7 +885,7 @@ object `package` extends KotlinJsModule {
   override def mvnDeps = Seq(
     mvn&quot;org.jetbrains.kotlinx:kotlinx-html:0.11.0&quot;
   )
-  object test extends KotlinJsModule with KotestTests {
+  object test extends KotlinJsModule, KotestTests {
     override def kotestVersion = &quot;5.9.1&quot;
   }
 }</code></pre>
@@ -927,7 +927,7 @@ we replace the <code>main.js</code> client side code with the Javascript output 
 <code>ClientApp.kt</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-web-4-webapp-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/web/4-webapp-kotlinjs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-web-4-webapp-kotlinjs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/web/4-webapp-kotlinjs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -957,7 +957,7 @@ object `package` extends KotlinModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends KotlinTests with TestModule.Junit5 {
+  object test extends KotlinTests, TestModule.Junit5 {
     override def mvnDeps = super.mvnDeps() ++ Seq(
       mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;,
       mvn&quot;io.ktor:ktor-server-test-host:$ktorVersion&quot;
@@ -1014,7 +1014,7 @@ page updates, it sends HTML for the initial load and JSON for page updates
 which is then rendered into HTML on the client.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-web-5-webapp-kotlinjs-shared.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/web/5-webapp-kotlinjs-shared">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-web-5-webapp-kotlinjs-shared.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/web/5-webapp-kotlinjs-shared">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*, kotlinlib.js.*
@@ -1023,7 +1023,7 @@ trait AppKotlinModule extends KotlinModule {
   def kotlinVersion = &quot;1.9.25&quot;
 }
 
-trait AppKotlinJsModule extends AppKotlinModule with KotlinJsModule
+trait AppKotlinJsModule extends AppKotlinModule, KotlinJsModule
 
 object `package` extends AppKotlinModule {
 
@@ -1052,7 +1052,7 @@ object `package` extends AppKotlinModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends KotlinTests with TestModule.Junit5 {
+  object test extends KotlinTests, TestModule.Junit5 {
     override def mvnDeps = super.mvnDeps() ++ Seq(
       mvn&quot;io.kotest:kotest-runner-junit5:5.9.1&quot;,
       mvn&quot;io.ktor:ktor-server-test-host:$ktorVersion&quot;
@@ -1061,7 +1061,7 @@ object `package` extends AppKotlinModule {
 
   object shared extends Module {
 
-    trait SharedModule extends AppKotlinModule with PlatformKotlinModule {
+    trait SharedModule extends AppKotlinModule, PlatformKotlinModule {
       override def kotlincPluginMvnDeps = Seq(
         mvn&quot;org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}&quot;
       )
@@ -1073,7 +1073,7 @@ object `package` extends AppKotlinModule {
         mvn&quot;org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion&quot;
       )
     }
-    object js extends SharedModule with AppKotlinJsModule {
+    object js extends SharedModule, AppKotlinJsModule {
       override def mvnDeps = super.mvnDeps() ++ Seq(
         mvn&quot;org.jetbrains.kotlinx:kotlinx-html:$kotlinHtmlVersion&quot;,
         mvn&quot;org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion&quot;
@@ -1129,7 +1129,7 @@ is beyond the scope of this example.</p>
 <h2 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-web-6-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/web/6-hello-spring-boot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-web-6-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/web/6-hello-spring-boot">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1145,7 +1145,7 @@ object `package` extends KotlinModule {
     mvn&quot;org.springframework.boot:spring-boot-starter-actuator:2.5.6&quot;
   )
 
-  object test extends KotlinTests with TestModule.Junit5 {
+  object test extends KotlinTests, TestModule.Junit5 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;
     )
@@ -1176,7 +1176,7 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <h2 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-kotlinlib-web-7-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/web/7-todo-spring-boot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-kotlinlib-web-7-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/kotlinlib/web/7-todo-spring-boot">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, kotlinlib.*
@@ -1197,7 +1197,7 @@ object `package` extends KotlinModule {
     mvn&quot;org.webjars.npm:todomvc-app-css:2.4.1&quot;
   )
 
-  trait HelloTests extends KotlinTests with TestModule.Junit5 {
+  trait HelloTests extends KotlinTests, TestModule.Junit5 {
     def mainClass = Some(&quot;com.example.TodomvcApplicationKt&quot;)
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn&quot;org.springframework.boot:spring-boot-starter-test:2.5.6&quot;

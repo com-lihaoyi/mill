@@ -681,13 +681,13 @@ Mix the <code>ErrorProneModule</code> trait into your <code>JavaModule</code> an
 automatically run with every compilation.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-javalib-linting-1-error-prone.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/1-error-prone">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-javalib-linting-1-error-prone.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/1-error-prone">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill.*, javalib.*, errorprone.*
 
-object `package` extends JavaModule with ErrorProneModule {
+object `package` extends JavaModule, ErrorProneModule {
   def errorProneOptions = Seq(&quot;-XepAllErrorsAsWarnings&quot;)
 }</code></pre>
 </div>
@@ -761,7 +761,7 @@ Those are documented as &quot;flags&quot; at <a href="https://errorprone.info/do
 <a href="https://checkstyle.org">Checkstyle</a> and generates reports from these checks.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-javalib-linting-2-checkstyle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/2-checkstyle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-javalib-linting-2-checkstyle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/2-checkstyle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*, checkstyle.*
@@ -870,7 +870,7 @@ object foo extends Module {
     object buzz extends MyModule
   }
 
-  trait MyModule extends JavaModule with CheckstyleModule {
+  trait MyModule extends JavaModule, CheckstyleModule {
 
     override def checkstyleConfig = Task {
       api.PathRef(mill.api.BuildCtx.workspaceRoot / &quot;checkstyle-config.xml&quot;)
@@ -935,7 +935,7 @@ import mill.contrib.checkstyle.CheckstyleXsltModule
 import mill.contrib.checkstyle.CheckstyleXsltReport
 import mill.scalalib.*
 
-object foo extends JavaModule with CheckstyleXsltModule {
+object foo extends JavaModule, CheckstyleXsltModule {
 
     override def checkstyleXsltReports = Task {
       Set(
@@ -960,7 +960,7 @@ object foo extends JavaModule with CheckstyleXsltModule {
 <a href="https://github.com/palantir/palantir-java-format">Palantir Java Format</a> project.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-javalib-linting-3-palantirformat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/3-palantirformat">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-javalib-linting-3-palantirformat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/3-palantirformat">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1033,14 +1033,14 @@ as opposed to using a different plugin/command for each group.</p>
 provide a JSON configuration file with the format specifications.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-javalib-linting-4-spotless.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/4-spotless">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-javalib-linting-4-spotless.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/4-spotless">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill.javalib.JavaModule
 import mill.scalalib.spotless.*
 
-object `package` extends JavaModule with SpotlessModule</code></pre>
+object `package` extends JavaModule, SpotlessModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1115,6 +1115,14 @@ UsedA.someMethod();
 ]</code></pre>
 </div>
 </div>
+<div class="listingblock">
+<div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/4-spotless/.scalafmt.conf">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">version = &quot;3.8.1&quot;
+
+runner.dialect = scala3</code></pre>
+</div>
+</div>
 <div class="paragraph">
 <p>As per the specifications:</p>
 </div>
@@ -1140,6 +1148,19 @@ UsedA.someMethod();
 <td class="content">
 Most fields have default values and can be omitted in the JSON file.
 An example is the <code>LicenseHeader.header</code> field that references the <code>LICENSE</code> file.
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+as <code>.mill</code> files use Scala 3 syntax, we need the <code>.scalafmt.conf</code> above to
+configure ScalaFmt to use Scala 3 compatible formatting
 </td>
 </tr>
 </tbody></table>
@@ -1215,7 +1236,7 @@ enforce formatting gradually aka <a href="https://github.com/diffplug/spotless/t
 <p>We define a module with an incorrectly formatted file.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-83-7f675c-example-javalib-linting-5-spotless-ratchet.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/5-spotless-ratchet">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-84-ac14db-example-javalib-linting-5-spotless-ratchet.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/5-spotless-ratchet">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
