@@ -3,7 +3,7 @@
 
 package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object `package` extends TypeScriptModule {
   def moduleName = "foo"

@@ -5,7 +5,7 @@
 // add variables for environment and options for python respectively.
 
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
   // You can have arbitrary numbers of third-party libraries

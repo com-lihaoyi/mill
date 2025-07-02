@@ -3,7 +3,7 @@
 
 package build
 
-import mill._, androidlib._, scalalib._
+import mill.*, androidlib.*, scalalib.*
 
 object androidSdkModule0 extends AndroidSdkModule {
   def buildToolsVersion = "35.0.0"

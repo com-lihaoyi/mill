@@ -1,6 +1,6 @@
 //// SNIPPET:BUILD1
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 import mill.api.ModuleRef
 
 object foo extends JavaModule {

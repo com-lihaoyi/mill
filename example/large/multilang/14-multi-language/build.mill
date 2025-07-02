@@ -3,7 +3,7 @@
 // through the web-server api.
 
 package build
-import mill._, javascriptlib._, pythonlib._, javalib._
+import mill.*, javascriptlib.*, pythonlib.*, javalib.*
 
 object client extends ReactScriptsModule
 

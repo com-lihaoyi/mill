@@ -5,7 +5,7 @@
 //
 //// SNIPPET:ALL
 package build
-import mill._, scalalib._, publish._
+import mill.*, scalalib.*, publish.*
 
 trait MyModule extends PublishModule {
   def publishVersion = "0.0.1"
@@ -23,7 +23,7 @@ trait MyModule extends PublishModule {
 trait MyScalaModule extends MyModule with CrossScalaModule {
   def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.13.1")
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.7")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.8")
     def testFramework = "utest.runner.Framework"
   }
 }

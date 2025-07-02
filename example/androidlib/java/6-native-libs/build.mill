@@ -10,7 +10,7 @@
 
 package build
 
-import mill._, androidlib._, scalalib._
+import mill.*, androidlib.*, scalalib.*
 import mill.api.BuildCtx
 
 object androidSdkModule0 extends AndroidSdkModule {

@@ -5,7 +5,7 @@
 // `trait TypeScriptModule extends Module` wrapper:
 
 package build
-import mill._
+import mill.*
 
 trait TypeScriptModule extends Module {
   def npmInstall = Task {

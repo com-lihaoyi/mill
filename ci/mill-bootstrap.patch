@@ -1,5 +1,5 @@
 diff --git a/build.mill b/build.mill
-index 2851dfbacf1..f69fa6fed16 100644
+index 7ab1e24f562..8cf64618184 100644
 --- a/build.mill
 +++ b/build.mill
 @@ -15,13 +15,13 @@ import mill.vcs.VcsVersion
@@ -82,16 +82,16 @@ index ef100556258..a20fe070bc4 100644
  import mill.scalalib.*
  import mill.api.Result
 diff --git a/example/package.mill b/example/package.mill
-index 3bdbc09d9b6..ea062c6408a 100644
+index 12eb5bb0312..85a2acc4138 100644
 --- a/example/package.mill
 +++ b/example/package.mill
 @@ -5,14 +5,14 @@ import coursier.maven.MavenRepository
- import mill._
+ import mill.*
  import mill.util.Tasks
- import mill.scalalib._
+ import mill.scalalib.*
 -import mill.scalalib.api.JvmWorkerUtil
 +import mill.jvmlib.api.JvmWorkerUtil
- import mill.scalalib.publish._
+ import mill.scalalib.publish.*
  import mill.util.Jvm
 -import mill.define.SelectMode
 +import mill.api.SelectMode

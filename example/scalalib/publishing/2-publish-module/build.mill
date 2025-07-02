@@ -1,6 +1,6 @@
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._, publish._
+import mill.*, scalalib.*, publish.*
 
 object foo extends ScalaModule with PublishModule {
   def scalaVersion = "3.7.1"

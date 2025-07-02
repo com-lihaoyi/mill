@@ -7,7 +7,7 @@
 // as part of its xref:depth/sandboxing.adoc[] efforts to prevent accidental
 // interference between tasks:
 
-import mill._
+import mill.*
 
 def task1 = Task {
   os.write(os.pwd / "file.txt", "hello")

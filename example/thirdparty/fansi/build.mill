@@ -1,5 +1,5 @@
 package build
-import mill._, scalalib._, scalajslib._, scalanativelib._, publish._
+import mill.*, scalalib.*, scalajslib.*, scalanativelib.*, publish.*
 
 val dottyCommunityBuildVersion = sys.props.get("dottyVersion").toList
 

@@ -1,7 +1,7 @@
 package foo
 
-import utest._
-import scala.scalanative.unsafe._
+import utest.*
+import scala.scalanative.unsafe.*
 import scala.scalanative.libc.stdlib
 
 object HelloWorldTest extends TestSuite {

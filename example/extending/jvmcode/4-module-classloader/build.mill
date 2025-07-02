@@ -4,7 +4,7 @@
 // serves as a code-generated to generated the `sources` of the `foo` module:
 
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 import mill.util.Jvm
 
 object foo extends JavaModule {

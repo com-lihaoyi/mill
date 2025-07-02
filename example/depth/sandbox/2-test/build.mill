@@ -3,7 +3,7 @@
 // `foo.test` and `bar.test`:
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 trait MyModule extends JavaModule {
   object test extends JavaTests with TestModule.Junit4

@@ -1,7 +1,7 @@
 //// SNIPPET:BUILD
 package build
-import mill._, javalib._
-import mill.javalib.Assembly._
+import mill.*, javalib.*
+import mill.javalib.Assembly.*
 
 object foo extends JavaModule {
   def moduleDeps = Seq(bar)

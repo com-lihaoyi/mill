@@ -15,7 +15,7 @@
 //    into a `def prepareRun` task.
 
 package build
-import mill._
+import mill.*
 
 trait TypeScriptModule extends Module {
   def moduleDeps: Seq[TypeScriptModule] = Nil

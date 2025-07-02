@@ -2,7 +2,7 @@
 // code using JNI.
 
 package build
-import mill._, javalib._, util.Jvm
+import mill.*, javalib.*, util.Jvm
 
 object `package` extends JavaModule {
   // Additional source folder to put C sources

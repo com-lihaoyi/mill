@@ -8,7 +8,7 @@
 // For the purposes of this page, we will be using the following minimal Mill build
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {}
 
