@@ -98,7 +98,7 @@ object SpotlessTests extends TestSuite {
         var header = os.read.lines.stream(moduleDir / "src/LicenseHeader").head
         assert(
           log.contains("formatting src/LicenseHeader"),
-          header == "// GPL"
+          header == "// GPL "
         )
 
         os.write.over(moduleDir / "LICENSE", "// MIT")
