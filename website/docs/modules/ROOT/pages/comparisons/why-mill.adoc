@@ -392,7 +392,11 @@ build correctly and achieve maximum performance even without being a build tool 
 == IDE Support
 
 One area that Mill does better than Maven, Gradle or SBT is providing a seamless IDE
-experience.
+experience. Working with Mill builds in IntelliJ or VSCode, you get the full power of
+your IDE to autocomplete, peek at docs, browse signatures, and otherwise navigate
+around your build system:
+
+image:mill::comparisons/IntellijOverrideAutocomplete.png[]
 
 === Limitations of Existing Build Tool IDE Integrations
 
