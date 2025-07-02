@@ -20,6 +20,15 @@ index 7ab1e24f562..8cf64618184 100644
  import mill.androidlib.AndroidSdkModule
  
  def millVersionIsStable: T[Boolean] = Task.Input {
+@@ -191,7 +191,7 @@ def formatDep(dep: Dep) = {
+ }
+ 
+ 
+-def listCross(implicit ctx: mill.define.ModuleCtx) = BuildCtx.watchValue {
++def listCross(implicit ctx: mill.api.ModuleCtx) = BuildCtx.watchValue {
+   // millSourcePath is protected, so we need to access it via reflection
+   import scala.reflect.Selectable.reflectiveSelectable
+   os.list(ctx.asInstanceOf[ {def millSourcePath: os.Path}].millSourcePath).map(_.last)
 diff --git a/contrib/package.mill b/contrib/package.mill
 index 165c6a63a1d..fabe7cd94df 100644
 --- a/contrib/package.mill
@@ -96,7 +105,7 @@ index 12eb5bb0312..85a2acc4138 100644
  object `package` extends Module {
    def exampleModules: Seq[ExampleCrossModule] = moduleInternal
 diff --git a/integration/package.mill b/integration/package.mill
-index 3bc20415933..ad6bccb516e 100644
+index a2d73acb2f9..93fe5588459 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
 @@ -5,17 +5,17 @@ import coursier.maven.MavenRepository
