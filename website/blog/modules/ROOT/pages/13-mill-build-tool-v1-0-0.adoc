@@ -91,6 +91,9 @@ $ ./mill foo
 $ ./mill foo.run<TAB>
 foo.run                foo.runClasspath       foo.runMain            foo.runMainLocal       foo.runUseArgsFile
 foo.runBackground      foo.runLocal           foo.runMainBackground  foo.runMvnDeps
+
+$ ./mill foo.runB<TAB>
+$ ./mill foo.runBackground
 ```
 
 While this is not rocket science, we expect that this will be a significant quality-of-life
@@ -189,8 +192,9 @@ in Python.
 A huge amount of work went into improving Mill's support for Android builds. Android
 apps have traditionally only been buildable using Gradle, and Mill is one of the only
 other build tools that you can use as an alternative. While
-in 0.12.x Android support was a demo-quality example build, in 1.0.0 it has been
-fleshed out into a robust and complete framework for building android apps.
+in 0.12.x Android support was a demo-quality integration, in 1.0.0 it has been
+fleshed out into a robust and complete framework that can build many of the
+sample apps available in the Android ecosystem.
 
 For example, Mill is now able to build, run, and test the https://github.com/android/compose-samples/tree/main/JetLagged[JetLagged Android Example App]:
 
@@ -201,11 +205,11 @@ As well as the https://android.googlesource.com/platform/ndk/+/froyo-release/sam
 image:blog::AndroidSanAngeles.png[]
 
 This work was done by https://www.vaslabs.io/[VasLabs], who put in an immense amount
-of work improving the support.
+of work:
 
-* ({link-pr}/4485[#4485], {link-pr}/4540[#4540], {link-pr}/4583[#4583],
+* {link-pr}/4485[#4485], {link-pr}/4540[#4540], {link-pr}/4583[#4583],
 {link-pr}/4626[#4626], {link-pr}/4759[#4759], {link-pr}/4892[#4892], {link-pr}/4947[#4947],
-{link-pr}/5013[#5013], {link-pr}/5053[#5053])
+{link-pr}/5013[#5013], {link-pr}/5053[#5053]
 
 
 Updating the xref:mill::android/java.adoc[Mill Android documentation for Java] and
@@ -221,8 +225,8 @@ and let us know how it goes in https://github.com/com-lihaoyi/mill/discussions[M
 
 Mill 1.0.0 includes substantial improvements for building Kotlin projects with Mill:
 
-* ({link-pr}/4557[#4557], {link-pr}/4786[#4786], {link-pr}/4771[#4771],
-{link-pr}/4779[#4779], {link-pr}/4797[#4797], {link-pr}/4963[#4963])
+* {link-pr}/4557[#4557], {link-pr}/4786[#4786], {link-pr}/4771[#4771],
+{link-pr}/4779[#4779], {link-pr}/4797[#4797], {link-pr}/4963[#4963]
 
 These PRs really flesh out the previously-experimental support for Kotlin projects in Mill:
 main class discovery, compiler plugins, BuildInfo support, etc.. Other PRs upstream in the
@@ -235,9 +239,6 @@ binary-compatibility enforcement for `mill.kotlinlib` just as we already have fo
 projects, and let us know how it goes in https://github.com/com-lihaoyi/mill/discussions[Mill's Github Discussions].
 
 == Quality Highlights
-
-Apart from concrete features, a lot of work in the Mill 1.0.0 series went into quality.
-These are areas where
 
 === IDE Support
 
@@ -252,41 +253,43 @@ Many PRs went into improving Mill's IDE support with IntelliJ and VSCode, which
 goes through the "BSP" https://github.com/build-server-protocol/build-server-protocol[build-server-protocol]:
 
 - {link-pr}/5275[#5275], {link-pr}/5265[#5265],
-{link-pr}/5220[#5220], {link-pr}/5202[#5202], {link-pr}/5200[#5200])
+{link-pr}/5220[#5220], {link-pr}/5202[#5202], {link-pr}/5200[#5200]
 
-- {link-pr}/4851[#4851],{link-pr}/4873[#4873],
+- {link-pr}/4851[#4851], {link-pr}/4873[#4873],
 {link-pr}/4876[#4876], {link-pr}/4881[#4881], {link-pr}/4873[#4873],
 {link-pr}/4940[#4940], {link-pr}/4941[#4941]
 
-There were also some fixes on the IDE side on IntelliJ:
+There were also some fixes on the IntelliJ side of the build-tool-integration:
 
 - https://youtrack.jetbrains.com/issue/SCL-23262/Mill-import-highlighting-error[SCL-23262 Mill import highlighting error]
 - https://youtrack.jetbrains.com/issue/SCL-23198/Direct-references-to-package-objects-should-be-allowed-in-.mill-files[SCL-23198 Direct references to package objects should be allowed in `.mill` files]
 - https://youtrack.jetbrains.com/issue/SCL-23961/Mill-projects-sometimes-get-into-bad-state-during-importing[SCL-23961 Mill projects sometimes get into bad state during importing]
 - https://youtrack.jetbrains.com/issue/SCL-23975/Stop-Mill-BSP-import-progress-indicator-from-blocking-usage-of-iDE[SCL-23976 Stop Mill BSP import progress indicator from blocking usage of IDE]
 
-and VSCode:
+And on the VSCode side of things:
 
-- https://github.com/scalameta/metals/issues/7149[#7149 Metals does not automatically setup the Mill BSP server]
-- https://github.com/scalameta/metals/issues/7218[#7218 Support toe BSP "no-ide" build-target tag]
+- https://github.com/scalameta/metals/pull/7193[#7193 Special handling for Mill paths in ScalaVersionSelector]
+- https://github.com/scalameta/metals/pull/7200[#7200 Add test cases discovery for TestNG]
+- https://github.com/scalameta/metals/pull/7429[#7429 Read the Mill version from YAML frontmatter of the build]
+- https://github.com/scalameta/metals/pull/7544[#7544 Pass the environment variables from the BSP server when running tests]
 
 As Mill builds is able to leverage the existing IntelliJ/VSCode IDE infrastructure,
 we did not need to implement support for the Mill build tool from scratch in its
-own plugin. But nevertheless there was still a lot of work to properly wire up
+own plugin. But nevertheless there is still a lot of work to properly wire up
 Mill to talk to these IDEs and pass the necessary data so the IDEs can do their thing.
 
 Improving IDE support is a slog: lots of fiddling with undocumented APIs and
 undocumented behavior, with bugs randomly scattered across organizational boundaries
-(some in Mill, some in IntelliJ, some in VSCode). But hopefully this work will provide
+(Some in Mill, some in IntelliJ, some in VSCode). But hopefully this work will provide
 a smoother experience for anyone getting using Mill, and improve upon Mill's
 ability to provide a best-in-class IDE experience for your build system.
 
 === Classpath Cleanup and Stabilization
 
 Mill 1.0.0 runs with a much cleaner JVM classpath than Mill 0.12.x and below.
-We expect that this will both speed up compiles, and also allow better long-term
-backwards compatibility as the Mill project itself and user's Mill builds both evolve
-over time.
+We expect that this will provide faster downloads, speedup compiles, and also allow
+better long-term backwards compatibility as the Mill project itself and user's
+Mill builds both evolve over time.
 
 - Mill 0.12.x compiled and ran your `build.mill` with the entire Mill assembly jar
   on the classpath. That meant that
@@ -310,5 +313,8 @@ While this may seem like an esoteric improvement, concretely it means two things
   of Mill's internal code is now completely hidden from the user, so users don't
   need to worry about accidentally depending on some internal class or static method
   that may break in a newer version of Mill
+
+Cleaner classpaths aren't a "feature" in the common sense of the word, but regardless
+we hope that this classpath cleanup will pay dividends over time.
 
 == Try out Mill 1.0.0!
