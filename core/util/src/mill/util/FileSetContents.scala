@@ -1,9 +1,9 @@
-package mill.scalalib
+package mill.util
 
 import os.{Path, SubPath}
 
 /**
- * A bunch of files with their contents.
+ * A bunch of relative file paths with their contents.
  *
  * @tparam Contents Allows to specify in the type system that we only have a certain type of contents.
  */

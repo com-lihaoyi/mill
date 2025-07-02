@@ -5,7 +5,9 @@ import coursier.core.{Configuration, DependencyManagement}
 import mill.api.{ExternalModule, Task, TaskModule}
 import mill.api.PathRef
 import mill.api.Result
-import mill.define.{BuildCtx, ExternalModule, PathRef, Task, TaskModule}
+import mill.util.JarManifest
+import mill.util.Tasks
+import mill.util.FileSetContents
 import mill.scalalib.PublishModule.checkSonatypeCreds
 import mill.scalalib.publish.SonatypeHelpers.{
   PASSWORD_ENV_VARIABLE_NAME,

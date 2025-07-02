@@ -1,7 +1,7 @@
 package mill.javalib.publish
 
 import mill.api.TaskCtx
-import mill.javalib.FileSetContents
+import mill.util.FileSetContents
 
 class LocalIvyPublisher(localIvyRepo: os.Path) {
 

@@ -1,7 +1,7 @@
 package mill.javalib.publish
 
 import mill.api.TaskCtx
-import mill.scalalib.FileSetContents
+import mill.util.FileSetContents
 import os.{RelPath, SubPath}
 
 class LocalM2Publisher(m2Repo: os.Path) {

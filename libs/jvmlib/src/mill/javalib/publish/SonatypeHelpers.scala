@@ -1,6 +1,6 @@
 package mill.javalib.publish
 
-import mill.scalalib.FileSetContents
+import mill.util.FileSetContents
 import os.SubPath
 
 import java.math.BigInteger

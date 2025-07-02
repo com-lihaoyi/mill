@@ -4,7 +4,7 @@ import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCreden
 import mill.*
 import mill.scalalib.*
 import mill.api.{ExternalModule, Task}
-import mill.util.Tasks
+import mill.util.{Tasks, FileSetContents}
 import mill.api.TaskModule
 import mill.api.{Result, experimental}
 import mill.javalib.SonatypeCentralPublishModule.{

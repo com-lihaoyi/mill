@@ -3,7 +3,7 @@ package mill.contrib.gitlab
 import mill.api.Result
 import mill.contrib.gitlab.GitlabTokenLookup.*
 import mill.internal.DummyLogger
-import mill.scalalib.FileSetContents
+import mill.util.FileSetContents
 import mill.scalalib.publish.*
 import os.SubPath
 import utest.{TestSuite, Tests, assert, assertMatch, test}

@@ -2,6 +2,7 @@ package mill.androidlib
 
 import mill.*
 import mill.api.{PathRef, Task}
+import mill.util.FileSetContents
 import mill.scalalib.*
 import mill.scalalib.publish.{PackagingType, PublishInfo}
 import mill.util.Jvm
