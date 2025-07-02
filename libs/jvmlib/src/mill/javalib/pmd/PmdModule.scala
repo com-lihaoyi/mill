@@ -22,7 +22,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       val (outputPath, exitCode) = pmd0(pmdArgs.format, pmdArgs.sources)()
       pmdHandleExitCode(
         pmdArgs.stdout,
-        pmdArgs.noFailOnViolation,
+        pmdArgs.failOnViolation,
         exitCode,
         outputPath,
         pmdArgs.format
@@ -74,7 +74,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
 
   private def pmdHandleExitCode(
       stdout: Boolean,
-      noFailOnViolation: Boolean,
+      failOnViolation: Boolean,
       exitCode: Int,
       output: PathRef,
       format: String
@@ -84,9 +84,9 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       case 1 => Task.log.error("PMD finished with an exception.")
       case 2 => Task.log.error("PMD command-line parameters are invalid or missing.")
       case 4 =>
-        reportViolations(noFailOnViolation, countViolations(output, format, stdout))
+        reportViolations(failOnViolation, countViolations(output, format, stdout))
       case 5 =>
-        reportViolations(noFailOnViolation, countViolations(output, format, stdout))
+        reportViolations(failOnViolation, countViolations(output, format, stdout))
         throw new RuntimeException("At least one recoverable PMD error has occurred.")
       case x => Task.log.error(s"Unsupported PMD exit code: $x")
     exitCode
@@ -124,13 +124,13 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
   }
 
   private def reportViolations(
-      noFailOnViolation: Boolean,
+      failOnViolation: Boolean,
       violationCount: Option[Int]
   )(implicit ctx: TaskCtx): Unit = {
-    if (noFailOnViolation)
-      Task.log.error(s"PMD found ${violationCount.getOrElse("some")} violation(s)")
-    else
+    if (failOnViolation)
       throw new RuntimeException(s"PMD found ${violationCount.getOrElse("some")} violation(s)")
+    else
+      Task.log.error(s"PMD found ${violationCount.getOrElse("some")} violation(s)")
   }
 
   /**
