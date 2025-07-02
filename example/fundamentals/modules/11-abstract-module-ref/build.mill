@@ -12,7 +12,7 @@ import mill.api.ModuleRef
 object foo extends JavaModule
 object bar extends JavaModule
 
-trait MyTestModule extends JavaModule, TestModule.Junit4 {
+trait MyTestModule extends JavaModule with TestModule.Junit4 {
   def upstreamModule: ModuleRef[JavaModule]
 
   def moduleDeps = Seq(upstreamModule())

@@ -11,7 +11,7 @@ object foo extends KotlinModule {
     mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
   )
 
-  object test extends KotlinTests, TestModule.Junit5 {
+  object test extends KotlinTests with TestModule.Junit5 {
     def mvnDeps = Seq(
       mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )

@@ -3,7 +3,7 @@ package build
 import mill.*, scalalib.*
 import mill.api.ModuleRef
 
-object foo extends ScalaModule, NativeImageModule {
+object foo extends ScalaModule with NativeImageModule {
   def scalaVersion = "3.7.1"
 
   def jvmId = "graalvm-community:17.0.7"

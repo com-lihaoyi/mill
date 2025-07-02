@@ -3,7 +3,7 @@ package build
 import mill.*, javalib.*
 import mill.api.ModuleRef
 
-object foo extends JavaModule, NativeImageModule {
+object foo extends JavaModule with NativeImageModule {
   def mvnDeps = Seq(
     mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE",

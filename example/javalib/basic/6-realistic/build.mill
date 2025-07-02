@@ -2,7 +2,7 @@
 package build
 import mill.*, javalib.*, publish.*
 
-trait MyModule extends JavaModule, PublishModule {
+trait MyModule extends JavaModule with PublishModule {
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
@@ -16,7 +16,7 @@ trait MyModule extends JavaModule, PublishModule {
 
   def mvnDeps = Seq(mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE")
 
-  object test extends JavaTests, TestModule.Junit4
+  object test extends JavaTests with TestModule.Junit4
 }
 
 object foo extends MyModule {

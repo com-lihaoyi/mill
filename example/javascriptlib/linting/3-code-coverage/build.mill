@@ -3,19 +3,19 @@ package build
 import mill.*, javascriptlib.*
 
 object foo extends TypeScriptModule {
-  object test extends TypeScriptTests, TestModule.Jest
+  object test extends TypeScriptTests with TestModule.Jest
 }
 
 object bar extends TypeScriptModule {
-  object test extends TypeScriptTests, TestModule.Mocha
+  object test extends TypeScriptTests with TestModule.Mocha
 }
 
 object baz extends TypeScriptModule {
-  object test extends TypeScriptTests, TestModule.Vitest
+  object test extends TypeScriptTests with TestModule.Vitest
 }
 
 object qux extends TypeScriptModule {
-  object test extends TypeScriptTests, TestModule.Jasmine
+  object test extends TypeScriptTests with TestModule.Jasmine
 }
 
 // Mill supports code coverage with `Jest`, `Mocha`, `Vitest` and `Jasmine` out of the box.

@@ -24,7 +24,7 @@ object dagger extends KspModule {
     mvn"com.google.dagger:dagger-compiler:2.55"
   )
 
-  object test extends KspTests, TestModule.Junit5 {
+  object test extends KspTests with TestModule.Junit5 {
 
     def kotlincOptions = super.kotlincOptions() ++ Seq("-no-reflect", "-verbose")
 

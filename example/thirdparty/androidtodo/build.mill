@@ -18,7 +18,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 }
 
 // Mill configuration for the Android Todo App project.
-object app extends AndroidAppKotlinModule, AndroidR8AppModule with AndroidBuildConfig
+object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBuildConfig
     with AndroidHiltSupport {
 
   def kotlinVersion = Versions.kotlinVersion
@@ -106,7 +106,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule with AndroidBuildC
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  object test extends AndroidAppKotlinTests, AndroidHiltSupport with TestModule.Junit4 {
+  object test extends AndroidAppKotlinTests with AndroidHiltSupport with TestModule.Junit4 {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
@@ -142,7 +142,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule with AndroidBuildC
     )
   }
 
-  object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule
+  object androidTest extends AndroidAppKotlinInstrumentedTests with AndroidR8AppModule
       with AndroidHiltSupport {
 
     override def kotlinLanguageVersion = Versions.kotlinLanguageVersion
@@ -207,7 +207,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule with AndroidBuildC
 
 }
 
-object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
+object `shared-test` extends AndroidKotlinModule with AndroidHiltSupport {
 
   def moduleDeps = Seq(app)
 

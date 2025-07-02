@@ -11,7 +11,7 @@ trait AppKotlinModule extends KotlinModule {
   def kotlinVersion = "1.9.25"
 }
 
-trait AppKotlinJsModule extends AppKotlinModule, KotlinJsModule
+trait AppKotlinJsModule extends AppKotlinModule with KotlinJsModule
 
 object `package` extends AppKotlinModule {
 
@@ -40,7 +40,7 @@ object `package` extends AppKotlinModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends KotlinTests, TestModule.Junit5 {
+  object test extends KotlinTests with TestModule.Junit5 {
     override def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"io.kotest:kotest-runner-junit5:5.9.1",
       mvn"io.ktor:ktor-server-test-host:$ktorVersion"
@@ -49,7 +49,7 @@ object `package` extends AppKotlinModule {
 
   object shared extends Module {
 
-    trait SharedModule extends AppKotlinModule, PlatformKotlinModule {
+    trait SharedModule extends AppKotlinModule with PlatformKotlinModule {
       override def kotlincPluginMvnDeps = Seq(
         mvn"org.jetbrains.kotlin:kotlin-serialization-compiler-plugin:${kotlinVersion()}"
       )
@@ -61,7 +61,7 @@ object `package` extends AppKotlinModule {
         mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion"
       )
     }
-    object js extends SharedModule, AppKotlinJsModule {
+    object js extends SharedModule with AppKotlinJsModule {
       override def mvnDeps = super.mvnDeps() ++ Seq(
         mvn"org.jetbrains.kotlinx:kotlinx-html:$kotlinHtmlVersion",
         mvn"org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion"

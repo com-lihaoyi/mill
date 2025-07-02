@@ -13,7 +13,7 @@ object server extends TypeScriptModule {
 
   override def forkEnv = super.forkEnv() + ("PORT" -> "3000")
 
-  object test extends TypeScriptTests, TestModule.Jest
+  object test extends TypeScriptTests with TestModule.Jest
 }
 
 // Documentation for mill.example.javascriptlib

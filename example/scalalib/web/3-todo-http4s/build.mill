@@ -10,7 +10,7 @@ object `package` extends ScalaModule {
     mvn"io.circe::circe-generic::0.14.10"
   )
 
-  object test extends ScalaTests, TestModule.Utest {
+  object test extends ScalaTests with TestModule.Utest {
     def mvnDeps = Seq(
       mvn"com.lihaoyi::utest::0.8.8",
       mvn"org.typelevel::cats-effect-testing-utest::1.6.0",

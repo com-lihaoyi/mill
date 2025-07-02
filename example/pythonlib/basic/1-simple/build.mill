@@ -7,7 +7,7 @@ object foo extends PythonModule {
 
   def pythonDeps = Seq("Jinja2==3.1.4")
 
-  object test extends PythonTests, TestModule.Unittest
+  object test extends PythonTests with TestModule.Unittest
 
 }
 

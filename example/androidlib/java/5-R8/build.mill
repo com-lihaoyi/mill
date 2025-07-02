@@ -54,14 +54,14 @@ object app extends AndroidR8AppModule { // <2>
   }
 
   // Unit tests for the application
-  object test extends AndroidAppTests, TestModule.Junit4 {
+  object test extends AndroidAppTests with TestModule.Junit4 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"junit:junit:4.13.2"
     )
   }
 
   // Instrumented tests (runs on emulator)
-  object it extends AndroidAppInstrumentedTests, AndroidR8AppModule
+  object it extends AndroidAppInstrumentedTests with AndroidR8AppModule
       with AndroidTestModule.AndroidJUnit {
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 

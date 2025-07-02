@@ -8,7 +8,7 @@ package build
 
 import mill.*, javalib.*, errorprone.*
 
-object `package` extends JavaModule, ErrorProneModule {
+object `package` extends JavaModule with ErrorProneModule {
   def errorProneOptions = Seq("-XepAllErrorsAsWarnings")
 }
 

@@ -3,7 +3,7 @@ package build
 import mill.*, kotlinlib.*
 import mill.api.ModuleRef
 
-object foo extends KotlinModule, NativeImageModule {
+object foo extends KotlinModule with NativeImageModule {
   def kotlinVersion = "1.9.24"
 
   def jvmId = "graalvm-community:17.0.7"

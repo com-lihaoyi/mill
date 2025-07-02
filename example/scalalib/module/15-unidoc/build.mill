@@ -1,7 +1,7 @@
 package build
 import mill.*, scalalib.*
 
-object foo extends ScalaModule, UnidocModule {
+object foo extends ScalaModule with UnidocModule {
   def scalaVersion = "3.7.1"
   def moduleDeps = Seq(bar, qux)
 

@@ -17,7 +17,7 @@ object `package` extends KotlinJsModule {
   override def mvnDeps = Seq(
     mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
   )
-  object test extends KotlinJsModule, KotestTests {
+  object test extends KotlinJsModule with KotestTests {
     override def kotestVersion = "5.9.1"
   }
 }

@@ -9,10 +9,10 @@ import mill.*, scalalib.*
 object qux extends ScalaModule {
   def scalaVersion = "3.7.1"
 
-  object test extends ScalaTests, TestModule.Utest {
+  object test extends ScalaTests with TestModule.Utest {
     def utestVersion = "0.8.8"
   }
-  object integration extends ScalaTests, TestModule.Utest {
+  object integration extends ScalaTests with TestModule.Utest {
     def utestVersion = "0.8.8"
   }
 }

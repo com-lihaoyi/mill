@@ -37,11 +37,11 @@ object app extends AndroidAppModule {
 
   override def androidVirtualDeviceIdentifier: String = "java-test"
 
-  object test extends AndroidAppTests, TestModule.Junit4 {
+  object test extends AndroidAppTests with TestModule.Junit4 {
     def junit4Version = "4.13.2"
   }
 
-  object it extends AndroidAppInstrumentedTests, AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppInstrumentedTests with AndroidTestModule.AndroidJUnit {
 
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 

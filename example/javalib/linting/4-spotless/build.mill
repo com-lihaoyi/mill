@@ -12,7 +12,7 @@ package build
 import mill.javalib.JavaModule
 import mill.scalalib.spotless.*
 
-object `package` extends JavaModule, SpotlessModule
+object `package` extends JavaModule with SpotlessModule
 
 /** See Also: src/A.java */
 /** See Also: resources/app.properties */

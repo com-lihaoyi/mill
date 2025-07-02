@@ -44,7 +44,7 @@ object `package` extends JavaModule {
 
   def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
 
-  object test extends JavaTests, TestModule.Junit4 {
+  object test extends JavaTests with TestModule.Junit4 {
     def forkEnv = Map("HELLO_WORLD_BINARY" -> nativeCompiled().path.toString)
   }
 }

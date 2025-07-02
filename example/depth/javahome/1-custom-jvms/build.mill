@@ -18,7 +18,7 @@ import mill.api.ModuleRef
 object foo extends JavaModule {
   def jvmId = "temurin:18.0.2"
 
-  object test extends JavaTests, TestModule.Junit4
+  object test extends JavaTests with TestModule.Junit4
 }
 
 /** Usage

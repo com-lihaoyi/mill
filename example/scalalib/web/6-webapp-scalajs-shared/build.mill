@@ -5,7 +5,7 @@ trait AppScalaModule extends ScalaModule {
   def scalaVersion = "3.3.3"
 }
 
-trait AppScalaJSModule extends AppScalaModule, ScalaJSModule {
+trait AppScalaJSModule extends AppScalaModule with ScalaJSModule {
   def scalaJSVersion = "1.19.0"
 }
 
@@ -21,7 +21,7 @@ object `package` extends AppScalaModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends ScalaTests, TestModule.Utest {
+  object test extends ScalaTests with TestModule.Utest {
     def utestVersion = "0.8.8"
     def mvnDeps = Seq(
       mvn"com.lihaoyi::requests::0.6.9"
@@ -29,7 +29,7 @@ object `package` extends AppScalaModule {
   }
 
   object shared extends Module {
-    trait SharedModule extends AppScalaModule, PlatformScalaModule {
+    trait SharedModule extends AppScalaModule with PlatformScalaModule {
       def mvnDeps = Seq(
         mvn"com.lihaoyi::scalatags::0.13.1",
         mvn"com.lihaoyi::upickle::4.1.0"
@@ -37,7 +37,7 @@ object `package` extends AppScalaModule {
     }
 
     object jvm extends SharedModule
-    object js extends SharedModule, AppScalaJSModule
+    object js extends SharedModule with AppScalaJSModule
   }
 
   object client extends AppScalaJSModule {

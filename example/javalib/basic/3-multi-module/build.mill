@@ -3,7 +3,7 @@ package build
 import mill.*, javalib.*
 
 trait MyModule extends JavaModule {
-  object test extends JavaTests, TestModule.Junit4
+  object test extends JavaTests with TestModule.Junit4
 }
 
 object foo extends MyModule {

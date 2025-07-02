@@ -3,7 +3,7 @@ package build
 import mill.*, kotlinlib.*
 import kotlinlib.kover.KoverModule
 
-object `package` extends KotlinModule, KoverModule {
+object `package` extends KotlinModule with KoverModule {
 
   trait KotestTests extends TestModule.Junit5 {
     override def forkArgs: T[Seq[String]] = Task {
@@ -19,11 +19,11 @@ object `package` extends KotlinModule, KoverModule {
 
   override def koverVersion = "0.8.3"
 
-  object test extends KotlinTests, KotestTests with KoverTests
+  object test extends KotlinTests with KotestTests with KoverTests
 
-  object bar extends KotlinModule, KoverModule {
+  object bar extends KotlinModule with KoverModule {
     def kotlinVersion = "1.9.24"
-    object test extends KotlinTests, KotestTests with KoverTests
+    object test extends KotlinTests with KotestTests with KoverTests
   }
 }
 
