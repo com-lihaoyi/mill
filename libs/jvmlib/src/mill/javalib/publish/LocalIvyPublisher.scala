@@ -14,7 +14,7 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
    */
   def publishLocal(
       artifact: Artifact,
-      contents: FileSetContents.Any,
+      contents: FileSetContents.Any
   )(implicit ctx: TaskCtx.Log): Seq[os.Path] = {
     ctx.log.info(s"Publishing ${artifact} to ivy repo ${localIvyRepo}")
     val releaseDir = localIvyRepo / artifact.group / artifact.id / artifact.version
@@ -36,10 +36,10 @@ object LocalIvyPublisher
    * @param publishInfos Files to publish in this module
    */
   def createFileSetContents(
-    pom: os.Path,
-    ivy: FileSetContents.Contents,
-    artifact: Artifact,
-    publishInfos: Seq[PublishInfo]
+      pom: os.Path,
+      ivy: FileSetContents.Contents,
+      artifact: Artifact,
+      publishInfos: Seq[PublishInfo]
   ): FileSetContents.Any = {
     FileSetContents(Map(
       os.SubPath("poms") / s"${artifact.id}.pom" -> FileSetContents.Contents.Path(pom),

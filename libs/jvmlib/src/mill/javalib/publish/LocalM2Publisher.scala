@@ -24,17 +24,19 @@ class LocalM2Publisher(m2Repo: os.Path) {
 
 }
 object LocalM2Publisher {
+
   /**
    * @param pom The POM of this module
    * @param artifact Coordinates of this module
    * @param publishInfos Files to publish in this module
    */
   def createFileSetContents(
-    pom: os.Path,
-    artifact: Artifact,
-    publishInfos: Seq[PublishInfo]
+      pom: os.Path,
+      artifact: Artifact,
+      publishInfos: Seq[PublishInfo]
   ): FileSetContents.Path = {
-    val dir = (RelPath(".") / artifact.group.split("[.]") / artifact.id / artifact.version).asSubPath
+    val dir =
+      (RelPath(".") / artifact.group.split("[.]") / artifact.id / artifact.version).asSubPath
 
     pomFileSetContents(pom, artifact) ++ publishInfos.iterator.map { e =>
       dir / s"${artifact.id}-${artifact.version}${e.classifierPart}.${e.ext}" ->
@@ -43,6 +45,8 @@ object LocalM2Publisher {
   }
 
   def pomFileSetContents(pom: os.Path, artifact: Artifact): FileSetContents.Path = {
-    FileSetContents(Map(SubPath(s"${artifact.id}-${artifact.version}.pom") -> FileSetContents.Contents.Path(pom)))
+    FileSetContents(
+      Map(SubPath(s"${artifact.id}-${artifact.version}.pom") -> FileSetContents.Contents.Path(pom))
+    )
   }
 }

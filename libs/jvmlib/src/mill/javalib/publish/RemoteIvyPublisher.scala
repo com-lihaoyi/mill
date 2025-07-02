@@ -11,14 +11,14 @@ import scala.util.control.NonFatal
 
 object RemoteIvyPublisher {
   case class PublishOptions(
-    readTimeout: Option[FiniteDuration] = Some(10.seconds),
-    connectionTimeout: Option[FiniteDuration] = Some(10.seconds),
+      readTimeout: Option[FiniteDuration] = Some(10.seconds),
+      connectionTimeout: Option[FiniteDuration] = Some(10.seconds)
   )
 
   def publish(
-    repository: MavenRepository,
-    fileSet: FileSet,
-    options: PublishOptions = PublishOptions()
+      repository: MavenRepository,
+      fileSet: FileSet,
+      options: PublishOptions = PublishOptions()
   )(using ec: ExecutionContext) = {
     val upload = HttpURLConnectionUpload.create(
       readTimeoutMs = options.readTimeout.map(_.toMillis.toInt),

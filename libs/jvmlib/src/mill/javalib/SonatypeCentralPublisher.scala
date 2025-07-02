@@ -26,7 +26,11 @@ class SonatypeCentralPublisher(
     awaitTimeout: Int
 ) {
   private val sonatypeCentralClient =
-    new SyncSonatypeClient(credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)/* {
+    new SyncSonatypeClient(
+      credentials,
+      readTimeout = readTimeout,
+      connectTimeout = connectTimeout
+    ) /* {
       override protected val clientBaseUrl         = s"https://central.sonatype.com/repository/maven-snapshots/"
       override protected val clientUploadBundleUrl = s"$clientBaseUrl/upload"
       override protected val clientCheckStatusUrl  = s"$clientBaseUrl/status"
@@ -47,8 +51,10 @@ class SonatypeCentralPublisher(
   ): Unit = {
     val mappings = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
     log.info(s"mappings ${pprint.apply(
-      mappings.map { case (a, fileSetContents) => (a, fileSetContents.keysSorted.map(_.toString)) }
-    )}")
+        mappings.map { case (a, fileSetContents) =>
+          (a, fileSetContents.keysSorted.map(_.toString))
+        }
+      )}")
     val releases = mappings
 //    val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
 //    if (snapshots.nonEmpty) {
@@ -80,7 +86,9 @@ class SonatypeCentralPublisher(
         groupReleases.foreach { case (artifact, data) =>
           val fileNameWithoutExtension = s"${artifact.group}-${artifact.id}-${artifact.version}"
           val zipFile = streamToFile(fileNameWithoutExtension, wd) { outputStream =>
-            log.info(s"bundle $fileNameWithoutExtension with ${pprint.apply(data.keysSorted.map(_.toString))}")
+            log.info(
+              s"bundle $fileNameWithoutExtension with ${pprint.apply(data.keysSorted.map(_.toString))}"
+            )
             zipFilesToJar(data, outputStream)
           }
 

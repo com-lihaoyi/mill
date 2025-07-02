@@ -26,7 +26,8 @@ object SonatypeHelpers {
       val signedArtifacts =
         if (isSigned) fileMapping.map {
           case (name, file) =>
-            val signatureFile = gpgSigned(file = file.path, args = gpgArgs, workspace = workspace, env = env)
+            val signatureFile =
+              gpgSigned(file = file.path, args = gpgArgs, workspace = workspace, env = env)
             SubPath(s"$name.asc") -> FileSetContents.Contents.Path(signatureFile)
         }
         else FileSetContents.empty
@@ -36,8 +37,12 @@ object SonatypeHelpers {
 
         Map(
           name -> content,
-          SubPath(s"$name.md5") -> FileSetContents.Contents.Bytes.fromArray(md5hex(content.bytesUnsafe)),
-          SubPath(s"$name.sha1") -> FileSetContents.Contents.Bytes.fromArray(sha1hex(content.bytesUnsafe))
+          SubPath(
+            s"$name.md5"
+          ) -> FileSetContents.Contents.Bytes.fromArray(md5hex(content.bytesUnsafe)),
+          SubPath(
+            s"$name.sha1"
+          ) -> FileSetContents.Contents.Bytes.fromArray(sha1hex(content.bytesUnsafe))
         )
       }
 
@@ -45,10 +50,11 @@ object SonatypeHelpers {
     }
   }
 
-  /** Signs a file with GPG.
+  /**
+   * Signs a file with GPG.
    *
    * @return The path of the signature file.
-   * */
+   */
   private def gpgSigned(
       file: os.Path,
       args: Seq[String],

@@ -24,7 +24,9 @@ object LocalM2PublisherTests extends TestSuite {
       val publisher = new LocalM2Publisher(repo)
       val artifact = Artifact("group.org", "id", "version")
       val contents = LocalM2Publisher.createFileSetContents(
-        repo / "pom", artifact, Seq(
+        repo / "pom",
+        artifact,
+        Seq(
           PublishInfo.jar(PathRef(repo / "jar")),
           PublishInfo.sourcesJar(PathRef(repo / "src")),
           PublishInfo.docJar(PathRef(repo / "doc")),

@@ -478,8 +478,8 @@ trait PublishModule extends JavaModule { outer =>
 
   /** [[publishArtifactsDefaultPayload]] with [[extraPublish]]. */
   def publishArtifactsPayload(
-    sources: Boolean = true,
-    docs: Boolean = true
+      sources: Boolean = true,
+      docs: Boolean = true
   ): Task[FileSetContents[PathRef]] = Task {
     val defaultPayload = publishArtifactsDefaultPayload(sources = sources, docs = docs)()
     val baseName = publishArtifactsBaseName()

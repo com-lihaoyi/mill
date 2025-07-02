@@ -5,11 +5,13 @@ import mill.api.Logger
 import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
 import mill.util.FileSetContents
 
-/** The publisher for the end-of-life OSSRH Sonatype publishing.
+/**
+ * The publisher for the end-of-life OSSRH Sonatype publishing.
  *
  * You should migrate to [[mill.scalalib.SonatypeCentralPublisher]] instead.
  *
- * @see https://central.sonatype.org/pages/ossrh-eol/ */
+ * @see https://central.sonatype.org/pages/ossrh-eol/
+ */
 @deprecated("Use mill.scalalib.SonatypeCentralPublisher instead", "1.0.0")
 class SonatypePublisher(
     uri: String,
@@ -42,13 +44,17 @@ class SonatypePublisher(
 
     val (snapshots, releases) = mappings.partition(_.artifact.isSnapshot)
     if (snapshots.nonEmpty) {
-      publishSnapshot(FileSetContents.mergeAll(snapshots.iterator.map(_.contents)), snapshots.map(_.artifact))
+      publishSnapshot(
+        FileSetContents.mergeAll(snapshots.iterator.map(_.contents)),
+        snapshots.map(_.artifact)
+      )
     }
     val releaseGroups = releases.groupBy(_.artifact.group)
     for ((group, groupReleases) <- releaseGroups) {
       val groupArtifacts = groupReleases.map(_.artifact)
       val groupContents = FileSetContents.mergeAll(groupReleases.iterator.map(_.contents))
-      if (stagingRelease) publishRelease(release, groupContents, group, groupArtifacts, awaitTimeout)
+      if (stagingRelease)
+        publishRelease(release, groupContents, group, groupArtifacts, awaitTimeout)
       else publishReleaseNonstaging(groupContents, groupArtifacts)
     }
   }
