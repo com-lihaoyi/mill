@@ -12,6 +12,32 @@ endif::[]
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
+[#1-0-0-RC3]
+=== 1.0.0-RC3
+_2025-07-01_
+
+
+:version: 1.0.0-RC3
+:milestone-name: 1.0.0-RC3
+:milestone: 120
+:prev-version: 1.0.0-RC2
+
+1.0.0-RC3 is likely to be the last RC before 1.0.0 final is cut
+
+Changes since 1.0.0-RC2
+
+* Improvements to Bash/Zsh tab-completion logic ({link-pr}/5296[#5296])
+* Improvements to BSP support ({link-pr}/5310[#5310])
+* Replace `Task.workspace` / `TaskCtx.workspace` with `BuildCtx.workspaceRoot` ({link-pr}/5322[#5322])
+* Fix `Task.Sources` customization in `./mill init` ({link-pr}/5325[#5325]), and add support
+  for importing `.jvmopts` file ({link-pr}/5339[#5339])
+* Simplify configuration of JVM version ({link-pr}/5327[#5327])
+* Fix `./mill init` crasher on windows ({link-pr}/5330[#5330])
+* Add `--no-filesystem-checker` flag to globally disable filesystem read/write checks ({link-pr}/5278[#5278])
+* Rename `def defaultCommandName` to `def defaultTask` ({link-pr}/5405[#5405])
+* Consolidate `mill.define` and `mill.api` into a single `mill.api` namespace ({link-pr}/5407[#5407])
+* Re-organize `mill.scalalib` and `mill.javalib` packages ({link-pr}/5411[#5411])
+
 [#1-0-0-RC2]
 === 1.0.0-RC2
 _2025-06-12_

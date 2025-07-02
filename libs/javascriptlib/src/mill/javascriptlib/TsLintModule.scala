@@ -4,7 +4,7 @@ import mill.*
 import mill.api.Result
 import scala.util.{Try, Success, Failure}
 import os.*
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 trait TsLintModule extends Module {
   sealed trait Lint
   private case object Eslint extends Lint
@@ -64,7 +64,7 @@ trait TsLintModule extends Module {
   }
 
   // eslint
-  def checkFormatEslint(args: mill.define.Args): Command[Unit] = Task.Command {
+  def checkFormatEslint(args: mill.api.Args): Command[Unit] = Task.Command {
     resolvedFmtConfig() match {
       case Eslint =>
         val cwd = BuildCtx.workspaceRoot
@@ -108,7 +108,7 @@ trait TsLintModule extends Module {
     }
   }
 
-  def reformatEslint(args: mill.define.Args): Command[Unit] = Task.Command {
+  def reformatEslint(args: mill.api.Args): Command[Unit] = Task.Command {
     resolvedFmtConfig() match {
       case Eslint =>
         val cwd = BuildCtx.workspaceRoot
@@ -140,7 +140,7 @@ trait TsLintModule extends Module {
   }
 
   // prettier
-  def checkFormatPrettier(args: mill.define.Args): Command[Unit] = Task.Command {
+  def checkFormatPrettier(args: mill.api.Args): Command[Unit] = Task.Command {
     resolvedFmtConfig() match {
       case Prettier =>
         val cwd = BuildCtx.workspaceRoot
@@ -182,7 +182,7 @@ trait TsLintModule extends Module {
 
   }
 
-  def reformatPrettier(args: mill.define.Args): Command[Unit] = Task.Command {
+  def reformatPrettier(args: mill.api.Args): Command[Unit] = Task.Command {
     resolvedFmtConfig() match {
       case Prettier =>
         val cwd = BuildCtx.workspaceRoot
@@ -226,12 +226,12 @@ trait TsLintModule extends Module {
     PathRef(config)
   }
 
-  def checkFormatAll(args: mill.define.Args): Command[Unit] = Task.Command {
+  def checkFormatAll(args: mill.api.Args): Command[Unit] = Task.Command {
     checkFormatEslint(args)()
     checkFormatPrettier(args)()
   }
 
-  def reformatAll(args: mill.define.Args): Command[Unit] = Task.Command {
+  def reformatAll(args: mill.api.Args): Command[Unit] = Task.Command {
     reformatEslint(args)()
     reformatPrettier(args)()
   }

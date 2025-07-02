@@ -293,7 +293,7 @@ enforced with Mima, for the following packages:
 
 - `mill.api`
 - `mill.util`
-- `mill.define`
+- `mill.api`
 - `mill.eval`
 - `mill.resolve`
 - `mill.scalalib`

@@ -3,8 +3,8 @@ package mill.main
 import mill.api.Result
 import mill.constants.OutFiles
 import mill.*
-import mill.define.Evaluator
-import mill.define.SelectMode
+import mill.api.Evaluator
+import mill.api.SelectMode
 
 /**
  * Mill Module to support selective test execution in large projects.
@@ -27,7 +27,7 @@ import mill.define.SelectMode
  *   prints out the tasks in `<selector>`` that are affected by the code changes
  *   and would have run, without actually running them.
  */
-trait SelectiveExecutionModule extends mill.define.Module {
+trait SelectiveExecutionModule extends mill.api.Module {
 
   /**
    * Run to store a baseline snapshot of the Mill task inputs or implementations

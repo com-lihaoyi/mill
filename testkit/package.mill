@@ -2,7 +2,7 @@ package build.testkit
 
 import mill._
 import millbuild.*
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 /**
  * Mill unit/integration/example-testing helpers. Both used internally

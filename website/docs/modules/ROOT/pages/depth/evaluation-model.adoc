@@ -15,7 +15,7 @@ as the basis for discussion:
 ----
 // build.mill
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {}
 

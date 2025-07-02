@@ -9,7 +9,7 @@
 //    env variable defined in `forkEnv` and print it when the program runs
 //
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 

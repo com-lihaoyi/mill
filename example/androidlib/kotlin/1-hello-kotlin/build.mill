@@ -9,7 +9,7 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._, androidlib._, kotlinlib._, scalalib._
+import mill.*, androidlib.*, kotlinlib.*, scalalib.*
 
 import coursier.maven.MavenRepository
 
@@ -22,7 +22,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 object app extends AndroidAppKotlinModule {
 
   def kotlinVersion = "2.0.20"
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
   def androidApplicationId = "com.helloworld.app"
@@ -43,11 +43,11 @@ object app extends AndroidAppKotlinModule {
 
   override def androidIsDebug: T[Boolean] = Task { false }
 
-  object test extends AndroidAppKotlinTests with TestModule.Junit4 {
+  object test extends AndroidAppKotlinTests, TestModule.Junit4 {
     def junit4Version = "4.13.2"
   }
 
-  object it extends AndroidAppKotlinInstrumentedTests with AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppKotlinInstrumentedTests, AndroidTestModule.AndroidJUnit {
 
     // TODO currently instrumented tests debug mode
     // is coupled with the app debug mode. Fix so

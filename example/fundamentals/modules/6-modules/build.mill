@@ -4,7 +4,7 @@
 // path you would use to run tasks within that module from the command line. e.g.
 // for the following `build.mill`:
 package build
-import mill._
+import mill.*
 
 object foo extends Module {
   def bar = Task { "hello" }

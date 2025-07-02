@@ -1,6 +1,6 @@
 // Mill uses MainArgs to handle argument parsing for ``Task.Command``s that
 // are run from the command line.
-import mill._
+import mill.*
 
 def commandSimple(str: String, i: Int, bool: Boolean = true) = Task.Command {
   println(s"$str $i $bool")
@@ -80,7 +80,7 @@ def taskCallingCommand = Task {
 // For example, here is a `customPlanCommand` command which uses this
 // to traverse the module tree to find the tasks specified by the `tasks` strings,
 // and plan out what would be necessary to run them
-import mill.define.{SelectMode, Evaluator}
+import mill.api.{SelectMode, Evaluator}
 
 def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command(exclusive = true) {
   val resolved = evaluator

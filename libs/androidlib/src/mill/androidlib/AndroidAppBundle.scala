@@ -1,7 +1,7 @@
 package mill.androidlib
 
 import mill.*
-import mill.define.PathRef
+import mill.api.PathRef
 import mill.scalalib.*
 import os.zip.ZipSource
 

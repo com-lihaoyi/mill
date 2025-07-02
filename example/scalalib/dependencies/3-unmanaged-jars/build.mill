@@ -8,10 +8,10 @@
 
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object `package` extends ScalaModule {
-  def scalaVersion = "2.13.16"
+  def scalaVersion = "3.7.1"
   def lib = Task.Source("lib")
   def unmanagedClasspath = Task {
     if (!os.exists(lib().path)) Seq()

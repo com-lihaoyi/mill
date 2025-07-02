@@ -1,6 +1,6 @@
 package mill.androidlib
 
-import mill.define.PathRef
+import mill.api.PathRef
 
 case class AndroidModuleGeneratedDexVariants(
     androidDebugDex: PathRef,

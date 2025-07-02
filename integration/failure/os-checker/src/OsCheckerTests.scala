@@ -33,7 +33,7 @@ object OsCheckerTests extends UtestIntegrationTestSuite {
       tester.modifyFile(workspacePath / "build.mill", _.replace("if (true)", "if (false)"))
       tester.modifyFile(
         workspacePath / "build.mill",
-        _ + "\nprintln(os.read(mill.define.BuildCtx.workspaceRoot / \"build.mill\"))"
+        _ + "\nprintln(os.read(mill.api.BuildCtx.workspaceRoot / \"build.mill\"))"
       )
 
       val res4allowed = tester.eval(("--no-filesystem-checker", "allowed.allowedTask"))

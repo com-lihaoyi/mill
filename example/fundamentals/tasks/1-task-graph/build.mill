@@ -2,7 +2,7 @@
 // making use of the most common `Task.Source`, `Task`, and `Task.Command` types
 // to define a simple build graph with some input source files and intermediate build steps:
 package build
-import mill._
+import mill.*
 
 def mainClass: T[Option[String]] = Some("foo.Foo")
 

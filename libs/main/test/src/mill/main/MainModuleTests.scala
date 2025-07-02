@@ -3,7 +3,7 @@ package mill.main
 import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles
 import mill.{Task, given}
-import mill.define.{PathRef, Cross, Discover, Module, TaskModule}
+import mill.api.{PathRef, Cross, Discover, Module, TaskModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, test}
@@ -46,7 +46,7 @@ object MainModuleTests extends TestSuite {
 
     /** Sub module */
     object sub extends TaskModule {
-      override def defaultCommandName(): String = "hello"
+      override def defaultTask(): String = "hello"
       def hello() = Task.Command {
         println("hello")
       }

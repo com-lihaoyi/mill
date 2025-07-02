@@ -1,9 +1,9 @@
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._, publish._
+import mill.*, scalalib.*, publish.*
 
-object foo extends ScalaModule with SonatypeCentralPublishModule {
-  def scalaVersion = "2.13.16"
+object foo extends ScalaModule, SonatypeCentralPublishModule {
+  def scalaVersion = "3.7.1"
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(

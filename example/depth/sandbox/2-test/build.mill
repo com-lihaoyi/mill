@@ -3,10 +3,10 @@
 // `foo.test` and `bar.test`:
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 trait MyModule extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 
 object foo extends MyModule {
@@ -69,7 +69,7 @@ object bar extends MyModule
 // to access the workspace root directory:
 
 object qux extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 
 /** See Also: qux/src/qux/Qux.java */

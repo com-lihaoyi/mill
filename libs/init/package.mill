@@ -6,11 +6,11 @@ import mill.scalalib.Assembly.Rule
 import mill.scalalib.ScalaModule
 import mill.util.Jvm
 import millbuild.*
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 object `package` extends MillPublishScalaModule {
 
-  def moduleDeps = Seq(build.libs.scalalib)
+  def moduleDeps = Seq(build.libs.jvmlib)
 
   override def resources = Task {
     super.resources() ++ Seq(exampleList())
@@ -18,10 +18,10 @@ object `package` extends MillPublishScalaModule {
 
   def exampleList: T[PathRef] = Task {
     val data: Seq[(os.SubPath, String)] =
-      build.dist.examplePathsWithArtifactName().map { case (pathRef, str) =>
+      build.dist.examplePaths().zip(build.dist.exampleArtifactNames()).map { case (path, str) =>
         val downloadUrl =
           s"${build.millDownloadUrlCurrent()}/$str.zip"
-        val subPath = pathRef.path.subRelativeTo(BuildCtx.workspaceRoot / "example")
+        val subPath = path.subRelativeTo(BuildCtx.workspaceRoot / "example")
         (subPath, downloadUrl)
       }
 
@@ -70,7 +70,7 @@ object `package` extends MillPublishScalaModule {
 
   object buildgen extends MillPublishScalaModule {
     def moduleDeps = Seq(build.libs.init, build.core.internal, build.core.util)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib)
 
     // I tried moving `Tree` into this module, but it doesn't compile with Scala 2.12.20.
     /*
@@ -86,7 +86,7 @@ object `package` extends MillPublishScalaModule {
       Deps.gradleApi,
       Deps.logback
     )
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib, buildgen.test)
   }
   object maven extends MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
@@ -98,7 +98,7 @@ object `package` extends MillPublishScalaModule {
       Deps.mavenResolverTransportHttp,
       Deps.mavenResolverTransportWagon
     )
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib, buildgen.test)
   }
 
   object sbt extends MillPublishScalaModule with BuildInfo {
@@ -110,7 +110,7 @@ object `package` extends MillPublishScalaModule {
       PathRef(Task.dest)
     }
     def resources: T[Seq[PathRef]] = Task { super.resources() ++ Seq(sbtPluginJarResources()) }
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib, buildgen.test)
 
     def buildInfoPackageName = "mill.main.sbt"
     def buildInfoObjectName: String = "Versions"

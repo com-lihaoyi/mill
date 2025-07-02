@@ -4,15 +4,15 @@
 
 //// SNIPPET:BUILD1
 package build
-import mill._, scalalib._
-import mill.define.ModuleRef
+import mill.*, scalalib.*
+import mill.api.ModuleRef
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.16"
+  def scalaVersion = "3.7.1"
 
   def mvnDeps = Seq(
     mvn"com.lihaoyi::scalatags:0.13.1",
-    mvn"com.lihaoyi::mainargs:0.6.2"
+    mvn"com.lihaoyi::mainargs:0.7.6"
   )
 
   def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
@@ -54,12 +54,12 @@ object foo extends ScalaModule {
 
 //// SNIPPET:BUILD2
 
-object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
+object CustomJvmWorkerModule extends JvmWorkerModule, CoursierModule {
   def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.16"
+  def scalaVersion = "3.7.1"
   def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 

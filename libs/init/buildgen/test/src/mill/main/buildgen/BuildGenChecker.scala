@@ -1,7 +1,7 @@
 package mill.main.buildgen
 
 import mill.constants.{CodeGenConstants, OutFiles}
-import mill.define.Discover
+import mill.api.Discover
 import mill.scalalib.scalafmt.ScalafmtModule
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.{PathRef, T}

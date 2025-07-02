@@ -1,18 +1,18 @@
 package mill.daemon
 
 import ch.epfl.scala.bsp4j.BuildClient
-import mill.api.internal.bsp.{BspServerHandle, BspServerResult}
-import mill.api.internal.{CompileProblemReporter, EvaluatorApi, internal}
+import mill.api.shared.internal.bsp.{BspServerHandle, BspServerResult}
+import mill.api.shared.internal.{CompileProblemReporter, EvaluatorApi, internal}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.Lock
 import mill.constants.{DaemonFiles, OutFiles}
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 import mill.internal.{Colors, MultiStream, PrefixLogger, PromptLogger, SimpleLogger}
 import mill.server.Server
 import mill.util.BuildInfo
-import mill.{api, define}
-import mill.api.internal.bsp.BspServerResult
+import mill.api
+import mill.api.shared.internal.bsp.BspServerResult
 
 import java.io.{InputStream, PipedInputStream, PrintStream, PrintWriter, StringWriter}
 import java.lang.reflect.InvocationTargetException
@@ -69,7 +69,7 @@ object MillMain0 {
           err = new MultiStream(streams.err, errFileStream),
           in = InputStream.nullInputStream()
         )
-        mill.define.SystemStreams.withStreams(streams0) {
+        mill.api.SystemStreamsUtils.withStreams(streams0) {
           thunk(streams0)
         }
       } finally {
@@ -77,7 +77,7 @@ object MillMain0 {
         outFileStream.close()
       }
     } else
-      mill.define.SystemStreams.withStreams(streams) {
+      mill.api.SystemStreamsUtils.withStreams(streams) {
         thunk(streams)
       }
 
@@ -94,7 +94,7 @@ object MillMain0 {
       daemonDir: os.Path,
       outLock: Lock
   ): (Boolean, RunnerState) =
-    mill.api.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
+    mill.api.shared.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
       os.SubProcess.env.withValue(env) {
         val parserResult = MillCliConfig.parse(args)
         // Detect when we're running in BSP mode as early as possible,
@@ -247,7 +247,7 @@ object MillMain0 {
                         // Enter key pressed, removing mill-selective-execution.json to
                         // ensure all tasks re-run even though no inputs may have changed
                         if (enterKeyPressed) os.remove(out / OutFiles.millSelectiveExecution)
-                        mill.define.SystemStreams.withStreams(logger.streams) {
+                        mill.api.SystemStreamsUtils.withStreams(logger.streams) {
                           mill.api.FilesystemCheckerEnabled.withValue(
                             !config.noFilesystemChecker.value
                           ) {
@@ -479,7 +479,7 @@ object MillMain0 {
 
     val bspServerHandleRes =
       mill.bsp.worker.BspWorkerImpl.startBspServer(
-        define.BuildCtx.workspaceRoot,
+        api.BuildCtx.workspaceRoot,
         bspStreams,
         logDir,
         true,

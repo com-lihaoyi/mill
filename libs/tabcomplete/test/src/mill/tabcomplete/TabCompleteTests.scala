@@ -1,7 +1,7 @@
 package mill.tabcomplete
 
 import mill.Task
-import mill.define.{Cross, Discover, Module}
+import mill.api.{Cross, Discover, Module}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, test}

@@ -6,10 +6,10 @@
 // Maven or Gradle build:
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends MavenModule {
-  object test extends MavenTests with TestModule.Junit4
+  object test extends MavenTests, TestModule.Junit4
 }
 
 // `MavenModule` is a variant of `JavaModule`

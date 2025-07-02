@@ -2,11 +2,12 @@ package mill
 package scalajslib
 
 import mainargs.{Flag, arg}
-import mill.api.internal.{ScalaJSModuleApi, ScalaPlatform, internal}
-import mill.api.internal.bsp.ScalaBuildTarget
+import mill.api.shared.internal.{ScalaJSModuleApi, ScalaPlatform, internal}
+import mill.api.shared.internal.bsp.ScalaBuildTarget
 import mill.api.Result
-import mill.scalalib.{CrossVersion, Dep, DepSyntax, Lib, TestModule}
-import mill.scalalib.api.JvmWorkerUtil
+import mill.api.CrossVersion
+import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
+import mill.jvmlib.api.JvmWorkerUtil
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
@@ -180,7 +181,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
       minify: Boolean,
       importMap: Seq[ESModuleImportMapping],
       experimentalUseWebAssembly: Boolean
-  )(implicit ctx: mill.define.TaskCtx): Result[Report] = {
+  )(implicit ctx: mill.api.TaskCtx): Result[Report] = {
     val outputPath = ctx.dest
 
     os.makeDir.all(ctx.dest)

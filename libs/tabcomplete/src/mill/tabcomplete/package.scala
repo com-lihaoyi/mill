@@ -1,4 +1,4 @@
 package mill.tabcomplete
-import mill.define.ExternalModule
+import mill.api.ExternalModule
 
 object `package` extends ExternalModule.Alias(TabCompleteModule)

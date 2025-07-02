@@ -1,7 +1,7 @@
 package build
 
-import mill._, javascriptlib._
-import ujson._
+import mill.*, javascriptlib.*
+import ujson.*
 
 object foo extends TypeScriptModule {
   object bar extends TypeScriptModule {
@@ -43,7 +43,7 @@ object qux extends PublishModule {
     )
   )
 
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 }
 
 // In this example, we define multiple exports for our application with the `export` task

@@ -33,7 +33,7 @@ dependencies, you can compile, run, or test your project:
 ----
 // build.mill
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
   def mvnDeps = Seq(
@@ -41,7 +41,7 @@ object foo extends JavaModule {
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 ----
 
@@ -197,7 +197,7 @@ assembly configuration, default compiler flags, and so on.
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
 }
@@ -216,7 +216,7 @@ can depend on other tasks such as `allSourceFiles()` below:
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
   /** Total number of lines in module source files */
@@ -253,7 +253,7 @@ to its existing value `super.resources()`:
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
   /** Total number of lines in module source files */
@@ -304,7 +304,7 @@ Thymeleaf classes available for you to import and use in your build as below:
 //| mvnDeps: ["org.thymeleaf:thymeleaf:3.1.1.RELEASE"]
 package build
 
-import mill._, javalib._
+import mill.*, javalib.*
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 
@@ -392,7 +392,11 @@ build correctly and achieve maximum performance even without being a build tool 
 == IDE Support
 
 One area that Mill does better than Maven, Gradle or SBT is providing a seamless IDE
-experience.
+experience. Working with Mill builds in IntelliJ or VSCode, you get the full power of
+your IDE to autocomplete, peek at docs, browse signatures, and otherwise navigate
+around your build system:
+
+image:mill::comparisons/IntellijOverrideAutocomplete.png[]
 
 === Limitations of Existing Build Tool IDE Integrations
 
@@ -586,7 +590,7 @@ Thus, when you see a Mill build configured as such, with an `object` extending a
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
 }
@@ -620,7 +624,7 @@ and call `super`:
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
   /** Total number of lines in module source files */
@@ -670,7 +674,7 @@ by `object foo` and `object bar` to share the configuration:
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends MyJavaModule
 object bar extends MyJavaModule

@@ -1,5 +1,5 @@
 package qux
-import utest._
+import utest.*
 object QuxTests extends TestSuite {
   def tests = Tests {
     test("hello") {

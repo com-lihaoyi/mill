@@ -2,8 +2,8 @@ package mill
 package kotlinlib.js
 
 import mill.api.ExecResult
-import mill.define.Discover
-import mill.define.ExecutionPaths
+import mill.api.Discover
+import mill.api.ExecutionPaths
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, assert, test}
 

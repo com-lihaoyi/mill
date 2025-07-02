@@ -1,6 +1,6 @@
 package mill.util
 
-import mill.define.PathRef
+import mill.api.PathRef
 
 import java.net.URLClassLoader
 import collection.mutable.LinkedHashMap

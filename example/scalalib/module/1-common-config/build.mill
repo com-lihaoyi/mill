@@ -7,15 +7,15 @@
 
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object `package` extends ScalaModule {
   def scalaVersion = "2.13.16"
 
   // You can have arbitrary numbers of third-party dependencies
   def mvnDeps = Seq(
-    mvn"com.lihaoyi::scalatags:0.8.2",
-    mvn"com.lihaoyi::os-lib:0.10.7"
+    mvn"com.lihaoyi::scalatags:0.13.1",
+    mvn"com.lihaoyi::os-lib:0.11.4"
   )
 
   // Choose a main class to use for `.run` if there are multiple present

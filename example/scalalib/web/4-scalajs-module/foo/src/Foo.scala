@@ -1,5 +1,5 @@
 package foo
-import scalatags.Text.all._
+import scalatags.Text.all.*
 import scala.scalajs.js
 object Foo {
   def main(args: Array[String]): Unit = {

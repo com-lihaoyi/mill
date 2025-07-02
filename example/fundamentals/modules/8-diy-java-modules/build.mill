@@ -2,7 +2,7 @@
 // so far into a worked example: implementing our own minimal version of
 // `mill.scalalib.JavaModule` from first principles.
 package build
-import mill._
+import mill.*
 
 trait DiyJavaModule extends Module {
   def moduleDeps: Seq[DiyJavaModule] = Nil
@@ -63,7 +63,7 @@ trait DiyJavaModule extends Module {
 //   necessary to convert the `Seq[T[V]]` into a `T[Seq[V]]` that we can work
 //   with inside our tasks
 //
-// * We use the `moduleDir` together with `mill.define.BuildCtx.workspaceRoot` to infer a default
+// * We use the `moduleDir` together with `mill.api.BuildCtx.workspaceRoot` to infer a default
 //   name for the jar of each module. Users can override it if they want, but
 //   having a default is very convenient
 //

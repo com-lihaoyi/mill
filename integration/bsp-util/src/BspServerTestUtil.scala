@@ -237,7 +237,12 @@ object BspServerTestUtil {
         new b.BuildClientCapabilities(List("java", "scala", "kotlin").asJava)
       )
       // Tell Mill BSP we want semanticdbs
-      initParams.setData(InitData(BuildInfo.semanticDBVersion, BuildInfo.semanticDbJavaVersion))
+      initParams.setData(
+        InitData(
+          mill.api.shared.BuildInfo.semanticDBVersion,
+          mill.api.shared.BuildInfo.semanticDbJavaVersion
+        )
+      )
       // This seems to be unused by Mill BSP for now, setting it just in case
       initParams.setDataKind("scala")
 

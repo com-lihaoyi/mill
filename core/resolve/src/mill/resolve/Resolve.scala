@@ -1,8 +1,8 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
-import mill.define.internal.Reflect
-import mill.define.{
+import mill.api.internal.Reflect
+import mill.api.{
   BaseModule,
   Discover,
   Module,
@@ -105,7 +105,7 @@ private[mill] object Resolve {
             val directChildrenOrErr = ResolveCore.resolveDirectChildren(
               rootModule,
               value.getClass,
-              Some(value.defaultCommandName()),
+              Some(value.defaultTask()),
               value.moduleSegments,
               cache = cache
             )
@@ -204,7 +204,7 @@ private[mill] object Resolve {
   }
 
   private def invokeCommand0(
-      module: mill.define.Module,
+      module: mill.api.Module,
       name: String,
       discover: Discover,
       rest: Seq[String],
@@ -222,7 +222,7 @@ private[mill] object Resolve {
       else if (nullCommandDefaults) {
         a.copy(default =
           if (a.reader.isInstanceOf[SimpleTaskTokenReader[?]])
-            Some(_ => mill.define.Task.Anon(null))
+            Some(_ => mill.api.Task.Anon(null))
           else Some(_ => null)
         )
       } else a
@@ -409,7 +409,7 @@ private[mill] trait Resolve[T] {
                 }
             }
           rootModule <- moduleCls.getField("MODULE$").get(moduleCls) match {
-            case alias: mill.define.ExternalModule.Alias => Result.Success(alias.value)
+            case alias: mill.api.ExternalModule.Alias => Result.Success(alias.value)
             case rootModule: BaseModule => Result.Success(rootModule)
             case _ => Result.Failure("Class " + scoping.render + " is not an BaseModule")
           }

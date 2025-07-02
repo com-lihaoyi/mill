@@ -2,7 +2,7 @@ package mill.main
 
 import scala.annotation.tailrec
 import mill.api.*
-import mill.define.{Evaluator, *}
+import mill.api.{Evaluator, *}
 import scala.collection.mutable
 import pprint.{Renderer, Tree, Truncated}
 import mill.moduledefs.Scaladoc
@@ -44,7 +44,7 @@ private object Inspect {
       }
     }
 
-    def renderFileName(ctx: mill.define.ModuleCtx) = {
+    def renderFileName(ctx: mill.api.ModuleCtx) = {
       // handle both Windows or Unix separators
       val fullFileName = ctx.fileName.replaceAll(raw"\\", "/")
       val basePath = BuildCtx.workspaceRoot.toString.replaceAll(raw"\\", "/") + "/"
@@ -63,7 +63,7 @@ private object Inspect {
       def rec(t: Task[?]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: mill.define.Task.Simple[_]
+          case t: mill.api.Task.Simple[_]
               if evaluator.rootModule.moduleInternal.simpleTasks.contains(t) =>
             Seq(t.ctx.segments)
           case _ =>
@@ -178,7 +178,7 @@ private object Inspect {
         javaModuleDeps.nonEmpty || javaCompileModuleDeps.nonEmpty || javaRunModuleDeps.nonEmpty
 
       val defaultTaskOpt = module match {
-        case taskMod: TaskModule => Some(s"${module}.${taskMod.defaultCommandName()}")
+        case taskMod: TaskModule => Some(s"${module}.${taskMod.defaultTask()}")
         case _ => None
       }
 
