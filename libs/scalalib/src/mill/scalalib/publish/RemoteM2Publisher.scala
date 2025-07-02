@@ -7,6 +7,7 @@ import org.eclipse.aether.repository.{LocalRepository, RemoteRepository}
 import org.eclipse.aether.supplier.RepositorySystemSupplier
 import org.eclipse.aether.util.repository.AuthenticationBuilder
 
+import scala.annotation.nowarn
 import scala.util.Using
 
 object RemoteM2Publisher {
@@ -19,6 +20,9 @@ object RemoteM2Publisher {
   ): DeployResult = {
     Using.Manager { use =>
       val system = use(RepositorySystemSupplier().get())
+      @nowarn(
+        "msg=deprecated"
+      ) // The suggested `system.createSessionBuilder` throws classload errors for some reason
       val session = DefaultRepositorySystemSession()
       val localRepository = LocalRepository(workspace.toNIO)
       val localRepositoryManager = system.newLocalRepositoryManager(session, localRepository)
