@@ -28,9 +28,6 @@ commands in the terminal can often complete in as little as 100 millisecond:
 
 ```bash
 $ time ./mill version
-[1/1] version
-1.0.0
-[1/1] ============================== version ==============================
 ./mill version  0.01s user 0.02s system 29% cpu 0.102 total
 ```
 
