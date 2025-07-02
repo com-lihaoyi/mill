@@ -2,7 +2,7 @@
 package build
 import mill.*, scalalib.*, publish.*
 
-object foo extends ScalaModule with PublishModule {
+object foo extends ScalaModule, PublishModule {
   def scalaVersion = "3.7.1"
   def publishVersion = "0.0.1"
 

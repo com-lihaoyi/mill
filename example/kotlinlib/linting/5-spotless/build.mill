@@ -12,7 +12,7 @@ package build
 import mill.kotlinlib.KotlinModule
 import mill.scalalib.spotless.SpotlessModule
 
-object `package` extends KotlinModule with SpotlessModule {
+object `package` extends KotlinModule, SpotlessModule {
   def kotlinVersion = "2.1.20"
 }
 

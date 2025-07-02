@@ -18,7 +18,7 @@ object foo extends KotlinModule {
 
 //// SNIPPET:BUILD2
 
-object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
+object CustomJvmWorkerModule extends JvmWorkerModule, CoursierModule {
   def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 

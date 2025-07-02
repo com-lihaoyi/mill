@@ -13,7 +13,7 @@ object `package` extends JavaModule {
     mvn"org.webjars.npm:todomvc-app-css:2.4.1"
   )
 
-  trait HelloTests extends JavaTests with TestModule.Junit5 {
+  trait HelloTests extends JavaTests, TestModule.Junit5 {
     def mainClass = Some("com.example.TodomvcApplication")
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"

@@ -4,7 +4,7 @@ package build
 import mill.*, scalalib.*
 import mill.contrib.buildinfo.BuildInfo
 
-object foo extends ScalaModule with BuildInfo {
+object foo extends ScalaModule, BuildInfo {
   def scalaVersion = "2.13.10"
   def buildInfoPackageName = "foo"
   def buildInfoMembers = Seq(

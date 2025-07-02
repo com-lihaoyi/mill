@@ -6,7 +6,7 @@ import mill.*, javalib.*
 import mill.javalib.Assembly.*
 import mill.scalalib.JpackageModule
 
-object foo extends JavaModule with JpackageModule {
+object foo extends JavaModule, JpackageModule {
   def jpackageType = "app-image"
 
   def assemblyRules = Seq(
