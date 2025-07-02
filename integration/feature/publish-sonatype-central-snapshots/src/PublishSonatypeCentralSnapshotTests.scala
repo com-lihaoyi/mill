@@ -30,7 +30,11 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
         case _ =>
           case class WithName[A](name: String, description: String, value: A)
           val missingEnvVars = Vector(
-            WithName(PUBLISH_ORG_ENV_VARIABLE_NAME, "The organization to publish to", maybePublishOrg),
+            WithName(
+              PUBLISH_ORG_ENV_VARIABLE_NAME,
+              "The organization to publish to",
+              maybePublishOrg
+            ),
             WithName(USERNAME_ENV_VARIABLE_NAME, "Sonatype Central username", maybePublishUsername),
             WithName(PASSWORD_ENV_VARIABLE_NAME, "Sonatype Central password", maybePublishPassword)
           ).filter(_.value.isEmpty).map(v => s"${v.name} (${v.description})")
