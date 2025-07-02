@@ -4,6 +4,12 @@ import mill.api.Logger
 import mill.scalalib.FileSetContents
 import mill.scalalib.publish.SonatypeHelpers.getArtifactMappings
 
+/** The publisher for the end-of-life OSSRH Sonatype publishing.
+ *
+ * You should migrate to [[mill.scalalib.SonatypeCentralPublisher]] instead.
+ *
+ * @see https://central.sonatype.org/pages/ossrh-eol/ */
+@deprecated("Use mill.scalalib.SonatypeCentralPublisher instead", "1.0.0")
 class SonatypePublisher(
     uri: String,
     snapshotUri: String,
@@ -26,53 +32,48 @@ class SonatypePublisher(
     connectTimeout = connectTimeout
   )
 
-  def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact, release: Boolean): Unit = {
+  def publish(fileMapping: FileSetContents.Path, artifact: Artifact, release: Boolean): Unit = {
     publishAll(release, fileMapping -> artifact)
   }
 
   def publishAll(release: Boolean, artifacts: (FileSetContents.Path, Artifact)*): Unit = {
     val mappings = getArtifactMappings(signed, gpgArgs, workspace, env, artifacts)
 
-    val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
+    val (snapshots, releases) = mappings.partition(_.artifact.isSnapshot)
     if (snapshots.nonEmpty) {
-      publishSnapshot(snapshots.flatMap(_._2), snapshots.map(_._1))
+      publishSnapshot(FileSetContents.mergeAll(snapshots.iterator.map(_.contents)), snapshots.map(_.artifact))
     }
-    val releaseGroups = releases.groupBy(_._1.group)
+    val releaseGroups = releases.groupBy(_.artifact.group)
     for ((group, groupReleases) <- releaseGroups) {
-      if (stagingRelease) {
-        publishRelease(
-          release,
-          groupReleases.flatMap(_._2),
-          group,
-          releases.map(_._1),
-          awaitTimeout
-        )
-      } else publishReleaseNonstaging(groupReleases.flatMap(_._2), releases.map(_._1))
+      val groupArtifacts = groupReleases.map(_.artifact)
+      val groupContents = FileSetContents.mergeAll(groupReleases.iterator.map(_.contents))
+      if (stagingRelease) publishRelease(release, groupContents, group, groupArtifacts, awaitTimeout)
+      else publishReleaseNonstaging(groupContents, groupArtifacts)
     }
   }
 
   private def publishSnapshot(
-      payloads: Seq[(String, Array[Byte])],
+      payloads: FileSetContents.Bytes,
       artifacts: Seq[Artifact]
   ): Unit = {
     publishToUri(payloads, artifacts, snapshotUri)
   }
 
   private def publishToUri(
-      payloads: Seq[(String, Array[Byte])],
+      payloads: FileSetContents.Bytes,
       artifacts: Seq[Artifact],
       uri: String
   ): Unit = {
-    val publishResults = payloads.map {
+    val publishResults = payloads.contents.iterator.map {
       case (fileName, data) =>
         log.info(s"Uploading $fileName")
-        api.upload(s"$uri/$fileName", data)
-    }
+        api.upload(s"$uri/$fileName", data.bytesUnsafe)
+    }.toVector
     reportPublishResults(publishResults, artifacts)
   }
 
   private def publishReleaseNonstaging(
-      payloads: Seq[(String, Array[Byte])],
+      payloads: FileSetContents.Bytes,
       artifacts: Seq[Artifact]
   ): Unit = {
     publishToUri(payloads, artifacts, uri)
@@ -80,7 +81,7 @@ class SonatypePublisher(
 
   private def publishRelease(
       release: Boolean,
-      payloads: Seq[(String, Array[Byte])],
+      payloads: FileSetContents.Bytes,
       stagingProfile: String,
       artifacts: Seq[Artifact],
       awaitTimeout: Int

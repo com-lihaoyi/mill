@@ -2,9 +2,10 @@ package mill.contrib.codeartifact
 
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
-
 import mill.api.Logger
+import mill.scalalib.FileSetContents
 import mill.scalalib.publish.Artifact
+import os.SubPath
 
 class CodeartifactPublisher(
     releaseUri: String,
@@ -21,15 +22,15 @@ class CodeartifactPublisher(
   )
 
   private def basePublishPath(artifact: Artifact) =
-    Seq(
+    SubPath(Vector(
       artifact.group.replace(".", "/"),
       artifact.id
-    ).mkString("/")
+    ))
 
   private def versionPublishPath(artifact: Artifact) =
-    s"${basePublishPath(artifact)}/${artifact.version}"
+    basePublishPath(artifact) / artifact.version
 
-  def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact): Unit = {
+  def publish(fileMapping: FileSetContents.Path, artifact: Artifact): Unit = {
     publishAll(fileMapping -> artifact)
   }
 
@@ -53,23 +54,19 @@ class CodeartifactPublisher(
       </versioning>
     </metadata>
 
-  def publishAll(artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
+  def publishAll(artifacts: (FileSetContents.Path, Artifact)*): Unit = {
     log.info("arts: " + artifacts)
     val mappings = for ((fileMapping0, artifact) <- artifacts) yield {
       val publishPath = versionPublishPath(artifact)
-      val fileMapping = fileMapping0.map {
-        case (file, name) => (file, publishPath + "/" + name)
-      }
+      val fileMapping = fileMapping0.mapPaths(name => publishPath / name)
 
-      artifact -> fileMapping.map {
-        case (file, name) => name -> os.read.bytes(file)
-      }
+      artifact -> fileMapping.mapContents(_.readFromDisk())
     }
 
     val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
 
     if (snapshots.nonEmpty) {
-      publishToRepo(snapshotUri, snapshots.flatMap(_._2), snapshots.map(_._1))
+      publishToRepo(snapshotUri, FileSetContents.mergeAll(snapshots.iterator.map(_._2)), snapshots.map(_._1))
 
       val artifact = snapshots.head._1
       api.upload(
@@ -78,7 +75,7 @@ class CodeartifactPublisher(
       )
     }
     if (releases.nonEmpty) {
-      publishToRepo(releaseUri, releases.flatMap(_._2), releases.map(_._1))
+      publishToRepo(releaseUri, FileSetContents.mergeAll(releases.iterator.map(_._2)), releases.map(_._1))
 
       val artifact = releases.head._1
       api.upload(
@@ -90,15 +87,15 @@ class CodeartifactPublisher(
 
   private def publishToRepo(
       repoUri: String,
-      payloads: Seq[(String, Array[Byte])],
+      payloads: FileSetContents.Bytes,
       artifacts: Seq[Artifact]
   ): Unit = {
-    val publishResults = payloads.map {
+    val publishResults = payloads.contents.iterator.map {
       case (fileName, data) =>
         log.info(s"Uploading $fileName")
-        val resp = api.upload(s"$repoUri/$fileName", data)
+        val resp = api.upload(s"$repoUri/$fileName", data.bytesUnsafe)
         resp
-    }
+    }.toVector
     reportPublishResults(publishResults, artifacts)
   }
 

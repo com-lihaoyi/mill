@@ -1,7 +1,9 @@
 package mill.contrib.artifactory
 
 import mill.api.Logger
+import mill.scalalib.FileSetContents
 import mill.scalalib.publish.Artifact
+import os.SubPath
 
 class ArtifactoryPublisher(
     releaseUri: String,
@@ -14,42 +16,42 @@ class ArtifactoryPublisher(
   private val api =
     new ArtifactoryHttpApi(credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)
 
-  def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact): Unit = {
+  def publish(fileMapping: FileSetContents.Path, artifact: Artifact): Unit = {
     publishAll(fileMapping -> artifact)
   }
 
-  def publishAll(artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
+  def publishAll(artifacts: (FileSetContents.Path, Artifact)*): Unit = {
     log.info("arts: " + artifacts)
     val mappings = for ((fileMapping0, artifact) <- artifacts) yield {
-      val publishPath = Seq(
+      val publishPath = SubPath(Seq(
         artifact.group.replace(".", "/"),
         artifact.id,
         artifact.version
-      ).mkString("/")
-      val fileMapping = fileMapping0.map { case (file, name) => (file, publishPath + "/" + name) }
+      ).mkString("/"))
+      val fileMapping = fileMapping0.mapPaths(name => publishPath / name)
 
-      artifact -> fileMapping.map {
-        case (file, name) => name -> os.read.bytes(file)
-      }
+      artifact -> fileMapping.mapContents(_.readFromDisk())
     }
 
     val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
 
-    if (snapshots.nonEmpty) publishToRepo(snapshotUri, snapshots.flatMap(_._2), snapshots.map(_._1))
-    if (releases.nonEmpty) publishToRepo(releaseUri, releases.flatMap(_._2), releases.map(_._1))
+    if (snapshots.nonEmpty)
+      publishToRepo(snapshotUri, FileSetContents.mergeAll(snapshots.iterator.map(_._2)), snapshots.map(_._1))
+    if (releases.nonEmpty)
+      publishToRepo(releaseUri, FileSetContents.mergeAll(releases.iterator.map(_._2)), releases.map(_._1))
   }
 
   private def publishToRepo(
       repoUri: String,
-      payloads: Seq[(String, Array[Byte])],
+      payloads: FileSetContents.Bytes,
       artifacts: Seq[Artifact]
   ): Unit = {
-    val publishResults = payloads.map {
+    val publishResults = payloads.contents.iterator.map {
       case (fileName, data) =>
         log.info(s"Uploading $fileName")
-        val resp = api.upload(s"$repoUri/$fileName", data)
+        val resp = api.upload(s"$repoUri/$fileName", data.bytesUnsafe)
         resp
-    }
+    }.toVector
     reportPublishResults(publishResults, artifacts)
   }
 

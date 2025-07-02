@@ -1,6 +1,7 @@
 package mill.contrib.gitlab
 
 import mill.api.Logger
+import mill.scalalib.FileSetContents
 import mill.scalalib.publish.Artifact
 import requests.Response
 
@@ -10,15 +11,15 @@ class GitlabPublisher(
     log: Logger
 ) {
 
-  def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact): Unit =
+  def publish(fileMapping: FileSetContents.Path, artifact: Artifact): Unit =
     publishAll(fileMapping -> artifact)
 
-  def publishAll(artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
+  def publishAll(artifacts: (FileSetContents.Path, Artifact)*): Unit = {
     log.info("Publishing artifacts: " + artifacts)
 
     val uploadData = for {
       (items, artifact) <- artifacts
-      files = items.map { case (path, name) => name -> os.read.bytes(path) }
+      files = items.mapContents(_.readFromDisk())
     } yield artifact -> files
 
     uploadData
@@ -33,14 +34,14 @@ class GitlabPublisher(
   private def publishToRepo(
       repo: ProjectRepository,
       artifact: Artifact,
-      payloads: Seq[(String, Array[Byte])]
+      payloads: FileSetContents.Bytes
   ): (Artifact, Seq[Response]) = {
-    val publishResults = payloads.map { case (fileName, data) =>
+    val publishResults = payloads.contents.iterator.map { case (fileName, data) =>
       log.info(s"Uploading $fileName")
       val uploadTarget = repo.uploadUrl(artifact)
-      val resp = upload(s"$uploadTarget/$fileName", data)
+      val resp = upload(s"$uploadTarget/$fileName", data.bytesUnsafe)
       resp
-    }
+    }.toVector
     artifact -> publishResults
   }
 

@@ -2,7 +2,7 @@ package mill.scalalib.publish
 
 import mill.define.TaskCtx
 import mill.scalalib.FileSetContents
-import os.RelPath
+import os.{RelPath, SubPath}
 
 class LocalM2Publisher(m2Repo: os.Path) {
 
@@ -34,13 +34,15 @@ object LocalM2Publisher {
     artifact: Artifact,
     publishInfos: Seq[PublishInfo]
   ): FileSetContents.Path = {
-    val dir = RelPath(".") / artifact.group.split("[.]") / artifact.id / artifact.version
+    val dir = (RelPath(".") / artifact.group.split("[.]") / artifact.id / artifact.version).asSubPath
 
-    FileSetContents(Map(
-      dir / s"${artifact.id}-${artifact.version}.pom" -> FileSetContents.Contents.Path(pom),
-    ) ++ publishInfos.iterator.map { e =>
+    pomFileSetContents(pom, artifact) ++ publishInfos.iterator.map { e =>
       dir / s"${artifact.id}-${artifact.version}${e.classifierPart}.${e.ext}" ->
         FileSetContents.Contents.Path(e.file.path)
-    })
+    }.toMap
+  }
+
+  def pomFileSetContents(pom: os.Path, artifact: Artifact): FileSetContents.Path = {
+    FileSetContents(Map(SubPath(s"${artifact.id}-${artifact.version}.pom") -> FileSetContents.Contents.Path(pom)))
   }
 }

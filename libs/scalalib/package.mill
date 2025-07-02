@@ -27,8 +27,15 @@ object `package` extends MillStableScalaModule {
       // perhaps the class can be copied here?
       Seq(Deps.scalaReflect(scalaVersion()))
 
-  def compileMvnDeps = Seq(Deps.sonatypeCentralClient)
-  def runMvnDeps = Seq(Deps.sonatypeCentralClient)
+  /** Dependencies necessary for publishing snapshots to Sonatype Central. */
+  private def mavenPublishingDeps = Seq(
+    Deps.mavenResolverApi, Deps.mavenResolverUtil, Deps.mavenResolverTransportHttp, Deps.mavenResolverConnectorBasic,
+    Deps.mavenResolverSupplier,
+  )
+
+  // These are not exposed as transitive compile dependencies to `build.mill`.
+  def compileMvnDeps = Seq(Deps.sonatypeCentralClient) ++ mavenPublishingDeps
+  def runMvnDeps = Seq(Deps.sonatypeCentralClient) ++ mavenPublishingDeps
 
   def testMvnDeps = super.testMvnDeps() ++ Seq(Deps.TestDeps.scalaCheck)
   def transitiveLocalTestOverrides =

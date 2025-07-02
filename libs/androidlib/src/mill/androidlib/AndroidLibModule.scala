@@ -5,7 +5,8 @@ import mill.define.{PathRef, Task}
 import mill.scalalib.*
 import mill.scalalib.publish.{PackagingType, PublishInfo}
 import mill.util.Jvm
-import upickle.default.*
+import os.SubPath
+
 import scala.xml.*
 
 @mill.api.experimental
@@ -47,49 +48,34 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
   /**
    * Tailored to publish an AAR artifact. Throws an error if the packaging type is not
    * Aar
-   * @return
    */
-  override def publishArtifacts: T[PublishModule.PublishData] = {
-    val baseNameTask: Task[String] = Task.Anon { s"${artifactId()}-${publishVersion()}" }
-    val defaultPayloadTask: Task[Seq[(PathRef, String)]] = (pomPackagingType, this) match {
+  override def publishArtifactsDefaultPayload(
+      sources: Boolean = true,
+      docs: Boolean = true
+  ): Task[FileSetContents[PathRef]] =
+    (pomPackagingType, this) match {
       case (PackagingType.Aar, androidLib: AndroidLibModule) => Task.Anon {
-          val baseName = baseNameTask()
-          Seq(
-            androidLib.androidAar() -> s"$baseName.aar",
-            sourceJar() -> s"$baseName-sources.jar",
-            docJar() -> s"$baseName-javadoc.jar",
-            pom() -> s"$baseName.pom"
-          )
+          val baseName = publishArtifactsBaseName()
+          val baseContent = FileSetContents(Map(
+            SubPath(s"$baseName.pom") -> pom(),
+            SubPath(s"$baseName.aar") -> androidLib.androidAar()
+          ))
+          val sourcesOpt =
+            if (sources) Map(SubPath(s"$baseName-sources.jar") -> sourceJar()) else Map.empty
+          val docsOpt = if (docs) Map(SubPath(s"$baseName-javadoc.jar") -> docJar()) else Map.empty
+          baseContent ++ sourcesOpt ++ docsOpt
         }
+
       case (otherPackagingType, otherModuleType) =>
         throw new IllegalArgumentException(
           s"Packaging type $otherPackagingType not supported with $otherModuleType"
         )
     }
-    Task {
-      val baseName = baseNameTask()
-      PublishModule.PublishData(
-        meta = artifactMetadata(),
-        payload = defaultPayloadTask() ++ extraPublish().map(p =>
-          (p.file, s"$baseName${p.classifierPart}.${p.ext}")
-        )
-      )
-    }
-  }
 
-  override def defaultPublishInfos: T[Seq[PublishInfo]] = {
-    def defaultPublishJars: Task[Seq[(PathRef, PathRef => PublishInfo)]] = {
-      pomPackagingType match {
-        case PackagingType.Pom => Task.Anon(Seq())
-        case _ => Task.Anon(Seq(
-            (androidAar(), PublishInfo.aar),
-            (sourceJar(), PublishInfo.sourcesJar),
-            (docJar(), PublishInfo.docJar)
-          ))
-      }
-    }
-    Task {
-      defaultPublishJars().map { case (jar, info) => info(jar) }
+  override def defaultMainPublishInfos: Task[Seq[PublishInfo]] = {
+    pomPackagingType match {
+      case PackagingType.Pom => Task.Anon(Seq.empty)
+      case _ => Task.Anon(Seq(PublishInfo.aar(androidAar())))
     }
   }
 

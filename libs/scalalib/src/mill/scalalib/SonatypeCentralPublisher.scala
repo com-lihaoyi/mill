@@ -32,7 +32,7 @@ class SonatypeCentralPublisher(
     }*/
 
   def publish(
-      fileMapping: Seq[(os.Path, String)],
+      fileMapping: FileSetContents.Path,
       artifact: Artifact,
       publishingType: PublishingType
   ): Unit = {
@@ -42,7 +42,7 @@ class SonatypeCentralPublisher(
   def publishAll(
       publishingType: PublishingType,
       singleBundleName: Option[String],
-      artifacts: (Seq[(os.Path, String)], Artifact)*
+      artifacts: (FileSetContents.Path, Artifact)*
   ): Unit = {
     val mappings = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
     log.info(s"mappings ${pprint.apply(
@@ -70,7 +70,7 @@ class SonatypeCentralPublisher(
 //      throw new Result.Exception(errorMessage)
 //    }
 
-    val releaseGroups = releases.groupBy(_._1.group)
+    val releaseGroups = releases.groupBy(_.artifact.group)
     val wd = os.pwd / "out/publish-central"
     os.makeDir.all(wd)
 
@@ -79,7 +79,7 @@ class SonatypeCentralPublisher(
         groupReleases.foreach { case (artifact, data) =>
           val fileNameWithoutExtension = s"${artifact.group}-${artifact.id}-${artifact.version}"
           val zipFile = streamToFile(fileNameWithoutExtension, wd) { outputStream =>
-            log.info(s"bundle $fileNameWithoutExtension with ${pprint.apply(data.map(_._1))}")
+            log.info(s"bundle $fileNameWithoutExtension with ${pprint.apply(data.keysSorted.map(_.toString))}")
             zipFilesToJar(data, outputStream)
           }
 
@@ -154,13 +154,13 @@ class SonatypeCentralPublisher(
   }
 
   private def zipFilesToJar(
-      files: Seq[(String, Array[Byte])],
+      files: FileSetContents.Bytes,
       jarOutputStream: JarOutputStream
   ): Unit = {
-    files.foreach { case (filename, fileAsBytes) =>
-      val zipEntry = new ZipEntry(filename)
+    files.contents.foreach { case (filename, fileAsBytes) =>
+      val zipEntry = new ZipEntry(filename.toString)
       jarOutputStream.putNextEntry(zipEntry)
-      jarOutputStream.write(fileAsBytes)
+      jarOutputStream.write(fileAsBytes.bytesUnsafe)
       jarOutputStream.closeEntry()
     }
   }

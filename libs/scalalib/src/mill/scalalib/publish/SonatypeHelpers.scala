@@ -1,7 +1,7 @@
 package mill.scalalib.publish
 
 import mill.scalalib.FileSetContents
-import os.RelPath
+import os.SubPath
 
 import java.math.BigInteger
 import java.security.MessageDigest
@@ -18,26 +18,26 @@ object SonatypeHelpers {
       workspace: os.Path,
       env: Map[String, String],
       artifacts: Seq[(FileSetContents.Path, Artifact)]
-  ): Seq[(Artifact, FileSetContents.Bytes)] = {
+  ): Seq[(artifact: Artifact, contents: FileSetContents.Bytes)] = {
     for ((fileMapping0, artifact) <- artifacts) yield {
-      val publishPath = RelPath(artifact.group.replace(".", "/")) / artifact.id / artifact.version
+      val publishPath = SubPath(artifact.group.replace(".", "/")) / artifact.id / artifact.version
       val fileMapping = fileMapping0.mapPaths(publishPath / _)
 
       val signedArtifacts =
         if (isSigned) fileMapping.map {
           case (name, file) =>
             val signatureFile = gpgSigned(file = file.path, args = gpgArgs, workspace = workspace, env = env)
-            RelPath(s"$name.asc") -> FileSetContents.Contents.Path(signatureFile)
+            SubPath(s"$name.asc") -> FileSetContents.Contents.Path(signatureFile)
         }
         else FileSetContents.empty
 
       val allFiles = (fileMapping ++ signedArtifacts).flatMap { case (name, file) =>
-        val content = os.read.bytes(file.path)
+        val content = file.readFromDisk()
 
         Map(
-          name -> FileSetContents.Contents.Bytes(IArray.unsafeFromArray(content)),
-          RelPath(s"$name.md5") -> FileSetContents.Contents.Bytes(IArray.unsafeFromArray(md5hex(content))),
-          RelPath(s"$name.sha1") -> FileSetContents.Contents.Bytes(IArray.unsafeFromArray(sha1hex(content)))
+          name -> content,
+          SubPath(s"$name.md5") -> FileSetContents.Contents.Bytes.fromArray(md5hex(content.bytesUnsafe)),
+          SubPath(s"$name.sha1") -> FileSetContents.Contents.Bytes.fromArray(sha1hex(content.bytesUnsafe))
         )
       }
 

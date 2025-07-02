@@ -1,12 +1,10 @@
 package mill.scalalib
 
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
-import mill._
-import scalalib._
-import define.{ExternalModule, Task}
-import mill.util.Tasks
-import mill.define.TaskModule
+import mill.*
 import mill.api.{Result, experimental}
+import mill.define.{BuildCtx, ExternalModule, Task, TaskModule}
+import mill.scalalib.*
 import mill.scalalib.SonatypeCentralPublishModule.{
   defaultAwaitTimeout,
   defaultConnectTimeout,
@@ -15,15 +13,16 @@ import mill.scalalib.SonatypeCentralPublishModule.{
   getPublishingTypeFromReleaseFlag,
   getSonatypeCredentials
 }
-import mill.scalalib.publish.Artifact
+import mill.scalalib.publish.RemoteM2Publisher
 import mill.scalalib.publish.SonatypeHelpers.{
   PASSWORD_ENV_VARIABLE_NAME,
   USERNAME_ENV_VARIABLE_NAME
 }
-import mill.define.BuildCtx
+import mill.util.Tasks
 
 @experimental
 trait SonatypeCentralPublishModule extends PublishModule {
+
   /**
    * @return (keyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
    */
@@ -39,20 +38,54 @@ trait SonatypeCentralPublishModule extends PublishModule {
 
   def sonatypeCentralShouldRelease: T[Boolean] = Task { true }
 
+  /**
+   * @param username override the username from the environment
+   * @param password override the password from the environment
+   * @param sources whether to include sources
+   * @param docs whether to include docs
+   */
   def publishSonatypeCentral(
       username: String = defaultCredentials,
-      password: String = defaultCredentials
-  ): Task.Command[Unit] =
-    Task.Command {
-      val publishData = publishArtifacts()
-      val fileMapping = publishData.withConcretePath._1
-      val artifact = publishData.meta
-      val finalCredentials = getSonatypeCredentials(username, password)()
+      password: String = defaultCredentials,
+      sources: Boolean = true,
+      docs: Boolean = true
+  ): Task.Command[Unit] = Task.Command {
+    val artifact = artifactMetadata()
+    val finalCredentials = getSonatypeCredentials(username, password)()
+
+    def publishSnapshot(): Unit = {
+      val uri = sonatypeCentralSnapshotUri
+      val artifacts = RemoteM2Publisher.asM2Artifacts(
+        pom().path,
+        artifact,
+        defaultPublishInfos(sources = sources, docs = docs)()
+      )
+
+      Task.log.info(
+        s"Detected a 'SNAPSHOT' version, publishing to Sonatype Central Snapshots at '$uri'"
+      )
+      // TODO review: this produces a bunch of debug logs like:
+      // [96] 16:06:59.289 [execution-contexts-threadpool-3-thread-7] DEBUG org.apache.http.impl.conn.DefaultManagedHttpClientConnection -- http-outgoing-0: Close connection
+      val result = RemoteM2Publisher.publish(
+        uri = uri,
+        workspace = Task.dest / "maven",
+        username = finalCredentials.username,
+        password = finalCredentials.password,
+        artifacts
+      )
+      Task.log.info(s"Deployment to '$uri' finished with result: $result")
+    }
+
+    def publishRelease(): Unit = {
+      val fileMapping = publishArtifactsPayload(sources = sources, docs = docs)().mapContents(
+        pathRef => FileSetContents.Contents.Path(pathRef.path)
+      )
       val maybeKeyId = PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
       val keyId = maybeKeyId.getOrElse(throw new IllegalArgumentException(
         s"Publishing to Sonatype Central requires a PGP key. Please set the '${PublishModule.EnvVarPgpSecretBase64}' " +
           s"and '${PublishModule.EnvVarPgpPassphrase}' (if needed) environment variables."
       ))
+
       val gpgArgs = sonatypeCentralGpgArgs()(keyId)
       val publisher = new SonatypeCentralPublisher(
         credentials = finalCredentials,
@@ -70,6 +103,12 @@ trait SonatypeCentralPublishModule extends PublishModule {
         getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
       )
     }
+
+    // The snapshot publishing does not use the same API as release publishing.
+    // TODO review: is there a way to dynamically switch the task graph?
+    if (artifact.version.endsWith("SNAPSHOT")) publishSnapshot()
+    else publishRelease()
+  }
 }
 
 object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
@@ -95,10 +134,8 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
       bundleName: String = ""
   ): Command[Unit] = Task.Command {
 
-    val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] =
-      Task.sequence(publishArtifacts.value)().map {
-        case data @ PublishModule.PublishData(_, _) => data.withConcretePath
-      }
+    val artifacts =
+      Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val finalCredentials = getSonatypeCredentials(username, password)()

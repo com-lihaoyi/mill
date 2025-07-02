@@ -42,10 +42,10 @@ object LocalIvyPublisher
     publishInfos: Seq[PublishInfo]
   ): FileSetContents.Any = {
     FileSetContents(Map(
-      os.RelPath("poms") / s"${artifact.id}.pom" -> FileSetContents.Contents.Path(pom),
-      os.RelPath("ivys") / "ivy.xml" -> ivy
+      os.SubPath("poms") / s"${artifact.id}.pom" -> FileSetContents.Contents.Path(pom),
+      os.SubPath("ivys") / "ivy.xml" -> ivy
     ) ++ publishInfos.iterator.map { entry =>
-      os.RelPath(s"${entry.ivyType}s") / s"${artifact.id}${entry.classifierPart}.${entry.ext}" ->
+      os.SubPath(s"${entry.ivyType}s") / s"${artifact.id}${entry.classifierPart}.${entry.ext}" ->
         FileSetContents.Contents.Path(entry.file.path)
     })
   }
