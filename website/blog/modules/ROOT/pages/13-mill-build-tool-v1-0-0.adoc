@@ -48,7 +48,7 @@ as any native binaries, because it is one!
 
 === JVM-free Installation and Bootstrapping
 
-One consequence of using xref:#_graal_native_launchers_by_default[] is that Mill's launcher
+One consequence of using a Graal native launcher is that Mill's launcher
 no longer needs a JVM pre-installed in order to run. The launcher binary is self-contained,
 and is able to download and cache any JVM it needs in order to start up other Java processes.
 
