@@ -32,8 +32,6 @@ abstract class Server[T](
   def outLock: mill.client.lock.Lock
   def out: os.Path
 
-  @volatile var running = true
-  def exitServer(): Unit = running = false
   var stateCache = stateCache0
   def stateCache0: T
 
@@ -55,16 +53,48 @@ abstract class Server[T](
     try {
       Server.tryLockBlock(locks.daemonLock) { locked =>
         serverLog("server file locked")
+        val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
         Server.watchProcessIdFile(
           daemonDir / DaemonFiles.processId,
           processId,
-          running = () => running,
+          running = () => !serverSocket.isClosed,
           exit = msg => {
             serverLog(msg)
-            exitServer()
+            serverSocket.close()
           }
         )
-        val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
+
+        // Wrapper object to encapsulate `activeConnections` and `inactiveTimestampOpt`,
+        // ensuring they get incremented and decremented together across multiple threads
+        // and never get out of sync
+        object ConnectionTracker {
+          private var activeConnections = 0
+          private var inactiveTimestampOpt: Option[Long] = None
+          def wrap(t: => Unit) = synchronized { if (!serverSocket.isClosed) { t } }
+          def increment() = wrap {
+            activeConnections += 1
+            serverLog(s"$activeConnections active connections")
+            inactiveTimestampOpt = None
+          }
+
+          def decrement() = wrap {
+            activeConnections -= 1
+            serverLog(s"$activeConnections active connections")
+            if (activeConnections == 0) {
+              inactiveTimestampOpt = Some(System.currentTimeMillis())
+            }
+          }
+
+          def closeIfTimedOut() = wrap {
+            inactiveTimestampOpt.foreach { inactiveTimestamp =>
+              if (System.currentTimeMillis() - inactiveTimestamp > acceptTimeoutMillis) {
+                serverLog(s"shutting down due inactivity")
+                serverSocket.close()
+              }
+            }
+          }
+        }
+
         try {
           os.write.over(daemonDir / DaemonFiles.socketPort, serverSocket.getLocalPort.toString)
           serverLog("listening on port " + serverSocket.getLocalPort)
@@ -81,27 +111,49 @@ abstract class Server[T](
             sys.exit(exitCode)
           }
 
-          while (
-            running && {
-              interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
-                case None => false
-                case Some(sock) =>
-                  serverLog("handling run")
-                  new Thread(
-                    () =>
-                      try handleRun(systemExit, sock, initialSystemProperties)
-                      catch {
-                        case e: Throwable =>
-                          serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
-                      } finally sock.close();,
-                    "HandleRunThread"
-                  ).start()
-                  true
+          val timeoutThread = new Thread(
+            () => {
+              while (!serverSocket.isClosed) {
+                Thread.sleep(1)
+                ConnectionTracker.closeIfTimedOut()
               }
+            },
+            "MillServerTimeoutThread"
+          )
+          timeoutThread.start()
+
+          while (!serverSocket.isClosed) {
+            val socketOpt =
+              try Some(serverSocket.accept())
+              catch { case e: java.net.SocketException => None }
+
+            socketOpt match {
+              case Some(sock) =>
+                serverLog("handling run")
+                new Thread(
+                  () =>
+                    try {
+                      ConnectionTracker.increment()
+                      handleRun(
+                        systemExit,
+                        sock,
+                        initialSystemProperties,
+                        () => serverSocket.close()
+                      )
+                    } catch {
+                      case e: Throwable =>
+                        serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
+                    } finally {
+                      ConnectionTracker.decrement()
+                      sock.close()
+                    },
+                  "HandleRunThread"
+                ).start()
+              case None =>
             }
-          ) ()
+          }
+
         } finally serverSocket.close()
-        serverLog("server loop ended")
       }.getOrElse(throw new Exception("Mill server process already present"))
     } catch {
       case e: Throwable =>
@@ -109,8 +161,7 @@ abstract class Server[T](
         serverLog("server loop stack trace: " + e.getStackTrace.mkString("\n"))
         throw e
     } finally {
-      serverLog("finally exitServer")
-      exitServer()
+      serverLog("exiting server")
     }
   }
 
@@ -125,43 +176,11 @@ abstract class Server[T](
     pipedInput
   }
 
-  def interruptWithTimeout[T](close: () => Unit, t: () => T): Option[T] = {
-    @volatile var interrupt = true
-    @volatile var interrupted = false
-    val thread = new Thread(
-      () => {
-        try Thread.sleep(acceptTimeoutMillis)
-        catch {
-          case t: InterruptedException => /* Do Nothing */
-        }
-        if (interrupt) {
-          interrupted = true
-          serverLog(s"Interrupting after ${acceptTimeoutMillis}ms")
-          close()
-        }
-      },
-      "MillSocketTimeoutInterruptThread"
-    )
-
-    thread.start()
-    try {
-      val res =
-        try Some(t())
-        catch { case e: Throwable => None }
-
-      if (interrupted) None
-      else res
-
-    } finally {
-      interrupt = false
-      thread.interrupt()
-    }
-  }
-
   def handleRun(
       systemExit: Int => Nothing,
       clientSocket: Socket,
-      initialSystemProperties: Map[String, String]
+      initialSystemProperties: Map[String, String],
+      serverSocketClose: () => Unit
   ): Unit = {
     val currentOutErr = clientSocket.getOutputStream
     val writtenExitCode = AtomicBoolean()
@@ -277,7 +296,7 @@ abstract class Server[T](
 
       if (!idle) {
         serverLog("client interrupted while server was executing command")
-        exitServer()
+        serverSocketClose()
       }
 
       t.interrupt()
