@@ -13,7 +13,7 @@ object SmallModulesForTests extends TestSuite {
     override def scalaJSVersion =
       sys.props.getOrElse("TEST_SCALAJS_VERSION", ???) // at least "1.10.0"
     override def moduleKind = ModuleKind.ESModule
-    override def moduleSplitStyle = ModuleSplitStyle.SmallModulesFor(List("app"))
+    override def moduleSplitStyle = ModuleSplitStyle.SmallModulesFor("app")
 
     override lazy val millDiscover = {
       import mill.util.TokenReaders.given
