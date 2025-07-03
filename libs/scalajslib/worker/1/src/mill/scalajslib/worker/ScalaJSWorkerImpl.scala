@@ -115,7 +115,8 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
             case ModuleSplitStyle.FewestModules => ScalaJSModuleSplitStyle.FewestModules()
             case ModuleSplitStyle.SmallestModules => ScalaJSModuleSplitStyle.SmallestModules()
             case v @ ModuleSplitStyle.SmallModulesFor(packages*) =>
-              if (minorIsGreaterThanOrEqual(10)) ScalaJSModuleSplitStyle.SmallModulesFor(packages.toList)
+              if (minorIsGreaterThanOrEqual(10))
+                ScalaJSModuleSplitStyle.SmallModulesFor(packages.toList)
               else throw new Exception(
                 s"ModuleSplitStyle $v is not supported with Scala.js < 1.10. Either update Scala.js or use one of ModuleSplitStyle.SmallestModules or ModuleSplitStyle.FewestModules"
               )
