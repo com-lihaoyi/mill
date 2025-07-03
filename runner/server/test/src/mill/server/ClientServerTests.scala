@@ -21,7 +21,8 @@ object ClientServerTests extends TestSuite {
       override val processId: String,
       daemonDir: os.Path,
       locks: Locks,
-      testLogEvenWhenServerIdWrong: Boolean
+      testLogEvenWhenServerIdWrong: Boolean,
+      commandSleepMillis: Int = 0
   ) extends Server[Option[Int]](daemonDir, 1000, locks, testLogEvenWhenServerIdWrong)
       with Runnable {
 
@@ -36,6 +37,11 @@ object ClientServerTests extends TestSuite {
       super.serverLog0(s)
     }
 
+    @volatile var runCompleted = false
+    override def run() = {
+      super.run()
+      runCompleted = true
+    }
     def main0(
         args: Array[String],
         stateCache: Option[Int],
@@ -47,29 +53,31 @@ object ClientServerTests extends TestSuite {
         initialSystemProperties: Map[String, String],
         systemExit: Int => Nothing
     ) = {
-
-      val reader = new BufferedReader(new InputStreamReader(streams.in))
-      val str = reader.readLine()
-      Thread.sleep(200)
-      if (args.nonEmpty) {
-        streams.out.println(str + args(0))
+      Thread.sleep(commandSleepMillis)
+      if (!runCompleted) {
+        val reader = new BufferedReader(new InputStreamReader(streams.in))
+        val str = reader.readLine()
+        Thread.sleep(200)
+        if (args.nonEmpty) {
+          streams.out.println(str + args(0))
+        }
+        env.toSeq.sortBy(_._1).foreach {
+          case (key, value) => streams.out.println(s"$key=$value")
+        }
+        systemProperties.toSeq.sortBy(_._1).foreach {
+          case (key, value) => streams.out.println(s"$key=$value")
+        }
+        if (args.nonEmpty) {
+          streams.err.println(str.toUpperCase + args(0))
+        }
+        streams.out.flush()
+        streams.err.flush()
       }
-      env.toSeq.sortBy(_._1).foreach {
-        case (key, value) => streams.out.println(s"$key=$value")
-      }
-      systemProperties.toSeq.sortBy(_._1).foreach {
-        case (key, value) => streams.out.println(s"$key=$value")
-      }
-      if (args.nonEmpty) {
-        streams.err.println(str.toUpperCase + args(0))
-      }
-      streams.out.flush()
-      streams.err.flush()
       (true, None)
     }
   }
 
-  class Tester(testLogEvenWhenServerIdWrong: Boolean) {
+  class Tester(testLogEvenWhenServerIdWrong: Boolean, commandSleepMillis: Int = 0) {
 
     var nextServerId: Int = 0
     val terminatedServers = collection.mutable.Set.empty[String]
@@ -104,7 +112,8 @@ object ClientServerTests extends TestSuite {
             processId,
             os.Path(daemonDir, os.pwd),
             locks,
-            testLogEvenWhenServerIdWrong
+            testLogEvenWhenServerIdWrong,
+            commandSleepMillis = commandSleepMillis
           )).start()
           null
         }
@@ -245,6 +254,14 @@ object ClientServerTests extends TestSuite {
             "server-0 client interrupted while server was executing command",
             "server-0 exiting server"
           )
+      )
+    }
+    test("longCommandNotInterrupted") {
+      val tester = new Tester(testLogEvenWhenServerIdWrong = true, commandSleepMillis = 3000)
+      val res1 = tester(args = Array("world"))
+      assert(
+        res1.out == s"helloworld$ENDL",
+        res1.err == s"HELLOworld$ENDL"
       )
     }
 
