@@ -269,15 +269,6 @@ trait AndroidSdkModule extends Module {
    * For more details on the `sdkmanager` tool, refer to:
    * [[https://developer.android.com/tools/sdkmanager sdkmanager Documentation]]
    */
-  protected def sdkPackages = Task {
-    Seq(
-      "platform-tools",
-      s"build-tools;${buildToolsVersion()}",
-      s"platforms;${platformsVersion()}",
-      "cmdline-tools;latest"
-    )
-  }
-
   def installAndroidSdkComponents: T[Unit] = Task {
     val sdkPath0 = sdkPath()
     val sdkManagerPath = findLatestSdkManager(sdkPath0.path) match {
@@ -288,10 +279,17 @@ trait AndroidSdkModule extends Module {
             " for more details."
         )
     }
+
+    val packages = Seq(
+      "platform-tools",
+      s"build-tools;${buildToolsVersion()}",
+      s"platforms;${platformsVersion()}",
+      "cmdline-tools;latest"
+    )
     // sdkmanager executable and state of the installed package is a shared resource, which can be accessed
     // from the different Android SDK modules.
     AndroidSdkLock.synchronized {
-      val missingPackages = sdkPackages().filter(p => !isPackageInstalled(sdkPath0.path, p))
+      val missingPackages = packages.filter(p => !isPackageInstalled(sdkPath0.path, p))
       val packagesWithoutLicense = missingPackages
         .map(p => (p, isLicenseAccepted(sdkPath0.path, remoteReposInfo()().path, p)))
         .filter(!_._2)

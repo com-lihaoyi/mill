@@ -22,11 +22,6 @@ import mill.*, androidlib.*, scalalib.*
 
 object androidSdkModule0 extends AndroidSdkModule { // <1>
   def buildToolsVersion = "35.0.0"
-  override def sdkPackages = Task {
-    super.sdkPackages() ++ Seq(
-      "tools"
-    )
-  }
 }
 
 object app extends AndroidR8AppModule { // <2>
