@@ -318,11 +318,7 @@ abstract class Server[T](
 }
 
 object Server {
-  def computeProcessId() = {
-    java.lang.Long.toHexString(scala.util.Random.nextLong()) +
-      "-pid" +
-      ProcessHandle.current().pid()
-  }
+  def computeProcessId() = "pid" + ProcessHandle.current().pid()
   def checkProcessIdFile(processIdFile: os.Path, processId: String): Option[String] = {
     Try(os.read(processIdFile)) match {
       case scala.util.Failure(_) => Some(s"processId file missing")
