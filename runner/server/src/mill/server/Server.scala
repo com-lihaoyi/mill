@@ -86,6 +86,7 @@ abstract class Server[T](
             () => {
               var inactiveTimestampOpt: Option[Int] = None
               while (running) {
+                Thread.sleep(1)
                 (inactiveTimestampOpt, activeConnections.intValue()) match {
                   case (None, 0) =>
                     val timestamp = System.currentTimeMillis()
