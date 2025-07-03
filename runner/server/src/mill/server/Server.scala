@@ -64,7 +64,7 @@ abstract class Server[T](
           }
         )
 
-        // Wrapped object to encapsulate `activeConnections` and `inactiveTimestampOpt`,
+        // Wrapper object to encapsulate `activeConnections` and `inactiveTimestampOpt`,
         // ensuring they get incremented and decremented together across multiple threads
         // and never get out of sync
         object ConnectionTracker {
