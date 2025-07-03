@@ -160,7 +160,7 @@ object ClientServerTests extends TestSuite {
         // Make sure the server times out of not used for a while
         Thread.sleep(2000)
 
-        assert(res2.logsFor("Interrupting after 1000ms") == Seq("server-0"))
+        assert(res2.logsFor("shutting down due inactivity") == Seq("server-0"))
         assert(res2.logsFor("exiting server") == Seq("server-0"))
 
         // Have a third client spawn/connect-to a new server at the same path
@@ -176,7 +176,7 @@ object ClientServerTests extends TestSuite {
         Thread.sleep(1000)
 
         assert(res3.logsFor("processId file missing") == Seq("server-1"))
-        assert(res3.logsFor("exiting server") == Seq("server-1", "server-1"))
+        assert(res3.logsFor("exiting server") == Seq("server-1"))
       }
     }
     test("dontLogWhenOutFolderDeleted") - retry(3) {

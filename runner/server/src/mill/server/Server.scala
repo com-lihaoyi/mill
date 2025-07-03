@@ -94,7 +94,7 @@ abstract class Server[T](
                   case (Some(inactiveTimestamp), 0) =>
                     val timestamp = System.currentTimeMillis()
                     if (timestamp - inactiveTimestamp > acceptTimeoutMillis) {
-                      serverLog(s"shutting down at $timestamp due inactivity")
+                      serverLog(s"shutting down due inactivity")
                       serverSocket.close()
                     }
                   case (_, _) => inactiveTimestampOpt = None
@@ -136,7 +136,6 @@ abstract class Server[T](
           }
 
         } finally serverSocket.close()
-        serverLog("server loop ended")
       }.getOrElse(throw new Exception("Mill server process already present"))
     } catch {
       case e: Throwable =>
@@ -144,7 +143,7 @@ abstract class Server[T](
         serverLog("server loop stack trace: " + e.getStackTrace.mkString("\n"))
         throw e
     } finally {
-      serverLog("finally exitServer")
+      serverLog("exiting server")
     }
   }
 
