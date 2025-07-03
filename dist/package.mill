@@ -223,30 +223,35 @@ object `package` extends MillJavaModule with DistModule {
     prepareBootstrapLauncher(millBootstrapBat().path, Task.dest, build.millVersion(), "mill.bat")
   }
 
-  def examplePathsWithArtifactName0: Task[Seq[PathRef]] = Task.Input {
-    for (exampleMod <- build.example.exampleModules) yield PathRef(exampleMod.moduleDir)
+  def examplePaths: Task[Seq[os.Path]] = Task.Input {
+    build.example.exampleModules.map(_.moduleDir)
   }
 
-  def examplePathsWithArtifactName = Task {
-    for (pr <- examplePathsWithArtifactName0()) yield {
-      val example = pr.path.subRelativeTo(BuildCtx.workspaceRoot)
+  def examplePathRefs: Task[Seq[PathRef]] = Task.Sources(
+    build.example.exampleModules.map(_.moduleDir)*
+  )
+
+  def exampleArtifactNames = Task {
+    for (path <- examplePaths()) yield {
+      val example = path.subRelativeTo(BuildCtx.workspaceRoot)
       val artifactName = example.segments.mkString("-")
-      (pr, s"${build.dist.artifactFileNamePrefix()}-$artifactName")
+      (path, s"${build.dist.artifactFileNamePrefix()}-$artifactName")
     }
   }
 
   def exampleZips: T[Seq[PathRef]] = Task {
-    examplePathsWithArtifactName().map { case (examplePath, exampleStr) =>
-      os.copy(examplePath.path, Task.dest / exampleStr, createFolders = true)
-      val ignoreErrorsOnCI = Task.dest / exampleStr / "ignoreErrorsOnCI"
-      if (os.exists(ignoreErrorsOnCI)) os.remove(ignoreErrorsOnCI)
-      val buildMill = Task.dest / exampleStr / "build.mill"
-      os.write.over(buildMill, s"//| mill-version: ${build.millVersion()}\n" + os.read(buildMill))
-      os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
-      os.copy(bootstrapLauncherBat().path, Task.dest / exampleStr / "mill.bat")
-      val zip = Task.dest / s"$exampleStr.zip"
-      os.proc("zip", "-r", zip, exampleStr).call(cwd = Task.dest)
-      PathRef(zip)
+    examplePathRefs().zip(exampleArtifactNames()).map {
+      case (pr, (examplePath, exampleStr)) =>
+        os.copy(pr.path, Task.dest / exampleStr, createFolders = true)
+        val ignoreErrorsOnCI = Task.dest / exampleStr / "ignoreErrorsOnCI"
+        if (os.exists(ignoreErrorsOnCI)) os.remove(ignoreErrorsOnCI)
+        val buildMill = Task.dest / exampleStr / "build.mill"
+        os.write.over(buildMill, s"//| mill-version: ${build.millVersion()}\n" + os.read(buildMill))
+        os.copy(bootstrapLauncher().path, Task.dest / exampleStr / "mill")
+        os.copy(bootstrapLauncherBat().path, Task.dest / exampleStr / "mill.bat")
+        val zip = Task.dest / s"$exampleStr.zip"
+        os.proc("zip", "-r", zip, exampleStr).call(cwd = Task.dest)
+        PathRef(zip)
     }
   }
 

@@ -489,7 +489,7 @@ _2025-05-10_
 
 * fix: Use root qualifier in Discover macro ({link-pr}/5055[#5055])
 * Fix selective execution when multiple changes are made to one module under `--watch` ({link-pr}/5032[#5032])
-* Add ability to define `package` `ExternalModule`s that can be calle via just `pkg.path/` rather than `pkg.path.ObjectName/` ({link-pr}/4920[#4920])
+* Add ability to define `package` ``ExternalModule``s that can be calle via just `pkg.path/` rather than `pkg.path.ObjectName/` ({link-pr}/4920[#4920])
 * Backport `javascriptlib` and `pythonlib` improvements from `main` branch ({link-pr}/4893[#4893])
 * Fix wildcard and type selector query bugs ({link-pr}/4862[#4862])
 * Lots of Mill `main` branch compatibility changes, adding the new name and deprecating the old one
@@ -1418,7 +1418,7 @@ __New features__
 __Fixes and Improvements__
 
 * Better detect Windows Subsystem for Linux environments {link-pr}/2901[#2901]
-* Avoid evaluating `Task.Input`s twice {link-pr}/2952[#2952]
+* Avoid evaluating ``Task.Input``s twice {link-pr}/2952[#2952]
 * Deduplicate (anonymous) tasks in results {link-pr}/2959[#2959]
 * Synchronize `evaluateGroupCached` to avoid concurrent access to cache  {link-pr}/2980[#2980]
 * Properly sanitize Windows reserved names and symbols in evaluator paths {link-pr}/2964[#2964], {link-pr}/2965[#2965]
@@ -2450,7 +2450,7 @@ The API is suspected to change before a 0.10.0 releae.*
 
 _Changes since {prev-version}:_
 
-* `ScalaModule with PublishModule`: the `scala-library` artifact is now always part of the dependencies in published `pom.xml`s and `ivy.xml`s
+* `ScalaModule with PublishModule`: the `scala-library` artifact is now always part of the dependencies in published ``pom.xml``s and `ivy.xml`s
 * New `JavaModule.mandatoryMvnDeps` target to provide essential dependencies like scala-library without forcing the user to call `super.mvnDeps`
 * `ScalaJSModule.scalaLibraryMvnDeps` no longer contains the scala-js-library, but only the scala-library; if you need that, use `ScalaJSModule.mandatoryMvnDeps` instead.
 * `import $ivy` support `$MILL_BIN_PLATFORM` variable and a new sort notations for external plugins
@@ -3280,7 +3280,7 @@ _2018-03-04_
 
 * Speed up Mill client initialization by another 50-100ms
 
-* Speed up incremental `assembly`s in the common case where upstream dependencies do not change.
+* Speed up incremental ``assembly``s in the common case where upstream dependencies do not change.
 
 * Make `ScalaJSModule#run` work with main-method discovery
 
