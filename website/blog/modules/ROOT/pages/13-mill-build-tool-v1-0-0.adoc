@@ -272,32 +272,30 @@ Many PRs went into improving Mill's IDE support with IntelliJ and VSCode, which
 goes through the "BSP" https://github.com/build-server-protocol/build-server-protocol[build-server-protocol]:
 
 - {link-pr}/5275[#5275], {link-pr}/5265[#5265],
-{link-pr}/5220[#5220], {link-pr}/5202[#5202], {link-pr}/5200[#5200]
-
-- {link-pr}/4851[#4851], {link-pr}/4873[#4873],
+{link-pr}/5220[#5220], {link-pr}/5202[#5202], {link-pr}/5200[#5200]m {link-pr}/4851[#4851], {link-pr}/4873[#4873],
 {link-pr}/4876[#4876], {link-pr}/4881[#4881], {link-pr}/4873[#4873],
 {link-pr}/4940[#4940], {link-pr}/4941[#4941]
 
 There were also some fixes on the IntelliJ side of the build-tool-integration:
 
-- https://youtrack.jetbrains.com/issue/SCL-23262/Mill-import-highlighting-error[SCL-23262 Mill import highlighting error]
-- https://youtrack.jetbrains.com/issue/SCL-23198/Direct-references-to-package-objects-should-be-allowed-in-.mill-files[SCL-23198 Direct references to package objects should be allowed in `.mill` files]
-- https://youtrack.jetbrains.com/issue/SCL-23961/Mill-projects-sometimes-get-into-bad-state-during-importing[SCL-23961 Mill projects sometimes get into bad state during importing]
-- https://youtrack.jetbrains.com/issue/SCL-23975/Stop-Mill-BSP-import-progress-indicator-from-blocking-usage-of-iDE[SCL-23976 Stop Mill BSP import progress indicator from blocking usage of IDE]
+- https://youtrack.jetbrains.com/issue/SCL-23262[SCL-23262],
+  https://youtrack.jetbrains.com/issue/SCL-23198[SCL-23198],
+  https://youtrack.jetbrains.com/issue/SCL-23961[SCL-23961],
+  https://youtrack.jetbrains.com/issue/SCL-23975[SCL-23976]
 
 And on the VSCode side of things:
 
-- https://github.com/scalameta/metals/pull/7193[#7193 Special handling for Mill paths in ScalaVersionSelector]
-- https://github.com/scalameta/metals/pull/7200[#7200 Add test cases discovery for TestNG]
-- https://github.com/scalameta/metals/pull/7429[#7429 Read the Mill version from YAML frontmatter of the build]
-- https://github.com/scalameta/metals/pull/7544[#7544 Pass the environment variables from the BSP server when running tests]
+- https://github.com/scalameta/metals/pull/7193[#7193],
+  https://github.com/scalameta/metals/pull/7200[#7200],
+  https://github.com/scalameta/metals/pull/7429[#7429],
+  https://github.com/scalameta/metals/pull/7544[#7544]
 
 As Mill builds is able to leverage the existing IntelliJ/VSCode IDE infrastructure,
 we did not need to implement support for the Mill build tool from scratch in its
 own plugin. But nevertheless there is still a lot of work to properly wire up
 Mill to talk to these IDEs and pass the necessary data so the IDEs can do their thing.
 
-Improving IDE support is a slog: lots of fiddling with undocumented APIs and
+Improving IDE support is a grind: lots of fiddling with undocumented APIs and
 undocumented behavior, with bugs randomly scattered across organizational boundaries
 (some in Mill, some in IntelliJ, some in VSCode). But hopefully this work will provide
 a smoother experience for anyone getting using Mill, and improve upon Mill's
