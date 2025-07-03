@@ -65,6 +65,7 @@ abstract class Server[T](
           }
         )
         val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
+        val activeConnections = java.util.concurrent.atomic.AtomicInteger(0)
         try {
           os.write.over(daemonDir / DaemonFiles.socketPort, serverSocket.getLocalPort.toString)
           serverLog("listening on port " + serverSocket.getLocalPort)
@@ -81,25 +82,56 @@ abstract class Server[T](
             sys.exit(exitCode)
           }
 
-          while (
-            running && {
-              interruptWithTimeout(() => serverSocket.close(), () => serverSocket.accept()) match {
-                case None => false
-                case Some(sock) =>
-                  serverLog("handling run")
-                  new Thread(
-                    () =>
-                      try handleRun(systemExit, sock, initialSystemProperties)
-                      catch {
-                        case e: Throwable =>
-                          serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
-                      } finally sock.close();,
-                    "HandleRunThread"
-                  ).start()
-                  true
+          val timeoutThread = new Thread(
+            () => {
+              var inactiveTimestampOpt: Option[Int] = None
+              while (running) {
+                (inactiveTimestampOpt, activeConnections.intValue()) match {
+                  case (None, 0) =>
+                    val timestamp = System.currentTimeMillis()
+                    serverLog(s"daemon inactive at timestamp $timestamp")
+                    inactiveTimestampOpt = Some(timestamp)
+
+                  case (inactiveTimestamp, 0) =>
+                    val timestamp = System.currentTimeMillis()
+                    if (timestamp - inactiveTimestamp > acceptTimeoutMillis) {
+                      serverLog(s"shutting down at $timestamp due inactivity")
+                      running = false
+                      serverSocket.close()
+                    }
+                  case (_, _) => inactiveTimestampOpt = None
+                }
               }
+            },
+            "MillServerTimeoutThread"
+          )
+          timeoutThread.start()
+          while (running) {
+            val sockOpt =
+              try Some(serverSocket.accept())
+              catch { case e: java.net.SocketException => None }
+
+            sockOpt match {
+              case Some(sock) =>
+                serverLog("handling run")
+                new Thread(
+                  () =>
+                    try {
+                      activeConnections.getAndIncrement()
+                      handleRun(systemExit, sock, initialSystemProperties)
+                    } catch {
+                      case e: Throwable =>
+                        serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
+                    } finally {
+                      activeConnections.getAndDecrement()
+                      sock.close()
+                    },
+                  "HandleRunThread"
+                ).start()
+              case None =>
             }
-          ) ()
+          }
+
         } finally serverSocket.close()
         serverLog("server loop ended")
       }.getOrElse(throw new Exception("Mill server process already present"))
@@ -123,39 +155,6 @@ abstract class Server[T](
     pumperThread.setDaemon(true)
     pumperThread.start()
     pipedInput
-  }
-
-  def interruptWithTimeout[T](close: () => Unit, t: () => T): Option[T] = {
-    @volatile var interrupt = true
-    @volatile var interrupted = false
-    val thread = new Thread(
-      () => {
-        try Thread.sleep(acceptTimeoutMillis)
-        catch {
-          case t: InterruptedException => /* Do Nothing */
-        }
-        if (interrupt) {
-          interrupted = true
-          serverLog(s"Interrupting after ${acceptTimeoutMillis}ms")
-          close()
-        }
-      },
-      "MillSocketTimeoutInterruptThread"
-    )
-
-    thread.start()
-    try {
-      val res =
-        try Some(t())
-        catch { case e: Throwable => None }
-
-      if (interrupted) None
-      else res
-
-    } finally {
-      interrupt = false
-      thread.interrupt()
-    }
   }
 
   def handleRun(
