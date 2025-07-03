@@ -2,13 +2,12 @@
 //
 // PMD is a source code analyzer for Java that finds common programming flaws like unused variables,
 // empty catch blocks, unnecessary object creation, and more.
-// 
+//
 // To customize this plugin in a Java module:
 //
 // 1. Extend JavaModule with PmdModule.
 // 2. Define a PMD ruleset file(s) with `pmdRulesets` (default is `pmd-rules.xml` in root).
 // 3. Define the PMD version with `pmdVersion`.
-
 
 package build
 
