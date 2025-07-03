@@ -70,19 +70,22 @@ abstract class Server[T](
         object ConnectionTracker {
           private var activeConnections = 0
           private var inactiveTimestampOpt: Option[Long] = None
-          def increment() = synchronized {
+          def wrap(t: => Unit) = synchronized { if (!serverSocket.isClosed) { t } }
+          def increment() = wrap {
             activeConnections += 1
+            serverLog(s"$activeConnections active connections")
             inactiveTimestampOpt = None
           }
 
-          def decrement() = synchronized {
+          def decrement() = wrap {
             activeConnections -= 1
+            serverLog(s"$activeConnections active connections")
             if (activeConnections == 0) {
               inactiveTimestampOpt = Some(System.currentTimeMillis())
             }
           }
 
-          def closeIfTimedOut() = synchronized {
+          def closeIfTimedOut() = wrap {
             inactiveTimestampOpt.foreach { inactiveTimestamp =>
               if (System.currentTimeMillis() - inactiveTimestamp > acceptTimeoutMillis) {
                 serverLog(s"shutting down due inactivity")
