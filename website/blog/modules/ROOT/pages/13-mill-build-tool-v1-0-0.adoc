@@ -10,7 +10,7 @@
 _{author}, {revdate}_
 
 {mill-doc-url}[Mill] is a JVM build tool targeting Java/Scala/Kotlin that aims to
-improve upon existing build tools like Maven, Gradle, or SBT in areas like
+improve upon existing build tools like in areas like
 xref:mill::comparisons/why-mill.adoc#_performance[performance],
 xref:mill::comparisons/why-mill.adoc#_extensibility[extensibility],
 and xref:mill::comparisons/why-mill.adoc#_ide_support[IDE support].
