@@ -5,7 +5,7 @@ import mill.api.{Discover, ExternalModule, TaskCtx}
 import mill.jvmlib.api.Versions
 import mill.scalalib.scalafmt.ScalafmtModule.sources
 import mill.scalalib.{CoursierModule, Dep, DepSyntax, OfflineSupportModule}
-import mill.util.Jvm
+import mill.util.{Jvm, Version}
 
 /**
  * Checks Java source files with PMD static code analyzer [[https://pmd.github.io/]].
@@ -13,24 +13,27 @@ import mill.util.Jvm
 trait PmdModule extends CoursierModule, OfflineSupportModule {
 
   /**
-   * Runs PMD and returns the number of violations found (exit code).
+   * Runs PMD.
    *
    * @note [[sources]] are processed when no [[PmdArgs.sources]] are specified.
    */
   def pmd(@mainargs.arg pmdArgs: PmdArgs): Command[(exitCode: Int, outputPath: PathRef)] =
     Task.Command {
-      val (outputPath, exitCode) = pmd0(pmdArgs.format, pmdArgs.sources)()
+      val res = pmd0(pmdArgs.format, pmdArgs.sources)()
       pmdHandleExitCode(
         pmdArgs.stdout,
         pmdArgs.failOnViolation,
-        exitCode,
-        outputPath,
+        res.exitCode,
+        res.outputPath,
         pmdArgs.format
       )
-      (exitCode, outputPath)
+      (res.exitCode, res.outputPath)
     }
 
-  protected def pmd0(format: String, leftover: mainargs.Leftover[String]) =
+  protected def pmd0(
+      format: String,
+      leftover: mainargs.Leftover[String]
+  ): Task[(outputPath: PathRef, exitCode: Int)] =
     Task.Anon {
       val output = Task.dest / s"pmd-output.$format"
       os.makeDir.all(output / os.up)
@@ -54,9 +57,9 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
         else "net.sourceforge.pmd.cli.PmdCli"
       val jvmArgs = pmdLanguage().map(lang => s"-Duser.language=$lang").toSeq
 
-      Task.log.info("Running PMD...")
+      Task.log.info("Running PMD ...")
       Task.log.debug(s"with $args")
-      Task.log.info(s"Writing PMD output to: $output...")
+      Task.log.info(s"Writing PMD output to $output ...")
 
       val exitCode = Jvm.callProcess(
         mainCls,
@@ -69,7 +72,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
         jvmArgs = jvmArgs
       ).exitCode
 
-      (PathRef(output), exitCode)
+      (outputPath = PathRef(output), exitCode = exitCode)
     }
 
   private def pmdHandleExitCode(
@@ -87,7 +90,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
         reportViolations(failOnViolation, countViolations(output, format, stdout))
       case 5 =>
         reportViolations(failOnViolation, countViolations(output, format, stdout))
-        throw new RuntimeException("At least one recoverable PMD error has occurred.")
+        Task.fail("At least one recoverable PMD error has occurred.")
       case x => Task.log.error(s"Unsupported PMD exit code: $x")
     exitCode
   }
@@ -127,10 +130,9 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       failOnViolation: Boolean,
       violationCount: Option[Int]
   )(implicit ctx: TaskCtx): Unit = {
-    if (failOnViolation)
-      throw new RuntimeException(s"PMD found ${violationCount.getOrElse("some")} violation(s)")
-    else
-      Task.log.error(s"PMD found ${violationCount.getOrElse("some")} violation(s)")
+    val msg = s"PMD found ${violationCount.getOrElse("some")} violation(s)"
+    if (failOnViolation) Task.fail(msg)
+    else Task.log.error(msg)
   }
 
   /**
@@ -155,12 +157,8 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
   }
 
   /** Helper to check if the version is <= 6. False by default. */
-  private def isPmd6OrOlder(version: String): Boolean = {
-    version
-      .split(":").lastOption
-      .flatMap(_.takeWhile(_ != '.').toIntOption)
-      .exists(_ < 7)
-  }
+  private def isPmd6OrOlder(version: String): Boolean =
+    !Version.isAtLeast(version, "7")(using Version.IgnoreQualifierOrdering)
 
   /** PMD version. */
   def pmdVersion: T[String] = Task { Versions.pmdVersion }
@@ -168,9 +166,10 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
 
 /**
  * External module for PMD integration.
- * Allows usage via `import mill.javalib.pmd.PmdModule` in build.sc.
+ *
+ * Allows usage via `import mill.javalib.pmd/` in build.mill.
  */
-object PmdModule extends ExternalModule, PmdModule {
+object PmdModule extends ExternalModule, PmdModule, TaskModule {
   lazy val millDiscover: Discover = Discover[this.type]
-  def defaultCommandName() = "pmd"
+  override def defaultTask() = "pmd"
 }

@@ -1,4 +1,4 @@
-package src;
+package foo;
 
 public class EmptyCatchBlock {
   public void bar() {
