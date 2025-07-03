@@ -4,7 +4,7 @@ import mill._
 import mill.api.Result
 import scalalib._
 import mill.contrib.bintray.BintrayPublishModule.checkBintrayCreds
-import mill.define.{ExternalModule, Task}
+import mill.api.{ExternalModule, Task}
 
 trait BintrayPublishModule extends PublishModule {
 
@@ -100,5 +100,5 @@ object BintrayPublishModule extends ExternalModule {
     }
   }
 
-  lazy val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.api.Discover = mill.api.Discover[this.type]
 }

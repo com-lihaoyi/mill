@@ -1,7 +1,7 @@
 package mill.internal
 
 import mill.api.{Logger, SystemStreams}
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 import java.io.{OutputStream, PrintStream}
 import java.nio.file.{Files, StandardOpenOption}
 

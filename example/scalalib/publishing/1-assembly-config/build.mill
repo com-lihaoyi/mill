@@ -3,8 +3,8 @@
 
 //// SNIPPET:BUILD
 package build
-import mill._, scalalib._
-import mill.scalalib.Assembly._
+import mill.*, scalalib.*
+import mill.scalalib.Assembly.*
 
 object foo extends ScalaModule {
   def moduleDeps = Seq(bar)

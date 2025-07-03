@@ -25,7 +25,7 @@ Project home: https://github.com/carlosedp/mill-aliases
 ----
 //| mvnDeps: ["com.carlosedp::mill-aliases::0.2.1"]
 
-import mill._, scalalib._
+import mill.*, scalalib.*
 import com.carlosedp.aliases._
 
 object foo extends ScalaModule {
@@ -66,7 +66,7 @@ Project home: https://github.com/ml86/mill-antlr
 
 import net.mlbox.millantlr.AntlrModule
 
-object foo extends ScalaModule with AntlrModule {
+object foo extends ScalaModule, AntlrModule {
   override def antlrGrammarSources = Task.Sources {
     Seq(os.pwd/"someGrammar.g4").map(PathRef(_))
   }
@@ -84,9 +84,9 @@ Project home: https://github.com/lefou/mill-aspectj
 ----
 //| mvnDeps: ["de.tototec::de.tobiasroeser.mill.aspectj_mill0.9:0.3.1-12-89db01"]
 
-import mill._
+import mill.*
 import mill.scalalib._
-import mill.define._
+import mill.api._
 
 import de.tobiasroeser.mill.aspectj._
 
@@ -169,7 +169,7 @@ Place the millw script from https://github.com/lefou/millw in your project direc
 
 import com.mchange.milldaemon.DaemonModule
 
-object coolproj extends RootModule with DaemonModule {
+object coolproj extends RootModule, DaemonModule {
   override def runDaemonPidFile = Some( os.pwd / "coolproj.pid" )
 }
 ----
@@ -243,10 +243,10 @@ parameters for your application using the `DockerNativeConfig` trait in the
 ----
 //| mvnDeps: ["com.carlosedp::mill-docker-nativeimage::0.6.0"]
 
-import mill._, mill.scalalib._, mill.scalalib.scalafmt._
+import mill.*, mill.scalalib._, mill.scalalib.scalafmt._
 import com.carlosedp.milldockernative.DockerNative
 
-object hello extends ScalaModule with DockerNative {
+object hello extends ScalaModule, DockerNative {
   def scalaVersion = "3.3.0"
   object dockerNative extends DockerNativeConfig {
     // Native Image parameters
@@ -332,7 +332,7 @@ Project home: https://github.com/kierendavies/mill-explicit-deps
 
 import io.github.kierendavies.mill.explicitdeps.ExplicitDepsModule
 
-object foo extends ScalaModule with ExplicitDepsModule {
+object foo extends ScalaModule, ExplicitDepsModule {
     // ...
 }
 ----
@@ -396,7 +396,7 @@ import com.goyeau.mill.git.GitVersionedPublishModule
 import mill.scalalib.JavaModule
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 
-object `jvm-project` extends JavaModule with GitVersionedPublishModule {
+object `jvm-project` extends JavaModule, GitVersionedPublishModule {
   override def pomSettings = PomSettings(
     description = "JVM Project",
     organization = "com.goyeau",
@@ -464,7 +464,7 @@ Project home: https://github.com/lewisjkl/header
 
 == Hepek
 
-`mill-hepek` is a plugin for writing Scala `object`s to files.  
+`mill-hepek` is a plugin for writing Scala ``object``s to files.
 
 It is used as a core for Hepek static site generator: https://sake92.github.io/hepek/hepek/index.html .
 
@@ -482,9 +482,9 @@ We assume, you have a mill plugin named `mill-demo`
 .`build.mill`
 [source,scala]
 ----
-import mill._, mill.scalalib._
+import mill.*, mill.scalalib._
 
-object demo extends ScalaModule with PublishModule {
+object demo extends ScalaModule, PublishModule {
   // ...
 }
 ----
@@ -498,7 +498,7 @@ Add a new test sub-project, e.g. `itest`.
 
 import de.tobiasroeser.mill.integrationtest._
 
-object demo extends ScalaModule with PublishModule {
+object demo extends ScalaModule, PublishModule {
   // ...
 }
 
@@ -562,7 +562,7 @@ JBake home: https://jbake.org
 ----
 //| mvnDeps: ["de.tototec::de.tobiasroeser.mill.jbake:0.1.0"]
 
-import mill._
+import mill.*
 import de.tobiasroeser.mill.jbake._
 
 object site extends JBakeModule {
@@ -684,10 +684,10 @@ And set the previous artifacts you want to check binary compatibility.
 ----
 //| mvnDeps: ["com.github.lolgab::mill-mima_mill0.9:0.0.2"]
 
-import mill._, scalalib._
+import mill.*, scalalib.*
 import com.github.lolgab.mill.mima._
 
-object main extends ScalaModule with Mima {
+object main extends ScalaModule, Mima {
 
   def mimaPreviousArtifacts = Seq(
     mvn"my_group_id::main:my_previous_version"
@@ -746,7 +746,7 @@ configuration options:
 
 import io.github.alexarchambault.millnativeimage.NativeImage
 
-object hello extends ScalaModule with NativeImage {
+object hello extends ScalaModule, NativeImage {
   def scalaVersion = "3.3.0"
   def mvnDeps = ... // Your deps here
 
@@ -794,10 +794,10 @@ Project home: https://github.com/lefou/mill-osgi
 ----
 //| mvnDeps: ["de.tototec::de.tobiasroeser.mill.osgi:0.0.5"]
 
-import mill._, mill.scalalib._
+import mill.*, mill.scalalib._
 import de.tobiasroeser.mill.osgi._
 
-object project extends ScalaModule with OsgiBundleModule {
+object project extends ScalaModule, OsgiBundleModule {
 
   def bundleSymbolicName = "com.example.project"
 
@@ -849,10 +849,10 @@ set-up a `package.json` file with your TypeScript dependencies.
 ----
 //| mvnDeps: ["com.github.lolgab::mill-scalablytyped::0.0.2"]
 
-import mill._, scalalib._
+import mill.*, scalalib.*
 import com.github.lolgab.mill.scalablytyped._
 
-object main extends ScalaJSModule with ScalablyTyped {
+object main extends ScalaJSModule, ScalablyTyped {
   // other settings ...
 }
 ----
@@ -874,7 +874,7 @@ _build.mill_:
 
 import io.github.hoangmaihuy.scalatsi._
 
-object example extends ScalaModule with ScalaTsiModule {
+object example extends ScalaModule, ScalaTsiModule {
 // The classes that you want to generate typescript interfaces for
 override def typescriptExports = Seq("MyClass")
 // The output file which will contain the typescript interfaces
@@ -922,7 +922,7 @@ _build.mill_:
 import com.goyeau.mill.scalafix.ScalafixModule
 import mill.scalalib._
 
-object project extends ScalaModule with ScalafixModule {
+object project extends ScalaModule, ScalafixModule {
   def scalaVersion = "2.12.11"
 }
 ----
@@ -993,11 +993,11 @@ Project home: https://github.com/lefou/mill-spring-boot
 
 [source,scala,subs="attributes,verbatim"]
 ----
-import mill._
+import mill.*
 import mill.scalalib._
 import de.tobiasroeser.mill.spring.boot.SpringBootModule
 
-object app extends MavenModule with SpringBootModule {
+object app extends MavenModule, SpringBootModule {
   override def springBootToolsVersion = "2.7.13"
 }
 ----
@@ -1019,12 +1019,12 @@ Project home: https://github.com/sake92/squery
 ----
 //| mvnDeps: ["ba.sake::mill-squery-generator_mill0.11:0.6.2"]
 
-import mill._
+import mill.*
 import mill.scalalib._
 import ba.sake.squery.generator._
 import ba.sake.squery.generator.mill.SqueryGeneratorModule
 
-object app extends ScalaModule with SqueryGeneratorModule {
+object app extends ScalaModule, SqueryGeneratorModule {
   // use Task.Input(Task.ctx.env("MY_ENV_VAR")) to set sensitive variables like password etc
   def squeryJdbcUrl = "jdbc:..."
   def squeryUsername = ".."
@@ -1080,11 +1080,11 @@ When used with its defaults, the outcome is identical to the version scheme that
 ----
 //| mvnDeps: ["de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2"]
 
-import mill._
+import mill.*
 import mill.scalalib._
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 
-object main extends JavaModule with PublishModule {
+object main extends JavaModule, PublishModule {
   override def publishVersion: T[String] = VcsVersion.vcsState().format()
 }
 ----

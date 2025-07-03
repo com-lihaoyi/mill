@@ -1,9 +1,9 @@
 package mill.vcs
 import scala.util.Try
-import mill.define.{Task, Module}
-import mill.define.Task.{Simple => T}
+import mill.api.{Task, Module}
+import mill.api.Task.{Simple => T}
 import mill.api.Logger
-import mill.define.{Discover, ExternalModule}
+import mill.api.{Discover, ExternalModule}
 import os.SubprocessException
 
 import scala.util.control.NonFatal

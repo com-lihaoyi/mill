@@ -1,5 +1,5 @@
 package build
-import mill._, scalalib._, scalajslib._
+import mill.*, scalalib.*, scalajslib.*
 
 object `package` extends ScalaModule {
 
@@ -19,8 +19,8 @@ object `package` extends ScalaModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.7"
+  object test extends ScalaTests, TestModule.Utest {
+    def utestVersion = "0.8.8"
     def mvnDeps = Seq(
       mvn"com.lihaoyi::requests::0.6.9"
     )

@@ -3,7 +3,7 @@
 // within the `bar` module as `bar/src/Bar.scala`.
 
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 import mill.util.Jvm
 
 object foo extends ScalaModule {

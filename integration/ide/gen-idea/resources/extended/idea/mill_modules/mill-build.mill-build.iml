@@ -57,10 +57,10 @@
         <orderEntry type="library" scope="RUNTIME" name="logback-classic-1.5.17.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="logback-core-1.5.17.jar" level="project"/>
         <orderEntry type="library" name="mainargs_3-0.7.6.jar" level="project"/>
+        <orderEntry type="library" name="mill-core-api-shared_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-constants.jar" level="project"/>
         <orderEntry type="library" name="mill-core-coursierutil_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-core-define_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-eval_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-exec_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-internal_3.jar" level="project"/>
@@ -69,14 +69,14 @@
         <orderEntry type="library" name="mill-libs-androidlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-init_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-javascriptlib_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-jvmlib-api_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-jvmlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-kotlinlib-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-kotlinlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-main_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-pythonlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalajslib-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalajslib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-scalalib-api_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-scalalib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalanativelib-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalanativelib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-tabcomplete_3.jar" level="project"/>

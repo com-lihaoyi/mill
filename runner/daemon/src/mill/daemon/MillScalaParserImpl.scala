@@ -26,8 +26,8 @@ import dotty.tools.dotc.util.SourceFile
 import dotty.tools.dotc.util.Spans.Span
 import dotty.tools.dotc.util.SourcePosition
 
-import mill.api.internal.MillScalaParser
-import mill.api.internal.MillScalaParser.{ObjectData, Snip}
+import mill.api.shared.internal.MillScalaParser
+import mill.api.shared.internal.MillScalaParser.{ObjectData, Snip}
 
 object MillScalaParserImpl extends MillScalaParser {
 

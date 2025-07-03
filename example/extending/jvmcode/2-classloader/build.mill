@@ -6,7 +6,7 @@
 // * `loadClass`/`getMethod`/`invoke` to call methods on those classes using Java reflection
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 import mill.util.Jvm
 
 object foo extends JavaModule {

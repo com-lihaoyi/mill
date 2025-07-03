@@ -189,7 +189,7 @@ task cheat sheet:
 options:
 """
 
-  import mill.define.JsonFormatters.*
+  import mill.api.JsonFormatters.*
 
   private lazy val parser: ParserForClass[MillCliConfig] = mainargs.ParserForClass[MillCliConfig]
 

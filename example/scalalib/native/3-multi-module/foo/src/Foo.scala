@@ -1,7 +1,7 @@
 package foo
 
-import scala.scalanative.libc._
-import scala.scalanative.unsafe._
+import scala.scalanative.libc.*
+import scala.scalanative.unsafe.*
 import mainargs.{main, ParserForMethods, arg}
 
 object Foo {

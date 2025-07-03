@@ -1,10 +1,3 @@
-// In order to help manage your build, Mill performs some rudimentary filesystem
-// sandboxing to keep different tasks and modules from interfering with each other.
-// This tries to ensure your tasks only read and write from their designated `.dest/`
-// folders, which are unique to each task and thus guaranteed not to collide with
-// the filesystem operations of other tasks that may be occurring in parallel.
-//
-//
 // === `Task.dest`
 // The standard way of working with a task's `.dest/` folder is through the `Task.dest`
 // property. This is available within any task, and gives you access to the
@@ -12,8 +5,8 @@
 // each task is lazily initialized when `Task.dest` is referenced and used:
 
 package build
-import mill._
-import mill.define.BuildCtx
+import mill.*
+import mill.api.BuildCtx
 
 object foo extends Module {
   def tDestTask = Task { println(Task.dest.toString) }
@@ -24,11 +17,14 @@ object foo extends Module {
 .../out/foo/tDestTask.dest
 */
 
+// If you really need to reference paths outside of the `Task.dest`, you can do
+// so via `BuildCtx.workspaceRoot`.
+
 // === Filesystem Read/Write Checks
 //
 // Mill enforces limits on what you can read and write while a task is executing.
 // In general, a task may only write to its own `Task.dest` folder, and may only
-// read from the `PathRef`s provided to it from upstream tasks
+// read from the ``PathRef``s provided to it from upstream tasks
 
 def bannedWriteTask = Task {
   os.write(BuildCtx.workspaceRoot / "banned-path", "hello")
@@ -63,9 +59,9 @@ error: ...Reading from out/foo/tDestTask.json not allowed during execution of `b
 
 val listed = BuildCtx.watchValue(os.list(BuildCtx.workspaceRoot).map(_.last))
 
-// === Disabling Task Sandboxing
+// === Bypassing Task Sandboxing
 //
-// You can disable Mill's filesystem read/write limitations via
+// You can bypass Mill's filesystem read/write limitations via
 // `BuildCtx.withFilesystemCheckerDisabled`. Note that this bypasses the
 // best-practices that Mill tries to enforce on your tasks and may result in strange
 // bugs around caching, parallelism, and invalidation, so you shouldn't do this unless

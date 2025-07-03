@@ -1,10 +1,10 @@
 package build
 
-import mill._, javascriptlib._
-import ujson._
+import mill.*, javascriptlib.*
+import ujson.*
 
 object foo extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Jest {
+  object test extends TypeScriptTests, TestModule.Jest {
     def otherFiles = Task.Source("other-files")
 
     def forkEnv = super.forkEnv() + ("OTHER_FILES_DIR" -> otherFiles().path.toString)

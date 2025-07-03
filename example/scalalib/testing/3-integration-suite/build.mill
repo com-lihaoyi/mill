@@ -4,16 +4,16 @@
 
 //// SNIPPET:BUILD3
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object qux extends ScalaModule {
   def scalaVersion = "3.7.1"
 
-  object test extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.7"
+  object test extends ScalaTests, TestModule.Utest {
+    def utestVersion = "0.8.8"
   }
-  object integration extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.7"
+  object integration extends ScalaTests, TestModule.Utest {
+    def utestVersion = "0.8.8"
   }
 }
 //// SNIPPET:END

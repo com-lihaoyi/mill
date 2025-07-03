@@ -1,7 +1,7 @@
 package mill.bsp
 
 import mill.util.BuildInfo
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 import java.io.PrintStream
 

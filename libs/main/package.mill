@@ -5,8 +5,8 @@ import mill._
 import mill.scalalib._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
-import mill.define.Cross
-import mill.scalalib.api.JvmWorkerUtil
+import mill.api.Cross
+import mill.jvmlib.api.JvmWorkerUtil
 import millbuild.*
 
 /**
@@ -17,7 +17,7 @@ object `package` extends MillStableScalaModule {
 
   def moduleDeps = Seq(
     build.core.util,
-    build.core.define,
+    build.core.api,
     build.libs.init
   )
   def mvnDeps = Seq(

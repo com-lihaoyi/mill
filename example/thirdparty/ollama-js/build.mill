@@ -22,9 +22,9 @@
 
 package build
 
-import mill._, javascriptlib._
-import os._
-import ujson._
+import mill.*, javascriptlib.*
+import os.*
+import ujson.*
 
 trait OllamaModule extends TypeScriptModule {
   def moduleName = "ollama"
@@ -131,7 +131,7 @@ trait Examples extends TypeScriptModule {
   }
 }
 
-object `package` extends OllamaModule with TsLintModule {
+object `package` extends OllamaModule, TsLintModule {
   def npmLintDeps = Seq(
     "prettier@3.2.4",
     "eslint@8.29.0",
@@ -139,7 +139,7 @@ object `package` extends OllamaModule with TsLintModule {
     "@typescript-eslint/parser@5.42.1"
   )
 
-  object test extends TypeScriptTests with TestModule.Vitest
+  object test extends TypeScriptTests, TestModule.Vitest
 
   object examples extends Examples {
     def unmanagedDeps = Seq(unbuild())

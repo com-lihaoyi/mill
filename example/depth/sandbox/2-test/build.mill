@@ -3,10 +3,10 @@
 // `foo.test` and `bar.test`:
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 trait MyModule extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 
 object foo extends MyModule {
@@ -63,13 +63,13 @@ object bar extends MyModule
 // one another, which helps keep tests stable and deterministic even when run in
 // parallel
 //
-// === Escaping the Test Sandbox
+// === Bypassing the Test Sandbox
 
 // Within a test, you can use the `MILL_WORKSPACE_ROOT` environment variable
 // to access the workspace root directory:
 
 object qux extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 
 /** See Also: qux/src/qux/Qux.java */
@@ -89,9 +89,7 @@ object qux extends JavaModule {
 */
 
 //
-// === Disabling Test Sandboxing
-//
-// Test sandboxing can be disabled by setting `def testSandboxWorkingDir = false`
+// Test sandboxing can also be disabled by setting `def testSandboxWorkingDir = false`
 // on your test module, which makes your unit tests run in the root of your
 // project workspace, with full access to the project files on disk.
 //

@@ -9,7 +9,7 @@
 //// SNIPPET:BUILD
 package build
 
-import mill._, androidlib._, kotlinlib._
+import mill.*, androidlib.*, kotlinlib.*
 
 import coursier.core.{MinimizedExclusions, ModuleName, Organization}
 import coursier.params.ResolutionParams
@@ -24,7 +24,7 @@ object androidSdkModule0 extends AndroidSdkModule {
 object app extends AndroidAppKotlinModule {
 
   def kotlinVersion = "2.0.21"
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidApplicationId = "com.example.screenshottest"
   def androidApplicationNamespace = "com.example.screenshottest"
   def androidCompileSdk = 35

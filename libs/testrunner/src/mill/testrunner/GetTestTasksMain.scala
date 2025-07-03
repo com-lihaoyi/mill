@@ -4,7 +4,7 @@ import mill.api.internal.internal
 import os.Path
 
 @internal object GetTestTasksMain {
-  import mill.define.JsonFormatters.PathTokensReader
+  import mill.api.JsonFormatters.PathTokensReader
   @mainargs.main
   def main(
       runCp: Seq[os.Path],

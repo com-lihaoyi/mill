@@ -1,7 +1,7 @@
 package mill.javascriptlib
 
 import mill.*
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 trait TestModule extends TaskModule {
   import TestModule.TestResult

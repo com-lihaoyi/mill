@@ -1,8 +1,8 @@
 package foo
 
-import scala.scalanative.libc._
-import scala.scalanative.unsafe._
-import fansi._
+import scala.scalanative.libc.*
+import scala.scalanative.unsafe.*
+import fansi.*
 
 object Foo {
 

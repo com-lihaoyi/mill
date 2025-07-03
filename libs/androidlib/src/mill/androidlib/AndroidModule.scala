@@ -5,10 +5,10 @@ import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.T
 import mill.androidlib.manifestmerger.AndroidManifestMerger
-import mill.define.{ModuleRef, PathRef, Task}
+import mill.api.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
-import mill.define.JsonFormatters.given
-import mill.scalalib.api.CompilationResult
+import mill.api.JsonFormatters.given
+import mill.jvmlib.api.CompilationResult
 import os.Path
 
 import scala.collection.immutable

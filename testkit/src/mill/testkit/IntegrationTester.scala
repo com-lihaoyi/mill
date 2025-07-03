@@ -1,9 +1,9 @@
 package mill.testkit
 
 import mill.constants.OutFiles
-import mill.define.Segments
-import mill.define.Cached
-import mill.define.SelectMode
+import mill.api.Segments
+import mill.api.Cached
+import mill.api.SelectMode
 import ujson.Value
 
 import scala.concurrent.duration.*

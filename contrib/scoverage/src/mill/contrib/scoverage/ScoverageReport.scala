@@ -2,8 +2,8 @@ package mill.contrib.scoverage
 
 import mill.api.Result
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
-import mill.define.{Evaluator, Module, SelectMode, Task}
-import mill.define.BuildCtx
+import mill.api.{Evaluator, Module, SelectMode, Task}
+import mill.api.BuildCtx
 import mill.*
 import os.Path
 

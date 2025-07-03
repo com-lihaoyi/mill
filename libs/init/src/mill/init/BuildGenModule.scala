@@ -1,6 +1,6 @@
 package mill.init
 
-import mill.define.{PathRef}
+import mill.api.{PathRef}
 import mill.api.{Result}
 import mill.scalalib.{CoursierModule, Dep}
 import mill.scalalib.scalafmt.ScalafmtWorkerModule
@@ -8,7 +8,7 @@ import mill.util.Jvm
 import mill.{Command, T, Task, TaskModule}
 
 @mill.api.experimental
-trait BuildGenModule extends CoursierModule with TaskModule {
+private[mill] trait BuildGenModule extends CoursierModule with TaskModule {
 
   def defaultTask(): String = "init"
 

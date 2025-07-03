@@ -304,7 +304,7 @@ class ScalaJSWorkerImpl extends ScalaJSWorkerApi {
     val input = jsEnvInput(report)
     val runConfig0 = RunConfig().withLogger(logger)
     val runConfig =
-      if (mill.define.SystemStreams.isOriginal()) runConfig0
+      if (mill.api.SystemStreams.isOriginal()) runConfig0
       else runConfig0
         .withInheritErr(false)
         .withInheritOut(false)

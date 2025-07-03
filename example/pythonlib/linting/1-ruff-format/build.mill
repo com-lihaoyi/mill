@@ -1,9 +1,9 @@
 // First, make your module extend `pythonlib.RuffModule`.
 
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
-object `package` extends PythonModule with RuffModule
+object `package` extends PythonModule, RuffModule
 
 // You can reformat your project's code by running the `ruffFormat` task.
 

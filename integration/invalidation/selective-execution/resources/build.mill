@@ -13,7 +13,7 @@ object foo extends Module {
   }
 }
 
-object bar extends mill.define.TaskModule {
+object bar extends mill.api.TaskModule {
   // make sure it works with private tasks as well
   private def barTask = Task.Source("bar.txt")
 

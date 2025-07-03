@@ -5,17 +5,17 @@ import coursier.maven.MavenRepository
 import mill._
 import mill.util.Tasks
 import mill.scalalib._
-import mill.scalalib.api.JvmWorkerUtil
+import mill.jvmlib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
-import mill.define.SelectMode
+import mill.api.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
-import mill.define.Cross
+import mill.api.Cross
 import mill.testrunner.TestResult
 import millbuild.*
 import upickle.implicits.namedTuples.default.given
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 object `package` extends mill.Module {
   // We compile the test code once and then offer multiple modes to
@@ -103,15 +103,12 @@ object `package` extends mill.Module {
     }
   }
 
-  object failure extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "failure"))
-  object feature extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "feature"))
-  object invalidation
-      extends Cross[IntegrationCrossModule](build.listIn(moduleDir / "invalidation"))
-  object ide extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "ide"))
-  object bootstrap
-      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "bootstrap"))
-  object migrating
-      extends Cross[IdeIntegrationCrossModule](build.listIn(moduleDir / "migrating"))
+  object failure extends Cross[IntegrationCrossModule](build.listCross)
+  object feature extends Cross[IntegrationCrossModule](build.listCross)
+  object invalidation extends Cross[IntegrationCrossModule](build.listCross)
+  object ide extends Cross[IdeIntegrationCrossModule](build.listCross)
+  object bootstrap extends Cross[IdeIntegrationCrossModule](build.listCross)
+  object migrating extends Cross[IdeIntegrationCrossModule](build.listCross)
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
     def forkEnv = super.forkEnv() ++ Seq(

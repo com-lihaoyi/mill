@@ -1,10 +1,10 @@
 package mill.resolve
 
 import mill.api.Result
-import mill.define.{Discover, ModuleRef, Task, TaskModule}
+import mill.api.{Discover, ModuleRef, Task, TaskModule}
 import mill.testkit.TestRootModule
-import mill.define.DynamicModule
-import mill.define.TestGraphs.*
+import mill.api.DynamicModule
+import mill.api.TestGraphs.*
 import mill.{Cross, Module}
 import utest.*
 
@@ -124,7 +124,7 @@ object ModuleTests extends TestSuite {
     trait Base extends Module {
       lazy val inner: BaseInnerModule = new BaseInnerModule {}
       lazy val ignored: ModuleRef[BaseInnerModule] = ModuleRef(new BaseInnerModule {})
-      trait BaseInnerModule extends mill.define.Module {
+      trait BaseInnerModule extends mill.api.Module {
         def baseTask = Task { 1 }
       }
     }

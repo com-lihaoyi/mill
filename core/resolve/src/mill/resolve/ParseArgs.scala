@@ -3,7 +3,7 @@ package mill.resolve
 import mill.api.Result
 import fastparse.NoWhitespace.noWhitespaceImplicit
 import fastparse._
-import mill.define.{Segment, Segments, SelectMode}
+import mill.api.{Segment, Segments, SelectMode}
 
 import scala.annotation.tailrec
 

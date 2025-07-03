@@ -1,10 +1,10 @@
 package mill.resolve
 
 import mill.api.Result
-import mill.define.{Task, SelectMode}
+import mill.api.{Task, SelectMode}
 import utest.*
 
-class Checker[T <: mill.define.BaseModule](module: T) {
+class Checker[T <: mill.api.BaseModule](module: T) {
 
   def apply(
       selectorString: String,

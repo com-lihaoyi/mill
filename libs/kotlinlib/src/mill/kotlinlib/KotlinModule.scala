@@ -9,17 +9,17 @@ package kotlinlib
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.api.Result
-import mill.define.ModuleRef
+import mill.api.ModuleRef
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import mill.scalalib.api.{CompilationResult, JvmWorkerApi}
-import mill.api.internal.{CompileProblemReporter, internal}
+import mill.jvmlib.api.{CompilationResult, JvmWorkerApi}
+import mill.api.shared.internal.{CompileProblemReporter, internal}
 import mill.scalalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
 import mill.*
 import java.io.File
 
 import mainargs.Flag
-import mill.api.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.api.shared.internal.bsp.{BspBuildTarget, BspModuleApi}
 
 trait KotlinModule extends JavaModule { outer =>
 

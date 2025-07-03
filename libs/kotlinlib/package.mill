@@ -10,7 +10,7 @@ import millbuild.*
 //  because currently there is no previous artifact version
 object `package` extends MillStableScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.libs.scalalib, build.libs.testrunner, api)
+  def moduleDeps = Seq(build.libs.jvmlib, build.libs.testrunner, api)
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(worker.localTestOverride())
 

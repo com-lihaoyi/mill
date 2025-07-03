@@ -2,7 +2,7 @@
 
 //// SNIPPET:BUILD1
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
   def depManagement = Seq(
@@ -79,7 +79,7 @@ object bomUser extends JavaModule {
 // These BOM modules can published, resulting in a Maven module with
 // packaging type `pom`, usable as a BOM from other build tools:
 
-object myPublishedBom extends BomModule with MyPublishModule {
+object myPublishedBom extends BomModule, MyPublishModule {
   def bomMvnDeps = Seq(
     mvn"com.google.protobuf:protobuf-bom:4.28.1"
   )
@@ -90,7 +90,7 @@ object myPublishedBom extends BomModule with MyPublishModule {
 
 // Once published, the BOM can be used in other projects,
 // but we can still use it right from our build with bomModuleDeps:
-object publishedBomUser extends JavaModule with MyPublishModule {
+object publishedBomUser extends JavaModule, MyPublishModule {
   def bomModuleDeps = Seq(
     myPublishedBom
   )

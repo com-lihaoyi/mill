@@ -1,9 +1,9 @@
 package mill.resolve
 
 import mill.api.Result
-import mill.define.Discover
-import mill.define.TestGraphs
-import mill.define.TestGraphs.*
+import mill.api.Discover
+import mill.api.TestGraphs
+import mill.api.TestGraphs.*
 import mill.testkit.TestRootModule
 import mill.{Module, Task}
 import utest.*

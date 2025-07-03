@@ -5,11 +5,11 @@ import mill._
 import mill.scalalib._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
-import mill.define.Cross
+import mill.api.Cross
 import millbuild.*
 
 object `package` extends MillStableScalaModule with BuildInfo {
-  def moduleDeps = Seq(build.libs.scalalib, api)
+  def moduleDeps = Seq(build.libs.jvmlib, api)
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(worker("1").localTestOverride())
   def buildInfoPackageName = "mill.scalajslib"
@@ -45,11 +45,11 @@ object `package` extends MillStableScalaModule with BuildInfo {
 
   object worker extends Cross[WorkerModule]("1")
   trait WorkerModule extends MillPublishScalaModule with Cross.Module[String] {
-    def moduleDeps = Seq(build.core.define)
+    def moduleDeps = Seq(build.core.api)
     def scalajsWorkerVersion = crossValue
     def moduleDir: os.Path = super.moduleDir / scalajsWorkerVersion
     def compileModuleDeps =
-      Seq(build.libs.scalajslib.api, build.core.constants, build.core.api)
+      Seq(build.libs.scalajslib.api, build.core.constants, build.core.api.shared)
     def mandatoryMvnDeps = Seq.empty[Dep]
     def mvnDeps = Seq(Deps.scalafmtDynamic)
     def compileMvnDeps = super.mandatoryMvnDeps() ++ Seq(

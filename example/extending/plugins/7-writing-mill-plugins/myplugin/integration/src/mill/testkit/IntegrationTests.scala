@@ -1,6 +1,6 @@
 package myplugin
 import mill.testkit.IntegrationTester
-import utest._
+import utest.*
 
 object IntegrationTests extends TestSuite {
 

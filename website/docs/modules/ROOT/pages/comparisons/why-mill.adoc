@@ -1,6 +1,6 @@
 = Why Use Mill?
 
-Although the Java compiler is very fast and the Java language is easy to learn
+Although the Java language is known for being performant, easy to learn, and
 with great IDEs, JVM build tools have a reputation for being sluggish and confusing.
 For example, common build tools like Maven or Gradle compile Java code
 xref:blog::1-java-compile.adoc[12-16x slower than the underlying Java compiler]. While
@@ -10,14 +10,14 @@ that there exists room for improvement.
 Mill tries to provide a viable alternative build tool with 3 major improvements over
 other JVM build tools available today:
 
-1. xref:#_performance[Performance]: Mill offers a 3-6x speedup means less time waiting for your build tool,
-meaning less time waiting for your build and more time doing useful work
+1. xref:#_performance[Performance]: Mill offers a 3-6x speedup in compilation and other
+common workflows, which means less time waiting for your build tool and more time doing useful work
 
 2. xref:#_extensibility[Extensibility]: Mill lets you write code or use any published JVM library in your build,
-customizing it to your needs without being limited by third-party plugins
+customizing it exactly to your needs without being limited by third-party plugins
 
-3. xref:#_ide_support[IDE Support]: Mill has better IDE support in IntelliJ and VSCode and richer
-visualization tools than other tools, to help understand your build and what it is doing
+3. xref:#_ide_support[IDE Support]: Mill has better IDE support in IntelliJ and VSCode
+than other build tools, to help you navigate your build understand why your build is doing what it is doing
 
 Uniquely among build tools, Mill builds upon the idea of
 xref:#_object_oriented_builds[Object-Oriented Builds]. Where most builds invent custom
@@ -33,7 +33,7 @@ dependencies, you can compile, run, or test your project:
 ----
 // build.mill
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
   def mvnDeps = Seq(
@@ -41,7 +41,7 @@ object foo extends JavaModule {
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 ----
 
@@ -86,8 +86,8 @@ You can click on the link above to see a more detailed discussion of how this be
 run.
 
 The second benchmark worth noting is *Incremental Compile Single Module*.
-This benchmark involves making a single edit to a single already-compiled file in `common` -
-adding a single newline to the end of the file - and re-compiling `common` and `common.test`.
+This benchmark involves adding a single newline to the end of a single already-compiled file in `common`,
+and re-compiling `common` and `common.test`.
 Mill sees a huge speedup for this benchmark, because Mill's incremental compiler
 (https://github.com/sbt/zinc[Zinc]) is able to detect that only one file in one module
 has changed, and that the change is small enough
@@ -171,19 +171,19 @@ for less common use cases:
 
 === Extending Mill
 
-When you do need to extend it, Mill allows you to directly write code to configure your build, and even download libraries
-from Maven Central.
+When you do need to extend it, Mill allows you to directly write code to configure your build,
+and even download libraries from Maven Central.
 
-Most build tools need plugins to do anything: if you want to Foo you need a
-Foo plugin, if you want to Bar you need a Bar plugin, for any possible Foo or Bar. These could
+Most build tools need plugins to do anything: if you want to _Foo_ you need a
+_Foo plugin_, if you want to Bar you need a _Bar plugin_, for any possible _Foo_ or _Bar_. These could
 be simple tasks - zipping up files, pre-rendering web templates, preparing static assets for
 deployment - but even a tasks that would be trivial to implement in a few lines of code requires
 you to Google for third-party plugins, dig through their Github to see which one is best
 maintained, and hope for the best when you include it in your build. And while you could
 write plugins yourself, doing so is usually non-trivial.
 
-Mill is different. Although it does have plugins for more advanced integrations, for most
-simple things you can directly write code to achieve what you want, using the bundled
+Mill is different. Although Mill does have plugins supporting common integrations (linked above),
+for most simple things you can directly write code to achieve what you want, using the bundled
 filesystem, subprocess, and dependency-management libraries. And even if you need third-party
 libraries from Maven Central to do `xyz`, you can directly import the "`xyz`" library and use it
 directly, without having to find a "xyz build plugin" wrapper.
@@ -192,12 +192,13 @@ directly, without having to find a "xyz build plugin" wrapper.
 
 The following Mill build is a minimal Java module `foo.`. It contains no custom configuration, and
 so inherits all the defaults from `mill.javalib.JavaModule`: default source folder layout, default
-assembly configuration, default compiler flags, and so on.
+assembly configuration, default compiler flags, and so on. This _convention over configuration_
+is a philosophy that Mill inherited from Maven and other JVM build tools:
 
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
 }
@@ -216,7 +217,7 @@ can depend on other tasks such as `allSourceFiles()` below:
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
   /** Total number of lines in module source files */
@@ -245,15 +246,15 @@ easy to move it to your own xref:extending/writing-plugins.adoc[custom plugins]
 === Overriding Tasks
 
 To wire up `lineCount` into our main `JavaModule` `compile`/`test`/`run` tasks,
-one way is to take the line count value and write it to a file in `def resources`.
-This file can then be read at runtime as a JVM resource. We do that below
-by overriding `def resources` and making it depend on `lineCount`, in addition
-to its existing value `super.resources()`:
+one way is to take the line count value and write it to a JVM resource file
+to be used at runtime. In Mill your JVM resources are just a method `def resources`,
+so we can override it and make it depend on `lineCount`, in addition
+to its prior value `super.resources()` (that references the `resources/` folder on disk):
 
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
   /** Total number of lines in module source files */
@@ -271,9 +272,9 @@ object foo extends JavaModule {
 
 
 Because our `def resources` overrides the existing `resources` method inherited from `JavaModule`,
-the downstream tasks automatically now use the new override instead, as that is how overrides
-work. That means if you call `mill foo.run`, it will automatically pick up the new `resources`
-including the generated `line-count.txt` file and make it available to
+the downstream tasks automatically now use the new override instead, similar to any Java
+method overrides. That means if you call `mill foo.run`, it will automatically pick up the new
+`resources` including the generated `line-count.txt` file and make it available to
 the application code to use e.g. to print it out at runtime:
 
 [source,console]
@@ -287,16 +288,17 @@ which includes usage of third-party libraries in the build.
 
 === Using Third-Party JVM Libraries in Tasks
 
-Earlier on we discussed possibly pre-rendering HTML pages in the build so they can be
-served at runtime. The use case for this are obvious: if a page never changes, rendering
-it on every request is wasteful, and even rendering it once on startup and then caching it
+One example use case of customizing your build tool is pre-rendering HTML pages in the build so
+they can be served at runtime: if a page never changes, rendering it on every request is
+wasteful, and even rendering it once on startup and then caching it
 can impact your application startup time. Thus, you may want to move some HTML rendering to
 build-time, but with traditional build tools such a move is sufficiently inconvenient and
-complicated that people do not do it.
+complicated that people rarely do it.
 
 With Mill, pre-rendering HTML at build time is really easy, even if you need a third-party
 library. Mill does not ship with a bundled HTML templating engine, but you can use the
-`//| mvnDeps` syntax to include one such as Thymeleaf, which would immediately make the
+xref:extending/import-mvn-plugins.adoc[//| mvnDeps] syntax to include one such as
+https://www.thymeleaf.org/[Thymeleaf], which would immediately make the
 Thymeleaf classes available for you to import and use in your build as below:
 
 [source,scala]
@@ -304,7 +306,7 @@ Thymeleaf classes available for you to import and use in your build as below:
 //| mvnDeps: ["org.thymeleaf:thymeleaf:3.1.1.RELEASE"]
 package build
 
-import mill._, javalib._
+import mill.*, javalib.*
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.context.Context
 
@@ -315,7 +317,7 @@ object foo extends JavaModule {
   }
 
   def htmlSnippet = Task {
-    val context = new Context()
+    var context = new Context()
     context.setVariable("heading", "Line Count is: " + lineCount())
     new TemplateEngine().process(
         "<h1 th:text=\"${heading}\"></h1>",
@@ -331,7 +333,7 @@ object foo extends JavaModule {
 ----
 
 Once we have specified our `//| mvnDeps` in the build file YAML header, we can import
-`TemplateEngine`, `Context`, and replace our `def lineCount` with a `def htmlSnippet` task
+`TemplateEngine`, `Context`, and follow our `def lineCount` with a `def htmlSnippet` task
 that uses Thymeleaf to render HTML. We get full IDE support for working with the
 Thymeleaf Java API, the new `htmlSnippet` task is inspectable from the Mill command line
 via `show`, and we wire it up into `def resources` so it can be inspected and used at
@@ -370,16 +372,83 @@ and use it just like we would use it in any Java application, with IDE support,
 typechecking, and all the necessary build tool features like automatic parallelism, caching,
 and invalidation.
 
+=== Mill vs Gradle Configuration as Code
+
+It's worth contrasting the Mill config above with e.g. the equivalent Gradle configuration
+for setting up a line-count resource file:
+
+```kotlin
+import java.io.File
+
+tasks.register("generateLineCount") {
+    val sourceDirs = listOf("src/main/java")
+    val outputDir = layout.buildDirectory.dir("generated-resources")
+    val outputFile = outputDir.get().file("line-count.txt")
+
+    inputs.files(fileTree("src/main"))
+    outputs.file(outputFile)
+
+    doLast {
+        var totalLines = 0
+
+        sourceDirs.map(::file).filter { it.exists() }.forEach { srcDir ->
+            srcDir.walkTopDown()
+                .filter { it.isFile && it.extension in listOf("java") }
+                .forEach { file ->
+                    totalLines += file.readLines().size
+                }
+        }
+
+        outputFile.asFile.writeText(totalLines.toString())
+        println("Generated line-count.txt with $totalLines lines")
+    }
+}
+
+tasks.named("processResources") {
+    dependsOn("generateLineCount")
+    from(layout.buildDirectory.dir("generated-resources"))
+}
+```
+
+While the Gradle config is a bit more verbose than Mill's, that is not where the problem
+lies. The problem lies in the fact that the Gradle "config as code" doesn't _actually_
+look like the code you are writing day-to-day: although it is written in Kotlin,
+things like `task.named`, `dependsOn`, `inputs.files` and `outputs.file`, `doLast`
+(or should we use `doFirst`?) are not "normal" Kotlin. And just
+because you know Kotlin doesn't mean you know how any of this stuff works and can
+debug it when it misbehaves!
+
+In fact, there is even a bug in the above Gradle config that will cause the build to
+be non-deterministically slower sometimes, but not other times.
+Can you spot it? The difficulty of catching these issues e.g. during code review
+illustrates how difficult it is to write "correct" Gradle config: if even the simplest
+hello-world customization results in impossible-to-find bugs slowing things down, how many
+bugs will there be in any more-complex real-world customization or plugin? It's no wonder
+then than real-world builds using Gradle or other tools often end up being inexplicably
+slow and flaky!
+(Click the footnote to see the answer footnote:[The bug is `inputs.files` is depending on `src/main`, when it only really needs
+`src/main/java`. That means that changes to `src/main/resources` or `src/main/templates`
+will cause the task redundantly re-compute, making your build slower than necessary. If the bug was the other way -
+rather than depending on too large a folder instead depending on too small a folder -
+it would instead cause flakiness where `generateLineCount` would sometimes not run when it needs to.])
+
+In contrast, Mill's `extends`, ``def``s, and `overrides`
+behave exactly as you would expect any object-oriented program to work, so you already
+know how Mill behaves even if you've never touched a Mill build before. And the fact
+that Mill build config is so much easier to write means that you're much less likely
+to have bugs causing slowness or flakiness, resulting in the improved performance
+(discussed above) and not needing to regularly run `clean` as you often have to do with other
+build tools.
+
 '''
 
-
 Most real projects require some kind of ad-hoc build tasks: you may be pre-processing static
-assets for web deployment, embedding build metadata for runtime debugging, or pre-rendering
-HTML pages to optimize performance at runtime. With most build tools, you often needed to pull
+assets for web deployment, embedding build metadata for runtime debugging, or generating
+reports for security scanning. With most build tools, you often needed to pull
 in some poorly-maintained plugin off of Github, write your own using a complicated plugin
 framework, or even wrap your build tool in ad-hoc shell scripts. With most other build tools,
-caching and parallelism are things that the build author needs to use manually, meaning nobody
-gets it right and your build performance is never as good as it could be.
+caching and parallelism are things that the build or plugin author needs to set up manually,
+meaning everyone makes mistakes and your build system performance is never as good as it could be.
 
 In contrast, Mill makes it easy it is to write concise type-checked code to perform ad-hoc tasks
 to do whatever you need to do. You get full IDE support, automatic caching and
@@ -391,12 +460,18 @@ build correctly and achieve maximum performance even without being a build tool 
 
 == IDE Support
 
-One area that Mill does better than Maven, Gradle or SBT is providing a seamless IDE
-experience.
+The last area that Mill does better than Maven, Gradle or SBT is providing a seamless IDE
+experience. Working with Mill builds in IntelliJ or VSCode, you get the full power of
+your IDE to autocomplete, peek at docs, browse signatures, and otherwise navigate
+around your build system. Working with your Mill build, you get the same level of
+IDE support as working within any Java, Scala, or Kotlin application codebase.
+
+image:mill::comparisons/IntellijOverrideAutocomplete.png[]
 
 === Limitations of Existing Build Tool IDE Integrations
 
-For example, consider the snippet below where we are using Gradle to
+While JVM application codebases universally have excellent IDE support, build tools are usually
+not nearly as well-supported. For example, consider the snippet below where we are using Gradle to
 configure the javac compiler options. The autocomplete and code-assist experience working
 with these files is hit-or-miss. In the example below, we can see that IntelliJ is able to
 identify that `compileArgs` exists and has the type `List<String>`:
@@ -409,14 +484,15 @@ image::comparisons/IntellijMockitoGradleCompileOptions2.png[]
 
 Often working with build configurations feels like hitting dead ends: if you don't have
 `options.compilerArgs` memorized in your head, there is literally nothing you can do in
-your editor to make progress to figure out what it is or what it is used for. That leaves
+your editor to make progress figuring out what it is or what it is used for. That leaves
 you googling for answers, which can be a frustrating experience that distracts you from
 the task at hand.
 
 Although this example is using Gradle's un-typed Groovy syntax, the experience
 using Gradle's typed Kotlin syntax is largely the same. The problem isn't unique
 to Gradle, and isn't unique to IntelliJ: any IDE would have similar problems working
-with this code, and many build tools ask that you write code in a similar style.
+with this code. The problem is the build tool configuration itself, or rather the
+style of code that most build tools require they be configured with.
 
 === Global Mutable Variables
 
@@ -441,9 +517,9 @@ to work with their global mutable variables effectively.
 
 
 In comparison, not only are Mill's `.mill` files statically typed, they are
-built on top of classes and methods like any other JVM codebase.
-Mill code _actually performs your build_, and one concrete consequence is that
-IntelliJ is able to take your `def javacOptions` override and
+built on top of _classes_ and _methods_ like any other JVM codebase. While IDEs struggle
+with global variables, they are very good at navigating classes and methods!
+For example IntelliJ is able to take your `def javacOptions` override and
 find the original definitions that were overridden, and show you where they are defined:
 
 image::comparisons/IntellijMockitoMillJavacOptionsParents.png[]
@@ -477,6 +553,13 @@ tools, in favor of configuring your build via classes and methods that are famil
 both users and to IDEs.
 
 == Object-Oriented Builds
+
+Mill has a lot of improvements over build tools like Maven or Gradle, but it begs the
+question: why can't other build tools improve performance, extensibility, IDE support
+as well? It turns out that other tools have been working on improving performance,
+extensibility and IDE support - for decades in the case of Maven or Gradle - but Mill
+does have secret sauce that makes providing this experience in Mill much easier than
+providing it in any other build tool.
 
 All build tools are complex, because the requirements of building any size-able real-world
 project are complex. One big source of build tool complexity is that users need some way to
@@ -548,17 +631,21 @@ each module to wire them up
 each having two). And this is one of the simplest possible builds: you can imagine that
 with compiler and runtime flags, code-generation, dependency-downloading, different language
 toolchains, these graphs can get complicated quickly. And any build tool will need some way
-for the user to defines these graphs and maintain them over time.
+for the user to define these graphs and maintain them over time.
 
 Most build tools provide ad-hoc config formats (Maven's XML) or programmatic builder
 APIs (e.g. Gradle's Groovy/Kotlin) to satisfy this need, but these ad-hoc formats
-inevitably end up being unfamiliar and confusing to users. Many try to hide
-complexity behind plugins, but this inevitably leaks when end-users find their build
-pipeline misbehaving and need to debug their plugin interactions, and the attempt
-to hide things may make debugging even more difficult.
+inevitably end up being unfamiliar and confusing to users (e.g. the Gradle code
+xref:#_mill_vs_gradle_configuration_as_code[discussed above]). Many
+tools try to hide complexity behind plugins, but that doesn't actually solve it: plugin
+authors are human too, and can also make mistakes and cause bugs when publishing their plugins.
+It doesn't matter whether the bugs are in your own build customization or in the plugins
+you use if the end result is your build system becomes slow and flaky!
+
 
 Fundamentally, defining an API for templated, customizable graph-computations is
-non-trivial, so is not surprising the APIs and to do so can get complicated.
+non-trivial, so it is not surprising the APIs and to do so can get complicated. But Mill
+has one big insight in how it can be done better:
 
 === Object-Oriented Build Pipelines
 
@@ -586,7 +673,7 @@ Thus, when you see a Mill build configured as such, with an `object` extending a
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
 }
@@ -620,7 +707,7 @@ and call `super`:
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
   /** Total number of lines in module source files */
@@ -662,15 +749,14 @@ digraph G {
 ....
 
 If you want to re-use your build pipeline customizations, it as simple as turning the
-`object foo` into a `interface MyJavaModule` (called a `trait MyJavaModule` in Mill's syntax), so it
-can be inherited
-by `object foo` and `object bar` to share the configuration:
+`object foo` into a `class MyJavaModule` (called a `trait MyJavaModule` in Mill's syntax), so it
+can be inherited  by `object foo` and `object bar` to share the configuration:
 
 
 [source,scala]
 ----
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends MyJavaModule
 object bar extends MyJavaModule
@@ -727,7 +813,7 @@ digraph G {
 If you want to further customize either of those modules, you simply `override`
 one or more of the inherited methods. And if you want to publish your customizations
 for others to use in their own projects,
-you can as xref:extending/writing-plugins.adoc#_publishing[publish
+you can xref:extending/writing-plugins.adoc#_publishing[publish
 MyJavaModule to Maven Central] for others to
 xref:extending/import-mvn-plugins.adoc[import into their build].
 
@@ -735,16 +821,12 @@ Mill's usage of methods, classes, and overrides is also what powers the IDE supp
 discussed earlier on this page. IDEs like IntelliJ or VSCode are uniquely adept at
 working with JVM codebases full of methods and classes, and so
 they can help you navigate and understand your Mill build pipelines just as easily
-as any application codebase.
-
-Mill does not make the complexity in your build pipelines go away, or hide it behind
-hard-coded helpers or plugins. Instead, Mill lets you manage that complexity using the
-same object-oriented programming techniques you are already familiar with. With Mill,
-you can navigate, maintain, and extend your build pipelines in exactly the same way you
-already navigate, maintain, and extend your JVM application code.
+as any application codebase. And the simplicity of this extension model is what
+allows Mill developers to avoid making mistakes aroun caching or parallelism when setting
+up their builds or publishing plugins, which ultimately is what gives Mill builds great
+performance without ever needing to `clean`.
 
 == Conclusion
-
 
 Build systems have traditionally been mysterious black boxes that only experts could work
 with: slow for unknown reasons, with cargo-culted configuration and usage commands,
@@ -753,14 +835,14 @@ The things that a build tool needs to do - templated, customizable graph-computa
 are inherently complex, and so it is not a surprise that this complexity bleeds through
 to the user experience.
 
-While Mill does all the same things that other build tools like Maven or Gradle do,
-it aims to do them better: faster, easier to use, and easier to extend. It brings to
-the table the idea of _Object-Oriented Builds_, using the familiar concepts of methods,
-classes, and overrides to help reduce the barrier to entry of someone who needs to
-learn enough to configure their build tool. Mill democratizing your build system such
-that even non-experts are able to contribute - anyone who has learned Java 101 knows
-the core concepts behind Mill - and they can do so safely and easily with the
-IDE support, library ecosystem, and other quality of life details they are used to.
+Mill does not make the complexity in your build pipelines go away, or hide it behind
+hard-coded helpers or plugins. Instead, Mill lets you manage that complexity using the
+same object-oriented programming techniques you are already familiar with. With Mill,
+you can navigate, maintain, and extend your build pipelines in exactly the same way you
+already navigate, maintain, and extend your JVM application code. And just as
+object-oriented Java, Scala or Kotlin is performance well-understood by developers or
+IDEs, object-oriented Mill build code is similarly able to give you the performance,
+ease of use, and excellent IDE support that the JVM platform is known for.
 
 The rest of this doc-site contains more Mill build tool comparisons
 (with xref:comparisons/maven.adoc[Maven], xref:comparisons/gradle.adoc[Gradle],
@@ -769,3 +851,4 @@ for using Mill with xref:javalib/intro.adoc[Java], with xref:scalalib/intro.adoc
 or with xref:kotlinlib/intro.adoc[Kotlin], and detailed documentation for how Mill
 works. Please try it out and let us know in the
 https://github.com/com-lihaoyi/mill/discussions[discussions forum] how it goes!
+
