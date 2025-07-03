@@ -12,7 +12,7 @@ object PmdModuleTest extends TestSuite {
   val resources: os.Path = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "pmd"
   val modulePath: os.Path = resources / "example"
 
-  def runTest(module: TestRootModule with PmdModule with JavaModule): Unit = {
+  def runTest(module: TestRootModule & PmdModule & JavaModule): Unit = {
     UnitTester(module, modulePath).scoped { eval =>
       val format = "text"
       eval(module.pmd(PmdArgs(
