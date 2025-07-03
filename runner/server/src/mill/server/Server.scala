@@ -32,8 +32,6 @@ abstract class Server[T](
   def outLock: mill.client.lock.Lock
   def out: os.Path
 
-  @volatile var running = true
-  def exitServer(): Unit = running = false
   var stateCache = stateCache0
   def stateCache0: T
 
@@ -55,16 +53,16 @@ abstract class Server[T](
     try {
       Server.tryLockBlock(locks.daemonLock) { locked =>
         serverLog("server file locked")
+        val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
         Server.watchProcessIdFile(
           daemonDir / DaemonFiles.processId,
           processId,
-          running = () => running,
+          running = () => !serverSocket.isClosed,
           exit = msg => {
             serverLog(msg)
-            exitServer()
+            serverSocket.close()
           }
         )
-        val serverSocket = new java.net.ServerSocket(0, 0, InetAddress.getByName(null))
         val activeConnections = java.util.concurrent.atomic.AtomicInteger(0)
         try {
           os.write.over(daemonDir / DaemonFiles.socketPort, serverSocket.getLocalPort.toString)
@@ -84,8 +82,8 @@ abstract class Server[T](
 
           val timeoutThread = new Thread(
             () => {
-              var inactiveTimestampOpt: Option[Int] = None
-              while (running) {
+              var inactiveTimestampOpt: Option[Long] = None
+              while (!serverSocket.isClosed) {
                 Thread.sleep(1)
                 (inactiveTimestampOpt, activeConnections.intValue()) match {
                   case (None, 0) =>
@@ -93,11 +91,10 @@ abstract class Server[T](
                     serverLog(s"daemon inactive at timestamp $timestamp")
                     inactiveTimestampOpt = Some(timestamp)
 
-                  case (inactiveTimestamp, 0) =>
+                  case (Some(inactiveTimestamp), 0) =>
                     val timestamp = System.currentTimeMillis()
                     if (timestamp - inactiveTimestamp > acceptTimeoutMillis) {
                       serverLog(s"shutting down at $timestamp due inactivity")
-                      running = false
                       serverSocket.close()
                     }
                   case (_, _) => inactiveTimestampOpt = None
@@ -107,19 +104,24 @@ abstract class Server[T](
             "MillServerTimeoutThread"
           )
           timeoutThread.start()
-          while (running) {
-            val sockOpt =
+          while (!serverSocket.isClosed) {
+            val socketOpt =
               try Some(serverSocket.accept())
               catch { case e: java.net.SocketException => None }
 
-            sockOpt match {
+            socketOpt match {
               case Some(sock) =>
                 serverLog("handling run")
                 new Thread(
                   () =>
                     try {
                       activeConnections.getAndIncrement()
-                      handleRun(systemExit, sock, initialSystemProperties)
+                      handleRun(
+                        systemExit,
+                        sock,
+                        initialSystemProperties,
+                        () => serverSocket.close()
+                      )
                     } catch {
                       case e: Throwable =>
                         serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
@@ -143,7 +145,6 @@ abstract class Server[T](
         throw e
     } finally {
       serverLog("finally exitServer")
-      exitServer()
     }
   }
 
@@ -161,7 +162,8 @@ abstract class Server[T](
   def handleRun(
       systemExit: Int => Nothing,
       clientSocket: Socket,
-      initialSystemProperties: Map[String, String]
+      initialSystemProperties: Map[String, String],
+      serverSocketClose: () => Unit
   ): Unit = {
     val currentOutErr = clientSocket.getOutputStream
     val writtenExitCode = AtomicBoolean()
@@ -277,7 +279,7 @@ abstract class Server[T](
 
       if (!idle) {
         serverLog("client interrupted while server was executing command")
-        exitServer()
+        serverSocketClose()
       }
 
       t.interrupt()

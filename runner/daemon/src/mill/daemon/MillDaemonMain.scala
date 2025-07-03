@@ -37,6 +37,8 @@ object MillDaemonMain {
         acceptTimeoutMillis = acceptTimeoutMillis,
         Locks.files(args0(0))
       ).run()
+
+      System.exit(ClientUtil.ExitServerCodeWhenIdle())
     }
   }
 }
@@ -50,9 +52,6 @@ class MillDaemonMain(
       locks
     ) {
 
-  override def exitServer(): Unit = {
-    super.exitServer(); System.exit(ClientUtil.ExitServerCodeWhenIdle())
-  }
   def stateCache0 = RunnerState.empty
 
   val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)

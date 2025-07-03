@@ -29,10 +29,6 @@ object ClientServerTests extends TestSuite {
 
     override def out = os.temp.dir()
 
-    override def exitServer() = {
-      serverLog("exiting server")
-      super.exitServer()
-    }
     def stateCache0 = None
 
     override def serverLog0(s: String) = {
