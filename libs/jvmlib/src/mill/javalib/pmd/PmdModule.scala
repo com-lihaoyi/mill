@@ -130,10 +130,9 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       failOnViolation: Boolean,
       violationCount: Option[Int]
   )(implicit ctx: TaskCtx): Unit = {
-    if (failOnViolation)
-      Task.fail(s"PMD found ${violationCount.getOrElse("some")} violation(s)")
-    else
-      Task.log.error(s"PMD found ${violationCount.getOrElse("some")} violation(s)")
+    val msg = s"PMD found ${violationCount.getOrElse("some")} violation(s)"
+    if (failOnViolation) Task.fail(msg)
+    else Task.log.error(msg)
   }
 
   /**
