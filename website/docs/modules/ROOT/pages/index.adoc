@@ -16,8 +16,8 @@ xref:comparisons/why-mill.adoc#_ide_support[superior autocomplete and navigation
 
 Although the Java compiler is very fast and the Java language is easy to learn,
 JVM build tools have a reputation for being sluggish and confusing. Mill tries to
-offer a better alternative, letting your build system take full advantage of the
-Java platform's performance and usability.
+offer a better alternative, its xref:comparisons/why-mill.adoc#_object_oriented_builds[object-oriented builds]
+letting your build system take full advantage of the Java platform's performance, usability, and IDE support.
 
 If you prefer a video introduction to Mill, see:
 
