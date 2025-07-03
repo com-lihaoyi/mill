@@ -1,4 +1,4 @@
-= Releasing Mill JVM Build Tool Version 1.0.0
+= Releasing Version 1.0.0 of the Mill JVM Build Tool
 
 :link-github: https://github.com/com-lihaoyi/mill
 :link-pr: {link-github}/pull
