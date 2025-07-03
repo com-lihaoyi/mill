@@ -257,6 +257,9 @@ object ClientServerTests extends TestSuite {
       )
     }
     test("longCommandNotInterrupted") {
+      // Make sure that when the command at 3000ms takes longer than the server
+      // timeout at 1000ms, the command still finishes running and the server doesn't
+      // shut down half way through
       val tester = new Tester(testLogEvenWhenServerIdWrong = true, commandSleepMillis = 3000)
       val res1 = tester(args = Array("world"))
       assert(

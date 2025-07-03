@@ -63,7 +63,35 @@ abstract class Server[T](
             serverSocket.close()
           }
         )
-        val activeConnections = java.util.concurrent.atomic.AtomicInteger(0)
+
+        // Wrapped object to encapsulate `activeConnections` and `inactiveTimestampOpt`,
+        // ensuring they get incremented and decremented together across multiple threads
+        // and never get out of sync
+        object ConnectionTracker {
+          private var activeConnections = 0
+          private var inactiveTimestampOpt: Option[Long] = None
+          def increment() = synchronized {
+            activeConnections += 1
+            inactiveTimestampOpt = None
+          }
+
+          def decrement() = synchronized {
+            activeConnections -= 1
+            if (activeConnections == 0) {
+              inactiveTimestampOpt = Some(System.currentTimeMillis())
+            }
+          }
+
+          def closeIfTimedOut() = synchronized {
+            inactiveTimestampOpt.foreach { inactiveTimestamp =>
+              if (System.currentTimeMillis() - inactiveTimestamp > acceptTimeoutMillis) {
+                serverLog(s"shutting down due inactivity")
+                serverSocket.close()
+              }
+            }
+          }
+        }
+
         try {
           os.write.over(daemonDir / DaemonFiles.socketPort, serverSocket.getLocalPort.toString)
           serverLog("listening on port " + serverSocket.getLocalPort)
@@ -82,28 +110,15 @@ abstract class Server[T](
 
           val timeoutThread = new Thread(
             () => {
-              var inactiveTimestampOpt: Option[Long] = None
               while (!serverSocket.isClosed) {
                 Thread.sleep(1)
-                (inactiveTimestampOpt, activeConnections.intValue()) match {
-                  case (None, 0) =>
-                    val timestamp = System.currentTimeMillis()
-                    serverLog(s"daemon inactive at timestamp $timestamp")
-                    inactiveTimestampOpt = Some(timestamp)
-
-                  case (Some(inactiveTimestamp), 0) =>
-                    val timestamp = System.currentTimeMillis()
-                    if (timestamp - inactiveTimestamp > acceptTimeoutMillis) {
-                      serverLog(s"shutting down due inactivity")
-                      serverSocket.close()
-                    }
-                  case (_, _) => inactiveTimestampOpt = None
-                }
+                ConnectionTracker.closeIfTimedOut()
               }
             },
             "MillServerTimeoutThread"
           )
           timeoutThread.start()
+
           while (!serverSocket.isClosed) {
             val socketOpt =
               try Some(serverSocket.accept())
@@ -115,7 +130,7 @@ abstract class Server[T](
                 new Thread(
                   () =>
                     try {
-                      activeConnections.getAndIncrement()
+                      ConnectionTracker.increment()
                       handleRun(
                         systemExit,
                         sock,
@@ -126,7 +141,7 @@ abstract class Server[T](
                       case e: Throwable =>
                         serverLog(e.toString + "\n" + e.getStackTrace.mkString("\n"))
                     } finally {
-                      activeConnections.getAndDecrement()
+                      ConnectionTracker.decrement()
                       sock.close()
                     },
                   "HandleRunThread"
