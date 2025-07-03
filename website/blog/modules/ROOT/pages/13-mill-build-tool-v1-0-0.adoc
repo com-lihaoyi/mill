@@ -33,7 +33,7 @@ meaning running `./mill` commands in the terminal can often complete in as littl
 ```bash
 $  time ./mill foo.compile
 [35/35] foo.compile
-[35] [info] compiling 1 Java source to /Users/lihaoyi/test/mill-dist-1.0.0-RC2-68-43069c-example-javalib-basic-1-simple/out/foo/compile.dest/classes ...
+[35] [info] compiling 1 Java source...
 [35] [info] done compiling
 ./mill foo.compile  0.01s user 0.01s system 20% cpu 0.109 total
 ```
