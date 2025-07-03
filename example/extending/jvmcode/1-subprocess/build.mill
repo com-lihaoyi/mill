@@ -4,7 +4,7 @@
 //
 // * `defaultResolver().classpath` to resolve the dependencies from Maven Central,
 //   converting `org:name:version` coordinates (and their transitive dependencies) to
-//   `PathRef`s referring to files on disk
+//   ``PathRef``s referring to files on disk
 //
 // * `Jvm.runSubprocess`, which runs the given classpath files in a subprocess, starting
 //   from specified `mainClass`
