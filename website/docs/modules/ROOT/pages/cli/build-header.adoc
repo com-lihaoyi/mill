@@ -22,7 +22,8 @@ For example, a build header may look something like:
 //| mvnDeps:
 //| - com.goyeau::mill-scalafix::0.5.1-14-4d3f5ea-SNAPSHOT
 
-...rest of the build.mill file...
+package build
+...
 ----
 
 Mill's build headers can contain the following keys:
