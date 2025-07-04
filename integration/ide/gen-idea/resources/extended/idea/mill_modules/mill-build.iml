@@ -19,16 +19,20 @@
         <orderEntry type="library" scope="RUNTIME" name="commons-io-2.18.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-lang3-3.14.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="concurrent-reference-hash-map-1.1.0.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="config_3-1.8.0.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="config_3-1.8.3.jar" level="project"/>
+        <orderEntry type="library" name="coursier-archive-cache_2.13-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" name="coursier-cache_2.13-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" name="coursier-core_2.13-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="coursier-env_2.13-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="coursier-exec-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" name="coursier-jvm_2.13-COURSIER_VERSION.jar" level="project"/>
+        <orderEntry type="library" name="coursier-paths-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="coursier-proxy-setup-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" name="coursier-util_2.13-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" name="coursier_2.13-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="dependency_2.13-0.3.2.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="directories-0.1.4.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="directories-jni-0.1.4.jar" level="project"/>
         <orderEntry type="library" name="fansi_3-0.5.0.jar" level="project"/>
         <orderEntry type="library" name="fastparse_3-3.1.1.jar" level="project"/>
         <orderEntry type="library" name="geny_3-1.1.1.jar" level="project"/>
@@ -47,8 +51,7 @@
         <orderEntry type="library" scope="RUNTIME" name="jline-native-3.29.0.jar" level="project"/>
         <orderEntry type="library" name="jna-5.13.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jna-5.17.0.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="jsoniter-scala-core_2.13-2.13.39.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="jsoniter-scala-core_3-2.13.5.2.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="jsoniter-scala-core_2.13-2.13.5.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jsr305-3.0.2.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jul-to-slf4j-1.7.30.jar" level="project"/>
         <orderEntry type="library" name="junit-4.13.2.jar" level="project"/>
@@ -119,7 +122,7 @@
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-upickle_3-0.5.0.jar" level="project"/>
         <orderEntry type="library" name="sourcecode_2.13-0.4.2.jar" level="project"/>
         <orderEntry type="library" name="sourcecode_3-0.4.3-M5.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="specification-level_3-1.8.0.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="specification-level_3-1.8.3.jar" level="project"/>
         <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="tika-core-3.1.0.jar" level="project"/>
         <orderEntry type="library" name="trees_2.13-4.13.4.jar" level="project"/>
