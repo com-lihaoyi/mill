@@ -152,7 +152,7 @@ trait MainModule extends BaseModule with MainModuleApi {
   def clean(evaluator: Evaluator, tasks: String*): Command[Seq[PathRef]] =
     Task.Command(exclusive = true) { cleanTask(evaluator, tasks*)() }
 
-  def cleanTask(evaluator: Evaluator, tasks: String*) = Task.Anon{
+  def cleanTask(evaluator: Evaluator, tasks: String*) = Task.Anon {
     val rootDir = evaluator.outPath
 
     val KeepPattern = "(mill-.+)".r.anchored
@@ -201,6 +201,7 @@ trait MainModule extends BaseModule with MainModuleApi {
     }
 
   }
+
   /**
    * Renders the dependencies between the given tasks as a SVG for you to look at
    */
