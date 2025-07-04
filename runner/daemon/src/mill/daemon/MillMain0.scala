@@ -408,7 +408,8 @@ object MillMain0 {
                       (!errored, RunnerState(None, Nil, None))
                     } else if (
                       config.leftoverArgs.value == Seq("mill.idea.GenIdea/idea") ||
-                      config.leftoverArgs.value == Seq("mill.idea.GenIdea/")
+                      config.leftoverArgs.value == Seq("mill.idea.GenIdea/") ||
+                      config.leftoverArgs.value == Seq("mill.idea/")
                     ) {
                       val runnerState =
                         runMillBootstrap(false, None, Seq("version"), streams, "BSP:initialize")
