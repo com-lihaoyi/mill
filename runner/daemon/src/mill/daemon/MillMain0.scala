@@ -171,7 +171,8 @@ object MillMain0 {
 
                 val viaEmulatedExternalCommand = Option.when(
                   !config.bsp.value &&
-                    config.leftoverArgs.value.headOption.contains("mill.bsp.BSP/install")
+                    (config.leftoverArgs.value.headOption.contains("mill.bsp.BSP/install") ||
+                      config.leftoverArgs.value.headOption.contains("mill.bsp/install"))
                 ) {
                   config.leftoverArgs.value.tail match {
                     case Seq() => defaultJobCount
@@ -408,7 +409,8 @@ object MillMain0 {
                       (!errored, RunnerState(None, Nil, None))
                     } else if (
                       config.leftoverArgs.value == Seq("mill.idea.GenIdea/idea") ||
-                      config.leftoverArgs.value == Seq("mill.idea.GenIdea/")
+                      config.leftoverArgs.value == Seq("mill.idea.GenIdea/") ||
+                      config.leftoverArgs.value == Seq("mill.idea/")
                     ) {
                       val runnerState =
                         runMillBootstrap(false, None, Seq("version"), streams, "BSP:initialize")
