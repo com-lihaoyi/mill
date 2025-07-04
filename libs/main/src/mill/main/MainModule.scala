@@ -142,7 +142,7 @@ trait MainModule extends BaseModule with MainModuleApi {
       evaluator: EvaluatorApi,
       tasks: String*
   ): TaskApi[Seq[java.nio.file.Path]] = Task.Anon {
-    clean(evaluator.asInstanceOf[Evaluator], tasks*)().map(_.path.toNIO)
+    cleanTask(evaluator.asInstanceOf[Evaluator], tasks*)().map(_.path.toNIO)
   }
 
   /**
@@ -150,54 +150,57 @@ trait MainModule extends BaseModule with MainModuleApi {
    * will clean everything.
    */
   def clean(evaluator: Evaluator, tasks: String*): Command[Seq[PathRef]] =
-    Task.Command(exclusive = true) {
-      val rootDir = evaluator.outPath
+    Task.Command(exclusive = true) { cleanTask(evaluator, tasks*)() }
 
-      val KeepPattern = "(mill-.+)".r.anchored
+  def cleanTask(evaluator: Evaluator, tasks: String*) = Task.Anon {
+    val rootDir = evaluator.outPath
 
-      def keepPath(path: os.Path) = path.last match {
-        case KeepPattern(_) => true
-        case _ => false
-      }
+    val KeepPattern = "(mill-.+)".r.anchored
 
-      val pathsToRemove =
-        if (tasks.isEmpty)
-          Result.Success((os.list(rootDir).filterNot(keepPath), List(mill.api.Segments())))
-        else
-          evaluator.resolveSegments(tasks, SelectMode.Multi).map { ts =>
-            val allPaths = ts.flatMap { segments =>
-              val evPaths = ExecutionPaths.resolve(rootDir, segments)
-              val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
-              val potentialModulePath = rootDir / segments.parts
-              if (os.exists(potentialModulePath)) {
-                // this is either because of some pre-Mill-0.10 files lying around
-                // or most likely because the segments denote a module but not a task
-                // in which case we want to remove the module and all its sub-modules
-                // (If this logic is later found to be too harsh, we could further guard it,
-                // to when none of the other paths exists.)
-                paths :+ potentialModulePath
-              } else paths
-            }
-            (allPaths, ts)
-          }
-
-      (pathsToRemove: @unchecked).map {
-        case (paths, allSegments) =>
-          for {
-            workerSegments <- evaluator.workerCache.keys.toList
-            if allSegments.exists(x => workerSegments.startsWith(x.render))
-            case (_, Val(closeable: AutoCloseable)) <-
-              evaluator.workerCache.remove(workerSegments)
-          } {
-            closeable.close()
-          }
-
-          val existing = paths.filter(p => os.exists(p))
-          Task.log.debug(s"Cleaning ${existing.size} paths ...")
-          existing.foreach(os.remove.all(_, ignoreErrors = true))
-          existing.map(PathRef(_))
-      }
+    def keepPath(path: os.Path) = path.last match {
+      case KeepPattern(_) => true
+      case _ => false
     }
+
+    val pathsToRemove =
+      if (tasks.isEmpty)
+        Result.Success((os.list(rootDir).filterNot(keepPath), List(mill.api.Segments())))
+      else
+        evaluator.resolveSegments(tasks, SelectMode.Multi).map { ts =>
+          val allPaths = ts.flatMap { segments =>
+            val evPaths = ExecutionPaths.resolve(rootDir, segments)
+            val paths = Seq(evPaths.dest, evPaths.meta, evPaths.log)
+            val potentialModulePath = rootDir / segments.parts
+            if (os.exists(potentialModulePath)) {
+              // this is either because of some pre-Mill-0.10 files lying around
+              // or most likely because the segments denote a module but not a task
+              // in which case we want to remove the module and all its sub-modules
+              // (If this logic is later found to be too harsh, we could further guard it,
+              // to when none of the other paths exists.)
+              paths :+ potentialModulePath
+            } else paths
+          }
+          (allPaths, ts)
+        }
+
+    (pathsToRemove: @unchecked).map {
+      case (paths, allSegments) =>
+        for {
+          workerSegments <- evaluator.workerCache.keys.toList
+          if allSegments.exists(x => workerSegments.startsWith(x.render))
+          case (_, Val(closeable: AutoCloseable)) <-
+            evaluator.workerCache.remove(workerSegments)
+        } {
+          closeable.close()
+        }
+
+        val existing = paths.filter(p => os.exists(p))
+        Task.log.debug(s"Cleaning ${existing.size} paths ...")
+        existing.foreach(os.remove.all(_, ignoreErrors = true))
+        existing.map(PathRef(_))
+    }
+
+  }
 
   /**
    * Renders the dependencies between the given tasks as a SVG for you to look at
