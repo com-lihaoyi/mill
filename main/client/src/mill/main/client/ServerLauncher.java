@@ -117,6 +117,7 @@ public abstract class ServerLauncher {
       Util.writeString(f, BuildInfo.millVersion);
       Util.writeArgs(args, f);
       Util.writeMap(env, f);
+      Util.writeMap(Util.getUserSetProperties(), f);
     }
 
     if (locks.processLock.probe()) initServer(serverDir, setJnaNoSys, locks);
