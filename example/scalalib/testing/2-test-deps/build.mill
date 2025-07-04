@@ -18,7 +18,7 @@ object qux extends ScalaModule {
   def moduleDeps = Seq(baz)
 
   object test extends ScalaTests, TestModule.Utest {
-    def utestVersion = "0.8.8"
+    def utestVersion = "0.8.9"
     def moduleDeps = super.moduleDeps ++ Seq(baz.test)
   }
 }
@@ -27,7 +27,7 @@ object baz extends ScalaModule {
   def scalaVersion = "3.7.1"
 
   object test extends ScalaTests, TestModule.Utest {
-    def utestVersion = "0.8.8"
+    def utestVersion = "0.8.9"
   }
 }
 
