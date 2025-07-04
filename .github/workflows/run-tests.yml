@@ -222,7 +222,7 @@ jobs:
             install-sbt: false
 
           - java-version: 11
-            millargs: "'integration.{failure,feature,ide}.__.native.daemon'"
+            millargs: "'integration.{failure,feature,ide}.__.packaged.daemon'"
             install-android-sdk: false
             install-sbt: false
 
