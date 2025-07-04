@@ -42,8 +42,11 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       "Version of ComposePreviewRenderer"
     ),
     BuildInfo.Value("uiToolingVersion", Deps.AndroidDeps.uiTooling.version, "Version of uiTooling"),
-    BuildInfo.Value("screenshotValidationJunitEngineVersion", Deps.AndroidDeps.screenshotValidationJunitEngine.version, "Version of screenshotValidationJunitEngine"),
-
+    BuildInfo.Value(
+      "screenshotValidationJunitEngineVersion",
+      Deps.AndroidDeps.screenshotValidationJunitEngine.version,
+      "Version of screenshotValidationJunitEngine"
+    )
   )
 
   trait MillAndroidModule extends MillPublishScalaModule {
