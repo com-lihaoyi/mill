@@ -64,9 +64,6 @@ object ClientServerTests extends TestSuite {
         env.toSeq.sortBy(_._1).foreach {
           case (key, value) => streams.out.println(s"$key=$value")
         }
-        // systemProperties.toSeq.sortBy(_._1).foreach {
-        //   case (key, value) => streams.out.println(s"$key=$value")
-        // }
         if (args.nonEmpty) {
           streams.err.println(str.toUpperCase + args(0))
         }
