@@ -12,7 +12,6 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
 
   def mimaPreviousArtifacts: T[Seq[Dep]] = Task {
     Settings.mimaBaseVersions
-      .filter(v => !skipPreviousVersions().contains(v))
       .map({ version =>
         val patchedSuffix = {
           val base = artifactSuffix()
@@ -31,10 +30,5 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
       })
   }
 
-  def mimaExcludeAnnotations = Seq("mill.api", "mill.api.experimental")
-//  def mimaCheckDirection = CheckDirection.Backward
-  def skipPreviousVersions: T[Seq[String]] = Task {
-    Task.log.info("Skipping mima for previous versions (!!1000s of errors due to Scala 3)")
-    mimaPreviousVersions() // Task {Seq.empty[String]}
-  }
+  def mimaExcludeAnnotations = Seq("mill.api.internal.internal", "mill.api.experimental")
 }
