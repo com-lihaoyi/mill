@@ -832,6 +832,22 @@ assuming you want to register the script yourself (e.g. by placing it in a relev
 </div>
 </div>
 <div class="sect1">
+<h2 id="_github_syntax_highlighting"><a class="anchor" href="#_github_syntax_highlighting"></a>Github Syntax Highlighting</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Github doesn’t yet have built-in support for syntax highlighting <code>.mill</code> files appropriately
+(see <a href="https://github.com/github-linguist/linguist/pull/7028">github-linguist/linguist#7028</a>)
+but you can set this up in your own projects by creating a <code>.gitattributes</code> file in the root
+of your Github repository</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">&gt; echo '*.mill linguist-language=Scala' &gt; .gitattributes</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_ide_support"><a class="anchor" href="#_ide_support"></a>IDE Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
