@@ -2,10 +2,6 @@
 
 set -eux
 
-export MILL_STABLE_VERSION=1
-
-git pull --unshallow
-
 # Starting from scratch...
 git stash -u
 git stash -a
