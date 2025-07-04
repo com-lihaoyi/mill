@@ -171,7 +171,8 @@ object MillMain0 {
 
                 val viaEmulatedExternalCommand = Option.when(
                   !config.bsp.value &&
-                    config.leftoverArgs.value.headOption.contains("mill.bsp.BSP/install")
+                    (config.leftoverArgs.value.headOption.contains("mill.bsp.BSP/install") ||
+                    config.leftoverArgs.value.headOption.contains("mill.bsp/install"))
                 ) {
                   config.leftoverArgs.value.tail match {
                     case Seq() => defaultJobCount
