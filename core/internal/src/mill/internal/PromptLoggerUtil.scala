@@ -149,21 +149,9 @@ private object PromptLoggerUtil {
   def renderPromptWrapped(
       currentPromptLines: Seq[String],
       interactive: Boolean,
-      ending: Boolean
   ): String = {
     if (!interactive) currentPromptLines.mkString("\n") + "\n"
-    else {
-      // For the ending prompt, leave the cursor at the bottom on a new line rather than
-      // scrolling back left/up. We do not want further output to overwrite the header as
-      // it will no longer re-render
-      val backUp =
-        if (ending) "\n"
-        else AnsiNav.left(9999) + AnsiNav.up(currentPromptLines.length - 1)
-
-      currentPromptLines.map(_ + AnsiNav.clearLine(0)).mkString("\n") +
-        AnsiNav.clearScreen(0) +
-        backUp
-    }
+    else currentPromptLines.map(_ + AnsiNav.clearLine(0)).mkString("\n") + "\n"
   }
 
   def renderHeader(

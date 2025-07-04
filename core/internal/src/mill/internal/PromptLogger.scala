@@ -264,13 +264,27 @@ private[mill] object PromptLogger {
 
     def awaitPumperEmpty(): Unit = { while (pipe.input.available() != 0) Thread.sleep(2) }
 
-    private var promptShown = true
+    @volatile var lastPromptHeight = 0
+    def writeCurrentPrompt(): Unit = systemStreams0.err.write(getCurrentPrompt())
 
-    def writeCurrentPrompt(): Unit = {
-      systemStreams0.err.write(getCurrentPrompt())
+    def moveUp() = {
+      mill.constants.DebugLog.println("moveUp " + lastPromptHeight)
+      systemStreams0.err.write((AnsiNav.left(9999) + AnsiNav.up(lastPromptHeight)).getBytes)
     }
-
-    def refreshPrompt(): Unit = if (promptShown) writeCurrentPrompt()
+    def saveLastPromptHeight() = {
+      mill.constants.DebugLog.println("currentPrompt " + pprint.apply(fansi.Str(new String(getCurrentPrompt()), fansi.ErrorMode.Sanitize).toString))
+      mill.constants.DebugLog.println("lastPromptHeight " + pprint.apply(lastPromptHeight).toString)
+      lastPromptHeight = new String(getCurrentPrompt()).linesIterator.size
+    }
+    def refreshPrompt(): Unit = if (lastPromptHeight != 0) {
+      if (!paused()) {
+        Thread.sleep(500)
+        moveUp()
+        writeCurrentPrompt()
+        saveLastPromptHeight()
+        Thread.sleep(500)
+      }
+    }
 
     def clearOnPause(): Unit = {
       // Clear the prompt so the code in `t` has a blank terminal to work with
@@ -303,25 +317,33 @@ private[mill] object PromptLogger {
           // to ensure we don't cut off lines halfway
           lastCharWritten == '\n'
         ) {
-          promptShown = true
           writeCurrentPrompt()
+          saveLastPromptHeight()
+          Thread.sleep(500)
         }
       }
+
 
       override def write(dest: OutputStream, buf: Array[Byte], end: Int): Unit = {
         lastCharWritten = buf(end - 1).toChar
         val clearLines = enableTicker && interactive()
-        if (clearLines && promptShown) dest.write(AnsiNav.clearScreen(0).getBytes)
-        if (interactive() && !paused() && promptShown) promptShown = false
+        if (clearLines && lastPromptHeight != 0) dest.write(AnsiNav.clearScreen(0).getBytes)
+        if (interactive() && !paused() && lastPromptHeight != 0) {
+          moveUp()
+          Thread.sleep(500)
+          lastPromptHeight = 0
+        }
+
 
         if (clearLines) {
           // Clear each line as they are drawn, rather than relying on clearing
           // the entire screen before each batch of writes, to try and reduce the
           // amount of terminal flickering in slow terminals (e.g. windows)
           // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
+          mill.constants.DebugLog.println("output " + pprint.apply(fansi.Str(new String(buf, 0, end)).plainText))
           dest.write(
             new String(buf, 0, end)
-              .replaceAll("(\r\n|\n|\t)", "$1" + AnsiNav.clearScreen(0))
+              .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
               .getBytes
           )
         } else {
@@ -398,7 +420,7 @@ private[mill] object PromptLogger {
       )
 
       val oldPromptBytes = currentPromptBytes
-      currentPromptBytes = renderPromptWrapped(currentPromptLines, interactive, ending).getBytes
+      currentPromptBytes = renderPromptWrapped(currentPromptLines, interactive).getBytes
       !java.util.Arrays.equals(oldPromptBytes, currentPromptBytes)
     }
 
