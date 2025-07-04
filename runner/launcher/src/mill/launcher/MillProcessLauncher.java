@@ -29,7 +29,7 @@ public class MillProcessLauncher {
     final List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand());
     Map<String, String> propsMap = ClientUtil.getUserSetProperties();
-    for(String key: propsMap.keySet()) l.add("-D" + key + "=" + propsMap.get(key));
+    for (String key : propsMap.keySet()) l.add("-D" + key + "=" + propsMap.get(key));
     l.add("mill.daemon.MillNoDaemonMain");
     l.add(processDir.toAbsolutePath().toString());
     l.addAll(millOpts());

@@ -29,9 +29,8 @@ public class ClientUtil {
    * the Mill daemon process appropriately
    */
   public static Map<String, String> getUserSetProperties() {
-    java.util.Set<String> bannedPrefixes = java.util.Set.of(
-      "path", "line", "native", "sun", "os", "java", "file", "jdk", "user"
-    );
+    java.util.Set<String> bannedPrefixes =
+        java.util.Set.of("path", "line", "native", "sun", "os", "java", "file", "jdk", "user");
 
     java.util.Properties props = System.getProperties();
     Map<String, String> propsMap = new java.util.HashMap<>();
