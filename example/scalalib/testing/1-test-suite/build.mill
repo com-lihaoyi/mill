@@ -5,7 +5,7 @@ import mill.*, scalalib.*
 object foo extends ScalaModule {
   def scalaVersion = "3.7.1"
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.8")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -67,7 +67,7 @@ object bar extends ScalaModule {
   def scalaVersion = "3.7.1"
 
   object test extends ScalaTests, TestModule.Utest {
-    def utestVersion = "0.8.8"
+    def utestVersion = "0.8.9"
   }
 }
 
