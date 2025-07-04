@@ -466,7 +466,7 @@ your IDE to autocomplete, peek at docs, browse signatures, and otherwise navigat
 around your build system. Working with your Mill build, you get the same level of
 IDE support as working within any Java, Scala, or Kotlin application codebase.
 
-image:mill::comparisons/IntellijOverrideAutocomplete.png[]
+image:comparisons/IntellijOverrideAutocomplete.png[]
 
 === Limitations of Existing Build Tool IDE Integrations
 
@@ -476,11 +476,11 @@ configure the javac compiler options. The autocomplete and code-assist experienc
 with these files is hit-or-miss. In the example below, we can see that IntelliJ is able to
 identify that `compileArgs` exists and has the type `List<String>`:
 
-image::comparisons/IntellijMockitoGradleCompileOptions.png[]
+image:comparisons/IntellijMockitoGradleCompileOptions.png[]
 
 But if you try to jump to definition or find out anything else about it you hit a wall:
 
-image::comparisons/IntellijMockitoGradleCompileOptions2.png[]
+image:comparisons/IntellijMockitoGradleCompileOptions2.png[]
 
 Often working with build configurations feels like hitting dead ends: if you don't have
 `options.compilerArgs` memorized in your head, there is literally nothing you can do in

@@ -287,7 +287,7 @@ trait JavaModule
    *  This is meant to be overridden to add dependencies.
    *  To read the value, you should use [[moduleDepsChecked]] instead,
    *  which uses a cached result which is also checked to be free of cycle.
-   *  @see [[moduleDepschecked]]
+   *  @see [[moduleDepsChecked]]
    */
   def moduleDeps: Seq[JavaModule] = Seq.empty
 
