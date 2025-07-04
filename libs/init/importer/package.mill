@@ -1,12 +1,40 @@
 package build.libs.init.importer
 
-import mill.api.{Cross, Module}
-import millbuild.{Deps, MillPublishCrossScalaModule}
+import mill.PathRef
+import mill.api.{BuildCtx, Cross, Module, Task}
+import mill.contrib.buildinfo.BuildInfo
+import mill.scalalib.Assembly
+import millbuild._
 
 object `package` extends Module {
 
-  object ir extends Cross[IrModule](Deps.scalaVersion, Deps.sbtScalaVersion212)
-  trait IrModule extends MillPublishCrossScalaModule {
-    def mvnDeps = Seq(Deps.upickle)
+  object api extends Cross[ApiModule](Deps.scalaVersion, Deps.sbtScalaVersion212)
+  trait ApiModule extends MillPublishCrossScalaModule {
+    def mvnDeps = Seq(Deps.osLib, Deps.upickle)
+  }
+
+  object sbt extends MillPublishScalaModule with BuildInfo {
+    def exporterAssemblyName = "exporter-assembly.jar"
+    def buildInfoMembers = Seq(
+      BuildInfo.Value("exporterAssemblyResource", s"/$exporterAssemblyName")
+    )
+    def buildInfoPackageName = "mill.init.importer.sbt"
+    def resources = Task {
+      val dest = Task.dest
+      BuildCtx.withFilesystemCheckerDisabled {
+        os.copy(exporter.assembly().path, dest / exporterAssemblyName)
+      }
+      super.resources() ++ Seq(PathRef(dest))
+    }
+    def mvnDeps = Seq(Deps.pprint)
+    def moduleDeps = Seq(api(Deps.scalaVersion), build.core.util)
+
+    object exporter extends MillScalaModule {
+      def assemblyRules = Seq(Assembly.Rule.ExcludePattern("scala\\.*"))
+      def compileMvnDeps = Seq(Deps.sbt)
+      def moduleDeps = Seq(api(Deps.sbtScalaVersion212))
+      def scalaVersion = Deps.sbtScalaVersion212
+      def scalacOptions = Seq("-deprecation", "-feature")
+    }
   }
 }
