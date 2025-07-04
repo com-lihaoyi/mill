@@ -217,7 +217,8 @@ abstract class Server[T](
       val env = ClientUtil.parseMap(socketIn)
       serverLog("args " + upickle.default.write(args))
       serverLog("env " + upickle.default.write(env.asScala))
-//      val userSpecifiedProperties = ClientUtil.parseMap(socketIn)
+      val userSpecifiedProperties = ClientUtil.parseMap(socketIn)
+      serverLog("props " + upickle.default.write(userSpecifiedProperties.asScala))
       // Proxy the input stream through a pair of Piped**putStream via a pumper,
       // as the `UnixDomainSocketInputStream` we get directly from the socket does
       // not properly implement `available(): Int` and thus messes up polling logic
@@ -269,7 +270,7 @@ abstract class Server[T](
               new SystemStreams(stdout, stderr, proxiedSocketInput),
               env.asScala.toMap,
               idle = _,
-              Map(),
+              userSpecifiedProperties.asScala.toMap,
               initialSystemProperties,
               systemExit = exitCode => {
                 writeExitCode(exitCode)

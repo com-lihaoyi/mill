@@ -22,6 +22,26 @@ public class ClientUtil {
 
   private static Charset utf8 = Charset.forName("UTF-8");
 
+  /**
+   * When using Graal Native Image, the launcher receives any `-D` properties
+   * as system properties rather than command-line flags. Thus we try to identify
+   * any system properties that are set by the user so we can propagate them to
+   * the Mill daemon process appropriately
+   */
+  public static Map<String, String> getUserSetProperties() {
+    java.util.Set<String> bannedPrefixes =
+        java.util.Set.of("path", "line", "native", "sun", "os", "java", "file", "jdk", "user");
+
+    java.util.Properties props = System.getProperties();
+    Map<String, String> propsMap = new java.util.HashMap<>();
+    for (String key : props.stringPropertyNames()) {
+      if (!bannedPrefixes.contains(key.split("\\.")[0])) {
+        propsMap.put(key, props.getProperty(key));
+      }
+    }
+    return propsMap;
+  }
+
   public static String[] parseArgs(InputStream argStream) throws IOException {
     int argsLength = readInt(argStream);
     String[] args = new String[argsLength];

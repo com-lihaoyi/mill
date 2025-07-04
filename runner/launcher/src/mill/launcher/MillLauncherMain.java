@@ -33,7 +33,7 @@ public class MillLauncherMain {
 
     if (runNoServer) {
       // start in no-server mode
-      System.exit(MillProcessLauncher.launchMillNoServer(args));
+      System.exit(MillProcessLauncher.launchMillNoDaemon(args));
     } else
       try {
         // start in client-server mode
@@ -51,7 +51,7 @@ public class MillLauncherMain {
                 null,
                 -1) {
               public Process initServer(Path daemonDir, Locks locks) throws Exception {
-                return MillProcessLauncher.launchMillServer(daemonDir);
+                return MillProcessLauncher.launchMillDaemon(daemonDir);
               }
 
               public void preparedaemonDir(Path daemonDir) throws Exception {
