@@ -5,7 +5,6 @@ import mill._, scalalib._
 /** Publishable module which contains strictly handled API. */
 trait MillStableScalaModule extends MillPublishScalaModule with Mima {
 
-
   override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq.empty[ProblemFilter]
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
