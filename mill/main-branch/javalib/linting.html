@@ -624,7 +624,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.0-RC2-84-ac14db/index.html">dev-1.0.0-RC2-84-ac14db</a>
+          <a href="../../dev-1.0.0-RC3-13-c691ec/index.html">dev-1.0.0-RC3-13-c691ec</a>
         </li>
         <li class="version is-latest">
           <a href="../../index.html">0.12.14</a>
@@ -681,7 +681,7 @@ Mix the <code>ErrorProneModule</code> trait into your <code>JavaModule</code> an
 automatically run with every compilation.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-87-2f95eb-example-javalib-linting-1-error-prone.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/1-error-prone">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3/mill-dist-1.0.0-RC3-14-4b168c-example-javalib-linting-1-error-prone.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/1-error-prone">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -693,7 +693,7 @@ object `package` extends JavaModule, ErrorProneModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/example/ShortSet.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/1-error-prone/src/example/ShortSet.java">browse</a>)</div>
+<div class="title">src/example/ShortSet.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/1-error-prone/src/example/ShortSet.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package example;
 
@@ -761,7 +761,7 @@ Those are documented as &quot;flags&quot; at <a href="https://errorprone.info/do
 <a href="https://checkstyle.org">Checkstyle</a> and generates reports from these checks.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-87-2f95eb-example-javalib-linting-2-checkstyle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/2-checkstyle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3/mill-dist-1.0.0-RC3-14-4b168c-example-javalib-linting-2-checkstyle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/2-checkstyle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*, checkstyle.*
@@ -953,6 +953,165 @@ object foo extends JavaModule, CheckstyleXsltModule {
 </div>
 </div>
 <div class="sect1">
+<h2 id="_static_analysis_with_pmd"><a class="anchor" href="#_static_analysis_with_pmd"></a>Static analysis with PMD</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>PmdModule</code> Performs checks on Java source files using <a href="https://pmd.github.io/">PMD</a> and generates reports from these checks.</p>
+</div>
+<div class="paragraph">
+<p>PMD is a source code analyzer for Java that finds common programming flaws like unused variables,
+empty catch blocks, unnecessary object creation, and more.</p>
+</div>
+<div class="paragraph">
+<p>To customize this plugin in a Java module:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Extend JavaModule with PmdModule.</p>
+</li>
+<li>
+<p>Define a PMD ruleset file(s) with <code>pmdRulesets</code> (default is <code>pmd-rules.xml</code> in root).</p>
+</li>
+<li>
+<p>Define the PMD version with <code>pmdVersion</code>.</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3/mill-dist-1.0.0-RC3-14-4b168c-example-javalib-linting-6-pmd.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/6-pmd">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill._, javalib._
+import mill.javalib.pmd.PmdModule
+
+object `package` extends JavaModule, PmdModule {
+  def pmdVersion = &quot;7.15.0&quot;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here’s an example of a simple PMD ruleset file and a single Java source file.</p>
+</div>
+<div class="listingblock">
+<div class="title">pmd-ruleset.xml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/6-pmd/pmd-ruleset.xml">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;ruleset name=&quot;Example ruleset&quot;
+         xmlns=&quot;http://pmd.sourceforge.net/ruleset/2.0.0&quot;
+         xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+         xsi:schemaLocation=&quot;http://pmd.sourceforge.net/ruleset/2.0.0
+         https://pmd.sourceforge.io/ruleset_2_0_0.xsd&quot;&gt;
+    &lt;description&gt;
+        Example PMD ruleset for Mill integration (Updated for PMD 7.15.0)
+    &lt;/description&gt;
+    &lt;rule ref=&quot;category/java/errorprone.xml/EmptyCatchBlock&quot;/&gt;
+&lt;/ruleset&gt;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/foo/EmptyCatchBlock.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/6-pmd/src/foo/EmptyCatchBlock.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
+
+public class EmptyCatchBlock {
+  public void bar() {
+    try {
+      // do something
+    } catch (Exception e) {
+      // violation
+    }
+  }
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Be careful, rule formats can differ between major PMD versions.
+</td>
+</tr>
+</tbody></table>
+</div>
+<div class="paragraph">
+<p>You can either run the <code>pmd</code> command on selected modules
+or use the external module <code>mill.javalib.pmd/</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill pmd -s true -v false <i class="conum" data-value="1"></i><b>(1)</b>
+Running PMD ...
+Writing PMD output to .../out/pmd.dest/pmd-output.text ...
+...src/foo/EmptyCatchBlock.java:7: EmptyCatchBlock: Avoid empty catch blocks...
+PMD found 1 violation(s)
+
+&gt; ./mill mill.javalib.pmd/ <i class="conum" data-value="2"></i><b>(2)</b>
+error: Running PMD ...
+error: Writing PMD output to .../out/mill/javalib/pmd/PmdModule/pmd.dest/pmd-output.text ...
+error: 1 tasks failed
+error: mill.javalib.pmd.PmdModule.pmd PMD found 1 violation(s)</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>-s</code> shows the results on the console, <code>-v</code> does not fail the build</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Use the external <code>mill.javalib.pmd</code> module with default configuration</td>
+</tr>
+</tbody></table>
+</div>
+<div class="paragraph">
+<p>The <code>pmd</code> command accepts several options to customize its behavior. Mill supports:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>--stdout</code> / <code>-s</code> : Enable output to stdout. False by default. (PMD will write output to a file regardless of this option).</p>
+</li>
+<li>
+<p><code>--format</code> / <code>-f</code> : Output format of the report (<code>text</code>, <code>xml</code>, <code>html</code>). Defaults to <code>text</code>.</p>
+</li>
+<li>
+<p><code>--fail-on-violation</code> / <code>-v</code> : Fail if violations are found (true by default).</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For a full list of PMD options, see the PMD documentation:
+<a href="https://pmd.github.io/pmd/pmd_userdocs_cli_reference.html" class="bare">https://pmd.github.io/pmd/pmd_userdocs_cli_reference.html</a>.</p>
+</div>
+<div class="paragraph">
+<p>Here’s an example of producing HTML report:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill pmd -f &quot;html&quot; -s true -v false
+Writing PMD output to .../out/pmd.dest/pmd-output.html ...
+...&lt;html&gt;&lt;head&gt;&lt;title&gt;PMD&lt;/title&gt;&lt;/head&gt;&lt;body&gt;...
+...&lt;center&gt;&lt;h3&gt;PMD report&lt;/h3&gt;&lt;/center&gt;&lt;center&gt;&lt;h3&gt;Problems found&lt;/h3&gt;&lt;/center&gt;&lt;table align=&quot;center&quot; cellspacing=&quot;0&quot; cellpadding=&quot;3&quot;&gt;&lt;tr&gt;...
+...&lt;th&gt;#&lt;/th&gt;&lt;th&gt;File&lt;/th&gt;&lt;th&gt;Line&lt;/th&gt;&lt;th&gt;Problem&lt;/th&gt;&lt;/tr&gt;...
+...&lt;tr bgcolor=&quot;lightgrey&quot;&gt;...
+...&lt;td align=&quot;center&quot;&gt;1&lt;/td&gt;...
+...&lt;td width=&quot;*%&quot;&gt;...src/foo/EmptyCatchBlock.java&lt;/td&gt;...
+...&lt;td align=&quot;center&quot; width=&quot;5%&quot;&gt;7&lt;/td&gt;...
+...&lt;td width=&quot;*&quot;&gt;&lt;a href=&quot;https://docs.pmd-code.org/pmd-doc-7.15.0/pmd_rules_java_errorprone.html#emptycatchblock&quot;&gt;Avoid empty catch blocks&lt;/a&gt;&lt;/td&gt;...
+...&lt;/tr&gt;...
+...&lt;/table&gt;&lt;/body&gt;&lt;/html&gt;...
+...PMD found 1 violation(s)...</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_autoformatting_with_palantir_java_format"><a class="anchor" href="#_autoformatting_with_palantir_java_format"></a>AutoFormatting with Palantir Java Format</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -960,7 +1119,7 @@ object foo extends JavaModule, CheckstyleXsltModule {
 <a href="https://github.com/palantir/palantir-java-format">Palantir Java Format</a> project.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-87-2f95eb-example-javalib-linting-3-palantirformat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/3-palantirformat">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3/mill-dist-1.0.0-RC3-14-4b168c-example-javalib-linting-3-palantirformat.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/3-palantirformat">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -971,7 +1130,7 @@ object `package` extends PalantirFormatModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/A.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/3-palantirformat/src/A.java">browse</a>)</div>
+<div class="title">src/A.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/3-palantirformat/src/A.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">public class A {
 
@@ -1033,7 +1192,7 @@ as opposed to using a different plugin/command for each group.</p>
 provide a JSON configuration file with the format specifications.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-87-2f95eb-example-javalib-linting-4-spotless.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/4-spotless">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3/mill-dist-1.0.0-RC3-14-4b168c-example-javalib-linting-4-spotless.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/4-spotless">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1044,7 +1203,7 @@ object `package` extends JavaModule, SpotlessModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/A.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/4-spotless/src/A.java">browse</a>)</div>
+<div class="title">src/A.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/4-spotless/src/A.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mylib.Unused;
 import mylib.UsedB;
@@ -1063,19 +1222,19 @@ UsedA.someMethod();
 </div>
 </div>
 <div class="listingblock">
-<div class="title">resources/app.properties (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/4-spotless/resources/app.properties">browse</a>)</div>
+<div class="title">resources/app.properties (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/4-spotless/resources/app.properties">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">foo=bar</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">LICENSE (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/4-spotless/LICENSE">browse</a>)</div>
+<div class="title">LICENSE (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/4-spotless/LICENSE">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// MIT</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">.spotless-formats.json (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/4-spotless/.spotless-formats.json">browse</a>)</div>
+<div class="title">.spotless-formats.json (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/4-spotless/.spotless-formats.json">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">[
   {
@@ -1116,7 +1275,7 @@ UsedA.someMethod();
 </div>
 </div>
 <div class="listingblock">
-<div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/4-spotless/.scalafmt.conf">browse</a>)</div>
+<div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/4-spotless/.scalafmt.conf">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">version = &quot;3.8.1&quot;
 
@@ -1236,7 +1395,7 @@ enforce formatting gradually aka <a href="https://github.com/diffplug/spotless/t
 <p>We define a module with an incorrectly formatted file.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC2/mill-dist-1.0.0-RC2-87-2f95eb-example-javalib-linting-5-spotless-ratchet.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/5-spotless-ratchet">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3/mill-dist-1.0.0-RC3-14-4b168c-example-javalib-linting-5-spotless-ratchet.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/5-spotless-ratchet">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1247,7 +1406,7 @@ object `package` extends JavaModule with SpotlessModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/A.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC2/example/javalib/linting/5-spotless-ratchet/src/A.java">browse</a>)</div>
+<div class="title">src/A.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javalib/linting/5-spotless-ratchet/src/A.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mylib.Unused;
 import mylib.UsedB;

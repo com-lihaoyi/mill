@@ -624,7 +624,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.0-RC2-84-ac14db/index.html">dev-1.0.0-RC2-84-ac14db</a>
+          <a href="../../dev-1.0.0-RC3-13-c691ec/index.html">dev-1.0.0-RC3-13-c691ec</a>
         </li>
         <li class="version is-latest">
           <a href="../../index.html">0.12.14</a>
@@ -792,8 +792,8 @@ a concrete Mill <code>RootModule</code> object, which is then used in the subseq
 <div class="sect2">
 <h3 id="_resolution"><a class="anchor" href="#_resolution"></a>Resolution</h3>
 <div class="paragraph">
-<p>Resolution converts the Mill <a href="../cli/query-syntax.html" class="xref page">task selector</a> <code>_.assembly</code> the list of
-<a href="../fundamentals/tasks.html" class="xref page">Tasks</a> given from the command line. This explores the <code>build</code> and <code>package</code>
+<p>Resolution converts the Mill <a href="../cli/query-syntax.html" class="xref page">task selector</a> <code>_.assembly</code> given from the command line
+into a list of<a href="../fundamentals/tasks.html" class="xref page">Task</a> objects. This explores the <code>build</code> and <code>package</code>
 files generated in the <a href="#_compilation">Compilation</a> step above, instantiates the <a href="../fundamentals/modules.html" class="xref page">Modules</a>
 and <a href="../fundamentals/tasks.html" class="xref page">Tasks</a> as necessary, and returns a list of the final tasks that
 were selected by selector:</p>
@@ -863,7 +863,7 @@ were selected by selector:</p>
 </center>
 </div>
 <div class="paragraph">
-<p>Mill starts from the <code>RootModule</code> instantiated after <a href="#_compilation">Compilation</a>, and uses
+<p>Mill starts from the root module <code>build</code> instantiated after <a href="#_compilation">Compilation</a>, and uses
 Java reflection to walk the tree of modules and tasks to find the tasks that match
 your given selector.</p>
 </div>
@@ -887,15 +887,15 @@ as shown below:</p>
 <svg width="620px" height="248px" viewBox="0.00 0.00 619.73 248.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 244.0)">
 <title>G</title>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"></polygon>
-<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-124 8,-232 478.26,-232 478.26,-124 8,-124"></polygon>
 <text text-anchor="middle" x="243.13" y="-215.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-8 126.09,-116 603.73,-116 603.73,-8 126.09,-8"></polygon>
+<text text-anchor="middle" x="364.91" y="-99.4" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">
@@ -1047,8 +1047,8 @@ and <code>bar.assembly</code>, their upstream task graph requires tasks such as 
 </div>
 <div class="paragraph">
 <p>You can use <a href="../cli/builtin-commands.html#_plan" class="xref page">./mill plan</a> to see what tasks would be
-planned out for a given selector, or look at
-<a href="../fundamentals/out-dir.html#_mill_dependency_tree_json" class="xref page">mill-dependency-tree.json</a> after
+planned out for a given selector, or run <a href="../cli/builtin-commands.html#_visualizeplan" class="xref page">./mill visualizePlan</a>
+or look at <a href="../fundamentals/out-dir.html#_mill_dependency_tree_json" class="xref page">mill-dependency-tree.json</a> after
 evaluation to see how how these upstream tasks are depended upon by the tasks you selected.</p>
 </div>
 </div>
@@ -1392,7 +1392,7 @@ things:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>bar.compile</code> and <code>bar.classPath</code> can on a separate thread from <code>bar.lineCount</code> and <code>bar.resources</code></p>
+<p><code>bar.compile</code> and <code>bar.classPath</code> can run on a separate thread from <code>bar.lineCount</code> and <code>bar.resources</code></p>
 </li>
 <li>
 <p><code>bar.assembly</code> must wait for both <code>bar.classPath</code> and <code>bar.resources</code> to complete before proceeding.</p>
@@ -1417,8 +1417,8 @@ in <a href="../fundamentals/out-dir.html#_task_dest" class="xref page">&lt;task&
 automatically assigned by Mill.</p>
 </li>
 <li>
-<p>Mill treats builtin tasks (e.g. <code>compile</code>) and user-defined (e.g. <code>lineCount</code>) exactly the same.
-Both get automatically cached or skipped when not needed, and parallelized where possible.
+<p>Mill treats builtin tasks (e.g. <code>compile</code>) and user-defined (e.g. <code>lineCount</code>) exactly the same:
+both get automatically cached and parallelized where possible.
 This happens without the task author needing to do anything to enable caching or parallelization</p>
 </li>
 <li>
@@ -1444,7 +1444,8 @@ and <code>package.mill</code> files? This is called bootstrapping, and proceeds 
 <li>
 <p>Mill’s <a href="../cli/installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a> first checks
 if the right version of Mill is already present, and if not it downloads the launcher executable
-(either a JVM assembly jar or Graal native image) to <code>~/.mill/download</code></p>
+(either <a href="../cli/installation-ide.html#_mill_native_and_jvm_executables" class="xref page">a JVM assembly jar or
+Graal native image</a>) to <code>~/.cache/mill/download</code></p>
 </li>
 <li>
 <p>The Mill launcher resolves and downloads dependencies for the Mill daemon using Coursier, and

@@ -624,7 +624,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.0-RC2-84-ac14db/index.html">dev-1.0.0-RC2-84-ac14db</a>
+          <a href="../../dev-1.0.0-RC3-13-c691ec/index.html">dev-1.0.0-RC3-13-c691ec</a>
         </li>
         <li class="version is-latest">
           <a href="../../index.html">0.12.14</a>
@@ -665,7 +665,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>Although the Java compiler is very fast and the Java language is easy to learn
+<p>Although the Java language is known for being performant, easy to learn, and
 with great IDEs, JVM build tools have a reputation for being sluggish and confusing.
 For example, common build tools like Maven or Gradle compile Java code
 <a href="../../../blog/1-java-compile.html" class="xref page">12-16x slower than the underlying Java compiler</a>. While
@@ -679,16 +679,16 @@ other JVM build tools available today:</p>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><a href="#_performance">Performance</a>: Mill offers a 3-6x speedup means less time waiting for your build tool,
-meaning less time waiting for your build and more time doing useful work</p>
+<p><a href="#_performance">Performance</a>: Mill offers a 3-6x speedup in compilation and other
+common workflows, which means less time waiting for your build tool and more time doing useful work</p>
 </li>
 <li>
 <p><a href="#_extensibility">Extensibility</a>: Mill lets you write code or use any published JVM library in your build,
-customizing it to your needs without being limited by third-party plugins</p>
+customizing it exactly to your needs without being limited by third-party plugins</p>
 </li>
 <li>
-<p><a href="#_ide_support">IDE Support</a>: Mill has better IDE support in IntelliJ and VSCode and richer
-visualization tools than other tools, to help understand your build and what it is doing</p>
+<p><a href="#_ide_support">IDE Support</a>: Mill has better IDE support in IntelliJ and VSCode
+than other build tools, to help you navigate your build understand why your build is doing what it is doing</p>
 </li>
 </ol>
 </div>
@@ -804,8 +804,8 @@ run.</p>
 </div>
 <div class="paragraph">
 <p>The second benchmark worth noting is <strong>Incremental Compile Single Module</strong>.
-This benchmark involves making a single edit to a single already-compiled file in <code>common</code> -
-adding a single newline to the end of the file - and re-compiling <code>common</code> and <code>common.test</code>.
+This benchmark involves adding a single newline to the end of a single already-compiled file in <code>common</code>,
+and re-compiling <code>common</code> and <code>common.test</code>.
 Mill sees a huge speedup for this benchmark, because Mill’s incremental compiler
 (<a href="https://github.com/sbt/zinc">Zinc</a>) is able to detect that only one file in one module
 has changed, and that the change is small enough
@@ -994,7 +994,7 @@ find plugins and evaluate their relevance, quality, and level of maintenance:</p
 <div class="ulist">
 <ul>
 <li>
-<p><a href="../javalib/linting.html#_linting_with_errorprone" class="xref page">ErrorProne</a>, <a href="../javalib/linting.html#_linting_with_checkstyle" class="xref page">Checkstyle</a>, <a href="../javalib/linting.html#_autoformatting_with_palantir_java_format" class="xref page">Palantir Java Format</a>, <a href="../javalib/linting.html#_code_coverage_with_jacoco" class="xref page">Jacoco</a>, <a href="../javalib/publishing.html#_checking_api_compatibility" class="xref page">RevApi</a></p>
+<p><a href="../javalib/linting.html#_linting_with_errorprone" class="xref page">ErrorProne</a>, <a href="../javalib/linting.html#_linting_with_checkstyle" class="xref page">Checkstyle</a>, <a href="../javalib/linting.html#_autoformatting_with_palantir_java_format" class="xref page">Palantir Java Format</a>, <a href="../javalib/linting.html#_code_coverage_with_jacoco" class="xref page">Jacoco</a>, <a href="../javalib/linting.html#_static_analysis_with_pmd" class="xref page">PMD</a>, <a href="../javalib/publishing.html#_checking_api_compatibility" class="xref page">RevApi</a></p>
 </li>
 <li>
 <p><a href="../kotlinlib/linting.html#_linting_with_detekt" class="xref page">Detekt</a>, <a href="../kotlinlib/linting.html#_linting_with_ktlint" class="xref page">KtLint</a>, <a href="../kotlinlib/linting.html#_autoformatting_with_ktfmt" class="xref page">KtFmt</a>, <a href="../kotlinlib/linting.html#_code_coverage_with_kover" class="xref page">Kover</a></p>
@@ -1083,12 +1083,12 @@ for less common use cases:</p>
 <div class="sect2">
 <h3 id="_extending_mill"><a class="anchor" href="#_extending_mill"></a>Extending Mill</h3>
 <div class="paragraph">
-<p>When you do need to extend it, Mill allows you to directly write code to configure your build, and even download libraries
-from Maven Central.</p>
+<p>When you do need to extend it, Mill allows you to directly write code to configure your build,
+and even download libraries from Maven Central.</p>
 </div>
 <div class="paragraph">
-<p>Most build tools need plugins to do anything: if you want to Foo you need a
-Foo plugin, if you want to Bar you need a Bar plugin, for any possible Foo or Bar. These could
+<p>Most build tools need plugins to do anything: if you want to <em>Foo</em> you need a
+<em>Foo plugin</em>, if you want to Bar you need a <em>Bar plugin</em>, for any possible <em>Foo</em> or <em>Bar</em>. These could
 be simple tasks - zipping up files, pre-rendering web templates, preparing static assets for
 deployment - but even a tasks that would be trivial to implement in a few lines of code requires
 you to Google for third-party plugins, dig through their Github to see which one is best
@@ -1096,8 +1096,8 @@ maintained, and hope for the best when you include it in your build. And while y
 write plugins yourself, doing so is usually non-trivial.</p>
 </div>
 <div class="paragraph">
-<p>Mill is different. Although it does have plugins for more advanced integrations, for most
-simple things you can directly write code to achieve what you want, using the bundled
+<p>Mill is different. Although Mill does have plugins supporting common integrations (linked above),
+for most simple things you can directly write code to achieve what you want, using the bundled
 filesystem, subprocess, and dependency-management libraries. And even if you need third-party
 libraries from Maven Central to do <code>xyz</code>, you can directly import the “xyz” library and use it
 directly, without having to find a &quot;xyz build plugin&quot; wrapper.</p>
@@ -1108,7 +1108,8 @@ directly, without having to find a &quot;xyz build plugin&quot; wrapper.</p>
 <div class="paragraph">
 <p>The following Mill build is a minimal Java module <code>foo.</code>. It contains no custom configuration, and
 so inherits all the defaults from <code>mill.javalib.JavaModule</code>: default source folder layout, default
-assembly configuration, default compiler flags, and so on.</p>
+assembly configuration, default compiler flags, and so on. This <em>convention over configuration</em>
+is a philosophy that Mill inherited from Maven and other JVM build tools:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1166,10 +1167,10 @@ easy to move it to your own <a href="../extending/writing-plugins.html" class="x
 <h3 id="_overriding_tasks"><a class="anchor" href="#_overriding_tasks"></a>Overriding Tasks</h3>
 <div class="paragraph">
 <p>To wire up <code>lineCount</code> into our main <code>JavaModule</code> <code>compile</code>/<code>test</code>/<code>run</code> tasks,
-one way is to take the line count value and write it to a file in <code>def resources</code>.
-This file can then be read at runtime as a JVM resource. We do that below
-by overriding <code>def resources</code> and making it depend on <code>lineCount</code>, in addition
-to its existing value <code>super.resources()</code>:</p>
+one way is to take the line count value and write it to a JVM resource file
+to be used at runtime. In Mill your JVM resources are just a method <code>def resources</code>,
+so we can override it and make it depend on <code>lineCount</code>, in addition
+to its prior value <code>super.resources()</code> (that references the <code>resources/</code> folder on disk):</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1192,9 +1193,9 @@ object foo extends JavaModule {
 </div>
 <div class="paragraph">
 <p>Because our <code>def resources</code> overrides the existing <code>resources</code> method inherited from <code>JavaModule</code>,
-the downstream tasks automatically now use the new override instead, as that is how overrides
-work. That means if you call <code>mill foo.run</code>, it will automatically pick up the new <code>resources</code>
-including the generated <code>line-count.txt</code> file and make it available to
+the downstream tasks automatically now use the new override instead, similar to any Java
+method overrides. That means if you call <code>mill foo.run</code>, it will automatically pick up the new
+<code>resources</code> including the generated <code>line-count.txt</code> file and make it available to
 the application code to use e.g. to print it out at runtime:</p>
 </div>
 <div class="listingblock">
@@ -1211,17 +1212,18 @@ which includes usage of third-party libraries in the build.</p>
 <div class="sect2">
 <h3 id="_using_third_party_jvm_libraries_in_tasks"><a class="anchor" href="#_using_third_party_jvm_libraries_in_tasks"></a>Using Third-Party JVM Libraries in Tasks</h3>
 <div class="paragraph">
-<p>Earlier on we discussed possibly pre-rendering HTML pages in the build so they can be
-served at runtime. The use case for this are obvious: if a page never changes, rendering
-it on every request is wasteful, and even rendering it once on startup and then caching it
+<p>One example use case of customizing your build tool is pre-rendering HTML pages in the build so
+they can be served at runtime: if a page never changes, rendering it on every request is
+wasteful, and even rendering it once on startup and then caching it
 can impact your application startup time. Thus, you may want to move some HTML rendering to
 build-time, but with traditional build tools such a move is sufficiently inconvenient and
-complicated that people do not do it.</p>
+complicated that people rarely do it.</p>
 </div>
 <div class="paragraph">
 <p>With Mill, pre-rendering HTML at build time is really easy, even if you need a third-party
 library. Mill does not ship with a bundled HTML templating engine, but you can use the
-<code>//| mvnDeps</code> syntax to include one such as Thymeleaf, which would immediately make the
+<a href="../extending/import-mvn-plugins.html" class="xref page">//| mvnDeps</a> syntax to include one such as
+<a href="https://www.thymeleaf.org/">Thymeleaf</a>, which would immediately make the
 Thymeleaf classes available for you to import and use in your build as below:</p>
 </div>
 <div class="listingblock">
@@ -1240,7 +1242,7 @@ object foo extends JavaModule {
   }
 
   def htmlSnippet = Task {
-    val context = new Context()
+    var context = new Context()
     context.setVariable(&quot;heading&quot;, &quot;Line Count is: &quot; + lineCount())
     new TemplateEngine().process(
         &quot;&lt;h1 th:text=\&quot;${heading}\&quot;&gt;&lt;/h1&gt;&quot;,
@@ -1257,7 +1259,7 @@ object foo extends JavaModule {
 </div>
 <div class="paragraph">
 <p>Once we have specified our <code>//| mvnDeps</code> in the build file YAML header, we can import
-<code>TemplateEngine</code>, <code>Context</code>, and replace our <code>def lineCount</code> with a <code>def htmlSnippet</code> task
+<code>TemplateEngine</code>, <code>Context</code>, and follow our <code>def lineCount</code> with a <code>def htmlSnippet</code> task
 that uses Thymeleaf to render HTML. We get full IDE support for working with the
 Thymeleaf Java API, the new <code>htmlSnippet</code> task is inspectable from the Mill command line
 via <code>show</code>, and we wire it up into <code>def resources</code> so it can be inspected and used at
@@ -1307,15 +1309,85 @@ and use it just like we would use it in any Java application, with IDE support,
 typechecking, and all the necessary build tool features like automatic parallelism, caching,
 and invalidation.</p>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_mill_vs_gradle_configuration_as_code"><a class="anchor" href="#_mill_vs_gradle_configuration_as_code"></a>Mill vs Gradle Configuration as Code</h3>
+<div class="paragraph">
+<p>It’s worth contrasting the Mill config above with e.g. the equivalent Gradle configuration
+for setting up a line-count resource file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-kotlin hljs" data-lang="kotlin">import java.io.File
+
+tasks.register(&quot;generateLineCount&quot;) {
+    val sourceDirs = listOf(&quot;src/main/java&quot;)
+    val outputDir = layout.buildDirectory.dir(&quot;generated-resources&quot;)
+    val outputFile = outputDir.get().file(&quot;line-count.txt&quot;)
+
+    inputs.files(fileTree(&quot;src/main&quot;))
+    outputs.file(outputFile)
+
+    doLast {
+        var totalLines = 0
+
+        sourceDirs.map(::file).filter { it.exists() }.forEach { srcDir -&gt;
+            srcDir.walkTopDown()
+                .filter { it.isFile &amp;&amp; it.extension in listOf(&quot;java&quot;) }
+                .forEach { file -&gt;
+                    totalLines += file.readLines().size
+                }
+        }
+
+        outputFile.asFile.writeText(totalLines.toString())
+        println(&quot;Generated line-count.txt with $totalLines lines&quot;)
+    }
+}
+
+tasks.named(&quot;processResources&quot;) {
+    dependsOn(&quot;generateLineCount&quot;)
+    from(layout.buildDirectory.dir(&quot;generated-resources&quot;))
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>While the Gradle config is a bit more verbose than Mill’s, that is not where the problem
+lies. The problem lies in the fact that the Gradle &quot;config as code&quot; doesn’t <em>actually</em>
+look like the code you are writing day-to-day: although it is written in Kotlin,
+things like <code>task.named</code>, <code>dependsOn</code>, <code>inputs.files</code> and <code>outputs.file</code>, <code>doLast</code>
+(or should we use <code>doFirst</code>?) are not &quot;normal&quot; Kotlin. And just
+because you know Kotlin doesn’t mean you know how any of this stuff works and can
+debug it when it misbehaves!</p>
+</div>
+<div class="paragraph">
+<p>In fact, there is even a bug in the above Gradle config that will cause the build to
+be non-deterministically slower sometimes, but not other times.
+Can you spot it? The difficulty of catching these issues e.g. during code review
+illustrates how difficult it is to write &quot;correct&quot; Gradle config: if even the simplest
+hello-world customization results in impossible-to-find bugs slowing things down, how many
+bugs will there be in any more-complex real-world customization or plugin? It’s no wonder
+then than real-world builds using Gradle or other tools often end up being inexplicably
+slow and flaky!
+(Click the footnote to see the answer <sup class="footnote">[<a id="_footnoteref_1" class="footnote" href="#_footnotedef_1" title="View footnote.">1</a>]</sup>)</p>
+</div>
+<div class="paragraph">
+<p>In contrast, Mill’s <code>extends</code>, <code>def</code>s, and <code>overrides</code>
+behave exactly as you would expect any object-oriented program to work, so you already
+know how Mill behaves even if you’ve never touched a Mill build before. And the fact
+that Mill build config is so much easier to write means that you’re much less likely
+to have bugs causing slowness or flakiness, resulting in the improved performance
+(discussed above) and not needing to regularly run <code>clean</code> as you often have to do with other
+build tools.</p>
+</div>
 <hr />
 <div class="paragraph">
 <p>Most real projects require some kind of ad-hoc build tasks: you may be pre-processing static
-assets for web deployment, embedding build metadata for runtime debugging, or pre-rendering
-HTML pages to optimize performance at runtime. With most build tools, you often needed to pull
+assets for web deployment, embedding build metadata for runtime debugging, or generating
+reports for security scanning. With most build tools, you often needed to pull
 in some poorly-maintained plugin off of Github, write your own using a complicated plugin
 framework, or even wrap your build tool in ad-hoc shell scripts. With most other build tools,
-caching and parallelism are things that the build author needs to use manually, meaning nobody
-gets it right and your build performance is never as good as it could be.</p>
+caching and parallelism are things that the build or plugin author needs to set up manually,
+meaning everyone makes mistakes and your build system performance is never as good as it could be.</p>
 </div>
 <div class="paragraph">
 <p>In contrast, Mill makes it easy it is to write concise type-checked code to perform ad-hoc tasks
@@ -1333,34 +1405,37 @@ build correctly and achieve maximum performance even without being a build tool 
 <h2 id="_ide_support"><a class="anchor" href="#_ide_support"></a>IDE Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>One area that Mill does better than Maven, Gradle or SBT is providing a seamless IDE
-experience.</p>
+<p>The last area that Mill does better than Maven, Gradle or SBT is providing a seamless IDE
+experience. Working with Mill builds in IntelliJ or VSCode, you get the full power of
+your IDE to autocomplete, peek at docs, browse signatures, and otherwise navigate
+around your build system. Working with your Mill build, you get the same level of
+IDE support as working within any Java, Scala, or Kotlin application codebase.</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="../_images/comparisons/IntellijOverrideAutocomplete.png" alt="IntellijOverrideAutocomplete" /></span></p>
 </div>
 <div class="sect2">
 <h3 id="_limitations_of_existing_build_tool_ide_integrations"><a class="anchor" href="#_limitations_of_existing_build_tool_ide_integrations"></a>Limitations of Existing Build Tool IDE Integrations</h3>
 <div class="paragraph">
-<p>For example, consider the snippet below where we are using Gradle to
+<p>While JVM application codebases universally have excellent IDE support, build tools are usually
+not nearly as well-supported. For example, consider the snippet below where we are using Gradle to
 configure the javac compiler options. The autocomplete and code-assist experience working
 with these files is hit-or-miss. In the example below, we can see that IntelliJ is able to
 identify that <code>compileArgs</code> exists and has the type <code>List&lt;String&gt;</code>:</p>
 </div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions.png" alt="IntellijMockitoGradleCompileOptions" />
-</div>
+<div class="paragraph">
+<p><span class="image"><img src="../_images/comparisons/IntellijMockitoGradleCompileOptions.png" alt="IntellijMockitoGradleCompileOptions" /></span></p>
 </div>
 <div class="paragraph">
 <p>But if you try to jump to definition or find out anything else about it you hit a wall:</p>
 </div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/comparisons/IntellijMockitoGradleCompileOptions2.png" alt="IntellijMockitoGradleCompileOptions2" />
-</div>
+<div class="paragraph">
+<p><span class="image"><img src="../_images/comparisons/IntellijMockitoGradleCompileOptions2.png" alt="IntellijMockitoGradleCompileOptions2" /></span></p>
 </div>
 <div class="paragraph">
 <p>Often working with build configurations feels like hitting dead ends: if you don’t have
 <code>options.compilerArgs</code> memorized in your head, there is literally nothing you can do in
-your editor to make progress to figure out what it is or what it is used for. That leaves
+your editor to make progress figuring out what it is or what it is used for. That leaves
 you googling for answers, which can be a frustrating experience that distracts you from
 the task at hand.</p>
 </div>
@@ -1368,7 +1443,8 @@ the task at hand.</p>
 <p>Although this example is using Gradle’s un-typed Groovy syntax, the experience
 using Gradle’s typed Kotlin syntax is largely the same. The problem isn’t unique
 to Gradle, and isn’t unique to IntelliJ: any IDE would have similar problems working
-with this code, and many build tools ask that you write code in a similar style.</p>
+with this code. The problem is the build tool configuration itself, or rather the
+style of code that most build tools require they be configured with.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1397,9 +1473,9 @@ to work with their global mutable variables effectively.</p>
 <h3 id="_the_mill_ide_experience"><a class="anchor" href="#_the_mill_ide_experience"></a>The Mill IDE Experience</h3>
 <div class="paragraph">
 <p>In comparison, not only are Mill’s <code>.mill</code> files statically typed, they are
-built on top of classes and methods like any other JVM codebase.
-Mill code <em>actually performs your build</em>, and one concrete consequence is that
-IntelliJ is able to take your <code>def javacOptions</code> override and
+built on top of <em>classes</em> and <em>methods</em> like any other JVM codebase. While IDEs struggle
+with global variables, they are very good at navigating classes and methods!
+For example IntelliJ is able to take your <code>def javacOptions</code> override and
 find the original definitions that were overridden, and show you where they are defined:</p>
 </div>
 <div class="imageblock">
@@ -1455,6 +1531,14 @@ both users and to IDEs.</p>
 <h2 id="_object_oriented_builds"><a class="anchor" href="#_object_oriented_builds"></a>Object-Oriented Builds</h2>
 <div class="sectionbody">
 <div class="paragraph">
+<p>Mill has a lot of improvements over build tools like Maven or Gradle, but it begs the
+question: why can’t other build tools improve performance, extensibility, IDE support
+as well? It turns out that other tools have been working on improving performance,
+extensibility and IDE support - for decades in the case of Maven or Gradle - but Mill
+does have secret sauce that makes providing this experience in Mill much easier than
+providing it in any other build tool.</p>
+</div>
+<div class="paragraph">
 <p>All build tools are complex, because the requirements of building any size-able real-world
 project are complex. One big source of build tool complexity is that users need some way to
 define templated, customizable graph-computations when setting up their build pipelines.</p>
@@ -1488,15 +1572,15 @@ define templated, customizable graph-computations when setting up their build pi
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="250.41,-8 250.41,-116 751.02,-116 751.02,-8 250.41,-8"></polygon>
 <text text-anchor="middle" x="500.71" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
 </g>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-124 126.09,-232 617.74,-232 617.74,-124 126.09,-124"></polygon>
-<text text-anchor="middle" x="371.92" y="-215.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 484.87,-348 484.87,-240 8,-240"></polygon>
 <text text-anchor="middle" x="246.43" y="-331.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-124 126.09,-232 617.74,-232 617.74,-124 126.09,-124"></polygon>
+<text text-anchor="middle" x="371.92" y="-215.4" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <!-- foo.sources -->
 <g id="node1" class="node">
@@ -1697,19 +1781,22 @@ each module to wire them up
 each having two). And this is one of the simplest possible builds: you can imagine that
 with compiler and runtime flags, code-generation, dependency-downloading, different language
 toolchains, these graphs can get complicated quickly. And any build tool will need some way
-for the user to defines these graphs and maintain them over time.</p>
+for the user to define these graphs and maintain them over time.</p>
 </div>
 <div class="paragraph">
 <p>Most build tools provide ad-hoc config formats (Maven’s XML) or programmatic builder
 APIs (e.g. Gradle’s Groovy/Kotlin) to satisfy this need, but these ad-hoc formats
-inevitably end up being unfamiliar and confusing to users. Many try to hide
-complexity behind plugins, but this inevitably leaks when end-users find their build
-pipeline misbehaving and need to debug their plugin interactions, and the attempt
-to hide things may make debugging even more difficult.</p>
+inevitably end up being unfamiliar and confusing to users (e.g. the Gradle code
+<a href="#_mill_vs_gradle_configuration_as_code">discussed above</a>). Many
+tools try to hide complexity behind plugins, but that doesn’t actually solve it: plugin
+authors are human too, and can also make mistakes and cause bugs when publishing their plugins.
+It doesn’t matter whether the bugs are in your own build customization or in the plugins
+you use if the end result is your build system becomes slow and flaky!</p>
 </div>
 <div class="paragraph">
 <p>Fundamentally, defining an API for templated, customizable graph-computations is
-non-trivial, so is not surprising the APIs and to do so can get complicated.</p>
+non-trivial, so it is not surprising the APIs and to do so can get complicated. But Mill
+has one big insight in how it can be done better:</p>
 </div>
 <div class="sect2">
 <h3 id="_object_oriented_build_pipelines"><a class="anchor" href="#_object_oriented_build_pipelines"></a>Object-Oriented Build Pipelines</h3>
@@ -1956,9 +2043,8 @@ calling <code>foo.super.resources</code>:</p>
 </div>
 <div class="paragraph">
 <p>If you want to re-use your build pipeline customizations, it as simple as turning the
-<code>object foo</code> into a <code>interface MyJavaModule</code> (called a <code>trait MyJavaModule</code> in Mill’s syntax), so it
-can be inherited
-by <code>object foo</code> and <code>object bar</code> to share the configuration:</p>
+<code>object foo</code> into a <code>class MyJavaModule</code> (called a <code>trait MyJavaModule</code> in Mill’s syntax), so it
+can be inherited  by <code>object foo</code> and <code>object bar</code> to share the configuration:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1987,15 +2073,15 @@ trait MyJavaModule extends JavaModule {
 <svg width="534px" height="334px" viewBox="0.00 0.00 534.25 334.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 330.0)">
 <title>G</title>
-<g id="clust2" class="cluster">
-<title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-167 8,-318 518.25,-318 518.25,-167 8,-167"></polygon>
-<text text-anchor="middle" x="263.12" y="-301.4" font-family="Times,serif" font-size="14.00">foo</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_1</title>
 <polygon fill="transparent" stroke="darkgreen" stroke-width="3" stroke-dasharray="5,2" points="8.39,-8 8.39,-159 517.86,-159 517.86,-8 8.39,-8"></polygon>
 <text text-anchor="middle" x="263.12" y="-142.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-167 8,-318 518.25,-318 518.25,-167 8,-167"></polygon>
+<text text-anchor="middle" x="263.12" y="-301.4" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <!-- bar.sources -->
 <g id="node1" class="node">
@@ -2174,7 +2260,7 @@ trait MyJavaModule extends JavaModule {
 <p>If you want to further customize either of those modules, you simply <code>override</code>
 one or more of the inherited methods. And if you want to publish your customizations
 for others to use in their own projects,
-you can as <a href="../extending/writing-plugins.html#_publishing" class="xref page">publish
+you can <a href="../extending/writing-plugins.html#_publishing" class="xref page">publish
 MyJavaModule to Maven Central</a> for others to
 <a href="../extending/import-mvn-plugins.html" class="xref page">import into their build</a>.</p>
 </div>
@@ -2183,14 +2269,10 @@ MyJavaModule to Maven Central</a> for others to
 discussed earlier on this page. IDEs like IntelliJ or VSCode are uniquely adept at
 working with JVM codebases full of methods and classes, and so
 they can help you navigate and understand your Mill build pipelines just as easily
-as any application codebase.</p>
-</div>
-<div class="paragraph">
-<p>Mill does not make the complexity in your build pipelines go away, or hide it behind
-hard-coded helpers or plugins. Instead, Mill lets you manage that complexity using the
-same object-oriented programming techniques you are already familiar with. With Mill,
-you can navigate, maintain, and extend your build pipelines in exactly the same way you
-already navigate, maintain, and extend your JVM application code.</p>
+as any application codebase. And the simplicity of this extension model is what
+allows Mill developers to avoid making mistakes aroun caching or parallelism when setting
+up their builds or publishing plugins, which ultimately is what gives Mill builds great
+performance without ever needing to <code>clean</code>.</p>
 </div>
 </div>
 </div>
@@ -2207,14 +2289,14 @@ are inherently complex, and so it is not a surprise that this complexity bleeds 
 to the user experience.</p>
 </div>
 <div class="paragraph">
-<p>While Mill does all the same things that other build tools like Maven or Gradle do,
-it aims to do them better: faster, easier to use, and easier to extend. It brings to
-the table the idea of <em>Object-Oriented Builds</em>, using the familiar concepts of methods,
-classes, and overrides to help reduce the barrier to entry of someone who needs to
-learn enough to configure their build tool. Mill democratizing your build system such
-that even non-experts are able to contribute - anyone who has learned Java 101 knows
-the core concepts behind Mill - and they can do so safely and easily with the
-IDE support, library ecosystem, and other quality of life details they are used to.</p>
+<p>Mill does not make the complexity in your build pipelines go away, or hide it behind
+hard-coded helpers or plugins. Instead, Mill lets you manage that complexity using the
+same object-oriented programming techniques you are already familiar with. With Mill,
+you can navigate, maintain, and extend your build pipelines in exactly the same way you
+already navigate, maintain, and extend your JVM application code. And just as
+object-oriented Java, Scala or Kotlin is performance well-understood by developers or
+IDEs, object-oriented Mill build code is similarly able to give you the performance,
+ease of use, and excellent IDE support that the JVM platform is known for.</p>
 </div>
 <div class="paragraph">
 <p>The rest of this doc-site contains more Mill build tool comparisons
@@ -2225,6 +2307,12 @@ or with <a href="../kotlinlib/intro.html" class="xref page">Kotlin</a>, and deta
 works. Please try it out and let us know in the
 <a href="https://github.com/com-lihaoyi/mill/discussions">discussions forum</a> how it goes!</p>
 </div>
+</div>
+</div>
+<div id="footnotes">
+<hr />
+<div class="footnote" id="_footnotedef_1">
+<a href="#_footnoteref_1">1</a>. The bug is <code>inputs.files</code> is depending on <code>src/main</code>, when it only really needs <code>src/main/java</code>. That means that changes to <code>src/main/resources</code> or <code>src/main/templates</code> will cause the task redundantly re-compute, making your build slower than necessary. If the bug was the other way - rather than depending on too large a folder instead depending on too small a folder - it would instead cause flakiness where <code>generateLineCount</code> would sometimes not run when it needs to.
 </div>
 </div>
 <nav class="pagination">

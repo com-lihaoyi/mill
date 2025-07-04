@@ -624,7 +624,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.0-RC2-84-ac14db/index.html">dev-1.0.0-RC2-84-ac14db</a>
+          <a href="../../dev-1.0.0-RC3-13-c691ec/index.html">dev-1.0.0-RC3-13-c691ec</a>
         </li>
         <li class="version is-latest">
           <a href="../../index.html">0.12.14</a>
@@ -694,6 +694,11 @@ a running Mill process is shown below:</p>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="440.54,-127 440.54,-235 950.27,-235 950.27,-127 440.54,-127"></polygon>
 <text text-anchor="middle" x="695.41" y="-218.4" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
+<g id="clust1" class="cluster">
+<title>cluster_client</title>
+<polygon fill="transparent" stroke="black" points="131.08,-261 131.08,-369 269.6,-369 269.6,-261 131.08,-261"></polygon>
+<text text-anchor="middle" x="200.34" y="-352.4" font-family="Times,serif" font-size="14.00">mill launcher</text>
+</g>
 <g id="clust2" class="cluster">
 <title>cluster_out</title>
 <polygon fill="transparent" stroke="black" points="281.6,-8 281.6,-402 408.54,-402 408.54,-8 281.6,-8"></polygon>
@@ -708,11 +713,6 @@ a running Mill process is shown below:</p>
 <title>cluster_out_foo_folder</title>
 <polygon fill="transparent" stroke="black" points="289.6,-16 289.6,-210 400.54,-210 400.54,-16 289.6,-16"></polygon>
 <text text-anchor="middle" x="345.07" y="-193.4" font-family="Times,serif" font-size="14.00">foo/</text>
-</g>
-<g id="clust1" class="cluster">
-<title>cluster_client</title>
-<polygon fill="transparent" stroke="black" points="131.08,-261 131.08,-369 269.6,-369 269.6,-261 131.08,-261"></polygon>
-<text text-anchor="middle" x="200.34" y="-352.4" font-family="Times,serif" font-size="14.00">mill launcher</text>
 </g>
 <!-- launcher&#45;stdin -->
 <g id="node1" class="node">
@@ -1017,7 +1017,7 @@ a running Mill process is shown below:</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_the_mill_client"><a class="anchor" href="#_the_mill_client"></a>The Mill Client</h2>
+<h2 id="_the_mill_launcher"><a class="anchor" href="#_the_mill_launcher"></a>The Mill Launcher</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The Mill launcher is a small Java application that is responsible for launching
@@ -1049,7 +1049,7 @@ is actually running in the long-lived Mill daemon.</p>
 version changed, or the user used <code>Ctrl-C</code> to interrupt the ongoing computation.
 In such a scenario, the Mill launcher will automatically restart the daemon the next
 time it is run, so apart from a slight performance penalty from starting a &quot;cold&quot;
-Mill daemon such shutdowns and restarts should be mostly invisibl to the user.</p>
+Mill daemon such shutdowns and restarts should be mostly invisible to the user.</p>
 </div>
 </div>
 </div>
@@ -1059,12 +1059,15 @@ Mill daemon such shutdowns and restarts should be mostly invisibl to the user.</
 <div class="paragraph">
 <p>The Mill daemon is a long-lived process that the Mill launcher spawns.
 Only one Mill daemon should be running in a codebase at a time, and each daemon
-takes a filelock at startup time to enforce this mutual exclusion.</p>
+takes a filelock at startup time to enforce this mutual exclusion. While multiple
+launchers can connect to a single daemon, a second lock is taken when the daemon
+is running a build for a particular launcher, to ensure that only one build is
+happening at a time.</p>
 </div>
 <div class="paragraph">
 <p>The Mill daemon compiles your <code>build.mill</code> and <code>package.mill</code>, spawns a
 <code>URLClassLoader</code> containing the compiled classfiles, and uses that to instantiate
-the various<a href="../fundamentals/modules.html" class="xref page">Modules</a> and <a href="../fundamentals/tasks.html" class="xref page">Tasks</a>
+the various <a href="../fundamentals/modules.html" class="xref page">Modules</a> and <a href="../fundamentals/tasks.html" class="xref page">Tasks</a>
 dynamically in-memory. These are then used by the <code>Evaluator</code>, which resolves,
 plans, and executes the tasks specified by the given <code>runArgs</code></p>
 </div>
@@ -1078,8 +1081,8 @@ then de-multiplexes the combined stream to split it back into output and error, 
 are then both forwarded to the process or terminal that invoked the Mill launcher.</p>
 </div>
 <div class="paragraph">
-<p>Lastly, when the Mill daemon completes its tasks, it writes the <code>exitCode</code> to a file
-that is then propagated back to the Mill launcher. The Mill launcher terminates with this
+<p>Lastly, when the Mill daemon completes its tasks, it writes the <code>exitCode</code> back to
+the Mill launcher over the multiplexed stream. The Mill launcher terminates with this
 exit code, but the Mill daemon remains alive and ready to serve to the next Mill
 launcher that connects to it</p>
 </div>
