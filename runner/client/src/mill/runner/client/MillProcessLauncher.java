@@ -24,6 +24,10 @@ public class MillProcessLauncher {
 
     final List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand(setJnaNoSys));
+    Map<String, String> propsMap = Util.getUserSetProperties();
+    for (String key : propsMap.keySet()) {
+      l.add("-D" + key + "=" + propsMap.get(key));
+    }
     l.add("mill.runner.MillMain");
     l.add(processDir.toAbsolutePath().toString());
     l.addAll(Util.readOptsFileLines(millOptsFile()));
