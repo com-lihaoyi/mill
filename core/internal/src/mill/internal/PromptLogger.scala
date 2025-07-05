@@ -269,19 +269,21 @@ private[mill] object PromptLogger {
       if (!paused()) {
         val currentPrompt = getCurrentPrompt()
         systemStreams0.err.write(currentPrompt)
-        systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
-        lastPromptHeight = new String(currentPrompt).linesIterator.size
-      } else {
-        lastPromptHeight = 0
-      }
+        if (interactive()) {
+          systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
+          lastPromptHeight = new String(currentPrompt).linesIterator.size
+        } else lastPromptHeight = 0
+      } else lastPromptHeight = 0
     }
 
     def moveUp() = {
-      systemStreams0.err.write((AnsiNav.left(9999) + AnsiNav.up(lastPromptHeight)).getBytes)
+      if (lastPromptHeight != 0) {
+        systemStreams0.err.write((AnsiNav.left(9999) + AnsiNav.up(lastPromptHeight)).getBytes)
+      }
     }
 
     def refreshPrompt(): Unit = {
-      if (interactive()) moveUp()
+      moveUp()
       writeCurrentPrompt()
     }
 
@@ -297,15 +299,19 @@ private[mill] object PromptLogger {
       override def preRead(src: InputStream): Unit = synchronizer.synchronized {
 
         if (
+          enableTicker &&
           // Only bother printing the prompt after the streams have become quiescent
-          // and there is no more stuff to print. This helps us to print the prompt on
+          // and there is no more stuff to print. This helps us avoid printing the prompt on
           // every small write when most such prompts will get immediately over-written
           // by subsequent writes
-          enableTicker && src.available() == 0 &&
+          src.available() == 0 &&
+          // For non-interactive mode, the prompt is printed at regular intervals in
+          // `promptUpdaterThread`, and isn't printed as part of normal writes
+          interactive() &&
           // Do not print the prompt when it is paused. Ideally stream redirecting would
           // prevent any writes from coming to this stream when paused, somehow writes
           // sometimes continue to come in, so just handle them gracefully.
-          interactive() && !paused() &&
+          !paused() &&
           // Only print the prompt when the last character that was written is a newline,
           // to ensure we don't cut off lines halfway
           lastCharWritten == '\n'
@@ -315,28 +321,21 @@ private[mill] object PromptLogger {
       }
 
       override def write(dest: OutputStream, buf: Array[Byte], end: Int): Unit = {
-        lastCharWritten = buf(end - 1).toChar
-        val clearLines = enableTicker && interactive()
-        if (clearLines && lastPromptHeight != 0) dest.write(AnsiNav.clearScreen(0).getBytes)
-        if (interactive() && !paused() && lastPromptHeight != 0) {
+        if (enableTicker && interactive()) {
+          lastCharWritten = buf(end - 1).toChar
           moveUp()
           lastPromptHeight = 0
-        }
-        val str = new String(buf, 0, end)
-
-        if (clearLines) {
           // Clear each line as they are drawn, rather than relying on clearing
           // the entire screen before each batch of writes, to try and reduce the
           // amount of terminal flickering in slow terminals (e.g. windows)
           // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
-
           dest.write(
-            str
+            new String(buf, 0, end)
               .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
               .getBytes
           )
         } else {
-          dest.write(str.getBytes)
+          dest.write(buf, 0, end)
         }
       }
     }
