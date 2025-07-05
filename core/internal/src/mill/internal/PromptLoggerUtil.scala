@@ -148,7 +148,7 @@ private object PromptLoggerUtil {
   // according to whether it is interactive or ending
   def renderPromptWrapped(
       currentPromptLines: Seq[String],
-      interactive: Boolean,
+      interactive: Boolean
   ): String = {
     if (!interactive) currentPromptLines.mkString("\n") + "\n"
     else currentPromptLines.map(_ + AnsiNav.clearLine(0)).mkString("\n") + "\n"

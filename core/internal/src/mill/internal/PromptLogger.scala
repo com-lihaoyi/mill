@@ -321,7 +321,6 @@ private[mill] object PromptLogger {
         }
       }
 
-
       override def write(dest: OutputStream, buf: Array[Byte], end: Int): Unit = {
         lastCharWritten = buf(end - 1).toChar
         val clearLines = enableTicker && interactive()
@@ -330,7 +329,6 @@ private[mill] object PromptLogger {
           moveUp()
           lastPromptHeight = 0
         }
-
 
         if (clearLines) {
           // Clear each line as they are drawn, rather than relying on clearing
