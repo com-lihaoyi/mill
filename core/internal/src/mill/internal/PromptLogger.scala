@@ -277,14 +277,15 @@ private[mill] object PromptLogger {
     }
 
     def moveUp() = {
+      mill.constants.DebugLog.println("lastPromptHeight " + lastPromptHeight)
       if (lastPromptHeight != 0) {
         systemStreams0.err.write((AnsiNav.left(9999) + AnsiNav.up(lastPromptHeight)).getBytes)
       }
     }
 
     def refreshPrompt(): Unit = synchronizer.synchronized {
-      moveUp()
-      writeCurrentPrompt()
+//      moveUp()
+//      writeCurrentPrompt()
     }
 
     object pumper extends ProxyStream.Pumper(
@@ -318,6 +319,7 @@ private[mill] object PromptLogger {
         ) {
           synchronizer.synchronized {
             writeCurrentPrompt()
+            systemStreams0.err.flush()
           }
         }
       }
@@ -327,6 +329,7 @@ private[mill] object PromptLogger {
           lastCharWritten = buf(end - 1).toChar
           synchronizer.synchronized {
             moveUp()
+            systemStreams0.err.flush()
             lastPromptHeight = 0
           }
           // Clear each line as they are drawn, rather than relying on clearing
@@ -338,6 +341,7 @@ private[mill] object PromptLogger {
               .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
               .getBytes
           )
+          dest.write(AnsiNav.clearScreen(0).getBytes)
         } else {
           dest.write(buf, 0, end)
         }
