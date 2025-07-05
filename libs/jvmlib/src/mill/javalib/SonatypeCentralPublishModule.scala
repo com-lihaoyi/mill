@@ -1,10 +1,10 @@
 package mill.javalib
 
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
-import mill._
-import scalalib._
+import mill.*
+import mill.scalalib.*
 import mill.api.{ExternalModule, Task}
-import mill.util.Tasks
+import mill.util.{Tasks, FileSetContents}
 import mill.api.TaskModule
 import mill.api.{Result, experimental}
 import mill.javalib.SonatypeCentralPublishModule.{
@@ -15,7 +15,7 @@ import mill.javalib.SonatypeCentralPublishModule.{
   getPublishingTypeFromReleaseFlag,
   getSonatypeCredentials
 }
-import mill.scalalib.publish.Artifact
+import mill.scalalib.publish.RemoteM2Publisher
 import mill.scalalib.publish.SonatypeHelpers.{
   PASSWORD_ENV_VARIABLE_NAME,
   USERNAME_ENV_VARIABLE_NAME
@@ -24,8 +24,12 @@ import mill.api.BuildCtx
 
 @experimental
 trait SonatypeCentralPublishModule extends PublishModule {
-  def sonatypeCentralGpgArgs: T[String] = Task {
-    PublishModule.defaultGpgArgsForPassphrase(Task.env.get("MILL_PGP_PASSPHRASE")).mkString(",")
+
+  /**
+   * @return (keyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
+   */
+  def sonatypeCentralGpgArgs: Task[String => Seq[String]] = Task.Anon { (keyId: String) =>
+    PublishModule.makeGpgArgs(Task.env, maybeKeyId = Some(keyId), providedGpgArgs = Seq.empty)
   }
 
   def sonatypeCentralConnectTimeout: T[Int] = Task { defaultConnectTimeout }
@@ -36,19 +40,58 @@ trait SonatypeCentralPublishModule extends PublishModule {
 
   def sonatypeCentralShouldRelease: T[Boolean] = Task { true }
 
+  /**
+   * @param username override the username from the environment
+   * @param password override the password from the environment
+   * @param sources whether to include sources
+   * @param docs whether to include docs
+   */
   def publishSonatypeCentral(
       username: String = defaultCredentials,
-      password: String = defaultCredentials
-  ): Task.Command[Unit] =
-    Task.Command {
-      val publishData = publishArtifacts()
-      val fileMapping = publishData.withConcretePath._1
-      val artifact = publishData.meta
-      val finalCredentials = getSonatypeCredentials(username, password)()
-      PublishModule.pgpImportSecretIfProvided(Task.env)
+      password: String = defaultCredentials,
+      sources: Boolean = true,
+      docs: Boolean = true
+  ): Task.Command[Unit] = Task.Command {
+    val artifact = artifactMetadata()
+    val finalCredentials = getSonatypeCredentials(username, password)()
+
+    def publishSnapshot(): Unit = {
+      val uri = sonatypeCentralSnapshotUri
+      val artifacts = RemoteM2Publisher.asM2Artifacts(
+        pom().path,
+        artifact,
+        defaultPublishInfos(sources = sources, docs = docs)()
+      )
+
+      Task.log.info(
+        s"Detected a 'SNAPSHOT' version, publishing to Sonatype Central Snapshots at '$uri'"
+      )
+      // TODO review: this produces a bunch of debug logs like:
+      // [96] 16:06:59.289 [execution-contexts-threadpool-3-thread-7] DEBUG org.apache.http.impl.conn.DefaultManagedHttpClientConnection -- http-outgoing-0: Close connection
+      val result = RemoteM2Publisher.publish(
+        uri = uri,
+        workspace = Task.dest / "maven",
+        username = finalCredentials.username,
+        password = finalCredentials.password,
+        artifacts
+      )
+      Task.log.info(s"Deployment to '$uri' finished with result: $result")
+    }
+
+    def publishRelease(): Unit = {
+      val fileMapping = publishArtifactsPayload(sources = sources, docs = docs)().mapContents(
+        pathRef => FileSetContents.Contents.Path(pathRef.path)
+      )
+      val maybeKeyId = PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
+      val keyId = maybeKeyId.getOrElse(throw new IllegalArgumentException(
+        s"Publishing to Sonatype Central requires a PGP key. Please set the '${PublishModule.EnvVarPgpSecretBase64}' " +
+          s"and '${PublishModule.EnvVarPgpPassphrase}' (if needed) environment variables."
+      ))
+
+      val gpgArgs = sonatypeCentralGpgArgs()(keyId)
       val publisher = new SonatypeCentralPublisher(
         credentials = finalCredentials,
-        gpgArgs = sonatypeCentralGpgArgs().split(",").toIndexedSeq,
+        gpgArgs = gpgArgs,
         connectTimeout = sonatypeCentralConnectTimeout(),
         readTimeout = sonatypeCentralReadTimeout(),
         log = Task.log,
@@ -62,6 +105,12 @@ trait SonatypeCentralPublishModule extends PublishModule {
         getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
       )
     }
+
+    // The snapshot publishing does not use the same API as release publishing.
+    // TODO review: is there a way to dynamically switch the task graph?
+    if (artifact.version.endsWith("SNAPSHOT")) publishSnapshot()
+    else publishRelease()
+  }
 }
 
 object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
@@ -82,27 +131,22 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
       username: String = defaultCredentials,
       password: String = defaultCredentials,
       shouldRelease: Boolean = defaultShouldRelease,
-      gpgArgs: String = "",
+      gpgArgs: Seq[String] = Seq.empty,
       readTimeout: Int = defaultReadTimeout,
       connectTimeout: Int = defaultConnectTimeout,
       awaitTimeout: Int = defaultAwaitTimeout,
       bundleName: String = ""
   ): Command[Unit] = Task.Command {
 
-    val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] =
-      Task.sequence(publishArtifacts.value)().map {
-        case data @ PublishModule.PublishData(_, _) => data.withConcretePath
-      }
+    val artifacts =
+      Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val finalCredentials = getSonatypeCredentials(username, password)()
-    PublishModule.pgpImportSecretIfProvided(Task.env)
+    val gpgArgs0 = PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, gpgArgs)
     val publisher = new SonatypeCentralPublisher(
       credentials = finalCredentials,
-      gpgArgs = gpgArgs match {
-        case "" => PublishModule.defaultGpgArgsForPassphrase(Task.env.get("MILL_PGP_PASSPHRASE"))
-        case gpgArgs => gpgArgs.split(",").toIndexedSeq
-      },
+      gpgArgs = gpgArgs0,
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
       log = Task.log,

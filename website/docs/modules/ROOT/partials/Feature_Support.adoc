@@ -38,7 +38,7 @@
 
 *Publishing*
 
-* xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[Maven Central], xref:contrib/artifactory.adoc[Artifactory], xref:contrib/bintray.adoc[Bintray]
+* xref:javalib/publishing.adoc#_publishing_to_sonatype_maven_central[Maven Central], xref:contrib/artifactory.adoc[Artifactory]
 
 
 *Web Frameworks*
