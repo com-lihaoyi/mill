@@ -58,7 +58,7 @@ private[mill] class PromptLogger(
   private object runningState extends RunningState(
         enableTicker,
         () => promptUpdaterThread.interrupt(),
-        clearOnPause = () => streamManager.clearOnPause(),
+        clearOnPause = () => streamManager.refreshPrompt(),
         synchronizer = this
       )
 
@@ -92,10 +92,7 @@ private[mill] class PromptLogger(
 
   def refreshPrompt(ending: Boolean = false): Unit = synchronized {
     val updated = promptLineState.updatePrompt(ending)
-    mill.constants.DebugLog.println(s"refreshPrompt $updated $ending")
-    if (updated || ending) {
-      streamManager.refreshPrompt(ending)
-    }
+    if (updated) streamManager.refreshPrompt()
   }
 
   if (enableTicker && autoUpdate) promptUpdaterThread.start()
@@ -171,7 +168,6 @@ private[mill] class PromptLogger(
   def debug(s: String): Unit = if (debugEnabled) streams.err.println(s)
 
   override def close(): Unit = {
-    mill.constants.DebugLog.println("PromptLogge#close")
     synchronized {
       if (enableTicker) refreshPrompt(ending = true)
     }
@@ -270,26 +266,23 @@ private[mill] object PromptLogger {
 
     @volatile var lastPromptHeight = 0
     def writeCurrentPrompt(): Unit = {
-      val currentPrompt = getCurrentPrompt()
-      systemStreams0.err.write(currentPrompt)
-      lastPromptHeight = new String(currentPrompt).linesIterator.size
+      if (!paused()) {
+        val currentPrompt = getCurrentPrompt()
+        systemStreams0.err.write(currentPrompt)
+        systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
+        lastPromptHeight = new String(currentPrompt).linesIterator.size
+      } else {
+        lastPromptHeight = 0
+      }
     }
 
     def moveUp() = {
       systemStreams0.err.write((AnsiNav.left(9999) + AnsiNav.up(lastPromptHeight)).getBytes)
     }
 
-    def refreshPrompt(ending: Boolean = false): Unit = if (lastPromptHeight != 0 || ending) {
-      moveUp()
+    def refreshPrompt(): Unit = {
+      if (interactive()) moveUp()
       writeCurrentPrompt()
-    }
-
-    def clearOnPause(): Unit = {
-      // Clear the prompt so the code in `t` has a blank terminal to work with
-      moveUp()
-      systemStreams0.err.write(PromptLoggerUtil.clearScreenToEndBytes)
-      systemStreams0.err.flush()
-      lastPromptHeight = 0
     }
 
     object pumper extends ProxyStream.Pumper(
@@ -329,19 +322,21 @@ private[mill] object PromptLogger {
           moveUp()
           lastPromptHeight = 0
         }
+        val str = new String(buf, 0, end)
 
         if (clearLines) {
           // Clear each line as they are drawn, rather than relying on clearing
           // the entire screen before each batch of writes, to try and reduce the
           // amount of terminal flickering in slow terminals (e.g. windows)
           // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
+
           dest.write(
-            new String(buf, 0, end)
+            str
               .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
               .getBytes
           )
         } else {
-          dest.write(new String(buf, 0, end).getBytes)
+          dest.write(str.getBytes)
         }
       }
     }
