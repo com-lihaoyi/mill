@@ -226,7 +226,7 @@ object CodeGen {
           |
           |object ${CGConst.wrapperObjectName} extends ${CGConst.wrapperObjectName} {
           |  ${childAliases.linesWithSeparators.mkString("  ")}
-          |  $exportSiblingScripts
+          |  ${exportSiblingScripts.linesWithSeparators.mkString("  ")}
           |  ${millDiscover(segments.nonEmpty)}
           |}
           |""".stripMargin
