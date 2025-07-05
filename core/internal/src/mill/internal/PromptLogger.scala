@@ -92,7 +92,10 @@ private[mill] class PromptLogger(
 
   def refreshPrompt(ending: Boolean = false): Unit = synchronized {
     val updated = promptLineState.updatePrompt(ending)
-    if (updated) streamManager.refreshPrompt()
+    mill.constants.DebugLog.println(s"refreshPrompt $updated $ending")
+    if (updated || ending) {
+      streamManager.refreshPrompt(ending)
+    }
   }
 
   if (enableTicker && autoUpdate) promptUpdaterThread.start()
@@ -168,6 +171,7 @@ private[mill] class PromptLogger(
   def debug(s: String): Unit = if (debugEnabled) streams.err.println(s)
 
   override def close(): Unit = {
+    mill.constants.DebugLog.println("PromptLogge#close")
     synchronized {
       if (enableTicker) refreshPrompt(ending = true)
     }
@@ -265,31 +269,27 @@ private[mill] object PromptLogger {
     def awaitPumperEmpty(): Unit = { while (pipe.input.available() != 0) Thread.sleep(2) }
 
     @volatile var lastPromptHeight = 0
-    def writeCurrentPrompt(): Unit = systemStreams0.err.write(getCurrentPrompt())
+    def writeCurrentPrompt(): Unit = {
+      val currentPrompt = getCurrentPrompt()
+      systemStreams0.err.write(currentPrompt)
+      lastPromptHeight = new String(currentPrompt).linesIterator.size
+    }
 
     def moveUp() = {
-      mill.constants.DebugLog.println("moveUp " + lastPromptHeight)
       systemStreams0.err.write((AnsiNav.left(9999) + AnsiNav.up(lastPromptHeight)).getBytes)
     }
-    def saveLastPromptHeight() = {
-      mill.constants.DebugLog.println("currentPrompt " + pprint.apply(fansi.Str(new String(getCurrentPrompt()), fansi.ErrorMode.Sanitize).toString))
-      mill.constants.DebugLog.println("lastPromptHeight " + pprint.apply(lastPromptHeight).toString)
-      lastPromptHeight = new String(getCurrentPrompt()).linesIterator.size
-    }
-    def refreshPrompt(): Unit = if (lastPromptHeight != 0) {
-      if (!paused()) {
-        Thread.sleep(500)
-        moveUp()
-        writeCurrentPrompt()
-        saveLastPromptHeight()
-        Thread.sleep(500)
-      }
+
+    def refreshPrompt(ending: Boolean = false): Unit = if (lastPromptHeight != 0 || ending) {
+      moveUp()
+      writeCurrentPrompt()
     }
 
     def clearOnPause(): Unit = {
       // Clear the prompt so the code in `t` has a blank terminal to work with
+      moveUp()
       systemStreams0.err.write(PromptLoggerUtil.clearScreenToEndBytes)
       systemStreams0.err.flush()
+      lastPromptHeight = 0
     }
 
     object pumper extends ProxyStream.Pumper(
@@ -318,8 +318,6 @@ private[mill] object PromptLogger {
           lastCharWritten == '\n'
         ) {
           writeCurrentPrompt()
-          saveLastPromptHeight()
-          Thread.sleep(500)
         }
       }
 
@@ -330,7 +328,6 @@ private[mill] object PromptLogger {
         if (clearLines && lastPromptHeight != 0) dest.write(AnsiNav.clearScreen(0).getBytes)
         if (interactive() && !paused() && lastPromptHeight != 0) {
           moveUp()
-          Thread.sleep(500)
           lastPromptHeight = 0
         }
 
@@ -340,7 +337,6 @@ private[mill] object PromptLogger {
           // the entire screen before each batch of writes, to try and reduce the
           // amount of terminal flickering in slow terminals (e.g. windows)
           // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
-          mill.constants.DebugLog.println("output " + pprint.apply(fansi.Str(new String(buf, 0, end)).plainText))
           dest.write(
             new String(buf, 0, end)
               .replaceAll("(\r\n|\n|\t)", AnsiNav.clearLine(0) + "$1")
