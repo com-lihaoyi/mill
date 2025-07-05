@@ -282,7 +282,7 @@ private[mill] object PromptLogger {
       }
     }
 
-    def refreshPrompt(): Unit = {
+    def refreshPrompt(): Unit = synchronizer.synchronized {
       moveUp()
       writeCurrentPrompt()
     }
@@ -316,15 +316,19 @@ private[mill] object PromptLogger {
           // to ensure we don't cut off lines halfway
           lastCharWritten == '\n'
         ) {
-          writeCurrentPrompt()
+          synchronizer.synchronized {
+            writeCurrentPrompt()
+          }
         }
       }
 
       override def write(dest: OutputStream, buf: Array[Byte], end: Int): Unit = {
         if (enableTicker && interactive()) {
           lastCharWritten = buf(end - 1).toChar
-          moveUp()
-          lastPromptHeight = 0
+          synchronizer.synchronized {
+            moveUp()
+            lastPromptHeight = 0
+          }
           // Clear each line as they are drawn, rather than relying on clearing
           // the entire screen before each batch of writes, to try and reduce the
           // amount of terminal flickering in slow terminals (e.g. windows)
