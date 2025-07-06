@@ -1,8 +1,10 @@
-package mill.javalib.pmd
+package mill.javalib
+package pmd
 
 import mill.api.{Discover, Module, Task}
 import mill.scalalib.JavaHomeModule
 import mill.testkit.{TestRootModule, UnitTester}
+import mill.util.TokenReaders.given
 import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
@@ -11,17 +13,17 @@ object PmdModuleTests extends TestSuite {
 
   val resources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "pmd"
 
-  abstract class SingleModule extends TestRootModule, PmdModule {
+  abstract class SingleModule extends TestRootModule, PmdModule, JavaModule {
     lazy val millDiscover = Discover[this.type]
   }
 
   abstract class MultiModule extends TestRootModule {
     lazy val millDiscover = Discover[this.type]
-    object bar extends PmdModule
-    object foo extends PmdModule
+    object bar extends PmdModule, JavaModule
+    object foo extends PmdModule, JavaModule
   }
 
-  abstract class MultiModule0 extends TestRootModule, PmdModule {
+  abstract class MultiModule0 extends TestRootModule, PmdModule, JavaModule {
     lazy val millDiscover = Discover[this.type]
     object bar extends Module
     object foo extends Module
@@ -29,8 +31,8 @@ object PmdModuleTests extends TestSuite {
 
   def tests = Tests {
     test("pmd") {
-      val logStream = ByteArrayOutputStream()
       object module extends SingleModule
+      val logStream = ByteArrayOutputStream()
       UnitTester(
         module,
         resources / "pmd",
@@ -52,10 +54,10 @@ object PmdModuleTests extends TestSuite {
     }
 
     test("pmdExcludes") {
-      val logStream = ByteArrayOutputStream()
       object module extends SingleModule {
         def pmdExcludes = Task.Sources("src/ImmutableField.java")
       }
+      val logStream = ByteArrayOutputStream()
       UnitTester(
         module,
         resources / "pmd",
@@ -73,10 +75,10 @@ object PmdModuleTests extends TestSuite {
     }
 
     test("pmdUseVersion") {
-      val logStream = ByteArrayOutputStream()
       object module extends SingleModule, JavaHomeModule {
         def jvmId = "11"
       }
+      val logStream = ByteArrayOutputStream()
       UnitTester(
         module,
         resources / "pmdUseVersion",
@@ -97,8 +99,8 @@ object PmdModuleTests extends TestSuite {
 
     test("multi-module") {
       test("per sub-module setup") {
-        val logStream = ByteArrayOutputStream()
         object module extends MultiModule
+        val logStream = ByteArrayOutputStream()
         UnitTester(
           module,
           resources / "multi-module",
@@ -130,8 +132,8 @@ object PmdModuleTests extends TestSuite {
       }
 
       test("root module only setup") {
-        val logStream = ByteArrayOutputStream()
         object module extends MultiModule0
+        val logStream = ByteArrayOutputStream()
         UnitTester(
           module,
           resources / "multi-module",

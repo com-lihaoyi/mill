@@ -4,6 +4,7 @@ package pmd
 import mainargs.Flag
 import mill.api.*
 import mill.constants.OutFiles.out
+import mill.scalalib.api.Versions.{pmdCli, pmdJava}
 import mill.scalalib.{JavaHomeModule, OfflineSupportModule}
 import mill.util.Jvm
 
@@ -78,19 +79,30 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
     else Map())
 
   /**
-   * Classpath containing the PMD distribution dependency.
-   *
-   * Custom rulesets defined in a separate module/artifact can be used after adding the
-   * `transitiveCompileClasspath`/dependency to this classpath.
+   * Dependencies required to run [[pmd]]. Defaults to the ''pmd-cli'' dependency.
+   */
+  def pmdMvnDeps: Task[Seq[Dep]] = Task(Seq(mvn"$pmdCli"))
+
+  /**
+   * Dependencies containing rules for analysis. Defaults to
+   *  - ''pmd-java'' dependency, for a [[JavaModule]]
+   */
+  def pmdRulesMvnDeps: Task[Seq[Dep]] = this match {
+    case _: JavaModule => Task(Seq(mvn"$pmdJava"))
+    case _ => Task(Seq.empty[Dep])
+  }
+
+  /**
+   * Classpath including [[pmdMvnDeps]] and [[pmdRulesMvnDeps]].
    */
   def pmdClasspath: Task[Seq[PathRef]] = Task {
-    defaultResolver().classpath(Seq(mvn"${mill.scalalib.api.Versions.pmdDist}"))
+    defaultResolver().classpath(pmdMvnDeps() ++ pmdRulesMvnDeps())
   }
 
   /**
    * Java runtime options for running the analyzer. Defaults to
    *  - `forkArgs`, for a [[RunModule]]
-   *  - line delimited values in ''.pmd_java_optswith'', if the file exists
+   *  - line delimited values in ''.pmd_java_opts'', if the file exists
    * @see [[https://docs.pmd-code.org/latest/pmd_languages_java.html#using-java-preview-features Using java preview features]]
    */
   def pmdJavaOptions: Task[Seq[String]] = this match
