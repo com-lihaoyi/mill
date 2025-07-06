@@ -177,7 +177,7 @@ and even download libraries from Maven Central.
 Most build tools need plugins to do anything: if you want to _Foo_ you need a
 _Foo plugin_, if you want to Bar you need a _Bar plugin_, for any possible _Foo_ or _Bar_. These could
 be simple tasks - zipping up files, pre-rendering web templates, preparing static assets for
-deployment - but even a tasks that would be trivial to implement in a few lines of code requires
+deployment - but even a task that would be trivial to implement in a few lines of code requires
 you to Google for third-party plugins, dig through their Github to see which one is best
 maintained, and hope for the best when you include it in your build. And while you could
 write plugins yourself, doing so is usually non-trivial.
