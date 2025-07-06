@@ -317,7 +317,9 @@ private[mill] object PromptLogger {
           lastCharWritten == '\n'
         ) {
           synchronizer.synchronized {
-            refreshPrompt()
+            // `preRead` may be run more than once per `write` call, and so we
+            // only write out the current prompt if it has not already been written
+            if (lastPromptHeight == 0) writeCurrentPrompt()
             systemStreams0.err.flush()
           }
         }
