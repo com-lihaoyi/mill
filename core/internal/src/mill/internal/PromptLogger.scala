@@ -265,15 +265,16 @@ private[mill] object PromptLogger {
     def awaitPumperEmpty(): Unit = { while (pipe.input.available() != 0) Thread.sleep(2) }
 
     @volatile var lastPromptHeight = 0
+
     def writeCurrentPrompt(): Unit = {
       if (!paused()) {
         val currentPrompt = getCurrentPrompt()
         systemStreams0.err.write(currentPrompt)
-        if (interactive()) {
-          systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
-          lastPromptHeight = new String(currentPrompt).linesIterator.size
-        } else lastPromptHeight = 0
+        if (interactive()) lastPromptHeight = new String(currentPrompt).linesIterator.size
+        else lastPromptHeight = 0
       } else lastPromptHeight = 0
+
+      if (interactive()) systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
     }
 
     def moveUp() = {
