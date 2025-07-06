@@ -1,4 +1,4 @@
-//| mill-version: 1.0.0-RC3-26-c3ea9b
+//| mill-version: 1.0.0-RC3-28-3ea414
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C"]
 
@@ -24,6 +24,51 @@ import scala.util.Properties
 import mill.api.BuildCtx
 import mill.androidlib.AndroidSdkModule
 
+def run() = Task.Command(exclusive = true){
+  println("abc")
+  println("123")
+  println("xyz")
+}
+def run2() = Task.Command(exclusive = true){
+  println("abc")
+  println("123")
+  println("xyz")
+}
+def run3() = Task.Command(exclusive = true){
+  println("abc")
+  println("123")
+  println("xyz")
+}
+def run4() = Task.Command(exclusive = true){
+  println("abc")
+  println("123")
+  println("xyz")
+}
+def run5() = Task.Command(exclusive = true){
+  println("abc")
+  println("123")
+  println("xyz")
+}
+def run6() = Task.Command(exclusive = true){
+  println("abc")
+  println("123")
+  println("xyz")
+}
+def run7() = Task.Command(exclusive = true){
+  println("abc")
+  println("123")
+  println("xyz")
+}
+def run8() = Task.Command(exclusive = true){
+  println("abc")
+  println("123")
+  println("xyz")
+}
+def run9() = Task.Command(exclusive = true){
+  println("abc")
+  println("123")
+  println("xyz")
+}
 def millVersionIsStable: T[Boolean] = Task.Input {
   Task.env.contains("MILL_STABLE_VERSION")
 }
