@@ -2,11 +2,11 @@ package build.libs.scalanativelib
 // imports
 import mill._
 import mill.T
-import mill.define.Cross
+import mill.api.Cross
 import millbuild.*
 
 object `package` extends MillStableScalaModule {
-  def moduleDeps = Seq(build.libs.scalalib, api)
+  def moduleDeps = Seq(build.libs.jvmlib, api)
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(worker("0.5").localTestOverride())
 

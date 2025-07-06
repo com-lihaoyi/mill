@@ -83,6 +83,10 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
       Versions.composePreviewRendererVersion
     }
 
+    def screenshotValidationJunitEngineVersion: T[String] = Task {
+      Versions.screenshotValidationJunitEngineVersion
+    }
+
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
 
     override final def kotlinVersion = outer.kotlinVersion()
@@ -302,7 +306,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     def androidPreviewScreenshotTestEngineClasspath: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
+          mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:${screenshotValidationJunitEngineVersion()}"
         )
       )
     }

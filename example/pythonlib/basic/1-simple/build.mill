@@ -1,5 +1,5 @@
 package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 
@@ -7,7 +7,7 @@ object foo extends PythonModule {
 
   def pythonDeps = Seq("Jinja2==3.1.4")
 
-  object test extends PythonTests with TestModule.Unittest
+  object test extends PythonTests, TestModule.Unittest
 
 }
 

@@ -22,12 +22,14 @@ import mill.constants.EnvVars;
 
 public class MillProcessLauncher {
 
-  static int launchMillNoServer(String[] args) throws Exception {
+  static int launchMillNoDaemon(String[] args) throws Exception {
     final String sig = String.format("%08x", UUID.randomUUID().hashCode());
     final Path processDir = Paths.get(".").resolve(out).resolve(millNoDaemon).resolve(sig);
 
     final List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand());
+    Map<String, String> propsMap = ClientUtil.getUserSetProperties();
+    for (String key : propsMap.keySet()) l.add("-D" + key + "=" + propsMap.get(key));
     l.add("mill.daemon.MillNoDaemonMain");
     l.add(processDir.toAbsolutePath().toString());
     l.addAll(millOpts());
@@ -56,7 +58,7 @@ public class MillProcessLauncher {
     }
   }
 
-  static Process launchMillServer(Path daemonDir) throws Exception {
+  static Process launchMillDaemon(Path daemonDir) throws Exception {
     List<String> l = new ArrayList<>();
     l.addAll(millLaunchJvmCommand());
     l.add("mill.daemon.MillDaemonMain");

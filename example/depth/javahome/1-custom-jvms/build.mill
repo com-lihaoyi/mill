@@ -12,13 +12,13 @@
 //
 // To see what Jvms are available for download look at the index for your os
 // and architecture {link-jvm-indices}[here].
-import mill._, javalib._
+import mill.*, javalib.*
 import mill.api.ModuleRef
 
 object foo extends JavaModule {
   def jvmId = "temurin:18.0.2"
 
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 
 /** Usage
@@ -51,7 +51,7 @@ Test foo.FooTest.testSimple finished...
 // although that might mean the JVM version is no longer stable and might change over
 // time as new releases are published:
 
-import scalalib._
+import scalalib.*
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.12"
@@ -74,7 +74,7 @@ Bar running on Java 23.0.1
 // Linux/X64, but you may have additional cases if you need to support Windows or other
 // OS/CPU combinations
 
-import kotlinlib._
+import kotlinlib.*
 
 object qux extends KotlinModule {
   def kotlinVersion = "2.0.20"

@@ -3,7 +3,7 @@
 // `mill.javalib.palantirformat.PalantirFormatModule` below:
 
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule
 

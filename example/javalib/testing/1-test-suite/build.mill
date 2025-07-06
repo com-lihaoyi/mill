@@ -1,6 +1,6 @@
 //// SNIPPET:BUILD1
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
   object test extends JavaTests {
@@ -21,7 +21,7 @@ object foo extends JavaModule {
 //// SNIPPET:BUILD2
 
 object bar extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4 {
+  object test extends JavaTests, TestModule.Junit4 {
     def mvnDeps = super.mvnDeps() ++ Seq(
       mvn"org.mockito:mockito-core:4.6.1"
     )

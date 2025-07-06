@@ -1,7 +1,16 @@
 = Mill Sandboxing
 :page-aliases: Mill_Sandboxing.adoc
 
+In order to help manage your build, Mill performs some rudimentary filesystem
+sandboxing to keep different tasks and modules from interfering with each other.
+This tries to ensure your tasks only read and write from their designated `.dest/`
+folders, which are unique to each task and thus guaranteed not to collide with
+the filesystem operations of other tasks that may be occurring in parallel.
 
+Mill sandboxing is not meant to be fully hermetic, and is instead just a set of
+guardrails meant to nudge Mill users towards Mill's best practices and coding conventions.
+Every Mill sandboxing guardrail has an escape-hatch to bypass it (at your own risk!) if
+really necessary.
 
 == Task Sandboxing
 

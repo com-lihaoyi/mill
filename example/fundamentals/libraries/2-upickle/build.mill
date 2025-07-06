@@ -17,7 +17,7 @@
 // Most Scala primitive types (``String``s, ``Int``s, ``Boolean``s, etc.) and
 // collections types (``Seq``s, ``List``s, ``Tuple``s, etc.) are serializable by default.
 
-import mill._
+import mill.*
 
 def taskInt = Task { 123 }
 def taskBoolean = Task { true }

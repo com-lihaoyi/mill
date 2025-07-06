@@ -1,11 +1,11 @@
 package build
-import mill._, javalib._
+import mill.*, javalib.*
 import java.io.File
 
 object foo extends JavaModule {
   def compileMvnDeps = Seq(mvn"org.projectlombok:lombok:1.18.34")
 
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 
 // This is an example of how to use Mill to build Java projects using Java annotations and
@@ -45,7 +45,7 @@ object bar extends JavaModule {
     processors().map(_.path).mkString(File.pathSeparator)
   )
 
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 
 /** Usage

@@ -1,11 +1,11 @@
 //// SNIPPET:BUILD1
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 object foo extends ScalaModule {
   def scalaVersion = "3.7.1"
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.7")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -66,8 +66,8 @@ compiling 2 ... source...
 object bar extends ScalaModule {
   def scalaVersion = "3.7.1"
 
-  object test extends ScalaTests with TestModule.Utest {
-    def utestVersion = "0.8.7"
+  object test extends ScalaTests, TestModule.Utest {
+    def utestVersion = "0.8.9"
   }
 }
 

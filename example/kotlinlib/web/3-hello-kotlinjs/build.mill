@@ -8,7 +8,7 @@
 // * https://github.com/com-lihaoyi/mill/issues/3611
 
 package build
-import mill._, kotlinlib._, kotlinlib.js._
+import mill.*, kotlinlib.*, kotlinlib.js.*
 
 object `package` extends KotlinJsModule {
   override def kotlinJsModuleKind = ModuleKind.ESModule
@@ -17,7 +17,7 @@ object `package` extends KotlinJsModule {
   override def mvnDeps = Seq(
     mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
   )
-  object test extends KotlinJsModule with KotestTests {
+  object test extends KotlinJsModule, KotestTests {
     override def kotestVersion = "5.9.1"
   }
 }

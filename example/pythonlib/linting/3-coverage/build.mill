@@ -3,11 +3,11 @@
 //
 // You can use it by extending `CoverageTests` in your test module.
 
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object `package` extends PythonModule {
 
-  object test extends PythonTests with TestModule.Pytest with CoverageTests
+  object test extends PythonTests, TestModule.Pytest, CoverageTests
 
 }
 

@@ -10,7 +10,7 @@
 
 package build
 
-import mill._, androidlib._, scalalib._
+import mill.*, androidlib.*, scalalib.*
 import mill.api.BuildCtx
 
 object androidSdkModule0 extends AndroidSdkModule {
@@ -43,7 +43,7 @@ object app extends AndroidNativeAppModule { // <1>
   }
 
   // Instrumented tests (runs on emulator)
-  object it extends AndroidAppInstrumentedTests with AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppInstrumentedTests, AndroidTestModule.AndroidJUnit {
     def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
 
     /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has

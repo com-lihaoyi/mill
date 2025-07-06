@@ -1,5 +1,5 @@
 package build
-import mill._
+import mill.*
 import mill.api.BuildCtx
 
 def myInput = Task.Input {
@@ -114,7 +114,7 @@ def myPropertyTask = Task {
 
 // Again, `Task.Input` runs every time, and thus you should only do the bare minimum
 // in your `Task.Input` that is necessary to detect changes. Any further processing
-// should be done in downstreak xref:#_tasks[cached tasks] to allow for proper
+// should be done in downstream xref:#_tasks[cached tasks] to allow for proper
 // caching and re-use
 //
 // ==== Environment Variable Inputs

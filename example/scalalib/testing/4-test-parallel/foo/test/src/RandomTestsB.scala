@@ -1,5 +1,5 @@
 package foo
-import utest._
+import utest.*
 object RandomTestsB extends RandomTestsUtils {
   def tests = Tests {
     test("test1") { testGreeting("Dakota", 180) }

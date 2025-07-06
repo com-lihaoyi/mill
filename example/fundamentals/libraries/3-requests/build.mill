@@ -13,7 +13,7 @@
 // https://github.com/bazelbuild/bazel[Bazel Build Tool] binary, and use Bazel to
 // compile the Remote APIs source code as part of our build:
 
-import mill._
+import mill.*
 
 def remoteApisZip = Task {
   println("downloading bazel-remote-apis sources...")

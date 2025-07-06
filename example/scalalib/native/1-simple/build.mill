@@ -1,5 +1,5 @@
 package build
-import mill._, scalalib._, scalanativelib._
+import mill.*, scalalib.*, scalanativelib.*
 
 object `package` extends ScalaNativeModule {
   def scalaVersion = "3.3.4"
@@ -10,8 +10,8 @@ object `package` extends ScalaNativeModule {
     mvn"com.lihaoyi::mainargs::0.7.6"
   )
 
-  object test extends ScalaNativeTests with TestModule.Utest {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.7")
+  object test extends ScalaNativeTests, TestModule.Utest {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.9")
     def testFramework = "utest.runner.Framework"
   }
 }

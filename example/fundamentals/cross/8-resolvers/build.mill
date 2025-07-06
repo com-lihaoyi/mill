@@ -1,5 +1,5 @@
 package build
-import mill._
+import mill.*
 
 trait MyModule extends Cross.Module[String] {
   implicit object resolver extends mill.api.Cross.Resolver[MyModule] {

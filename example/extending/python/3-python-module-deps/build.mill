@@ -6,7 +6,7 @@
 // make them available during `typeCheck` and `run`:
 
 package build
-import mill._
+import mill.*
 
 trait PythonModule extends Module {
 

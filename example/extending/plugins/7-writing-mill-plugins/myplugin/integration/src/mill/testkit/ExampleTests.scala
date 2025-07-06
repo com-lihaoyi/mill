@@ -1,6 +1,6 @@
 package myplugin
 import mill.testkit.ExampleTester
-import utest._
+import utest.*
 
 object ExampleTests extends TestSuite {
 

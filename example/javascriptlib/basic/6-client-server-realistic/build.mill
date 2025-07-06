@@ -1,5 +1,5 @@
 package build
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object client extends ReactScriptsModule
 
@@ -20,7 +20,7 @@ object server extends TypeScriptModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 }
 
 // Documentation for mill.example.javascriptlib

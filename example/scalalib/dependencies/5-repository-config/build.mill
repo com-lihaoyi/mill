@@ -4,7 +4,7 @@
 
 //// SNIPPET:BUILD1
 package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 import mill.api.ModuleRef
 
 object foo extends ScalaModule {
@@ -54,7 +54,7 @@ object foo extends ScalaModule {
 
 //// SNIPPET:BUILD2
 
-object CustomJvmWorkerModule extends JvmWorkerModule with CoursierModule {
+object CustomJvmWorkerModule extends JvmWorkerModule, CoursierModule {
   def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 

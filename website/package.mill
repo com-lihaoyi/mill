@@ -7,7 +7,7 @@ import scalalib._
 //import de.tobiasroeser.mill.vcs.version.VcsVersion
 import scala.jdk.CollectionConverters._
 import millbuild.*
-import mill.define.BuildCtx
+import mill.api.BuildCtx
 
 /** Generates the mill documentation with Antora. */
 object `package` extends mill.Module {
@@ -55,7 +55,7 @@ object `package` extends mill.Module {
   }
 
   def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
-      ctx: mill.define.TaskCtx.Log
+      ctx: mill.api.TaskCtx.Log
   ) = {
 
     prepareAntora(npmDir)
@@ -114,7 +114,7 @@ object `package` extends mill.Module {
   }
 
   def expandDiagramsInDirectoryAdocFile(dest: os.Path, visualizeClassPath: Seq[os.Path])(implicit
-      ctx: mill.define.TaskCtx
+      ctx: mill.api.TaskCtx
   ) = {
 
     // Walk all files to render graphviz templates ourselves because the only Antora graphviz
@@ -421,7 +421,7 @@ object `package` extends mill.Module {
       siteDir,
       devAntoraSources().path,
       BuildCtx.workspaceRoot / "docs",
-      mill.define.BuildCtx.workspaceRoot
+      mill.api.BuildCtx.workspaceRoot
     )
 
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want

@@ -1,6 +1,6 @@
 package build
 
-import mill._, androidlib._, kotlinlib._
+import mill.*, androidlib.*, kotlinlib.*
 import hilt.AndroidHiltSupport
 
 object Versions {
@@ -18,8 +18,8 @@ object androidSdkModule0 extends AndroidSdkModule {
 }
 
 // Mill configuration for the Android Todo App project.
-object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBuildConfig
-    with AndroidHiltSupport {
+object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfig,
+      AndroidHiltSupport {
 
   def kotlinVersion = Versions.kotlinVersion
   def kotlinLanguageVersion = Versions.kotlinLanguageVersion
@@ -106,7 +106,7 @@ object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBu
     mvn"com.google.dagger:hilt-android-compiler:2.56"
   )
 
-  object test extends AndroidAppKotlinTests with AndroidHiltSupport with TestModule.Junit4 {
+  object test extends AndroidAppKotlinTests, AndroidHiltSupport, TestModule.Junit4 {
 
     def moduleDeps = super.moduleDeps ++ Seq(`shared-test`)
 
@@ -142,8 +142,8 @@ object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBu
     )
   }
 
-  object androidTest extends AndroidAppKotlinInstrumentedTests with AndroidR8AppModule
-      with AndroidHiltSupport {
+  object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
+        AndroidHiltSupport {
 
     override def kotlinLanguageVersion = Versions.kotlinLanguageVersion
 
@@ -207,7 +207,7 @@ object app extends AndroidAppKotlinModule with AndroidR8AppModule with AndroidBu
 
 }
 
-object `shared-test` extends AndroidKotlinModule with AndroidHiltSupport {
+object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
 
   def moduleDeps = Seq(app)
 
