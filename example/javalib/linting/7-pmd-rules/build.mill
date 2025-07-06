@@ -1,0 +1,35 @@
+// Mill supports defining and using custom PMD rules in a project.
+
+package build
+
+import mill.Module
+import mill.javalib.*
+import mill.javalib.pmd.*
+
+object `package` extends Module {
+
+  object bar extends JavaModule {
+    def compileMvnDeps = Seq(mvn"net.sourceforge.pmd:pmd-java:7.15.0")
+  }
+
+  object foo extends PmdModule, JavaModule {
+    def pmdModuleDeps = Seq(bar)
+  }
+}
+
+// We define a new rule class, `AvoidMdcOutsideTryStatement`, in the `bar` module and add the module
+// as a dependency of the the `foo` module.
+
+/** See Also: foo/ruleset.xml */
+
+// Next, we add the new rule to the ruleset of the `foo` module and run the `pmd` command to analyze
+// `Foo.java`.
+
+/** Usage
+> ./mill foo.pmd
+...Foo.java:5:	AvoidMdcOutsideTryStatement:	MDC API should always be used within the try/finally statement...
+error: ...violation(s) found
+*/
+
+// Please refer to the https://docs.pmd-code.org/latest/pmd_userdocs_making_rulesets.html[PMD documentation site]
+// for details on making rulesets.

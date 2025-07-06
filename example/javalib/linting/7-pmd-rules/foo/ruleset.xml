@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<ruleset name="foo"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+  <description>foo</description>
+  <rule name="AvoidMdcOutsideTryStatement"
+        since="0.1.0"
+        language="java"
+        externalInfoUrl="https://github.com/dgroup/arch4u-pmd/discussions/86"
+        message="MDC API should always be used within the try/finally statement: https://github.com/dgroup/arch4u-pmd/discussions/86"
+        class="AvoidMdcOutsideTryStatement">
+    <description>
+      MDC API should always be used within the try/finally statement.
+      See discussion about implementation tips/tricks on GitHub:
+      https://github.com/dgroup/arch4u-pmd/discussions/86
+    </description>
+    <priority>3</priority>
+    <properties>
+      <property name="mdcClasses"
+                description="Full name of the MDC classes. Use a comma (,) as a delimiter."
+                value="org.slf4j.MDC"/>
+      <property name="tryMethodNames"
+                description="Method names that should be within a Try statement. Use a comma (,) as a delimiter."
+                value="put"/>
+      <property name="finallyMethodNames"
+                description="Method names that should be within a Finally clause. Use a comma (,) as a delimiter."
+                value="remove,clear"/>
+    </properties>
+    <example>
+      <![CDATA[
+      import org.slf4j.MDC;
+
+      public class Foo {
+          public void bar() {
+              try {
+                  MDC.put(request, "someValue");
+                  // ... business logic
+              } finally {
+                  MDC.remove(request);
+                  // or MDC.clear();
+              }
+          }
+      }
+      ]]>
+    </example>
+  </rule>
+</ruleset>

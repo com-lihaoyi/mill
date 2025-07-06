@@ -92,10 +92,16 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
     case _ => Task(Seq(mvn"$pmdCli"))
 
   /**
+   * Modules defining custom rules referenced by [[pmdRulesets]] in this module.
+   */
+  def pmdModuleDeps: Seq[JavaModule] = Nil
+
+  /**
    * Classpath containing [[pmdMvnDeps]].
    */
   def pmdClasspath: Task[Seq[PathRef]] = Task {
     defaultResolver().classpath(pmdMvnDeps())
+      ++ Task.traverse(pmdModuleDeps)(_.runClasspath)().flatten
   }
 
   /**
