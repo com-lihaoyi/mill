@@ -214,6 +214,7 @@ object Deps {
   object RuntimeDeps {
     val dokkaVersion = "2.0.0"
     val koverVersion = "0.8.3"
+    val pmdVersion = "7.15.0"
 
     val detektCli = mvn"io.gitlab.arturbosch.detekt:detekt-cli:1.23.7"
     val dokkaAnalysisDescriptors =
@@ -234,7 +235,9 @@ object Deps {
     val proguard = mvn"com.guardsquare:proguard-base:7.7.0"
     val revApi = mvn"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
-    val pmdDist = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
+    val pmdCli = mvn"net.sourceforge.pmd:pmd-cli:$pmdVersion"
+    val pmdDist = mvn"net.sourceforge.pmd:pmd-dist:$pmdVersion"
+    val pmdJava = mvn"net.sourceforge.pmd:pmd-java:$pmdVersion"
 
     def updateable = Seq(
       detektCli,
@@ -254,7 +257,9 @@ object Deps {
       proguard,
       revApi,
       sbtTestInterface,
-      pmdDist
+      pmdCli,
+      pmdDist,
+      pmdJava
     )
   }
 

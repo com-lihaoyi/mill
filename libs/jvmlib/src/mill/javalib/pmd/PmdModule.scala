@@ -1,175 +1,159 @@
-package mill.javalib.pmd
+package mill.javalib
+package pmd
 
-import mill.*
-import mill.api.{Discover, ExternalModule, TaskCtx}
-import mill.jvmlib.api.Versions
-import mill.scalalib.scalafmt.ScalafmtModule.sources
-import mill.scalalib.{CoursierModule, Dep, DepSyntax, OfflineSupportModule}
-import mill.util.{Jvm, Version}
+import mainargs.Flag
+import mill.api.*
+import mill.constants.OutFiles.out
+import mill.jvmlib.api.Versions.{pmdCli, pmdDist, pmdJava}
+import mill.scalalib.{JavaHomeModule, OfflineSupportModule}
+import mill.util.Jvm
 
 /**
- * Checks Java source files with PMD static code analyzer [[https://pmd.github.io/]].
+ * Adds support for analyzing sources with the [[pmd]] command.
+ * @see [[https://docs.pmd-code.org/latest/index.html PMD]]
  */
+@mill.api.experimental
 trait PmdModule extends CoursierModule, OfflineSupportModule {
 
   /**
-   * Runs PMD.
-   *
-   * @note [[sources]] are processed when no [[PmdArgs.sources]] are specified.
+   * Configuration files containing rules for analysis. Defaults to XML files in [[moduleDir]]
+   * (or ''workspace'') with name starting with ''ruleset''.
+   * @see [[https://docs.pmd-code.org/latest/pmd_userdocs_making_rulesets.html Rulesets]]
    */
-  def pmd(@mainargs.arg pmdArgs: PmdArgs): Command[(exitCode: Int, outputPath: PathRef)] =
-    Task.Command {
-      val res = pmd0(pmdArgs.format, pmdArgs.sources)()
-      pmdHandleExitCode(
-        pmdArgs.stdout,
-        pmdArgs.failOnViolation,
-        res.exitCode,
-        res.outputPath,
-        pmdArgs.format
-      )
-      (res.exitCode, res.outputPath)
+  def pmdRulesets: Task[Seq[PathRef]] = {
+    def rulesetsIn(root: os.Path) = {
+      val rulesets = os.list.stream(root)
+        .filter: path =>
+          os.isFile(path) && {
+            val name = path.last
+            name.startsWith("ruleset") && name.endsWith(".xml")
+          }
+        .toSeq
+      Option.when(rulesets.nonEmpty)(rulesets)
     }
-
-  protected def pmd0(
-      format: String,
-      leftover: mainargs.Leftover[String]
-  ): Task[(outputPath: PathRef, exitCode: Int)] =
-    Task.Anon {
-      val output = Task.dest / s"pmd-output.$format"
-      os.makeDir.all(output / os.up)
-      val baseArgs = Seq(
-        "-d",
-        if (leftover.value.nonEmpty) leftover.value.mkString(",")
-        else sources().map(_.path.toString()).mkString(","),
-        "-R",
-        pmdRulesets().map(_.path.toString).mkString(","),
-        "-f",
-        format,
-        "-r",
-        output.toString
-      )
-
-      val args =
-        if (isPmd6OrOlder(this.pmdVersion())) pmdOptions() ++ baseArgs
-        else pmdOptions() ++ (Seq("check") ++ baseArgs)
-      val mainCls =
-        if (isPmd6OrOlder(this.pmdVersion())) "net.sourceforge.pmd.PMD"
-        else "net.sourceforge.pmd.cli.PmdCli"
-      val jvmArgs = pmdLanguage().map(lang => s"-Duser.language=$lang").toSeq
-
-      Task.log.info("Running PMD ...")
-      Task.log.debug(s"with $args")
-      Task.log.info(s"Writing PMD output to $output ...")
-
-      val exitCode = Jvm.callProcess(
-        mainCls,
-        classPath = pmdClasspath().map(_.path).toVector,
-        mainArgs = args,
-        cwd = moduleDir,
-        stdin = os.Inherit,
-        stdout = os.Inherit,
-        check = false,
-        jvmArgs = jvmArgs
-      ).exitCode
-
-      (outputPath = PathRef(output), exitCode = exitCode)
-    }
-
-  private def pmdHandleExitCode(
-      stdout: Boolean,
-      failOnViolation: Boolean,
-      exitCode: Int,
-      output: PathRef,
-      format: String
-  )(implicit ctx: TaskCtx): Int = {
-    exitCode match
-      case 0 => Task.log.info("No violations found and no recoverable error occurred.")
-      case 1 => Task.log.error("PMD finished with an exception.")
-      case 2 => Task.log.error("PMD command-line parameters are invalid or missing.")
-      case 4 =>
-        reportViolations(failOnViolation, countViolations(output, format, stdout))
-      case 5 =>
-        reportViolations(failOnViolation, countViolations(output, format, stdout))
-        Task.fail("At least one recoverable PMD error has occurred.")
-      case x => Task.log.error(s"Unsupported PMD exit code: $x")
-    exitCode
-  }
-
-  private def countViolations(
-      output: PathRef,
-      format: String,
-      stdout: Boolean
-  )(implicit ctx: TaskCtx): Option[Int] = {
-    var violationCount: Option[Int] = None
-    val lines = os.read.lines(output.path)
-    if (lines.nonEmpty) {
-      if (stdout) {
-        Task.log.info("PMD violations:")
-        lines.foreach(line => Task.log.info(line))
-      }
-      // For "text" format: each line is a violation
-      if (format == "text") {
-        violationCount = Some(lines.size)
-      }
-      // For "xml" format: count <violation ...> tags
-      else if (format == "xml") {
-        violationCount = Some(lines.count(_.trim.startsWith("<violation")))
-      }
-      // For "html" format: count lines with <tr but skip the header row
-      else if (format == "html") {
-        violationCount =
-          Some(lines.count(line => line.trim.startsWith("<tr") && !line.contains("<th")))
-      }
-    } else {
-      violationCount = Some(0)
-    }
-    violationCount
-  }
-
-  private def reportViolations(
-      failOnViolation: Boolean,
-      violationCount: Option[Int]
-  )(implicit ctx: TaskCtx): Unit = {
-    val msg = s"PMD found ${violationCount.getOrElse("some")} violation(s)"
-    if (failOnViolation) Task.fail(msg)
-    else Task.log.error(msg)
+    Task.Sources(rulesetsIn(moduleDir)
+      .orElse(rulesetsIn(Task.ctx().workspace))
+      .getOrElse(Task.fail("failed to auto-detect rulesets"))*)
   }
 
   /**
-   * Classpath for running PMD.
+   * Files (or folders containing the files) to analyze. Defaults to
+   *  - (non-hidden) folders in workspace, for a [[BaseModule root module]]
+   *  - `sources`, for a [[JavaModule]]
+   *  - folders under [[moduleDir]] with name starting with ''src'', otherwise
+   * @note Values in [[pmdExcludes]] supersede values in this list.
    */
-  def pmdClasspath: T[Seq[PathRef]] = Task {
-    val version = pmdVersion()
-    defaultResolver().classpath(Seq(mvn"net.sourceforge.pmd:pmd-dist:$version"))
+  def pmdIncludes: Task[Seq[PathRef]] = this match
+    case _: BaseModule => Task.Sources(os.list.stream(moduleDir)
+        .filter: path =>
+          os.isDir(path) && {
+            val name = path.last
+            !(name.startsWith(".") || name == out)
+          }
+        .toSeq*)
+    case self: JavaModule => Task(self.sources())
+    case _ => Task.Sources(os.list.stream(moduleDir)
+        .filter: path =>
+          os.isDir(path) && path.relativeTo(moduleDir).segments.head.startsWith("src")
+        .toSeq*)
+
+  /**
+   * Files or folders to exclude from analysis.
+   * @note This is intended for use in conjunction with [[pmdIncludes]].
+   */
+  def pmdExcludes: Task[Seq[PathRef]] = Task(Seq.empty[PathRef])
+
+  /**
+   * The specific language and version to use when parsing source code. Defaults to line delimited
+   * values in ''.pmd-use-version''.
+   * @see `--use-version` in [[https://docs.pmd-code.org/latest/pmd_userdocs_cli_reference.html#options options]]
+   */
+  def pmdUseVersion: Task[Map[String, String]] = Task.Input(BuildCtx.withFilesystemCheckerDisabled:
+    val file = moduleDir / ".pmd-use-version"
+    if os.exists(file) then
+      os.read.lines.stream(file)
+        .grouped(2)
+        .map(pair => (pair.head, pair.last))
+        .toSeq
+        .toMap
+    else Map())
+
+  /**
+   * Dependencies required to run [[pmd]]. Defaults to ''net.sourceforge.pmd'' dependency
+   *  - ''pmd-dist'', for a [[BaseModule root module]]
+   *  - ''pmd-cli'' and ''pmd-java'', for a [[JavaModule]]
+   *  - ''pmd-cli'', otherwise
+   * @note [[https://docs.pmd-code.org/latest/pmd_userdocs_3rdpartyrulesets.html 3rd party rules]]
+   *       can be used after adding the dependencies here.
+   */
+  def pmdMvnDeps: Task[Seq[Dep]] = this match
+    case _: BaseModule => Task(Seq(mvn"$pmdDist"))
+    case _: JavaModule => Task(Seq(mvn"$pmdCli", mvn"$pmdJava"))
+    case _ => Task(Seq(mvn"$pmdCli"))
+
+  /**
+   * Classpath containing [[pmdMvnDeps]].
+   */
+  def pmdClasspath: Task[Seq[PathRef]] = Task {
+    defaultResolver().classpath(pmdMvnDeps())
   }
 
-  /** PMD rulesets files. Defaults to `pmd-ruleset.xml`. */
-  def pmdRulesets: Sources = Task.Sources(moduleDir / "pmd-ruleset.xml")
+  /**
+   * Java runtime options for running the analyzer. Defaults to
+   *  - `forkArgs`, for a [[RunModule]]
+   *  - line delimited values in ''.pmd_java_opts'', if the file exists
+   * @see [[https://docs.pmd-code.org/latest/pmd_languages_java.html#using-java-preview-features Using java preview features]]
+   */
+  def pmdJavaOptions: Task[Seq[String]] = this match
+    case self: RunModule => Task(self.forkArgs())
+    case _ => Task.Input(BuildCtx.withFilesystemCheckerDisabled:
+        val file = moduleDir / ".pmd_java_opts"
+        if os.exists(file) then os.read.lines(file) else Seq())
 
-  /** Additional arguments for PMD. */
-  def pmdOptions: T[Seq[String]] = Task {
-    Seq.empty[String]
+  /**
+   * Analyzes [[pmdIncludes files]] with [[pmdRulesets rulesets]] and fails on violations.
+   * @param options Additional [[https://docs.pmd-code.org/latest/pmd_userdocs_cli_reference.html#options CLI options]].
+   * @note The `--cache` option is reserved for internal use.
+   */
+  def pmd(options: String*): Task.Command[Unit] = {
+    // running PMD with the module's Java home should obviate the need for
+    // https://docs.pmd-code.org/latest/pmd_languages_java.html#providing-the-auxiliary-classpath
+    val javaHomeTask = this match
+      case self: JavaHomeModule => Task.Anon(self.javaHome().map(_.path))
+      case _ => Task.Anon(Option.empty[os.Path])
+    Task.Command {
+      val cliArgs =
+        Seq("check") // sub-command
+          ++ Seq("--cache", (Task.dest / "cache").toString) // for incremental analysis
+          ++ pmdUseVersion().iterator.flatMap((lang, ver) => Seq("--use-version", s"$lang-$ver"))
+          ++ pmdRulesets().iterator.flatMap(ref => Seq("-R", ref.path.toString))
+          ++ pmdExcludes().iterator.flatMap(ref => Seq("--exclude", ref.path.toString))
+          ++ pmdIncludes().iterator.flatMap(ref => Seq("-d", ref.path.toString))
+          ++ options
+      val exitCode = Jvm.callProcess(
+        mainClass = "net.sourceforge.pmd.cli.PmdCli",
+        mainArgs = cliArgs,
+        javaHome = javaHomeTask(),
+        jvmArgs = pmdJavaOptions(),
+        classPath = pmdClasspath().map(_.path),
+        check = false,
+        stdout = os.Inherit // log violations
+      ).exitCode
+      exitCode match
+        case 0 => Task.log.info("no violation found")
+        case 2 => Task.fail("invalid/missing options")
+        case 4 => Task.fail("violation(s) found")
+        case 5 => Task.fail("recoverable error(s) occurred")
+        case x => Task.fail(s"exit($x)")
+    }
   }
 
-  /** User language of the JVM running PMD. */
-  def pmdLanguage: T[Option[String]] = Task.Input {
-    sys.props.get("user.language")
+  override def prepareOffline(all: Flag) = Task.Command {
+    (super.prepareOffline(all)() ++ pmdClasspath()).distinct
   }
-
-  /** Helper to check if the version is <= 6. False by default. */
-  private def isPmd6OrOlder(version: String): Boolean =
-    !Version.isAtLeast(version, "7")(using Version.IgnoreQualifierOrdering)
-
-  /** PMD version. */
-  def pmdVersion: T[String] = Task { Versions.pmdVersion }
 }
-
-/**
- * External module for PMD integration.
- *
- * Allows usage via `import mill.javalib.pmd/` in build.mill.
- */
-object PmdModule extends ExternalModule, PmdModule, TaskModule {
-  lazy val millDiscover: Discover = Discover[this.type]
-  override def defaultTask() = "pmd"
+@mill.api.experimental
+object PmdModule extends ExternalModule, TaskModule, PmdModule {
+  lazy val millDiscover = Discover[this.type]
+  def defaultTask() = "pmd"
 }
