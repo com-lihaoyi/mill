@@ -24,51 +24,6 @@ import scala.util.Properties
 import mill.api.BuildCtx
 import mill.androidlib.AndroidSdkModule
 
-def run() = Task.Command(exclusive = true){
-  println("abc")
-  println("123")
-  println("xyz")
-}
-def run2() = Task.Command(exclusive = true){
-  println("abc")
-  println("123")
-  println("xyz")
-}
-def run3() = Task.Command(exclusive = true){
-  println("abc")
-  println("123")
-  println("xyz")
-}
-def run4() = Task.Command(exclusive = true){
-  println("abc")
-  println("123")
-  println("xyz")
-}
-def run5() = Task.Command(exclusive = true){
-  println("abc")
-  println("123")
-  println("xyz")
-}
-def run6() = Task.Command(exclusive = true){
-  println("abc")
-  println("123")
-  println("xyz")
-}
-def run7() = Task.Command(exclusive = true){
-  println("abc")
-  println("123")
-  println("xyz")
-}
-def run8() = Task.Command(exclusive = true){
-  println("abc")
-  println("123")
-  println("xyz")
-}
-def run9() = Task.Command(exclusive = true){
-  println("abc")
-  println("123")
-  println("xyz")
-}
 def millVersionIsStable: T[Boolean] = Task.Input {
   Task.env.contains("MILL_STABLE_VERSION")
 }

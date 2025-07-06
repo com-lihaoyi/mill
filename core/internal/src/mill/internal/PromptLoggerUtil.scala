@@ -220,18 +220,23 @@ private object PromptLoggerUtil {
     }
   }
 
-  def streamToPrependNewlines(dest: OutputStream, buf: Array[Byte], end: Int, prepended: Array[Byte]) = {
+  def streamToPrependNewlines(
+      dest: OutputStream,
+      buf: Array[Byte],
+      end: Int,
+      prepended: Array[Byte]
+  ) = {
     var last = 0
     var i = 0
     while (i < end) {
       (buf(i): @switch) match {
         case '\r' =>
-          if (i + 1 < buf.length && buf(i + 1) == '\n') {
+          if (i + 1 < end && buf(i + 1) == '\n') {
             dest.write(buf, last, i - last)
             dest.write(prepended)
             last = i
             i += 2
-          }else {
+          } else {
             i += 1
           }
         case '\n' | '\t' =>
@@ -242,6 +247,6 @@ private object PromptLoggerUtil {
         case _ => i += 1
       }
     }
-    dest.write(buf, last, buf.length - last)
+    dest.write(buf, last, end - last)
   }
 }

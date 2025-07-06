@@ -337,7 +337,6 @@ private[mill] object PromptLogger {
           // the entire screen before each batch of writes, to try and reduce the
           // amount of terminal flickering in slow terminals (e.g. windows)
           // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
-          pprint.log(new String(buf, 0, end))
           PromptLoggerUtil.streamToPrependNewlines(dest, buf, end, AnsiNav.clearLine(0).getBytes)
         } else {
           dest.write(buf, 0, end)

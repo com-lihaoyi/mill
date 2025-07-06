@@ -461,12 +461,10 @@ object PromptLoggerUtilTests extends TestSuite {
         assert(rendered == expected)
       }
     }
-    test("streamToPrependNewlines"){
+    test("streamToPrependNewlines") {
       val baos = new ByteArrayOutputStream()
       val input = "Hello\nworld\r\nI\tam\tcow\n".getBytes
       PromptLoggerUtil.streamToPrependNewlines(baos, input, input.length, "!!!".getBytes)
-      pprint.log(baos.toString.toCharArray)
-      pprint.log("Hello!!!\nworld!!!\r\nI!!!\tam!!!\tcow!!!\n".toCharArray)
       baos.toByteArray ==> "Hello!!!\nworld!!!\r\nI!!!\tam!!!\tcow!!!\n".getBytes
     }
   }
