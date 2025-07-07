@@ -14,7 +14,7 @@ import utest._
  */
 object LeakHygieneTests extends UtestIntegrationTestSuite {
   def checkClassloaders(tester: IntegrationTester)(kvs: (String, Int)*) = {
-    val res = tester.eval(("show", "countClassLoaders"))
+    val res = tester.eval(("show", "countClassLoaders"), check = true)
 
     val read = upickle.default.read[SortedMap[String, Int]](res.out)
     val expected = SortedMap(kvs*)
@@ -133,7 +133,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
         // Exercise post-shutdown
 
-        tester.eval(("shutdown"))
+        tester.eval(("shutdown"), check = true)
         checkClassloaders(tester)(
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.javalib.JvmWorkerModule#worker cl" -> 1
