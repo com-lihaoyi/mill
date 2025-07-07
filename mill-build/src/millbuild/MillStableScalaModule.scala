@@ -5,7 +5,21 @@ import mill._, scalalib._
 /** Publishable module which contains strictly handled API. */
 trait MillStableScalaModule extends MillPublishScalaModule with Mima {
 
-  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq.empty[ProblemFilter]
+  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq(
+    ProblemFilter.exclude[MissingClassProblem]("mill.javalib.pmd.PmdArgs"),
+    ProblemFilter.exclude[MissingClassProblem]("mill.javalib.pmd.PmdArgs$"),
+    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.javalib.pmd.PmdModule.pmd"),
+    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.javalib.pmd.PmdModule.pmd0"),
+    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.javalib.pmd.PmdModule.pmdClasspath"),
+    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.javalib.pmd.PmdModule.pmdRulesets"),
+    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.javalib.pmd.PmdModule.pmdOptions"),
+    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.javalib.pmd.PmdModule.pmdLanguage"),
+    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.javalib.pmd.PmdModule.pmdVersion"),
+    ProblemFilter.exclude[ReversedMissingMethodProblem](
+      "mill.javalib.pmd.PmdModule.mill$javalib$pmd$PmdModule$$super$prepareOffline"
+    ),
+    ProblemFilter.exclude[DirectMissingMethodProblem]("mill.jvmlib.api.Versions.pmdVersion")
+  )
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
