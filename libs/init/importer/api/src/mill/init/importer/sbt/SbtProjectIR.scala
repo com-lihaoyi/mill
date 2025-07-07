@@ -3,7 +3,7 @@ package sbt
 
 import upickle.default.{ReadWriter, macroRW}
 
-case class ExportedSbtProject(
+case class SbtProjectIR(
     projectId: String,
     moduleName: String,
     baseDir: os.SubPath,
@@ -12,6 +12,6 @@ case class ExportedSbtProject(
     mainModuleIRs: Seq[ModuleIR],
     testModuleIRs: Seq[ModuleIR]
 )
-object ExportedSbtProject {
-  implicit val rw: ReadWriter[ExportedSbtProject] = macroRW
+object SbtProjectIR {
+  implicit val rw: ReadWriter[SbtProjectIR] = macroRW
 }
