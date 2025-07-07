@@ -67,6 +67,7 @@ type RunModule = mill.javalib.RunModule
 // lazy val SonatypeCentralPublisher = mill.javalib.SonatypeCentralPublisher.self
 type SonatypeCentralPublisher = mill.javalib.SonatypeCentralPublisher
 
+type SonatypeCentralPublishModule = mill.javalib.SonatypeCentralPublishModule
 object SonatypeCentralPublishModule
     extends mill.api.ExternalModule.Alias(mill.javalib.SonatypeCentralPublishModule)
 

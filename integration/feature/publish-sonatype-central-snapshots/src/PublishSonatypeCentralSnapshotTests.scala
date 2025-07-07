@@ -8,11 +8,12 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
     test("publish") - integrationTest { tester =>
       import tester.*
 
-      val PUBLISH_ORG_ENV_VARIABLE_NAME = "MILL_TEST_PUBLISH_ORG"
+      val PUBLISH_ORG_ENV_VARIABLE_NAME = "MILL_TESTS_PUBLISH_ORG"
 
-      val maybePublishOrg = sys.props.get(PUBLISH_ORG_ENV_VARIABLE_NAME)
-      val maybePublishUsername = sys.props.get(USERNAME_ENV_VARIABLE_NAME)
-      val maybePublishPassword = sys.props.get(PASSWORD_ENV_VARIABLE_NAME)
+      val env = sys.env
+      val maybePublishOrg = env.get(PUBLISH_ORG_ENV_VARIABLE_NAME)
+      val maybePublishUsername = env.get(USERNAME_ENV_VARIABLE_NAME)
+      val maybePublishPassword = env.get(PASSWORD_ENV_VARIABLE_NAME)
 
       (maybePublishOrg, maybePublishUsername, maybePublishPassword) match {
         case (Some(publishOrg), Some(publishUsername), Some(publishPassword)) =>
