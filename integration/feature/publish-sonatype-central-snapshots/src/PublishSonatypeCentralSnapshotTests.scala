@@ -25,8 +25,11 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
               PASSWORD_ENV_VARIABLE_NAME -> publishPassword
             )
           )
-          assert(res.out.contains("finished with result:"))
-          assert(res.isSuccess)
+          // Extract the values so that `assert` macro would print them out nicely if the test fails
+          // instead of printing `res` twice.
+          val isSuccess = res.isSuccess
+          val out = res.out
+          assert(isSuccess && out.contains("finished with result:"))
 
         case _ =>
           case class WithName[A](name: String, description: String, value: A)

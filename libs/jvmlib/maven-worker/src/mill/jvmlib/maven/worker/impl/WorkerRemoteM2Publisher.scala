@@ -1,7 +1,6 @@
 package mill.jvmlib.maven.worker.impl
 
 import mill.javalib.MavenWorkerSupport.RemoteM2Publisher
-import mill.javalib.publish.{Artifact, PublishInfo}
 import org.eclipse.aether.DefaultRepositorySystemSession
 import org.eclipse.aether.artifact.{DefaultArtifact, Artifact as M2Artifact}
 import org.eclipse.aether.deployment.{DeployRequest, DeployResult}

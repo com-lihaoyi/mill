@@ -18,10 +18,8 @@ trait MavenWorkerSupport extends CoursierModule with OfflineSupportModule {
   }
 
   private[mill] def mavenWorkerClassloader: Task.Worker[ClassLoader] = Task.Worker {
-    Jvm.createClassLoader(
-      classPath = mavenWorkerClasspath().map(_.path),
-      parent = getClass.getClassLoader
-    )
+    val classPath = mavenWorkerClasspath().map(_.path)
+    Jvm.createClassLoader(classPath = classPath, parent = getClass.getClassLoader)
   }
 
   def mavenWorker: Task.Worker[MavenWorkerSupport.Api] = Task.Worker {
@@ -63,8 +61,8 @@ object MavenWorkerSupport {
     ) {
       override def toString: String =
         s"""DeployResult(
-           |  artifacts = ${artifacts.mkString("[\n    ", "    ", "  ]")}
-           |  metadatas = ${metadatas.mkString("[\n    ", "    ", "  ]")}
+           |  artifacts = ${artifacts.mkString("[\n    ", "\n    ", "\n  ]")}
+           |  metadatas = ${metadatas.mkString("[\n    ", "\n    ", "\n  ]")}
            |)
            |""".stripMargin
     }
