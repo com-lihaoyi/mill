@@ -447,14 +447,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="codeartifact.html">Codeartifact</a>
   </li>
 
@@ -668,8 +664,8 @@
 <p>This plugin provides publishing and dependencies to Gitlab package registries.</p>
 </div>
 <div class="paragraph">
-<p>Gitlab does not support http basic auth so using PublishModule, artifactory-
-or bintray-plugin does not work. This plugin tries to provide as automatic
+<p>Gitlab does not support http basic auth so using PublishModule or artifactory-plugin
+does not work. This plugin tries to provide as automatic
 as possible support for gitlab package registries and automatic detection of
 gitlab CI/CD pipeline.</p>
 </div>
@@ -980,7 +976,6 @@ object myModule extends ScalaModule {
 <ul>
 <li>
 <p>Mill contrib <a href="https://github.com/com-lihaoyi/mill/tree/main/contrib/artifactory/src/mill/contrib/artifactory">artifactory</a>
-and <a href="https://github.com/com-lihaoyi/mill/tree/main/contrib/bintray/src/mill/contrib/bintray">bintray</a>
 modules source code</p>
 </li>
 <li>
