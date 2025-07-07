@@ -3,7 +3,7 @@
 
 
 This page goes into more detail about configuring third party dependencies
-for `TypescriptModule`s.
+for ``TypescriptModule``s.
 
 == Adding Dependencies
 

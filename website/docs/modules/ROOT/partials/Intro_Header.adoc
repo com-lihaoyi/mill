@@ -7,5 +7,8 @@ with more examples of how to use Mill for {language} and more details of how the
 build tool works. They aren't intended to be read comprehensively top-to-bottom, but
 rather looked up when you have a particular interest e.g. in
 xref:{language-small}lib/testing.adoc[testing],
-xref:{language-small}lib/publishing.adoc[publishing],
-xref:{language-small}lib/web-examples.adoc[web dev], and so on.
+xref:{language-small}lib/publishing.adoc[publishing], and so on.
+
+The API reference for Mill's {language} toolchain can be found at:
+
+* {mill-doc-url}/api/latest/mill/{language-small}lib.html[mill.{language-small}lib]
