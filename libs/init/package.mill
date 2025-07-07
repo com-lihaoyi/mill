@@ -3,7 +3,7 @@ package build.libs.init
 import mill._
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.Assembly.Rule
-import mill.scalalib.ScalaModule
+import mill.scalalib.{ScalaModule, DepSyntax}
 import mill.util.Jvm
 import millbuild.*
 import mill.api.BuildCtx
@@ -11,6 +11,9 @@ import mill.api.BuildCtx
 object `package` extends MillPublishScalaModule {
 
   def moduleDeps = Seq(build.libs.jvmlib)
+
+  private def sources0 = Task.Sources(BuildCtx.workspaceRoot / "mill-build" / "src-deps")
+  override def sources = super.sources() ++ sources0()
 
   override def resources = Task {
     super.resources() ++ Seq(exampleList())
@@ -90,14 +93,7 @@ object `package` extends MillPublishScalaModule {
   }
   object maven extends MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
-    def mvnDeps = Seq(
-      Deps.mavenEmbedder,
-      Deps.mavenResolverConnectorBasic,
-      Deps.mavenResolverSupplier,
-      Deps.mavenResolverTransportFile,
-      Deps.mavenResolverTransportHttp,
-      Deps.mavenResolverTransportWagon
-    )
+    override def compileMvnDeps = super.compileMvnDeps() ++ SharedDeps.MavenImporter
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib, buildgen.test)
   }
 

@@ -188,8 +188,6 @@ object Deps {
   val kotlinVersion = "2.1.20"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
   val mavenVersion = "4.0.0-rc-4"
-  // https://mvnrepository.com/artifact/org.apache.maven/maven-embedder
-  val mavenEmbedder = mvn"org.apache.maven:maven-embedder:$mavenVersion"
   val mavenResolverVersion = "2.0.10"
   // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-connector-basic
   val mavenResolverConnectorBasic =
@@ -203,9 +201,6 @@ object Deps {
   // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-transport-http
   val mavenResolverTransportHttp =
     mvn"org.apache.maven.resolver:maven-resolver-transport-http:2.0.0-alpha-2"
-  // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-transport-wagon
-  val mavenResolverTransportWagon =
-    mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-api
   val mavenResolverApi =
     mvn"org.apache.maven.resolver:maven-resolver-api:$mavenResolverVersion"

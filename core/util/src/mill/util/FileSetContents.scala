@@ -5,7 +5,7 @@ import os.{Path, SubPath}
 /**
  * A bunch of relative file paths with their contents.
  *
- * @tparam Contents Allows to specify in the type system that we only have a certain type of contents.
+ * @tparam Contents Allows specifying in the type system that we only have a certain type of contents.
  */
 case class FileSetContents[+Contents](
     contents: Map[SubPath, Contents]
