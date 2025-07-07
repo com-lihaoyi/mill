@@ -59,7 +59,6 @@
         <orderEntry type="library" name="mill-core-api-daemon_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-constants.jar" level="project"/>
-        <orderEntry type="library" name="mill-core-coursierutil_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-eval_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-exec_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-internal_3.jar" level="project"/>

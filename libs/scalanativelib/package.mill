@@ -7,8 +7,6 @@ import millbuild.*
 
 object `package` extends MillStableScalaModule {
   def moduleDeps = Seq(build.libs.scalalib, api)
-  def transitiveLocalTestOverrides =
-    super.transitiveLocalTestOverrides() ++ Seq(worker("0.5").localTestOverride())
 
   object api extends MillStableScalaModule {
     def mvnDeps = Seq(Deps.sbtTestInterface)

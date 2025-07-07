@@ -28,7 +28,7 @@ object myplugin extends ScalaModule, PublishModule {
       val localClasspathString = myplugin.localClasspath().map(_.path).mkString("\n")
       Map(
         "MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString,
-        s"MILL_LOCAL_TEST_OVERRIDE_$artifact" -> localClasspathString
+        "MILL_USER_TEST_REPO" -> stagePublish(doc = false)().path.toString
       )
     }
 

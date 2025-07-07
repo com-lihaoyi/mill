@@ -32,13 +32,6 @@ object `package` extends MillStableScalaModule {
   def runMvnDeps = Seq(Deps.sonatypeCentralClient)
 
   def testMvnDeps = super.testMvnDeps() ++ Seq(Deps.TestDeps.scalaCheck)
-  def transitiveLocalTestOverrides =
-    super.transitiveLocalTestOverrides() ++ Seq(
-      worker.localTestOverride(),
-      `classgraph-worker`.localTestOverride(),
-      `jarjarabrams-worker`.localTestOverride(),
-      `spotless-worker`.localTestOverride()
-    )
   def testForkEnv = {
     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
     super.testForkEnv() ++ Map("LC_ALL" -> locale)

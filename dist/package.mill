@@ -101,10 +101,6 @@ object `package` extends MillJavaModule with DistModule {
 
   def moduleDeps = Seq(build.runner.launcher)
 
-  def transitiveLocalTestOverrides = Map(
-    Task.traverse(allPublishModules)(_.localTestOverride)()*
-  )
-
   def localBinName = "mill-assembly.jar"
 
   private def millClientJvmArgs = Seq(
@@ -166,6 +162,16 @@ object `package` extends MillJavaModule with DistModule {
     val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
     os.copy(assembly().path, Task.dest / filename)
     PathRef(Task.dest / filename)
+  }
+
+  def localRepo = {
+    val publishAll = Task.traverse(allPublishModules)(_.stagePublish(doc = false))
+    Task {
+      val repo = Task.dest
+      for (path <- publishAll().map(_.path); elem <- os.walk(path).filter(os.isFile))
+        os.copy.over(elem, repo / elem.relativeTo(path).asSubPath, createFolders = true)
+      PathRef(repo)
+    }
   }
 
   def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {

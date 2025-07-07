@@ -10,8 +10,6 @@ import millbuild.*
 
 object `package` extends MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.libs.scalalib, api)
-  def transitiveLocalTestOverrides =
-    super.transitiveLocalTestOverrides() ++ Seq(worker("1").localTestOverride())
   def buildInfoPackageName = "mill.scalajslib"
   def buildInfoObjectName = "ScalaJSBuildInfo"
 

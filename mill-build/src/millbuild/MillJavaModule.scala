@@ -13,10 +13,6 @@ import scala.util.Properties
 
 trait MillJavaModule extends JavaModule {
 
-  // Test setup
-  def localTestOverride =
-    Task { (s"com.lihaoyi-${artifactId()}", localTestOverridePaths().map(_.path).mkString("\n")) }
-
   def testArgs: T[Seq[String]] = Task {
     // Workaround for Zinc/JNA bug
     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
@@ -26,17 +22,6 @@ trait MillJavaModule extends JavaModule {
       else Nil
     jnaArgs ++ userLang
   }
-  def localTestOverridePaths =
-    Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
-
-  def transitiveLocalTestOverrides: T[Map[String, String]] = Task {
-    val upstream = Task.traverse(moduleDeps ++ compileModuleDeps) {
-      case m: MillJavaModule => m.transitiveLocalTestOverrides.map(Some(_))
-      case _ => Task.Anon(None)
-    }().flatten.flatten
-    val current = Seq(localTestOverride())
-    upstream.toMap ++ current
-  }
 
   def testMvnDeps: T[Seq[Dep]] = Seq(Deps.TestDeps.utest)
   def testForkEnv: T[Map[String, String]] = forkEnv() ++ localTestOverridesEnv()
@@ -45,10 +30,8 @@ trait MillJavaModule extends JavaModule {
     else Seq(this, build.core.api.test)
 
   def localTestOverridesEnv = Task {
-    transitiveLocalTestOverrides()
-      .map { case (k, v) =>
-        ("MILL_LOCAL_TEST_OVERRIDE_" + k.replaceAll("[.-]", "_").toUpperCase, v)
-      }
+    val localRepo0 = build.dist.localRepo().path
+    Seq("MILL_LOCAL_TEST_REPO" -> localRepo0.toString)
   }
 
   def repositoriesTask = Task.Anon {

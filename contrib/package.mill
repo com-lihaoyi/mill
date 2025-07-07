@@ -32,15 +32,6 @@ object `package` extends mill.Module {
   }
 
   object testng extends JavaModule with ContribModule {
-
-    def transitiveLocalTestOverrides =
-      super.transitiveLocalTestOverrides() ++
-        Seq(
-          build.libs.javalib.localTestOverride(),
-          build.libs.javalib.worker.localTestOverride(),
-          build.libs.javalib.testrunner.entrypoint.localTestOverride()
-        )
-
     // pure Java implementation
     def artifactSuffix: T[String] = ""
     def scalaLibraryMvnDeps: T[Seq[Dep]] = Task { Seq.empty[Dep] }
@@ -60,11 +51,6 @@ object `package` extends mill.Module {
   object playlib extends ContribModule {
     def moduleDeps = Seq(twirllib, playlib.api)
     def compileModuleDeps = Seq(build.libs.scalalib)
-
-    def transitiveLocalTestOverrides =
-      super.transitiveLocalTestOverrides() ++ Task.traverse(
-        Deps.play.keys.toSeq
-      )(worker(_).localTestOverride)()
 
     def testArgs = Task {
       super.testArgs() ++
@@ -111,9 +97,6 @@ object `package` extends mill.Module {
     def moduleDeps = Seq(scoverage.api)
     def compileModuleDeps = Seq(build.libs.scalalib)
 
-    def transitiveLocalTestOverrides =
-      super.transitiveLocalTestOverrides() ++ Seq(worker2.localTestOverride())
-
     def testArgs = Task {
       super.testArgs() ++
         Seq(
@@ -133,7 +116,6 @@ object `package` extends mill.Module {
 
     // Worker for Scoverage 2.0
     object worker2 extends MillPublishScalaModule {
-      def localTestOverridePaths = Task { Seq(compile().classes) }
       def compileModuleDeps = Seq(
         build.core.api.daemon,
         scoverage.api

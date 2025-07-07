@@ -535,6 +535,32 @@ trait PublishModule extends JavaModule { outer =>
       "Licenses" -> pom.licenses.map(l => s"${l.name} (${l.id})").mkString(",")
     )
   }
+
+  def stagePublish(
+      sources: Boolean = true,
+      doc: Boolean = true
+  ): Task[PathRef] = {
+    val sourcesJarOpt =
+      if (sources) Task.Anon(Some(PublishInfo.sourcesJar(sourceJar())))
+      else Task.Anon(None)
+    val docJarOpt =
+      if (doc) Task.Anon(Some(PublishInfo.docJar(docJar())))
+      else Task.Anon(None)
+
+    Task {
+      val publisher = new LocalM2Publisher(Task.dest)
+      val publishInfos = defaultPublishInfos() ++
+        sourcesJarOpt().toSeq ++
+        docJarOpt().toSeq ++
+        extraPublish()
+      publisher.publish(
+        pom = pom().path,
+        artifact = artifactMetadata(),
+        publishInfos = publishInfos
+      )
+      PathRef(Task.dest)
+    }
+  }
 }
 
 object PublishModule extends ExternalModule with DefaultTaskModule {

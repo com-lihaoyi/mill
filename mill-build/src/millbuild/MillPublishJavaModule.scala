@@ -8,10 +8,14 @@ import mill.Task
 import mill.scalalib.Dep
 import mill.scalalib.JavaModule
 import mill.scalalib.PublishModule
-import mill.scalalib.publish.Developer
-import mill.scalalib.publish.License
-import mill.scalalib.publish.PomSettings
-import mill.scalalib.publish.VersionControl
+import mill.scalalib.publish.{
+  Developer,
+  License,
+  LocalM2Publisher,
+  PomSettings,
+  PublishInfo,
+  VersionControl
+}
 
 trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 
@@ -22,6 +26,50 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
   )
   def pomSettings = MillPublishJavaModule.commonPomSettings(artifactName())
   def javacOptions = Seq("-source", "11", "-target", "11", "-encoding", "UTF-8")
+
+  def stagePublish(
+      sources: Boolean = true,
+      doc: Boolean = true
+  ): Task[PathRef] = {
+    val sourcesJarOpt =
+      if (sources)
+        Task.Anon(Some(
+          PublishInfo(
+            sourceJar(),
+            ivyType = "src",
+            classifier = Some("sources"),
+            ivyConfig = "compile"
+          )
+        ))
+      else
+        Task.Anon(None)
+    val docJarOpt =
+      if (doc)
+        Task.Anon(Some(
+          PublishInfo(
+            docJar(),
+            ivyType = "doc",
+            classifier = Some("javadoc"),
+            ivyConfig = "compile"
+          )
+        ))
+      else
+        Task.Anon(None)
+
+    Task {
+      val publisher = new LocalM2Publisher(Task.dest)
+      val publishInfos = defaultPublishInfos() ++
+        sourcesJarOpt().toSeq ++
+        docJarOpt().toSeq ++
+        extraPublish()
+      publisher.publish(
+        pom = pom().path,
+        artifact = artifactMetadata(),
+        publishInfos = publishInfos
+      )
+      PathRef(Task.dest)
+    }
+  }
 }
 
 object MillPublishJavaModule {

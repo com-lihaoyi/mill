@@ -3,19 +3,28 @@ package mill.launcher
 import coursier.{Artifacts, Dependency, ModuleName, Organization, Resolve, VersionConstraint}
 import coursier.cache.{ArchiveCache, FileCache}
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
+import coursier.maven.MavenRepository
 import coursier.util.Task
 import coursier.core.Module
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import java.io.File
+
 import scala.concurrent.Await
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
-import mill.coursierutil.TestOverridesRepo
 
 object CoursierClient {
   def resolveMillDaemon() = {
     val repositories = Await.result(Resolve().finalRepositories.future(), Duration.Inf)
     val coursierCache0 = FileCache[Task]()
       .withLogger(coursier.cache.loggers.RefreshLogger.create())
+
+    val testOverridesRepos = Option(System.getenv("MILL_LOCAL_TEST_REPO"))
+      .toSeq
+      .flatMap(_.split(File.pathSeparator).toSeq)
+      .map { path =>
+        MavenRepository(os.Path(path).toNIO.toUri.toASCIIString)
+      }
 
     val artifactsResultOrError = {
 
@@ -25,7 +34,7 @@ object CoursierClient {
           Module(Organization("com.lihaoyi"), ModuleName("mill-runner-daemon_3"), Map()),
           VersionConstraint(mill.client.BuildInfo.millVersion)
         )))
-        .withRepositories(Seq(TestOverridesRepo) ++ repositories)
+        .withRepositories(testOverridesRepos ++ repositories)
 
       resolve.either() match {
         case Left(err) => sys.error(err.toString)
