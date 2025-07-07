@@ -222,7 +222,7 @@ jobs:
             install-sbt: false
 
           - java-version: 11
-            millargs: "'integration.{failure,feature,ide}.__.packaged.daemon'"
+            millargs: "'integration.{failure,feature,ide}.__.native.daemon'"
             install-android-sdk: false
             install-sbt: false
 
@@ -277,7 +277,7 @@ jobs:
             install-sbt: true
 
           - java-version: 17
-            millargs: "'integration.{feature,failure}.__.packaged.nodaemon'"
+            millargs: "'integration.{feature,failure}.__.native.nodaemon'"
             install-sbt: false
 
           - java-version: 24 # Run this with Mill native launcher as a smoketest
@@ -325,3 +325,11 @@ jobs:
       buildcmd: |
         set -eux
         ./mill -i mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
+  mima:
+    needs: build-linux
+    uses: ./.github/workflows/post-build-raw.yml
+    with:
+      java-version: '17'
+      buildcmd: |
+        set -eux
+        ./mill -i __.mimaReportBinaryIssues

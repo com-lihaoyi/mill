@@ -6,7 +6,7 @@ object `package` extends ScalaNativeModule {
   def scalaNativeVersion = "0.5.8"
 
   object test extends ScalaNativeTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.8")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.9")
     def testFramework = "utest.runner.Framework"
   }
 

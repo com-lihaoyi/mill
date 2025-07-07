@@ -1,5 +1,8 @@
 package mill.internal
 
+import java.io.OutputStream
+import scala.annotation.switch
+
 private object PromptLoggerUtil {
 
   private[mill] val defaultTermWidth = 99
@@ -148,22 +151,10 @@ private object PromptLoggerUtil {
   // according to whether it is interactive or ending
   def renderPromptWrapped(
       currentPromptLines: Seq[String],
-      interactive: Boolean,
-      ending: Boolean
+      interactive: Boolean
   ): String = {
     if (!interactive) currentPromptLines.mkString("\n") + "\n"
-    else {
-      // For the ending prompt, leave the cursor at the bottom on a new line rather than
-      // scrolling back left/up. We do not want further output to overwrite the header as
-      // it will no longer re-render
-      val backUp =
-        if (ending) "\n"
-        else AnsiNav.left(9999) + AnsiNav.up(currentPromptLines.length - 1)
-
-      currentPromptLines.map(_ + AnsiNav.clearLine(0)).mkString("\n") +
-        AnsiNav.clearScreen(0) +
-        backUp
-    }
+    else currentPromptLines.map(_ + AnsiNav.clearLine(0)).mkString("\n") + "\n"
   }
 
   def renderHeader(
@@ -227,5 +218,35 @@ private object PromptLoggerUtil {
 
       return xs.lengthCompare(ys)
     }
+  }
+
+  def streamToPrependNewlines(
+      dest: OutputStream,
+      buf: Array[Byte],
+      end: Int,
+      prepended: Array[Byte]
+  ) = {
+    var last = 0
+    var i = 0
+    while (i < end) {
+      (buf(i): @switch) match {
+        case '\r' =>
+          if (i + 1 < end && buf(i + 1) == '\n') {
+            dest.write(buf, last, i - last)
+            dest.write(prepended)
+            last = i
+            i += 2
+          } else {
+            i += 1
+          }
+        case '\n' | '\t' =>
+          dest.write(buf, last, i - last)
+          dest.write(prepended)
+          last = i
+          i += 1
+        case _ => i += 1
+      }
+    }
+    dest.write(buf, last, end - last)
   }
 }

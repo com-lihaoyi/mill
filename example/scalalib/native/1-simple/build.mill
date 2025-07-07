@@ -11,7 +11,7 @@ object `package` extends ScalaNativeModule {
   )
 
   object test extends ScalaNativeTests, TestModule.Utest {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.8")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.9")
     def testFramework = "utest.runner.Framework"
   }
 }

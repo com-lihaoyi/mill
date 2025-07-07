@@ -118,7 +118,7 @@ Computing line count
 
 // === Task.dest
 //
-// Each task is assigned a unique {mill-doc-url}/api/latest/mill/api/Ctx.html#dest:os.Path[Task.dest]
+// Each task is assigned a unique `Task.dest`
 // folder on disk (e.g. `classFiles` is given `out/classFiles.dest/`). `Task.dest` is
 // reset every time a task is recomputed, and can be used as scratch space or to store the task's
 // output files. Any metadata returned from the task is automatically JSON-serialized

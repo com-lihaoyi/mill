@@ -243,6 +243,7 @@ object Deps {
     val proguard = mvn"com.guardsquare:proguard-base:7.7.0"
     val revApi = mvn"org.revapi:revapi-standalone:0.12.0"
     val sbtTestInterface = mvn"com.github.sbt:junit-interface:0.13.2"
+    val pmdDist = mvn"net.sourceforge.pmd:pmd-dist:7.15.0"
 
     def updateable = Seq(
       detektCli,
@@ -261,7 +262,8 @@ object Deps {
       palantirFormat,
       proguard,
       revApi,
-      sbtTestInterface
+      sbtTestInterface,
+      pmdDist
     )
   }
 
@@ -281,7 +283,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
-    val utest = mvn"com.lihaoyi::utest:0.8.8"
+    val utest = mvn"com.lihaoyi::utest:0.8.9"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
 
@@ -301,14 +303,19 @@ object Deps {
     val composePreviewRenderer =
       mvn"com.android.tools.compose:compose-preview-renderer-model:0.0.1-alpha09"
     val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
+    val screenshotValidationJunitEngine =
+      mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
 
+    // TODO: uiTooling is needed for screenshot tests
+    // so we handle it diferrently.
+    // Removed it from updaetable for now
     def updateable = Seq(
       manifestMerger,
       bundleTool,
       layoutLibRenderer,
       layoutLibRuntime,
       composePreviewRenderer,
-      uiTooling
+      screenshotValidationJunitEngine
     )
 
   }

@@ -187,6 +187,7 @@ public abstract class ServerLauncher {
     ClientUtil.writeString(in, javaHome);
     ClientUtil.writeArgs(args, in);
     ClientUtil.writeMap(env, in);
+    ClientUtil.writeMap(ClientUtil.getUserSetProperties(), in);
     ProxyStream.Pumper outPumper = new ProxyStream.Pumper(outErr, stdout, stderr);
     InputPumper inPump = new InputPumper(() -> stdin, () -> in, true);
     PumperThread outPumperThread = new PumperThread(outPumper, "outPump");

@@ -97,7 +97,7 @@ digraph G {
 ....
 
 
-== The Mill Client
+== The Mill Launcher
 
 The Mill launcher is a small Java application that is responsible for launching
 and delegating work to the Mill daemon, a long-lived process. Each `./mill`
@@ -120,17 +120,20 @@ The Mill daemon sometimes is shut down and needs to be restarted, e.g. if Mill
 version changed, or the user used `Ctrl-C` to interrupt the ongoing computation.
 In such a scenario, the Mill launcher will automatically restart the daemon the next
 time it is run, so apart from a slight performance penalty from starting a "cold"
-Mill daemon such shutdowns and restarts should be mostly invisibl to the user.
+Mill daemon such shutdowns and restarts should be mostly invisible to the user.
 
 == The Mill Daemon
 
 The Mill daemon is a long-lived process that the Mill launcher spawns.
 Only one Mill daemon should be running in a codebase at a time, and each daemon
-takes a filelock at startup time to enforce this mutual exclusion.
+takes a filelock at startup time to enforce this mutual exclusion. While multiple
+launchers can connect to a single daemon, a second lock is taken when the daemon
+is running a build for a particular launcher, to ensure that only one build is
+happening at a time.
 
 The Mill daemon compiles your `build.mill` and `package.mill`, spawns a
 `URLClassLoader` containing the compiled classfiles, and uses that to instantiate
-the variousxref:fundamentals/modules.adoc[] and xref:fundamentals/tasks.adoc[]
+the various xref:fundamentals/modules.adoc[] and xref:fundamentals/tasks.adoc[]
 dynamically in-memory. These are then used by the `Evaluator`, which resolves,
 plans, and executes the tasks specified by the given `runArgs`
 
@@ -142,8 +145,8 @@ streams multi-plexed over a single socket stream back to the Mill launcher. The 
 then de-multiplexes the combined stream to split it back into output and error, which
 are then both forwarded to the process or terminal that invoked the Mill launcher.
 
-Lastly, when the Mill daemon completes its tasks, it writes the `exitCode` to a file
-that is then propagated back to the Mill launcher. The Mill launcher terminates with this
+Lastly, when the Mill daemon completes its tasks, it writes the `exitCode` back to
+the Mill launcher over the multiplexed stream. The Mill launcher terminates with this
 exit code, but the Mill daemon remains alive and ready to serve to the next Mill
 launcher that connects to it
 
