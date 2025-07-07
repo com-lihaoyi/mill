@@ -18,8 +18,10 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
     val read = upickle.default.read[SortedMap[String, Int]](res.out)
     val expected = SortedMap(kvs*)
-    // pprint.log(read)
-    // pprint.log(expected)
+    if (read != expected) {
+      pprint.log(expected)
+      pprint.log(read)
+    }
     assert(read == expected)
   }
 
