@@ -6,7 +6,7 @@ import mill.constants.{CodeGenConstants as CGConst}
 import mill.api.Result
 import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
-import mill.api.shared.internal.MillScalaParser
+import mill.api.daemonapi.internal.MillScalaParser
 import scala.util.control.Breaks.*
 
 object CodeGen {

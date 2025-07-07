@@ -1,6 +1,6 @@
 package mill.server
 
-import mill.api.shared.SystemStreams
+import mill.api.daemonapi.SystemStreams
 import mill.constants.ProxyStream.Output
 import mill.client.lock.{Lock, Locks}
 import mill.client.*
@@ -234,10 +234,10 @@ abstract class Server[T](
           noWaitForBuildLock = false,
           out = out,
           millActiveCommandMessage = "checking server mill version and java version",
-          streams = new mill.api.shared.SystemStreams(
-            new PrintStream(mill.api.shared.DummyOutputStream),
-            new PrintStream(mill.api.shared.DummyOutputStream),
-            mill.api.shared.DummyInputStream
+          streams = new mill.api.daemonapi.SystemStreams(
+            new PrintStream(mill.api.daemonapi.DummyOutputStream),
+            new PrintStream(mill.api.daemonapi.DummyOutputStream),
+            mill.api.daemonapi.DummyInputStream
           ),
           outLock = outLock
         ) {

@@ -2,8 +2,8 @@ package mill.scalalib.bsp
 
 import mill.api.Task
 import mill.*
-import mill.api.shared.internal.bsp.{BspBuildTarget, BspModuleApi}
-import mill.api.shared.internal.bsp.BspModuleApi.Tag
+import mill.api.daemonapi.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.api.daemonapi.internal.bsp.BspModuleApi.Tag
 import mill.api.internal.internal
 
 trait BspModule extends mill.api.Module with BspModuleApi {

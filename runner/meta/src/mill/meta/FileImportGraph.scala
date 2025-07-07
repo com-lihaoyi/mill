@@ -3,7 +3,7 @@ package mill.meta
 import mill.api.internal.internal
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.*
-import mill.api.shared.internal.MillScalaParser
+import mill.api.daemonapi.internal.MillScalaParser
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.internal.Util.backtickWrap

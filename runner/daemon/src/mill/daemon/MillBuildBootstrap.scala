@@ -1,6 +1,6 @@
 package mill.daemon
 
-import mill.api.shared.internal.{
+import mill.api.daemonapi.internal.{
   BuildFileApi,
   CompileProblemReporter,
   EvaluatorApi,
@@ -296,7 +296,7 @@ class MillBuildBootstrap(
             runClasspath.map(p => os.Path(p.javaPath)),
             null,
             sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
-            sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api.shared")
+            sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api.daemonapi")
           )
           cl
         } else {

@@ -2,9 +2,9 @@ package mill.jvmlib.worker
 
 import mill.util.CachedFactory
 import mill.api._
-import mill.api.shared._
+import mill.api.daemonapi._
 import mill.api.internal.internal
-import mill.api.shared.internal.CompileProblemReporter
+import mill.api.daemonapi.internal.CompileProblemReporter
 import mill.api.PathRef
 import mill.constants.CodeGenConstants
 import mill.jvmlib.api.{CompilationResult, Versions, JvmWorkerApi, JvmWorkerUtil}

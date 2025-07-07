@@ -1,6 +1,6 @@
 package mill.api.internal
 
-import mill.api.shared.internal.{RootModuleApi, internal}
+import mill.api.daemonapi.internal.{RootModuleApi, internal}
 import mill.api.Discover
 
 import scala.annotation.compileTimeOnly
