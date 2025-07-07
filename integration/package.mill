@@ -65,7 +65,7 @@ object `package` extends mill.Module {
             "MILL_TESTS_BSP_UPDATE_SNAPSHOTS",
             "MILL_TESTS_PUBLISH_ORG",
             SonatypeHelpers.USERNAME_ENV_VARIABLE_NAME,
-            SonatypeHelpers.PASSWORD_ENV_VARIABLE_NAME,
+            SonatypeHelpers.PASSWORD_ENV_VARIABLE_NAME
           )() ++
           (if (millIntegrationIsPackagedLauncher()) Map() else build.dist.localTestOverridesEnv())
       }

@@ -13,11 +13,11 @@ import scala.util.Using
 
 object WorkerRemoteM2Publisher {
   def publish(
-    uri: String,
-    workspace: os.Path,
-    username: String,
-    password: String,
-    artifacts: IterableOnce[M2Artifact]
+      uri: String,
+      workspace: os.Path,
+      username: String,
+      password: String,
+      artifacts: IterableOnce[M2Artifact]
   ): DeployResult = {
     Using.Manager { use =>
       val system = use(RepositorySystemSupplier().get())

@@ -164,7 +164,7 @@ object `package` extends MillStableScalaModule {
         // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-api
         mvn"org.apache.maven.resolver:maven-resolver-api:$mavenResolverVersion",
         // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-util
-        mvn"org.apache.maven.resolver:maven-resolver-util:$mavenResolverVersion",
+        mvn"org.apache.maven.resolver:maven-resolver-util:$mavenResolverVersion"
       )
 
       super.mvnDeps() ++ mavenPublishingDeps
