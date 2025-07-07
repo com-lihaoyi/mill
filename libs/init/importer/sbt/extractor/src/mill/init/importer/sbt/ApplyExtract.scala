@@ -4,18 +4,18 @@ package sbt
 import _root_.sbt._
 
 /**
- * SBT `apply` script that adds [[ExportKeys]] settings to a session.
+ * SBT `apply` script that adds [[ExtractKeys]] settings to a session.
  *
  * =Usage=
- * [[ExportKeys.millInitExportFile]] must be defined before
+ * [[ExtractKeys.millInitExtractFile]] must be defined before
  * [[https://github.com/JetBrains/sbt-structure/#sideloading sideloading]].
  * {{{
- *   set SettingKey[File]("millInitExportFile") in Global := file(<path-to-file>)
- *   apply -cp <path-to-jar> mill.init.importer.sbt.exporter.ApplyExport
- *   millInitExport
+ *   set SettingKey[File]("millInitExtractFile") in Global := file(<path-to-file>)
+ *   apply -cp <path-to-jar> mill.init.importer.sbt.ApplyExtract
+ *   millInitExtract
  * }}}
  */
-object ApplyExport extends (State => State) {
+object ApplyExtract extends (State => State) {
 
   def apply(state: State) = {
     val extracted = Project.extract(state)
@@ -26,10 +26,10 @@ object ApplyExport extends (State => State) {
     )
 
     val globalSettings = Seq(
-      ExportKeys.millInitExport := ExportTasks.millInitExport.value
+      ExtractKeys.millInitExtract := ExtractTasks.millInitExtract.value
     )
     val projectSettings = Seq(
-      ExportKeys.millInitExportedProject := ExportTasks.millInitExportedProject.value
+      ExtractKeys.millInitSbtProjectIR := ExtractTasks.millInitSbtProjectIR.value
     )
     val sessionSettings = (inScope(GlobalScope)(globalSettings)
       ++ extracted.structure.allProjectRefs.flatMap(p =>

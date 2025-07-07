@@ -14,22 +14,22 @@ object `package` extends Module {
   }
 
   object sbt extends MillPublishScalaModule with BuildInfo {
-    def exporterAssemblyName = "exporter-assembly.jar"
+    def extractorAssemblyName = "extractor-assembly.jar"
     def buildInfoMembers = Seq(
-      BuildInfo.Value("exporterAssemblyResource", s"/$exporterAssemblyName")
+      BuildInfo.Value("extractorAssemblyResource", s"/$extractorAssemblyName")
     )
     def buildInfoPackageName = "mill.init.importer.sbt"
     def resources = Task {
       val dest = Task.dest
       BuildCtx.withFilesystemCheckerDisabled {
-        os.copy(exporter.assembly().path, dest / exporterAssemblyName)
+        os.copy(extractor.assembly().path, dest / extractorAssemblyName)
       }
       super.resources() ++ Seq(PathRef(dest))
     }
     def mvnDeps = Seq(Deps.pprint)
     def moduleDeps = Seq(api(Deps.scalaVersion), build.core.util)
 
-    object exporter extends MillScalaModule {
+    object extractor extends MillScalaModule {
       def assemblyRules = Seq(Assembly.Rule.ExcludePattern("scala\\.*"))
       def compileMvnDeps = Seq(Deps.sbt)
       def moduleDeps = Seq(api(Deps.sbtScalaVersion212))

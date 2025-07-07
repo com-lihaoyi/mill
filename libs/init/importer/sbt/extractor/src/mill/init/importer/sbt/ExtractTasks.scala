@@ -21,24 +21,24 @@ import mill.init.importer.{
 
 import scala.util.Using
 
-object ExportTasks {
+object ExtractTasks {
 
-  def millInitExport = Def.taskDyn {
+  def millInitExtract = Def.taskDyn {
     val state = Keys.state.value
     val build = Project.structure(state)
     def skip(ref: ProjectRef) =
       build.allProjects.exists(p => p.id == ref.project && p.aggregate.nonEmpty)
     Def.task {
-      val file = os.Path(ExportKeys.millInitExportFile.value)
+      val file = os.Path(ExtractKeys.millInitExtractFile.value)
       val exportedProjects = TaskExtra.joinTasks(build.allProjectRefs.flatMap(ref =>
-        if (skip(ref)) None else (ref / ExportKeys.millInitExportedProject).get(build.data)
+        if (skip(ref)) None else (ref / ExtractKeys.millInitSbtProjectIR).get(build.data)
       )).join.value
       Using(os.write.outputStream(file))(upickle.default.writeToOutputStream(exportedProjects, _))
         .get
     }
   }
 
-  def millInitExportedProject = Def.task {
+  def millInitSbtProjectIR = Def.task {
     val project = Keys.thisProject.value
     val state = Keys.state.value
     val structure = Project.structure(state)
@@ -150,7 +150,7 @@ object ExportTasks {
         )
     }
 
-    ExportedSbtProject(
+    SbtProjectIR(
       projectId = project.id,
       moduleName = Keys.moduleName.value,
       baseDir = subPwd(project.base),
