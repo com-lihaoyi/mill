@@ -3,8 +3,8 @@
 
 This plugin provides publishing and dependencies to Gitlab package registries.
 
-Gitlab does not support http basic auth so using PublishModule, artifactory-
-or bintray-plugin does not work. This plugin tries to provide as automatic
+Gitlab does not support http basic auth so using PublishModule or artifactory-plugin
+does not work. This plugin tries to provide as automatic
 as possible support for gitlab package registries and automatic detection of
 gitlab CI/CD pipeline.
 
@@ -225,7 +225,6 @@ Gitlab supports instance, group and project registries (https://docs.gitlab.com/
 == References
 
 * Mill contrib https://github.com/com-lihaoyi/mill/tree/main/contrib/artifactory/src/mill/contrib/artifactory[artifactory]
-and https://github.com/com-lihaoyi/mill/tree/main/contrib/bintray/src/mill/contrib/bintray[bintray]
 modules source code
 * https://github.com/azolotko/sbt-gitlab[sbt-gitlab]
 * Gitlab documentation

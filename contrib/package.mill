@@ -214,11 +214,6 @@ object `package` extends mill.Module {
     def compileModuleDeps = Seq(build.libs.jvmlib)
   }
 
-  object bintray extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.jvmlib)
-    def mvnDeps = Seq(Deps.requests)
-  }
-
   object gitlab extends ContribModule {
     def compileModuleDeps = Seq(build.libs.jvmlib)
     def mvnDeps = Seq(Deps.requests, Deps.osLib)
