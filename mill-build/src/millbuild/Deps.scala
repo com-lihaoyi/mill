@@ -187,26 +187,6 @@ object Deps {
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
   val kotlinVersion = "2.1.20"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
-  val mavenVersion = "4.0.0-rc-4"
-  val mavenResolverVersion = "2.0.10"
-  // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-connector-basic
-  val mavenResolverConnectorBasic =
-    mvn"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion"
-  // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-supplier
-  val mavenResolverSupplier =
-    mvn"org.apache.maven.resolver:maven-resolver-supplier:2.0.0-alpha-8"
-  // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-transport-file
-  val mavenResolverTransportFile =
-    mvn"org.apache.maven.resolver:maven-resolver-transport-file:$mavenResolverVersion"
-  // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-transport-http
-  val mavenResolverTransportHttp =
-    mvn"org.apache.maven.resolver:maven-resolver-transport-http:2.0.0-alpha-2"
-  // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-api
-  val mavenResolverApi =
-    mvn"org.apache.maven.resolver:maven-resolver-api:$mavenResolverVersion"
-  // https://mvnrepository.com/artifact/org.apache.maven.resolver/maven-resolver-util
-  val mavenResolverUtil =
-    mvn"org.apache.maven.resolver:maven-resolver-util:$mavenResolverVersion"
   val coursierJvmIndexVersion = "0.0.4-111-eb6e08"
   val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
