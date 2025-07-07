@@ -31,6 +31,7 @@ object `package` extends mill.Module {
     def runClasspath: T[Seq[PathRef]]
     def localRunClasspath: T[Seq[PathRef]]
     def forkEnv: T[Map[String, String]]
+    def forkArgs: T[Seq[String]]
     def testExclusive = false
     trait ModeModule extends MillBaseTestsModule {
       override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
@@ -75,7 +76,9 @@ object `package` extends mill.Module {
       /** Whether the Mill JARs are published locally alongside this Mill launcher */
       def millIntegrationIsPackagedLauncher: Task[Boolean]
 
-      def forkArgs = Task { super.forkArgs() ++ build.dist.forkArgs() }
+      def forkArgs = Task {
+        super.forkArgs() ++ IntegrationTestModule.this.forkArgs() ++ build.dist.forkArgs()
+      }
 
       def resources = IntegrationTestModule.this.resources()
       def runClasspath = IntegrationTestModule.this.runClasspath()
@@ -119,6 +122,7 @@ object `package` extends mill.Module {
   object migrating extends Cross[IdeIntegrationCrossModule](build.listCross)
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps
+    def forkArgs: T[Seq[String]] = Task(List.empty[String])
     def forkEnv = super.forkEnv() ++ Seq(
       "MILL_PROJECT_ROOT" -> BuildCtx.workspaceRoot.toString,
       "TEST_SCALA_2_13_VERSION" -> Deps.testScala213Version,
@@ -129,6 +133,9 @@ object `package` extends mill.Module {
     def moduleDeps = super.moduleDeps ++ Seq(`bsp-util`)
     def mvnDeps = super.mvnDeps() ++ Seq(
       Deps.bsp4j
+    )
+    def forkArgs = super.forkArgs() ++ Seq(
+      s"-Dmill.integration.coursier-version=${Deps.coursier.dep.versionConstraint.asString}"
     )
   }
 

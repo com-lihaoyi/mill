@@ -12,7 +12,7 @@
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-SDK-3.7.1" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="aircompressor-0.27.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="cache-util-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="cache-util-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" name="common_2.13-4.13.4.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-codec-1.17.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-compress-1.26.2.jar" level="project"/>
@@ -20,14 +20,14 @@
         <orderEntry type="library" scope="RUNTIME" name="commons-lang3-3.14.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="concurrent-reference-hash-map-1.1.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="config_2.13-1.1.3.jar" level="project"/>
-        <orderEntry type="library" name="coursier-cache_2.13-2.1.25-M13.jar" level="project"/>
-        <orderEntry type="library" name="coursier-core_2.13-2.1.25-M13.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="coursier-env_2.13-2.1.25-M13.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="coursier-exec-2.1.25-M13.jar" level="project"/>
-        <orderEntry type="library" name="coursier-jvm_2.13-2.1.25-M13.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="coursier-proxy-setup-2.1.25-M13.jar" level="project"/>
-        <orderEntry type="library" name="coursier-util_2.13-2.1.25-M13.jar" level="project"/>
-        <orderEntry type="library" name="coursier_2.13-2.1.25-M13.jar" level="project"/>
+        <orderEntry type="library" name="coursier-cache_2.13-COURSIER_VERSION.jar" level="project"/>
+        <orderEntry type="library" name="coursier-core_2.13-COURSIER_VERSION.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="coursier-env_2.13-COURSIER_VERSION.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="coursier-exec-COURSIER_VERSION.jar" level="project"/>
+        <orderEntry type="library" name="coursier-jvm_2.13-COURSIER_VERSION.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="coursier-proxy-setup-COURSIER_VERSION.jar" level="project"/>
+        <orderEntry type="library" name="coursier-util_2.13-COURSIER_VERSION.jar" level="project"/>
+        <orderEntry type="library" name="coursier_2.13-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="dependency_2.13-0.3.2.jar" level="project"/>
         <orderEntry type="library" name="fansi_3-0.5.0.jar" level="project"/>
         <orderEntry type="library" name="fastparse_3-3.1.1.jar" level="project"/>
