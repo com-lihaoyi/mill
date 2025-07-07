@@ -2,7 +2,7 @@ package mill.main
 
 import mill.*
 import mill.api.*
-import mill.api.daemonapi.internal.{EvaluatorApi, MainModuleApi, TaskApi}
+import mill.api.daemon.internal.{EvaluatorApi, MainModuleApi, TaskApi}
 import mill.api.*
 import mill.api.internal.RootModule0
 import mill.api.SelectMode.Separated

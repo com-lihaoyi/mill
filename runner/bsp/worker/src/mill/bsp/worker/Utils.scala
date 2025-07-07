@@ -11,7 +11,7 @@ import ch.epfl.scala.bsp4j.{
   TaskId
 }
 import mill.api.ExecResult.{Skipped, Success}
-import mill.api.daemonapi.internal.{
+import mill.api.daemon.internal.{
   CompileProblemReporter,
   ExecutionResultsApi,
   JavaModuleApi,
@@ -20,7 +20,7 @@ import mill.api.daemonapi.internal.{
 
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
-import mill.api.daemonapi.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 
 private[mill] object Utils {
 

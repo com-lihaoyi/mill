@@ -1,6 +1,6 @@
 package mill.api
 
-import mill.api.daemonapi.internal.BaseModuleApi
+import mill.api.daemon.internal.BaseModuleApi
 
 /**
  * Represents a module at the root of a module tree. This can either be a

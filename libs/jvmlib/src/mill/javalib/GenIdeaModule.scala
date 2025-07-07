@@ -2,7 +2,7 @@ package mill.javalib
 
 import mill.api.{ModuleRef, Task}
 import mill.{Module, PathRef, T}
-import mill.api.daemonapi.internal.idea.{GenIdeaModuleApi, IdeaConfigFile, JavaFacet}
+import mill.api.daemon.internal.idea.{GenIdeaModuleApi, IdeaConfigFile, JavaFacet}
 
 /**
  * Module specific configuration of the Idea project file generator.

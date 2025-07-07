@@ -8,8 +8,8 @@ import coursier.parse.{JavaOrScalaModule, ModuleParser}
 import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
 import mill.api.{MillException, Result}
-import mill.api.daemonapi.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.daemonapi.internal.bsp.{
+import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
+import mill.api.daemon.internal.bsp.{
   BspBuildTarget,
   BspJavaModuleApi,
   BspModuleApi,
@@ -17,7 +17,7 @@ import mill.api.daemonapi.internal.bsp.{
   JvmBuildTarget
 }
 import mill.scalalib.*
-import mill.api.daemonapi.internal.idea.GenIdeaInternalApi
+import mill.api.daemon.internal.idea.GenIdeaInternalApi
 import mill.api.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
 import mill.jvmlib.api.CompilationResult
 import mill.scalalib.bsp.{BspJavaModule, BspModule}

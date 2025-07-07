@@ -3,7 +3,7 @@ package mill.javalib
 import mill.api.{TaskCtx, PathRef}
 import mill.api.{Result}
 import mill.constants.EnvVars
-import mill.api.daemonapi.internal.TestReporter
+import mill.api.daemon.internal.TestReporter
 import mill.testrunner.{TestArgs, TestResult, TestRunnerUtils}
 import mill.util.{Jvm, Util}
 import mill.Task

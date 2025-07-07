@@ -239,8 +239,8 @@ object BspServerTestUtil {
       // Tell Mill BSP we want semanticdbs
       initParams.setData(
         InitData(
-          mill.api.daemonapi.BuildInfo.semanticDBVersion,
-          mill.api.daemonapi.BuildInfo.semanticDbJavaVersion
+          mill.api.daemon.BuildInfo.semanticDBVersion,
+          mill.api.daemon.BuildInfo.semanticDbJavaVersion
         )
       )
       // This seems to be unused by Mill BSP for now, setting it just in case

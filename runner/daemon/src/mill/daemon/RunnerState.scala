@@ -2,7 +2,7 @@ package mill.daemon
 
 import mill.api.Val
 import mill.api.JsonFormatters._
-import mill.api.daemonapi.internal.{EvaluatorApi, internal, PathRefApi}
+import mill.api.daemon.internal.{EvaluatorApi, internal, PathRefApi}
 import mill.api.internal.RootModule0
 import mill.api.internal.Watchable
 import mill.api.MillURLClassLoader

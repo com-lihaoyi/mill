@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import mill.api.daemonapi.internal.UnresolvedPathApi
+import mill.api.daemon.internal.UnresolvedPathApi
 import mill.api.{ExecutionPaths, Segment, Segments}
 import upickle.default.{ReadWriter, macroRW}
 

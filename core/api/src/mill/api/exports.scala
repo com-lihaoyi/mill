@@ -1,35 +1,35 @@
 package mill.api
 
-export mill.api.daemonapi.ClassLoader
+export mill.api.daemon.ClassLoader
 
-export mill.api.daemonapi.DummyInputStream
+export mill.api.daemon.DummyInputStream
 
-export mill.api.daemonapi.DummyOutputStream
+export mill.api.daemon.DummyOutputStream
 
-export mill.api.daemonapi.ExecResult
+export mill.api.daemon.ExecResult
 
-export mill.api.daemonapi.experimental
+export mill.api.daemon.experimental
 
-export mill.api.daemonapi.FilesystemCheckerEnabled
+export mill.api.daemon.FilesystemCheckerEnabled
 
-export mill.api.daemonapi.Logger
+export mill.api.daemon.Logger
 
-export mill.api.daemonapi.MillException
+export mill.api.daemon.MillException
 
-export mill.api.daemonapi.MillURLClassLoader
+export mill.api.daemon.MillURLClassLoader
 
-export mill.api.daemonapi.ProxyLogger
+export mill.api.daemon.ProxyLogger
 
-export mill.api.daemonapi.Result
+export mill.api.daemon.Result
 
-export mill.api.daemonapi.Segment
+export mill.api.daemon.Segment
 
-export mill.api.daemonapi.Segments
+export mill.api.daemon.Segments
 
-export mill.api.daemonapi.SelectMode
+export mill.api.daemon.SelectMode
 
-export mill.api.daemonapi.SystemStreams
+export mill.api.daemon.SystemStreams
 
-export mill.api.daemonapi.Val
+export mill.api.daemon.Val
 
-export mill.api.daemonapi.Watchable
+export mill.api.daemon.Watchable

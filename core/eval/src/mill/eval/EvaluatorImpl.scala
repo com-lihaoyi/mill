@@ -1,7 +1,7 @@
 package mill.eval
 
 import mill.api.*
-import mill.api.daemonapi.internal.{CompileProblemReporter, ExecutionResultsApi, TestReporter}
+import mill.api.daemon.internal.{CompileProblemReporter, ExecutionResultsApi, TestReporter}
 import mill.constants.OutFiles
 import mill.constants.OutFiles.*
 import mill.api.{PathRef, *}

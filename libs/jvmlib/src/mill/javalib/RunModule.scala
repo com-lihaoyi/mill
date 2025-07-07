@@ -6,8 +6,8 @@ import scala.util.control.NonFatal
 import mill.api.BuildCtx
 import mainargs.arg
 import mill.api.Result
-import mill.api.daemonapi.internal.RunModuleApi
-import mill.api.daemonapi.internal.bsp.BspRunModuleApi
+import mill.api.daemon.internal.RunModuleApi
+import mill.api.daemon.internal.bsp.BspRunModuleApi
 import mill.constants.DaemonFiles
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{ModuleCtx, ModuleRef, PathRef, Task, TaskCtx}

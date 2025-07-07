@@ -24,13 +24,13 @@ import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
 
-import mill.api.daemonapi.internal.bsp.{
+import mill.api.daemon.internal.bsp.{
   BspModuleApi,
   BspServerResult,
   JvmBuildTarget,
   ScalaBuildTarget
 }
-import mill.api.daemonapi.internal.*
+import mill.api.daemon.internal.*
 
 private class MillBuildServer(
     topLevelProjectRoot: os.Path,
@@ -703,7 +703,7 @@ private class MillBuildServer(
         )) {
           case ((msg, cleaned), targetId) =>
             val (module, ev) = state.bspModulesById(targetId)
-            val mainModule = ev.rootModule.asInstanceOf[mill.api.daemonapi.internal.MainModuleApi]
+            val mainModule = ev.rootModule.asInstanceOf[mill.api.daemon.internal.MainModuleApi]
             val compileTaskName = (module.moduleSegments ++ Label("compile")).render
             logger.debug(s"about to clean: ${compileTaskName}")
             val cleanTask = mainModule.bspClean(ev, Seq(compileTaskName)*)

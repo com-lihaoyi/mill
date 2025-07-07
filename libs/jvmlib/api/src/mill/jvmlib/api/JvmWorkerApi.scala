@@ -1,6 +1,6 @@
 package mill.jvmlib.api
 
-import mill.api.daemonapi.internal.CompileProblemReporter
+import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.PathRef
 
 object JvmWorkerApi {

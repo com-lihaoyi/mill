@@ -2,9 +2,9 @@ package mill.javalib
 
 import mill.T
 import mill.api.Result
-import mill.api.daemonapi.internal.TestModuleApi
-import mill.api.daemonapi.internal.TestReporter
-import mill.api.daemonapi.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.api.daemon.internal.TestModuleApi
+import mill.api.daemon.internal.TestReporter
+import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 import mill.api.PathRef
 import mill.api.Task
 import mill.api.TaskCtx

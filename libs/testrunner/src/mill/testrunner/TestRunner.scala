@@ -1,7 +1,7 @@
 package mill.testrunner
 
 import mill.api.TaskCtx
-import mill.api.daemonapi.internal.{TestReporter, internal}
+import mill.api.daemon.internal.{TestReporter, internal}
 import mill.util.Jvm
 
 @internal object TestRunner {
