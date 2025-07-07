@@ -6,21 +6,7 @@
  <span>mill.main.SelectiveExecutionModule</span>
 </div>
 <div class="main-signature mono-small-block">
- <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Mill Module to support selective test execution in large projects.\n *\n * Read more about it at: https://mill-build.org/mill/large/selective-execution.html\n *\n * Here are the essential commands:\n *\n * - `mill selective.prepare <selector>
-   `:\n * run on the codebase before the code change,\n * stores a snapshot of task inputs and implementations\n *\n * - `mill selective.run 
-   <selector>
-    `:\n * run on the codebase after the code change,\n * runs tasks in the given `
-    <selector>
-     ` which are affected by the code changes\n * that have happened since `selective.prepare` was run\n *\n * - `mill selective.resolve 
-     <selector>
-      `:\n * a dry-run version of `selective.run`,\n * prints out the tasks in `
-      <selector>
-       `` that are affected by the code changes\n * and would have run, without actually running them.\n */")
-      </selector>
-     </selector>
-    </selector>
-   </selector>
-  </selector></span>
+ <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Mill Module to support selective test execution in large projects.\n *\n * Read more about it at: https://mill-build.org/mill/large/selective-execution.html\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="SelectiveExecutionModule.html" t="n" class="documentableName ">SelectiveExecutionModule</a><span t="k"> extends </span><a href="../api/Module.html" t="t">Module</a></span><span class="signature-long"></span>
  </div>
@@ -29,17 +15,6 @@
  <div class="doc">
   <p>Mill Module to support selective test execution in large projects.</p>
   <p>Read more about it at: <a href="https://mill-build.org/mill/large/selective-execution.html">https://mill-build.org/mill/large/selective-execution.html</a></p>
-  <p>Here are the essential commands:</p>
-  <ul>
-   <li>
-    <p><code>mill selective.prepare &lt;selector&gt;</code>: run on the codebase before the code change, stores a snapshot of task inputs and implementations</p></li>
-   <li>
-    <p><code>mill selective.run &lt;selector&gt;</code>: run on the codebase after the code change, runs tasks in the given <code>&lt;selector&gt;</code> which are affected by the code changes that have happened since <code>selective.prepare</code> was run</p></li>
-   <li>
-    <p><code>mill selective.resolve &lt;selector&gt;</code>: a dry-run version of <code>selective.run</code>, prints out the tasks in `<selector>
-      `` that are affected by the code changes and would have run, without actually running them.
-     </selector></p></li>
-  </ul>
  </div>
  <section id="attributes">
   <h2 class="h500">Attributes</h2>
