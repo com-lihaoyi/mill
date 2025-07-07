@@ -125,6 +125,6 @@
 // but may need to look up once in a while, and thus should be written down
 // *somewhere*.
 * Reference
-** {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
+** {mill-doc-url}/api/latest/index.html[Mill Scaladoc]
 ** {mill-github-url}/blob/main/changelog.adoc[Changelog]
 ** xref:reference/talks-blog-posts.adoc[]]

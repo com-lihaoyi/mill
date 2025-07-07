@@ -8,7 +8,7 @@ for `JavaModule`.
 
 Many of the APIs covered here are listed in the API documentation:
 
-* {mill-doc-url}/api/latest/mill/scalalib/JavaModule.html[mill.javalib.JavaModule]
+* {mill-doc-url}/api/latest/mill/javalib/JavaModule.html[mill.javalib.JavaModule]
 
 == Common Configuration Overrides
 
