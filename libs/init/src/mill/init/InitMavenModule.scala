@@ -11,7 +11,7 @@ private[mill] object InitMavenModule extends ExternalModule with BuildGenModule 
 
   override def buildGenDeps = {
     super.buildGenDeps() ++ Seq(
-      Dep.millProjectModule("mill-libs-init-maven"),
+      Dep.millProjectModule("mill-libs-init-maven")
     ) ++ millbuild.SharedDeps.MavenImporter
   }
 
