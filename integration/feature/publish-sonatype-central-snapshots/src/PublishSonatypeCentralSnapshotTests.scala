@@ -27,9 +27,9 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
           )
           // Extract the values so that `assert` macro would print them out nicely if the test fails
           // instead of printing `res` twice.
-          val isSuccess = res.isSuccess
-          val out = res.out
-          assert(isSuccess && out.contains("finished with result:"))
+          val exitCode = res.exitCode
+          val err = res.err
+          assert(exitCode == 0 && err.contains("finished with result:"))
 
         case _ =>
           case class WithName[A](name: String, description: String, value: A)

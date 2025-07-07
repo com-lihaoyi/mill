@@ -66,8 +66,6 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
         s"Detected a 'SNAPSHOT' version, publishing to Sonatype Central Snapshots at '$uri'"
       )
       val worker = mavenWorker()
-      // TODO review: this produces a bunch of debug logs like:
-      // [96] 16:06:59.289 [execution-contexts-threadpool-3-thread-7] DEBUG org.apache.http.impl.conn.DefaultManagedHttpClientConnection -- http-outgoing-0: Close connection
       val result = worker.publishToRemote(
         uri = uri,
         workspace = Task.dest / "maven",
