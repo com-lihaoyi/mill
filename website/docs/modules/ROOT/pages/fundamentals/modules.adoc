@@ -15,7 +15,7 @@ things that are not built-in to Mill.
 
 include::partial$example/fundamentals/modules/6-modules.adoc[]
 
-== RootModule
+== Root Modules
 
 include::partial$example/fundamentals/modules/7-root-module.adoc[]
 

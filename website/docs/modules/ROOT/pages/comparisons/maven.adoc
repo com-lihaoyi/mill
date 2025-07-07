@@ -21,7 +21,7 @@ makes doing this yourself easy and safe, with type-checked code and
 xref:depth/sandboxing.adoc[sandboxed tasks].
 
 * **IDE Support**: Jump-to-definition, autocomplete, show-documentation, etc. are all much more
-useful in `build.mill` files than in `pom.xml`s. This makes it easier to navigate, understand,
+useful in `build.mill` files than in ``pom.xml``s. This makes it easier to navigate, understand,
 and maintain your build configuration without being limited by the quantity and quality of
 online documentation (or the lack thereof!)
 
