@@ -1082,7 +1082,7 @@ object app extends ScalaModule with RouterModule {
 <p><code>def scalaVersion: T[String]</code> - The scalaVersion in use in your project.</p>
 </li>
 <li>
-<p><code>def routes: Sources</code> - The directory which contains your route files. (Defaults to : <code>routes/</code>)</p>
+<p><code>def routes: T[Seq[Sources]]</code> - The directory which contains your route files. (Defaults to : <code>routes/</code>)</p>
 </li>
 <li>
 <p><code>def routesAdditionalImport: Seq[String]</code> - Additional imports to use in the generated routers.
