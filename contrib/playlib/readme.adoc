@@ -304,7 +304,7 @@ object app extends ScalaModule with RouterModule {
 
 * `def playVersion: T[String]` (mandatory) - The version of Play to use to compile the routes file.
 * `def scalaVersion: T[String]` - The scalaVersion in use in your project.
-* `def routes: Sources` - The directory which contains your route files. (Defaults to : `routes/`)
+* `def routes: T[Seq[Sources]]` - The directory which contains your route files. (Defaults to : `routes/`)
 * `def routesAdditionalImport: Seq[String]` - Additional imports to use in the generated routers.
 (Defaults to `Seq("controllers.Assets.Asset", "play.libs.F")`
 * `def generateForwardsRouter: Boolean = true` - Enables the forward router generation.

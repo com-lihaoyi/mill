@@ -252,7 +252,7 @@ trait MillBuildRootModule()(implicit
   override def scalacOptions: T[Seq[String]] = Task { super.scalacOptions() ++ Seq("-deprecation") }
 
   /** Used in BSP IntelliJ, which can only work with directories */
-  def dummySources: Sources = Task.Sources(Task.dest)
+  def dummySources: Task[Seq[PathRef]] = Task.Sources(Task.dest)
 
   def millVersion: T[String] = Task.Input { BuildInfo.millVersion }
 

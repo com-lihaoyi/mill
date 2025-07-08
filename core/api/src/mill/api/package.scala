@@ -2,6 +2,6 @@ package mill
 
 /**
  * Core language-agnostic Mill APIs for use in your build files to define
- * tasks, modules, etc.
+ * [[Task]]s, [[Module]]s, etc.
  */
 package object api {}

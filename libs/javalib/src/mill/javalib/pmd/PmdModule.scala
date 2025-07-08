@@ -144,7 +144,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
   }
 
   /** PMD rulesets files. Defaults to `pmd-ruleset.xml`. */
-  def pmdRulesets: Sources = Task.Sources(moduleDir / "pmd-ruleset.xml")
+  def pmdRulesets: T[Seq[PathRef]] = Task.Sources(moduleDir / "pmd-ruleset.xml")
 
   /** Additional arguments for PMD. */
   def pmdOptions: T[Seq[String]] = Task {
