@@ -12,6 +12,12 @@ import scala.annotation.nowarn
 import scala.util.Using
 
 object WorkerRemoteM2Publisher {
+  /**
+   * Publishes artifacts to a Maven API compatible repositories.
+   *
+   * Maven API compatible means it's a HTTP server that accepts PUT requests with certain headers to store files.
+   * We use Eclipse Aether to deal with that.
+   */
   def publish(
       uri: String,
       workspace: os.Path,

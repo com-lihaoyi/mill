@@ -35,24 +35,24 @@ class SonatypePublisher(
     connectTimeout = connectTimeout
   )
 
-  def publish(fileMapping: FileSetContents.Path, artifact: Artifact, release: Boolean): Unit = {
+  def publish(fileMapping: Map[os.SubPath, os.Path], artifact: Artifact, release: Boolean): Unit = {
     publishAll(release, fileMapping -> artifact)
   }
 
-  def publishAll(release: Boolean, artifacts: (FileSetContents.Path, Artifact)*): Unit = {
+  def publishAll(release: Boolean, artifacts: (Map[os.SubPath, os.Path], Artifact)*): Unit = {
     val mappings = getArtifactMappings(signed, gpgArgs, workspace, env, artifacts)
 
     val (snapshots, releases) = mappings.partition(_.artifact.isSnapshot)
     if (snapshots.nonEmpty) {
       publishSnapshot(
-        FileSetContents.mergeAll(snapshots.iterator.map(_.contents)),
+        snapshots.iterator.flatMap(_.contents).toMap,
         snapshots.map(_.artifact)
       )
     }
     val releaseGroups = releases.groupBy(_.artifact.group)
     for ((group, groupReleases) <- releaseGroups) {
       val groupArtifacts = groupReleases.map(_.artifact)
-      val groupContents = FileSetContents.mergeAll(groupReleases.iterator.map(_.contents))
+      val groupContents = groupReleases.iterator.flatMap(_.contents).toMap
       if (stagingRelease)
         publishRelease(release, groupContents, group, groupArtifacts, awaitTimeout)
       else publishReleaseNonstaging(groupContents, groupArtifacts)
@@ -60,27 +60,27 @@ class SonatypePublisher(
   }
 
   private def publishSnapshot(
-      payloads: FileSetContents.Bytes,
+      payloads: Map[os.SubPath, Array[Byte]],
       artifacts: Seq[Artifact]
   ): Unit = {
     publishToUri(payloads, artifacts, snapshotUri)
   }
 
   private def publishToUri(
-      payloads: FileSetContents.Bytes,
+      payloads: Map[os.SubPath, Array[Byte]],
       artifacts: Seq[Artifact],
       uri: String
   ): Unit = {
-    val publishResults = payloads.contents.iterator.map {
+    val publishResults = payloads.iterator.map {
       case (fileName, data) =>
         log.info(s"Uploading $fileName")
-        api.upload(s"$uri/$fileName", data.bytesUnsafe)
+        api.upload(s"$uri/$fileName", data)
     }.toVector
     reportPublishResults(publishResults, artifacts)
   }
 
   private def publishReleaseNonstaging(
-      payloads: FileSetContents.Bytes,
+      payloads: Map[os.SubPath, Array[Byte]],
       artifacts: Seq[Artifact]
   ): Unit = {
     publishToUri(payloads, artifacts, uri)
@@ -88,7 +88,7 @@ class SonatypePublisher(
 
   private def publishRelease(
       release: Boolean,
-      payloads: FileSetContents.Bytes,
+      payloads: Map[os.SubPath, Array[Byte]],
       stagingProfile: String,
       artifacts: Seq[Artifact],
       awaitTimeout: Int

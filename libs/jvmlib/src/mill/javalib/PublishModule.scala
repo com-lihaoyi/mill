@@ -402,14 +402,14 @@ trait PublishModule extends JavaModule { outer =>
   private def publishLocalContentsTask(
       sources: Boolean,
       doc: Boolean
-  ): Task[(artifact: Artifact, contents: FileSetContents.Any)] = {
+  ): Task[(artifact: Artifact, contents: Map[os.SubPath, FileSetContents.Writable])] = {
     Task.Anon {
       val publishInfos = defaultPublishInfos(sources = sources, docs = doc)() ++ extraPublish()
       val artifact = artifactMetadata()
       val contents = LocalIvyPublisher.createFileSetContents(
         artifact = artifact,
         pom = pom().path,
-        ivy = FileSetContents.Contents.Path(ivy().path),
+        ivy = ivy().path,
         publishInfos = publishInfos
       )
       (artifact, contents)
@@ -457,7 +457,7 @@ trait PublishModule extends JavaModule { outer =>
 
   /** Produce the contents for the maven publishing. */
   private def publishM2LocalContentsTask
-      : Task[(artifact: Artifact, contents: FileSetContents.Path)] = Task.Anon {
+      : Task[(artifact: Artifact, contents: Map[os.SubPath, os.Path])] = Task.Anon {
     val publishInfos = defaultPublishInfos(sources = true, docs = true)() ++ extraPublish()
     val artifact = artifactMetadata()
     val contents =
@@ -480,7 +480,7 @@ trait PublishModule extends JavaModule { outer =>
   def publishArtifactsPayload(
       sources: Boolean = true,
       docs: Boolean = true
-  ): Task[FileSetContents[PathRef]] = Task {
+  ): Task[Map[os.SubPath, PathRef]] = Task {
     val defaultPayload = publishArtifactsDefaultPayload(sources = sources, docs = docs)()
     val baseName = publishArtifactsBaseName()
     val extraPayload =
@@ -503,28 +503,28 @@ trait PublishModule extends JavaModule { outer =>
   def publishArtifactsDefaultPayload(
       sources: Boolean = true,
       docs: Boolean = true
-  ): Task[FileSetContents[PathRef]] = {
+  ): Task[Map[os.SubPath, PathRef]] = {
     (pomPackagingType, this) match {
       case (PackagingType.Pom, _) => Task.Anon {
           val baseName = publishArtifactsBaseName()
-          FileSetContents(Map(
+          Map(
             SubPath(s"$baseName.pom") -> pom()
-          ))
+          )
         }
 
       case (PackagingType.Jar, _) => Task.Anon {
           val baseName = publishArtifactsBaseName()
-          val baseContent = FileSetContents(Map(
+          val baseContent = Map(
             SubPath(s"$baseName.pom") -> pom(),
             SubPath(s"$baseName.jar") -> jar()
-          ))
+          )
           val sourcesOpt =
             if (sources) Map(SubPath(s"$baseName-sources.jar") -> sourceJar()) else Map.empty
           val docsOpt = if (docs) Map(SubPath(s"$baseName-javadoc.jar") -> docJar()) else Map.empty
           baseContent ++ sourcesOpt ++ docsOpt
         }
 
-      // TODO: that `| _` felt like a bug.
+      // TODO review: that `| _` felt like a bug.
       case (otherPackagingType, otherModuleType) =>
         throw new IllegalArgumentException(
           s"Packaging type $otherPackagingType not supported with $otherModuleType"
@@ -624,8 +624,11 @@ object PublishModule extends ExternalModule with TaskModule {
    * @return Right(the key ID of the imported secret), or Left(gnupg output) if the import failed.
    */
   def pgpImportSecret(secretBase64: String): Either[Vector[String], String] = {
-    val cmd =
-      Seq("gpg", "--import", "--no-tty", "--batch", "--yes", "--with-colons", "--status-fd", "1")
+    val cmd = Seq(
+      "gpg", "--import", "--no-tty", "--batch", "--yes",
+      // Use the machine parseable output format and send it to stdout.
+      "--with-colons", "--status-fd", "1"
+    )
     val res = os.call(cmd, stdin = java.util.Base64.getDecoder.decode(secretBase64))
     val outLines = res.out.lines()
     val importRegex = """^\[GNUPG:\] IMPORT_OK \d+ (\w+)""".r
@@ -708,13 +711,13 @@ object PublishModule extends ExternalModule with TaskModule {
         .map(_.fold(err => throw new IllegalArgumentException(err), identity))
   }
 
-  case class PublishData(meta: Artifact, payload: FileSetContents[PathRef]) {
+  case class PublishData(meta: Artifact, payload: Map[os.SubPath, PathRef]) {
 
     /**
      * Maps the path reference to an actual path so that it can be used in publishAll signatures
      */
-    private[mill] def withConcretePath: (FileSetContents.Path, Artifact) =
-      (payload.mapContents(pathRef => FileSetContents.Contents.Path(pathRef.path)), meta)
+    private[mill] def withConcretePath: (Map[os.SubPath, os.Path], Artifact) =
+      (payload.view.mapValues(_.path).toMap, meta)
   }
   object PublishData {
     import mill.scalalib.publish.artifactFormat

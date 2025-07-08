@@ -11,15 +11,15 @@ class GitlabPublisher(
     log: Logger
 ) {
 
-  def publish(fileMapping: FileSetContents.Path, artifact: Artifact): Unit =
+  def publish(fileMapping: Map[os.SubPath, os.Path], artifact: Artifact): Unit =
     publishAll(fileMapping -> artifact)
 
-  def publishAll(artifacts: (FileSetContents.Path, Artifact)*): Unit = {
+  def publishAll(artifacts: (Map[os.SubPath, os.Path], Artifact)*): Unit = {
     log.info("Publishing artifacts: " + artifacts)
 
     val uploadData = for {
       (items, artifact) <- artifacts
-      files = items.mapContents(_.readFromDisk())
+      files = items.view.mapValues(os.read.bytes(_)).toMap
     } yield artifact -> files
 
     uploadData
@@ -34,12 +34,12 @@ class GitlabPublisher(
   private def publishToRepo(
       repo: ProjectRepository,
       artifact: Artifact,
-      payloads: FileSetContents.Bytes
+      payloads: Map[os.SubPath, Array[Byte]]
   ): (Artifact, Seq[Response]) = {
-    val publishResults = payloads.contents.iterator.map { case (fileName, data) =>
+    val publishResults = payloads.iterator.map { case (fileName, data) =>
       log.info(s"Uploading $fileName")
       val uploadTarget = repo.uploadUrl(artifact)
-      val resp = upload(s"$uploadTarget/$fileName", data.bytesUnsafe)
+      val resp = upload(s"$uploadTarget/$fileName", data)
       resp
     }.toVector
     artifact -> publishResults

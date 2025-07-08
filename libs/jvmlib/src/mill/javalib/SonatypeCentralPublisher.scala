@@ -37,7 +37,7 @@ class SonatypeCentralPublisher(
     }*/
 
   def publish(
-      fileMapping: FileSetContents.Path,
+      fileMapping: Map[os.SubPath, os.Path],
       artifact: Artifact,
       publishingType: PublishingType
   ): Unit = {
@@ -47,12 +47,12 @@ class SonatypeCentralPublisher(
   def publishAll(
       publishingType: PublishingType,
       singleBundleName: Option[String],
-      artifacts: (FileSetContents.Path, Artifact)*
+      artifacts: (Map[os.SubPath, os.Path], Artifact)*
   ): Unit = {
     val mappings = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
     log.info(s"mappings ${pprint.apply(
         mappings.map { case (a, fileSetContents) =>
-          (a, fileSetContents.keysSorted.map(_.toString))
+          (a, fileSetContents.keys.toVector.sorted.map(_.toString))
         }
       )}")
     val releases = mappings
@@ -87,7 +87,7 @@ class SonatypeCentralPublisher(
           val fileNameWithoutExtension = s"${artifact.group}-${artifact.id}-${artifact.version}"
           val zipFile = streamToFile(fileNameWithoutExtension, wd) { outputStream =>
             log.info(
-              s"bundle $fileNameWithoutExtension with ${pprint.apply(data.keysSorted.map(_.toString))}"
+              s"bundle $fileNameWithoutExtension with ${pprint.apply(data.keys.toVector.sorted.map(_.toString))}"
             )
             zipFilesToJar(data, outputStream)
           }
@@ -163,13 +163,13 @@ class SonatypeCentralPublisher(
   }
 
   private def zipFilesToJar(
-      files: FileSetContents.Bytes,
+      files: Map[os.SubPath, Array[Byte]],
       jarOutputStream: JarOutputStream
   ): Unit = {
-    files.contents.foreach { case (filename, fileAsBytes) =>
+    files.foreach { case (filename, fileAsBytes) =>
       val zipEntry = new ZipEntry(filename.toString)
       jarOutputStream.putNextEntry(zipEntry)
-      jarOutputStream.write(fileAsBytes.bytesUnsafe)
+      jarOutputStream.write(fileAsBytes)
       jarOutputStream.closeEntry()
     }
   }

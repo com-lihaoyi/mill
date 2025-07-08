@@ -17,32 +17,28 @@ object SonatypeHelpers {
       gpgArgs: Seq[String],
       workspace: os.Path,
       env: Map[String, String],
-      artifacts: Seq[(FileSetContents.Path, Artifact)]
-  ): Seq[(artifact: Artifact, contents: FileSetContents.Bytes)] = {
+      artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)]
+  ): Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])] = {
     for ((fileMapping0, artifact) <- artifacts) yield {
       val publishPath = SubPath(artifact.group.replace(".", "/")) / artifact.id / artifact.version
-      val fileMapping = fileMapping0.mapPaths(publishPath / _)
+      val fileMapping = fileMapping0.map { case (name, contents) => publishPath / name -> contents }
 
       val signedArtifacts =
         if (isSigned) fileMapping.map {
           case (name, file) =>
             val signatureFile =
-              gpgSigned(file = file.path, args = gpgArgs, workspace = workspace, env = env)
-            SubPath(s"$name.asc") -> FileSetContents.Contents.Path(signatureFile)
+              gpgSigned(file = file, args = gpgArgs, workspace = workspace, env = env)
+            SubPath(s"$name.asc") -> signatureFile
         }
-        else FileSetContents.empty
+        else Map.empty
 
       val allFiles = (fileMapping ++ signedArtifacts).flatMap { case (name, file) =>
-        val content = file.readFromDisk()
+        val content = os.read.bytes(file)
 
         Map(
           name -> content,
-          SubPath(
-            s"$name.md5"
-          ) -> FileSetContents.Contents.Bytes.fromArray(md5hex(content.bytesUnsafe)),
-          SubPath(
-            s"$name.sha1"
-          ) -> FileSetContents.Contents.Bytes.fromArray(sha1hex(content.bytesUnsafe))
+          SubPath(s"$name.md5") -> md5hex(content),
+          SubPath(s"$name.sha1") -> sha1hex(content)
         )
       }
 

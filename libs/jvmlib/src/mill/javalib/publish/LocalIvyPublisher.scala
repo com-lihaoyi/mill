@@ -14,11 +14,11 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
    */
   def publishLocal(
       artifact: Artifact,
-      contents: FileSetContents.Any
+      contents: Map[os.SubPath, FileSetContents.Writable]
   )(implicit ctx: TaskCtx.Log): Seq[os.Path] = {
     ctx.log.info(s"Publishing ${artifact} to ivy repo ${localIvyRepo}")
     val releaseDir = localIvyRepo / artifact.group / artifact.id / artifact.version
-    contents.writeTo(releaseDir)
+    FileSetContents.writeTo(releaseDir, contents)
   }
 }
 
@@ -37,16 +37,16 @@ object LocalIvyPublisher
    */
   def createFileSetContents(
       pom: os.Path,
-      ivy: FileSetContents.Contents,
+      ivy: FileSetContents.Writable,
       artifact: Artifact,
       publishInfos: Seq[PublishInfo]
-  ): FileSetContents.Any = {
-    FileSetContents(Map(
-      os.SubPath("poms") / s"${artifact.id}.pom" -> FileSetContents.Contents.Path(pom),
+  ): Map[os.SubPath, FileSetContents.Writable] = {
+    Map(
+      os.SubPath("poms") / s"${artifact.id}.pom" -> pom,
       os.SubPath("ivys") / "ivy.xml" -> ivy
     ) ++ publishInfos.iterator.map { entry =>
       os.SubPath(s"${entry.ivyType}s") / s"${artifact.id}${entry.classifierPart}.${entry.ext}" ->
-        FileSetContents.Contents.Path(entry.file.path)
-    })
+        entry.file.path
+    }
   }
 }

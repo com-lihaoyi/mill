@@ -30,7 +30,7 @@ class CodeartifactPublisher(
   private def versionPublishPath(artifact: Artifact) =
     basePublishPath(artifact) / artifact.version
 
-  def publish(fileMapping: FileSetContents.Path, artifact: Artifact): Unit = {
+  def publish(fileMapping: Map[os.SubPath, os.Path], artifact: Artifact): Unit = {
     publishAll(fileMapping -> artifact)
   }
 
@@ -54,13 +54,15 @@ class CodeartifactPublisher(
       </versioning>
     </metadata>
 
-  def publishAll(artifacts: (FileSetContents.Path, Artifact)*): Unit = {
+  def publishAll(artifacts: (Map[os.SubPath, os.Path], Artifact)*): Unit = {
     log.info("arts: " + artifacts)
     val mappings = for ((fileMapping0, artifact) <- artifacts) yield {
       val publishPath = versionPublishPath(artifact)
-      val fileMapping = fileMapping0.mapPaths(name => publishPath / name)
+      val fileMapping = fileMapping0.map { case (name, contents) =>
+        publishPath / name -> os.read.bytes(contents)
+      }
 
-      artifact -> fileMapping.mapContents(_.readFromDisk())
+      artifact -> fileMapping
     }
 
     val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
@@ -68,7 +70,7 @@ class CodeartifactPublisher(
     if (snapshots.nonEmpty) {
       publishToRepo(
         snapshotUri,
-        FileSetContents.mergeAll(snapshots.iterator.map(_._2)),
+        snapshots.iterator.flatMap(_._2).toMap,
         snapshots.map(_._1)
       )
 
@@ -81,7 +83,7 @@ class CodeartifactPublisher(
     if (releases.nonEmpty) {
       publishToRepo(
         releaseUri,
-        FileSetContents.mergeAll(releases.iterator.map(_._2)),
+        releases.iterator.flatMap(_._2).toMap,
         releases.map(_._1)
       )
 
@@ -95,13 +97,13 @@ class CodeartifactPublisher(
 
   private def publishToRepo(
       repoUri: String,
-      payloads: FileSetContents.Bytes,
+      payloads: Map[os.SubPath, Array[Byte]],
       artifacts: Seq[Artifact]
   ): Unit = {
-    val publishResults = payloads.contents.iterator.map {
+    val publishResults = payloads.iterator.map {
       case (fileName, data) =>
         log.info(s"Uploading $fileName")
-        val resp = api.upload(s"$repoUri/$fileName", data.bytesUnsafe)
+        val resp = api.upload(s"$repoUri/$fileName", data)
         resp
     }.toVector
     reportPublishResults(publishResults, artifacts)

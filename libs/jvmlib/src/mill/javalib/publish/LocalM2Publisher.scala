@@ -15,11 +15,11 @@ class LocalM2Publisher(m2Repo: os.Path) {
    */
   def publish(
       artifact: Artifact,
-      contents: FileSetContents.Any
+      contents: Map[os.SubPath, FileSetContents.Writable]
   )(implicit ctx: TaskCtx.Log): Seq[os.Path] = {
     val releaseDir = m2Repo / artifact.group.split("[.]") / artifact.id / artifact.version
     ctx.log.info(s"Publish ${artifact.id}-${artifact.version} to ${releaseDir}")
-    contents.writeTo(m2Repo)
+    FileSetContents.writeTo(m2Repo, contents)
   }
 
 }
@@ -34,19 +34,17 @@ object LocalM2Publisher {
       pom: os.Path,
       artifact: Artifact,
       publishInfos: Seq[PublishInfo]
-  ): FileSetContents.Path = {
+  ): Map[os.SubPath, os.Path] = {
     val dir =
       (RelPath(".") / artifact.group.split("[.]") / artifact.id / artifact.version).asSubPath
 
     pomFileSetContents(pom, artifact) ++ publishInfos.iterator.map { e =>
       dir / s"${artifact.id}-${artifact.version}${e.classifierPart}.${e.ext}" ->
-        FileSetContents.Contents.Path(e.file.path)
+        e.file.path
     }.toMap
   }
 
-  def pomFileSetContents(pom: os.Path, artifact: Artifact): FileSetContents.Path = {
-    FileSetContents(
-      Map(SubPath(s"${artifact.id}-${artifact.version}.pom") -> FileSetContents.Contents.Path(pom))
-    )
+  def pomFileSetContents(pom: os.Path, artifact: Artifact): Map[os.SubPath, os.Path] = {
+    Map(SubPath(s"${artifact.id}-${artifact.version}.pom") -> pom)
   }
 }

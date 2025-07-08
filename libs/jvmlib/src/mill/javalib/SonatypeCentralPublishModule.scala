@@ -77,9 +77,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
     }
 
     def publishRelease(): Unit = {
-      val fileMapping = publishArtifactsPayload(sources = sources, docs = docs)().mapContents(
-        pathRef => FileSetContents.Contents.Path(pathRef.path)
-      )
+      val fileMapping = publishArtifactsPayload(sources = sources, docs = docs)().view.mapValues(_.path).toMap
       val maybeKeyId = PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
       val keyId = maybeKeyId.getOrElse(throw new IllegalArgumentException(
         s"Publishing to Sonatype Central requires a PGP key. Please set the '${PublishModule.EnvVarPgpSecretBase64}' " +

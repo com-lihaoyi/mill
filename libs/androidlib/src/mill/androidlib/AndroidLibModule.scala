@@ -53,14 +53,14 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
   override def publishArtifactsDefaultPayload(
       sources: Boolean = true,
       docs: Boolean = true
-  ): Task[FileSetContents[PathRef]] =
+  ): Task[Map[os.SubPath, PathRef]] =
     (pomPackagingType, this) match {
       case (PackagingType.Aar, androidLib: AndroidLibModule) => Task.Anon {
           val baseName = publishArtifactsBaseName()
-          val baseContent = FileSetContents(Map(
+          val baseContent = Map(
             SubPath(s"$baseName.pom") -> pom(),
             SubPath(s"$baseName.aar") -> androidLib.androidAar()
-          ))
+          )
           val sourcesOpt =
             if (sources) Map(SubPath(s"$baseName-sources.jar") -> sourceJar()) else Map.empty
           val docsOpt = if (docs) Map(SubPath(s"$baseName-javadoc.jar") -> docJar()) else Map.empty
