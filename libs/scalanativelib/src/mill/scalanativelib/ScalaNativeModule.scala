@@ -8,8 +8,8 @@ import mill.api.CrossVersion
 import mill.api.daemon.internal.bsp.ScalaBuildTarget
 import mill.javalib.api.JvmWorkerUtil
 import mill.api.daemon.internal.{ScalaNativeModuleApi, ScalaPlatform, internal}
+import mill.javalib.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule}
-import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalanativelib.api.*
 import mill.scalanativelib.worker.{
   ScalaNativeWorker,

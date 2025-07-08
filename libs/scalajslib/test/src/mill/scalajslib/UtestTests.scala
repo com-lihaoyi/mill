@@ -2,8 +2,8 @@ package mill.scalajslib
 
 import mill._
 import mill.api.ExecResult
+import mill.javalib.testrunner.TestResult
 import mill.testkit.UnitTester
-import mill.testrunner.TestResult
 import utest._
 
 object UtestTests extends TestSuite {

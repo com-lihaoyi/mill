@@ -1,7 +1,7 @@
 package mill.androidlib
 
 import mill.api.Logger
-import mill.testrunner.TestResult
+import mill.javalib.testrunner.TestResult
 
 import java.io.BufferedReader
 import java.util.concurrent.TimeUnit

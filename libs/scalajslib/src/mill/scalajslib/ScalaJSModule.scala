@@ -8,10 +8,10 @@ import mill.api.Result
 import mill.api.CrossVersion
 import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
 import mill.javalib.api.JvmWorkerUtil
-import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.*
+import mill.javalib.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import upickle.implicits.namedTuples.default.given
 
 /**
