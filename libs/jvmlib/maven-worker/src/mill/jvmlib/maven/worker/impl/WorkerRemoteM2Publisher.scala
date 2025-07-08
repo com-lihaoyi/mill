@@ -12,6 +12,7 @@ import scala.annotation.nowarn
 import scala.util.Using
 
 object WorkerRemoteM2Publisher {
+
   /**
    * Publishes artifacts to a Maven API compatible repositories.
    *

@@ -648,17 +648,17 @@ object PublishModule extends ExternalModule with TaskModule {
   }
 
   def pgpImportSecretIfProvidedAndMakeGpgArgs(
-    env: Map[String, String],
-    providedGpgArgs: Seq[String]
+      env: Map[String, String],
+      providedGpgArgs: Seq[String]
   ): Seq[String] = {
     val maybeKeyId = pgpImportSecretIfProvidedOrThrow(env)
     makeGpgArgs(env, maybeKeyId, providedGpgArgs)
   }
 
   def makeGpgArgs(
-    env: Map[String, String],
-    maybeKeyId: Option[String],
-    providedGpgArgs: Seq[String]
+      env: Map[String, String],
+      maybeKeyId: Option[String],
+      providedGpgArgs: Seq[String]
   ): Seq[String] = {
     if (providedGpgArgs.nonEmpty) providedGpgArgs
     else {
@@ -693,8 +693,8 @@ object PublishModule extends ExternalModule with TaskModule {
      * @param maybePassphrase will be [[None]] if the PGP passphrase was not provided in the environment.
      */
     def createFromEnvVars(
-      maybeKeyId: Option[String],
-      maybePassphrase: Option[String]
+        maybeKeyId: Option[String],
+        maybePassphrase: Option[String]
     ): Option[Either[String, GpgKey]] =
       (maybeKeyId, maybePassphrase) match {
         case (None, None) => None
@@ -705,8 +705,8 @@ object PublishModule extends ExternalModule with TaskModule {
       }
 
     def createFromEnvVarsOrThrow(
-      maybeKeyId: Option[String],
-      maybePassphrase: Option[String]
+        maybeKeyId: Option[String],
+        maybePassphrase: Option[String]
     ): Option[GpgKey] =
       createFromEnvVars(maybeKeyId, maybePassphrase)
         .map(_.fold(err => throw new IllegalArgumentException(err), identity))
