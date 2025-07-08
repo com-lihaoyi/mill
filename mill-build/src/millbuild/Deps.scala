@@ -136,7 +136,7 @@ object Deps {
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.0"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.6"
-  val millModuledefsVersion = "0.11.9"
+  val millModuledefsVersion = "0.11.10"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
