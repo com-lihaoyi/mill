@@ -64,6 +64,16 @@ index 7f1e9cd2894..0040ffa3b5f 100644
  import millbuild.*
  import upickle.implicits.namedTuples.default.given
  import mill.api.BuildCtx
+diff --git a/libs/graphviz/src/mill/main/graphviz/GraphvizTools.scala b/libs/graphviz/src/mill/main/graphviz/GraphvizTools.scala
+index d8b6b26d356..832c39a3388 100644
+--- a/libs/graphviz/src/mill/main/graphviz/GraphvizTools.scala
++++ b/libs/graphviz/src/mill/main/graphviz/GraphvizTools.scala
+@@ -1,4 +1,4 @@
+-package mill.main.graphviz
++package mill.graphviz
+ 
+ import com.caoccao.javet.annotations.V8Function
+ import com.caoccao.javet.interception.logging.JavetStandardConsoleInterceptor
 diff --git a/libs/javalib/package.mill b/libs/javalib/package.mill
 index 7b84504be3d..4b5b37db0f4 100644
 --- a/libs/javalib/package.mill
@@ -90,6 +100,19 @@ index 15e100dce96..d245b62d774 100644
  import millbuild.*
  
  /**
+diff --git a/libs/util/src/mill/util/VisualizeModule.scala b/libs/util/src/mill/util/VisualizeModule.scala
+index b752a184106..884554784e5 100644
+--- a/libs/util/src/mill/util/VisualizeModule.scala
++++ b/libs/util/src/mill/util/VisualizeModule.scala
+@@ -155,7 +155,7 @@ object VisualizeModule extends ExternalModule {
+           g = g.graphAttr().`with`(Rank.dir(RankDir.LEFT_TO_RIGHT))
+ 
+           mill.util.Jvm.callProcess(
+-            mainClass = "mill.main.graphviz.GraphvizTools",
++            mainClass = "mill.graphviz.GraphvizTools",
+             classPath = toolsClasspath().map(_.path).toVector,
+             mainArgs = Seq(s"${os.temp(g.toString)};$dest;txt,dot,json,png,svg"),
+             stdin = os.Inherit,
 diff --git a/mill-build/build.mill b/mill-build/build.mill
 index 154569714a3..79609fb5233 100644
 --- a/mill-build/build.mill
@@ -169,3 +192,43 @@ index ef25e2a891f..11e78faf6da 100644
 +//
 +//  def mimaExcludeAnnotations = Seq("mill.api.internal.internal", "mill.api.experimental")
  }
+diff --git a/website/package.mill b/website/package.mill
+index dd0965f8778..ee1476b87fa 100644
+--- a/website/package.mill
++++ b/website/package.mill
+@@ -105,7 +105,7 @@ object `package` extends mill.Module {
+ 
+     expandDiagramsInDirectoryAdocFile(
+       Task.dest,
+-      mill.main.VisualizeModule.toolsClasspath().map(_.path)
++      mill.util.VisualizeModule.toolsClasspath().map(_.path)
+     )
+ 
+     PathRef(Task.dest)
+@@ -171,7 +171,7 @@ object `package` extends mill.Module {
+     }
+ 
+     mill.util.Jvm.callProcess(
+-      mainClass = "mill.main.graphviz.GraphvizTools",
++      mainClass = "mill.graphviz.GraphvizTools",
+       classPath = visualizeClassPath.toSeq,
+       mainArgs = orderedDiagrams.map { case (p, i, src, dest) =>
+         Task.log.debug(s"Rendering graphviz: ${p} (${i}) to ${dest}")
+@@ -233,7 +233,7 @@ object `package` extends mill.Module {
+     os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
+     expandDiagramsInDirectoryAdocFile(
+       Task.dest,
+-      mill.main.VisualizeModule.toolsClasspath().map(_.path)
++      mill.util.VisualizeModule.toolsClasspath().map(_.path)
+     )
+     PathRef(Task.dest)
+   }
+@@ -352,7 +352,7 @@ object `package` extends mill.Module {
+ 
+       expandDiagramsInDirectoryAdocFile(
+         outputFolder,
+-        mill.main.VisualizeModule.toolsClasspath().map(_.path)
++        mill.util.VisualizeModule.toolsClasspath().map(_.path)
+       )
+ 
+       val useOldDownloadUrl =
