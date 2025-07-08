@@ -97,7 +97,7 @@ private object PromptLoggerUtil {
     val maxWidth = consoleWidth - 1
     // -1 to account for header
     val maxHeight = math.max(1, consoleHeight / 3 - 1)
-    val headerSuffix = mill.util.Util.renderSecondsSuffix(now - startTimeMillis)
+    val headerSuffix = mill.api.internal.Util.renderSecondsSuffix(now - startTimeMillis)
 
     val header = renderHeader(headerPrefix, titleText, headerSuffix, maxWidth)
 
@@ -119,7 +119,7 @@ private object PromptLoggerUtil {
               status.next
             else status.prev
             textOpt.map { t =>
-              val seconds = mill.util.Util.renderSecondsSuffix(now - t.startTimeMillis)
+              val seconds = mill.api.internal.Util.renderSecondsSuffix(now - t.startTimeMillis)
               val mainText = splitShorten(t.text + seconds, maxWidth)
 
               val detail = splitShorten(spaceNonEmpty(t.detail), maxWidth - mainText.length)

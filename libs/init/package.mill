@@ -69,7 +69,7 @@ object `package` extends MillPublishScalaModule {
   }
 
   object buildgen extends MillPublishScalaModule {
-    def moduleDeps = Seq(build.libs.init, build.core.internal, build.core.util)
+    def moduleDeps = Seq(build.libs.init, build.core.internal, build.libs.util)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
 
     // I tried moving `Tree` into this module, but it doesn't compile with Scala 2.12.20.
