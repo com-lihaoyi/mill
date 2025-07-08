@@ -14,6 +14,9 @@ import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.*
 import upickle.implicits.namedTuples.default.given
 
+/**
+ * Core configuration required to compile a single Scala.js module
+ */
 trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =>
 
   def scalaJSVersion: T[String]

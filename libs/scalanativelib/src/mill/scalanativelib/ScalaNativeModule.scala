@@ -18,6 +18,9 @@ import mill.scalanativelib.worker.{
 }
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
+/**
+ * Core configuration required to compile a single Scala-Native module
+ */
 trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
