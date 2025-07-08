@@ -19,7 +19,6 @@ import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
 
-@experimental
 trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport {
 
   /**
