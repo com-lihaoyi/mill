@@ -1,6 +1,5 @@
 package mill.javalib.publish
 
-import mill.util.FileSetContents
 import os.SubPath
 
 import java.math.BigInteger
@@ -59,8 +58,6 @@ object SonatypeHelpers {
   ): os.Path = {
     val fileName = file.toString
     val command = "gpg" +: args :+ fileName
-
-    println(s"Running GPG: ${command.map(pprint.Util.literalize(_)).mkString(" ")}")
 
     os.call(
       command,

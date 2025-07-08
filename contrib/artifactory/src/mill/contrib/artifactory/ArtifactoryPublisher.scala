@@ -1,7 +1,6 @@
 package mill.contrib.artifactory
 
 import mill.api.Logger
-import mill.util.FileSetContents
 import mill.scalalib.publish.Artifact
 import os.SubPath
 

@@ -3,7 +3,6 @@ package mill.contrib.codeartifact
 import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import mill.api.Logger
-import mill.util.FileSetContents
 import mill.scalalib.publish.Artifact
 import os.SubPath
 

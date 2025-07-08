@@ -3,7 +3,6 @@ package mill.javalib.publish
 import mill.api.Logger
 
 import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
-import mill.util.FileSetContents
 
 /**
  * The publisher for the end-of-life OSSRH Sonatype publishing.
