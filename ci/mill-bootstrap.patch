@@ -38,10 +38,10 @@ index 7b27f0c7604..9fc31b65fb7 100644
  import mill.util.Jvm
  import mill.api.SelectMode
 diff --git a/integration/package.mill b/integration/package.mill
-index 93fe5588459..93d39cf2d97 100644
+index 93fe5588459..c51b2510fb2 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
-@@ -5,7 +5,7 @@ import coursier.maven.MavenRepository
+@@ -5,14 +5,14 @@ import coursier.maven.MavenRepository
  import mill._
  import mill.util.Tasks
  import mill.scalalib._
@@ -50,6 +50,14 @@ index 93fe5588459..93d39cf2d97 100644
  import mill.scalalib.publish._
  import mill.util.Jvm
  import mill.api.SelectMode
+ import mill.contrib.buildinfo.BuildInfo
+ import mill.T
+ import mill.api.Cross
+-import mill.testrunner.TestResult
++import mill.javalib.testrunner.TestResult
+ import millbuild.*
+ import upickle.implicits.namedTuples.default.given
+ import mill.api.BuildCtx
 diff --git a/libs/javalib/package.mill b/libs/javalib/package.mill
 index 270c5a14990..c5e851eb79b 100644
 --- a/libs/javalib/package.mill
