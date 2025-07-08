@@ -34,7 +34,7 @@ trait GitlabPublishModule extends PublishModule { outer =>
 
     val gitlabRepo = publishRepository
 
-    val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
+    val (artifacts, artifactInfo) = publishArtifacts().withConcretePath
     if (skipPublish) {
       Task.log.info(s"SkipPublish = true, skipping publishing of $artifactInfo")
     } else {
@@ -43,7 +43,7 @@ trait GitlabPublishModule extends PublishModule { outer =>
         uploader.upload,
         gitlabRepo,
         Task.log
-      ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo)
+      ).publish(artifacts, artifactInfo)
     }
 
   }
