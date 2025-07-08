@@ -2,7 +2,7 @@ package mill.scalalib
 
 import mill.api.{Result, experimental}
 import mill.api.{BuildCtx, PathRef}
-import mill.api.shared.internal.SemanticDbJavaModuleApi
+import mill.api.daemon.internal.SemanticDbJavaModuleApi
 import mill.constants.CodeGenConstants
 import mill.api.ModuleRef
 import mill.util.BuildInfo
@@ -14,7 +14,7 @@ import mill.api.BuildCtx
 
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
-import mill.api.shared.internal.bsp.BspBuildTarget
+import mill.api.daemon.internal.bsp.BspBuildTarget
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi

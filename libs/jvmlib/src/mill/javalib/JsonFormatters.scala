@@ -3,7 +3,7 @@ package mill.javalib
 import mill.api.Mirrors
 import upickle.default.{ReadWriter => RW}
 import mill.api.Mirrors.autoMirror
-import mill.api.shared.internal.TestReporter
+import mill.api.daemon.internal.TestReporter
 
 trait JsonFormatters {
   import JsonFormatters.mirrors.given

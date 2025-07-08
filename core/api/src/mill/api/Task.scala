@@ -2,8 +2,8 @@ package mill.api
 
 import mill.api.Logger
 import mill.api.Result
-import mill.api.shared.internal.CompileProblemReporter
-import mill.api.shared.internal.{NamedTaskApi, TaskApi, TestReporter}
+import mill.api.daemon.internal.CompileProblemReporter
+import mill.api.daemon.internal.{NamedTaskApi, TaskApi, TestReporter}
 import mill.api.internal.Applicative.Applyable
 import mill.api.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
 import upickle.default.ReadWriter

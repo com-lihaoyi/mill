@@ -2,14 +2,14 @@
     <component name="ScalaCompilerConfiguration">
         <profile name="mill 1" modules="">
             <parameters>
-                <parameter value="-Xplugin:<!-- IGNORE -->/com/lihaoyi/scalac-mill-moduledefs-plugin_3.7.1/0.11.9/scalac-mill-moduledefs-plugin_3.7.1-0.11.9.jar"/>
+                <parameter value="-Xplugin:<!-- IGNORE -->/com/lihaoyi/scalac-mill-moduledefs-plugin_3.7.1/0.11.10/scalac-mill-moduledefs-plugin_3.7.1-0.11.10.jar"/>
                 <parameter value="-deprecation"/>
             </parameters>
             <plugins>
-                <plugin path="<!-- IGNORE -->/com/lihaoyi/scalac-mill-moduledefs-plugin_3.7.1/0.11.9/scalac-mill-moduledefs-plugin_3.7.1-0.11.9.jar"/>
+                <plugin path="<!-- IGNORE -->/com/lihaoyi/scalac-mill-moduledefs-plugin_3.7.1/0.11.10/scalac-mill-moduledefs-plugin_3.7.1-0.11.10.jar"/>
                 <plugin path="<!-- IGNORE -->/org/scala-lang/scala3-compiler_3/3.7.1/scala3-compiler_3-3.7.1.jar"/>
                 <plugin path="<!-- IGNORE -->/org/scala-lang/scala3-library_3/3.7.1/scala3-library_3-3.7.1.jar"/>
-                <plugin path="<!-- IGNORE -->/com/lihaoyi/mill-moduledefs_3/0.11.9/mill-moduledefs_3-0.11.9.jar"/>
+                <plugin path="<!-- IGNORE -->/com/lihaoyi/mill-moduledefs_3/0.11.10/mill-moduledefs_3-0.11.10.jar"/>
                 <plugin path="<!-- IGNORE -->/org/scala-lang/scala3-interfaces/3.7.1/scala3-interfaces-3.7.1.jar"/>
                 <plugin path="<!-- IGNORE -->/org/scala-lang/tasty-core_3/3.7.1/tasty-core_3-3.7.1.jar"/>
                 <plugin path="<!-- IGNORE -->/org/scala-lang/modules/scala-asm/9.8.0-scala-1/scala-asm-9.8.0-scala-1.jar"/>
