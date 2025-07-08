@@ -1,8 +1,14 @@
 diff --git a/build.mill b/build.mill
-index bb60d3b7bee..aff6c676c67 100644
+index bb60d3b7bee..78ec19509ea 100644
 --- a/build.mill
 +++ b/build.mill
-@@ -15,7 +15,7 @@ import mill.vcs.VcsVersion
+@@ -10,12 +10,12 @@ import millbuild.*
+ //import com.github.lolgab.mill.mima.Mima
+ import coursier.maven.MavenRepository
+ import coursier.VersionConstraint
+-import mill.vcs.VcsVersion
++import mill.util.VcsVersion
+ //import com.goyeau.mill.scalafix.ScalafixModule
  import mill._
  import mill.util.Tasks
  import mill.scalalib._
@@ -25,7 +31,7 @@ index 38f05bccde9..1cbbd237d33 100644
  import mill.util.Jvm
  import mill.api.SelectMode
 diff --git a/example/package.mill b/example/package.mill
-index 7b27f0c7604..9fc31b65fb7 100644
+index 78f55ecd24c..34caed3efcb 100644
 --- a/example/package.mill
 +++ b/example/package.mill
 @@ -5,7 +5,7 @@ import coursier.maven.MavenRepository
@@ -38,7 +44,7 @@ index 7b27f0c7604..9fc31b65fb7 100644
  import mill.util.Jvm
  import mill.api.SelectMode
 diff --git a/integration/package.mill b/integration/package.mill
-index 93fe5588459..c51b2510fb2 100644
+index 7f1e9cd2894..0040ffa3b5f 100644
 --- a/integration/package.mill
 +++ b/integration/package.mill
 @@ -5,14 +5,14 @@ import coursier.maven.MavenRepository
@@ -59,7 +65,7 @@ index 93fe5588459..c51b2510fb2 100644
  import upickle.implicits.namedTuples.default.given
  import mill.api.BuildCtx
 diff --git a/libs/javalib/package.mill b/libs/javalib/package.mill
-index 270c5a14990..c5e851eb79b 100644
+index 7b84504be3d..4b5b37db0f4 100644
 --- a/libs/javalib/package.mill
 +++ b/libs/javalib/package.mill
 @@ -6,7 +6,7 @@ import coursier.maven.MavenRepository
@@ -71,10 +77,10 @@ index 270c5a14990..c5e851eb79b 100644
  import mill.scalalib.publish._
  import mill.util.Jvm
  import mill.api.SelectMode
-diff --git a/libs/main/package.mill b/libs/main/package.mill
-index 42e62cbb9c1..949d435c8fd 100644
---- a/libs/main/package.mill
-+++ b/libs/main/package.mill
+diff --git a/libs/util/package.mill b/libs/util/package.mill
+index 15e100dce96..d245b62d774 100644
+--- a/libs/util/package.mill
++++ b/libs/util/package.mill
 @@ -6,7 +6,7 @@ import mill.scalalib._
  import mill.contrib.buildinfo.BuildInfo
  import mill.T
@@ -98,7 +104,7 @@ index 154569714a3..79609fb5233 100644
      // TODO: implement empty version for ivy deps as we do in import parser
      mvn"com.lihaoyi::mill-contrib-buildinfo:${mill.api.BuildInfo.millVersion}",
 diff --git a/mill-build/src/millbuild/Deps.scala b/mill-build/src/millbuild/Deps.scala
-index 9e746910655..3b654c55737 100644
+index e636a30d4a1..0516ef73815 100644
 --- a/mill-build/src/millbuild/Deps.scala
 +++ b/mill-build/src/millbuild/Deps.scala
 @@ -1,7 +1,7 @@
@@ -111,7 +117,7 @@ index 9e746910655..3b654c55737 100644
  object Deps {
  
 diff --git a/mill-build/src/millbuild/MillScalaModule.scala b/mill-build/src/millbuild/MillScalaModule.scala
-index e6ff5b9451f..5dd57f7cb94 100644
+index ceaeee3fc19..195b8c93d42 100644
 --- a/mill-build/src/millbuild/MillScalaModule.scala
 +++ b/mill-build/src/millbuild/MillScalaModule.scala
 @@ -2,7 +2,7 @@ package millbuild
