@@ -1,3 +1,81 @@
+diff --git a/build.mill b/build.mill
+index bb60d3b7bee..aff6c676c67 100644
+--- a/build.mill
++++ b/build.mill
+@@ -15,7 +15,7 @@ import mill.vcs.VcsVersion
+ import mill._
+ import mill.util.Tasks
+ import mill.scalalib._
+-import mill.jvmlib.api.JvmWorkerUtil
++import mill.javalib.api.JvmWorkerUtil
+ import mill.scalalib.publish._
+ import mill.api.SelectMode
+ import mill.T
+diff --git a/contrib/package.mill b/contrib/package.mill
+index 38f05bccde9..1cbbd237d33 100644
+--- a/contrib/package.mill
++++ b/contrib/package.mill
+@@ -5,7 +5,7 @@ import coursier.maven.MavenRepository
+ import mill._
+ import mill.util.Tasks
+ import mill.scalalib._
+-import mill.jvmlib.api.JvmWorkerUtil
++import mill.javalib.api.JvmWorkerUtil
+ import mill.scalalib.publish._
+ import mill.util.Jvm
+ import mill.api.SelectMode
+diff --git a/example/package.mill b/example/package.mill
+index 7b27f0c7604..9fc31b65fb7 100644
+--- a/example/package.mill
++++ b/example/package.mill
+@@ -5,7 +5,7 @@ import coursier.maven.MavenRepository
+ import mill.*
+ import mill.util.Tasks
+ import mill.scalalib.*
+-import mill.jvmlib.api.JvmWorkerUtil
++import mill.javalib.api.JvmWorkerUtil
+ import mill.scalalib.publish.*
+ import mill.util.Jvm
+ import mill.api.SelectMode
+diff --git a/integration/package.mill b/integration/package.mill
+index 93fe5588459..93d39cf2d97 100644
+--- a/integration/package.mill
++++ b/integration/package.mill
+@@ -5,7 +5,7 @@ import coursier.maven.MavenRepository
+ import mill._
+ import mill.util.Tasks
+ import mill.scalalib._
+-import mill.jvmlib.api.JvmWorkerUtil
++import mill.javalib.api.JvmWorkerUtil
+ import mill.scalalib.publish._
+ import mill.util.Jvm
+ import mill.api.SelectMode
+diff --git a/libs/javalib/package.mill b/libs/javalib/package.mill
+index 270c5a14990..c5e851eb79b 100644
+--- a/libs/javalib/package.mill
++++ b/libs/javalib/package.mill
+@@ -6,7 +6,7 @@ import coursier.maven.MavenRepository
+ import mill._
+ import mill.util.Tasks
+ import mill.scalalib._
+-import mill.jvmlib.api.JvmWorkerUtil
++import mill.javalib.api.JvmWorkerUtil
+ import mill.scalalib.publish._
+ import mill.util.Jvm
+ import mill.api.SelectMode
+diff --git a/libs/main/package.mill b/libs/main/package.mill
+index 42e62cbb9c1..949d435c8fd 100644
+--- a/libs/main/package.mill
++++ b/libs/main/package.mill
+@@ -6,7 +6,7 @@ import mill.scalalib._
+ import mill.contrib.buildinfo.BuildInfo
+ import mill.T
+ import mill.api.Cross
+-import mill.jvmlib.api.JvmWorkerUtil
++import mill.javalib.api.JvmWorkerUtil
+ import millbuild.*
+ 
+ /**
 diff --git a/mill-build/build.mill b/mill-build/build.mill
 index 154569714a3..79609fb5233 100644
 --- a/mill-build/build.mill
@@ -11,6 +89,32 @@ index 154569714a3..79609fb5233 100644
      mvn"net.sourceforge.htmlcleaner:htmlcleaner:2.29",
      // TODO: implement empty version for ivy deps as we do in import parser
      mvn"com.lihaoyi::mill-contrib-buildinfo:${mill.api.BuildInfo.millVersion}",
+diff --git a/mill-build/src/millbuild/Deps.scala b/mill-build/src/millbuild/Deps.scala
+index 9e746910655..3b654c55737 100644
+--- a/mill-build/src/millbuild/Deps.scala
++++ b/mill-build/src/millbuild/Deps.scala
+@@ -1,7 +1,7 @@
+ package millbuild
+ 
+ import mill.scalalib.*
+-import mill.jvmlib.api.*
++import mill.javalib.api.*
+ 
+ object Deps {
+ 
+diff --git a/mill-build/src/millbuild/MillScalaModule.scala b/mill-build/src/millbuild/MillScalaModule.scala
+index e6ff5b9451f..5dd57f7cb94 100644
+--- a/mill-build/src/millbuild/MillScalaModule.scala
++++ b/mill-build/src/millbuild/MillScalaModule.scala
+@@ -2,7 +2,7 @@ package millbuild
+ 
+ import mill.*
+ import mill.scalalib.*
+-import mill.jvmlib.api.JvmWorkerUtil
++import mill.javalib.api.JvmWorkerUtil
+ import mill.api.BuildCtx
+ // import com.goyeau.mill.scalafix.ScalafixModule
+ 
 diff --git a/mill-build/src/millbuild/MillStableScalaModule.scala b/mill-build/src/millbuild/MillStableScalaModule.scala
 index ef25e2a891f..11e78faf6da 100644
 --- a/mill-build/src/millbuild/MillStableScalaModule.scala
