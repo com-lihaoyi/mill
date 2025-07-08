@@ -26,7 +26,8 @@ object GenIdeaUtils {
     val actualResourcePath = workspacePath / ".idea" / resource
 
     withTestClues(
-      asTestValue(expectedResourcePath), asTestValue(actualResourcePath)
+      asTestValue(expectedResourcePath),
+      asTestValue(actualResourcePath)
     ) {
       println(s"Checking ${expectedResourcePath.relativeTo(workspaceSourcePath)} ...")
       val expectedResourceString = os.read.lines(expectedResourcePath).mkString("\n")
