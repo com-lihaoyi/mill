@@ -23,6 +23,7 @@ import mill.scalalib.publish.SonatypeHelpers.{
 import mill.api.BuildCtx
 
 trait SonatypeCentralPublishModule extends PublishModule {
+
   /**
    * @return (keyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
    */
@@ -108,7 +109,8 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val finalCredentials = getSonatypeCredentials(username, password)()
-    val gpgArgs0 = PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, gpgArgs.split(','))
+    val gpgArgs0 =
+      PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, gpgArgs.split(','))
     val publisher = new SonatypeCentralPublisher(
       credentials = finalCredentials,
       gpgArgs = gpgArgs0,

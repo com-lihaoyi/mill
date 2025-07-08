@@ -575,9 +575,15 @@ object PublishModule extends ExternalModule with TaskModule {
    */
   def pgpImportSecret(secretBase64: String): Either[Vector[String], String] = {
     val cmd = Seq(
-      "gpg", "--import", "--no-tty", "--batch", "--yes",
+      "gpg",
+      "--import",
+      "--no-tty",
+      "--batch",
+      "--yes",
       // Use the machine parseable output format and send it to stdout.
-      "--with-colons", "--status-fd", "1"
+      "--with-colons",
+      "--status-fd",
+      "1"
     )
     val res = os.call(cmd, stdin = java.util.Base64.getDecoder.decode(secretBase64))
     val outLines = res.out.lines()
@@ -598,17 +604,17 @@ object PublishModule extends ExternalModule with TaskModule {
   }
 
   def pgpImportSecretIfProvidedAndMakeGpgArgs(
-    env: Map[String, String],
-    providedGpgArgs: Seq[String]
+      env: Map[String, String],
+      providedGpgArgs: Seq[String]
   ): Seq[String] = {
     val maybeKeyId = pgpImportSecretIfProvidedOrThrow(env)
     makeGpgArgs(env, maybeKeyId, providedGpgArgs)
   }
 
   def makeGpgArgs(
-    env: Map[String, String],
-    maybeKeyId: Option[String],
-    providedGpgArgs: Seq[String]
+      env: Map[String, String],
+      maybeKeyId: Option[String],
+      providedGpgArgs: Seq[String]
   ): Seq[String] = {
     if (providedGpgArgs.nonEmpty) providedGpgArgs
     else {
@@ -623,7 +629,7 @@ object PublishModule extends ExternalModule with TaskModule {
   val EnvVarPgpPassphrase = "MILL_PGP_PASSPHRASE"
   val EnvVarPgpSecretBase64 = "MILL_PGP_SECRET_BASE64"
 
-  case class GpgKey private(keyId: String, passphrase: Option[String]) {
+  case class GpgKey private (keyId: String, passphrase: Option[String]) {
     def gpgArgs: Seq[String] =
       Seq("--local-user", keyId) ++ passphrase.iterator.flatMap(p => Seq("--passphrase", p))
   }
@@ -643,8 +649,8 @@ object PublishModule extends ExternalModule with TaskModule {
      * @param maybePassphrase will be [[None]] if the PGP passphrase was not provided in the environment.
      */
     def createFromEnvVars(
-      maybeKeyId: Option[String],
-      maybePassphrase: Option[String]
+        maybeKeyId: Option[String],
+        maybePassphrase: Option[String]
     ): Option[Either[String, GpgKey]] =
       (maybeKeyId, maybePassphrase) match {
         case (None, None) => None
@@ -655,8 +661,8 @@ object PublishModule extends ExternalModule with TaskModule {
       }
 
     def createFromEnvVarsOrThrow(
-      maybeKeyId: Option[String],
-      maybePassphrase: Option[String]
+        maybeKeyId: Option[String],
+        maybePassphrase: Option[String]
     ): Option[GpgKey] =
       createFromEnvVars(maybeKeyId, maybePassphrase)
         .map(_.fold(err => throw new IllegalArgumentException(err), identity))
