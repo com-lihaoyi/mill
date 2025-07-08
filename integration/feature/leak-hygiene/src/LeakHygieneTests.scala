@@ -87,7 +87,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           checkClassloaders(tester)(
             "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
+            "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 2
           )
@@ -112,7 +112,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           checkClassloaders(tester)(
             "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
+            "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 2
           )
@@ -156,7 +156,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
+            "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
           )
@@ -181,7 +181,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
+            "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
           )
@@ -208,7 +208,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           val res = tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerFactory" -> 1,
+            "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
           )
@@ -232,7 +232,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         checkClassloaders(tester)(
           "leaked classloader" -> 1,
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-          "mill.kotlinlib.KotlinWorkerFactory" -> 1,
+          "mill.kotlinlib.KotlinWorkerManager" -> 1,
           "mill.javalib.JvmWorkerModule#worker cl" -> 2,
           "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
         )
