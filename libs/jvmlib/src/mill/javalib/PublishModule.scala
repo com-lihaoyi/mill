@@ -504,15 +504,15 @@ trait PublishModule extends JavaModule { outer =>
       sources: Boolean = true,
       docs: Boolean = true
   ): Task[Map[os.SubPath, PathRef]] = {
-    (pomPackagingType, this) match {
-      case (PackagingType.Pom, _) => Task.Anon {
+    pomPackagingType match {
+      case PackagingType.Pom => Task.Anon {
           val baseName = publishArtifactsBaseName()
           Map(
             SubPath(s"$baseName.pom") -> pom()
           )
         }
 
-      case (PackagingType.Jar, _) => Task.Anon {
+      case _ => Task.Anon {
           val baseName = publishArtifactsBaseName()
           val baseContent = Map(
             SubPath(s"$baseName.pom") -> pom(),
@@ -523,12 +523,6 @@ trait PublishModule extends JavaModule { outer =>
           val docsOpt = if (docs) Map(SubPath(s"$baseName-javadoc.jar") -> docJar()) else Map.empty
           baseContent ++ sourcesOpt ++ docsOpt
         }
-
-      // TODO review: that `| _` felt like a bug.
-      case (otherPackagingType, otherModuleType) =>
-        throw new IllegalArgumentException(
-          s"Packaging type $otherPackagingType not supported with $otherModuleType"
-        )
     }
   }
 

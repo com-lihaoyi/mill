@@ -4,7 +4,7 @@ import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCreden
 import mill.*
 import mill.scalalib.*
 import mill.api.{ExternalModule, Task}
-import mill.util.{Tasks, FileSetContents}
+import mill.util.Tasks
 import mill.api.TaskModule
 import mill.api.{Result, experimental}
 import mill.javalib.SonatypeCentralPublishModule.{
@@ -103,7 +103,6 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
     }
 
     // The snapshot publishing does not use the same API as release publishing.
-    // TODO review: is there a way to dynamically switch the task graph?
     if (artifact.version.endsWith("SNAPSHOT")) publishSnapshot()
     else publishRelease()
   }

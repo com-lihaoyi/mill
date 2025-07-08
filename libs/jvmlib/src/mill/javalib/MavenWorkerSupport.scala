@@ -5,9 +5,8 @@ import mill.javalib.publish.{Artifact, PublishInfo}
 import mill.util.Jvm
 import os.Path
 
-// TODO review: should this be private[mill]? In a different package?
-trait MavenWorkerSupport extends CoursierModule with OfflineSupportModule {
-  def mavenWorkerClasspath: T[Seq[PathRef]] = Task {
+private[mill] trait MavenWorkerSupport extends CoursierModule with OfflineSupportModule {
+  private def mavenWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
       Dep.millProjectModule("mill-libs-jvmlib-maven-worker")
     ))
@@ -17,12 +16,12 @@ trait MavenWorkerSupport extends CoursierModule with OfflineSupportModule {
     (super.prepareOffline(all)() ++ mavenWorkerClasspath()).distinct
   }
 
-  private[mill] def mavenWorkerClassloader: Task.Worker[ClassLoader] = Task.Worker {
+  private def mavenWorkerClassloader: Task.Worker[ClassLoader] = Task.Worker {
     val classPath = mavenWorkerClasspath().map(_.path)
     Jvm.createClassLoader(classPath = classPath, parent = getClass.getClassLoader)
   }
 
-  def mavenWorker: Task.Worker[MavenWorkerSupport.Api] = Task.Worker {
+  protected def mavenWorker: Task.Worker[MavenWorkerSupport.Api] = Task.Worker {
     mavenWorkerClassloader().loadClass("mill.jvmlib.maven.worker.impl.WorkerImpl")
       .getConstructor().newInstance().asInstanceOf[MavenWorkerSupport.Api]
   }

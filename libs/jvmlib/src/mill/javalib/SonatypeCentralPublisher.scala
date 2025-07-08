@@ -30,11 +30,7 @@ class SonatypeCentralPublisher(
       credentials,
       readTimeout = readTimeout,
       connectTimeout = connectTimeout
-    ) /* {
-      override protected val clientBaseUrl         = s"https://central.sonatype.com/repository/maven-snapshots/"
-      override protected val clientUploadBundleUrl = s"$clientBaseUrl/upload"
-      override protected val clientCheckStatusUrl  = s"$clientBaseUrl/status"
-    }*/
+    )
 
   def publish(
       fileMapping: Map[os.SubPath, os.Path],
@@ -49,34 +45,12 @@ class SonatypeCentralPublisher(
       singleBundleName: Option[String],
       artifacts: (Map[os.SubPath, os.Path], Artifact)*
   ): Unit = {
-    val mappings = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
+    val releases = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
     log.info(s"mappings ${pprint.apply(
-        mappings.map { case (a, fileSetContents) =>
+        releases.map { case (a, fileSetContents) =>
           (a, fileSetContents.keys.toVector.sorted.map(_.toString))
         }
       )}")
-    val releases = mappings
-//    val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
-//    if (snapshots.nonEmpty) {
-//      val snapshotNames = snapshots.map(_._1)
-//        .map { case Artifact(group, id, version) => s"$group:$id:$version" }
-//      throw new Result.Exception(
-//        s"""Publishing snapshots to Sonatype Central Portal is currently not supported by Mill.
-//           |This is tracked under https://github.com/com-lihaoyi/mill/issues/4421
-//           |The following snapshots will not be published:
-//           |  ${snapshotNames.mkString("\n  ")}""".stripMargin
-//      )
-//    }
-//    if (releases.isEmpty) {
-//      log.error("No releases to publish to Sonatype Central.")
-//      val errorMessage =
-//        "No releases to publish to Sonatype Central." +
-//          (if (snapshots.nonEmpty)
-//             "It seems there were only snapshots to publish, which is not supported by Mill, currently."
-//           else "Please check your build configuration.")
-//      throw new Result.Exception(errorMessage)
-//    }
-
     val releaseGroups = releases.groupBy(_.artifact.group)
     val wd = os.pwd / "out/publish-central"
     os.makeDir.all(wd)

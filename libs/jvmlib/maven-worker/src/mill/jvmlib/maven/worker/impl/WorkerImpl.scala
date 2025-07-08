@@ -16,6 +16,7 @@ class WorkerImpl extends MavenWorkerSupport.Api {
       password: String,
       artifacts: IterableOnce[RemoteM2Publisher.M2Artifact]
   ): RemoteM2Publisher.DeployResult = {
+    // Aether logs everything that happens on the wire in DEBUG log level, so we want to silence that.
     val deployResult = withQuietLogging(List("org.apache.http")) {
       WorkerRemoteM2Publisher.publish(
         uri = uri,
@@ -32,7 +33,6 @@ class WorkerImpl extends MavenWorkerSupport.Api {
     )
   }
 
-  // TODO review: this would probably be useful everywhere in Mill codebase
   private def withQuietLogging[T](
       loggers: Seq[String],
       level: Level = Level.INFO
