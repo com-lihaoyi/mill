@@ -123,6 +123,10 @@ trait JsonFormatters {
       TestReporter.LogLevel.fromString(_)
     )
 }
+
+/**
+ * JSON read/writing codecs for most common external data types
+ */
 object JsonFormatters extends JsonFormatters {
   private[mill] object mirrors {
     given Root_coursier_Publication: Mirrors.Root[coursier.core.Publication] =

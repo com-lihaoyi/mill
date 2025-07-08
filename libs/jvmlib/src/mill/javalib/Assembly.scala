@@ -15,6 +15,9 @@ import scala.util.Using
 
 case class Assembly(pathRef: PathRef, entries: Int)
 
+/**
+ * Utilities around the creation and configuration of JVM assembly jars
+ */
 object Assembly {
 
   implicit val assemblyJsonRW: upickle.default.ReadWriter[Assembly] = upickle.default.macroRW

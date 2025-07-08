@@ -18,6 +18,11 @@ import mill.{Args, T}
 import os.{Path, ProcessOutput}
 import mill.constants.EnvVars
 
+/**
+ * Trait that provides the functionality around running JVM code: forked in subprocesses via [[run]],
+ * locally in a classloader via [[runLocal]], in the background via [[runBackground]], or later
+ * via a [[launcher]] script
+ */
 trait RunModule extends WithJvmWorkerModule with RunModuleApi {
 
   private lazy val bspExt = {

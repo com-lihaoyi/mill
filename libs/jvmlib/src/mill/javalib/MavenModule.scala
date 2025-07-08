@@ -6,6 +6,7 @@ import mill.Task
 
 /**
  * A [[JavaModule]] with a Maven compatible directory layout.
+ * `src/main/java`, `src/test/resources`, etc.
  *
  * @see [[SbtModule]] if you need a scala module with Maven layout.
  */

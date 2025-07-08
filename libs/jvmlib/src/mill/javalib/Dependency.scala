@@ -5,6 +5,9 @@ import mill.api.{Discover, Evaluator, ExternalModule}
 import mill.scalalib.dependency.{DependencyUpdatesImpl, Format}
 import mill.scalalib.dependency.updates.ModuleDependenciesUpdates
 
+/**
+ * External module providing helper commands related to dependency updates
+ */
 object Dependency extends ExternalModule {
 
   /** Calculate possible dependency updates. */

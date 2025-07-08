@@ -2,6 +2,9 @@ package mill.javalib.publish
 
 import scala.xml.{Atom, Elem, NodeSeq, PrettyPrinter}
 
+/**
+ * Rendering logic for `pom.xml` files
+ */
 object Pom {
 
   val head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"

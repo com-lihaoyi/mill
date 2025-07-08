@@ -3,6 +3,9 @@ package mill.scalalib
 import mill._
 import os.Path
 
+/**
+ * Shared logic between `PlatformScalaModule` an `PlatformJavaModule`
+ */
 trait PlatformModuleBase extends JavaModule {
   override def moduleDir: Path = super.moduleDir / os.up
 

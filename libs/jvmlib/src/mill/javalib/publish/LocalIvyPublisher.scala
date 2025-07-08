@@ -2,6 +2,9 @@ package mill.javalib.publish
 
 import mill.api.TaskCtx
 
+/**
+ * Logic to publish modules to your `~/.ivy2/local` repository
+ */
 class LocalIvyPublisher(localIvyRepo: os.Path) {
 
   /**

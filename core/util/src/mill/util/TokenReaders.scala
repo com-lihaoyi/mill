@@ -16,6 +16,10 @@ private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[
   def shortName = tokensReaderOfT.shortName
 }
 
+/**
+ * Contains the additional instances of [[mainargs.TokensReader]] necessary to support
+ * `Task.Command` entrypoints
+ */
 object TokenReaders extends TokenReaders0
 trait TokenReaders0 {
   implicit def millEvaluatorTokenReader[T]: mainargs.TokensReader[Evaluator] =
@@ -36,6 +40,4 @@ trait TokenReaders0 {
     case t: TokensReader.Simple[_] => new SimpleTaskTokenReader[T](t)
     case t: TokensReader.Leftover[_, _] => new LeftoverTaskTokenReader[T](t)
   }
-
-  def `given` = () // dummy for scala 2/3 compat
 }

@@ -9,6 +9,9 @@ import mill.api.{TaskCtx, PathRef}
 import mill.api.Result
 import mill.jvmlib.api.JvmWorkerUtil
 
+/**
+ * Utilities around managing JVM dependencies
+ */
 object Lib {
   def depToDependencyJava(dep: Dep, platformSuffix: String = ""): Dependency = {
     assert(dep.cross.isConstant, s"Not a Java dependency: $dep")
@@ -94,13 +97,9 @@ object Lib {
 
   def scalaCompilerMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion))
-      Seq(
-        mvn"$scalaOrganization::dotty-compiler:$scalaVersion"
-      )
+      Seq(mvn"$scalaOrganization::dotty-compiler:$scalaVersion")
     else if (JvmWorkerUtil.isScala3(scalaVersion))
-      Seq(
-        mvn"$scalaOrganization::scala3-compiler:$scalaVersion"
-      )
+      Seq(mvn"$scalaOrganization::scala3-compiler:$scalaVersion")
     else
       Seq(
         mvn"$scalaOrganization:scala-compiler:$scalaVersion",
@@ -109,36 +108,24 @@ object Lib {
 
   def scalaDocMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion))
-      Seq(
-        mvn"$scalaOrganization::dotty-doc:$scalaVersion"
-      )
+      Seq(mvn"$scalaOrganization::dotty-doc:$scalaVersion")
     else if (JvmWorkerUtil.isScala3Milestone(scalaVersion))
-      Seq(
-        // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
-        mvn"$scalaOrganization::scala3-doc:$scalaVersion"
-      )
+      // 3.0.0-RC1 > scalaVersion >= 3.0.0-M1 still uses dotty-doc, but under a different artifact name
+      Seq(mvn"$scalaOrganization::scala3-doc:$scalaVersion")
     else if (JvmWorkerUtil.isScala3(scalaVersion))
-      Seq(
-        // scalaVersion >= 3.0.0-RC1 uses scaladoc
-        mvn"$scalaOrganization::scaladoc:$scalaVersion"
-      )
+      // scalaVersion >= 3.0.0-RC1 uses scaladoc
+      Seq(mvn"$scalaOrganization::scaladoc:$scalaVersion")
     else
       // in Scala <= 2.13, the scaladoc tool is included in the compiler
       scalaCompilerMvnDeps(scalaOrganization, scalaVersion)
 
   def scalaRuntimeMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion)) {
-      Seq(
-        mvn"$scalaOrganization::dotty-library:$scalaVersion"
-      )
+      Seq(mvn"$scalaOrganization::dotty-library:$scalaVersion")
     } else if (JvmWorkerUtil.isScala3(scalaVersion))
-      Seq(
-        mvn"$scalaOrganization::scala3-library:$scalaVersion"
-      )
+      Seq(mvn"$scalaOrganization::scala3-library:$scalaVersion")
     else
-      Seq(
-        mvn"$scalaOrganization:scala-library:$scalaVersion"
-      )
+      Seq(mvn"$scalaOrganization:scala-library:$scalaVersion")
 
   def findSourceFiles(sources: Seq[PathRef], extensions: Seq[String]): Seq[os.Path] = {
     def isHiddenFile(path: os.Path) = path.last.startsWith(".")

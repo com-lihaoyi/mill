@@ -1,7 +1,8 @@
 package mill.javalib.publish
 
-// https://maven.apache.org/pom.html#SCM
-/*
+/**
+ * https://maven.apache.org/pom.html#SCM
+ *
  * @param browsableRepository: a publicly browsable repository
  *        (example: https://github.com/lihaoyi/mill)
  * @param connection: read-only connection to repository

@@ -2,6 +2,9 @@ package mill.javalib.publish
 
 import mill.api.TaskCtx
 
+/**
+ * Logic to publish modules to your `~/.m2` repository
+ */
 class LocalM2Publisher(m2Repo: os.Path) {
 
   /**

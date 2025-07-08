@@ -25,6 +25,10 @@ import scala.collection.mutable
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.Properties.isWin
 
+/**
+ * Utilities related to the JVM platform: JVM processes, classloaders, java executables,
+ * launcher scripts, etc.
+ */
 object Jvm {
 
   /**

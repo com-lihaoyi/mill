@@ -21,6 +21,9 @@ import java.io.File
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 
+/**
+ * Core configuration required to compile a single Kotlin module
+ */
 trait KotlinModule extends JavaModule { outer =>
 
   /**

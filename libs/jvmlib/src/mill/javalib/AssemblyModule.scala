@@ -9,7 +9,7 @@ import mill.scalalib.Assembly.UnopenedInputStream
 import mill.util.Jvm
 
 /**
- * Core configuration required to compile a single Java compilation target
+ * Module that provides functionality around creating and configuring JVM assembly jars
  */
 trait AssemblyModule extends mill.api.Module {
   outer =>

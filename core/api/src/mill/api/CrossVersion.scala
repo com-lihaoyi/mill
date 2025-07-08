@@ -1,5 +1,8 @@
 package mill.api
 
+/**
+ * Models the different kinds of cross-versions supported by Mill for Scala dependencies.
+ */
 enum CrossVersion derives upickle.default.ReadWriter {
   import CrossVersion.*
 

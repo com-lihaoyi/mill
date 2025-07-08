@@ -14,6 +14,9 @@ import java.nio.file.Files
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
 
+/**
+ * Publishing logic for the standard Sonatype Central repository `central.sonatype.org`
+ */
 class SonatypeCentralPublisher(
     credentials: SonatypeCredentials,
     gpgArgs: Seq[String],

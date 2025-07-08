@@ -18,6 +18,9 @@ import mill.api.Logger
 import java.util.concurrent.Executors
 import mill.api.BuildCtx
 
+/**
+ * Implementation code used by [[TestModule]] to actually run tests.
+ */
 private final class TestModuleUtil(
     useArgsFile: Boolean,
     forkArgs: Seq[String],

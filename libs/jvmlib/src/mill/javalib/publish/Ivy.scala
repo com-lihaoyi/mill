@@ -2,6 +2,9 @@ package mill.javalib.publish
 
 import scala.xml.{Elem, PrettyPrinter}
 
+/**
+ * Logic around rendering `ivy.xml` files
+ */
 object Ivy {
 
   val head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"

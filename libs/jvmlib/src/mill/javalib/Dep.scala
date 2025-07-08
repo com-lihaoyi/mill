@@ -7,6 +7,11 @@ import coursier.core.{Configuration, Dependency, MinimizedExclusions}
 import mill.jvmlib.api.{Versions, JvmWorkerUtil}
 import scala.annotation.unused
 
+/**
+ * Models a JVM dependency for Java or Scala. Wraps an underlying [[coursier.Dependency]],
+ * with a possible [[CrossVersion]], and the ability to [[force]] the dependency to pin
+ * its exact version
+ */
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   require(
     !dep.module.name.value.contains("/") &&

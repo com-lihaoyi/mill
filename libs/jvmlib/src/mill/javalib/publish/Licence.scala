@@ -1,5 +1,9 @@
 package mill.javalib.publish
 
+/**
+ * Models an open source software license. Most common licenses are provided
+ * in the companion object, e.g. [[License.MIT]], [[License.`Apache-2.0`]], etc.
+ */
 case class License(
     id: String,
     name: String,
