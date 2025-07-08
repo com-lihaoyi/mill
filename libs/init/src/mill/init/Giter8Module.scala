@@ -8,11 +8,11 @@ import mill.scalalib._
 import mill.util.BuildInfo
 import mill.api.BuildCtx
 
-private[mill] object Giter8Module extends ExternalModule with Giter8Module {
+object Giter8Module extends ExternalModule with Giter8Module {
   lazy val millDiscover = Discover[this.type]
 }
 
-private[mill] trait Giter8Module extends CoursierModule {
+trait Giter8Module extends CoursierModule {
 
   def init(args: String*): Task.Command[Unit] = Task.Command {
     Task.log.info("Creating a new project...")
