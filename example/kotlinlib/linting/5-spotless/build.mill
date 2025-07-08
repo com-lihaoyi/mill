@@ -70,7 +70,7 @@ formatted 3 files
 // if you prefer not to have to extend `SpotlessModule`.
 
 /** Usage
-> ./mill mill.scalalib.spotless.SpotlessModule/ --check
+> ./mill mill.javalib.spotless.SpotlessModule/ --check
 checking format in 1 mill files
 checking format in 1 java files
 checking format in 1 kt files
