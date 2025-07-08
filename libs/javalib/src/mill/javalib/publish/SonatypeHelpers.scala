@@ -17,7 +17,8 @@ object SonatypeHelpers {
       artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)]
   ): Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])] = {
     for ((fileMapping0, artifact) <- artifacts) yield {
-      val publishPath = os.SubPath(artifact.group.replace(".", "/")) / artifact.id / artifact.version
+      val publishPath =
+        os.SubPath(artifact.group.replace(".", "/")) / artifact.id / artifact.version
       val fileMapping = fileMapping0.map { case (name, contents) => publishPath / name -> contents }
 
       val signedArtifacts =
