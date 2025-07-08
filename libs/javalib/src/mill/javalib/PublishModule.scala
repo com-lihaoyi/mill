@@ -687,7 +687,7 @@ object PublishModule extends ExternalModule with TaskModule {
    *                      <i>Note: consider using environment variables over this argument due
    *                      to security reasons.</i>
    * @param signed
-   * @param gpgArgs       GPG arguments. Defaults to `--passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pienty-mode,loopback,--batch,--yes,-a,-b`.
+   * @param gpgArgs       GPG arguments. Defaults to [[defaultGpgArgsForPassphrase]].
    *                      Specifying this will override/remove the defaults.
    *                      Add the default args to your args to keep them.
    * @param release Whether to release the artifacts after staging them
