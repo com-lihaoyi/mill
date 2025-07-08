@@ -2,7 +2,6 @@ package mill.contrib.artifactory
 
 import mill.api.Logger
 import mill.scalalib.publish.Artifact
-import os.SubPath
 
 class ArtifactoryPublisher(
     releaseUri: String,
@@ -22,7 +21,7 @@ class ArtifactoryPublisher(
   def publishAll(artifacts: (Map[os.SubPath, os.Path], Artifact)*): Unit = {
     log.info("arts: " + artifacts)
     val mappings = for ((fileMapping0, artifact) <- artifacts) yield {
-      val publishPath = SubPath(Seq(
+      val publishPath = os.SubPath(Seq(
         artifact.group.replace(".", "/"),
         artifact.id,
         artifact.version

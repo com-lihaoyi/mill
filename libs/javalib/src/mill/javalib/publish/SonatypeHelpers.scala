@@ -1,7 +1,5 @@
 package mill.javalib.publish
 
-import os.SubPath
-
 import java.math.BigInteger
 import java.security.MessageDigest
 
@@ -19,7 +17,7 @@ object SonatypeHelpers {
       artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)]
   ): Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])] = {
     for ((fileMapping0, artifact) <- artifacts) yield {
-      val publishPath = SubPath(artifact.group.replace(".", "/")) / artifact.id / artifact.version
+      val publishPath = os.SubPath(artifact.group.replace(".", "/")) / artifact.id / artifact.version
       val fileMapping = fileMapping0.map { case (name, contents) => publishPath / name -> contents }
 
       val signedArtifacts =
@@ -27,7 +25,7 @@ object SonatypeHelpers {
           case (name, file) =>
             val signatureFile =
               gpgSigned(file = file, args = gpgArgs, workspace = workspace, env = env)
-            SubPath(s"$name.asc") -> signatureFile
+            os.SubPath(s"$name.asc") -> signatureFile
         }
         else Map.empty
 
@@ -36,8 +34,8 @@ object SonatypeHelpers {
 
         Map(
           name -> content,
-          SubPath(s"$name.md5") -> md5hex(content),
-          SubPath(s"$name.sha1") -> sha1hex(content)
+          os.SubPath(s"$name.md5") -> md5hex(content),
+          os.SubPath(s"$name.sha1") -> sha1hex(content)
         )
       }
 

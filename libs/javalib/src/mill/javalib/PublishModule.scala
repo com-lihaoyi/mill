@@ -725,7 +725,7 @@ object PublishModule extends ExternalModule with TaskModule {
     implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
   }
 
-  // TODO review: should we remove this as OSSRH has been sunset?
+  // TODO: should we remove this as OSSRH has been sunset?
   /**
    * Uri for publishing to the old / legacy Sonatype OSSRH.
    *

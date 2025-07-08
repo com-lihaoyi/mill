@@ -28,11 +28,7 @@ class SonatypeCentralPublisher(
     awaitTimeout: Int
 ) {
   private val sonatypeCentralClient =
-    new SyncSonatypeClient(
-      credentials,
-      readTimeout = readTimeout,
-      connectTimeout = connectTimeout
-    )
+    new SyncSonatypeClient(credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)
 
   def publish(
       fileMapping: Map[os.SubPath, os.Path],

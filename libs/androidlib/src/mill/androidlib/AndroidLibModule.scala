@@ -5,7 +5,6 @@ import mill.api.{PathRef, Task}
 import mill.scalalib.*
 import mill.scalalib.publish.{PackagingType, PublishInfo}
 import mill.util.Jvm
-import os.SubPath
 
 import scala.xml.*
 
@@ -57,12 +56,12 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       case (PackagingType.Aar, androidLib: AndroidLibModule) => Task.Anon {
           val baseName = publishArtifactsBaseName()
           val baseContent = Map(
-            SubPath(s"$baseName.pom") -> pom(),
-            SubPath(s"$baseName.aar") -> androidLib.androidAar()
+            os.SubPath(s"$baseName.pom") -> pom(),
+            os.SubPath(s"$baseName.aar") -> androidLib.androidAar()
           )
           val sourcesOpt =
-            if (sources) Map(SubPath(s"$baseName-sources.jar") -> sourceJar()) else Map.empty
-          val docsOpt = if (docs) Map(SubPath(s"$baseName-javadoc.jar") -> docJar()) else Map.empty
+            if (sources) Map(os.SubPath(s"$baseName-sources.jar") -> sourceJar()) else Map.empty
+          val docsOpt = if (docs) Map(os.SubPath(s"$baseName-javadoc.jar") -> docJar()) else Map.empty
           baseContent ++ sourcesOpt ++ docsOpt
         }
 

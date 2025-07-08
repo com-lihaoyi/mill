@@ -4,7 +4,6 @@ import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import mill.api.Logger
 import mill.scalalib.publish.Artifact
-import os.SubPath
 
 class CodeartifactPublisher(
     releaseUri: String,
@@ -21,7 +20,7 @@ class CodeartifactPublisher(
   )
 
   private def basePublishPath(artifact: Artifact) =
-    SubPath(Vector(
+    os.SubPath(Vector(
       artifact.group.replace(".", "/"),
       artifact.id
     ))
