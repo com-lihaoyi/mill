@@ -678,9 +678,6 @@ node41 -> node0;
         <div class="documentableElement" data-f-inherited="Module">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Miscellaneous machinery around traversing &amp; querying the build hierarchy,\n * that should not be needed by normal users of Mill\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="../api/Module$moduleInternal$.html" t="n" class="documentableName ">moduleInternal</a><span t="k"> extends </span><a href="../api/Module$$Internal.html" t="t">Internal</a></span><span class="signature-long"></span>
@@ -893,9 +890,6 @@ node41 -> node0;
         <div class="documentableElement" id="allLocalMainClasses-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * All main classes detected in this module that can serve as program entry-points.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#allLocalMainClasses-0" t="n" class="documentableName ">allLocalMainClasses</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -937,9 +931,6 @@ node41 -> node0;
         <div class="documentableElement" id="allMvnDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Aggregation of mandatoryMvnDeps and mvnDeps.\n * In most cases, instead of overriding this task you want to override `mvnDeps` instead.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#allMvnDeps-0" t="n" class="documentableName ">allMvnDeps</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../scalalib.html#Dep-0" t="t">Dep</a>]]
@@ -981,9 +972,6 @@ node41 -> node0;
         <div class="documentableElement" id="allRepositories-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repositories used to resolve dependencies\n *\n * Unlike [[repositoriesTask]], this includes the Mill internal repositories,\n * which allow to resolve Mill internal modules (usually brought in via\n * `JavaModule#coursierDependency`).\n *\n * Beware that this needs to evaluate `JavaModule#coursierProject` of all\n * module dependencies of the current module, which itself evaluates `JavaModule#mvnDeps`\n * and related tasks. You shouldn\'t depend on this task from implementations of `mvnDeps`,\n * which would introduce cycles between Mill tasks.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#allRepositories-0" t="n" class="documentableName ">allRepositories</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Repository</span>]]
@@ -1027,9 +1015,6 @@ node41 -> node0;
         <div class="documentableElement" id="allScalacOptions-0" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Aggregation of all the options passed to the Scala compiler.\n * In most cases, instead of overriding this task you want to override `scalacOptions` instead.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#allScalacOptions-0" t="n" class="documentableName ">allScalacOptions</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -1071,9 +1056,6 @@ node41 -> node0;
         <div class="documentableElement" id="allSourceFiles-0" data-f-keywords="override" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * All individual source files fed into the Zinc compiler.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#allSourceFiles-0" t="n" class="documentableName ">allSourceFiles</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -1123,9 +1105,6 @@ node41 -> node0;
         <div class="documentableElement" id="allSources-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The folders containing all source files fed into the compiler\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#allSources-0" t="n" class="documentableName ">allSources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -1167,9 +1146,6 @@ node41 -> node0;
         <div class="documentableElement" id="ammoniteReplClasspath-0" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Dependencies that are necessary to run the Ammonite Scala REPL\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#ammoniteReplClasspath-0" t="n" class="documentableName ">ammoniteReplClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -1211,9 +1187,6 @@ node41 -> node0;
         <div class="documentableElement" id="ammoniteVersion-0" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Ammonite\'s version used in the `repl` command is by default\n * set to the one Mill is built against.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#ammoniteVersion-0" t="n" class="documentableName ">ammoniteVersion</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
@@ -1304,9 +1277,6 @@ node41 -> node0;
         <div class="documentableElement" id="artifactName-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Override this to change the published artifact id.\n * For example, by default a scala module foo.baz might be published as foo-baz_2.12 and a java module would be foo-baz.\n * Setting this to baz would result in a scala artifact baz_2.12 or a java artifact baz.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#artifactName-0" t="n" class="documentableName ">artifactName</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
@@ -1384,9 +1354,6 @@ node41 -> node0;
         <div class="documentableElement" id="artifactScalaVersion-0" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * What Scala version string to use when publishing\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#artifactScalaVersion-0" t="n" class="documentableName ">artifactScalaVersion</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
@@ -1477,9 +1444,6 @@ node41 -> node0;
         <div class="documentableElement" id="artifactTypes-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Default artifact types to fetch and put in the classpath. Add extra types\n * here if you\'d like fancy artifact extensions to be fetched.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#artifactTypes-0" t="n" class="documentableName ">artifactTypes</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Set</span>[<span data-unresolved-link="" t="t">Type</span>]]
@@ -1521,9 +1485,6 @@ node41 -> node0;
         <div class="documentableElement" id="assembly-0" data-f-inherited="AssemblyModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * An executable uber-jar/assembly containing all the resources and compiled\n * classfiles from this module and all it\'s upstream modules and dependencies\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#assembly-0" t="n" class="documentableName ">assembly</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../api/PathRef.html" t="t">PathRef</a>]
@@ -1565,9 +1526,6 @@ node41 -> node0;
         <div class="documentableElement" id="assemblyRules-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Configuration for the [[assembly]] task: how files and file-conflicts are\n * managed when combining multiple jar files into one big assembly jar.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#assemblyRules-0" t="n" class="documentableName ">assemblyRules</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/Assembly$$Rule.html" t="t">Rule</a>]
@@ -1656,9 +1614,6 @@ node41 -> node0;
         <div class="documentableElement" id="bomModuleDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Bill of Material (BOM) dependencies of this module.\n * This is meant to be overridden to add BOM dependencies.\n * To read the value, you should use [[bomModuleDepsChecked]] instead,\n * which uses a cached result which is also checked to be free of cycles.\n * @see [[bomModuleDepsChecked]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#bomModuleDeps-0" t="n" class="documentableName ">bomModuleDeps</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/BomModule.html" t="t">BomModule</a>]
@@ -1710,9 +1665,6 @@ node41 -> node0;
         <div class="documentableElement" id="bomModuleDepsChecked-0" data-f-keywords="final" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Same as [[bomModuleDeps]] but checked to not contain cycles.\n * Prefer this over using [[bomModuleDeps]] directly.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#bomModuleDepsChecked-0" t="n" class="documentableName ">bomModuleDepsChecked</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/BomModule.html" t="t">BomModule</a>]
@@ -1906,9 +1858,6 @@ node41 -> node0;
         <div class="documentableElement" id="checkGradleModules-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Whether to enable Gradle Module support when fetching dependencies\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#checkGradleModules-0" t="n" class="documentableName ">checkGradleModules</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
@@ -2037,9 +1986,6 @@ node41 -> node0;
         <div class="documentableElement" id="compileClasspath-0" data-f-keywords="override" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * All classfiles and resources from upstream modules and dependencies\n * necessary to compile this module.\n *\n * Keep in sync with [[bspCompileClasspath]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#compileClasspath-0" t="n" class="documentableName ">compileClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -2090,9 +2036,6 @@ node41 -> node0;
         <div class="documentableElement" id="compileModuleDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The compile-only direct dependencies of this module. These are *not*\n * transitive, and only take effect in the module that they are declared in.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#compileModuleDeps-0" t="n" class="documentableName ">compileModuleDeps</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/JavaModule.html" t="t">JavaModule</a>]
@@ -2134,9 +2077,6 @@ node41 -> node0;
         <div class="documentableElement" id="compileModuleDepsChecked-0" data-f-keywords="final" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** Same as [[compileModuleDeps]] but checked to not contain cycles. */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#compileModuleDepsChecked-0" t="n" class="documentableName ">compileModuleDepsChecked</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/JavaModule.html" t="t">JavaModule</a>]
@@ -2178,9 +2118,6 @@ node41 -> node0;
         <div class="documentableElement" id="compileMvnDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Same as `mvnDeps`, but only present at compile time. Useful for e.g.\n * macro-related dependencies like `scala-reflect` that doesn\'t need to be\n * present at runtime\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#compileMvnDeps-0" t="n" class="documentableName ">compileMvnDeps</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../scalalib.html#Dep-0" t="t">Dep</a>]]
@@ -2222,9 +2159,6 @@ node41 -> node0;
         <div class="documentableElement" id="compileResources-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The folders where the compile time resource files for this module live.\n * If your resources files do not necessarily need to be seen by the compiler,\n * you should use [[resources]] instead.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#compileResources-0" t="n" class="documentableName ">compileResources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -2302,9 +2236,6 @@ node41 -> node0;
         <div class="documentableElement" id="console-936" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Opens up a Scala console with your module and all dependencies present,\n * for you to test and operate your code interactively.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#console-936" t="n" class="documentableName ">console</a>(<span t="k"></span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -2346,9 +2277,6 @@ node41 -> node0;
         <div class="documentableElement" id="consoleScalacOptions-0" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Command-line options to pass to the Scala console\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#consoleScalacOptions-0" t="n" class="documentableName ">consoleScalacOptions</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -2390,9 +2318,6 @@ node41 -> node0;
         <div class="documentableElement" id="coursierCacheCustomizer-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Customize the coursier file cache.\n *\n * This is rarely needed to be changed, but sometimes e.g. you want to load a coursier plugin.\n * Doing so requires adding to coursier\'s classpath. To do this you could use the following:\n * {{{\n * override def coursierCacheCustomizer = Task.Anon {\n * Some( (fc: coursier.cache.FileCache[Task]) =&gt;\n * fc.withClassLoaders(Seq(classOf[coursier.cache.protocol.S3Handler].getClassLoader))\n * )\n * }\n * }}}\n * @return\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#coursierCacheCustomizer-0" t="n" class="documentableName ">coursierCacheCustomizer</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">FileCache</span>[<span data-unresolved-link="" t="t">Task</span>]<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">FileCache</span>[<span data-unresolved-link="" t="t">Task</span>]]]
@@ -2444,9 +2369,6 @@ node41 -> node0;
         <div class="documentableElement" id="coursierDependency-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The `coursier.Dependency` to use to refer to this module\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#coursierDependency-0" t="n" class="documentableName ">coursierDependency</a>: <span data-unresolved-link="" t="t">Dependency</span>
@@ -2488,9 +2410,6 @@ node41 -> node0;
         <div class="documentableElement" id="coursierProject-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The `coursier.Project` corresponding to this `JavaModule`.\n *\n * This provides details about this module to the coursier resolver (details such as\n * dependencies, BOM dependencies, dependency management, etc.). Beyond more general\n * resolution parameters (such as artifact types, etc.), this should be the only way\n * we provide details about this module to coursier.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#coursierProject-0" t="n" class="documentableName ">coursierProject</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Project</span>]
@@ -2533,9 +2452,6 @@ node41 -> node0;
         <div class="documentableElement" id="crossFullScalaVersion-0" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Whether to publish artifacts with name \"mill_2.12.4\" instead of \"mill_2.12\"\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#crossFullScalaVersion-0" t="n" class="documentableName ">crossFullScalaVersion</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
@@ -2577,9 +2493,6 @@ node41 -> node0;
         <div class="documentableElement" id="defaultResolver-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A `CoursierModule.Resolver` to resolve dependencies.\n *\n * Can be used to resolve external dependencies, if you need to download an external\n * tool from Maven or Ivy repositories, by calling `CoursierModule.Resolver#classpath`.\n *\n * @return `CoursierModule.Resolver` instance\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#defaultResolver-0" t="n" class="documentableName ">defaultResolver</a>: <a href="../api/Task.html" t="t">Task</a>[<a href="../javalib/CoursierModule$$Resolver.html" t="t">Resolver</a>]
@@ -2736,9 +2649,6 @@ node41 -> node0;
         <div class="documentableElement" id="discoveredTestClasses-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Test classes (often called test suites) discovered by the configured [[testFramework]].\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#discoveredTestClasses-0" t="n" class="documentableName ">discoveredTestClasses</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -2829,9 +2739,6 @@ node41 -> node0;
         <div class="documentableElement" id="docJarUseArgsFile-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Control whether `docJar`-task should use a file to pass command line arguments to the javadoc tool.\n * Defaults to `true` on Windows.\n * Beware: Using an args-file is probably not supported for very old javadoc versions.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#docJarUseArgsFile-0" t="n" class="documentableName ">docJarUseArgsFile</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
@@ -2873,9 +2780,6 @@ node41 -> node0;
         <div class="documentableElement" id="docResources-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Extra directories to be copied into the documentation.\n *\n * Typically, includes static files such as html and markdown, but depends\n * on the doc tool that is actually used.\n * @see [[docSources]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#docResources-0" t="n" class="documentableName ">docResources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -3060,9 +2964,6 @@ node41 -> node0;
         <div class="documentableElement" id="forkArgs-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Any command-line parameters you want to pass to the forked JVM.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#forkArgs-0" t="n" class="documentableName ">forkArgs</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -3104,9 +3005,6 @@ node41 -> node0;
         <div class="documentableElement" id="forkCmdArgs-0" data-f-inherited="AssemblyModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Similar to `forkArgs` but only applies to the `bat` launcher script\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#forkCmdArgs-0" t="n" class="documentableName ">forkCmdArgs</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -3148,9 +3046,6 @@ node41 -> node0;
         <div class="documentableElement" id="forkEnv-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Any environment variables you want to pass to the forked JVM.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#forkEnv-0" t="n" class="documentableName ">forkEnv</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>]]
@@ -3192,9 +3087,6 @@ node41 -> node0;
         <div class="documentableElement" id="forkShellArgs-0" data-f-inherited="AssemblyModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Similar to `forkArgs` but only applies to the `sh` launcher script\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#forkShellArgs-0" t="n" class="documentableName ">forkShellArgs</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -3272,9 +3164,6 @@ node41 -> node0;
         <div class="documentableElement" id="generatedSources-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Folders containing source files that are generated rather than\n * handwritten; these files can be generated in this task itself,\n * or can refer to files generated from other tasks\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#generatedSources-0" t="n" class="documentableName ">generatedSources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -3352,9 +3241,6 @@ node41 -> node0;
         <div class="documentableElement" id="hierarchyChecks-94c" data-f-visibility="protected" data-f-inherited="JavaTests">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * JavaModule and its derivatives define inner test modules.\n * To avoid unexpected misbehavior due to the use of the wrong inner test trait\n * we apply some hierarchy consistency checks.\n * If, for some reason, those are too restrictive to you, you can override this method.\n * @throws MillException\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">protected </span></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#hierarchyChecks-94c" t="n" class="documentableName ">hierarchyChecks</a>(<span t="k"></span>): <span data-unresolved-link="" t="t">Unit</span>
@@ -3396,9 +3282,6 @@ node41 -> node0;
         <div class="documentableElement" id="ideaConfigFiles-fffffec4" data-f-inherited="GenIdeaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Contribute components to idea config files.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#ideaConfigFiles-fffffec4" t="n" class="documentableName ">ideaConfigFiles</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">ideaConfigVersion</span>: <span data-unresolved-link="" t="t">Int</span>): <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/daemon/internal/idea/IdeaConfigFile.html" t="t">IdeaConfigFile</a>]]
@@ -3440,9 +3323,6 @@ node41 -> node0;
         <div class="documentableElement" id="ideaJavaModuleFacets-fffffec4" data-f-inherited="GenIdeaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Contribute facets to the Java module configuration.\n * @param ideaConfigVersion The IDEA configuration version in use. Probably `4`.\n * @return\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#ideaJavaModuleFacets-fffffec4" t="n" class="documentableName ">ideaJavaModuleFacets</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">ideaConfigVersion</span>: <span data-unresolved-link="" t="t">Int</span>): <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/daemon/internal/idea/JavaFacet.html" t="t">JavaFacet</a>]]
@@ -3493,9 +3373,6 @@ node41 -> node0;
         <div class="documentableElement" id="internalDependenciesRepository-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repository that knows about this project itself and its module dependencies\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#internalDependenciesRepository-0" t="n" class="documentableName ">internalDependenciesRepository</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Repository</span>]
@@ -3537,9 +3414,6 @@ node41 -> node0;
         <div class="documentableElement" id="jar-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A jar containing only this module\'s resources and compiled classfiles,\n * without those from upstream modules and dependencies\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#jar-0" t="n" class="documentableName ">jar</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../api/PathRef.html" t="t">PathRef</a>]
@@ -3581,9 +3455,6 @@ node41 -> node0;
         <div class="documentableElement" id="javaHome-0" data-f-inherited="JavaTests">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Optional custom Java Home for the JvmWorker to use\n *\n * If this value is None, then the JvmWorker uses the same Java used to run\n * the current mill instance.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#javaHome-0" t="n" class="documentableName ">javaHome</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Option</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -3675,9 +3546,6 @@ node41 -> node0;
         <div class="documentableElement" id="javadocOptions-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Additional options to be used by the javadoc tool.\n * You should not set the `-d` setting for specifying the target directory,\n * as that is done in the [[docJar]] task.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#javadocOptions-0" t="n" class="documentableName ">javadocOptions</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -3876,9 +3744,6 @@ node41 -> node0;
         <div class="documentableElement" id="localClasspath-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The *output* classfiles/resources from this module, used for execution,\n * excluding upstream modules and third-party dependencies, but including unmanaged dependencies.\n *\n * This is build from [[localCompileClasspath]] and [[localRunClasspath]]\n * as the parts available \"before compilation\" and \"after compilation\".\n *\n * Keep in sync with [[bspLocalClasspath]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#localClasspath-0" t="n" class="documentableName ">localClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -3922,9 +3787,6 @@ node41 -> node0;
         <div class="documentableElement" id="localCompileClasspath-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The *input* classfiles/resources from this module, used during compilation,\n * excluding upstream modules and third-party dependencies\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#localCompileClasspath-0" t="n" class="documentableName ">localCompileClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -3966,9 +3828,6 @@ node41 -> node0;
         <div class="documentableElement" id="localRunClasspath-0" data-f-keywords="override" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The part of the [[localClasspath]] which is available \"after compilation\".\n *\n * Keep in sync with [[bspLocalRunClasspath]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#localRunClasspath-0" t="n" class="documentableName ">localRunClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -4019,9 +3878,6 @@ node41 -> node0;
         <div class="documentableElement" id="mainClass-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Allows you to specify an explicit main class to use for the `run` command.\n * If none is specified, the classpath is searched for an appropriate main\n * class to use if one exists.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#mainClass-0" t="n" class="documentableName ">mainClass</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -4063,9 +3919,6 @@ node41 -> node0;
         <div class="documentableElement" id="mandatoryJavacOptions-0" data-f-keywords="override" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Additional options for the java compiler derived from other module settings.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#mandatoryJavacOptions-0" t="n" class="documentableName ">mandatoryJavacOptions</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -4115,9 +3968,6 @@ node41 -> node0;
         <div class="documentableElement" id="mandatoryMvnDeps-0" data-f-keywords="override" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** Adds the Scala Library is a mandatory dependency. */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#mandatoryMvnDeps-0" t="n" class="documentableName ">mandatoryMvnDeps</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../scalalib.html#Dep-0" t="t">Dep</a>]]
@@ -4314,9 +4164,6 @@ node41 -> node0;
         <div class="documentableElement" id="millResolver-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A [[CoursierModule.Resolver]] to resolve dependencies.\n *\n * Unlike [[defaultResolver]], this resolver can resolve Mill modules too\n * (obtained via [[JavaModule.coursierDependency]]).\n *\n * @return `CoursierModule.Resolver` instance\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#millResolver-0" t="n" class="documentableName ">millResolver</a>: <a href="../api/Task.html" t="t">Task</a>[<a href="../javalib/CoursierModule$$Resolver.html" t="t">Resolver</a>]
@@ -4460,9 +4307,6 @@ node41 -> node0;
         <div class="documentableElement" id="moduleDepsChecked-0" data-f-keywords="final" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Same as [[moduleDeps]] but checked to not contain cycles.\n * Prefer this over using [[moduleDeps]] directly.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#moduleDepsChecked-0" t="n" class="documentableName ">moduleDepsChecked</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/JavaModule.html" t="t">JavaModule</a>]
@@ -4620,9 +4464,6 @@ node41 -> node0;
         <div class="documentableElement" id="mvnDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Any ivy dependencies you want to add to this Module, in the format\n * mvn\"org::name:version\" for Scala dependencies or mvn\"org:name:version\"\n * for Java dependencies\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#mvnDeps-0" t="n" class="documentableName ">mvnDeps</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../scalalib.html#Dep-0" t="t">Dep</a>]]
@@ -4664,9 +4505,6 @@ node41 -> node0;
         <div class="documentableElement" id="platformSuffix-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * What platform suffix to use for publishing, e.g. `_sjs` for Scala.js\n * projects\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#platformSuffix-0" t="n" class="documentableName ">platformSuffix</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
@@ -4708,9 +4546,6 @@ node41 -> node0;
         <div class="documentableElement" id="prepareOffline-e9a" data-f-keywords="override" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @param all If `true` , fetches also sources, Ammonite and compiler dependencies.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#prepareOffline-e9a" t="n" class="documentableName ">prepareOffline</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">all</span>: <span data-unresolved-link="" t="t">Flag</span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -4764,9 +4599,6 @@ node41 -> node0;
         <div class="documentableElement" id="prependShellScript-0" data-f-inherited="AssemblyModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * What shell script to use to launch the executable generated by `assembly`.\n * Defaults to a generic \"universal\" launcher that should work for Windows,\n * OS-X and Linux\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#prependShellScript-0" t="n" class="documentableName ">prependShellScript</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
@@ -4808,9 +4640,6 @@ node41 -> node0;
         <div class="documentableElement" id="recursiveModuleDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** The direct and indirect dependencies of this module */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#recursiveModuleDeps-0" t="n" class="documentableName ">recursiveModuleDeps</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/JavaModule.html" t="t">JavaModule</a>]
@@ -4852,9 +4681,6 @@ node41 -> node0;
         <div class="documentableElement" id="recursiveRunModuleDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** The direct and indirect runtime module dependencies of this module */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#recursiveRunModuleDeps-0" t="n" class="documentableName ">recursiveRunModuleDeps</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/JavaModule.html" t="t">JavaModule</a>]
@@ -4896,9 +4722,6 @@ node41 -> node0;
         <div class="documentableElement" id="repl-fffff121" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Opens up an Ammonite Scala REPL with your module and all dependencies present,\n * for you to test and operate your code interactively.\n * Use [[ammoniteVersion]] to customize the Ammonite version to use.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#repl-fffff121" t="n" class="documentableName ">repl</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">replOptions</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -4940,9 +4763,6 @@ node41 -> node0;
         <div class="documentableElement" id="repositories-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repositories used to resolve dependencies with [[classpath()]]. This\n * takes Coursier repository strings as input which are defined here:\n *\n * - https://github.com/coursier/coursier/blob/main/docs/pages/reference-repositories.md\n *\n * For example:\n *\n * - https://repo1.maven.org/maven2\n * Maven Central which is the most commonly used Maven repository\n *\n * - file:///Users/alex/test-repo\n * A local repository cache on disk\n *\n * - file://${ivy.home-${user.home}/.ivy2}/local/[defaultPattern]\n * The local Ivy2 repository where Mill, Scala CLI,\n * or sbt publish to when asked to publish locally\n *\n * - file://${user.home}/.m2/repository\n * the local Maven repository. Use of this is not recommended for reasons explained in the link above\n *\n * - https://maven.google.com\n * Google-managed repository that distributes some Android artifacts in particular\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#repositories-0" t="n" class="documentableName ">repositories</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -5108,9 +4928,6 @@ node41 -> node0;
         <div class="documentableElement" id="resolutionParams-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Resolution parameters, allowing to customize resolution internals\n *\n * This rarely needs to be changed. This allows to disable the new way coursier handles\n * BOMs since coursier 2.1.17 (used in Mill since 0.12.3) for example, with:\n * {{{\n * def resolutionParams = super.resolutionParams()\n * .withEnableDependencyOverrides(Some(false))\n * }}}\n *\n * Note that versions forced with `Dep#forceVersion()` take over forced versions manually\n * set in `resolutionParams`. The former should be favored to force versions in dependency\n * resolution.\n *\n * The Scala version set via `ScalaModule#scalaVersion` also takes over any Scala version\n * provided via `ResolutionParams#scalaVersionOpt`.\n *\n * The default configuration set in `ResolutionParams#defaultConfiguration` is ignored when\n * Mill fetches dependencies to be passed to the compiler (equivalent to Maven \"compile scope\").\n * In that case, it forces the default configuration to be \"compile\". On the other hand, when\n * fetching dependencies for runtime (equivalent to Maven \"runtime scope\"), the value in\n * `ResolutionParams#defaultConfiguration` is used.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#resolutionParams-0" t="n" class="documentableName ">resolutionParams</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">ResolutionParams</span>]
@@ -5242,9 +5059,6 @@ node41 -> node0;
         <div class="documentableElement" id="resolvedIvyAssembly-0" data-f-inherited="AssemblyModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Build the assembly for third-party dependencies separate from the current\n * classpath\n *\n * This should allow much faster assembly creation in the common case where\n * third-party dependencies do not change\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#resolvedIvyAssembly-0" t="n" class="documentableName ">resolvedIvyAssembly</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../javalib/Assembly.html" t="t">Assembly</a>]
@@ -5287,9 +5101,6 @@ node41 -> node0;
         <div class="documentableElement" id="resolvedMvnDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Resolved dependencies\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#resolvedMvnDeps-0" t="n" class="documentableName ">resolvedMvnDeps</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -5416,9 +5227,6 @@ node41 -> node0;
         <div class="documentableElement" id="run-fffff581" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs this module\'s code in a subprocess and waits for it to finish\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#run-fffff581" t="n" class="documentableName ">run</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <a href="../api/Task.html" t="t">Task</a>[<a href="../../mill.html#Args-0" t="t">Args</a>]): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -5460,9 +5268,6 @@ node41 -> node0;
         <div class="documentableElement" id="runBackground-fffff581" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs this module\'s code in a background process, until it dies or\n * `runBackground` is used again. This lets you continue using Mill while\n * the process is running in the background: editing files, compiling, and\n * only re-starting the background process when you\'re ready.\n *\n * You can also use `-w foo.runBackground` to make Mill watch for changes\n * and automatically recompile your code &amp; restart the background process\n * when ready. This is useful when working on long-running server processes\n * that would otherwise run forever\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#runBackground-fffff581" t="n" class="documentableName ">runBackground</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <a href="../api/Task.html" t="t">Task</a>[<a href="../../mill.html#Args-0" t="t">Args</a>]): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -5505,9 +5310,6 @@ node41 -> node0;
         <div class="documentableElement" id="runBackgroundLogToConsole-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * If true, stdout and stderr of the process executed by `runBackground`\n * or `runMainBackground` is sent to mill\'s stdout/stderr (which usually\n * flow to the console).\n *\n * If false, output will be directed to files `stdout.log` and `stderr.log`\n * in `runBackground.dest` (or `runMainBackground.dest`)\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#runBackgroundLogToConsole-0" t="n" class="documentableName ">runBackgroundLogToConsole</a>: <span data-unresolved-link="" t="t">Boolean</span>
@@ -5586,9 +5388,6 @@ node41 -> node0;
         <div class="documentableElement" id="runClasspath-0" data-f-keywords="override" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * All classfiles and resources from upstream modules and dependencies\n * necessary to run this module\'s code after compilation\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#runClasspath-0" t="n" class="documentableName ">runClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -5638,9 +5437,6 @@ node41 -> node0;
         <div class="documentableElement" id="runForkedTask-fffff8ab" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs this module\'s code in a subprocess and waits for it to finish\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#runForkedTask-fffff8ab" t="n" class="documentableName ">runForkedTask</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">args</span>: <a href="../api/Task.html" t="t">Task</a>[<a href="../../mill.html#Args-0" t="t">Args</a>]): <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -5682,9 +5478,6 @@ node41 -> node0;
         <div class="documentableElement" id="runLocal-fffff581" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs this module\'s code in-process within an isolated classloader. This is\n * faster than `run`, but in exchange you have less isolation between runs\n * since the code can dirty the parent Mill process and potentially leave it\n * in a bad state.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#runLocal-fffff581" t="n" class="documentableName ">runLocal</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <a href="../api/Task.html" t="t">Task</a>[<a href="../../mill.html#Args-0" t="t">Args</a>]): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -5762,9 +5555,6 @@ node41 -> node0;
         <div class="documentableElement" id="runMain-ffffff06" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Same as `run`, but lets you specify a main class to run\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#runMain-ffffff06" t="n" class="documentableName ">runMain</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -5806,9 +5596,6 @@ node41 -> node0;
         <div class="documentableElement" id="runMainBackground-ffffff06" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Same as `runBackground`, but lets you specify a main class to run\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#runMainBackground-ffffff06" t="n" class="documentableName ">runMainBackground</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -5850,9 +5637,6 @@ node41 -> node0;
         <div class="documentableElement" id="runMainLocal-ffffff06" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Same as `runLocal`, but lets you specify a main class to run\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#runMainLocal-ffffff06" t="n" class="documentableName ">runMainLocal</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -5894,9 +5678,6 @@ node41 -> node0;
         <div class="documentableElement" id="runModuleDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The runtime-only direct dependencies of this module. These *are* transitive,\n * and so get propagated to downstream modules automatically\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#runModuleDeps-0" t="n" class="documentableName ">runModuleDeps</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/JavaModule.html" t="t">JavaModule</a>]
@@ -5938,9 +5719,6 @@ node41 -> node0;
         <div class="documentableElement" id="runModuleDepsChecked-0" data-f-keywords="final" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Same as [[moduleDeps]] but checked to not contain cycles.\n * Prefer this over using [[moduleDeps]] directly.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#runModuleDepsChecked-0" t="n" class="documentableName ">runModuleDepsChecked</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/JavaModule.html" t="t">JavaModule</a>]
@@ -5982,9 +5760,6 @@ node41 -> node0;
         <div class="documentableElement" id="runMvnDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Additional dependencies, only present at runtime. Useful for e.g.\n * selecting different versions of a dependency to use at runtime after your\n * code has already been compiled.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#runMvnDeps-0" t="n" class="documentableName ">runMvnDeps</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../scalalib.html#Dep-0" t="t">Dep</a>]]
@@ -6219,9 +5994,6 @@ node41 -> node0;
         <div class="documentableElement" id="scalaCompilerClasspath-0" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Classpath of the Scala Compiler &amp; any compiler plugins\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#scalaCompilerClasspath-0" t="n" class="documentableName ">scalaCompilerClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -6263,9 +6035,6 @@ node41 -> node0;
         <div class="documentableElement" id="scalaDocClasspath-0" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Classpath of the scaladoc (or dottydoc) tool.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#scalaDocClasspath-0" t="n" class="documentableName ">scalaDocClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -6307,9 +6076,6 @@ node41 -> node0;
         <div class="documentableElement" id="scalaDocOptions-0" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Options to pass directly into Scaladoc.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#scalaDocOptions-0" t="n" class="documentableName ">scalaDocOptions</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -6351,9 +6117,6 @@ node41 -> node0;
         <div class="documentableElement" id="scalaDocPluginClasspath-0" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The ivy coordinates of Scala\'s own standard library\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#scalaDocPluginClasspath-0" t="n" class="documentableName ">scalaDocPluginClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -6565,9 +6328,6 @@ node41 -> node0;
         <div class="documentableElement" id="scalacHelp-fffff121" data-f-inherited="ScalaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Print the scala compile built-in help output.\n * This is equivalent to running `scalac -help`\n *\n * @param args The option to pass to the scala compiler, e.g. \"-Xlint:help\". Default: \"-help\"\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#scalacHelp-fffff121" t="n" class="documentableName ">scalacHelp</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -6969,9 +6729,6 @@ node41 -> node0;
         <div class="documentableElement" id="showModuleDeps-896" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Show the module dependencies.\n * @param recursive If `true` include all recursive module dependencies, else only show direct dependencies.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#showModuleDeps-896" t="n" class="documentableName ">showModuleDeps</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">recursive</span>: <span data-unresolved-link="" t="t">Boolean</span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -7022,9 +6779,6 @@ node41 -> node0;
         <div class="documentableElement" id="showMvnDepsTree-fffff7bd" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Command to print the transitive dependency tree to STDOUT.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#showMvnDepsTree-fffff7bd" t="n" class="documentableName ">showMvnDepsTree</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <a href="../scalalib.html#MvnDepsTreeArgs-0" t="t">MvnDepsTreeArgs</a>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">String</span>]
@@ -7115,9 +6869,6 @@ node41 -> node0;
         <div class="documentableElement" id="sourceJar-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The source jar, containing only source code for publishing to Maven Central\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#sourceJar-0" t="n" class="documentableName ">sourceJar</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../api/PathRef.html" t="t">PathRef</a>]
@@ -7203,9 +6954,6 @@ node41 -> node0;
         <div class="documentableElement" id="testCached-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Discovers and runs the module\'s tests in a subprocess, reporting the\n * results to the console.\n * If no input has changed since the last run, no test were executed.\n *\n * @see [[testForked()]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#testCached-0" t="n" class="documentableName ">testCached</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[(msg: <span data-unresolved-link="" t="t">String</span>, results: <span data-unresolved-link="" t="t">Seq</span>[<a href="../testrunner/TestResult.html" t="t">TestResult</a>])]
@@ -7257,9 +7005,6 @@ node41 -> node0;
         <div class="documentableElement" id="testCachedArgs-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Args to be used by [[testCached]].\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#testCachedArgs-0" t="n" class="documentableName ">testCachedArgs</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -7301,9 +7046,6 @@ node41 -> node0;
         <div class="documentableElement" id="testClasspath-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The classpath containing the tests. This is most likely the output of the compilation target.\n * By default, this uses the result of [[localRunClasspath]], which is most likely the result of a local compilation.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#testClasspath-0" t="n" class="documentableName ">testClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -7345,9 +7087,6 @@ node41 -> node0;
         <div class="documentableElement" id="testForkGrouping-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * How the test classes in this module will be split.\n * Test classes from different groups are ensured to never\n * run on the same JVM process, and therefore can be run in parallel.\n * When used in combination with [[testParallelism]],\n * every JVM test running process will guarantee to never claim tests\n * from different test groups.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#testForkGrouping-0" t="n" class="documentableName ">testForkGrouping</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]]
@@ -7389,9 +7128,6 @@ node41 -> node0;
         <div class="documentableElement" id="testForked-fffff121" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Discovers and runs the module\'s tests in a subprocess, reporting the\n * results to the console.\n * @see [[testCached]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#testForked-fffff121" t="n" class="documentableName ">testForked</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[(msg: <span data-unresolved-link="" t="t">String</span>, results: <span data-unresolved-link="" t="t">Seq</span>[<a href="../testrunner/TestResult.html" t="t">TestResult</a>])]
@@ -7443,9 +7179,6 @@ node41 -> node0;
         <div class="documentableElement" id="testLocal-fffff121" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Discovers and runs the module\'s tests in-process in an isolated classloader,\n * reporting the results to the console\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#testLocal-fffff121" t="n" class="documentableName ">testLocal</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[(msg: <span data-unresolved-link="" t="t">String</span>, results: <span data-unresolved-link="" t="t">Seq</span>[<a href="../testrunner/TestResult.html" t="t">TestResult</a>])]
@@ -7523,9 +7256,6 @@ node41 -> node0;
         <div class="documentableElement" id="testOnly-fffff121" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Discovers and runs the module\'s tests in a subprocess, reporting the\n * results to the console.\n * Arguments before \"--\" will be used as wildcard selector to select\n * test classes, arguments after \"--\" will be passed as regular arguments.\n * `testOnly *foo foobar bar* -- arguments` will test only classes with name\n * (includes package name) 1. end with \"foo\", 2. exactly \"foobar\", 3. start\n * with \"bar\", with \"arguments\" as arguments passing to test framework.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#testOnly-fffff121" t="n" class="documentableName ">testOnly</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[(msg: <span data-unresolved-link="" t="t">String</span>, results: <span data-unresolved-link="" t="t">Seq</span>[<a href="../testrunner/TestResult.html" t="t">TestResult</a>])]
@@ -7567,9 +7297,6 @@ node41 -> node0;
         <div class="documentableElement" id="testParallelism-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Whether to use the test parallelism to run tests in multiple JVM processes.\n * When used in combination with [[testForkGrouping]], every JVM test running process\n * will guarantee to never claim tests from different test groups.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#testParallelism-0" t="n" class="documentableName ">testParallelism</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
@@ -7611,9 +7338,6 @@ node41 -> node0;
         <div class="documentableElement" id="testReportXml-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Sets the file name for the generated JUnit-compatible test report.\n * If None is set, no file will be generated.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#testReportXml-0" t="n" class="documentableName ">testReportXml</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -7655,9 +7379,6 @@ node41 -> node0;
         <div class="documentableElement" id="testSandboxWorkingDir-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Whether to use the test task destination folder as the working directory\n * when running tests. `true` means test subprocess run in the `.dest/sandbox` folder of\n * the test task, providing better isolation and encouragement of best practices\n * (e.g. not reading/writing stuff randomly from the project source tree). `false`\n * means the test subprocess runs in the project root folder, providing weaker\n * isolation.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#testSandboxWorkingDir-0" t="n" class="documentableName ">testSandboxWorkingDir</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
@@ -7699,9 +7420,6 @@ node41 -> node0;
         <div class="documentableElement" id="testUseArgsFile-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Controls whether the TestRunner should receive its arguments via an args-file instead of a long parameter list.\n * Defaults to what `runUseArgsFile` return.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#testUseArgsFile-0" t="n" class="documentableName ">testUseArgsFile</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
@@ -7799,9 +7517,6 @@ node41 -> node0;
         <div class="documentableElement" id="transitiveCompileClasspath-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The transitive version of `compileClasspath`\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#transitiveCompileClasspath-0" t="n" class="documentableName ">transitiveCompileClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -7843,9 +7558,6 @@ node41 -> node0;
         <div class="documentableElement" id="transitiveCoursierProjects-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Coursier projects of all the transitive module dependencies of this module\n *\n * Doesn\'t include the coursier project of the current module, see [[coursierProject]] for that.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#transitiveCoursierProjects-0" t="n" class="documentableName ">transitiveCoursierProjects</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Project</span>]]
@@ -7888,9 +7600,6 @@ node41 -> node0;
         <div class="documentableElement" id="transitiveJars-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Almost the same as [[transitiveLocalClasspath]], but using the [[jar]]s instead of [[localClasspath]].\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#transitiveJars-0" t="n" class="documentableName ">transitiveJars</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -7932,9 +7641,6 @@ node41 -> node0;
         <div class="documentableElement" id="transitiveLocalClasspath-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The transitive version of `localClasspath`\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#transitiveLocalClasspath-0" t="n" class="documentableName ">transitiveLocalClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -7976,9 +7682,6 @@ node41 -> node0;
         <div class="documentableElement" id="transitiveModuleCompileModuleDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * All direct and indirect module dependencies of this module, including\n * compile-only dependencies: basically the modules whose classpath are needed\n * at compile-time.\n *\n * Note that `compileModuleDeps` are defined to be non-transitive, so we only\n * look at the direct `compileModuleDeps` when assembling this list\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#transitiveModuleCompileModuleDeps-0" t="n" class="documentableName ">transitiveModuleCompileModuleDeps</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/JavaModule.html" t="t">JavaModule</a>]
@@ -8021,9 +7724,6 @@ node41 -> node0;
         <div class="documentableElement" id="transitiveModuleDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Like `recursiveModuleDeps` but also include the module itself,\n * basically the modules whose classpath are needed at runtime\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#transitiveModuleDeps-0" t="n" class="documentableName ">transitiveModuleDeps</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/JavaModule.html" t="t">JavaModule</a>]
@@ -8065,9 +7765,6 @@ node41 -> node0;
         <div class="documentableElement" id="transitiveModuleRunModuleDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * All direct and indirect module dependencies of this module, including\n * compile-only dependencies: basically the modules whose classpath are needed\n * at runtime.\n *\n * Note that `runModuleDeps` are defined to be transitive\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#transitiveModuleRunModuleDeps-0" t="n" class="documentableName ">transitiveModuleRunModuleDeps</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/JavaModule.html" t="t">JavaModule</a>]
@@ -8110,9 +7807,6 @@ node41 -> node0;
         <div class="documentableElement" id="transitiveRunModuleDeps-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Like `recursiveModuleDeps` but also include the module itself,\n * basically the modules whose classpath are needed at runtime\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#transitiveRunModuleDeps-0" t="n" class="documentableName ">transitiveRunModuleDeps</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="../javalib/JavaModule.html" t="t">JavaModule</a>]
@@ -8154,9 +7848,6 @@ node41 -> node0;
         <div class="documentableElement" id="unmanagedClasspath-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Additional jars, classfiles or resources to add to the classpath directly\n * from disk rather than being downloaded from Maven Central or other package\n * repositories\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#unmanagedClasspath-0" t="n" class="documentableName ">unmanagedClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -8198,9 +7889,6 @@ node41 -> node0;
         <div class="documentableElement" id="upstreamAssembly-0" data-f-inherited="AssemblyModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Build the assembly for upstream dependencies separate from the current\n * classpath\n *\n * This should allow much faster assembly creation in the common case where\n * upstream dependencies do not change\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#upstreamAssembly-0" t="n" class="documentableName ">upstreamAssembly</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../javalib/Assembly.html" t="t">Assembly</a>]
@@ -8243,9 +7931,6 @@ node41 -> node0;
         <div class="documentableElement" id="upstreamAssemblyClasspath-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * All upstream classfiles and resources necessary to build and executable\n * assembly, but without this module\'s contribution\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#upstreamAssemblyClasspath-0" t="n" class="documentableName ">upstreamAssemblyClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -8287,9 +7972,6 @@ node41 -> node0;
         <div class="documentableElement" id="upstreamCompileOutput-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The upstream compilation output of all this module\'s upstream modules\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#upstreamCompileOutput-0" t="n" class="documentableName ">upstreamCompileOutput</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../jvmlib/api/CompilationResult.html" t="t">CompilationResult</a>]]
@@ -8550,9 +8232,6 @@ node41 -> node0;
         <div class="documentableElement" id="zincReportCachedProblems-0" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * If `true`, we always show problems (errors, warnings, infos) found in all source files, even when they have not changed since the previous incremental compilation.\n * When `false`, we report only problems for files which we re-compiled.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#zincReportCachedProblems-0" t="n" class="documentableName ">zincReportCachedProblems</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
@@ -8602,9 +8281,6 @@ node41 -> node0;
         <div class="documentableElement" id="testFramework-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The test framework to use to discover and run run tests.\n *\n * For convenience, you can also mix-in one of these predefined traits:\n * - [[TestModule.Junit4]]\n * - [[TestModule.Junit5]]\n * - [[TestModule.Munit]]\n * - [[TestModule.ScalaTest]]\n * - [[TestModule.Specs2]]\n * - [[TestModule.TestNg]]\n * - [[TestModule.Utest]]\n * - [[TestModule.Weaver]]\n * - [[TestModule.ZioTest]]\n *\n * Most of these provide additional `xxxVersion` tasks, to manage the test framework dependencies for you.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SbtModule$SbtTests.html#testFramework-0" t="n" class="documentableName ">testFramework</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]

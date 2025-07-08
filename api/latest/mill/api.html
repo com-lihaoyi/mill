@@ -60,9 +60,6 @@
         <div class="documentableElement" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents an unstructured sequence of command-line arguments that can be\n * passed to Mill commands; similar to `mainargs.Leftover`.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">class </span></span><a href="api/Args.html" t="n" class="documentableName ">Args</a>(<span t="k"></span><span t="k">val </span><span data-unresolved-link="" t="n">value</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>])
@@ -183,9 +180,6 @@
         <div class="documentableElement" data-f-keywords="abstract">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a module at the root of a module tree. This can either be a\n * `mill.api.RootModule` representing the `build.mill` file, or a\n * `mill.api.ExternalModule` provided by a library.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">abstract </span></span><span class="kind"><span t="k">class </span></span><a href="api/BaseModule.html" t="n" class="documentableName ">BaseModule</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">millSourcePath0</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">external0</span>: <span data-unresolved-link="" t="t">Boolean</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">millModuleEnclosing0</span>: <span data-unresolved-link="" t="t">Enclosing</span>, <span t="k"></span><span data-unresolved-link="" t="n">millModuleLine0</span>: <span data-unresolved-link="" t="t">Line</span>, <span t="k"></span><span data-unresolved-link="" t="n">millFile0</span>: <span data-unresolved-link="" t="t">File</span>)<span t="k"> extends </span><a href="api/Module$$BaseClass.html" t="t">BaseClass</a><span t="k">, </span></span><span class="signature-long"><a href="api/Module.html" t="t">Module</a><span t="k">, </span><a href="api/daemon/internal/BaseModuleApi.html" t="t">BaseModuleApi</a></span>
@@ -352,9 +346,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * BuildCtx contains APIs that are global throughout an entire build, without\n * being tied to any particular task or module\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="api/BuildCtx$.html" t="n" class="documentableName ">BuildCtx</a>
@@ -537,9 +528,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Models \"cross-builds\": sets of duplicate builds which differ only in the\n * value of one or more \"case\" variables whose values are determined at runtime.\n * Used via:\n *\n * {{{\n * object foo extends Cross[FooModule](\"bar\", \"baz\", \"qux\")\n * trait FooModule extends Cross.Module[String]{\n * ... crossValue ...\n * }\n * }}}\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="api/Cross.html" t="n" class="documentableName ">Cross</a>[<span t="k"></span><span data-unresolved-link="" t="t">M</span><span t="k"> &lt;: </span><a href="api/Cross$$Module.html" t="t">Module</a>[<span t="k">_</span>]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">factories</span>: <a href="api/Cross$$Factory.html" t="t">Factory</a>[<span data-unresolved-link="" t="t">M</span>]*)<span t="k"> extends </span><a href="api/Module.html" t="t">Module</a></span><span class="signature-long"></span>
@@ -756,9 +744,6 @@
         <div class="documentableElement" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Macro to walk the module tree and generate `mainargs` entrypoints for any\n * `Task.Command` methods that it finds.\n *\n * Note that unlike the rest of Mill\'s module-handling logic which uses Java\n * reflection, generation of entrypoints requires typeclass resolution, and so\n * needs to be done at compile time. Thus, we walk the entire module tree,\n * collecting all the module `Class[_]`s we can find, and for each one generate\n * the `mainargs.MainData` containing metadata and resolved typeclasses for all\n * the `Task.Command` methods we find. This mapping from `Class[_]` to `MainData`\n * can then be used later to look up the `MainData` for any module.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">class </span></span><a href="api/Discover.html" t="n" class="documentableName ">Discover</a>(<span t="k"></span><span t="k">val </span><span data-unresolved-link="" t="n">classInfo</span>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">Class</span>[<span t="k">_</span>], <a href="api/Discover$$ClassInfo.html" t="t">ClassInfo</a>])
@@ -880,9 +865,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A module which you can override [[moduleDirectChildren]] to dynamically\n * enable or disable child modules at runtime\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="api/DynamicModule.html" t="n" class="documentableName ">DynamicModule</a><span t="k"> extends </span><a href="api/Module.html" t="t">Module</a></span><span class="signature-long"></span>
@@ -952,9 +934,6 @@
         <div class="documentableElement" data-f-keywords="final,case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * An implicit that provides the lexically-enclosing class\n * at the point at which it is resolved\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final case </span></span><span class="kind"><span t="k">class </span></span><a href="api/EnclosingClass.html" t="n" class="documentableName ">EnclosingClass</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">value</span>: <span data-unresolved-link="" t="t">Class</span>[<span t="k">_</span>])
@@ -1455,9 +1434,6 @@
         <div class="documentableElement" data-f-keywords="abstract">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A module defined outside of the `build.mill` file, and is instead\n * provided builtin by some Mill library or plugin\n *\n * Implementors should make sure, the final override of [[millDiscover]] happens in the final object.\n * {{{\n * override protected def millDiscover: Discover = Discover[this.type]\n * }}}\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">abstract </span></span><span class="kind"><span t="k">class </span></span><a href="api/ExternalModule.html" t="n" class="documentableName ">ExternalModule</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">millModuleEnclosing0</span>: <span data-unresolved-link="" t="t">Enclosing</span>, <span t="k"></span><span data-unresolved-link="" t="n">millModuleLine0</span>: <span data-unresolved-link="" t="t">Line</span>, <span t="k"></span><span data-unresolved-link="" t="n">millFile0</span>: <span data-unresolved-link="" t="t">File</span>)<span t="k"> extends </span><a href="api/BaseModule.html" t="t">BaseModule</a></span><span class="signature-long"></span>
@@ -1690,9 +1666,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Defines various default JSON formatters used in mill.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="api/JsonFormatters.html" t="n" class="documentableName ">JsonFormatters</a>
@@ -1985,9 +1958,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a namespace within the Mill build hierarchy, containing nested\n * modules or tasks.\n *\n * `Module` is a class meant to be extended by ``trait``s *only*, in order to\n * propagate the implicit parameters forward to the final concrete\n * instantiation site so they can capture the enclosing/line information of\n * the concrete instance.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="api/Module.html" t="n" class="documentableName ">Module</a><span t="k"> extends </span><a href="api/Module$$BaseClass.html" t="t">BaseClass</a><span t="k">, </span></span><span class="signature-long"><a href="api/ModuleCtx$$Wrapper.html" t="t">Wrapper</a><span t="k">, </span><a href="api/daemon/internal/ModuleApi.html" t="t">ModuleApi</a></span>
@@ -2431,9 +2401,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The contextual information provided to a [[mill.api.Module]] or [[mill.api.Task]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="api/ModuleCtx.html" t="n" class="documentableName ">ModuleCtx</a><span t="k"> extends </span><a href="api/ModuleCtx$$Nested.html" t="t">Nested</a></span><span class="signature-long"></span>
@@ -2560,9 +2527,6 @@
         <div class="documentableElement" data-f-keywords="final,case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Used to refer to a module from another module without including the target\n * module as a child-module of the first.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final case </span></span><span class="kind"><span t="k">class </span></span><a href="api/ModuleRef.html" t="n" class="documentableName ">ModuleRef</a>[<span t="k">+</span><span data-unresolved-link="" t="t">T</span><span t="k"> &lt;: </span><a href="api/Module.html" t="t">Module</a>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <span data-unresolved-link="" t="t">T</span>)
@@ -2623,9 +2587,6 @@
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A wrapper around `os.Path` that calculates it\'s hashcode based\n * on the contents of the filesystem underneath it. Used to ensure filesystem\n * changes can bust caches which are keyed off hashcodes.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="api/PathRef.html" t="n" class="documentableName ">PathRef</a><span t="k"> extends </span><a href="api/daemon/internal/PathRefApi.html" t="t">PathRefApi</a></span><span class="signature-long"></span>
@@ -2764,9 +2725,6 @@
         <div class="documentableElement" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents the outcome of Mill planning: a [[MultiBiMap]] containing\n * the transitive tasks upstream of the tasks selected by the user,\n * grouped by the \"terminal\" named or selected task downstream of each group\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">class </span></span><a href="api/Plan.html" t="n" class="documentableName ">Plan</a>
@@ -2875,9 +2833,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Utilities for managing and redirecting the [[SystemStreams]] modelling\n * the stdin/stdout/stderr of the process\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="api/SystemStreamsUtils$.html" t="n" class="documentableName ">SystemStreamsUtils</a>
@@ -2940,9 +2895,6 @@
         <div class="documentableElement" data-f-keywords="sealed,abstract">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Models a single node in the Mill build graph, with a list of inputs and a\n * single output of type [[T]].\n *\n * Generally not instantiated manually, but instead constructed via the\n * [[Task.apply]] &amp; similar macros.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">sealed abstract </span></span><span class="kind"><span t="k">class </span></span><a href="api/Task.html" t="n" class="documentableName ">Task</a>[<span t="k">+</span><span data-unresolved-link="" t="t">T</span>]<span t="k"> extends </span><a href="api/Task$$Ops.html" t="t">Ops</a>[<span t="t">T</span>]<span t="k">, </span></span><span class="signature-long"><a href="api/internal/Applicative$$Applyable.html" t="t">Applyable</a>[<a href="api/Task.html" t="t">Task</a>, <span t="t">T</span>]<span t="k">, </span><a href="api/daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="t">T</span>]</span>
@@ -3107,9 +3059,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents the data and utilities that are contextually available inside the\n * implementation of a `Task`.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="api/TaskCtx.html" t="n" class="documentableName ">TaskCtx</a><span t="k"> extends </span><a href="api/TaskCtx$$Dest.html" t="t">Dest</a><span t="k">, </span></span><span class="signature-long"><a href="api/TaskCtx$$Log.html" t="t">Log</a><span t="k">, </span><a href="api/TaskCtx$$Args.html" t="t">Args</a><span t="k">, </span><a href="api/TaskCtx$$Env.html" t="t">Env</a><span t="k">, </span><a href="api/TaskCtx$$Workspace.html" t="t">Workspace</a><span t="k">, </span><a href="api/TaskCtx$$Fork.html" t="t">Fork</a><span t="k">, </span><a href="api/TaskCtx$$Jobs.html" t="t">Jobs</a><span t="k">, </span><a href="api/TaskCtx$$Offline.html" t="t">Offline</a><span t="k">, </span><a href="api/TaskCtx$$Fail.html" t="t">Fail</a></span>
@@ -3194,9 +3143,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Provides access to various resources in the context of a current execution task.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="api/TaskCtx$.html" t="n" class="documentableName ">TaskCtx</a>
@@ -3265,9 +3211,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A [[Module]] that has a [[defaultTask]] that will be automatically\n * executed if the module name is provide at the Mill command line\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="api/TaskModule.html" t="n" class="documentableName ">TaskModule</a><span t="k"> extends </span><a href="api/Module.html" t="t">Module</a></span><span class="signature-long"></span>
@@ -3476,9 +3419,6 @@
         <div class="documentableElement" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents the topologically sorted set of tasks\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">class </span></span><a href="api/TopoSorted.html" t="n" class="documentableName ">TopoSorted</a>
@@ -3673,9 +3613,6 @@
         <div class="documentableElement" id="ExecResult-0" data-f-export="from daemon}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The result of a task execution.\n *\n * @tparam T The result type of the computed task.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="api.html#ExecResult-0" t="n" class="documentableName ">ExecResult</a><span t="k"> = </span><a href="api/daemon/ExecResult.html" t="t">ExecResult</a>
@@ -3772,9 +3709,6 @@
         <div class="documentableElement" id="Logger-0" data-f-export="from daemon}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The standard logging interface of the Mill build tool.\n * Also contains the two forwarded stdout and stderr streams, for code executed\n * by Mill to use directly. Typically, these correspond to the stdout and stderr,\n * but when `show` is used both are forwarded to stderr and stdout is only\n * used to display the final `show` output for easy piping.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="api.html#Logger-0" t="n" class="documentableName ">Logger</a><span t="k"> = </span><a href="api/daemon/Logger.html" t="t">Logger</a>
@@ -3807,9 +3741,6 @@
         <div class="documentableElement" id="MillException-0" data-f-export="from daemon}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * This exception is specifically handled in [[mill.runner.MillMain]] and [[mill.runner.MillDaemonMain]]. You can use it, if you need to exit Mill with a nice error message.\n * @param msg The error message, to be displayed to the user.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="api.html#MillException-0" t="n" class="documentableName ">MillException</a><span t="k"> = </span><a href="api/daemon/MillException.html" t="t">MillException</a>
@@ -3874,9 +3805,6 @@
         <div class="documentableElement" id="MillURLClassLoader-0" data-f-export="from daemon}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Convenience wrapper around `java.net.URLClassLoader`. Allows configuration\n * of shared class prefixes, and tracks creation/closing to help detect leaks\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="api.html#MillURLClassLoader-0" t="n" class="documentableName ">MillURLClassLoader</a><span t="k"> = </span><a href="api/daemon/MillURLClassLoader.html" t="t">MillURLClassLoader</a>
@@ -3909,9 +3837,6 @@
         <div class="documentableElement" id="ProxyLogger-0" data-f-export="from daemon}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A Logger that forwards all logging to another Logger. Intended to be\n * used as a base class for wrappers that modify logging behavior.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="api.html#ProxyLogger-0" t="n" class="documentableName ">ProxyLogger</a><span t="k"> = </span><span t="t">ProxyLogger</span>
@@ -3976,9 +3901,6 @@
         <div class="documentableElement" id="Result-0" data-f-export="from daemon}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a computation that either succeeds with a value [[T]] or\n * fails. Basically equivalent to `Either[String, T]`, with converters\n * back and forther via [[Result.toEither]] or [[Result.fromEither]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="api.html#Result-0" t="n" class="documentableName ">Result</a><span t="k"> = </span><a href="api/daemon/Result.html" t="t">Result</a>
@@ -4107,9 +4029,6 @@
         <div class="documentableElement" id="Segments-0" data-f-export="from daemon}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Models a path with the Mill build hierarchy, e.g. `amm.util[2.11].test.compile`.\n *\n * `.`-separated segments are [[Segment.Label]]s,\n * while `[]`-delimited segments are [[Segment.Cross]]s\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="api.html#Segments-0" t="n" class="documentableName ">Segments</a><span t="k"> = </span><a href="api/daemon/Segments.html" t="t">Segments</a>
@@ -4238,9 +4157,6 @@
         <div class="documentableElement" id="SystemStreams-0" data-f-export="from daemon}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a set of streams that look similar to those provided by the\n * operating system. These may internally be proxied/redirected/processed, but\n * from the consumer\'s perspective they look just like the stdout/stderr/stdin\n * that any Unix process receives from the OS.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="api.html#SystemStreams-0" t="n" class="documentableName ">SystemStreams</a><span t="k"> = </span><a href="api/daemon/SystemStreams.html" t="t">SystemStreams</a>
@@ -4273,9 +4189,6 @@
         <div class="documentableElement" id="Val-0" data-f-export="from daemon}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A somewhat-type-safe wrapper around `Any`. Stores an un-typed value, but\n * can only be created explicitly by wrapping in `Val(_)` and de-constructed\n * explicitly via `.value`. That makes it much less likely to introduce bugs\n * passing the wrong thing, e.g. `(Any, Int)` can be passed to `Any`, but\n * `(Val, Int)` cannot be passed to `Val`\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="api.html#Val-0" t="n" class="documentableName ">Val</a><span t="k"> = </span><a href="api/daemon/Val.html" t="t">Val</a>
@@ -4340,9 +4253,6 @@
         <div class="documentableElement" id="Watchable-0" data-f-export="from daemon}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents something that can be watched by the Mill build tool. Most often\n * these are [[Watchable.Path]]s, but we use [[Watchable.Value]] to watch the\n * value of arbitrary computations e.g. watching the result of `os.list` to\n * react if a new folder is added.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="api.html#Watchable-0" t="n" class="documentableName ">Watchable</a><span t="k"> = </span><span t="t">Watchable</span>
@@ -4375,9 +4285,6 @@
         <div class="documentableElement" id="experimental-0" data-f-export="from daemon}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Annotation to mark experimental API, which is not guaranteed to stay.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="api.html#experimental-0" t="n" class="documentableName ">experimental</a><span t="k"> = </span><a href="api/daemon/experimental.html" t="t">experimental</a>

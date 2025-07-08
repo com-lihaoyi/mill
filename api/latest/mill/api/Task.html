@@ -9,7 +9,6 @@
  <span>See the<span class="micon ob"></span><a href="Task$.html">Task</a> companion object</span>
 </div>
 <div class="main-signature mono-small-block">
- <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Models a single node in the Mill build graph, with a list of inputs and a\n * single output of type [[T]].\n *\n * Generally not instantiated manually, but instead constructed via the\n * [[Task.apply]] &amp; similar macros.\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"><span t="k">sealed abstract </span></span><span class="kind"><span t="k">class </span></span><a href="Task.html" t="n" class="documentableName ">Task</a>[<span t="k">+</span><span data-unresolved-link="" t="t">T</span>]<span t="k"> extends </span><a href="Task$$Ops.html" t="t">Ops</a>[<span t="t">T</span>]<span t="k">, </span></span><span class="signature-long"><a href="internal/Applicative$$Applyable.html" t="t">Applyable</a>[<a href="Task.html" t="t">Task</a>, <span t="t">T</span>]<span t="k">, </span><a href="daemon/internal/TaskApi.html" t="t">TaskApi</a>[<span t="t">T</span>]</span>
  </div>
@@ -167,9 +166,6 @@ node15 -> node8;
         <div class="documentableElement" id="evaluate-fffff35d">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Evaluate this task\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task.html#evaluate-fffff35d" t="n" class="documentableName ">evaluate</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <a href="TaskCtx.html" t="t">TaskCtx</a>): <a href="daemon/Result.html" t="t">Result</a>[<span t="t">T</span>]
@@ -213,9 +209,6 @@ node15 -> node8;
         <div class="documentableElement" id="persistent-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Whether or not this [[Task]] deletes the `Task.dest` folder between runs\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task.html#persistent-0" t="n" class="documentableName ">persistent</a>: <span data-unresolved-link="" t="t">Boolean</span>
@@ -251,9 +244,6 @@ node15 -> node8;
         <div class="documentableElement" id="sideHash-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Even if this task\'s inputs did not change, does it need to re-evaluate\n * anyway?\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task.html#sideHash-0" t="n" class="documentableName ">sideHash</a>: <span data-unresolved-link="" t="t">Int</span>
@@ -485,9 +475,6 @@ node15 -> node8;
         <div class="documentableElement" id="inputs-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * What other tasks does this task depend on?\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">val </span></span><a href="Task.html#inputs-0" t="n" class="documentableName ">inputs</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="Task.html" t="t">Task</a>[<span t="k">_</span>]]

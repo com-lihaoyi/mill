@@ -200,9 +200,6 @@ node3 -> node2;
         <div class="documentableElement" data-f-keywords="sealed">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** A store for one or more mirrors, with Root type `R`. */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">sealed </span></span><span class="kind"><span t="k">trait </span></span><a href="Mirrors$$Root.html" t="n" class="documentableName ">Root</a>[<span t="k"></span><span data-unresolved-link="" t="t">R</span>]
@@ -262,9 +259,6 @@ node3 -> node2;
         <div class="documentableElement" id="Path-0" data-f-keywords="opaque">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** Proof that `T` has a synthetic Mirror in `Root[R]` */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">opaque </span></span><span class="kind"><span t="k">type </span></span><a href="Mirrors$.html#Path-0" t="n" class="documentableName ">Path</a>[<span t="k"></span><span data-unresolved-link="" t="t">R</span>, <span t="k"></span><span data-unresolved-link="" t="t">T</span><span t="k"> &lt;: </span><span data-unresolved-link="" t="t">R</span>]
@@ -315,9 +309,6 @@ node3 -> node2;
         <div class="documentableElement" id="autoRoot-fffffd4b" data-f-keywords="inline">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * generate mirrors for a sealed hierarchy, or a single class. Only optimized for what Mill needs.\n * Does not synthesize mirrors for case classes, or values already extending Mirror.Singleton.\n *\n * This means you pay for only what is needed.\n *\n * Limitations (could be lifted later, but not needed for Mill currently):\n * - sealed children must be static, i.e. no inner classes or local classes.\n * - \"product\" types should not have type parameters.\n *\n * Note: this is not given, so must be explicitly called, which allows to control caching.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">inline </span></span><span class="kind"><span t="k">def </span></span><a href="Mirrors$.html#autoRoot-fffffd4b" t="n" class="documentableName ">autoRoot</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>]: <a href="Mirrors$$Root.html" t="t">Root</a>[<span data-unresolved-link="" t="t">T</span>]
@@ -405,9 +396,6 @@ node3 -> node2;
         <div class="documentableElement" id="autoMirror-5f0" data-f-keywords="transparent,inline">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * given a `Root[R]`, and a `Path[R, T]`, retrieve a `Mirror.Of[T]`, and cast it with correct refinements.\n * Note that this must be transparent inline to add path-dependent types,\n * therefore to avoid large bytecode blowup it only generates a single method call.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">transparent inline </span></span><span class="kind"><span t="k">given </span></span><a href="Mirrors$.html#autoMirror-5f0" t="n" class="documentableName ">autoMirror</a>[<span t="k"></span><span data-unresolved-link="" t="t">R</span>, <span t="k"></span><span data-unresolved-link="" t="t">T</span><span t="k"> &lt;: </span><span t="t">R</span>](<span t="k">using </span><span t="k">inline </span><span data-unresolved-link="" t="n">h</span>: <a href="Mirrors$$Root.html" t="t">Root</a>[<span t="t">R</span>], <span t="k">inline </span><span data-unresolved-link="" t="n">p</span>: <a href="Mirrors$.html#Path-0" t="t">Path</a>[<span t="t">R</span>, <span t="t">T</span>]): <span data-unresolved-link="" t="t">Of</span>[<span data-unresolved-link="" t="t">T</span>]
@@ -443,9 +431,6 @@ node3 -> node2;
         <div class="documentableElement" id="autoPath-4f1" data-f-keywords="transparent,inline">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** Try to synthesize a proof that `T` has a synthetic Mirror inside of `Root[R]`. */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">transparent inline </span></span><span class="kind"><span t="k">given </span></span><a href="Mirrors$.html#autoPath-4f1" t="n" class="documentableName ">autoPath</a>[<span t="k"></span><span data-unresolved-link="" t="t">R</span>, <span t="k"></span><span data-unresolved-link="" t="t">T</span><span t="k"> &lt;: </span><span t="t">R</span>](<span t="k">using </span><span t="k">inline </span><span data-unresolved-link="" t="n">h</span>: <a href="Mirrors$$Root.html" t="t">Root</a>[<span t="t">R</span>]): <a href="Mirrors$.html#Path-0" t="t">Path</a>[<span data-unresolved-link="" t="t">R</span>, <span data-unresolved-link="" t="t">T</span>]

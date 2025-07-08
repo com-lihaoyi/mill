@@ -117,9 +117,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A task execution was skipped/aborted because of earlier (maybe unrelated) tasks failed and the evaluation was in fail-fast mode.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">object </span></span><a href="ExecResult$$Aborted$.html" t="n" class="documentableName ">Aborted</a><span t="k"> extends </span><a href="ExecResult.html" t="t">ExecResult</a>[<span data-unresolved-link="" t="t">Nothing</span>]</span><span class="signature-long"></span>
@@ -203,9 +200,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="final,case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * An (mostly) unintentionally failed task which the exception that caused the failure.\n * @param throwable The exception that describes or caused the failure.\n * @param outerStack The [[OuterStack]] of the failed task.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">final case </span></span><span class="kind"><span t="k">class </span></span><a href="ExecResult$$Exception.html" t="n" class="documentableName ">Exception</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">throwable</span>: <span data-unresolved-link="" t="t">Throwable</span>, <span t="k"></span><span data-unresolved-link="" t="n">outerStack</span>: <a href="ExecResult$$OuterStack.html" t="t">OuterStack</a>)<span t="k"> extends </span><span data-unresolved-link="" t="t">Exception</span><span t="k">, </span></span><span class="signature-long"><a href="ExecResult$$Failing.html" t="t">Failing</a>[<span data-unresolved-link="" t="t">Nothing</span>]</span>
@@ -293,9 +287,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="sealed">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A failed task execution.\n * @tparam T The result type of the computed task.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">sealed </span></span><span class="kind"><span t="k">trait </span></span><a href="ExecResult$$Failing.html" t="n" class="documentableName ">Failing</a>[<span t="k">+</span><span data-unresolved-link="" t="t">T</span>]<span t="k"> extends </span><a href="ExecResult.html" t="t">ExecResult</a>[<span t="t">T</span>]</span><span class="signature-long"></span>
@@ -372,9 +363,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="final,case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * An intentional failure, which provides a proper error message as well as an optional result value.\n * @param msg The error message.\n * @param value The optional result value.\n * @tparam T The result type of the computed task.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">final case </span></span><span class="kind"><span t="k">class </span></span><a href="ExecResult$$Failure.html" t="n" class="documentableName ">Failure</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">msg</span>: <span data-unresolved-link="" t="t">String</span>)<span t="k"> extends </span><a href="ExecResult$$Failing.html" t="t">Failing</a>[<span t="t">T</span>]</span><span class="signature-long"></span>
@@ -511,9 +499,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A task execution was skipped because of failures in its dependencies.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">object </span></span><a href="ExecResult$$Skipped$.html" t="n" class="documentableName ">Skipped</a><span t="k"> extends </span><a href="ExecResult.html" t="t">ExecResult</a>[<span data-unresolved-link="" t="t">Nothing</span>]</span><span class="signature-long"></span>
@@ -597,9 +582,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="final,case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A successful task execution.\n * @param value The value computed by the task.\n * @tparam T The result type of the computed task.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">final case </span></span><span class="kind"><span t="k">class </span></span><a href="ExecResult$$Success.html" t="n" class="documentableName ">Success</a>[<span t="k">+</span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">value</span>: <span data-unresolved-link="" t="t">T</span>)<span t="k"> extends </span><a href="ExecResult.html" t="t">ExecResult</a>[<span t="t">T</span>]</span><span class="signature-long"></span>
@@ -719,7 +701,7 @@ node5 -> node1;
                Source
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-deamon/25ac867e/sandbox/library/src/scala/deriving/Mirror.scala" target="_blank">Mirror.scala</a>
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-deamon/2000829b/sandbox/library/src/scala/deriving/Mirror.scala" target="_blank">Mirror.scala</a>
               </dd>
              </dl>
             </div>
@@ -760,7 +742,7 @@ node5 -> node1;
                Source
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-deamon/25ac867e/sandbox/library/src/scala/deriving/Mirror.scala" target="_blank">Mirror.scala</a>
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-deamon/2000829b/sandbox/library/src/scala/deriving/Mirror.scala" target="_blank">Mirror.scala</a>
               </dd>
              </dl>
             </div>

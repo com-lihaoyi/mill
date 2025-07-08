@@ -97,9 +97,6 @@ node4 -> node0;
         <div class="documentableElement" id="async-fffff1e4">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Spawns an async workflow. Mill async futures require additional metadata\n * to sandbox, store logs, and integrate them into Mills terminal prompt logger\n *\n * @param dest The \"sandbox\" folder that will contain the `os.pwd` and the `pwd` for\n * any subprocesses spawned within the async future. Also provides the\n * path for the log file (dest + \".log\") for any stdout/stderr `println`s\n * that occur within that future\n * @param key The short prefix, typically a number (\"1\", \"2\", \"3\", etc.) that will be\n * used to prefix all log lines emitted within this async future in the\n * terminal to allow them to be distinguished from other logs\n * @param message A one-line summary of what this async future is doing, used in the\n * terminal prompt to display what this future is currently computing.\n * @param priority 0 means the same priority as other Mill tasks, negative values &lt;0\n * mean increasingly high priority, positive values &gt;0 mean increasingly\n * low priority\n * @param t The body of the async future\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TaskCtx$$Fork$$Api.html#async-fffff1e4" t="n" class="documentableName ">async</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dest</span>: <span data-unresolved-link="" t="t">Path</span>, <span t="k"></span><span data-unresolved-link="" t="n">key</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">message</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">priority</span>: <span data-unresolved-link="" t="t">Int</span>)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <a href="../api.html#Logger-0" t="t">Logger</a><span t="k"> =&gt; </span><span t="t">T</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx.html" t="t">TaskCtx</a>): <span data-unresolved-link="" t="t">Future</span>[<span data-unresolved-link="" t="t">T</span>]
@@ -168,9 +165,6 @@ node4 -> node0;
         <div class="documentableElement" id="await-fffff394">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Awaits for the result for the given async future and returns the resultant value\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TaskCtx$$Fork$$Api.html#await-fffff394" t="n" class="documentableName ">await</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <span data-unresolved-link="" t="t">Future</span>[<span t="t">T</span>]): <span data-unresolved-link="" t="t">T</span>
@@ -206,9 +200,6 @@ node4 -> node0;
         <div class="documentableElement" id="awaitAll-ffffffc7">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Awaits for the result for multiple async futures and returns the resultant values\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TaskCtx$$Fork$$Api.html#awaitAll-ffffffc7" t="n" class="documentableName ">awaitAll</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Future</span>[<span t="t">T</span>]]): <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">T</span>]

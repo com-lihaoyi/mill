@@ -6,7 +6,6 @@
  <span>mill.tabcomplete.TabCompleteModule</span>
 </div>
 <div class="main-signature mono-small-block">
- <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Handles Bash and Zsh tab completions, which provide an array of tokens in the current\n * shell and the index of the token currently being completed.\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="TabCompleteModule$.html" t="n" class="documentableName ">TabCompleteModule</a><span t="k"> extends </span><a href="../api/ExternalModule.html" t="t">ExternalModule</a></span><span class="signature-long"></span>
  </div>
@@ -151,9 +150,6 @@ node12 -> node11;
         <div class="documentableElement" data-f-inherited="Module">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Miscellaneous machinery around traversing &amp; querying the build hierarchy,\n * that should not be needed by normal users of Mill\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="../api/Module$moduleInternal$.html" t="n" class="documentableName ">moduleInternal</a><span t="k"> extends </span><a href="../api/Module$$Internal.html" t="t">Internal</a></span><span class="signature-long"></span>
@@ -229,9 +225,6 @@ node12 -> node11;
         <div class="documentableElement" id="complete-ffffff2b">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The main entrypoint for Mill\'s Bash and Zsh tab-completion logic\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TabCompleteModule$.html#complete-ffffff2b" t="n" class="documentableName ">complete</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">ev</span>: <a href="../api/Evaluator.html" t="t">Evaluator</a>, <span t="k"></span><span data-unresolved-link="" t="n">index</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">Leftover</span>[<span data-unresolved-link="" t="t">String</span>]): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -267,11 +260,6 @@ node12 -> node11;
         <div class="documentableElement" id="install-fffff605">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Installs the Mill tab completion script globally and hooks it into\n * `~/.zshrc` and `~/.bash_profile`. Can be passed an optional `--dest <path>
-             `\n * to instead write it to a manually-specified destination path\n */")
-            </path></span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TabCompleteModule$.html#install-fffff605" t="n" class="documentableName ">install</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dest</span>: <span data-unresolved-link="" t="t">Path</span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]

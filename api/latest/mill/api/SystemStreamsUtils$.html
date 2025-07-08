@@ -6,7 +6,6 @@
  <span>mill.api.SystemStreamsUtils</span>
 </div>
 <div class="main-signature mono-small-block">
- <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Utilities for managing and redirecting the [[SystemStreams]] modelling\n * the stdin/stdout/stderr of the process\n */") </span>
  <div class="signature">
   <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="SystemStreamsUtils$.html" t="n" class="documentableName ">SystemStreamsUtils</a>
  </div>
@@ -189,9 +188,6 @@ node3 -> node2;
         <div class="documentableElement" id="withTopLevelSystemStreamProxy-fffff7d2">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Manages the global override of `System.{in,out,err}`. Overrides of those streams are\n * global, so we cannot just override them per-use-site in a multithreaded environment\n * because different threads may interleave and stomp over each other\'s over-writes.\n * Instead, we over-write them globally with a set of streams that does nothing but\n * forward to the per-thread [[ThreadLocalStreams.current]] streams, allowing callers\n * to each reach their own thread-local streams without clashing across multiple threads\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SystemStreamsUtils$.html#withTopLevelSystemStreamProxy-fffff7d2" t="n" class="documentableName ">withTopLevelSystemStreamProxy</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <span t="k">=&gt; </span><span t="t">T</span>): <span data-unresolved-link="" t="t">T</span>

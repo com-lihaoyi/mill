@@ -9,7 +9,6 @@
  <span>See the<span class="micon ob"></span><a href="RuffModule$.html">RuffModule</a> companion object</span>
 </div>
 <div class="main-signature mono-small-block">
- <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Linting and formatting functionality provided by [ruff](https://docs.astral.sh/ruff/).\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="RuffModule.html" t="n" class="documentableName ">RuffModule</a><span t="k"> extends </span><a href="PythonModule.html" t="t">PythonModule</a></span><span class="signature-long"></span>
  </div>
@@ -265,9 +264,6 @@ node16 -> node0;
         <div class="documentableElement" data-f-inherited="Module">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Miscellaneous machinery around traversing &amp; querying the build hierarchy,\n * that should not be needed by normal users of Mill\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="../api/Module$moduleInternal$.html" t="n" class="documentableName ">moduleInternal</a><span t="k"> extends </span><a href="../api/Module$$Internal.html" t="t">Internal</a></span><span class="signature-long"></span>
@@ -397,9 +393,6 @@ node16 -> node0;
         <div class="documentableElement" id="ruffCheck-fffff121">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Run `run check` on all the source files of this module.\n *\n * You can supply additional arguments that ruff understands, for example to\n * attempt to automatically fix any linting errors: `--fix`.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#ruffCheck-fffff121" t="n" class="documentableName ">ruffCheck</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -436,9 +429,6 @@ node16 -> node0;
         <div class="documentableElement" id="ruffConfigFile-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Configuration file to use when running ruff. If this file does not exist,\n * ruff will use the default settings.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#ruffConfigFile-0" t="n" class="documentableName ">ruffConfigFile</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]
@@ -474,9 +464,6 @@ node16 -> node0;
         <div class="documentableElement" id="ruffFormat-fffff121">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Run `ruff format` on all the source files of this module.\n *\n * You can supply any additional args that ruff understands. For example:\n *\n * - only check format of sources, but don\'t actually format: `--check`\n * - see format diff: `--diff`\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#ruffFormat-fffff121" t="n" class="documentableName ">ruffFormat</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -517,9 +504,6 @@ node16 -> node0;
         <div class="documentableElement" id="ruffOptions-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Global command line options to pass to ruff. These are passed in before any\n * command-supplied arguments.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#ruffOptions-0" t="n" class="documentableName ">ruffOptions</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -563,9 +547,6 @@ node16 -> node0;
         <div class="documentableElement" id="allRepositories-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repositories used to resolve dependencies\n *\n * Unlike [[repositoriesTask]], this includes the Mill internal repositories,\n * which allow to resolve Mill internal modules (usually brought in via\n * `JavaModule#coursierDependency`).\n *\n * Beware that this needs to evaluate `JavaModule#coursierProject` of all\n * module dependencies of the current module, which itself evaluates `JavaModule#mvnDeps`\n * and related tasks. You shouldn\'t depend on this task from implementations of `mvnDeps`,\n * which would introduce cycles between Mill tasks.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#allRepositories-0" t="n" class="documentableName ">allRepositories</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Repository</span>]]
@@ -609,9 +590,6 @@ node16 -> node0;
         <div class="documentableElement" id="bindDependency-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Bind a dependency ([[Dep]]) to the actual module context (e.g. the scala version and the platform suffix)\n * @return The [[BoundDep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#bindDependency-0" t="n" class="documentableName ">bindDependency</a>: <a href="../api/Task.html" t="t">Task</a>[<a href="../javalib/Dep.html" t="t">Dep</a><span t="k"> =&gt; </span><a href="../javalib/BoundDep.html" t="t">BoundDep</a>]
@@ -659,9 +637,6 @@ node16 -> node0;
         <div class="documentableElement" id="bundle-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** Bundles the project into a single PEX executable(bundle.pex). */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#bundle-0" t="n" class="documentableName ">bundle</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../api/PathRef.html" t="t">PathRef</a>]
@@ -703,9 +678,6 @@ node16 -> node0;
         <div class="documentableElement" id="bundleOptions-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Command-line options to pass as bundle configuration defined by the user.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#bundleOptions-0" t="n" class="documentableName ">bundleOptions</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -747,9 +719,6 @@ node16 -> node0;
         <div class="documentableElement" id="checkGradleModules-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Whether to enable Gradle Module support when fetching dependencies\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#checkGradleModules-0" t="n" class="documentableName ">checkGradleModules</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
@@ -791,9 +760,6 @@ node16 -> node0;
         <div class="documentableElement" id="console-936" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Opens up a Python console with your module and all dependencies present,\n * for you to test and operate your code interactively.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#console-936" t="n" class="documentableName ">console</a>(<span t="k"></span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -835,9 +801,6 @@ node16 -> node0;
         <div class="documentableElement" id="coursierCacheCustomizer-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Customize the coursier file cache.\n *\n * This is rarely needed to be changed, but sometimes e.g. you want to load a coursier plugin.\n * Doing so requires adding to coursier\'s classpath. To do this you could use the following:\n * {{{\n * override def coursierCacheCustomizer = Task.Anon {\n * Some( (fc: coursier.cache.FileCache[Task]) =&gt;\n * fc.withClassLoaders(Seq(classOf[coursier.cache.protocol.S3Handler].getClassLoader))\n * )\n * }\n * }}}\n * @return\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#coursierCacheCustomizer-0" t="n" class="documentableName ">coursierCacheCustomizer</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">FileCache</span>[<span data-unresolved-link="" t="t">Task</span>]<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">FileCache</span>[<span data-unresolved-link="" t="t">Task</span>]]]
@@ -889,9 +852,6 @@ node16 -> node0;
         <div class="documentableElement" id="defaultResolver-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A `CoursierModule.Resolver` to resolve dependencies.\n *\n * Can be used to resolve external dependencies, if you need to download an external\n * tool from Maven or Ivy repositories, by calling `CoursierModule.Resolver#classpath`.\n *\n * @return `CoursierModule.Resolver` instance\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#defaultResolver-0" t="n" class="documentableName ">defaultResolver</a>: <a href="../api/Task.html" t="t">Task</a>[<a href="../javalib/CoursierModule$$Resolver.html" t="t">Resolver</a>]
@@ -989,9 +949,6 @@ node16 -> node0;
         <div class="documentableElement" id="forkEnv-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Any environment variables you want to pass to the forked Env\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#forkEnv-0" t="n" class="documentableName ">forkEnv</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>]]
@@ -1033,9 +990,6 @@ node16 -> node0;
         <div class="documentableElement" id="generatedSources-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Folders containing source files that are generated rather than\n * handwritten; these files can be generated in this task itself,\n * or can refer to files generated from other tasks\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#generatedSources-0" t="n" class="documentableName ">generatedSources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
@@ -1077,9 +1031,6 @@ node16 -> node0;
         <div class="documentableElement" id="hostPythonCommand-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Python interpreter found on the host system. This will be used to create a\n * new virtual environment, which will be used by all tasks in this module.\n *\n * If you\'d like to use a specific python version, override this task to\n * point to a specific python executable.\n *\n * Examples:\n *\n * ```\n * // use whatever python version is installed on the host system (default)\n * def hostPythonCommand = T{ \"python3\" }\n *\n * // use a specific minor release\n * def hostPythonCommand = T{ \"python3.12\" }\n *\n * // use a specific executable file\n * def hostPythonCommand = T{ \"/usr/bin/python3\" }\n * ```\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#hostPythonCommand-0" t="n" class="documentableName ">hostPythonCommand</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
@@ -1135,9 +1086,6 @@ node16 -> node0;
         <div class="documentableElement" id="indexes-0" data-f-inherited="PipModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Base URLs of the Python Package Indexes to search for packages. Defaults to\n * https://pypi.org/simple.\n *\n * These should point to repositories compliant with PEP 503 (the simple\n * repository API) or local directories laid out in the same format.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#indexes-0" t="n" class="documentableName ">indexes</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -1180,9 +1128,6 @@ node16 -> node0;
         <div class="documentableElement" id="javaHome-0" data-f-inherited="JavaHomeModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Optional custom Java Home for the JvmWorker to use\n *\n * If this value is None, then the JvmWorker uses the same Java used to run\n * the current mill instance.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#javaHome-0" t="n" class="documentableName ">javaHome</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Option</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -1297,9 +1242,6 @@ node16 -> node0;
         <div class="documentableElement" id="localPythonPath-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The directories used to construct the PYTHONPATH for this module, used for\n * execution, excluding upstream modules.\n *\n * This includes source directories, resources and other unmanaged\n * directories.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#localPythonPath-0" t="n" class="documentableName ">localPythonPath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
@@ -1342,9 +1284,6 @@ node16 -> node0;
         <div class="documentableElement" id="mainScript-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The python script to run. This file may not exist if this module is only a library.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#mainScript-0" t="n" class="documentableName ">mainScript</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]
@@ -1386,9 +1325,6 @@ node16 -> node0;
         <div class="documentableElement" id="mapDependencies-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Map dependencies before resolving them.\n * Override this to customize the set of dependencies.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#mapDependencies-0" t="n" class="documentableName ">mapDependencies</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Dependency</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Dependency</span>]
@@ -1430,9 +1366,6 @@ node16 -> node0;
         <div class="documentableElement" id="millResolver-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A [[CoursierModule.Resolver]] to resolve dependencies.\n *\n * Unlike [[defaultResolver]], this resolver can resolve Mill modules too\n * (obtained via [[JavaModule.coursierDependency]]).\n *\n * @return `CoursierModule.Resolver` instance\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#millResolver-0" t="n" class="documentableName ">millResolver</a>: <a href="../api/Task.html" t="t">Task</a>[<a href="../javalib/CoursierModule$$Resolver.html" t="t">Resolver</a>]
@@ -1517,9 +1450,6 @@ node16 -> node0;
         <div class="documentableElement" id="moduleDeps-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The direct dependencies of this module.\n * This is meant to be overridden to add dependencies.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#moduleDeps-0" t="n" class="documentableName ">moduleDeps</a>: <span data-unresolved-link="" t="t">Seq</span>[<a href="PythonModule.html" t="t">PythonModule</a>]
@@ -1669,9 +1599,6 @@ node16 -> node0;
         <div class="documentableElement" id="pipInstallArgs-0" data-f-inherited="PipModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Arguments to be passed to `pip install` when preparing the environment.\n *\n * This task is called by `pythonExe`. It serves as an escape hatch, should\n * you need to override it for some reason. Normally, you should not need to\n * edit this task directly. Instead, prefer editing the other tasks of this\n * module which influence how the arguments are created.\n *\n * @see [[indexes]]\n * @see [[pythonDeps]]\n * @see [[unmanagedWheels]]\n * @see [[pythonToolDeps]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#pipInstallArgs-0" t="n" class="documentableName ">pipInstallArgs</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="PipModule$$InstallArgs.html" t="t">InstallArgs</a>]
@@ -1733,9 +1660,6 @@ node16 -> node0;
         <div class="documentableElement" id="pythonDeps-0" data-f-inherited="PipModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Any python dependencies you want to add to this module. The format of each\n * dependency should be the same as used with `pip install`, or as you would\n * find in a `requirements.txt` file. E.g. `def pythonDeps =\n * Seq(\"numpy==2.1.3\")`.\n *\n * Dependencies declared here will also be required when installing this module.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#pythonDeps-0" t="n" class="documentableName ">pythonDeps</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -1778,9 +1702,6 @@ node16 -> node0;
         <div class="documentableElement" id="pythonExe-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * An executable python interpreter. This interpreter is set up to run in a\n * virtual environment which has been initialized to contain all libraries and\n * tools needed by this module and its dependencies.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#pythonExe-0" t="n" class="documentableName ">pythonExe</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]
@@ -1822,9 +1743,6 @@ node16 -> node0;
         <div class="documentableElement" id="pythonOptions-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Command-line options to pass to the Python Interpreter defined by the user.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#pythonOptions-0" t="n" class="documentableName ">pythonOptions</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -1866,9 +1784,6 @@ node16 -> node0;
         <div class="documentableElement" id="pythonRequirementFiles-0" data-f-inherited="PipModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Python dependencies declared in `requirements.txt` files. This is similar\n * to `pythonDeps`, but reads dependencies from a text file, allowing you to\n * reuse requirements files from existing projects.\n *\n * @see [[pythonDeps]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#pythonRequirementFiles-0" t="n" class="documentableName ">pythonRequirementFiles</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
@@ -1920,9 +1835,6 @@ node16 -> node0;
         <div class="documentableElement" id="repositories-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repositories used to resolve dependencies with [[classpath()]]. This\n * takes Coursier repository strings as input which are defined here:\n *\n * - https://github.com/coursier/coursier/blob/main/docs/pages/reference-repositories.md\n *\n * For example:\n *\n * - https://repo1.maven.org/maven2\n * Maven Central which is the most commonly used Maven repository\n *\n * - file:///Users/alex/test-repo\n * A local repository cache on disk\n *\n * - file://${ivy.home-${user.home}/.ivy2}/local/[defaultPattern]\n * The local Ivy2 repository where Mill, Scala CLI,\n * or sbt publish to when asked to publish locally\n *\n * - file://${user.home}/.m2/repository\n * the local Maven repository. Use of this is not recommended for reasons explained in the link above\n *\n * - https://maven.google.com\n * Google-managed repository that distributes some Android artifacts in particular\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#repositories-0" t="n" class="documentableName ">repositories</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -1980,9 +1892,6 @@ node16 -> node0;
         <div class="documentableElement" id="repositoriesTask-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A more flexible version of [[repositories]], that allows custom repositories\n * that are not definable by Coursier repository strings. This is a relatively\n * advanced feature, and for most situations overriding [[repositories]] should\n * be sufficient\n *\n * See [[allRepositories]] if you need to resolve Mill internal modules.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#repositoriesTask-0" t="n" class="documentableName ">repositoriesTask</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Repository</span>]]
@@ -2025,9 +1934,6 @@ node16 -> node0;
         <div class="documentableElement" id="resolutionCustomizer-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Customize the coursier resolution process.\n * This is rarely needed to changed, as the default try to provide a\n * highly reproducible resolution process. But sometime, you need\n * more control, e.g. you want to add some OS or JDK specific resolution properties\n * which are sometimes used by Maven and therefore found in dependency artifact metadata.\n * For example, the JavaFX artifacts are known to use OS specific properties.\n * To fix resolution for JavaFX, you could override this task like the following:\n * {{{\n * override def resolutionCustomizer = Task.Anon {\n * Some( (r: coursier.core.Resolution) =&gt;\n * r.withOsInfo(coursier.core.Activation.Os.fromProperties(sys.props.toMap))\n * )\n * }\n * }}}\n * @return\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#resolutionCustomizer-0" t="n" class="documentableName ">resolutionCustomizer</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Resolution</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Resolution</span>]]
@@ -2078,9 +1984,6 @@ node16 -> node0;
         <div class="documentableElement" id="resolutionParams-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Resolution parameters, allowing to customize resolution internals\n *\n * This rarely needs to be changed. This allows to disable the new way coursier handles\n * BOMs since coursier 2.1.17 (used in Mill since 0.12.3) for example, with:\n * {{{\n * def resolutionParams = super.resolutionParams()\n * .withEnableDependencyOverrides(Some(false))\n * }}}\n *\n * Note that versions forced with `Dep#forceVersion()` take over forced versions manually\n * set in `resolutionParams`. The former should be favored to force versions in dependency\n * resolution.\n *\n * The Scala version set via `ScalaModule#scalaVersion` also takes over any Scala version\n * provided via `ResolutionParams#scalaVersionOpt`.\n *\n * The default configuration set in `ResolutionParams#defaultConfiguration` is ignored when\n * Mill fetches dependencies to be passed to the compiler (equivalent to Maven \"compile scope\").\n * In that case, it forces the default configuration to be \"compile\". On the other hand, when\n * fetching dependencies for runtime (equivalent to Maven \"runtime scope\"), the value in\n * `ResolutionParams#defaultConfiguration` is used.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#resolutionParams-0" t="n" class="documentableName ">resolutionParams</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">ResolutionParams</span>]
@@ -2132,9 +2035,6 @@ node16 -> node0;
         <div class="documentableElement" id="resources-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The folders where the resource files for this module live.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#resources-0" t="n" class="documentableName ">resources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
@@ -2176,9 +2076,6 @@ node16 -> node0;
         <div class="documentableElement" id="run-fffffed9" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Run the main python script of this module.\n *\n * @see [[mainScript]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#run-fffffed9" t="n" class="documentableName ">run</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <a href="../api/Args.html" t="t">Args</a>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -2230,9 +2127,6 @@ node16 -> node0;
         <div class="documentableElement" id="runBackground-fffffed9" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Run the main python script of this module.\n *\n * @see [[mainScript]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#runBackground-fffffed9" t="n" class="documentableName ">runBackground</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <a href="../api/Args.html" t="t">Args</a>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -2320,9 +2214,6 @@ node16 -> node0;
         <div class="documentableElement" id="sources-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The folders where the source files for this mill module live.\n *\n * Python modules will be defined relative to these directories.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#sources-0" t="n" class="documentableName ">sources</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
@@ -2421,9 +2312,6 @@ node16 -> node0;
         <div class="documentableElement" id="transitivePythonDeps-0" data-f-inherited="PipModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Python dependencies of this module, and all other modules that this module\n * depends on, recursively.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#transitivePythonDeps-0" t="n" class="documentableName ">transitivePythonDeps</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -2465,9 +2353,6 @@ node16 -> node0;
         <div class="documentableElement" id="transitivePythonPath-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The transitive version of [[localPythonPath]]: this includes the\n * directories of all upstream modules as well.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#transitivePythonPath-0" t="n" class="documentableName ">transitivePythonPath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
@@ -2509,9 +2394,6 @@ node16 -> node0;
         <div class="documentableElement" id="transitivePythonRequirementFiles-0" data-f-inherited="PipModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * requirements.txt of this module, and all other modules that this module\n * depends on, recursively.\n *\n * @see [[pythonRequirementFiles]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#transitivePythonRequirementFiles-0" t="n" class="documentableName ">transitivePythonRequirementFiles</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
@@ -2563,9 +2445,6 @@ node16 -> node0;
         <div class="documentableElement" id="transitiveUnmanagedWheels-0" data-f-inherited="PipModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Any python wheels to install directly, for this module and all upstream modules, recursively.\n *\n * @see [[unmanagedWheels]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#transitiveUnmanagedWheels-0" t="n" class="documentableName ">transitiveUnmanagedWheels</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
@@ -2617,9 +2496,6 @@ node16 -> node0;
         <div class="documentableElement" id="typeCheck-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Run a typechecker on this module.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#typeCheck-0" t="n" class="documentableName ">typeCheck</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -2661,9 +2537,6 @@ node16 -> node0;
         <div class="documentableElement" id="unmanagedPythonPath-0" data-f-inherited="PythonModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Additional directories to include in the PYTHONPATH directly. These paths\n * are \"unmanaged\": they\'ll be included as they are on disk.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#unmanagedPythonPath-0" t="n" class="documentableName ">unmanagedPythonPath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
@@ -2705,9 +2578,6 @@ node16 -> node0;
         <div class="documentableElement" id="unmanagedWheels-0" data-f-inherited="PipModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Any python wheels to install directly.\n *\n * Note: you can also include wheels by using [direct\n * references](https://peps.python.org/pep-0440/#direct-references) in [[pythonRequirementFiles]], for\n * example `\"pip @ file:///localbuilds/pip-1.3.1-py33-none-any.whl\"`. However, if you do that then\n * changes to these files won\'t get picked up and you are on the hook for cache invalidation.\n * Therefore, if you have any wheels that you wish to install directly, it is recommended to add\n * them here.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RuffModule.html#unmanagedWheels-0" t="n" class="documentableName ">unmanagedWheels</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]

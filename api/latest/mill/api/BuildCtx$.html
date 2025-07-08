@@ -6,7 +6,6 @@
  <span>mill.api.BuildCtx</span>
 </div>
 <div class="main-signature mono-small-block">
- <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * BuildCtx contains APIs that are global throughout an entire build, without\n * being tied to any particular task or module\n */") </span>
  <div class="signature">
   <span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="BuildCtx$.html" t="n" class="documentableName ">BuildCtx</a>
  </div>
@@ -189,9 +188,6 @@ node3 -> node2;
         <div class="documentableElement" id="watchValue-fffff33f">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Register a compute value as watched during module initialization, so Mill knows\n * that if the value changes during `--watch` the module needs to be re-instantiated.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="BuildCtx$.html#watchValue-fffff33f" t="n" class="documentableName ">watchValue</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">v0</span>: <span t="k">=&gt; </span><span t="t">T</span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">fn</span>: <span data-unresolved-link="" t="t">FileName</span>, <span t="k"></span><span data-unresolved-link="" t="n">ln</span>: <span data-unresolved-link="" t="t">Line</span>): <span data-unresolved-link="" t="t">T</span>
@@ -227,9 +223,6 @@ node3 -> node2;
         <div class="documentableElement" id="withFilesystemCheckerDisabled-fffff7d2">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Disable Mill\'s filesystem read/write checker, which normally enforces best practices\n * about what code or tasks are able to read and write to what locations on disk.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="BuildCtx$.html#withFilesystemCheckerDisabled-fffff7d2" t="n" class="documentableName ">withFilesystemCheckerDisabled</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">block</span>: <span t="k">=&gt; </span><span t="t">T</span>): <span data-unresolved-link="" t="t">T</span>
@@ -265,9 +258,6 @@ node3 -> node2;
         <div class="documentableElement" id="workspaceRoot-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * This is the `os.Path` pointing to the project root directory.\n *\n * This is the preferred access to the project directory, and should\n * always be prefered over `os.pwd`* (which might also point to the\n * project directory in classic cli scenarios, but might not in other\n * use cases like BSP or LSP server usage).\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="BuildCtx$.html#workspaceRoot-0" t="n" class="documentableName ">workspaceRoot</a>: <span data-unresolved-link="" t="t">Path</span>

@@ -6,7 +6,6 @@
  <span>mill.javalib.repackage.RepackageModule</span>
 </div>
 <div class="main-signature mono-small-block">
- <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Support to produce self-executable assemblies with the `Repackager` from the Spring Boot Tools suite\n * (https://docs.spring.io/spring-boot/build-tool-plugin/index.html).\n *\n * This is an alternative to the [[mill.scalalib.AssemblyModule]].\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="RepackageModule.html" t="n" class="documentableName ">RepackageModule</a><span t="k"> extends </span><a href="../../api/Module.html" t="t">Module</a></span><span class="signature-long"></span>
  </div>
@@ -124,9 +123,6 @@ node9 -> node2;
         <div class="documentableElement" data-f-inherited="Module">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Miscellaneous machinery around traversing &amp; querying the build hierarchy,\n * that should not be needed by normal users of Mill\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="../../api/Module$moduleInternal$.html" t="n" class="documentableName ">moduleInternal</a><span t="k"> extends </span><a href="../../api/Module$$Internal.html" t="t">Internal</a></span><span class="signature-long"></span>
@@ -232,9 +228,6 @@ node9 -> node2;
         <div class="documentableElement" id="repackageMainClass-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The Class holding the Application entrypoint.\n * This uses the [[RunModule.mainClass]] (if defined) or falls back to auto-detection of a `SpringBootApplication` class.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RepackageModule.html#repackageMainClass-0" t="n" class="documentableName ">repackageMainClass</a>: <a href="../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
@@ -270,9 +263,6 @@ node9 -> node2;
         <div class="documentableElement" id="repackagePrependScript-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A script prepended to the resulting [[repackagedJar]] to make it executable.\n * This uses the same prepend script as Mill [[JavaModule]] does,\n * so it supports most Linux/Unix shells (probably not `fish`)\n * as well as Windows cmd shell (the file needs a `.bat` or `.cmd` extension).\n * Set it to [[None]] if you don\'t want an executable JAR.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RepackageModule.html#repackagePrependScript-0" t="n" class="documentableName ">repackagePrependScript</a>: <a href="../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -308,9 +298,6 @@ node9 -> node2;
         <div class="documentableElement" id="repackageUpstreamLocalJars-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** The upstream Module dependencies as JARs, to be embedded in the [[repackagedJar]]. */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RepackageModule.html#repackageUpstreamLocalJars-0" t="n" class="documentableName ">repackageUpstreamLocalJars</a>: <a href="../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../api/PathRef.html" t="t">PathRef</a>]]
@@ -346,9 +333,6 @@ node9 -> node2;
         <div class="documentableElement" id="repackageUpstreamMvnJars-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** The upstream Maven dependencies as JARs, to be embedded in the [[repackagedJar]]. */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RepackageModule.html#repackageUpstreamMvnJars-0" t="n" class="documentableName ">repackageUpstreamMvnJars</a>: <a href="../../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../api/PathRef.html" t="t">PathRef</a>]]
@@ -414,9 +398,6 @@ node9 -> node2;
         <div class="documentableElement" id="springBootToolsModule-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The Module holding the Spring Boot tools.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="RepackageModule.html#springBootToolsModule-0" t="n" class="documentableName ">springBootToolsModule</a>: <a href="../../api/ModuleRef.html" t="t">ModuleRef</a>[<a href="../spring/boot/SpringBootToolsModule.html" t="t">SpringBootToolsModule</a>]

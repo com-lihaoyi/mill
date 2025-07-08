@@ -9,7 +9,6 @@
  <span>See the<span class="micon ob"></span><a href="MainModule$.html">MainModule</a> companion object</span>
 </div>
 <div class="main-signature mono-small-block">
- <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * [[mill.api.Module]] containing all the default tasks that Mill provides: [[resolve]],\n * [[show]], [[inspect]], [[plan]], etc.\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="MainModule.html" t="n" class="documentableName ">MainModule</a><span t="k"> extends </span><a href="../api/BaseModule.html" t="t">BaseModule</a><span t="k">, </span></span><span class="signature-long"><a href="../api/daemon/internal/MainModuleApi.html" t="t">MainModuleApi</a></span>
  </div>
@@ -163,9 +162,6 @@ node13 -> node0;
         <div class="documentableElement" data-f-inherited="Module">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Miscellaneous machinery around traversing &amp; querying the build hierarchy,\n * that should not be needed by normal users of Mill\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="../api/Module$moduleInternal$.html" t="n" class="documentableName ">moduleInternal</a><span t="k"> extends </span><a href="../api/Module$$Internal.html" t="t">Internal</a></span><span class="signature-long"></span>
@@ -241,9 +237,6 @@ node13 -> node0;
         <div class="documentableElement" id="clean-fffff98a">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Deletes the given targets from the out directory. Providing no targets\n * will clean everything.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MainModule.html#clean-fffff98a" t="n" class="documentableName ">clean</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">evaluator</span>: <a href="../api/Evaluator.html" t="t">Evaluator</a>, <span t="k"></span><span data-unresolved-link="" t="n">tasks</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
@@ -309,9 +302,6 @@ node13 -> node0;
         <div class="documentableElement" id="init-fffff98a">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The `init` allows you to quickly generate a starter project.\n *\n * If you run it without arguments, it displays the list of available examples.\n *\n * If you pass one of listed examples, it downloads specified example from mill releases page and extracts it to working directory.\n *\n * If you pass a g8 template, it will generate a project based on a Giter8 template.\n * It prompts you to enter project name and creates a folder with that name.\n * There are lots of templates out there for many frameworks and tools!\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MainModule.html#init-fffff98a" t="n" class="documentableName ">init</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">evaluator</span>: <a href="../api/Evaluator.html" t="t">Evaluator</a>, <span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -350,9 +340,6 @@ node13 -> node0;
         <div class="documentableElement" id="inspect-fffff98a">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Displays metadata about the given task without actually running it.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MainModule.html#inspect-fffff98a" t="n" class="documentableName ">inspect</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">evaluator</span>: <a href="../api/Evaluator.html" t="t">Evaluator</a>, <span t="k"></span><span data-unresolved-link="" t="n">tasks</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">String</span>]
@@ -388,9 +375,6 @@ node13 -> node0;
         <div class="documentableElement" id="path-fffffaa9">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Prints out some dependency path from the `src` task to the `dest` task.\n *\n * If there are multiple dependency paths between `src` and `dest`, the path\n * chosen is arbitrary.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MainModule.html#path-fffffaa9" t="n" class="documentableName ">path</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">evaluator</span>: <a href="../api/Evaluator.html" t="t">Evaluator</a>, <span t="k"></span><span data-unresolved-link="" t="n">src</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">dest</span>: <span data-unresolved-link="" t="t">String</span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">List</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -427,9 +411,6 @@ node13 -> node0;
         <div class="documentableElement" id="plan-fffff98a">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Given a set of tasks, prints out the execution plan of what tasks will be\n * executed in what order, without actually executing them.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MainModule.html#plan-fffff98a" t="n" class="documentableName ">plan</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">evaluator</span>: <a href="../api/Evaluator.html" t="t">Evaluator</a>, <span t="k"></span><span data-unresolved-link="" t="n">tasks</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Array</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -465,9 +446,6 @@ node13 -> node0;
         <div class="documentableElement" id="resolve-fffff98a">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Resolves a mill query string and prints out the tasks it resolves to.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MainModule.html#resolve-fffff98a" t="n" class="documentableName ">resolve</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">evaluator</span>: <a href="../api/Evaluator.html" t="t">Evaluator</a>, <span t="k"></span><span data-unresolved-link="" t="n">tasks</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">List</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -503,9 +481,6 @@ node13 -> node0;
         <div class="documentableElement" id="show-fffff98a">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs a given task and prints the JSON result to stdout. This is useful\n * to integrate Mill into external scripts and tooling.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MainModule.html#show-fffff98a" t="n" class="documentableName ">show</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">evaluator</span>: <a href="../api/Evaluator.html" t="t">Evaluator</a>, <span t="k"></span><span data-unresolved-link="" t="n">tasks</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Value</span>]
@@ -541,9 +516,6 @@ node13 -> node0;
         <div class="documentableElement" id="showNamed-fffff98a">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs a given task and prints the results as JSON dictionary to stdout. This is useful\n * to integrate Mill into external scripts and tooling.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MainModule.html#showNamed-fffff98a" t="n" class="documentableName ">showNamed</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">evaluator</span>: <a href="../api/Evaluator.html" t="t">Evaluator</a>, <span t="k"></span><span data-unresolved-link="" t="n">tasks</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Value</span>]
@@ -579,9 +551,6 @@ node13 -> node0;
         <div class="documentableElement" id="shutdown-936">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Shuts down mill\'s background daemon\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MainModule.html#shutdown-936" t="n" class="documentableName ">shutdown</a>(<span t="k"></span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -617,9 +586,6 @@ node13 -> node0;
         <div class="documentableElement" id="version-936">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Show the mill version.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MainModule.html#version-936" t="n" class="documentableName ">version</a>(<span t="k"></span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">String</span>]
@@ -655,9 +621,6 @@ node13 -> node0;
         <div class="documentableElement" id="visualize-fffff98a">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Renders the dependencies between the given tasks as a SVG for you to look at\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MainModule.html#visualize-fffff98a" t="n" class="documentableName ">visualize</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">evaluator</span>: <a href="../api/Evaluator.html" t="t">Evaluator</a>, <span t="k"></span><span data-unresolved-link="" t="n">tasks</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
@@ -693,9 +656,6 @@ node13 -> node0;
         <div class="documentableElement" id="visualizePlan-fffff98a">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Renders the dependencies between the given tasks, and all their dependencies, as a SVG\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="MainModule.html#visualizePlan-fffff98a" t="n" class="documentableName ">visualizePlan</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">evaluator</span>: <a href="../api/Evaluator.html" t="t">Evaluator</a>, <span t="k"></span><span data-unresolved-link="" t="n">tasks</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
@@ -947,23 +907,6 @@ node13 -> node0;
         <div class="documentableElement" id="selective-0" data-f-keywords="lazy">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Commands related to selective execution, where Mill runs tasks selectively\n * depending on what task inputs or implementations changed.\n *\n * Read more about it at: https://mill-build.org/mill/large/selective-execution.html\n *\n * Here are the essential commands:\n *\n * - `mill selective.prepare <selector>
-             `:\n * run on the codebase before the code change,\n * stores a snapshot of task inputs and implementations\n *\n * - `mill selective.run 
-             <selector>
-              `:\n * run on the codebase after the code change,\n * runs tasks in the given `
-              <selector>
-               ` which are affected by the code changes\n * that have happened since `selective.prepare` was run\n *\n * - `mill selective.resolve 
-               <selector>
-                `:\n * a dry-run version of `selective.run`,\n * prints out the tasks in `
-                <selector>
-                 ` that are affected by the code changes\n * and would have run, without actually running them.\n */")
-                </selector>
-               </selector>
-              </selector>
-             </selector>
-            </selector></span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">lazy </span></span><span class="kind"><span t="k">val </span></span><a href="MainModule.html#selective-0" t="n" class="documentableName ">selective</a>: <a href="SelectiveExecutionModule.html" t="t">SelectiveExecutionModule</a>

@@ -466,9 +466,6 @@ node3 -> node2;
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a task that can be referenced by its path segments. `Task{...}`\n * tasks, `Task.Input`, `Task.Worker`, etc. but not including anonymous\n * `Task.Anon` or `Task.traverse` etc. instances\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="Task$$Named.html" t="n" class="documentableName ">Named</a>[<span t="k">+</span><span data-unresolved-link="" t="t">T</span>]<span t="k"> extends </span><a href="Task.html" t="t">Task</a>[<span t="t">T</span>]<span t="k">, </span></span><span class="signature-long"><a href="daemon/internal/NamedTaskApi.html" t="t">NamedTaskApi</a>[<span t="t">T</span>]</span>
@@ -720,9 +717,6 @@ node3 -> node2;
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A Simple Task is a [[Task.Named]] that is cached on disk; either a\n * [[Task.Computed]] or an [[Input]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="Task$$Simple.html" t="n" class="documentableName ">Simple</a>[<span t="k">+</span><span data-unresolved-link="" t="t">T</span>]<span t="k"> extends </span><a href="Task$$Named.html" t="t">Named</a>[<span t="t">T</span>]</span><span class="signature-long"></span>
@@ -1036,9 +1030,6 @@ node3 -> node2;
         <div class="documentableElement" id="Anon-e73" data-f-keywords="inline">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Creates an anonymous `Task`. These depend on other tasks and\n * be-depended-upon by other tasks, but cannot be run directly from the\n * command line and do not perform any caching. Typically used as helpers to\n * implement `Task{...}` tasks.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">inline </span></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#Anon-e73" t="n" class="documentableName ">Anon</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k">inline </span><span data-unresolved-link="" t="n">t</span>: <a href="daemon/Result.html" t="t">Result</a>[<span t="t">T</span>])(<span t="k">implicit </span><span t="k">inline </span><span data-unresolved-link="" t="n">enclosing</span>: <span data-unresolved-link="" t="t">Enclosing</span>): <a href="Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">T</span>]
@@ -1074,9 +1065,6 @@ node3 -> node2;
         <div class="documentableElement" id="Command-fffffdf1" data-f-keywords="inline">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * [[Command]]s are only [[Task.Named]]s defined using\n * `def foo() = Task.Command{...}` and are typically called from the\n * command-line. Unlike other [[Task.Named]]s, [[Command]]s can be defined to\n * take arguments that are automatically converted to command-line\n * arguments, as long as an implicit [[mainargs.TokensReader]] is available.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">inline </span></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#Command-fffffdf1" t="n" class="documentableName ">Command</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k">inline </span><span data-unresolved-link="" t="n">t</span>: <a href="daemon/Result.html" t="t">Result</a>[<span t="t">T</span>])(<span t="k">implicit </span><span t="k">inline </span><span data-unresolved-link="" t="n">w</span>: <span data-unresolved-link="" t="t">Writer</span>[<span t="t">T</span>], <span t="k">inline </span><span data-unresolved-link="" t="n">ctx</span>: <a href="ModuleCtx.html" t="t">ModuleCtx</a>): <a href="Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">T</span>]
@@ -1112,9 +1100,6 @@ node3 -> node2;
         <div class="documentableElement" id="Command-473">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @param exclusive Exclusive commands run serially at the end of an evaluation,\n * without any other tasks running parallel, and without the\n * terminal logging prefixes that are applied to normal tasks.\n * These are normally used for \"top level\" commands which are\n * run directly to perform some action or display some output\n * to the user.\n * @param persistent If true the `Task.dest` directory is not cleaned between\n * runs.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#Command-473" t="n" class="documentableName ">Command</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <a href="internal/NamedParameterOnlyDummy.html" t="t">NamedParameterOnlyDummy</a>, <span t="k"></span><span data-unresolved-link="" t="n">exclusive</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">persistent</span>: <span data-unresolved-link="" t="t">Boolean</span>): <a href="Task$$CommandFactory.html" t="t">CommandFactory</a>
@@ -1160,9 +1145,6 @@ node3 -> node2;
         <div class="documentableElement" id="Input-fffff64c" data-f-keywords="inline">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * [[Input]]s, normally defined using `Task.Input`, are [[Task.Named]]s that\n * re-evaluate every time Mill is run. This is in contrast to [[Task.Computed]]s\n * which only re-evaluate when upstream tasks change.\n *\n * [[Input]]s are useful when you want to capture some input to the Mill\n * build graph that comes from outside: maybe from an environment variable, a\n * JVM system property, the hash returned by `git rev-parse HEAD`. Reading\n * these external mutable variables inside a `Task{...}` [[Task.Computed]] will\n * incorrectly cache them forever. Reading them inside a `Task.Input{...}`\n * will re-compute them every time, and only if the value changes would it\n * continue to invalidate downstream [[Task.Computed]]s\n *\n * The most common case of [[Input]] is [[Source]] and [[Sources]],\n * used for detecting changes to source files.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">inline </span></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#Input-fffff64c" t="n" class="documentableName ">Input</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k">inline </span><span data-unresolved-link="" t="n">value</span>: <a href="daemon/Result.html" t="t">Result</a>[<span t="t">T</span>])(<span t="k">implicit </span><span t="k">inline </span><span data-unresolved-link="" t="n">w</span>: <span data-unresolved-link="" t="t">Writer</span>[<span t="t">T</span>], <span t="k">inline </span><span data-unresolved-link="" t="n">ctx</span>: <a href="ModuleCtx.html" t="t">ModuleCtx</a>): <a href="Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">T</span>]
@@ -1200,9 +1182,6 @@ node3 -> node2;
         <div class="documentableElement" id="Source-3a7" data-f-keywords="inline">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Similar to [[Sources]], but only for a single source file or folder. Defined\n * using `Task.Source`.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">inline </span></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#Source-3a7" t="n" class="documentableName ">Source</a>(<span t="k"></span><span t="k">inline </span><span data-unresolved-link="" t="n">value</span>: <span data-unresolved-link="" t="t">SubPath</span><span t="k"> | </span><span data-unresolved-link="" t="t">FilePath</span>)(<span t="k">implicit </span><span t="k">inline </span><span data-unresolved-link="" t="n">ctx</span>: <a href="ModuleCtx.html" t="t">ModuleCtx</a>): <a href="Task$$Simple.html" t="t">Simple</a>[<a href="PathRef.html" t="t">PathRef</a>]
@@ -1238,9 +1217,6 @@ node3 -> node2;
         <div class="documentableElement" id="Sources-fffff227" data-f-keywords="inline">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A specialization of [[Input]] defined via `Task.Sources`, [[Sources]]\n * uses [[PathRef]]s to compute a signature for a set of source files and\n * folders.\n *\n * This is most used when detecting changes in source code: when you edit a\n * file and run `mill compile`, it is the `Task.Sources` that re-computes the\n * signature for you source files/folders and decides whether or not downstream\n * [[Task.Computed]]s need to be invalidated and re-computed.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">inline </span></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#Sources-fffff227" t="n" class="documentableName ">Sources</a>(<span t="k"></span><span t="k">inline </span><span data-unresolved-link="" t="n">values</span>: <span data-unresolved-link="" t="t">SubPath</span><span t="k"> | </span><span data-unresolved-link="" t="t">FilePath</span>*)(<span t="k">implicit </span><span t="k">inline </span><span data-unresolved-link="" t="n">ctx</span>: <a href="ModuleCtx.html" t="t">ModuleCtx</a>): <a href="Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="PathRef.html" t="t">PathRef</a>]]
@@ -1277,9 +1253,6 @@ node3 -> node2;
         <div class="documentableElement" id="Worker-fffff20c" data-f-keywords="inline">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * [[Worker]] is a [[Task.Named]] that lives entirely in-memory, defined using\n * `Task.Worker{...}`. The value returned by `Task.Worker{...}` is long-lived,\n * persisting as long as the Mill process is kept alive (e.g. via `--watch`,\n * or via its default `MillDaemonMain` server process). This allows the user to\n * perform in-memory caching that is even more aggressive than the disk-based\n * caching enabled by [[PersistentImpl]]: your [[Worker]] can cache running\n * sub-processes, JVM Classloaders with JITed code, and all sorts of things\n * that do not easily serialize to JSON on disk.\n *\n * Like [[PersistentImpl]], The user defining a [[Worker]] assumes the\n * responsibility of ensuring the implementation is idempotent regardless of\n * what in-memory state the worker may have.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">inline </span></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#Worker-fffff20c" t="n" class="documentableName ">Worker</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k">inline </span><span data-unresolved-link="" t="n">t</span>: <a href="daemon/Result.html" t="t">Result</a>[<span t="t">T</span>])(<span t="k">implicit </span><span t="k">inline </span><span data-unresolved-link="" t="n">ctx</span>: <a href="ModuleCtx.html" t="t">ModuleCtx</a>): <a href="Task$$Worker.html" t="t">Worker</a>[<span data-unresolved-link="" t="t">T</span>]
@@ -1346,9 +1319,6 @@ node3 -> node2;
         <div class="documentableElement" id="apply-3b2">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Persistent tasks are defined using\n * the `Task(persistent = true){...}` syntax. The main difference is that while\n * [[Task.Computed]] deletes the `Task.dest` folder in between runs,\n * [[PersistentImpl]] preserves it. This lets the user make use of files on\n * disk that persistent between runs of the task, e.g. to implement their own\n * fine-grained caching beyond what Mill provides by default.\n *\n * Note that the user defining a `Task(persistent = true)` task is taking on the\n * responsibility of ensuring that their implementation is idempotent, i.e.\n * that it computes the same result whether or not there is data in `Task.dest`.\n * Violating that invariant can result in confusing mis-behaviors\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#apply-3b2" t="n" class="documentableName ">apply</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">t</span>: <a href="internal/NamedParameterOnlyDummy.html" t="t">NamedParameterOnlyDummy</a>, <span t="k"></span><span data-unresolved-link="" t="n">persistent</span>: <span data-unresolved-link="" t="t">Boolean</span>): <a href="Task$$ApplyFactory.html" t="t">ApplyFactory</a>
@@ -1385,9 +1355,6 @@ node3 -> node2;
         <div class="documentableElement" id="args-fffff51f">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Returns the implicit [[mill.api.TaskCtx.Args.args]] in scope.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#args-fffff51f" t="n" class="documentableName ">args</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx$$Args.html" t="t">Args</a>): <span data-unresolved-link="" t="t">IndexedSeq</span>[<span t="k">_</span>]
@@ -1423,9 +1390,6 @@ node3 -> node2;
         <div class="documentableElement" id="ctx-f38">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Returns the [[mill.api.TaskCtx]] that is available within this task\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#ctx-f38" t="n" class="documentableName ">ctx</a>(<span t="k"></span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">c</span>: <a href="TaskCtx.html" t="t">TaskCtx</a>): <a href="TaskCtx.html" t="t">TaskCtx</a>
@@ -1461,9 +1425,6 @@ node3 -> node2;
         <div class="documentableElement" id="dest-c27">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)\n * that is assigned to every Task or Command. It is cleared before your\n * task runs, and you can use it as a scratch space for temporary files or\n * a place to put returned artifacts. This is guaranteed to be unique for\n * every Task or Command, so you can be sure that you will not collide or\n * interfere with anyone else writing to those same paths.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#dest-c27" t="n" class="documentableName ">dest</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx$$Dest.html" t="t">Dest</a>): <span data-unresolved-link="" t="t">Path</span>
@@ -1499,9 +1460,6 @@ node3 -> node2;
         <div class="documentableElement" id="env-acf">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * `Task.env` is the environment variable map passed to the Mill command when\n * it is run; typically used inside a `Task.Input` to ensure any changes in\n * the env vars are properly detected.\n *\n * Note that you should not use `sys.env`, as Mill\'s long-lived server\n * process means that `sys.env` variables may not be up to date.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#env-acf" t="n" class="documentableName ">env</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx$$Env.html" t="t">Env</a>): <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>]
@@ -1568,9 +1526,6 @@ node3 -> node2;
         <div class="documentableElement" id="fork-a0c">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Provides the `.fork.async` and `.fork.await` APIs for spawning and joining\n * async futures within your task in a Mill-friendly mannter\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#fork-a0c" t="n" class="documentableName ">fork</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx.html" t="t">TaskCtx</a>): <a href="TaskCtx$$Fork$$Api.html" t="t">Api</a>
@@ -1606,9 +1561,6 @@ node3 -> node2;
         <div class="documentableElement" id="log-7f2">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * `Task.log` is the default logger provided for every task. While your task is running,\n * `System.out` and `System.in` are also redirected to this logger. The logs for a\n * task are streamed to standard out/error as you would expect, but each task\'s\n * specific output is also streamed to a log file on disk, e.g. `out/run.log` or\n * `out/classFiles.log` for you to inspect later.\n *\n * Messages logged with `log.debug` appear by default only in the log files.\n * You can use the `--debug` option when running mill to show them on the console too.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#log-7f2" t="n" class="documentableName ">log</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx$$Log.html" t="t">Log</a>): <a href="../api.html#Logger-0" t="t">Logger</a>
@@ -1675,9 +1627,6 @@ node3 -> node2;
         <div class="documentableElement" id="reporter-575">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Report build results to BSP for IDE integration\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#reporter-575" t="n" class="documentableName ">reporter</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx.html" t="t">TaskCtx</a>): <span data-unresolved-link="" t="t">Int</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Option</span>[<a href="daemon/internal/CompileProblemReporter.html" t="t">CompileProblemReporter</a>]
@@ -1713,9 +1662,6 @@ node3 -> node2;
         <div class="documentableElement" id="sequence-fffff56f">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Converts a `Seq[Task[T]]` into a `Task[Seq[T]]`\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#sequence-fffff56f" t="n" class="documentableName ">sequence</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">source</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="Task.html" t="t">Task</a>[<span t="t">T</span>]]): <a href="Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">T</span>]]
@@ -1751,9 +1697,6 @@ node3 -> node2;
         <div class="documentableElement" id="testReporter-fffffc24">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Report test results to BSP for IDE integration\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#testReporter-fffffc24" t="n" class="documentableName ">testReporter</a>(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">ctx</span>: <a href="TaskCtx.html" t="t">TaskCtx</a>): <a href="daemon/internal/TestReporter.html" t="t">TestReporter</a>
@@ -1789,9 +1732,6 @@ node3 -> node2;
         <div class="documentableElement" id="traverse-fffffef7">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Converts a `Seq[T]` into a `Task[Seq[V]]` using the given `f: T =&gt; Task[V]`\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Task$.html#traverse-fffffef7" t="n" class="documentableName ">traverse</a>[<span t="k"></span><span data-unresolved-link="" t="t">T</span>, <span t="k"></span><span data-unresolved-link="" t="t">V</span>](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">source</span>: <span data-unresolved-link="" t="t">Seq</span>[<span t="t">T</span>])(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">f</span>: <span t="t">T</span><span t="k"> =&gt; </span><a href="Task.html" t="t">Task</a>[<span t="t">V</span>]): <a href="Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">V</span>]]

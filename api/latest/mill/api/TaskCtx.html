@@ -9,7 +9,6 @@
  <span>See the<span class="micon ob"></span><a href="TaskCtx$.html">TaskCtx</a> companion object</span>
 </div>
 <div class="main-signature mono-small-block">
- <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents the data and utilities that are contextually available inside the\n * implementation of a `Task`.\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="TaskCtx.html" t="n" class="documentableName ">TaskCtx</a><span t="k"> extends </span><a href="TaskCtx$$Dest.html" t="t">Dest</a><span t="k">, </span></span><span class="signature-long"><a href="TaskCtx$$Log.html" t="t">Log</a><span t="k">, </span><a href="TaskCtx$$Args.html" t="t">Args</a><span t="k">, </span><a href="TaskCtx$$Env.html" t="t">Env</a><span t="k">, </span><a href="TaskCtx$$Workspace.html" t="t">Workspace</a><span t="k">, </span><a href="TaskCtx$$Fork.html" t="t">Fork</a><span t="k">, </span><a href="TaskCtx$$Jobs.html" t="t">Jobs</a><span t="k">, </span><a href="TaskCtx$$Offline.html" t="t">Offline</a><span t="k">, </span><a href="TaskCtx$$Fail.html" t="t">Fail</a></span>
  </div>
@@ -321,9 +320,6 @@ node12 -> node1;
         <div class="documentableElement" id="dest-0" data-f-inherited="Dest">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * `Task.dest` is a unique `os.Path` (e.g. `out/classFiles.dest/` or `out/run.dest/`)\n * that is assigned to every task or Command. It is cleared before your\n * task runs, and you can use it as a scratch space for temporary files or\n * a place to put returned artifacts. This is guaranteed to be unique for\n * every Task or Command, so you can be sure that you will not collide or\n * interfere with anyone else writing to those same paths.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TaskCtx.html#dest-0" t="n" class="documentableName ">dest</a>: <span data-unresolved-link="" t="t">Path</span>
@@ -365,9 +361,6 @@ node12 -> node1;
         <div class="documentableElement" id="env-0" data-f-inherited="Env">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * `Task.env` is the environment variable map passed to the Mill command when\n * it is run; typically used inside a `Task.Input` to ensure any changes in\n * the env vars are properly detected.\n *\n * Note that you should not use `sys.env`, as Mill\'s long-lived server\n * process means that `sys.env` variables may not be up to date.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TaskCtx.html#env-0" t="n" class="documentableName ">env</a>: <span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>]
@@ -410,9 +403,6 @@ node12 -> node1;
         <div class="documentableElement" id="fail-8c0" data-f-inherited="Fail">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Fail this task with a message.\n * This is a convenient alternative to returning [[Result.Failure]]\n * which also requires the happy path to return [[Result.Success]].\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TaskCtx.html#fail-8c0" t="n" class="documentableName ">fail</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">msg</span>: <span data-unresolved-link="" t="t">String</span>): <span data-unresolved-link="" t="t">Nothing</span>
@@ -454,9 +444,6 @@ node12 -> node1;
         <div class="documentableElement" id="fork-0" data-f-inherited="Fork">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Provides APIs for Mill tasks to spawn `async` \"future\" computations that\n * can be `await`ed upon to yield their result. Unlike other thread pools or\n * `Executor`s, `fork.async` spawns futures that follow Mill\'s `-j`/`--jobs` config,\n * sandbox their `os.pwd` in separate folders, and integrate with Mill\'s terminal\n * logging prefixes and prompt so a user can easily see what futures are running\n * and what logs belong to each future.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TaskCtx.html#fork-0" t="n" class="documentableName ">fork</a>: <a href="TaskCtx$$Fork$$Api.html" t="t">Api</a>
@@ -534,9 +521,6 @@ node12 -> node1;
         <div class="documentableElement" id="log-0" data-f-inherited="Log">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * `Task.log` is the default logger provided for every task. While your task is running,\n * `System.out` and `System.in` are also redirected to this logger. The logs for a\n * task are streamed to standard out/error as you would expect, but each task\'s\n * specific output is also streamed to a log file on disk, e.g. `out/run.log` or\n * `out/classFiles.log` for you to inspect later.\n *\n * Messages logged with `log.debug` appear by default only in the log files.\n * You can use the `--debug` option when running mill to show them on the console too.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TaskCtx.html#log-0" t="n" class="documentableName ">log</a>: <a href="../api.html#Logger-0" t="t">Logger</a>
@@ -615,9 +599,6 @@ node12 -> node1;
         <div class="documentableElement" id="workspace-0" data-f-inherited="Workspace">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * This is the `os.Path` pointing to the project root directory.\n *\n * This is the preferred access to the project directory, and should\n * always be preferred over `os.pwd`* (which might also point to the\n * project directory in classic cli scenarios, but might not in other\n * use cases like BSP or LSP server usage).\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="TaskCtx.html#workspace-0" t="n" class="documentableName ">workspace</a>: <span data-unresolved-link="" t="t">Path</span>

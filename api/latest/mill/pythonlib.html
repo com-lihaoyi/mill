@@ -32,9 +32,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Code coverage via Python\'s [coverage](https://coverage.readthedocs.io/)\n * package.\n *\n * ** Note that this is a helper trait, and you are unlikely to use this\n * directly. If you\'re looking for including coverage across tests in your\n * project, please use [[CoverageTests]] instead! **\n *\n * If you do want to use this module directly, please be aware that analyzing\n * code coverage introduces \"non-linear\" changes to the execution task flow, and\n * you will need to respect the following contract:\n *\n * 1. This trait defines a location where coverage data must be saved.\n *\n * 2. You need to define a `coverageTask` which is responsible for creating\n * coverage data in the before mentioned location. How this is done is up to\n * you. As an example, the [[CoverageTests]] module modifies `pythonOptions`\n * to prepend a `-m coverage` command line argument.\n *\n * 3. This trait defines methods that will a) invoke the coverage task b) assume\n * report data exists in the predefined location c) use that data to generate\n * coverage reports.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="pythonlib/CoverageModule.html" t="n" class="documentableName ">CoverageModule</a><span t="k"> extends </span><a href="pythonlib/PythonModule.html" t="t">PythonModule</a></span><span class="signature-long"></span>
@@ -139,9 +136,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** Analyze code coverage, starting from tests. */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="pythonlib/CoverageTests.html" t="n" class="documentableName ">CoverageTests</a><span t="k"> extends </span><a href="pythonlib/CoverageModule.html" t="t">CoverageModule</a><span t="k">, </span></span><span class="signature-long"><a href="pythonlib/TestModule.html" t="t">TestModule</a></span>
@@ -232,9 +226,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Basic tasks for preparing a python interpreter in a venv with required\n * dependencies installed.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="pythonlib/PipModule.html" t="n" class="documentableName ">PipModule</a><span t="k"> extends </span><a href="../mill.html#Module-0" t="t">Module</a></span><span class="signature-long"></span>
@@ -407,9 +398,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A python module which also defines how to build and publish source distributions and wheels.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="pythonlib/PublishModule.html" t="n" class="documentableName ">PublishModule</a><span t="k"> extends </span><a href="pythonlib/PythonModule.html" t="t">PythonModule</a></span><span class="signature-long"></span>
@@ -750,9 +738,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Linting and formatting functionality provided by [ruff](https://docs.astral.sh/ruff/).\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="pythonlib/RuffModule.html" t="n" class="documentableName ">RuffModule</a><span t="k"> extends </span><a href="pythonlib/PythonModule.html" t="t">PythonModule</a></span><span class="signature-long"></span>

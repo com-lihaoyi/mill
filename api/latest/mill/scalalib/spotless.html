@@ -32,9 +32,6 @@
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A specification for selecting files and the corresponding format steps to be applied.\n * @param steps Format steps to apply.\n * @param includes Path matcher patterns for files to format.\n * @param excludes Path matcher patterns for files to exclude from formatting.\n * @param lineEnding Name of line endings in files.\n * @param encoding Name of charset used for encoding files.\n * @param suppressions Lints to suppress.\n * @note Use with [[Format.RelPathRef.withDynamicRoot]] to configure any relative references.\n * @see\n * - [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/Formatter.java Formatter]]\n * - [[https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String) Path matcher pattern]]\n * - [[https://github.com/diffplug/spotless/tree/main/plugin-gradle#line-endings-and-encodings-invisible-stuff Line endings and encodings]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="spotless/Format.html" t="n" class="documentableName ">Format</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">steps</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="spotless/Format$$Step.html" t="t">Step</a>], <span t="k"></span><span data-unresolved-link="" t="n">includes</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">excludes</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">lineEnding</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">encoding</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">suppressions</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="spotless/Format$$Suppress.html" t="t">Suppress</a>])
@@ -233,9 +230,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Enables formatting files using [[https://github.com/diffplug/spotless Spotless]].\n * @note Any third party artifacts required by Spotless are resolved using [[defaultResolver]]\n * as \"runtime\" dependencies.\n * @see\n * - [[spotlessFormats]]\n * - [[spotless]]\n * - [[ratchet]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="spotless/SpotlessModule.html" t="n" class="documentableName ">SpotlessModule</a><span t="k"> extends </span><a href="../scalalib.html#CoursierModule-0" t="t">CoursierModule</a><span t="k">, </span></span><span class="signature-long"><a href="../scalalib.html#OfflineSupportModule-0" t="t">OfflineSupportModule</a></span>

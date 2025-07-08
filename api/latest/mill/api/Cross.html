@@ -9,7 +9,6 @@
  <span>See the<span class="micon ob"></span><a href="Cross$.html">Cross</a> companion object</span>
 </div>
 <div class="main-signature mono-small-block">
- <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Models \"cross-builds\": sets of duplicate builds which differ only in the\n * value of one or more \"case\" variables whose values are determined at runtime.\n * Used via:\n *\n * {{{\n * object foo extends Cross[FooModule](\"bar\", \"baz\", \"qux\")\n * trait FooModule extends Cross.Module[String]{\n * ... crossValue ...\n * }\n * }}}\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="Cross.html" t="n" class="documentableName ">Cross</a>[<span t="k"></span><span data-unresolved-link="" t="t">M</span><span t="k"> &lt;: </span><a href="Cross$$Module.html" t="t">Module</a>[<span t="k">_</span>]](<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">factories</span>: <a href="Cross$$Factory.html" t="t">Factory</a>[<span data-unresolved-link="" t="t">M</span>]*)<span t="k"> extends </span><a href="Module.html" t="t">Module</a></span><span class="signature-long"></span>
  </div>
@@ -194,9 +193,6 @@ node9 -> node2;
         <div class="documentableElement" data-f-inherited="Module">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Miscellaneous machinery around traversing &amp; querying the build hierarchy,\n * that should not be needed by normal users of Mill\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="Module$moduleInternal$.html" t="n" class="documentableName ">moduleInternal</a><span t="k"> extends </span><a href="Module$$Internal.html" t="t">Internal</a></span><span class="signature-long"></span>
@@ -272,9 +268,6 @@ node9 -> node2;
         <div class="documentableElement" id="apply-38e">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Fetch the cross module corresponding to the given cross values\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Cross.html#apply-38e" t="n" class="documentableName ">apply</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">arg0</span>: <span data-unresolved-link="" t="t">Any</span>, <span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">Any</span>*): <span t="t">M</span>
@@ -310,9 +303,6 @@ node9 -> node2;
         <div class="documentableElement" id="apply-fffffeab">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Fetch the relevant cross module given the implicit resolver you have in\n * scope. This is often the first cross module whose cross-version is\n * compatible with the current module.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Cross.html#apply-fffffeab" t="n" class="documentableName ">apply</a>[<span t="k"></span><span data-unresolved-link="" t="t">V</span><span t="k"> &gt;: </span><span t="t">M</span><span t="k"> &lt;: </span><a href="Cross$$Module.html" t="t">Module</a>[<span t="k">_</span>]](<span t="k"></span>)(<span t="k">implicit </span><span t="k"></span><span data-unresolved-link="" t="n">resolver</span>: <a href="Cross$$Resolver.html" t="t">Resolver</a>[<span t="t">V</span>]): <span t="t">M</span>
@@ -348,9 +338,6 @@ node9 -> node2;
         <div class="documentableElement" id="defaultCrossSegments-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The default cross segments to use, when no cross value is specified.\n * Defaults to the first cross value per cross level.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Cross.html#defaultCrossSegments-0" t="n" class="documentableName ">defaultCrossSegments</a>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]
@@ -386,9 +373,6 @@ node9 -> node2;
         <div class="documentableElement" id="get-d7b">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Fetch the cross module corresponding to the given cross values\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Cross.html#get-d7b" t="n" class="documentableName ">get</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Any</span>]): <span t="t">M</span>
@@ -604,9 +588,6 @@ node9 -> node2;
         <div class="documentableElement" id="crossModules-0" data-f-keywords="lazy">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A list of the cross modules, in\n * the order the original cross values were given in\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">lazy </span></span><span class="kind"><span t="k">val </span></span><a href="Cross.html#crossModules-0" t="n" class="documentableName ">crossModules</a>: <span data-unresolved-link="" t="t">Seq</span>[<span t="t">M</span>]
@@ -732,9 +713,6 @@ node9 -> node2;
         <div class="documentableElement" id="segmentsToModules-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A mapping of the string-ified string segments to the cross modules, in\n * the order the original cross values were given in\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">val </span></span><a href="Cross.html#segmentsToModules-0" t="n" class="documentableName ">segmentsToModules</a>: <span data-unresolved-link="" t="t">MapView</span>[<span data-unresolved-link="" t="t">List</span>[<span data-unresolved-link="" t="t">String</span>], <span t="t">M</span>]
@@ -770,9 +748,6 @@ node9 -> node2;
         <div class="documentableElement" id="valuesToModules-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A mapping of the raw cross values to the cross modules, in\n * the order the original cross values were given in\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">val </span></span><a href="Cross.html#valuesToModules-0" t="n" class="documentableName ">valuesToModules</a>: <span data-unresolved-link="" t="t">MapView</span>[<span data-unresolved-link="" t="t">List</span>[<span data-unresolved-link="" t="t">Any</span>], <span t="t">M</span>]

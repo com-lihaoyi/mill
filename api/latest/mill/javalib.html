@@ -253,9 +253,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Core configuration required to compile a single Java compilation target\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="javalib/AssemblyModule.html" t="n" class="documentableName ">AssemblyModule</a><span t="k"> extends </span><a href="api/Module.html" t="t">Module</a></span><span class="signature-long"></span>
@@ -438,9 +435,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A module that consists solely of dependency management\n *\n * To be used by other modules via `JavaModule#bomModuleDeps`\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="javalib/BomModule.html" t="n" class="documentableName ">BomModule</a><span t="k"> extends </span><a href="javalib/JavaModule.html" t="t">JavaModule</a></span><span class="signature-long"></span>
@@ -562,9 +556,6 @@
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Same as [[Dep]] but with already bound cross and platform settings.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="javalib/BoundDep.html" t="n" class="documentableName ">BoundDep</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">dep</span>: <span data-unresolved-link="" t="t">Dependency</span>, <span t="k"></span><span data-unresolved-link="" t="n">force</span>: <span data-unresolved-link="" t="t">Boolean</span>)
@@ -700,9 +691,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.\n *\n * It\'s mainly used in [[JavaModule]], but can also be used stand-alone,\n * in which case you must provide repositories by overriding [[CoursierModule.repositoriesTask]].\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="javalib/CoursierModule.html" t="n" class="documentableName ">CoursierModule</a><span t="k"> extends </span><a href="api/Module.html" t="t">Module</a></span><span class="signature-long"></span>
@@ -1172,9 +1160,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Module specific configuration of the Idea project file generator.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="javalib/GenIdeaModule.html" t="n" class="documentableName ">GenIdeaModule</a><span t="k"> extends </span><a href="../mill.html#Module-0" t="t">Module</a><span t="k">, </span></span><span class="signature-long"><a href="api/daemon/internal/idea/GenIdeaModuleApi.html" t="t">GenIdeaModuleApi</a></span>
@@ -1247,9 +1232,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Common trait for modules that use either a custom or a globally shared [[JvmWorkerModule]].\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="javalib/JavaHomeModule.html" t="n" class="documentableName ">JavaHomeModule</a><span t="k"> extends </span><a href="javalib/CoursierModule.html" t="t">CoursierModule</a></span><span class="signature-long"></span>
@@ -1374,9 +1356,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Core configuration required to compile a single Java module\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="javalib/JavaModule.html" t="n" class="documentableName ">JavaModule</a><span t="k"> extends </span><a href="api/Module.html" t="t">Module</a><span t="k">, </span></span><span class="signature-long"><a href="scalalib.html#WithJvmWorkerModule-0" t="t">WithJvmWorkerModule</a><span t="k">, </span><a href="javalib/TestModule$$JavaModuleBase.html" t="t">JavaModuleBase</a><span t="k">, </span><a href="api/TaskModule.html" t="t">TaskModule</a><span t="k">, </span><a href="scalalib.html#RunModule-0" t="t">RunModule</a><span t="k">, </span><a href="scalalib.html#GenIdeaModule-0" t="t">GenIdeaModule</a><span t="k">, </span><a href="scalalib.html#CoursierModule-0" t="t">CoursierModule</a><span t="k">, </span><a href="scalalib.html#OfflineSupportModule-0" t="t">OfflineSupportModule</a><span t="k">, </span><a href="scalalib/bsp/BspModule.html" t="t">BspModule</a><span t="k">, </span><a href="scalalib/SemanticDbJavaModule.html" t="t">SemanticDbJavaModule</a><span t="k">, </span><a href="scalalib.html#AssemblyModule-0" t="t">AssemblyModule</a><span t="k">, </span><a href="api/daemon/internal/JavaModuleApi.html" t="t">JavaModuleApi</a></span>
@@ -1659,9 +1638,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Support building modular runtime images with the `jlink` tool, which is included in JDK 9 and later.\n *\n * The official `jlink` docs: https://docs.oracle.com/en/java/javase/23/docs/specs/man/jlink.html\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="javalib/JlinkModule.html" t="n" class="documentableName ">JlinkModule</a><span t="k"> extends </span><a href="javalib/JavaModule.html" t="t">JavaModule</a></span><span class="signature-long"></span>
@@ -1783,9 +1759,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Support for building a native package / installer with the `jpackage` tool which comes bundled with JDK 14 and later.\n *\n * The official `jpackage` docs: https://docs.oracle.com/en/java/javase/23/docs/specs/man/jpackage.html\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="javalib/JpackageModule.html" t="n" class="documentableName ">JpackageModule</a><span t="k"> extends </span><a href="javalib/JavaModule.html" t="t">JavaModule</a></span><span class="signature-long"></span>
@@ -2035,9 +2008,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A default implementation of [[JvmWorkerModule]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="javalib/JvmWorkerModule$.html" t="n" class="documentableName ">JvmWorkerModule</a><span t="k"> extends </span><a href="api/ExternalModule.html" t="t">ExternalModule</a><span t="k">, </span></span><span class="signature-long"><a href="javalib/JvmWorkerModule.html" t="t">JvmWorkerModule</a><span t="k">, </span><a href="javalib/CoursierModule.html" t="t">CoursierModule</a></span>
@@ -2142,9 +2112,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A module managing an in-memory Zinc Scala incremental compiler\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="javalib/JvmWorkerModule.html" t="n" class="documentableName ">JvmWorkerModule</a><span t="k"> extends </span><a href="javalib/OfflineSupportModule.html" t="t">OfflineSupportModule</a><span t="k">, </span></span><span class="signature-long"><a href="javalib/CoursierModule.html" t="t">CoursierModule</a></span>
@@ -2293,9 +2260,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A [[JavaModule]] with a Maven compatible directory layout.\n *\n * @see [[SbtModule]] if you need a scala module with Maven layout.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="javalib/MavenModule.html" t="n" class="documentableName ">MavenModule</a><span t="k"> extends </span><a href="javalib/JavaModule.html" t="t">JavaModule</a></span><span class="signature-long"></span>
@@ -2447,9 +2411,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Arguments for the ivDepsTree command.\n *\n * @param inverse Invert the tree representation, so that the root is on the bottom.\n * @param withCompile Include the compile-time only dependencies (`compileMvnDeps`, provided scope) into the tree.\n * @param withRuntime Include the runtime dependencies (`runMvnDeps`, runtime scope) into the tree.\n * @param whatDependsOn possible list of modules (org:artifact) to target in the tree in order to see\n * where a dependency stems from.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">class </span></span><a href="javalib/MvnDepsTreeArgs.html" t="n" class="documentableName ">MvnDepsTreeArgs</a>
@@ -2597,9 +2558,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Provides a [[NativeImageModule.nativeImage task]] to build a native executable using [[https://www.graalvm.org/ Graal VM]].\n *\n * It is recommended to specify a custom JDK that includes the `native-image` Tool.\n * {{{\n * trait AppModule extends NativeImageModule {\n * def jvmWorker = ModuleRef(JvmWorkerGraalvm)\n *\n * def jvmId = \"graalvm-community:23.0.1\"\n * }\n * }}}\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="javalib/NativeImageModule.html" t="n" class="documentableName ">NativeImageModule</a><span t="k"> extends </span><a href="javalib/WithJvmWorkerModule.html" t="t">WithJvmWorkerModule</a></span><span class="signature-long"></span>
@@ -2852,9 +2810,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Configuration necessary for publishing a Scala module to Maven Central or similar\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="javalib/PublishModule.html" t="n" class="documentableName ">PublishModule</a><span t="k"> extends </span><a href="javalib/JavaModule.html" t="t">JavaModule</a></span><span class="signature-long"></span>
@@ -3749,9 +3704,6 @@
         <div class="documentableElement">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Common trait for modules that use either a custom or a globally shared [[JvmWorkerModule]].\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="javalib/WithJvmWorkerModule.html" t="n" class="documentableName ">WithJvmWorkerModule</a><span t="k"> extends </span><a href="javalib/JavaHomeModule.html" t="t">JavaHomeModule</a></span><span class="signature-long"></span>

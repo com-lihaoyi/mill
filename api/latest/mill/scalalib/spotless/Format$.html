@@ -117,9 +117,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/java/CleanthatJavaStep.java CleanthatJavaStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$CleanthatJava.html" t="n" class="documentableName ">CleanthatJava</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">groupArtifact</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">version</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">sourceJdkVersion</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">mutators</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">excludedMutators</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">includeDraft</span>: <span data-unresolved-link="" t="t">Boolean</span>)<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -188,9 +185,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a string value that can be inlined as `content` or must be read from `file`.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$ContentOrFile.html" t="n" class="documentableName ">ContentOrFile</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">content</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">file</span>: <a href="Format$$RelPathRef.html" t="t">RelPathRef</a>)
@@ -251,9 +245,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/kotlin/DiktatStep.java DiktatStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$Diktat.html" t="n" class="documentableName ">Diktat</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">version</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">isScript</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">configFile</span>: <a href="Format$$RelPathRef.html" t="t">RelPathRef</a>)<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -322,9 +313,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/generic/EndWithNewlineStep.java EndWithNewlineStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$EndWithNewline.html" t="n" class="documentableName ">EndWithNewline</a>(<span t="k"></span>)<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -393,9 +381,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * When `preserve` is set, `steps` are applied outside matching blocks, thus preserving the\n * formatting inside a matching block. Otherwise, `steps` are applied inside matching blocks.\n * @param name name of this step\n * @param regex matcher for a block\n * - `[regex]`: regular expression\n * - `[open,close]`: open and close markers\n * @see\n * - [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/generic/FenceStep.java FenceStep]]\n * - [[https://github.com/diffplug/spotless/tree/main/plugin-gradle#spotlessoff-and-spotlesson Toggle]]\n * - [[https://github.com/diffplug/spotless/tree/main/plugin-gradle#inception-languages-within-languages-within Inception]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$Fence.html" t="n" class="documentableName ">Fence</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">name</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">regex</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">preserve</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">steps</span>: <span data-unresolved-link="" t="t">Seq</span>[<a href="Format$$Step.html" t="t">Step</a>])<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -488,9 +473,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/java/FormatAnnotationsStep.java FormatAnnotationsStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$FormatAnnotations.html" t="n" class="documentableName ">FormatAnnotations</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">addedTypeAnnotations</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">removedTypeAnnotations</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>])<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -559,9 +541,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @param style `GOOGLE` | `ASOP`\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/java/GoogleJavaFormatStep.java GoogleJavaFormatStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$GoogleJavaFormat.html" t="n" class="documentableName ">GoogleJavaFormat</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">groupArtifact</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">version</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">style</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">reflowLongStrings</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">reorderImports</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">formatJavadoc</span>: <span data-unresolved-link="" t="t">Boolean</span>)<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -639,9 +618,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/java/ImportOrderStep.java ImportOrderStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$ImportOrder.html" t="n" class="documentableName ">ImportOrder</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">importOrder</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">wildcardsLast</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">semanticSort</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">treatAsPackage</span>: <span data-unresolved-link="" t="t">Set</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">treatAsClass</span>: <span data-unresolved-link="" t="t">Set</span>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">forJava</span>: <span data-unresolved-link="" t="t">Boolean</span>)<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -710,9 +686,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @param `type` `TAB` | `SPACE`\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/generic/IndentStep.java IndentStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$Indent.html" t="n" class="documentableName ">Indent</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">`type`</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">numSpacesPerTab</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Int</span>])<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -790,9 +763,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/generic/Jsr223Step.java Jsr223Step]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$Jsr223.html" t="n" class="documentableName ">Jsr223</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">name</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">dependency</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">engine</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">script</span>: <a href="Format$$ContentOrFile.html" t="t">ContentOrFile</a>)<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -861,9 +831,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/kotlin/KtLintStep.java KtLintStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$KtLint.html" t="n" class="documentableName ">KtLint</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">version</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">configFile</span>: <a href="Format$$RelPathRef.html" t="t">RelPathRef</a>, <span t="k"></span><span data-unresolved-link="" t="n">customRuleSets</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>])<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -932,9 +899,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @param style `DEFAULT` | `META_FORMAT` | `DROPBOX_FORMAT` | `GOOGLE_FORMAT` | `KOTLINLANG_FORMAT`\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/kotlin/KtfmtStep.java KtfmtStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$Ktfmt.html" t="n" class="documentableName ">Ktfmt</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">version</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">style</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">maxWidth</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Int</span>], <span t="k"></span><span data-unresolved-link="" t="n">blockIndent</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Int</span>], <span t="k"></span><span data-unresolved-link="" t="n">continuationIndent</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Int</span>], <span t="k"></span><span data-unresolved-link="" t="n">removeUnusedImports</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Boolean</span>], <span t="k"></span><span data-unresolved-link="" t="n">manageTrailingCommas</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Boolean</span>])<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -1012,9 +976,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @param yearMode `PRESERVE` | `UPDATE_TO_TODAY` | `SET_FROM_GIT`\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/generic/LicenseHeaderStep.java LicenseHeaderStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$LicenseHeader.html" t="n" class="documentableName ">LicenseHeader</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">delimiter</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">header</span>: <a href="Format$$ContentOrFile.html" t="t">ContentOrFile</a>, <span t="k"></span><span data-unresolved-link="" t="n">name</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">contentPattern</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">yearSeparator</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">yearMode</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">skipLinesMatching</span>: <span data-unresolved-link="" t="t">String</span>)<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -1167,9 +1128,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/generic/NativeCmdStep.java NativeCmdStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$NativeCmd.html" t="n" class="documentableName ">NativeCmd</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">name</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">pathToExe</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">arguments</span>: <span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>])<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -1238,9 +1196,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @param style `PALANTIR` | `GOOGLE` | `ASOP`\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/java/PalantirJavaFormatStep.java PalantirJavaFormatStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$PalantirJavaFormat.html" t="n" class="documentableName ">PalantirJavaFormat</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">version</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">style</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">formatJavadoc</span>: <span data-unresolved-link="" t="t">Boolean</span>)<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -1318,9 +1273,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A relative path reference resolved against a [[RelPathRef.withDynamicRoot configurable]] root\n * path. This is meant for usages where the machine specific root path prefix should be omitted.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$RelPathRef.html" t="n" class="documentableName ">RelPathRef</a>
@@ -1456,9 +1408,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @param formatter `google-java-format` | `cleanthat-javaparser-unnecessaryimport`\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/java/RemoveUnusedImportsStep.java RemoveUnusedImportsStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$RemoveUnusedImports.html" t="n" class="documentableName ">RemoveUnusedImports</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">formatter</span>: <span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">String</span>])<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -1536,9 +1485,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/generic/ReplaceStep.java ReplaceStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$Replace.html" t="n" class="documentableName ">Replace</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">name</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">target</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">replacement</span>: <span data-unresolved-link="" t="t">String</span>)<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -1607,9 +1553,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/generic/ReplaceRegexStep.java ReplaceRegexStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$ReplaceRegex.html" t="n" class="documentableName ">ReplaceRegex</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">name</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">regex</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">replacement</span>: <span data-unresolved-link="" t="t">String</span>)<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -1678,9 +1621,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/scala/ScalaFmtStep.java ScalaFmtStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$ScalaFmt.html" t="n" class="documentableName ">ScalaFmt</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">version</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">scalaMajorVersion</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">configFile</span>: <a href="Format$$RelPathRef.html" t="t">RelPathRef</a>)<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -1749,9 +1689,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="sealed">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Configuration for building a Spotless formatter step.\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/FormatterStep.java FormatterStep]].\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">sealed </span></span><span class="kind"><span t="k">trait </span></span><a href="Format$$Step.html" t="n" class="documentableName ">Step</a>
@@ -1877,9 +1814,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A lint suppression definition.\n * @note When all members are `null`, all lints are suppressed.\n * @param path Relative path to file.\n * @param step Name of formatter step.\n * @param shortCode Name of lint.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$Suppress.html" t="n" class="documentableName ">Suppress</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">path</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">step</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">shortCode</span>: <span data-unresolved-link="" t="t">String</span>)
@@ -1971,9 +1905,6 @@ node5 -> node1;
         <div class="documentableElement" data-f-keywords="case">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @see [[https://github.com/diffplug/spotless/blob/main/lib/src/main/java/com/diffplug/spotless/generic/TrimTrailingWhitespaceStep.java TrimTrailingWhitespaceStep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"><span t="k">case </span></span><span class="kind"><span t="k">class </span></span><a href="Format$$TrimTrailingWhitespace.html" t="n" class="documentableName ">TrimTrailingWhitespace</a>(<span t="k"></span>)<span t="k"> extends </span><a href="Format$$Step.html" t="t">Step</a></span><span class="signature-long"></span>
@@ -2080,7 +2011,7 @@ node5 -> node1;
                Source
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-deamon/25ac867e/sandbox/library/src/scala/deriving/Mirror.scala" target="_blank">Mirror.scala</a>
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-deamon/2000829b/sandbox/library/src/scala/deriving/Mirror.scala" target="_blank">Mirror.scala</a>
               </dd>
              </dl>
             </div>
@@ -2121,7 +2052,7 @@ node5 -> node1;
                Source
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-deamon/25ac867e/sandbox/library/src/scala/deriving/Mirror.scala" target="_blank">Mirror.scala</a>
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/out/mill-no-deamon/2000829b/sandbox/library/src/scala/deriving/Mirror.scala" target="_blank">Mirror.scala</a>
               </dd>
              </dl>
             </div>
@@ -2147,9 +2078,6 @@ node5 -> node1;
         <div class="documentableElement" id="apply-997">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * @note Use with [[RelPathRef.withDynamicRoot]] to configure any relative references.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Format$.html#apply-997" t="n" class="documentableName ">apply</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">includes</span>: <span data-unresolved-link="" t="t">String</span>*)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">steps</span>: <a href="Format$$Step.html" t="t">Step</a>*): <a href="Format.html" t="t">Format</a>
@@ -2190,9 +2118,6 @@ node5 -> node1;
         <div class="documentableElement" id="defaultJava-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Default [[Format]] for files with `.java` extension.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Format$.html#defaultJava-0" t="n" class="documentableName ">defaultJava</a>: <a href="Format.html" t="t">Format</a>
@@ -2228,9 +2153,6 @@ node5 -> node1;
         <div class="documentableElement" id="defaultKotlin-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Default [[Format]] for files with `.kt`, `.kts` extensions.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Format$.html#defaultKotlin-0" t="n" class="documentableName ">defaultKotlin</a>: <a href="Format.html" t="t">Format</a>
@@ -2266,9 +2188,6 @@ node5 -> node1;
         <div class="documentableElement" id="defaultScala-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Default [[Format]] for files with `.scala`, `.sc`, `.mill` extensions.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Format$.html#defaultScala-0" t="n" class="documentableName ">defaultScala</a>: <a href="Format.html" t="t">Format</a>
@@ -2304,9 +2223,6 @@ node5 -> node1;
         <div class="documentableElement" id="ext-fffff6d2">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A [[Format]] for `steps` that selects files with the given extensions.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Format$.html#ext-fffff6d2" t="n" class="documentableName ">ext</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">eh</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">et</span>: <span data-unresolved-link="" t="t">String</span>*)(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">steps</span>: <a href="Format$$Step.html" t="t">Step</a>*): <a href="Format.html" t="t">Format</a>

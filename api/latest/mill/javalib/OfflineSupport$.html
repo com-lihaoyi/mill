@@ -148,9 +148,6 @@ node12 -> node11;
         <div class="documentableElement" data-f-inherited="Module">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Miscellaneous machinery around traversing &amp; querying the build hierarchy,\n * that should not be needed by normal users of Mill\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="../api/Module$moduleInternal$.html" t="n" class="documentableName ">moduleInternal</a><span t="k"> extends </span><a href="../api/Module$$Internal.html" t="t">Internal</a></span><span class="signature-long"></span>
@@ -226,11 +223,6 @@ node12 -> node11;
         <div class="documentableElement" id="prepareOffline-fffff840">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Prepare the project for working offline.\n * This should typically fetch (missing) resources like Maven dependencies.\n *\n * All fetched or cached resources will be returned. The result\n * - does not contain duplicates\n * - is also available as a JSON file at the stable location `<mill-out>
-             /mill/scalalib/OfflineSupport/prepareOffline.json`\n *\n * If used without parameters, it\'s equivalent to running\n * `mill mill.scalalib.OfflineSupport/prepareOffline __:OfflineSupportModule.prepareOffline`\n * but without duplicates.\n *\n * To select only a subset of modules (`foo` and `bar`), run\n * `mill mill.scalalib.OfflineSupport/prepareOffline \"{foo,bar}.prepareOffline\"`\n *\n * To fetch all dependencies, even rarely used ones, run\n * `mill mill.scalalib.OfflineSupport/prepareOffline __:OfflineSupportModule.prepareOffline --all`\n *\n * @param modules module and parameter selector\n */")
-            </mill-out></span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="OfflineSupport$.html#prepareOffline-fffff840" t="n" class="documentableName ">prepareOffline</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">evaluator</span>: <a href="../api/Evaluator.html" t="t">Evaluator</a>, <span t="k"></span><span data-unresolved-link="" t="n">modules</span>: <span data-unresolved-link="" t="t">Leftover</span>[<span data-unresolved-link="" t="t">String</span>]): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]

@@ -502,9 +502,6 @@ node6 -> node2;
         <div class="documentableElement" id="withDottyCompat-fffff637">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * If scalaVersion is a Dotty version, replace the cross-version suffix\n * by the Scala 2.x version that the Dotty version is retro-compatible with,\n * otherwise do nothing.\n *\n * This setting is useful when your build contains dependencies that have only\n * been published with Scala 2.x, if you have:\n * {{{\n * def mvnDeps = Seq(mvn\"a::b:c\")\n * }}}\n * you can replace it by:\n * {{{\n * def mvnDeps = Seq(mvn\"a::b:c\".withDottyCompat(scalaVersion()))\n * }}}\n * This will have no effect when compiling with Scala 2.x, but when compiling\n * with Dotty this will change the cross-version to a Scala 2.x one. This\n * works because Dotty is currently retro-compatible with Scala 2.x.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="Dep.html#withDottyCompat-fffff637" t="n" class="documentableName ">withDottyCompat</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">scalaVersion</span>: <span data-unresolved-link="" t="t">String</span>): <a href="Dep.html" t="t">Dep</a>

@@ -177,9 +177,6 @@
         <div class="documentableElement" data-f-inherited="JsonFormatters">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Additional [[mainargs.TokensReader]] instance to teach it how to read Ammonite paths\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="mill/api/JsonFormatters$PathTokensReader$.html" t="n" class="documentableName ">PathTokensReader</a><span t="k"> extends </span><span data-unresolved-link="" t="t">Simple</span>[<span data-unresolved-link="" t="t">Path</span>]</span><span class="signature-long"></span>
@@ -980,9 +977,6 @@
         <div class="documentableElement" id="Args-0" data-f-export="from api}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents an unstructured sequence of command-line arguments that can be\n * passed to Mill commands; similar to `mainargs.Leftover`.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="mill.html#Args-0" t="n" class="documentableName ">Args</a><span t="k"> = </span><a href="mill/api/Args.html" t="t">Args</a>
@@ -1079,9 +1073,6 @@
         <div class="documentableElement" id="Cross-0" data-f-export="from api}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Models \"cross-builds\": sets of duplicate builds which differ only in the\n * value of one or more \"case\" variables whose values are determined at runtime.\n * Used via:\n *\n * {{{\n * object foo extends Cross[FooModule](\"bar\", \"baz\", \"qux\")\n * trait FooModule extends Cross.Module[String]{\n * ... crossValue ...\n * }\n * }}}\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="mill.html#Cross-0" t="n" class="documentableName ">Cross</a><span t="k"> = </span>[<span t="t">M</span><span t="k"> &lt;: </span><a href="mill/api/Cross$$Module.html" t="t">Module</a>[<span t="k">_</span>]]<span t="k"> =&gt;&gt; </span><a href="mill/api/Cross.html" t="t">Cross</a>[<span t="t">M</span>]
@@ -1146,9 +1137,6 @@
         <div class="documentableElement" id="Module-0" data-f-export="from api}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Represents a namespace within the Mill build hierarchy, containing nested\n * modules or tasks.\n *\n * `Module` is a class meant to be extended by ``trait``s *only*, in order to\n * propagate the implicit parameters forward to the final concrete\n * instantiation site so they can capture the enclosing/line information of\n * the concrete instance.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="mill.html#Module-0" t="n" class="documentableName ">Module</a><span t="k"> = </span><a href="mill/api/Module.html" t="t">Module</a>
@@ -1213,9 +1201,6 @@
         <div class="documentableElement" id="PathRef-0" data-f-export="from api}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A wrapper around `os.Path` that calculates it\'s hashcode based\n * on the contents of the filesystem underneath it. Used to ensure filesystem\n * changes can bust caches which are keyed off hashcodes.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="mill.html#PathRef-0" t="n" class="documentableName ">PathRef</a><span t="k"> = </span><a href="mill/api/PathRef.html" t="t">PathRef</a>
@@ -1280,9 +1265,6 @@
         <div class="documentableElement" id="Task-0" data-f-export="from api}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Models a single node in the Mill build graph, with a list of inputs and a\n * single output of type [[T]].\n *\n * Generally not instantiated manually, but instead constructed via the\n * [[Task.apply]] &amp; similar macros.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="mill.html#Task-0" t="n" class="documentableName ">Task</a><span t="k"> = </span><a href="mill/api/Task.html" t="t">Task</a>
@@ -1315,9 +1297,6 @@
         <div class="documentableElement" id="TaskModule-0" data-f-export="from api}" data-f-keywords="final">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A [[Module]] that has a [[defaultTask]] that will be automatically\n * executed if the module name is provide at the Mill command line\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">final </span></span><span class="kind"><span t="k">type </span></span><a href="mill.html#TaskModule-0" t="n" class="documentableName ">TaskModule</a><span t="k"> = </span><a href="mill/api/TaskModule.html" t="t">TaskModule</a>

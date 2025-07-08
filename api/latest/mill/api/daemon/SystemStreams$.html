@@ -105,9 +105,6 @@ node3 -> node2;
         <div class="documentableElement" id="isOriginal-fffff760">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Used to check whether the system streams are all \"original\", i,e. they\n * have not been overridden. Used for code paths that need to work differently\n * if they have been overridden (e.g. handling subprocess stdout/stderr)\n *\n * Assumes that the application only uses [[withStreams]] to override\n * stdout/stderr/stdin.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SystemStreams$.html#isOriginal-fffff760" t="n" class="documentableName ">isOriginal</a>(<span t="k"></span>): <span data-unresolved-link="" t="t">Boolean</span>
@@ -144,9 +141,6 @@ node3 -> node2;
         <div class="documentableElement" id="originalErr-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The original non-override stderr, used for debugging purposes e.g. if you\n * want to print stuff while the system streams override are messed up\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SystemStreams$.html#originalErr-0" t="n" class="documentableName ">originalErr</a>: <span data-unresolved-link="" t="t">PrintStream</span>
@@ -220,9 +214,6 @@ node3 -> node2;
         <div class="documentableElement" id="original-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The original system streams of this process, before any redirection.\n *\n * NOTE: you should not use this! They do not get captured properly by Mill\'s stdout/err\n * redirection, and thus only get picked up from the Mill server log files asynchronously.\n * That means that the logs may appear out of order, jumbling your logs and screwing up\n * your terminal\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">val </span></span><a href="SystemStreams$.html#original-0" t="n" class="documentableName ">original</a>: <a href="SystemStreams.html" t="t">SystemStreams</a>

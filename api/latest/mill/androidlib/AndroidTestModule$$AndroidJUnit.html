@@ -198,9 +198,6 @@ node21 -> node13;
         <div class="documentableElement" data-f-inherited="Module">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Miscellaneous machinery around traversing &amp; querying the build hierarchy,\n * that should not be needed by normal users of Mill\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="../api/Module$moduleInternal$.html" t="n" class="documentableName ">moduleInternal</a><span t="k"> extends </span><a href="../api/Module$$Internal.html" t="t">Internal</a></span><span class="signature-long"></span>
@@ -276,9 +273,6 @@ node21 -> node13;
         <div class="documentableElement" id="testFramework-0" data-f-keywords="override">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/** TODO this probably does not sit well with the idea of a test framework */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#testFramework-0" t="n" class="documentableName ">testFramework</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
@@ -380,9 +374,6 @@ node21 -> node13;
         <div class="documentableElement" id="allLocalMainClasses-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * All main classes detected in this module that can serve as program entry-points.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#allLocalMainClasses-0" t="n" class="documentableName ">allLocalMainClasses</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -424,9 +415,6 @@ node21 -> node13;
         <div class="documentableElement" id="allRepositories-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repositories used to resolve dependencies\n *\n * Unlike [[repositoriesTask]], this includes the Mill internal repositories,\n * which allow to resolve Mill internal modules (usually brought in via\n * `JavaModule#coursierDependency`).\n *\n * Beware that this needs to evaluate `JavaModule#coursierProject` of all\n * module dependencies of the current module, which itself evaluates `JavaModule#mvnDeps`\n * and related tasks. You shouldn\'t depend on this task from implementations of `mvnDeps`,\n * which would introduce cycles between Mill tasks.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#allRepositories-0" t="n" class="documentableName ">allRepositories</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Repository</span>]]
@@ -470,9 +458,6 @@ node21 -> node13;
         <div class="documentableElement" id="bindDependency-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Bind a dependency ([[Dep]]) to the actual module context (e.g. the scala version and the platform suffix)\n * @return The [[BoundDep]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#bindDependency-0" t="n" class="documentableName ">bindDependency</a>: <a href="../api/Task.html" t="t">Task</a>[<a href="../javalib/Dep.html" t="t">Dep</a><span t="k"> =&gt; </span><a href="../javalib/BoundDep.html" t="t">BoundDep</a>]
@@ -569,9 +554,6 @@ node21 -> node13;
         <div class="documentableElement" id="checkGradleModules-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Whether to enable Gradle Module support when fetching dependencies\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#checkGradleModules-0" t="n" class="documentableName ">checkGradleModules</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
@@ -649,9 +631,6 @@ node21 -> node13;
         <div class="documentableElement" id="coursierCacheCustomizer-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Customize the coursier file cache.\n *\n * This is rarely needed to be changed, but sometimes e.g. you want to load a coursier plugin.\n * Doing so requires adding to coursier\'s classpath. To do this you could use the following:\n * {{{\n * override def coursierCacheCustomizer = Task.Anon {\n * Some( (fc: coursier.cache.FileCache[Task]) =&gt;\n * fc.withClassLoaders(Seq(classOf[coursier.cache.protocol.S3Handler].getClassLoader))\n * )\n * }\n * }}}\n * @return\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#coursierCacheCustomizer-0" t="n" class="documentableName ">coursierCacheCustomizer</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">FileCache</span>[<span data-unresolved-link="" t="t">Task</span>]<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">FileCache</span>[<span data-unresolved-link="" t="t">Task</span>]]]
@@ -703,9 +682,6 @@ node21 -> node13;
         <div class="documentableElement" id="defaultResolver-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A `CoursierModule.Resolver` to resolve dependencies.\n *\n * Can be used to resolve external dependencies, if you need to download an external\n * tool from Maven or Ivy repositories, by calling `CoursierModule.Resolver#classpath`.\n *\n * @return `CoursierModule.Resolver` instance\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#defaultResolver-0" t="n" class="documentableName ">defaultResolver</a>: <a href="../api/Task.html" t="t">Task</a>[<a href="../javalib/CoursierModule$$Resolver.html" t="t">Resolver</a>]
@@ -803,9 +779,6 @@ node21 -> node13;
         <div class="documentableElement" id="discoveredTestClasses-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Test classes (often called test suites) discovered by the configured [[testFramework]].\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#discoveredTestClasses-0" t="n" class="documentableName ">discoveredTestClasses</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -919,9 +892,6 @@ node21 -> node13;
         <div class="documentableElement" id="forkArgs-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Any command-line parameters you want to pass to the forked JVM.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#forkArgs-0" t="n" class="documentableName ">forkArgs</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -963,9 +933,6 @@ node21 -> node13;
         <div class="documentableElement" id="forkEnv-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Any environment variables you want to pass to the forked JVM.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#forkEnv-0" t="n" class="documentableName ">forkEnv</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">String</span>, <span data-unresolved-link="" t="t">String</span>]]
@@ -1079,9 +1046,6 @@ node21 -> node13;
         <div class="documentableElement" id="javaHome-0" data-f-inherited="JavaHomeModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Optional custom Java Home for the JvmWorker to use\n *\n * If this value is None, then the JvmWorker uses the same Java used to run\n * the current mill instance.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#javaHome-0" t="n" class="documentableName ">javaHome</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Option</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -1232,9 +1196,6 @@ node21 -> node13;
         <div class="documentableElement" id="launcher-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Builds a command-line \"launcher\" file that can be used to run this module\'s\n * code, without the Mill process. Useful for deployment &amp; other places where\n * you do not want a build tool running\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#launcher-0" t="n" class="documentableName ">launcher</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../api/PathRef.html" t="t">PathRef</a>]
@@ -1276,9 +1237,6 @@ node21 -> node13;
         <div class="documentableElement" id="localRunClasspath-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The elements of the run classpath which are local to this module.\n * This is typically the output of a compilation step and bundles runtime resources.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#localRunClasspath-0" t="n" class="documentableName ">localRunClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -1320,9 +1278,6 @@ node21 -> node13;
         <div class="documentableElement" id="mainClass-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Allows you to specify an explicit main class to use for the `run` command.\n * If none is specified, the classpath is searched for an appropriate main\n * class to use if one exists.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#mainClass-0" t="n" class="documentableName ">mainClass</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -1400,9 +1355,6 @@ node21 -> node13;
         <div class="documentableElement" id="mapDependencies-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Map dependencies before resolving them.\n * Override this to customize the set of dependencies.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#mapDependencies-0" t="n" class="documentableName ">mapDependencies</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Dependency</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Dependency</span>]
@@ -1444,9 +1396,6 @@ node21 -> node13;
         <div class="documentableElement" id="millResolver-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A [[CoursierModule.Resolver]] to resolve dependencies.\n *\n * Unlike [[defaultResolver]], this resolver can resolve Mill modules too\n * (obtained via [[JavaModule.coursierDependency]]).\n *\n * @return `CoursierModule.Resolver` instance\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#millResolver-0" t="n" class="documentableName ">millResolver</a>: <a href="../api/Task.html" t="t">Task</a>[<a href="../javalib/CoursierModule$$Resolver.html" t="t">Resolver</a>]
@@ -1675,9 +1624,6 @@ node21 -> node13;
         <div class="documentableElement" id="repositories-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The repositories used to resolve dependencies with [[classpath()]]. This\n * takes Coursier repository strings as input which are defined here:\n *\n * - https://github.com/coursier/coursier/blob/main/docs/pages/reference-repositories.md\n *\n * For example:\n *\n * - https://repo1.maven.org/maven2\n * Maven Central which is the most commonly used Maven repository\n *\n * - file:///Users/alex/test-repo\n * A local repository cache on disk\n *\n * - file://${ivy.home-${user.home}/.ivy2}/local/[defaultPattern]\n * The local Ivy2 repository where Mill, Scala CLI,\n * or sbt publish to when asked to publish locally\n *\n * - file://${user.home}/.m2/repository\n * the local Maven repository. Use of this is not recommended for reasons explained in the link above\n *\n * - https://maven.google.com\n * Google-managed repository that distributes some Android artifacts in particular\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#repositories-0" t="n" class="documentableName ">repositories</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -1735,9 +1681,6 @@ node21 -> node13;
         <div class="documentableElement" id="repositoriesTask-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * A more flexible version of [[repositories]], that allows custom repositories\n * that are not definable by Coursier repository strings. This is a relatively\n * advanced feature, and for most situations overriding [[repositories]] should\n * be sufficient\n *\n * See [[allRepositories]] if you need to resolve Mill internal modules.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#repositoriesTask-0" t="n" class="documentableName ">repositoriesTask</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Repository</span>]]
@@ -1780,9 +1723,6 @@ node21 -> node13;
         <div class="documentableElement" id="resolutionCustomizer-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Customize the coursier resolution process.\n * This is rarely needed to changed, as the default try to provide a\n * highly reproducible resolution process. But sometime, you need\n * more control, e.g. you want to add some OS or JDK specific resolution properties\n * which are sometimes used by Maven and therefore found in dependency artifact metadata.\n * For example, the JavaFX artifacts are known to use OS specific properties.\n * To fix resolution for JavaFX, you could override this task like the following:\n * {{{\n * override def resolutionCustomizer = Task.Anon {\n * Some( (r: coursier.core.Resolution) =&gt;\n * r.withOsInfo(coursier.core.Activation.Os.fromProperties(sys.props.toMap))\n * )\n * }\n * }}}\n * @return\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#resolutionCustomizer-0" t="n" class="documentableName ">resolutionCustomizer</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Resolution</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Resolution</span>]]
@@ -1833,9 +1773,6 @@ node21 -> node13;
         <div class="documentableElement" id="resolutionParams-0" data-f-inherited="CoursierModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Resolution parameters, allowing to customize resolution internals\n *\n * This rarely needs to be changed. This allows to disable the new way coursier handles\n * BOMs since coursier 2.1.17 (used in Mill since 0.12.3) for example, with:\n * {{{\n * def resolutionParams = super.resolutionParams()\n * .withEnableDependencyOverrides(Some(false))\n * }}}\n *\n * Note that versions forced with `Dep#forceVersion()` take over forced versions manually\n * set in `resolutionParams`. The former should be favored to force versions in dependency\n * resolution.\n *\n * The Scala version set via `ScalaModule#scalaVersion` also takes over any Scala version\n * provided via `ResolutionParams#scalaVersionOpt`.\n *\n * The default configuration set in `ResolutionParams#defaultConfiguration` is ignored when\n * Mill fetches dependencies to be passed to the compiler (equivalent to Maven \"compile scope\").\n * In that case, it forces the default configuration to be \"compile\". On the other hand, when\n * fetching dependencies for runtime (equivalent to Maven \"runtime scope\"), the value in\n * `ResolutionParams#defaultConfiguration` is used.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#resolutionParams-0" t="n" class="documentableName ">resolutionParams</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">ResolutionParams</span>]
@@ -1923,9 +1860,6 @@ node21 -> node13;
         <div class="documentableElement" id="run-fffff581" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs this module\'s code in a subprocess and waits for it to finish\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#run-fffff581" t="n" class="documentableName ">run</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <a href="../api/Task.html" t="t">Task</a>[<a href="../../mill.html#Args-0" t="t">Args</a>]): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -1967,9 +1901,6 @@ node21 -> node13;
         <div class="documentableElement" id="runBackground-fffff581" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs this module\'s code in a background process, until it dies or\n * `runBackground` is used again. This lets you continue using Mill while\n * the process is running in the background: editing files, compiling, and\n * only re-starting the background process when you\'re ready.\n *\n * You can also use `-w foo.runBackground` to make Mill watch for changes\n * and automatically recompile your code &amp; restart the background process\n * when ready. This is useful when working on long-running server processes\n * that would otherwise run forever\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#runBackground-fffff581" t="n" class="documentableName ">runBackground</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <a href="../api/Task.html" t="t">Task</a>[<a href="../../mill.html#Args-0" t="t">Args</a>]): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -2012,9 +1943,6 @@ node21 -> node13;
         <div class="documentableElement" id="runBackgroundLogToConsole-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * If true, stdout and stderr of the process executed by `runBackground`\n * or `runMainBackground` is sent to mill\'s stdout/stderr (which usually\n * flow to the console).\n *\n * If false, output will be directed to files `stdout.log` and `stderr.log`\n * in `runBackground.dest` (or `runMainBackground.dest`)\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#runBackgroundLogToConsole-0" t="n" class="documentableName ">runBackgroundLogToConsole</a>: <span data-unresolved-link="" t="t">Boolean</span>
@@ -2093,9 +2021,6 @@ node21 -> node13;
         <div class="documentableElement" id="runClasspath-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * All classfiles and resources including upstream modules and dependencies\n * necessary to run this module\'s code.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#runClasspath-0" t="n" class="documentableName ">runClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -2137,9 +2062,6 @@ node21 -> node13;
         <div class="documentableElement" id="runForkedTask-fffff8ab" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs this module\'s code in a subprocess and waits for it to finish\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#runForkedTask-fffff8ab" t="n" class="documentableName ">runForkedTask</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">String</span>], <span t="k"></span><span data-unresolved-link="" t="n">args</span>: <a href="../api/Task.html" t="t">Task</a>[<a href="../../mill.html#Args-0" t="t">Args</a>]): <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -2181,9 +2103,6 @@ node21 -> node13;
         <div class="documentableElement" id="runLocal-fffff581" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Runs this module\'s code in-process within an isolated classloader. This is\n * faster than `run`, but in exchange you have less isolation between runs\n * since the code can dirty the parent Mill process and potentially leave it\n * in a bad state.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#runLocal-fffff581" t="n" class="documentableName ">runLocal</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <a href="../api/Task.html" t="t">Task</a>[<a href="../../mill.html#Args-0" t="t">Args</a>]): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -2261,9 +2180,6 @@ node21 -> node13;
         <div class="documentableElement" id="runMain-ffffff06" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Same as `run`, but lets you specify a main class to run\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#runMain-ffffff06" t="n" class="documentableName ">runMain</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -2305,9 +2221,6 @@ node21 -> node13;
         <div class="documentableElement" id="runMainBackground-ffffff06" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Same as `runBackground`, but lets you specify a main class to run\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#runMainBackground-ffffff06" t="n" class="documentableName ">runMainBackground</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -2349,9 +2262,6 @@ node21 -> node13;
         <div class="documentableElement" id="runMainLocal-ffffff06" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Same as `runLocal`, but lets you specify a main class to run\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#runMainLocal-ffffff06" t="n" class="documentableName ">runMainLocal</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">mainClass</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
@@ -2393,9 +2303,6 @@ node21 -> node13;
         <div class="documentableElement" id="runUseArgsFile-0" data-f-inherited="RunModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Control whether `run*`-tasks should use an args file to pass command line args, if possible.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#runUseArgsFile-0" t="n" class="documentableName ">runUseArgsFile</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
@@ -2473,9 +2380,6 @@ node21 -> node13;
         <div class="documentableElement" id="testCached-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Discovers and runs the module\'s tests in a subprocess, reporting the\n * results to the console.\n * If no input has changed since the last run, no test were executed.\n *\n * @see [[testForked()]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#testCached-0" t="n" class="documentableName ">testCached</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[(msg: <span data-unresolved-link="" t="t">String</span>, results: <span data-unresolved-link="" t="t">Seq</span>[<a href="../testrunner/TestResult.html" t="t">TestResult</a>])]
@@ -2527,9 +2431,6 @@ node21 -> node13;
         <div class="documentableElement" id="testCachedArgs-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Args to be used by [[testCached]].\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#testCachedArgs-0" t="n" class="documentableName ">testCachedArgs</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -2571,9 +2472,6 @@ node21 -> node13;
         <div class="documentableElement" id="testClasspath-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * The classpath containing the tests. This is most likely the output of the compilation target.\n * By default, this uses the result of [[localRunClasspath]], which is most likely the result of a local compilation.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#testClasspath-0" t="n" class="documentableName ">testClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -2615,9 +2513,6 @@ node21 -> node13;
         <div class="documentableElement" id="testForkGrouping-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * How the test classes in this module will be split.\n * Test classes from different groups are ensured to never\n * run on the same JVM process, and therefore can be run in parallel.\n * When used in combination with [[testParallelism]],\n * every JVM test running process will guarantee to never claim tests\n * from different test groups.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#testForkGrouping-0" t="n" class="documentableName ">testForkGrouping</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]]
@@ -2659,9 +2554,6 @@ node21 -> node13;
         <div class="documentableElement" id="testForked-fffff121" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Discovers and runs the module\'s tests in a subprocess, reporting the\n * results to the console.\n * @see [[testCached]]\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#testForked-fffff121" t="n" class="documentableName ">testForked</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[(msg: <span data-unresolved-link="" t="t">String</span>, results: <span data-unresolved-link="" t="t">Seq</span>[<a href="../testrunner/TestResult.html" t="t">TestResult</a>])]
@@ -2713,9 +2605,6 @@ node21 -> node13;
         <div class="documentableElement" id="testLocal-fffff121" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Discovers and runs the module\'s tests in-process in an isolated classloader,\n * reporting the results to the console\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#testLocal-fffff121" t="n" class="documentableName ">testLocal</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[(msg: <span data-unresolved-link="" t="t">String</span>, results: <span data-unresolved-link="" t="t">Seq</span>[<a href="../testrunner/TestResult.html" t="t">TestResult</a>])]
@@ -2793,9 +2682,6 @@ node21 -> node13;
         <div class="documentableElement" id="testOnly-fffff121" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Discovers and runs the module\'s tests in a subprocess, reporting the\n * results to the console.\n * Arguments before \"--\" will be used as wildcard selector to select\n * test classes, arguments after \"--\" will be passed as regular arguments.\n * `testOnly *foo foobar bar* -- arguments` will test only classes with name\n * (includes package name) 1. end with \"foo\", 2. exactly \"foobar\", 3. start\n * with \"bar\", with \"arguments\" as arguments passing to test framework.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#testOnly-fffff121" t="n" class="documentableName ">testOnly</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">args</span>: <span data-unresolved-link="" t="t">String</span>*): <a href="../api/Task$$Command.html" t="t">Command</a>[(msg: <span data-unresolved-link="" t="t">String</span>, results: <span data-unresolved-link="" t="t">Seq</span>[<a href="../testrunner/TestResult.html" t="t">TestResult</a>])]
@@ -2837,9 +2723,6 @@ node21 -> node13;
         <div class="documentableElement" id="testParallelism-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Whether to use the test parallelism to run tests in multiple JVM processes.\n * When used in combination with [[testForkGrouping]], every JVM test running process\n * will guarantee to never claim tests from different test groups.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#testParallelism-0" t="n" class="documentableName ">testParallelism</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
@@ -2881,9 +2764,6 @@ node21 -> node13;
         <div class="documentableElement" id="testReportXml-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Sets the file name for the generated JUnit-compatible test report.\n * If None is set, no file will be generated.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#testReportXml-0" t="n" class="documentableName ">testReportXml</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -2925,9 +2805,6 @@ node21 -> node13;
         <div class="documentableElement" id="testSandboxWorkingDir-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Whether to use the test task destination folder as the working directory\n * when running tests. `true` means test subprocess run in the `.dest/sandbox` folder of\n * the test task, providing better isolation and encouragement of best practices\n * (e.g. not reading/writing stuff randomly from the project source tree). `false`\n * means the test subprocess runs in the project root folder, providing weaker\n * isolation.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#testSandboxWorkingDir-0" t="n" class="documentableName ">testSandboxWorkingDir</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
@@ -2969,9 +2846,6 @@ node21 -> node13;
         <div class="documentableElement" id="testUseArgsFile-0" data-f-inherited="TestModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Controls whether the TestRunner should receive its arguments via an args-file instead of a long parameter list.\n * Defaults to what `runUseArgsFile` return.\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AndroidTestModule$$AndroidJUnit.html#testUseArgsFile-0" t="n" class="documentableName ">testUseArgsFile</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]

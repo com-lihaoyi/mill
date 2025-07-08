@@ -9,7 +9,6 @@
  <span>See the<span class="micon ob"></span><a href="AssemblyModule$.html">AssemblyModule</a> companion object</span>
 </div>
 <div class="main-signature mono-small-block">
- <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Core configuration required to compile a single Java compilation target\n */") </span>
  <div class="signature">
   <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">trait </span></span><a href="AssemblyModule.html" t="n" class="documentableName ">AssemblyModule</a><span t="k"> extends </span><a href="../api/Module.html" t="t">Module</a></span><span class="signature-long"></span>
  </div>
@@ -143,9 +142,6 @@ node9 -> node2;
         <div class="documentableElement" data-f-inherited="Module">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Miscellaneous machinery around traversing &amp; querying the build hierarchy,\n * that should not be needed by normal users of Mill\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="signature-short"><span class="modifiers"></span><span class="kind"><span t="k">object </span></span><a href="../api/Module$moduleInternal$.html" t="n" class="documentableName ">moduleInternal</a><span t="k"> extends </span><a href="../api/Module$$Internal.html" t="t">Internal</a></span><span class="signature-long"></span>
@@ -311,9 +307,6 @@ node9 -> node2;
         <div class="documentableElement" id="upstreamIvyAssemblyClasspath-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Upstream classfiles and resources from third-party libraries\n * necessary to build an executable assembly\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AssemblyModule.html#upstreamIvyAssemblyClasspath-0" t="n" class="documentableName ">upstreamIvyAssemblyClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -349,9 +342,6 @@ node9 -> node2;
         <div class="documentableElement" id="upstreamLocalAssemblyClasspath-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Upstream classfiles and resources from locally-built modules\n * necessary to build an executable assembly, but without this module\'s contribution\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AssemblyModule.html#upstreamLocalAssemblyClasspath-0" t="n" class="documentableName ">upstreamLocalAssemblyClasspath</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../api/PathRef.html" t="t">PathRef</a>]]
@@ -395,9 +385,6 @@ node9 -> node2;
         <div class="documentableElement" id="assembly-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * An executable uber-jar/assembly containing all the resources and compiled\n * classfiles from this module and all it\'s upstream modules and dependencies\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AssemblyModule.html#assembly-0" t="n" class="documentableName ">assembly</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../api/PathRef.html" t="t">PathRef</a>]
@@ -463,9 +450,6 @@ node9 -> node2;
         <div class="documentableElement" id="forkCmdArgs-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Similar to `forkArgs` but only applies to the `bat` launcher script\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AssemblyModule.html#forkCmdArgs-0" t="n" class="documentableName ">forkCmdArgs</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -501,9 +485,6 @@ node9 -> node2;
         <div class="documentableElement" id="forkShellArgs-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Similar to `forkArgs` but only applies to the `sh` launcher script\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AssemblyModule.html#forkShellArgs-0" t="n" class="documentableName ">forkShellArgs</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
@@ -539,9 +520,6 @@ node9 -> node2;
         <div class="documentableElement" id="manifest-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Creates a manifest representation which can be modified or replaced\n * The default implementation just adds the `Manifest-Version`, `Main-Class` and `Created-By` attributes\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AssemblyModule.html#manifest-0" t="n" class="documentableName ">manifest</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="../util/JarManifest.html" t="t">JarManifest</a>]
@@ -577,9 +555,6 @@ node9 -> node2;
         <div class="documentableElement" id="prependShellScript-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * What shell script to use to launch the executable generated by `assembly`.\n * Defaults to a generic \"universal\" launcher that should work for Windows,\n * OS-X and Linux\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AssemblyModule.html#prependShellScript-0" t="n" class="documentableName ">prependShellScript</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
@@ -615,9 +590,6 @@ node9 -> node2;
         <div class="documentableElement" id="resolvedIvyAssembly-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Build the assembly for third-party dependencies separate from the current\n * classpath\n *\n * This should allow much faster assembly creation in the common case where\n * third-party dependencies do not change\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AssemblyModule.html#resolvedIvyAssembly-0" t="n" class="documentableName ">resolvedIvyAssembly</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="Assembly.html" t="t">Assembly</a>]
@@ -654,9 +626,6 @@ node9 -> node2;
         <div class="documentableElement" id="upstreamAssembly-0">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
-          <div>
-           <span class="annotations monospace"><span data-unresolved-link="" t="t">@Scaladoc</span>(value = "/**\n * Build the assembly for upstream dependencies separate from the current\n * classpath\n *\n * This should allow much faster assembly creation in the common case where\n * upstream dependencies do not change\n */") </span>
-          </div>
           <div class="header monospace mono-medium">
            <div class="signature">
             <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="AssemblyModule.html#upstreamAssembly-0" t="n" class="documentableName ">upstreamAssembly</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<a href="Assembly.html" t="t">Assembly</a>]
