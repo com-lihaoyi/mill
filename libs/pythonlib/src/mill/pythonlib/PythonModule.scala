@@ -183,7 +183,7 @@ trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer
 
     BuildCtx.withFilesystemCheckerDisabled {
       Jvm.spawnProcess(
-        mainClass = "mill.jvmlib.backgroundwrapper.MillBackgroundWrapper",
+        mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
         classPath = mill.scalalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
         env = runnerEnvTask(),

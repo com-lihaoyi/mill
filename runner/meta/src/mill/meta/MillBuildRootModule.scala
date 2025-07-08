@@ -1,7 +1,6 @@
 package mill.meta
 
 import java.nio.file.Path
-
 import mill.api.BuildCtx
 import mill.*
 import mill.api.Result
@@ -11,10 +10,11 @@ import mill.constants.OutFiles.*
 import mill.api.{Discover, PathRef, Task}
 import mill.api.internal.RootModule0
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
-import mill.jvmlib.api.{CompilationResult, Versions}
-import mill.util.BuildInfo
+import mill.javalib.api.{CompilationResult, Versions}
+import mill.util.{BuildInfo, MainRootModule}
 import mill.api.daemon.internal.MillScalaParser
 import mill.api.JsonFormatters.given
+
 import scala.jdk.CollectionConverters.ListHasAsScala
 
 /**
@@ -252,7 +252,7 @@ trait MillBuildRootModule()(implicit
   override def scalacOptions: T[Seq[String]] = Task { super.scalacOptions() ++ Seq("-deprecation") }
 
   /** Used in BSP IntelliJ, which can only work with directories */
-  def dummySources: Sources = Task.Sources(Task.dest)
+  def dummySources: Task[Seq[PathRef]] = Task.Sources(Task.dest)
 
   def millVersion: T[String] = Task.Input { BuildInfo.millVersion }
 
@@ -302,7 +302,7 @@ object MillBuildRootModule {
 
   class BootstrapModule()(implicit
       rootModuleInfo: RootModule0.Info
-  ) extends mill.main.MainRootModule() with MillBuildRootModule() {
+  ) extends MainRootModule() with MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]
   }
 

@@ -7,11 +7,11 @@ import mill.{Command, Module, Task}
 
 import scala.util.{Failure, Success, Try, Using}
 
-private[mill] object InitModule extends ExternalModule with InitModule {
+object InitModule extends ExternalModule with InitModule {
   lazy val millDiscover = Discover[this.type]
 }
 
-private[mill] trait InitModule extends Module {
+trait InitModule extends Module {
 
   type ExampleUrl = String
   type ExampleId = String

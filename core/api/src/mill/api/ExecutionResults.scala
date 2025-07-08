@@ -3,6 +3,9 @@ package mill.api
 import mill.api.*
 import mill.api.daemon.internal.{TaskApi, ExecutionResultsApi}
 
+/**
+ * The output of executing tasks via an [[Evaluator]]
+ */
 trait ExecutionResults extends ExecutionResultsApi {
 
   /**

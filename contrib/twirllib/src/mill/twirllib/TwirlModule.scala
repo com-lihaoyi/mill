@@ -96,7 +96,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
 
   def twirlInclusiveDot: Boolean = false
 
-  def compileTwirl: T[mill.jvmlib.api.CompilationResult] = Task(persistent = true) {
+  def compileTwirl: T[mill.javalib.api.CompilationResult] = Task(persistent = true) {
     TwirlWorker
       .compile(
         twirlClassLoader(),
