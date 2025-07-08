@@ -683,9 +683,19 @@ trait AndroidAppModule extends AndroidModule { outer =>
       // TODO test on windows and mac and/or change implementation with java APIs
       val keyPair = RSAKeyGen.generateKeyPair(2048)
       val keystore = Keystore.createKeystore()
-      Keystore.addKeyPair(ks = keystore, alias = debugKeyAlias, keyPair = keyPair, dname = "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=MILL", password = debugKeyStorePass)
-      Keystore.saveKeystore(ks = keystore, filePath = debugKeystoreFile.toString , password = debugKeyPass)
-      
+      Keystore.addKeyPair(
+        ks = keystore,
+        alias = debugKeyAlias,
+        keyPair = keyPair,
+        dname = "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=MILL",
+        password = debugKeyStorePass
+      )
+      Keystore.saveKeystore(
+        ks = keystore,
+        filePath = debugKeystoreFile.toString,
+        password = debugKeyPass
+      )
+
     }
 
     PathRef(debugKeystoreFile)

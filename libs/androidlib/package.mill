@@ -14,7 +14,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
 
   def mvnDeps = Seq(
     mvn"org.bouncycastle:bcprov-jdk18on:1.81",
-    mvn"org.bouncycastle:bcpkix-jdk18on:1.81",
+    mvn"org.bouncycastle:bcpkix-jdk18on:1.81"
   )
 
   def transitiveLocalTestOverrides =

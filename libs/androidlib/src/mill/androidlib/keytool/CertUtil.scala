@@ -15,7 +15,11 @@ object CertUtil:
 
   Security.addProvider(new BouncyCastleProvider())
 
-  def createSelfSignedCertificate(dname: String, keyPair: KeyPair, validityDays: Int = 365 ): X509Certificate = {
+  def createSelfSignedCertificate(
+      dname: String,
+      keyPair: KeyPair,
+      validityDays: Int = 365
+  ): X509Certificate = {
     val now = new Date()
     val notAfter = new Date(now.getTime + validityDays.toLong * 86400000L)
 

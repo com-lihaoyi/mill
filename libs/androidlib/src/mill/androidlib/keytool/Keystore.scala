@@ -25,11 +25,11 @@ object Keystore:
     finally fos.close()
 
   def saveEmptyKeystore(
-                         filePath: String,
-                         password: String,
-                         ksType: String,
-                         provider: String
-                       ): Unit =
+      filePath: String,
+      password: String,
+      ksType: String,
+      provider: String
+  ): Unit =
     val ks = createKeystore(ksType, provider)
     saveKeystore(ks, filePath, password)
 
@@ -44,12 +44,12 @@ object Keystore:
     ks
 
   def addKeyPair(
-                  ks: KeyStore,
-                  alias: String,
-                  keyPair: java.security.KeyPair,
-                  dname: String,
-                  password: String,
-                ): Unit =
+      ks: KeyStore,
+      alias: String,
+      keyPair: java.security.KeyPair,
+      dname: String,
+      password: String
+  ): Unit =
     val cert = CertUtil.createSelfSignedCertificate(dname, keyPair)
     ks.setKeyEntry(alias, keyPair.getPrivate, password.toCharArray, Array(cert))
 
