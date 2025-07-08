@@ -39,7 +39,8 @@ object Lib {
       ] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
       boms: IterableOnce[BomDependency] = Nil,
-      checkGradleModules: Boolean = false
+      checkGradleModules: Boolean = false,
+      config: mill.util.CoursierConfig
   ): Result[Resolution] = {
     val depSeq = deps.iterator.toSeq
     mill.util.Jvm.resolveDependenciesMetadataSafe(
@@ -52,9 +53,37 @@ object Lib {
       coursierCacheCustomizer = coursierCacheCustomizer,
       resolutionParams = resolutionParams,
       boms = boms,
-      checkGradleModules = checkGradleModules
+      checkGradleModules = checkGradleModules,
+      config = config
     )
   }
+
+  // bin-compat shim
+  def resolveDependenciesMetadataSafe(
+      repositories: Seq[Repository],
+      deps: IterableOnce[BoundDep],
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+      ctx: Option[TaskCtx],
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ],
+      resolutionParams: ResolutionParams,
+      boms: IterableOnce[BomDependency],
+      checkGradleModules: Boolean
+  ): Result[Resolution] =
+    resolveDependenciesMetadataSafe(
+      repositories,
+      deps,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      resolutionParams,
+      boms,
+      checkGradleModules,
+      mill.util.CoursierConfig.default()
+    )
 
   /**
    * Resolve dependencies using Coursier.
@@ -75,7 +104,8 @@ object Lib {
       ] = None,
       artifactTypes: Option[Set[Type]] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      checkGradleModules: Boolean = false
+      checkGradleModules: Boolean = false,
+      config: mill.util.CoursierConfig
   ): Result[Seq[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     val res = mill.util.Jvm.resolveDependencies(
@@ -89,11 +119,41 @@ object Lib {
       ctx = ctx,
       coursierCacheCustomizer = coursierCacheCustomizer,
       resolutionParams = resolutionParams,
-      checkGradleModules = checkGradleModules
+      checkGradleModules = checkGradleModules,
+      config = config
     )
 
     res.map(_.map(_.withRevalidateOnce))
   }
+
+  // bin-compat shim
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[BoundDep],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution],
+      ctx: Option[TaskCtx],
+      coursierCacheCustomizer: Option[
+        coursier.cache.FileCache[Task] => coursier.cache.FileCache[Task]
+      ],
+      artifactTypes: Option[Set[Type]],
+      resolutionParams: ResolutionParams,
+      checkGradleModules: Boolean
+  ): Result[Seq[PathRef]] =
+    resolveDependencies(
+      repositories,
+      deps,
+      sources,
+      mapDependencies,
+      customizer,
+      ctx,
+      coursierCacheCustomizer,
+      artifactTypes,
+      resolutionParams,
+      checkGradleModules,
+      mill.util.CoursierConfig.default()
+    )
 
   def scalaCompilerMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep] =
     if (JvmWorkerUtil.isDotty(scalaVersion))

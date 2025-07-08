@@ -1,0 +1,12 @@
+package build
+import mill._, javalib._
+import java.io.File
+
+object `package` extends JavaModule {
+  def mvnDeps = Seq(
+    mvn"org.slf4j:slf4j-simple:2.0.9"
+  )
+  def printRunClasspath = Task {
+    println(runClasspath().map(_.path.toString).mkString(File.pathSeparator))
+  }
+}
