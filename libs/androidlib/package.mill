@@ -11,6 +11,12 @@ import millbuild.*
 object `package` extends MillPublishScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.libs.jvmlib, build.libs.kotlinlib)
+
+  def mvnDeps = Seq(
+    mvn"org.bouncycastle:bcprov-jdk18on:1.81",
+    mvn"org.bouncycastle:bcpkix-jdk18on:1.81",
+  )
+
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(
       build.libs.kotlinlib.worker.localTestOverride()

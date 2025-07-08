@@ -14,6 +14,7 @@ import scala.xml.*
 
 import mill.api.shared.internal.bsp.BspBuildTarget
 import mill.api.shared.internal.EvaluatorApi
+import mill.androidlib.keytool.*
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -680,26 +681,11 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     if (!os.exists(debugKeystoreFile)) {
       // TODO test on windows and mac and/or change implementation with java APIs
-      os.call((
-        "keytool",
-        "-genkeypair",
-        "-keystore",
-        debugKeystoreFile,
-        "-alias",
-        debugKeyAlias,
-        "-dname",
-        "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=MILL",
-        "-validity",
-        "10000",
-        "-keyalg",
-        "RSA",
-        "-keysize",
-        "2048",
-        "-storepass",
-        debugKeyStorePass,
-        "-keypass",
-        debugKeyPass
-      ))
+      val keyPair = RSAKeyGen.generateKeyPair(2048)
+      val keystore = Keystore.createKeystore()
+      Keystore.addKeyPair(ks = keystore, alias = debugKeyAlias, keyPair = keyPair, dname = "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=MILL", password = debugKeyStorePass)
+      Keystore.saveKeystore(ks = keystore, filePath = debugKeystoreFile.toString , password = debugKeyPass)
+      
     }
 
     PathRef(debugKeystoreFile)
