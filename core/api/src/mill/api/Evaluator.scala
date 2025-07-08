@@ -2,7 +2,7 @@ package mill.api
 
 import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
 import mill.api.*
-import mill.api.internal.Watchable
+import mill.api.daemon.Watchable
 import mill.api.BuildCtx
 import mill.api.daemon.internal.{EvaluatorApi, TaskApi}
 import scala.util.DynamicVariable

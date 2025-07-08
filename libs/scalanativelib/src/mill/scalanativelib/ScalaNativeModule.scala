@@ -3,6 +3,9 @@ package scalanativelib
 
 import mainargs.Flag
 import mill.{api => _, *}
+
+import mill.api.JsonFormatters.givenDerivedNamedTupleWriter
+
 import mill.api.Result
 import mill.api.CrossVersion
 import mill.api.daemon.internal.bsp.ScalaBuildTarget
@@ -16,6 +19,7 @@ import mill.scalanativelib.worker.{
   ScalaNativeWorkerExternalModule,
   api as workerApi
 }
+import upickle.implicits.namedTuples.default._
 import mill.scalanativelib.worker.api.ScalaNativeWorkerApi
 
 /**

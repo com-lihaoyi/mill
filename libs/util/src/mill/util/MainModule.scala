@@ -6,7 +6,7 @@ import mill.api.daemon.internal.{EvaluatorApi, MainModuleApi, TaskApi}
 import mill.api.*
 import mill.api.internal.RootModule0
 import mill.api.SelectMode.Separated
-import mill.api.internal.Watchable
+import mill.api.daemon.Watchable
 import mill.moduledefs.Scaladoc
 import mill.api.BuildCtx
 

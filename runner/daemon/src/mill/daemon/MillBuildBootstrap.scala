@@ -12,7 +12,8 @@ import mill.api.daemon.internal.{
 import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.{millBuild, millRunnerState}
-import mill.api.internal.{RootModule0, Watchable}
+import mill.api.daemon.Watchable
+import mill.api.internal.RootModule0
 import mill.api.{BuildCtx, PathRef, SelectMode}
 import mill.internal.PrefixLogger
 import mill.meta.{FileImportGraph, MillBuildRootModule}

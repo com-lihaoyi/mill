@@ -4,7 +4,7 @@ import java.nio.file.Path
 import mill.api.BuildCtx
 import mill.*
 import mill.api.Result
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.constants.OutFiles.*
 import mill.api.{Discover, PathRef, Task}

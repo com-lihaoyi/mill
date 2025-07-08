@@ -5,7 +5,7 @@ import mill.scalajslib.api
 import mill.scalajslib.worker.{api => workerApi}
 import mill.api.TaskCtx
 import mill.api.Result
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import mill.api.Discover
 import mill.util.CachedFactory
 

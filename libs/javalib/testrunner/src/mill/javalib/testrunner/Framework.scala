@@ -1,6 +1,6 @@
 package mill.javalib.testrunner
 
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 
 @internal object Framework {
   def framework(frameworkName: String)(

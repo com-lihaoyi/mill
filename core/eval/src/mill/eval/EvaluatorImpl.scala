@@ -5,7 +5,8 @@ import mill.api.daemon.internal.{CompileProblemReporter, ExecutionResultsApi, Te
 import mill.constants.OutFiles
 import mill.constants.OutFiles.*
 import mill.api.{PathRef, *}
-import mill.api.internal.{ResolveChecker, Watchable}
+import mill.api.internal.ResolveChecker
+import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
 import mill.resolve.Resolve
 
