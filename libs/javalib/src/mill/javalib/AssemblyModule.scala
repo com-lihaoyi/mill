@@ -153,7 +153,7 @@ object AssemblyModule extends ExternalModule with CoursierModule with OfflineSup
 
   def jarjarabramsWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-libs-jvmlib-jarjarabrams-worker")
+      Dep.millProjectModule("mill-libs-javalib-jarjarabrams-worker")
     ))
   }
 

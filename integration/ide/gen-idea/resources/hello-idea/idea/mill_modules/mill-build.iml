@@ -65,8 +65,8 @@
         <orderEntry type="library" name="mill-libs-androidlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-init_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-javascriptlib_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-jvmlib-api_3.jar" level="project"/>
-        <orderEntry type="library" name="mill-libs-jvmlib_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-javalib-api_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-javalib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-kotlinlib-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-kotlinlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-main_3.jar" level="project"/>

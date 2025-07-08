@@ -46,7 +46,7 @@ trait TestModule extends TaskModule {
 object TestModule {
 
   // TODO: this is a dummy for now, however we should look into re-using
-  // mill.testrunner.TestResults
+  // mill.javalib.testrunner.TestResults
   type TestResult = Unit
 
   /** TestModule that uses Python's standard unittest module to run tests. */

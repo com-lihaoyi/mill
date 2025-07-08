@@ -63,7 +63,7 @@ trait TestModule
   def discoveredTestClasses: T[Seq[String]] = Task {
     val classes = if (javaHome().isDefined) {
       Jvm.callProcess(
-        mainClass = "mill.testrunner.DiscoverTestsMain",
+        mainClass = "mill.javalib.testrunner.DiscoverTestsMain",
         classPath = jvmWorker().scalalibClasspath().map(_.path).toVector,
         mainArgs =
           runClasspath().flatMap(p => Seq("--runCp", p.path.toString())) ++
@@ -186,7 +186,7 @@ trait TestModule
           classpath: Seq[Path]
       )] =
     Task.Anon {
-      val mainClass = "mill.testrunner.entrypoint.TestRunnerMain"
+      val mainClass = "mill.javalib.testrunner.entrypoint.TestRunnerMain"
       val outputPath = Task.dest / "out.json"
       val resultPath = Task.dest / "results.log"
       val selectors = Seq.empty

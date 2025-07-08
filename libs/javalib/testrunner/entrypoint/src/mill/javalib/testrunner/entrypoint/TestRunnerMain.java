@@ -35,7 +35,7 @@ public class TestRunnerMain {
       }
     };
 
-    Class<?> testRunnerCls = cl.loadClass("mill.testrunner.TestRunnerMain0");
+    Class<?> testRunnerCls = cl.loadClass("mill.javalib.testrunner.TestRunnerMain0");
     Method mainMethod = testRunnerCls.getMethod("main0", String[].class, ClassLoader.class);
 
     // Wrap in String[][] to counter varargs expansion

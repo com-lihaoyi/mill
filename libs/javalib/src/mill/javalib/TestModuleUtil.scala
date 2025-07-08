@@ -75,7 +75,7 @@ private final class TestModuleUtil(
 
         val discoveredTests = if (javaHome.isDefined) {
           Jvm.callProcess(
-            mainClass = "mill.testrunner.GetTestTasksMain",
+            mainClass = "mill.javalib.testrunner.GetTestTasksMain",
             classPath = scalalibClasspath.map(_.path).toVector,
             mainArgs =
               (runClasspath ++ testrunnerEntrypointClasspath).flatMap(p =>
@@ -159,7 +159,7 @@ private final class TestModuleUtil(
 
     BuildCtx.withFilesystemCheckerDisabled {
       Jvm.callProcess(
-        mainClass = "mill.testrunner.entrypoint.TestRunnerMain",
+        mainClass = "mill.javalib.testrunner.entrypoint.TestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
         env = forkEnv,
