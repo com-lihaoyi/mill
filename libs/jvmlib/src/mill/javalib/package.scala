@@ -1,5 +1,10 @@
 package mill
 
+/**
+ * Java toolchain containing [[JavaModule]] and other functionality related to building
+ * Java projects. The toolchain for building Java on android
+ * lives separately in `mill.androidlib`.
+ */
 package object javalib extends mill.scalalib.JsonFormatters {
   implicit class DepSyntax(ctx: StringContext) extends AnyVal {
     def mvn(args: Any*): Dep = mill.scalalib.DepSyntax(ctx).mvn(args*)
