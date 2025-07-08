@@ -3,8 +3,7 @@ package mill.javalib.pmd
 import mill.*
 import mill.api.{Discover, ExternalModule, TaskCtx}
 import mill.javalib.api.Versions
-import mill.scalalib.scalafmt.ScalafmtModule.sources
-import mill.scalalib.{CoursierModule, Dep, DepSyntax, OfflineSupportModule}
+import mill.javalib.{CoursierModule, Dep, DepSyntax, OfflineSupportModule}
 import mill.util.{Jvm, Version}
 
 /**
@@ -40,7 +39,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       val baseArgs = Seq(
         "-d",
         if (leftover.value.nonEmpty) leftover.value.mkString(",")
-        else sources().map(_.path.toString()).mkString(","),
+        else "__.sources",
         "-R",
         pmdRulesets().map(_.path.toString).mkString(","),
         "-f",

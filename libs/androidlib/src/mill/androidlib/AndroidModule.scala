@@ -6,7 +6,7 @@ import coursier.params.ResolutionParams
 import mill.T
 import mill.androidlib.manifestmerger.AndroidManifestMerger
 import mill.api.{ModuleRef, PathRef, Task}
-import mill.scalalib.*
+import mill.javalib.*
 import mill.api.JsonFormatters.given
 import mill.javalib.api.CompilationResult
 import os.Path

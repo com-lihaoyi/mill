@@ -2,7 +2,7 @@ package mill.javalib.palantirformat
 
 import mill.api.PathRef
 import mill.javalib.api.Versions
-import mill.scalalib.{CoursierModule, DepSyntax}
+import mill.javalib.{CoursierModule, DepSyntax}
 import mill.{T, Task}
 
 trait PalantirFormatBaseModule extends CoursierModule {

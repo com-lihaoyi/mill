@@ -10,7 +10,7 @@ import scala.jdk.CollectionConverters._
 
 import mill.*
 import mill.api.PathRef
-import mill.scalalib.{Dep, JavaModule}
+import mill.javalib.{Dep, JavaModule}
 import org.flywaydb.core.api.output.{BaselineResult, CleanResult, MigrateOutput, MigrateResult}
 
 trait FlywayModule extends JavaModule {

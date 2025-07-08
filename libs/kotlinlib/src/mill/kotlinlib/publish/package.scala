@@ -2,47 +2,47 @@ package mill.kotlinlib
 
 package object publish {
 
-  val Ivy = mill.scalalib.publish.Ivy
+  val Ivy = mill.javalib.publish.Ivy
 
-  type License = mill.scalalib.publish.License
-  val License = mill.scalalib.publish.License
+  type License = mill.javalib.publish.License
+  val License = mill.javalib.publish.License
 
-  type LocalIvyPublisher = mill.scalalib.publish.LocalIvyPublisher
-  val LocalIvyPublisher = mill.scalalib.publish.LocalIvyPublisher
+  type LocalIvyPublisher = mill.javalib.publish.LocalIvyPublisher
+  val LocalIvyPublisher = mill.javalib.publish.LocalIvyPublisher
 
-  type LocalM2Publisher = mill.scalalib.publish.LocalM2Publisher
+  type LocalM2Publisher = mill.javalib.publish.LocalM2Publisher
 
-  val Pom = mill.scalalib.publish.Pom
+  val Pom = mill.javalib.publish.Pom
 
-  type PublishInfo = mill.scalalib.publish.PublishInfo
-  val PublishInfo = mill.scalalib.publish.PublishInfo
+  type PublishInfo = mill.javalib.publish.PublishInfo
+  val PublishInfo = mill.javalib.publish.PublishInfo
 
-  type Artifact = mill.scalalib.publish.Artifact
-  val Artifact = mill.scalalib.publish.Artifact
+  type Artifact = mill.javalib.publish.Artifact
+  val Artifact = mill.javalib.publish.Artifact
 
-  type Scope = mill.scalalib.publish.Scope
-  val Scope = mill.scalalib.publish.Scope
+  type Scope = mill.javalib.publish.Scope
+  val Scope = mill.javalib.publish.Scope
 
-  type Dependency = mill.scalalib.publish.Dependency
-  val Dependency = mill.scalalib.publish.Dependency
+  type Dependency = mill.javalib.publish.Dependency
+  val Dependency = mill.javalib.publish.Dependency
 
-  type Developer = mill.scalalib.publish.Developer
-  val Developer = mill.scalalib.publish.Developer
+  type Developer = mill.javalib.publish.Developer
+  val Developer = mill.javalib.publish.Developer
 
-  type PomSettings = mill.scalalib.publish.PomSettings
-  val PomSettings = mill.scalalib.publish.PomSettings
+  type PomSettings = mill.javalib.publish.PomSettings
+  val PomSettings = mill.javalib.publish.PomSettings
 
-  val PackagingType = mill.scalalib.publish.PackagingType
+  val PackagingType = mill.javalib.publish.PackagingType
 
-  val SonatypeHelpers = mill.scalalib.publish.SonatypeHelpers
-  type SonatypeHttpApi = mill.scalalib.publish.SonatypeHttpApi
-  type SonatypePublisher = mill.scalalib.publish.SonatypePublisher
+  val SonatypeHelpers = mill.javalib.publish.SonatypeHelpers
+  type SonatypeHttpApi = mill.javalib.publish.SonatypeHttpApi
+  type SonatypePublisher = mill.javalib.publish.SonatypePublisher
 
-  type VersionControl = mill.scalalib.publish.VersionControl
-  val VersionControl = mill.scalalib.publish.VersionControl
+  type VersionControl = mill.javalib.publish.VersionControl
+  val VersionControl = mill.javalib.publish.VersionControl
 
-  val VersionControlConnection = mill.scalalib.publish.VersionControlConnection
+  val VersionControlConnection = mill.javalib.publish.VersionControlConnection
 
-  type VersionScheme = mill.scalalib.publish.VersionScheme
-  val VersionScheme = mill.scalalib.publish.VersionScheme
+  type VersionScheme = mill.javalib.publish.VersionScheme
+  val VersionScheme = mill.javalib.publish.VersionScheme
 }

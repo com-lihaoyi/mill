@@ -1,0 +1,3 @@
+package bspBuildTargetCompileMerged.noDependentResourcesButHasSources.HelloBsp2.src
+
+class Hello2

@@ -2,7 +2,7 @@ package mill.contrib.artifactory
 
 import mill._
 import mill.api.Result
-import scalalib._
+import javalib._
 import mill.contrib.artifactory.ArtifactoryPublishModule.checkArtifactoryCreds
 import mill.api.{ExternalModule, Task}
 

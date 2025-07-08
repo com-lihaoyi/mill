@@ -5,7 +5,7 @@ import mill.*
 import mill.api.Logger
 import mill.api.internal.{internal, *}
 import mill.api.{ModuleRef, PathRef, Task}
-import mill.scalalib.*
+import mill.javalib.*
 import os.{Path, RelPath, zip}
 import upickle.default.*
 import scala.jdk.OptionConverters.RichOptional

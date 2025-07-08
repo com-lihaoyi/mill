@@ -1,7 +1,7 @@
 package mill.pythonlib
 
 import mill.api.Result
-import mill.scalalib.publish.License
+import mill.javalib.publish.License
 import mill.{Command, PathRef, T, Task}
 
 /**
@@ -254,7 +254,7 @@ object PublishModule {
       name: String,
       description: String,
       requiresPython: String,
-      license: mill.scalalib.publish.License,
+      license: mill.javalib.publish.License,
       authors: Seq[Developer],
       keywords: Seq[String] = Seq(),
       classifiers: Seq[String] = Seq(),

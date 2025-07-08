@@ -5,7 +5,7 @@ import mill.api.{Discover, ExternalModule, TaskModule}
 import mill.api.BuildCtx
 import mill.util.Tasks
 import mill.util.TokenReaders.*
-import mill.scalalib.JavaModule
+import mill.javalib.JavaModule
 import mill.util.Jvm
 import mill.{Command, T, Task}
 

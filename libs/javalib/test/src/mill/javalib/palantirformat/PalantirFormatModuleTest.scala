@@ -3,7 +3,7 @@ package javalib.palantirformat
 
 import mill.api.Discover
 import mill.util.Tasks
-import mill.scalalib.ScalaModule
+import mill.javalib.JavaModule
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
@@ -98,9 +98,8 @@ object PalantirFormatModuleTest extends TestSuite {
       sources: Seq[String] = Seq.empty
   ): Seq[os.Path] = {
 
-    object module extends TestRootModule with ScalaModule with PalantirFormatModule {
+    object module extends TestRootModule with JavaModule with PalantirFormatModule {
       override def palantirformatVersion: T[String] = version
-      override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
       lazy val millDiscover = Discover[this.type]
     }
 
@@ -118,8 +117,7 @@ object PalantirFormatModuleTest extends TestSuite {
 
   def afterFormatAll(modulesRoot: os.Path, check: Boolean = false): Seq[os.Path] = {
 
-    object module extends TestRootModule with ScalaModule {
-      override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
+    object module extends TestRootModule with JavaModule {
 
       lazy val millDiscover = Discover[this.type]
     }

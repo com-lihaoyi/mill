@@ -3,7 +3,7 @@ package kotlinlib
 
 import mill.api.ExecResult
 import mill.api.Discover
-import mill.scalalib.TestModule
+import mill.javalib.TestModule
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 

@@ -9,7 +9,7 @@ import mill.api.Task.Command
 import mill.api.Task
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule, KotlinWorkerManager}
-import mill.scalalib.Lib
+import mill.javalib.Lib
 import mill.javalib.api.CompilationResult
 import mill.util.Jvm
 import mill.{Args, T}

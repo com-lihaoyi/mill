@@ -1,7 +1,7 @@
 package mill
 package contrib.docker
 
-import mill.scalalib.JavaModule
+import mill.javalib.JavaModule
 import os.Shellable.IterableShellable
 
 import scala.collection.immutable._
