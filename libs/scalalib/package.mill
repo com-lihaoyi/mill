@@ -16,8 +16,7 @@ import mill.api.Cross
 import millbuild.*
 
 object `package` extends MillStableScalaModule {
-
-  def moduleDeps = Seq(build.libs.javalib, build.libs.javalib.api, build.libs.javalib.testrunner)
+  def moduleDeps = Seq(build.libs.javalib)
   def mvnDeps =
     Seq(Deps.scalaXml, Deps.semanticDbShared) ++
       // despite compiling with Scala 3, we need to include scala-reflect
@@ -30,14 +29,6 @@ object `package` extends MillStableScalaModule {
   def compileMvnDeps = Seq(Deps.sonatypeCentralClient)
   def runMvnDeps = Seq(Deps.sonatypeCentralClient)
 
-  def testMvnDeps = super.testMvnDeps() ++ Seq(Deps.TestDeps.scalaCheck)
-  def transitiveLocalTestOverrides =
-    super.transitiveLocalTestOverrides() ++ Seq(
-      build.libs.javalib.worker.localTestOverride(),
-      build.libs.javalib.`classgraph-worker`.localTestOverride(),
-      build.libs.javalib.`jarjarabrams-worker`.localTestOverride(),
-      build.libs.javalib.`spotless-worker`.localTestOverride()
-    )
   def testForkEnv = {
     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
     super.testForkEnv() ++ Map("LC_ALL" -> locale)
