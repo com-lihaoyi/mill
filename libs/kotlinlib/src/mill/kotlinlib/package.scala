@@ -8,23 +8,23 @@ package mill
  */
 package object kotlinlib {
   implicit class DepSyntax(ctx: StringContext) extends AnyVal {
-    def mvn(args: Any*): Dep = mill.scalalib.DepSyntax(ctx).mvn(args*)
+    def mvn(args: Any*): Dep = mill.javalib.DepSyntax(ctx).mvn(args*)
 
     @deprecated("Use `mvn` string interpolator instead.", "Mill 0.12.11")
-    def ivy(args: Any*): Dep = mill.scalalib.DepSyntax(ctx).mvn(args*)
+    def ivy(args: Any*): Dep = mill.javalib.DepSyntax(ctx).mvn(args*)
   }
 
-  type Dep = mill.scalalib.Dep
-  val Dep = mill.scalalib.Dep
+  type Dep = mill.javalib.Dep
+  val Dep = mill.javalib.Dep
 
-  type TestModule = mill.scalalib.TestModule
-  val TestModule = mill.scalalib.TestModule
+  type TestModule = mill.javalib.TestModule
+  val TestModule = mill.javalib.TestModule
 
-  type PublishModule = mill.scalalib.PublishModule
-  val PublishModule = mill.scalalib.PublishModule
+  type PublishModule = mill.javalib.PublishModule
+  val PublishModule = mill.javalib.PublishModule
 
-  type NativeImageModule = mill.scalalib.NativeImageModule
+  type NativeImageModule = mill.javalib.NativeImageModule
 
-  type JvmWorkerModule = mill.scalalib.JvmWorkerModule
-  val JvmWorkerModule = mill.scalalib.JvmWorkerModule
+  type JvmWorkerModule = mill.javalib.JvmWorkerModule
+  val JvmWorkerModule = mill.javalib.JvmWorkerModule
 }

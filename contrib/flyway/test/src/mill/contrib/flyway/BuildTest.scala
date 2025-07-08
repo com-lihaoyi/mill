@@ -2,7 +2,7 @@ package mill.contrib.flyway
 
 import mill.*
 import mill.api.Discover
-import mill.scalalib.*
+import mill.javalib.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assert, *}

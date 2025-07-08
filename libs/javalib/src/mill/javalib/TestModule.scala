@@ -9,7 +9,7 @@ import mill.api.PathRef
 import mill.api.Task
 import mill.api.TaskCtx
 import mill.api.TaskModule
-import mill.scalalib.bsp.BspModule
+import mill.javalib.bsp.BspModule
 import mill.util.Jvm
 import mill.api.JsonFormatters.given
 import mill.constants.EnvVars

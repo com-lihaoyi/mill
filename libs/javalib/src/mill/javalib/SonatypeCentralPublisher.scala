@@ -7,8 +7,8 @@ import com.lumidion.sonatype.central.client.core.{
 }
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.{Logger, Result}
-import mill.scalalib.publish.Artifact
-import mill.scalalib.publish.SonatypeHelpers.getArtifactMappings
+import mill.javalib.publish.Artifact
+import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
 
 import java.nio.file.Files
 import java.util.jar.JarOutputStream

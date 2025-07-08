@@ -3,7 +3,7 @@ package twirllib
 
 import coursier.Repository
 import mill.api.PathRef
-import mill.scalalib.*
+import mill.javalib.*
 
 import mill.api.Task
 import mill.util.BuildInfo

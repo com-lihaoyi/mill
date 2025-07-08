@@ -1,7 +1,7 @@
 package mill.contrib.codeartifact
 
 import mill._
-import scalalib._
+import javalib._
 import mill.api.ExternalModule
 
 trait CodeartifactPublishModule extends PublishModule {

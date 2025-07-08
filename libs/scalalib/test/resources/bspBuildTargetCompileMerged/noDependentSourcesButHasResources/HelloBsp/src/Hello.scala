@@ -1,0 +1,3 @@
+package bspBuildTargetCompileMerged.noDependentSourcesButHasResources.HelloBsp.src
+
+class Hello

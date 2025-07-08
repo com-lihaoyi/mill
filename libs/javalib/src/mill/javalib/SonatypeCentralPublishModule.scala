@@ -2,7 +2,7 @@ package mill.javalib
 
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import mill.*
-import mill.scalalib.*
+import javalib.*
 import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.api.TaskModule
@@ -15,10 +15,8 @@ import mill.javalib.SonatypeCentralPublishModule.{
   getPublishingTypeFromReleaseFlag,
   getSonatypeCredentials
 }
-import mill.scalalib.publish.SonatypeHelpers.{
-  PASSWORD_ENV_VARIABLE_NAME,
-  USERNAME_ENV_VARIABLE_NAME
-}
+import mill.javalib.publish.Artifact
+import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
 
 @experimental

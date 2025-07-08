@@ -73,6 +73,7 @@
         <orderEntry type="library" name="mill-libs-pythonlib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalajslib-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalajslib_3.jar" level="project"/>
+        <orderEntry type="library" name="mill-libs-scalalib_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalanativelib-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-libs-scalanativelib_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-libs-tabcomplete_3.jar" level="project"/>

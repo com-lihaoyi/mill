@@ -8,12 +8,9 @@ import mill.api.Result
 import mill.util.JarManifest
 import mill.util.Tasks
 import mill.util.FileSetContents
-import mill.scalalib.PublishModule.checkSonatypeCreds
-import mill.scalalib.publish.SonatypeHelpers.{
-  PASSWORD_ENV_VARIABLE_NAME,
-  USERNAME_ENV_VARIABLE_NAME
-}
-import mill.scalalib.publish.{Artifact, SonatypePublisher}
+import mill.javalib.PublishModule.checkSonatypeCreds
+import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
+import mill.javalib.publish.{Artifact, SonatypePublisher}
 import os.{Path, SubPath}
 import mill.api.BuildCtx
 
@@ -21,7 +18,7 @@ import mill.api.BuildCtx
  * Configuration necessary for publishing a Scala module to Maven Central or similar
  */
 trait PublishModule extends JavaModule { outer =>
-  import mill.scalalib.publish.*
+  import mill.javalib.publish.*
 
   override def moduleDeps: Seq[PublishModule] = super.moduleDeps.map {
     case m: PublishModule => m
@@ -90,7 +87,7 @@ trait PublishModule extends JavaModule { outer =>
 
         // Ivy doesn't support BOM, so we try to add versions and exclusions from BOMs
         // to the dependencies themselves.
-        def process(dep: mill.scalalib.Dep) = {
+        def process(dep: mill.javalib.Dep) = {
           var dep0 = bindDependency0(dep).dep
 
           if (dep0.version.isEmpty)
@@ -721,7 +718,7 @@ object PublishModule extends ExternalModule with TaskModule {
       (payload.view.mapValues(_.path).toMap, meta)
   }
   object PublishData {
-    import mill.scalalib.publish.artifactFormat
+    import mill.javalib.publish.JsonFormatters.artifactFormat
     implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
   }
 

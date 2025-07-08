@@ -2,7 +2,7 @@ package mill.javalib.errorprone
 
 import mill.{T, Task}
 import mill.api.Discover
-import mill.scalalib.JavaModule
+import mill.javalib.JavaModule
 import mill.testkit.{TestRootModule, UnitTester}
 import os.Path
 import utest.*

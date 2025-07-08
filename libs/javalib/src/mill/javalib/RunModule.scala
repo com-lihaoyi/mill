@@ -11,7 +11,7 @@ import mill.api.daemon.internal.bsp.BspRunModuleApi
 import mill.constants.DaemonFiles
 import mill.api.JsonFormatters.pathReadWrite
 import mill.api.{ModuleCtx, ModuleRef, PathRef, Task, TaskCtx}
-import mill.scalalib.bsp.BspRunModule
+import mill.javalib.bsp.BspRunModule
 import mill.javalib.classgraph.ClassgraphWorkerModule
 import mill.util.Jvm
 import mill.{Args, T}
