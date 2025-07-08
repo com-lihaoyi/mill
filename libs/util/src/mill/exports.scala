@@ -11,3 +11,4 @@ export mill.api.Task.Worker
 export mill.api.TaskModule
 export mill.api.JsonFormatters.*
 export mill.util.TokenReaders.*
+export upickle.implicits.namedTuples.default.given
