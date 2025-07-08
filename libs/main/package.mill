@@ -17,9 +17,13 @@ object `package` extends MillStableScalaModule {
 
   def moduleDeps = Seq(
     build.core.util,
-    build.core.api,
+    build.core.api
+  )
+
+  def runModuleDeps = Seq(
     build.libs.init
   )
+
   def mvnDeps = Seq(
     Deps.millModuledefs
   )
