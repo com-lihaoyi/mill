@@ -9,7 +9,7 @@ import mill.api.{Module, ModuleRef, PathRef, Task}
 trait JavaHomeModule extends CoursierModule {
   def jvmId: T[String] = ""
 
-  def jvmIndexVersion: T[String] = mill.jvmlib.api.Versions.coursierJvmIndexVersion
+  def jvmIndexVersion: T[String] = mill.javalib.api.Versions.coursierJvmIndexVersion
 
   def useShortJvmPath(jvmId: String): Boolean =
     scala.util.Properties.isWin && (jvmId.startsWith("graalvm") || jvmId.startsWith("liberica-nik"))

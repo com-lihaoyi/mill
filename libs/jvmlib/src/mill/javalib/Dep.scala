@@ -4,7 +4,7 @@ import upickle.default.{macroRW, ReadWriter as RW}
 import mill.api.CrossVersion.*
 import mill.api.CrossVersion
 import coursier.core.{Configuration, Dependency, MinimizedExclusions}
-import mill.jvmlib.api.{Versions, JvmWorkerUtil}
+import mill.javalib.api.{Versions, JvmWorkerUtil}
 import scala.annotation.unused
 
 /**

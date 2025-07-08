@@ -49,7 +49,7 @@ object `package` extends MillStableScalaModule {
 
   object api extends MillStableScalaModule with BuildInfo {
     def moduleDeps = Seq(build.core.api)
-    def buildInfoPackageName = "mill.jvmlib.api"
+    def buildInfoPackageName = "mill.javalib.api"
     def buildInfoObjectName = "Versions"
 
     def buildInfoMembers = Seq(
@@ -111,7 +111,7 @@ object `package` extends MillStableScalaModule {
   object worker extends MillPublishScalaModule with BuildInfo {
     def moduleDeps = Seq(api, build.core.util)
     def mvnDeps = Seq(Deps.zinc, Deps.log4j2Core)
-    def buildInfoPackageName = "mill.jvmlib.worker"
+    def buildInfoPackageName = "mill.javalib.worker"
     def buildInfoObjectName = "Versions"
     def buildInfoMembers = Seq(
       BuildInfo.Value("zinc", Deps.zinc.version, "Version of Zinc.")

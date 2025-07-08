@@ -6,7 +6,7 @@ import mill.api.daemon.internal.SemanticDbJavaModuleApi
 import mill.constants.CodeGenConstants
 import mill.api.ModuleRef
 import mill.util.BuildInfo
-import mill.jvmlib.api.{CompilationResult, JvmWorkerUtil}
+import mill.javalib.api.{CompilationResult, JvmWorkerUtil}
 import mill.scalalib.internal.SemanticdbProcessor
 import mill.util.Version
 import mill.{T, Task}
@@ -24,7 +24,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   def zincReportCachedProblems: T[Boolean]
   def zincIncrementalCompilation: T[Boolean]
   def allSourceFiles: T[Seq[PathRef]]
-  def compile: T[mill.jvmlib.api.CompilationResult]
+  def compile: T[mill.javalib.api.CompilationResult]
   private[mill] def bspBuildTarget: BspBuildTarget
   def javacOptions: T[Seq[String]]
   def mandatoryJavacOptions: T[Seq[String]]

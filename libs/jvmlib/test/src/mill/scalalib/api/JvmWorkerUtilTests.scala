@@ -1,4 +1,4 @@
-package mill.jvmlib.api
+package mill.javalib.api
 
 import utest._
 

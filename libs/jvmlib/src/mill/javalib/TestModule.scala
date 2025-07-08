@@ -342,7 +342,7 @@ object TestModule {
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
       super.mandatoryMvnDeps() ++
         Seq(
-          mvn"${mill.jvmlib.api.Versions.sbtTestInterface}"
+          mvn"${mill.javalib.api.Versions.sbtTestInterface}"
         ) ++
         Seq(junit4Version())
           .filter(!_.isBlank())
@@ -369,7 +369,7 @@ object TestModule {
 
     override def mandatoryMvnDeps: T[Seq[Dep]] = Task {
       super.mandatoryMvnDeps() ++
-        Seq(mvn"${mill.jvmlib.api.Versions.jupiterInterface}") ++
+        Seq(mvn"${mill.javalib.api.Versions.jupiterInterface}") ++
         Seq(junitPlatformVersion())
           .filter(!_.isBlank())
           .map(v => mvn"org.junit.platform:junit-platform-launcher:${v.trim()}") ++

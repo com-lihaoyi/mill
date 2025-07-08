@@ -178,7 +178,7 @@ object AssemblyModule extends ExternalModule with CoursierModule with OfflineSup
       )]] = Task.Worker {
     (relocates: Seq[(String, String)], name: String, is: UnopenedInputStream) =>
       jarjarabramsWorkerClassloader()
-        .loadClass("mill.jvmlib.jarjarabrams.impl.JarJarAbramsWorkerImpl")
+        .loadClass("mill.javalib.jarjarabrams.impl.JarJarAbramsWorkerImpl")
         .getMethods
         .filter(_.getName == "apply")
         .head

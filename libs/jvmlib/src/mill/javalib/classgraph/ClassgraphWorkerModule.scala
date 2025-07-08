@@ -4,7 +4,7 @@ import mainargs.Flag
 import mill.{Command, T, Task}
 import mill.api.{PathRef, TaskCtx}
 import mill.api.{Discover, ExternalModule}
-import mill.jvmlib.classgraph.ClassgraphWorker
+import mill.javalib.classgraph.ClassgraphWorker
 import mill.scalalib.{CoursierModule, Dep, OfflineSupportModule}
 import mill.util.Jvm
 
@@ -32,7 +32,7 @@ trait ClassgraphWorkerModule extends CoursierModule with OfflineSupportModule {
 
   def classgraphWorker: Task.Worker[ClassgraphWorker] = Task.Worker {
     classgraphWorkerClassloader()
-      .loadClass("mill.jvmlib.classgraph.impl.ClassgraphWorkerImpl")
+      .loadClass("mill.javalib.classgraph.impl.ClassgraphWorkerImpl")
       .getConstructor().newInstance().asInstanceOf[ClassgraphWorker]
   }
 

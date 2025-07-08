@@ -7,7 +7,7 @@ import coursier.util.Task
 import coursier.{Dependency, Repository, Resolution, Type}
 import mill.api.{TaskCtx, PathRef}
 import mill.api.Result
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 
 /**
  * Utilities around managing JVM dependencies

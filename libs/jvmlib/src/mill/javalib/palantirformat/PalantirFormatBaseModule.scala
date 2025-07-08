@@ -1,7 +1,7 @@
 package mill.javalib.palantirformat
 
 import mill.api.PathRef
-import mill.jvmlib.api.Versions
+import mill.javalib.api.Versions
 import mill.scalalib.{CoursierModule, DepSyntax}
 import mill.{T, Task}
 

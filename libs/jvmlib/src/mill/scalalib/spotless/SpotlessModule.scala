@@ -93,7 +93,7 @@ trait SpotlessModule extends CoursierModule, OfflineSupportModule {
   private def spotlessWorker = Task.Worker {
     BuildCtx.withFilesystemCheckerDisabled {
       spotlessWorkerClassloader()
-        .loadClass("mill.jvmlib.spotless.SpotlessWorkerImpl")
+        .loadClass("mill.javalib.spotless.SpotlessWorkerImpl")
         .getConstructor(
           classOf[os.Path],
           classOf[Seq[String]],

@@ -1,7 +1,7 @@
 package mill.scalalib
 import mill.*
 import mill.api.BuildCtx
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 
 /**
  * Mix this in to any [[ScalaModule]] to provide a [[unidocSite]] task that

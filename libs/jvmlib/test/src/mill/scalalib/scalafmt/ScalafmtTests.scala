@@ -10,7 +10,7 @@ import utest.*
 
 object ScalafmtTests extends TestSuite {
 
-  val scalafmtTestVersion = mill.jvmlib.api.Versions.scalafmtVersion
+  val scalafmtTestVersion = mill.javalib.api.Versions.scalafmtVersion
 
   trait BuildSrcModule {
     def buildSources: T[Seq[PathRef]]

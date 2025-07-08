@@ -7,7 +7,7 @@ import mill.api.daemon.internal.bsp.ScalaBuildTarget
 import mill.api.Result
 import mill.api.CrossVersion
 import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}

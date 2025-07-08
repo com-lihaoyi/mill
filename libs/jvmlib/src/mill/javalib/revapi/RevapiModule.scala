@@ -3,7 +3,7 @@ package mill.javalib.revapi
 import mill.*
 import mill.javalib.*
 import mill.javalib.revapi.RevapiModule.optional
-import mill.jvmlib.api.Versions
+import mill.javalib.api.Versions
 import mill.scalalib.publish.Artifact
 import mill.util.Jvm
 

@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.{T, Task}
 import mill.api.Cross
 import mill.api.Cross.Resolver
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 
 /**
  * Shared logic between the different kinds of cross-scala-version modules:

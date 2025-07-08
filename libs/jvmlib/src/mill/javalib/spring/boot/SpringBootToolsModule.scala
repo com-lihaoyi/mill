@@ -4,9 +4,9 @@ import java.net.{URL, URLClassLoader}
 import mill.*
 import mill.api.{Discover, ExternalModule}
 import mill.javalib.{CoursierModule, Dep, DepSyntax}
-import mill.jvmlib.api.Versions
+import mill.javalib.api.Versions
 import mill.api.MillURLClassLoader
-import mill.jvmlib.spring.boot.worker.SpringBootTools
+import mill.javalib.spring.boot.worker.SpringBootTools
 
 trait SpringBootToolsModule extends CoursierModule {
 

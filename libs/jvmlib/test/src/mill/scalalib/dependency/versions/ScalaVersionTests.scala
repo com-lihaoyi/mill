@@ -1,6 +1,6 @@
 package mill.scalalib.dependency.versions
 
-import mill.jvmlib.api.JvmWorkerUtil.scalaBinaryVersion
+import mill.javalib.api.JvmWorkerUtil.scalaBinaryVersion
 import utest._
 
 object ScalaVersionTests extends TestSuite {

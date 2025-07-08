@@ -15,7 +15,7 @@ trait ErrorProneModule extends JavaModule {
 
   /** The `error-prone` version to use. Defaults to [[BuildInfo.errorProneVersion]]. */
   def errorProneVersion: T[String] = Task.Input {
-    mill.jvmlib.api.Versions.errorProneVersion
+    mill.javalib.api.Versions.errorProneVersion
   }
 
   /**

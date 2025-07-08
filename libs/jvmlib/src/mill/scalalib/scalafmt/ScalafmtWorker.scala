@@ -14,7 +14,7 @@ object ScalafmtWorkerModule extends ExternalModule with JavaModule {
    */
   def scalafmtClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
-      Seq(mvn"org.scalameta:scalafmt-dynamic_2.13:${mill.jvmlib.api.Versions.scalafmtVersion}")
+      Seq(mvn"org.scalameta:scalafmt-dynamic_2.13:${mill.javalib.api.Versions.scalafmtVersion}")
     )
   }
 

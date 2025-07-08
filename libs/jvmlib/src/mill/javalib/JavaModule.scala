@@ -19,7 +19,7 @@ import mill.api.daemon.internal.bsp.{
 import mill.scalalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
 import mill.api.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
-import mill.jvmlib.api.CompilationResult
+import mill.javalib.api.CompilationResult
 import mill.scalalib.bsp.{BspJavaModule, BspModule}
 import mill.scalalib.internal.ModuleUtils
 import mill.scalalib.publish.Artifact
@@ -825,7 +825,7 @@ trait JavaModule
    *
    * Keep in sync with [[bspCompileClassesPath]]
    */
-  def compile: T[mill.jvmlib.api.CompilationResult] = Task(persistent = true) {
+  def compile: T[mill.javalib.api.CompilationResult] = Task(persistent = true) {
     jvmWorker()
       .worker()
       .compileJava(

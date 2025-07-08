@@ -5,8 +5,8 @@ import mill._
 import mill.api.Result
 import mill.api.{TaskCtx, PathRef}
 import mill.api.{Discover, ExternalModule, Task}
-import mill.jvmlib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.jvmlib.api.{Versions, JvmWorkerApi, JvmWorkerUtil}
+import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
+import mill.javalib.api.{Versions, JvmWorkerApi, JvmWorkerUtil}
 import mill.scalalib.CoursierModule.Resolver
 
 import scala.util.Properties
@@ -57,7 +57,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       getClass.getClassLoader
     )
 
-    val cls = cl.loadClass("mill.jvmlib.worker.JvmWorkerImpl")
+    val cls = cl.loadClass("mill.javalib.worker.JvmWorkerImpl")
     val instance = cls.getConstructor(
       classOf[
         Either[

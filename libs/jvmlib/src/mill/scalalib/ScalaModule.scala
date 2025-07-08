@@ -6,7 +6,7 @@ import mill.api.{DummyInputStream, Result}
 import mill.util.BuildInfo
 import mill.util.Jvm
 import mill.util.Jvm.createJar
-import mill.jvmlib.api.{CompilationResult, JvmWorkerUtil, Versions}
+import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
 import mill.api.{BuildCtx, PathRef, Task}
