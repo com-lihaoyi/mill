@@ -4,7 +4,7 @@ import mill.Task
 import mill.api.{Discover, ExternalModule}
 import mill.util.Jvm
 import mill.javalib.api.JvmWorkerUtil
-import mill.scalalib._
+import mill.javalib._
 import mill.util.BuildInfo
 import mill.api.BuildCtx
 

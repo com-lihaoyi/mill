@@ -1,6 +1,6 @@
 package mill.contrib.gitlab
 
-import mill.scalalib.publish.Artifact
+import mill.javalib.publish.Artifact
 
 sealed trait GitlabPackageRepository {
   def url(): String

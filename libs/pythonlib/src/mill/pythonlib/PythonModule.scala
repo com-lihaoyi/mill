@@ -5,7 +5,7 @@ import mill.api.Result
 import mill.constants.DaemonFiles
 import mill.util.Jvm
 import mill.api.TaskCtx
-import mill.scalalib.JavaHomeModule
+import mill.javalib.JavaHomeModule
 import mill.api.BuildCtx
 
 trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer =>
@@ -178,13 +178,13 @@ trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer
    * @see [[mainScript]]
    */
   def runBackground(args: mill.api.Args) = Task.Command(persistent = true) {
-    val backgroundPaths = mill.scalalib.RunModule.BackgroundPaths(Task.dest)
+    val backgroundPaths = mill.javalib.RunModule.BackgroundPaths(Task.dest)
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
     BuildCtx.withFilesystemCheckerDisabled {
       Jvm.spawnProcess(
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
-        classPath = mill.scalalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
+        classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
         env = runnerEnvTask(),
         mainArgs = backgroundPaths.toArgs ++ Seq(

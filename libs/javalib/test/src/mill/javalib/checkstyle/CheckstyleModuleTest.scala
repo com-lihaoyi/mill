@@ -3,7 +3,7 @@ package mill.javalib.checkstyle
 import mill._
 import mainargs.Leftover
 import mill.api.Discover
-import mill.scalalib.{JavaModule, ScalaModule}
+import mill.javalib.JavaModule
 import mill.testkit.{TestRootModule, UnitTester}
 import utest._
 
@@ -70,10 +70,7 @@ object CheckstyleModuleTest extends TestSuite {
           testJava(resources / "non-compatible", "xml", violations = violations),
           testJava(resources / "compatible-java", "plain"),
           testJava(resources / "compatible-java", "sarif"),
-          testJava(resources / "compatible-java", "xml"),
-          testScala(resources / "compatible-scala", "plain"),
-          testScala(resources / "compatible-scala", "sarif"),
-          testScala(resources / "compatible-scala", "xml")
+          testJava(resources / "compatible-java", "xml")
         )
       }
 
@@ -140,33 +137,6 @@ object CheckstyleModuleTest extends TestSuite {
       override def checkstyleFormat: T[String] = format
       override def checkstyleOptions: T[Seq[String]] = options
       override def checkstyleVersion: T[String] = version
-      lazy val millDiscover = Discover[this.type]
-    }
-
-    testModule(
-      module,
-      modulePath,
-      violations,
-      CheckstyleArgs(check, stdout, Leftover(sources*))
-    )
-  }
-
-  def testScala(
-      modulePath: os.Path,
-      format: String = "xml",
-      version: String = "10.18.1",
-      options: Seq[String] = Nil,
-      violations: Seq[String] = Seq.empty,
-      check: Boolean = false,
-      stdout: Boolean = false,
-      sources: Seq[String] = Seq.empty
-  ): Boolean = {
-
-    object module extends TestRootModule with ScalaModule with CheckstyleModule {
-      override def checkstyleFormat: T[String] = format
-      override def checkstyleOptions: T[Seq[String]] = options
-      override def checkstyleVersion: T[String] = version
-      override def scalaVersion: T[String] = sys.props("MILL_SCALA_2_13_VERSION")
       lazy val millDiscover = Discover[this.type]
     }
 

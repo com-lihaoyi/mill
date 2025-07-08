@@ -3,7 +3,7 @@ package build.libs.androidlib
 import coursier.MavenRepository
 import mill.*
 import mill.contrib.buildinfo.BuildInfo
-import mill.scalalib.*
+import mill.javalib.*
 import millbuild.*
 
 // TODO when android hardcoded versions are fixed, generate a build info

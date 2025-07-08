@@ -1,6 +1,6 @@
 package mill.contrib.jmh
 
-import mill._, scalalib._
+import mill._, javalib._
 import mill.util.Jvm
 
 /**

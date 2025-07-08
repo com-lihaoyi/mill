@@ -5,7 +5,7 @@ import mill.api.{PathRef}
 import mill.api.{Discover, ExternalModule}
 import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.util.Tasks
-import mill.scalalib.JavaModule
+import mill.javalib.JavaModule
 import mill.util.Jvm
 
 trait KtfmtBaseModule extends JavaModule {
