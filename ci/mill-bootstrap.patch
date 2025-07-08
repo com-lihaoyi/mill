@@ -232,3 +232,35 @@ index dd0965f8778..ee1476b87fa 100644
        )
  
        val useOldDownloadUrl =
+diff --git a/dist/package.mill b/dist/package.mill
+index fc069e6357c..d999c1fef95 100644
+--- a/dist/package.mill
++++ b/dist/package.mill
+@@ -89,9 +89,9 @@ trait DistModule extends Module {
+   def publishArtifacts = Task {
+     PublishModule.PublishData(
+       meta = artifact(),
+-      payload = Seq(
+-        executableRaw() -> s"${artifactFileNamePrefix()}.exe",
+-        pom() -> s"${artifactFileNamePrefix()}.pom"
++      payload = Map(
++        os.SubPath(s"${artifactFileNamePrefix()}.exe") -> executableRaw(),
++        os.SubPath(s"${artifactFileNamePrefix()}.pom") -> pom()
+       )
+     )
+   }
+@@ -258,10 +258,10 @@ object `package` extends MillJavaModule with DistModule {
+   def publishArtifacts = Task {
+     super.publishArtifacts().copy(payload =
+       super.publishArtifacts().payload ++
+-        exampleZips().map(z => (z, z.path.last)) ++
+-        Seq(
+-          (bootstrapLauncher(), s"${artifactFileNamePrefix()}-mill.sh"),
+-          (bootstrapLauncherBat(), s"${artifactFileNamePrefix()}-mill.bat")
++        exampleZips().map(z => os.SubPath(z.path.last) -> z) ++
++        Map(
++          os.SubPath(s"${artifactFileNamePrefix()}-mill.sh") -> bootstrapLauncher(),
++          os.SubPath(s"${artifactFileNamePrefix()}-mill.bat") -> bootstrapLauncherBat()
+         )
+     )
+   }
