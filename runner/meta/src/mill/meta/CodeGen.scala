@@ -6,7 +6,7 @@ import mill.constants.{CodeGenConstants as CGConst}
 import mill.api.Result
 import mill.internal.Util.backtickWrap
 import pprint.Util.literalize
-import mill.api.shared.internal.MillScalaParser
+import mill.api.daemon.internal.MillScalaParser
 import scala.util.control.Breaks.*
 
 object CodeGen {
@@ -232,7 +232,7 @@ object CodeGen {
           |""".stripMargin
 
     val newParent =
-      if (segments.isEmpty) "_root_.mill.main.MainRootModule"
+      if (segments.isEmpty) "_root_.mill.util.MainRootModule"
       else "_root_.mill.api.internal.SubfolderModule(build.millDiscover)"
 
     objectData.find(o => o.name.text == "`package`") match {

@@ -25,7 +25,7 @@ object `package` extends mill.Module {
   trait IntegrationTestModule extends Cross.Module[String] {
     def moduleDir = super.moduleDir / crossValue
 
-    def moduleDeps = Seq(build.libs.main.test, build.testkit, build.runner.daemon)
+    def moduleDeps = Seq(build.libs.util.test, build.testkit, build.runner.daemon)
 
     def resources: T[Seq[PathRef]]
     def runClasspath: T[Seq[PathRef]]
@@ -133,7 +133,7 @@ object `package` extends mill.Module {
   }
 
   object `bsp-util` extends MillScalaModule {
-    def moduleDeps = Seq(build.libs.main.test, build.runner.bsp)
+    def moduleDeps = Seq(build.libs.util.test, build.runner.bsp, build.libs.javalib.testrunner)
     def mvnDeps = super.mvnDeps() ++ Seq(
       Deps.bsp4j
     )

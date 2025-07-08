@@ -10,13 +10,12 @@ import millbuild.*
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version when androidlib is stable and released.
 object `package` extends MillPublishScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.libs.jvmlib, build.libs.kotlinlib)
+  def moduleDeps = Seq(build.libs.javalib, build.libs.kotlinlib)
 
   def mvnDeps = Seq(
     mvn"org.bouncycastle:bcprov-jdk18on:1.81",
     mvn"org.bouncycastle:bcpkix-jdk18on:1.81"
   )
-
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(
       build.libs.kotlinlib.worker.localTestOverride()
@@ -67,7 +66,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   }
 
   object api extends MillAndroidModule {
-    def moduleDeps = Seq(build.libs.testrunner)
+    def moduleDeps = Seq(build.libs.javalib.testrunner)
 
     override def compileMvnDeps: T[Seq[Dep]] = Task {
       super.compileMvnDeps() ++ Seq(

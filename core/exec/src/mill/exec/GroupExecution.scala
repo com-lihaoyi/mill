@@ -12,7 +12,7 @@ import java.util.concurrent.ThreadPoolExecutor
 import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.hashing.MurmurHash3
-import mill.api.shared.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TestReporter}
+import mill.api.daemon.internal.{BaseModuleApi, CompileProblemReporter, EvaluatorApi, TestReporter}
 
 /**
  * Logic around evaluating a single group, which is a collection of [[Task]]s

@@ -1,8 +1,8 @@
 package mill.api
 
 import mill.api.*
-import mill.api.shared.*
-import mill.api.shared.internal.*
+import mill.api.daemon.*
+import mill.api.daemon.internal.*
 import mill.api.internal.*
 
 final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {

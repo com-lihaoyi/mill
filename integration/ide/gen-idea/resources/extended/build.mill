@@ -1,5 +1,5 @@
 import mill._
-import mill.api.shared.internal.idea.{Element, IdeaConfigFile, JavaFacet}
+import mill.api.daemon.internal.idea.{Element, IdeaConfigFile, JavaFacet}
 import mill.api.PathRef
 import mill.scalalib.TestModule
 

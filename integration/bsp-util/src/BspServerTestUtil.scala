@@ -5,7 +5,7 @@ import com.google.gson.{Gson, GsonBuilder}
 import coursier.cache.CacheDefaults
 import mill.api.BuildInfo
 import mill.bsp.Constants
-import mill.testrunner.TestRunnerUtils
+import mill.javalib.testrunner.TestRunnerUtils
 import org.eclipse.{lsp4j => l}
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
@@ -239,8 +239,8 @@ object BspServerTestUtil {
       // Tell Mill BSP we want semanticdbs
       initParams.setData(
         InitData(
-          mill.api.shared.BuildInfo.semanticDBVersion,
-          mill.api.shared.BuildInfo.semanticDbJavaVersion
+          mill.api.daemon.BuildInfo.semanticDBVersion,
+          mill.api.daemon.BuildInfo.semanticDbJavaVersion
         )
       )
       // This seems to be unused by Mill BSP for now, setting it just in case

@@ -2,7 +2,7 @@ package mill.exec
 
 import mill.api.*
 import mill.api.internal.*
-import mill.api.shared.internal.*
+import mill.api.daemon.internal.*
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
 import mill.api.*
 import mill.internal.PrefixLogger
@@ -167,7 +167,7 @@ private[mill] case class Execution(
         } else {
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
             try {
-              val countMsg = mill.util.Util.leftPad(
+              val countMsg = mill.api.internal.Util.leftPad(
                 count.getAndIncrement().toString,
                 terminals.length.toString.length,
                 '0'
