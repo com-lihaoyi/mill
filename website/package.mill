@@ -198,7 +198,7 @@ object `package` extends mill.Module {
       "main-branch",
       "main-branch",
       build.millLastTag(),
-      build.millDownloadUrl()
+      build.millDownloadUrlCurrent()
     )
     PathRef(dest)
   }
