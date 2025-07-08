@@ -6,7 +6,7 @@ import com.lumidion.sonatype.central.client.core.{
   SonatypeCredentials
 }
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
-import mill.api.{Logger, Result}
+import mill.api.Logger
 import mill.scalalib.publish.Artifact
 import mill.scalalib.publish.SonatypeHelpers.getArtifactMappings
 
