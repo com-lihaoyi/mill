@@ -6,7 +6,7 @@ export mill.javalib.publish.License
 
 export mill.javalib.publish.LocalIvyPublisher
 
-export  mill.javalib.publish.LocalM2Publisher
+export mill.javalib.publish.LocalM2Publisher
 
 export mill.javalib.publish.Pom
 

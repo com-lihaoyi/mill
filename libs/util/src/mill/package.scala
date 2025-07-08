@@ -4,4 +4,4 @@
  * APIs are mostly in [[mill.api]] and [[mill.util]], while `*lib` packages like [[mill.javalib]],
  * [[mill.scalalib]], and [[mill.kotlinlib]] contain the language-specific toolchains.
  */
-package object mill 
+package object mill

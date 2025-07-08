@@ -6,4 +6,4 @@ package mill
  * projects that run in the browser. The toolchain for building Kotlin on android
  * lives separately in `mill.androidlib`.
  */
-package object kotlinlib 
+package object kotlinlib

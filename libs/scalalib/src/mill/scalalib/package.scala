@@ -6,5 +6,3 @@ package mill
  * and `mill.scalanativelib` respectively.
  */
 package object scalalib
-
-

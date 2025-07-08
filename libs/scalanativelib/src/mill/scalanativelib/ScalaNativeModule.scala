@@ -4,7 +4,6 @@ package scalanativelib
 import mainargs.Flag
 import mill.{api => _, *}
 
-
 import mill.api.Result
 import mill.api.CrossVersion
 import mill.api.daemon.internal.bsp.ScalaBuildTarget
