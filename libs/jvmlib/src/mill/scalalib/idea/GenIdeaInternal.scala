@@ -4,7 +4,7 @@ import java.nio.file.Path
 
 import mill.Task
 import mill.api.Segments
-import mill.api.shared.internal.idea.{GenIdeaInternalApi, ResolvedModule}
+import mill.api.daemon.internal.idea.{GenIdeaInternalApi, ResolvedModule}
 import mill.api.internal.internal
 import mill.api.{Discover, ExternalModule, ModuleCtx, PathRef}
 import mill.scalalib.{BoundDep, Dep, JavaModule, ScalaModule}

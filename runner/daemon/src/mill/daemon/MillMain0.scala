@@ -1,8 +1,8 @@
 package mill.daemon
 
 import ch.epfl.scala.bsp4j.BuildClient
-import mill.api.shared.internal.bsp.{BspServerHandle, BspServerResult}
-import mill.api.shared.internal.{CompileProblemReporter, EvaluatorApi, internal}
+import mill.api.daemon.internal.bsp.{BspServerHandle, BspServerResult}
+import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi, internal}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.Lock
@@ -12,7 +12,7 @@ import mill.internal.{Colors, MultiStream, PrefixLogger, PromptLogger, SimpleLog
 import mill.server.Server
 import mill.util.BuildInfo
 import mill.api
-import mill.api.shared.internal.bsp.BspServerResult
+import mill.api.daemon.internal.bsp.BspServerResult
 
 import java.io.{InputStream, PipedInputStream, PrintStream, PrintWriter, StringWriter}
 import java.lang.reflect.InvocationTargetException
@@ -94,7 +94,7 @@ object MillMain0 {
       daemonDir: os.Path,
       outLock: Lock
   ): (Boolean, RunnerState) =
-    mill.api.shared.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
+    mill.api.daemon.internal.MillScalaParser.current.withValue(MillScalaParserImpl) {
       os.SubProcess.env.withValue(env) {
         val parserResult = MillCliConfig.parse(args)
         // Detect when we're running in BSP mode as early as possible,

@@ -1,7 +1,7 @@
 package mill.api
 
 import mill.api.DummyOutputStream
-import mill.api.shared.internal.PathRefApi
+import mill.api.daemon.internal.PathRefApi
 import upickle.default.ReadWriter as RW
 
 import java.nio.file as jnio

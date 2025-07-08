@@ -2,7 +2,7 @@ package mill.scalalib.bsp
 
 import java.nio.file.Path
 
-import mill.api.shared.internal.bsp.BspRunModuleApi
+import mill.api.daemon.internal.bsp.BspRunModuleApi
 import mill.api.internal.internal
 import mill.api.{Discover, ExternalModule, ModuleCtx}
 import mill.api.JsonFormatters.given

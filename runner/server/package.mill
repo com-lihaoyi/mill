@@ -9,7 +9,7 @@ import millbuild.*
  * any Mill-related business logic
  */
 object `package` extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.runner.launcher, build.core.api.shared)
+  def moduleDeps = Seq(build.runner.launcher, build.core.api.daemon)
 
   def mvnDeps = Seq(
     Deps.sourcecode,

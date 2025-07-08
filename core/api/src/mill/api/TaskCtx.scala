@@ -1,7 +1,7 @@
 package mill.api
 
 import mill.api.{Logger, experimental}
-import mill.api.shared.internal.{CompileProblemReporter, TestReporter}
+import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
 
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.implicitConversions

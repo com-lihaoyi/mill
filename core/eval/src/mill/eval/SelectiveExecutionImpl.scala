@@ -1,6 +1,6 @@
 package mill.eval
 
-import mill.api.shared.internal.TestReporter
+import mill.api.daemon.internal.TestReporter
 import mill.api.{ExecResult, Result, Val}
 import mill.constants.OutFiles
 import mill.api.SelectiveExecution.ChangedTasks
