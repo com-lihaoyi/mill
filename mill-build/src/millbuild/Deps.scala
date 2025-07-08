@@ -97,8 +97,6 @@ object Deps {
   val coursierInterface = mvn"io.get-coursier:interface:1.0.29-M1"
   val coursierJvm =
     mvn"io.get-coursier::coursier-jvm:$coursierVersion".withDottyCompat(scalaVersion)
-  // https://mvnrepository.com/artifact/io.get-coursier.publish/publish
-  val coursierPublish = mvn"io.get-coursier.publish::publish:0.3.0"
 
   val cask = mvn"com.lihaoyi::cask:0.9.4"
   val castor = mvn"com.lihaoyi::castor:0.3.0"
@@ -187,6 +185,24 @@ object Deps {
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
   val kotlinVersion = "2.1.20"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
+  
+  /** Used for the `mill init` from a Maven project. */
+  object MavenInit {
+    val mavenVersion = "3.9.9"
+    val mavenEmbedder = mvn"org.apache.maven:maven-embedder:$mavenVersion"
+    val mavenResolverVersion = "1.9.22"
+    val mavenResolverConnectorBasic =
+      mvn"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion"
+    val mavenResolverSupplier =
+      mvn"org.apache.maven.resolver:maven-resolver-supplier:$mavenResolverVersion"
+    val mavenResolverTransportFile =
+      mvn"org.apache.maven.resolver:maven-resolver-transport-file:$mavenResolverVersion"
+    val mavenResolverTransportHttp =
+      mvn"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
+    val mavenResolverTransportWagon =
+      mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
+  }
+  
   val coursierJvmIndexVersion = "0.0.4-111-eb6e08"
   val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
