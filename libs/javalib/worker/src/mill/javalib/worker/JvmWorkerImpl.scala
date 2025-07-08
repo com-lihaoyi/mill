@@ -3,7 +3,7 @@ package mill.javalib.worker
 import mill.util.CachedFactory
 import mill.api._
 import mill.api.daemon._
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.PathRef
 import mill.constants.CodeGenConstants

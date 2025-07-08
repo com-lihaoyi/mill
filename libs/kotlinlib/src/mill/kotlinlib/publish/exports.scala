@@ -1,8 +1,6 @@
-package mill.scalalib.publish
+package mill.kotlinlib.publish
 
 export mill.javalib.publish.Ivy
-
-export mill.javalib.JsonFormatters
 
 export mill.javalib.publish.License
 
@@ -35,5 +33,3 @@ export mill.javalib.publish.VersionControl
 export mill.javalib.publish.VersionControlConnection
 
 export mill.javalib.publish.VersionScheme
-
-export mill.javalib.publish.JsonFormatters.*

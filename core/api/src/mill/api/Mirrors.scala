@@ -1,9 +1,11 @@
 package mill.api
 
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 
 import scala.quoted.*
 import scala.deriving.Mirror
+
+import mill.api.daemon.internal.internal
 
 @internal
 object Mirrors {

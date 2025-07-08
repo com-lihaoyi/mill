@@ -1,6 +1,6 @@
 package mill.main.maven
 
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import org.apache.maven.model.building.{FileModelSource, ModelSource}
 import org.apache.maven.model.resolution.{ModelResolver, UnresolvableModelException}
 import org.apache.maven.model.{Dependency, Parent, Repository}

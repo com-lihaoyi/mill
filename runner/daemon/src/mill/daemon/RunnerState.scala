@@ -4,7 +4,7 @@ import mill.api.Val
 import mill.api.JsonFormatters._
 import mill.api.daemon.internal.{EvaluatorApi, internal, PathRefApi}
 import mill.api.internal.RootModule0
-import mill.api.internal.Watchable
+import mill.api.daemon.Watchable
 import mill.api.MillURLClassLoader
 import upickle.default.{ReadWriter, macroRW}
 
