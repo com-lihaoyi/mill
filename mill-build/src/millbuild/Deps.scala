@@ -185,7 +185,7 @@ object Deps {
   val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
   val kotlinVersion = "2.1.20"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
-  
+
   /** Used for the `mill init` from a Maven project. */
   object MavenInit {
     val mavenVersion = "3.9.9"
@@ -202,7 +202,7 @@ object Deps {
     val mavenResolverTransportWagon =
       mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
   }
-  
+
   val coursierJvmIndexVersion = "0.0.4-111-eb6e08"
   val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
 
