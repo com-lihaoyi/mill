@@ -22,7 +22,6 @@ import mill.scalalib.publish.SonatypeHelpers.{
 }
 import mill.api.BuildCtx
 
-
 trait SonatypeCentralPublishModule extends PublishModule {
   def sonatypeCentralGpgArgs: T[String] = Task {
     PublishModule.defaultGpgArgsForPassphrase(Task.env.get("MILL_PGP_PASSPHRASE")).mkString(",")

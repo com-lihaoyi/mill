@@ -1,6 +1,5 @@
 package mill.util
 
-
 object Util {
 
   def leftPad(s: String, targetLength: Int, char: Char): String = {
