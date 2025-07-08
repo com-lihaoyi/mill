@@ -39,7 +39,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
       val baseArgs = Seq(
         "-d",
         if (leftover.value.nonEmpty) leftover.value.mkString(",")
-        else "__.sources",
+        else "",
         "-R",
         pmdRulesets().map(_.path.toString).mkString(","),
         "-f",
