@@ -2,7 +2,6 @@ package millbuild
 
 import build_.package_ as build
 import coursier.MavenRepository
-import mill.Agg
 import mill.PathRef
 import mill.T
 import mill.Task
