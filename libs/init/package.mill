@@ -10,7 +10,7 @@ import mill.api.BuildCtx
 
 object `package` extends MillPublishScalaModule {
 
-  def moduleDeps = Seq(build.libs.jvmlib)
+  def moduleDeps = Seq(build.libs.javalib)
 
   override def resources = Task {
     super.resources() ++ Seq(exampleList())
@@ -69,8 +69,8 @@ object `package` extends MillPublishScalaModule {
   }
 
   object buildgen extends MillPublishScalaModule {
-    def moduleDeps = Seq(build.libs.init, build.core.internal, build.core.util)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib)
+    def moduleDeps = Seq(build.libs.init, build.core.internal, build.libs.util)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
 
     // I tried moving `Tree` into this module, but it doesn't compile with Scala 2.12.20.
     /*
@@ -86,7 +86,7 @@ object `package` extends MillPublishScalaModule {
       Deps.gradleApi,
       Deps.logback
     )
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib, buildgen.test)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib, buildgen.test)
   }
   object maven extends MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
@@ -98,7 +98,7 @@ object `package` extends MillPublishScalaModule {
       Deps.mavenResolverTransportHttp,
       Deps.mavenResolverTransportWagon
     )
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib, buildgen.test)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib, buildgen.test)
   }
 
   object sbt extends MillPublishScalaModule with BuildInfo {
@@ -110,7 +110,7 @@ object `package` extends MillPublishScalaModule {
       PathRef(Task.dest)
     }
     def resources: T[Seq[PathRef]] = Task { super.resources() ++ Seq(sbtPluginJarResources()) }
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib, buildgen.test)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib, buildgen.test)
 
     def buildInfoPackageName = "mill.main.sbt"
     def buildInfoObjectName: String = "Versions"

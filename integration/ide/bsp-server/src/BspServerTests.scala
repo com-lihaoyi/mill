@@ -13,8 +13,8 @@ import mill.api.BuildInfo
 import mill.bsp.Constants
 import mill.constants.OutFiles
 import mill.integration.BspServerTestUtil.*
+import mill.javalib.testrunner.TestRunnerUtils
 import mill.testkit.UtestIntegrationTestSuite
-import mill.testrunner.TestRunnerUtils
 import utest.*
 
 object BspServerTests extends UtestIntegrationTestSuite {

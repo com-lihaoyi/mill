@@ -17,7 +17,7 @@ object RootModuleCompileErrorTests extends UtestIntegrationTestSuite {
         assert(res.err.contains("""build.mill:7:67"""))
         assert(res.err.contains("""Not found: type UnknownRootModule"""))
         assert(res.err.contains(
-          """abstract class package_  extends _root_.mill.main.MainRootModule, UnknownRootModule {"""
+          """abstract class package_  extends _root_.mill.util.MainRootModule, UnknownRootModule {"""
         ))
         assert(
           res.err.contains("""                                                 ^^^^^^^^^^^^^^^^^""")

@@ -6,7 +6,6 @@ import mill.api.Logger
 import mill.api.internal.{internal, *}
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.scalalib.*
-import mill.testrunner.TestResult
 import os.{Path, RelPath, zip}
 import upickle.default.*
 import scala.jdk.OptionConverters.RichOptional
@@ -14,6 +13,7 @@ import scala.xml.*
 
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
+import mill.javalib.testrunner.TestResult
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats

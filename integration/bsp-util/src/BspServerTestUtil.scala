@@ -5,7 +5,7 @@ import com.google.gson.{Gson, GsonBuilder}
 import coursier.cache.CacheDefaults
 import mill.api.BuildInfo
 import mill.bsp.Constants
-import mill.testrunner.TestRunnerUtils
+import mill.javalib.testrunner.TestRunnerUtils
 import org.eclipse.{lsp4j => l}
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 

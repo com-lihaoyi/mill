@@ -9,6 +9,14 @@ import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
+/**
+ * An API that allows you to resolve, plan, and execute Mill tasks.
+ *
+ * [[Evaluator]] can be taken as a parameter to [[Task.Command]]s marked as `exclusive = true`,
+ * providing those commands with the ability to inspect the build and dynamically decide what
+ * to evaluate. Many builtin commands like `show`, `plan`, `path`, etc. are implemented in
+ * this way
+ */
 trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def allowPositionalCommandArgs: Boolean
   private[mill] def selectiveExecution: Boolean
