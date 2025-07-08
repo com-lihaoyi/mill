@@ -61,7 +61,8 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
           )
           val sourcesOpt =
             if (sources) Map(os.SubPath(s"$baseName-sources.jar") -> sourceJar()) else Map.empty
-          val docsOpt = if (docs) Map(os.SubPath(s"$baseName-javadoc.jar") -> docJar()) else Map.empty
+          val docsOpt =
+            if (docs) Map(os.SubPath(s"$baseName-javadoc.jar") -> docJar()) else Map.empty
           baseContent ++ sourcesOpt ++ docsOpt
         }
 
