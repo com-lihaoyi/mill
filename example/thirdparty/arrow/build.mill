@@ -3,7 +3,7 @@ package build
 import mill.*, kotlinlib.*, kotlinlib.js.*
 import mill.scalalib.CoursierModule
 import mill.api.Result
-import mill.testrunner.TestResult
+import mill.javalib.testrunner.TestResult
 import mill.javalib.api.CompilationResult
 import mill.kotlinlib.kover.KoverModule
 
