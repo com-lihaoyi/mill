@@ -2,7 +2,7 @@ package build
 import mill.*, pythonlib.*
 
 object foo extends PythonModule {
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source("src/foo.py")
 
   // Add (or replace) resource folders for the module to use
   def customResources = Task.Sources("custom")

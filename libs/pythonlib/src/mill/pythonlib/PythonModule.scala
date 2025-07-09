@@ -55,7 +55,7 @@ trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer
    *
    * Python modules will be defined relative to these directories.
    */
-  def sources: T[Seq[PathRef]] = Task.Sources { "src" }
+  def sources: T[Seq[PathRef]] = Task.Sources("src")
 
   /**
    * The folders where the resource files for this module live.
@@ -65,7 +65,7 @@ trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer
   /**
    * The python script to run. This file may not exist if this module is only a library.
    */
-  def mainScript: T[PathRef] = Task.Source { "src/main.py" }
+  def mainScript: T[PathRef] = Task.Source("src/main.py")
 
   override def pythonToolDeps: T[Seq[String]] = Task {
     super.pythonToolDeps() ++ Seq(

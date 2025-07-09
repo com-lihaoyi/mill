@@ -54,7 +54,7 @@ Or see the language-specific introductory documentation linked below:
 and xref:depth/parallelism.adoc[parallelizes build tasks] and https://mill-build.org/blog/11-jvm-test-parallelism.html[tests]
 to keep local development fast, https://mill-build.org/blog/9-mill-faster-assembly-jars.html[incrementally builds assembly jars]
 to speed up manual testing workflows, and shortens CI times with xref:large/selective-execution.adoc[selective test execution]
-to only runs the subset of tests necessary to validate a code change.
+to only run the subset of tests necessary to validate a code change.
 
 * *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also
 xref:fundamentals/configuring-jvm-versions.adoc[managing JVM versions], xref:javalib/linting.adoc[linting],
@@ -132,7 +132,7 @@ also has a rich ecosystem of third party plugins for less common use cases:
 === Contributing and Community
 
 If you want to contribute to Mill, or are interested in the fundamental ideas behind
-Mill rather than the user-facing benefits discussed above, check out the page on
+Mill rather than the user-facing features discussed above, check out the page on
 xref:depth/design-principles.adoc[Mill Design Principles]. In particular, this video
 is a must-watch to help you understand the fundamental concepts behind Mill and why
 they are interesting:

@@ -32,8 +32,7 @@ object foo extends JavaModule {
         groovyScript().path.toString,
         "Groovy!",
         (Task.dest / "groovy-generated.html").toString
-      ),
-      cwd = Task.dest
+      )
     )
     PathRef(Task.dest)
   }
