@@ -61,7 +61,7 @@ private[mill] object ParseArgs {
         .sequence(selectors.map(ExpandBraces.expandBraces))
         .map(_.flatten)
       selectors <- Result.sequence(expandedSelectors.map(extractSegments))
-    } yield (selectors.toList, args)
+    } yield (selectors.iterator.toList, args)
   }
 
   def extractSelsAndArgs(
