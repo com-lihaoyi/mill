@@ -55,7 +55,9 @@ object Result {
   /**
    * Converts a `Collection[Result[T]]` into a `Result[Collection[T]]`
    */
-  def sequence[B, M[X] <: IterableOnce[X]](in: M[Result[B]])(using factory: Factory[B, M[B]]): Result[M[B]] = {
+  def sequence[B, M[X] <: IterableOnce[X]](in: M[Result[B]])(using
+      factory: Factory[B, M[B]]
+  ): Result[M[B]] = {
     boundary {
       val builder = factory.newBuilder
       builder.sizeHint(in)
@@ -72,7 +74,7 @@ object Result {
    * Converts a `Collection[T]` into a `Result[Collection[V]]` using the given `f: T => Result[V]`
    */
   def traverse[A, B, Collection[x] <: IterableOnce[x]](collection: Collection[Result[A]])(
-    f: A => Result[B]
+      f: A => Result[B]
   )(using factory: Factory[B, Collection[B]]): Result[Collection[B]] = {
     boundary {
       val builder = factory.newBuilder

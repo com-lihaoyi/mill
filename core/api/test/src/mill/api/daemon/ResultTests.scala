@@ -16,7 +16,8 @@ object ResultTests extends TestSuite {
       }
 
       test("failure") {
-        val actual = Result.sequence(Seq(Result.Success(1), Result.Failure("fail"), Result.Success(2)))
+        val actual =
+          Result.sequence(Seq(Result.Success(1), Result.Failure("fail"), Result.Success(2)))
         assert(actual == Result.Failure("fail"))
       }
     }
