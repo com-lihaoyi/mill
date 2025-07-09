@@ -2,7 +2,7 @@ package mill.androidlib
 
 import mill.*
 import mill.api.{PathRef, Task}
-import mill.scalalib.*
+import mill.javalib.*
 import os.zip.ZipSource
 
 /**
@@ -84,23 +84,6 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
     PathRef(bundleFile)
   }
 
-  def jarSignKeyPasswordParams: Task[Seq[String]] = Task.Anon {
-    if (androidIsDebug())
-      Seq(
-        "-storepass",
-        debugKeyStorePass,
-        "-keypass",
-        debugKeyPass
-      )
-    else
-      Seq(
-        "-storepass",
-        s"${androidReleaseKeyStorePassFile().path}",
-        "-keypass",
-        s"${androidReleaseKeyPassFile().path}"
-      )
-  }
-
   /**
    * Signs the AAB using the specified keystore.
    *
@@ -111,26 +94,37 @@ trait AndroidAppBundle extends AndroidAppModule with JavaModule {
    */
   def androidBundle: T[PathRef] = Task {
     val signedBundle = Task.dest / "signedBundle.aab"
+    val keyPath = androidKeystore()
 
+    // TODO this is duplicated with the parent module. Can we do it better without leaking sensitive credentials
+    //  in plain to disk/console? put behind Task.Anon?
+    val keystorePass = {
+      if (androidIsDebug()) debugKeyStorePass else androidReleaseKeyStorePass().get
+    }
     val keyAlias = {
       if (androidIsDebug()) debugKeyAlias else androidReleaseKeyAlias().get
     }
-    val signArgs =
-      Seq(
-        "jarsigner",
-        "-sigalg",
-        "SHA256withRSA",
-        "-digestalg",
-        "SHA-256",
-        "-keystore",
-        androidKeystore().path.toString,
-        "-signedjar",
-        signedBundle.toString,
-        androidUnsignedBundle().path.toString,
-        keyAlias
-      ) ++ jarSignKeyPasswordParams()
+    val keyPass = {
+      if (androidIsDebug()) debugKeyPass else androidReleaseKeyPass().get
+    }
 
-    os.call(signArgs)
+    os.call((
+      "jarsigner",
+      "-sigalg",
+      "SHA256withRSA",
+      "-digestalg",
+      "SHA-256",
+      "-keypass",
+      keyPass,
+      "-storepass",
+      keystorePass,
+      "-keystore",
+      keyPath,
+      "-signedjar",
+      signedBundle,
+      androidUnsignedBundle().path,
+      keyAlias
+    ))
 
     PathRef(signedBundle)
   }

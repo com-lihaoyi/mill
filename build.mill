@@ -68,9 +68,6 @@ def millLastTag: T[String] = Task {
 def millDownloadPrefix = Task {
   s"${Settings.mavenRepoUrl}/com/lihaoyi/mill-dist"
 }
-def millDownloadUrl = Task {
-  s"${millDownloadPrefix()}/${millLastTag()}"
-}
 
 def millDownloadUrlCurrent = Task {
   s"${millDownloadPrefix()}/${millVersion()}"

@@ -1,5 +1,7 @@
 package mill.api
 
+import mill.api.internal.RootModule0
+
 /**
  * A module defined outside of the `build.mill` file, and is instead
  * provided builtin by some Mill library or plugin
@@ -13,7 +15,7 @@ abstract class ExternalModule(implicit
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
-) extends BaseModule(BuildCtx.workspaceRoot, external0 = true)(
+) extends RootModule0(BuildCtx.workspaceRoot, external0 = true)(
       millModuleEnclosing0,
       millModuleLine0,
       millFile0

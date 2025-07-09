@@ -4,7 +4,7 @@ import mill._
 import mill.api.Result.{Failure, Success}
 import mill.api.Result
 import mill.api.{ExternalModule, Task}
-import scalalib._
+import javalib._
 
 trait GitlabPublishModule extends PublishModule { outer =>
 

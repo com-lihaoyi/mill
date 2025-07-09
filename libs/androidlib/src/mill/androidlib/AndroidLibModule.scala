@@ -2,8 +2,8 @@ package mill.androidlib
 
 import mill.*
 import mill.api.{PathRef, Task}
-import mill.scalalib.*
-import mill.scalalib.publish.{PackagingType, PublishInfo}
+import mill.javalib.*
+import mill.javalib.publish.{PackagingType, PublishInfo}
 import mill.util.Jvm
 import upickle.default.*
 import scala.xml.*

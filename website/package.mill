@@ -198,7 +198,7 @@ object `package` extends mill.Module {
       "main-branch",
       "main-branch",
       build.millLastTag(),
-      build.millDownloadUrl()
+      build.millDownloadUrlCurrent()
     )
     PathRef(dest)
   }
@@ -421,6 +421,12 @@ object `package` extends mill.Module {
       BuildCtx.workspaceRoot / "docs",
       mill.api.BuildCtx.workspaceRoot
     )
+
+    for (p <- os.walk(siteDir) if p.ext == "html") {
+      // Manually un-substitute ellipses in normal text to reverse the antora unicode
+      // substitution, because the font for the unicode ellipses looks very bad
+      os.write.over(p, os.read(p).replace("…", "..."))
+    }
 
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
     val unidocSrc = if (authorMode) apidocs.unidocLocal().path else apidocs.unidocSite().path

@@ -10,7 +10,7 @@
 package build
 
 import mill.javalib.JavaModule
-import mill.scalalib.spotless.*
+import mill.javalib.spotless.*
 
 object `package` extends JavaModule, SpotlessModule
 
@@ -70,7 +70,7 @@ format completed
 // if you prefer not to have to extend `SpotlessModule`.
 
 /** Usage
-> ./mill mill.scalalib.spotless.SpotlessModule/ --check
+> ./mill mill.javalib.spotless.SpotlessModule/ --check
 checking format in 1 mill files
 checking format in 1 properties files
 checking format in 1 java files

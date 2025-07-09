@@ -4,7 +4,7 @@ import mill.androidlib.AndroidKotlinModule
 import mill.api.{ModuleRef, PathRef}
 import mill.kotlinlib.DepSyntax
 import mill.kotlinlib.ksp.KspModule
-import mill.scalalib.Dep
+import mill.javalib.Dep
 import mill.javalib.api.CompilationResult
 import mill.{T, Task}
 

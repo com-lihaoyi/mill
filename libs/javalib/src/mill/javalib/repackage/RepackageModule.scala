@@ -6,10 +6,10 @@ import mill.api.ModuleRef
 import mill.api.PathRef
 import mill.javalib.JavaModule
 import mill.util.Jvm
-import mill.scalalib.PublishModule
+import mill.javalib.PublishModule
 import mill.javalib.CoursierModule
 import mill.javalib.RunModule
-import mill.scalalib.AssemblyModule
+import mill.javalib.AssemblyModule
 import mill.javalib.spring.boot.SpringBootToolsModule
 
 /**

@@ -7,7 +7,7 @@ import mill.api.{TaskCtx, PathRef}
 import mill.api.{Discover, ExternalModule, Task}
 import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.javalib.api.{Versions, JvmWorkerApi, JvmWorkerUtil}
-import mill.scalalib.CoursierModule.Resolver
+import mill.javalib.CoursierModule.Resolver
 
 import scala.util.Properties
 

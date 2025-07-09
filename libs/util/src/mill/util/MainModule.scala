@@ -4,9 +4,9 @@ import mill.{util, *}
 import mill.api.*
 import mill.api.daemon.internal.{EvaluatorApi, MainModuleApi, TaskApi}
 import mill.api.*
-import mill.api.internal.RootModule0
+import mill.api.internal.{RootModule0, RootModule}
 import mill.api.SelectMode.Separated
-import mill.api.internal.Watchable
+import mill.api.daemon.Watchable
 import mill.moduledefs.Scaladoc
 import mill.api.BuildCtx
 
@@ -14,17 +14,17 @@ import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
 
 abstract class MainRootModule()(implicit
-    baseModuleInfo: RootModule0.Info,
+    baseModuleInfo: RootModule.Info,
     millModuleEnclosing0: sourcecode.Enclosing,
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
-) extends RootModule0 with MainModule
+) extends RootModule with MainModule
 
 /**
  * [[mill.api.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
  */
-trait MainModule extends BaseModule with MainModuleApi {
+trait MainModule extends RootModule0 with MainModuleApi {
 
   /**
    * Show the mill version.

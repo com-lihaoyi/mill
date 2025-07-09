@@ -2,7 +2,7 @@ package mill.javalib.checkstyle
 
 import mill._
 import mill.api.{PathRef}
-import mill.scalalib.{DepSyntax, JavaModule}
+import mill.javalib.{DepSyntax, JavaModule}
 import mill.util.Jvm
 import mill.api.BuildCtx
 

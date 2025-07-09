@@ -1,5 +1,5 @@
 package mill.api.internal
-
+import mill.api.daemon.Watchable
 import mill.api.PathRef
 
 private[mill] object WatchSig {

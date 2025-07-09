@@ -3,9 +3,10 @@ package mill.androidlib
 import coursier.params.ResolutionParams
 import mill.*
 import mill.api.Logger
-import mill.api.internal.{internal, *}
+import mill.api.internal.*
+import mill.api.daemon.internal.internal
 import mill.api.{ModuleRef, PathRef, Task}
-import mill.scalalib.*
+import mill.javalib.*
 import os.{Path, RelPath, zip}
 import upickle.default.*
 import scala.jdk.OptionConverters.RichOptional

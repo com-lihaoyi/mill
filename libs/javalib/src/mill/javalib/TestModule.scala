@@ -8,8 +8,8 @@ import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 import mill.api.PathRef
 import mill.api.Task
 import mill.api.TaskCtx
-import mill.api.TaskModule
-import mill.scalalib.bsp.BspModule
+import mill.api.DefaultTaskModule
+import mill.javalib.bsp.BspModule
 import mill.util.Jvm
 import mill.api.JsonFormatters.given
 import mill.constants.EnvVars
@@ -35,7 +35,7 @@ trait TestModule
     extends TestModule.JavaModuleBase
     with WithJvmWorkerModule
     with RunModule
-    with TaskModule
+    with DefaultTaskModule
     with TestModuleApi {
 
   override def defaultTask() = "testForked"

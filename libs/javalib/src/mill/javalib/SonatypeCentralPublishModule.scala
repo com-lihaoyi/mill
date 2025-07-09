@@ -2,10 +2,10 @@ package mill.javalib
 
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import mill._
-import scalalib._
+import javalib._
 import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
-import mill.api.TaskModule
+import mill.api.DefaultTaskModule
 import mill.api.{Result, experimental}
 import mill.javalib.SonatypeCentralPublishModule.{
   defaultAwaitTimeout,
@@ -15,11 +15,8 @@ import mill.javalib.SonatypeCentralPublishModule.{
   getPublishingTypeFromReleaseFlag,
   getSonatypeCredentials
 }
-import mill.scalalib.publish.Artifact
-import mill.scalalib.publish.SonatypeHelpers.{
-  PASSWORD_ENV_VARIABLE_NAME,
-  USERNAME_ENV_VARIABLE_NAME
-}
+import mill.javalib.publish.Artifact
+import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
 
 trait SonatypeCentralPublishModule extends PublishModule {
@@ -77,7 +74,7 @@ trait SonatypeCentralPublishModule extends PublishModule {
 /**
  * External module to publish artifacts to `central.sonatype.org`
  */
-object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
+object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModule {
 
   def self = this
   val defaultCredentials: String = ""
