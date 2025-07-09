@@ -17,7 +17,7 @@ import mill.api.BuildCtx
  * Configuration necessary for publishing a Scala module to Maven Central or similar
  */
 trait PublishModule extends JavaModule { outer =>
-  import mill.javalib.publish._
+  import mill.javalib.publish.*
 
   override def moduleDeps: Seq[PublishModule] = super.moduleDeps.map {
     case m: PublishModule => m
@@ -402,7 +402,7 @@ trait PublishModule extends JavaModule { outer =>
 
   /**
    * Publish artifacts to a local Maven repository.
-   * @param m2RepoPath The path to the local repository  as string (default: `$HOME/.m2repository`).
+   * @param m2RepoPath The path to the local repository  as string (default: `$HOME/.m2/repository`).
    *                   If not set, falls back to `maven.repo.local` system property or `~/.m2/repository`
    * @return [[PathRef]]s to published files.
    */
@@ -444,9 +444,11 @@ trait PublishModule extends JavaModule { outer =>
       .map(PathRef(_).withRevalidateOnce)
   }
 
-  def sonatypeUri: String = "https://oss.sonatype.org/service/local"
+  /** @see [[PublishModule.sonatypeLegacyOssrhUri]] */
+  def sonatypeLegacyOssrhUri: String = PublishModule.sonatypeLegacyOssrhUri
 
-  def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
+  /** @see [[PublishModule.sonatypeCentralSnapshotUri]] */
+  def sonatypeCentralSnapshotUri: String = PublishModule.sonatypeCentralSnapshotUri
 
   def publishArtifacts: T[PublishModule.PublishData] = {
     val baseNameTask: Task[String] = Task.Anon { s"${artifactId()}-${publishVersion()}" }
@@ -479,7 +481,8 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   /**
-   * Publish all given artifacts to Sonatype.
+   * Publish all given artifacts to legacy OSSRH Sonatype (deprecated, use Sonatype Central publishing instead).
+   *
    * Uses environment variables MILL_SONATYPE_USERNAME and MILL_SONATYPE_PASSWORD as
    * credentials.
    *
@@ -487,30 +490,26 @@ trait PublishModule extends JavaModule { outer =>
    *                      If specified, environment variables will be ignored.
    *                      <i>Note: consider using environment variables over this argument due
    *                      to security reasons.</i>
-   * @param gpgArgs       GPG arguments. Defaults to `--batch --yes -a -b`.
+   * @param gpgArgs       GPG arguments. Defaults to [[PublishModule.defaultGpgArgsForPassphrase]].
    *                      Specifying this will override/remove the defaults.
    *                      Add the default args to your args to keep them.
    */
   def publish(
       sonatypeCreds: String = "",
       signed: Boolean = true,
-      // mainargs wasn't handling a default value properly,
-      // so we instead use the empty Seq as default.
-      // see https://github.com/com-lihaoyi/mill/pull/1678
-      // TODO: In mill 0.11, we may want to change to a String argument
-      // which we can split at `,` symbols, as we do in `PublishModule.publishAll`.
-      gpgArgs: Seq[String] = Seq.empty,
+      gpgArgs: String = "",
       release: Boolean = true,
       readTimeout: Int = 30 * 60 * 1000,
       connectTimeout: Int = 30 * 60 * 1000,
       awaitTimeout: Int = 30 * 60 * 1000,
       stagingRelease: Boolean = true
   ): Task.Command[Unit] = Task.Command {
-    val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
-    val gpgArgs0 = PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, gpgArgs)
+    val (contents, artifact) = publishArtifacts().withConcretePath
+    val gpgArgs0 =
+      PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, gpgArgs.split(','))
     new SonatypePublisher(
-      sonatypeUri,
-      sonatypeSnapshotUri,
+      uri = sonatypeLegacyOssrhUri,
+      snapshotUri = sonatypeCentralSnapshotUri,
       checkSonatypeCreds(sonatypeCreds)(),
       signed,
       gpgArgs0,
@@ -521,7 +520,7 @@ trait PublishModule extends JavaModule { outer =>
       Task.env,
       awaitTimeout,
       stagingRelease
-    ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo, release)
+    ).publish(contents, artifact, release)
   }
 
   override def manifest: T[JarManifest] = Task {
@@ -665,6 +664,21 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
         .map(_.fold(err => throw new IllegalArgumentException(err), identity))
   }
 
+  /**
+   * Uri for publishing to the old / legacy Sonatype OSSRH.
+   *
+   * It's mostly dead but we still keep it around because
+   * https://central.sonatype.org/publish/publish-portal-ossrh-staging-api still exists.
+   *
+   * @see https://central.sonatype.org/pages/ossrh-eol/
+   */
+  def sonatypeLegacyOssrhUri: String =
+    "https://ossrh-staging-api.central.sonatype.com/service/local/"
+
+  /** Uri for publishing SNAPSHOT artifacts to Sonatype Central. */
+  def sonatypeCentralSnapshotUri: String =
+    "https://central.sonatype.com/repository/maven-snapshots/"
+
   case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)]) {
 
     /**
@@ -679,7 +693,8 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   }
 
   /**
-   * Publish all given artifacts to Sonatype.
+   * Publish all given artifacts to Sonatype OSSRH (deprecated, use Sonatype Central publishing instead).
+   *
    * Uses environment variables SONATYPE_USERNAME and SONATYPE_PASSWORD as
    * credentials.
    *
@@ -694,10 +709,8 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
    *                      Specifying this will override/remove the defaults.
    *                      Add the default args to your args to keep them.
    * @param release Whether to release the artifacts after staging them
-   * @param sonatypeUri Sonatype URI to use. Defaults to `oss.sonatype.org`, newer projects
-   *                    may need to set it to https://s01.oss.sonatype.org/service/local
-   * @param sonatypeSnapshotUri Sonatype snapshot URI to use. Defaults to `oss.sonatype.org`, newer projects
-   *                            may need to set it to https://s01.oss.sonatype.org/content/repositories/snapshots
+   * @param sonatypeUri Sonatype URI to use.
+   * @param sonatypeSnapshotUri Sonatype snapshot URI to use.
    * @param readTimeout How long to wait before timing out network reads
    * @param connectTimeout How long to wait before timing out network connections
    * @param awaitTimeout How long to wait before timing out on failed uploads
@@ -711,16 +724,14 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       signed: Boolean = true,
       gpgArgs: String = "",
       release: Boolean = true,
-      sonatypeUri: String = "https://oss.sonatype.org/service/local",
-      sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
+      sonatypeUri: String = sonatypeLegacyOssrhUri,
+      sonatypeSnapshotUri: String = sonatypeCentralSnapshotUri,
       readTimeout: Int = 30 * 60 * 1000,
       connectTimeout: Int = 30 * 60 * 1000,
       awaitTimeout: Int = 30 * 60 * 1000,
       stagingRelease: Boolean = true
   ): Task.Command[Unit] = Task.Command {
-    val x: Seq[(Seq[(os.Path, String)], Artifact)] = Task.sequence(publishArtifacts.value)().map {
-      case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
-    }
+    val withConcretePaths = Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
 
     val gpgArgs0 = pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, gpgArgs.split(','))
 
@@ -739,7 +750,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       stagingRelease
     ).publishAll(
       release,
-      x*
+      withConcretePaths*
     )
   }
 
