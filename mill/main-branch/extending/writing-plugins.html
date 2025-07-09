@@ -79,7 +79,7 @@
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
         <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
-        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
 
@@ -380,15 +380,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -590,7 +590,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/index.html">Mill API Reference</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -620,7 +620,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.0-RC3-31-eb2d11/index.html">dev-1.0.0-RC3-31-eb2d11</a>
+          <a href="../../dev-1.0.0-RC3-43-eee39e/index.html">dev-1.0.0-RC3-43-eee39e</a>
         </li>
         <li class="version is-latest">
           <a href="../../index.html">0.12.14</a>
@@ -671,7 +671,7 @@ via <a href="import-mvn-plugins.html" class="xref page">//| mvnDeps</a>.</p>
 <h2 id="_project_configuration"><a class="anchor" href="#_project_configuration"></a>Project Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-extending-plugins-7-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/7-writing-mill-plugins">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-extending-plugins-1-writing-mill-plugins.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/1-writing-mill-plugins">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*, publish.*
@@ -686,31 +686,8 @@ object myplugin extends ScalaModule, PublishModule {
   // Depend on `mill-libs` so we can compile against Mill APIs
   def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-libs:$millVersion&quot;)
 
-  // Unit test submodule
-  object test extends ScalaTests, TestModule.Utest {
+  object test extends ScalaTests, TestModule.Utest { // Unit test submodule
     def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-testkit:$millVersion&quot;)
-  }
-
-  // Setup for integration/example tests
-  object integration extends ScalaTests, TestModule.Utest {
-    def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-testkit:$millVersion&quot;)
-    def forkEnv = Task {
-      val artifact = s&quot;${myplugin.pomSettings().organization}-${myplugin.artifactId()}&quot;
-        .replaceAll(&quot;[.-]&quot;, &quot;_&quot;)
-        .toUpperCase
-
-      val localClasspathString = myplugin.localClasspath().map(_.path).mkString(&quot;\n&quot;)
-      Map(
-        &quot;MILL_EXECUTABLE_PATH&quot; -&gt; millExecutable.assembly().path.toString,
-        s&quot;MILL_LOCAL_TEST_OVERRIDE_$artifact&quot; -&gt; localClasspathString
-      )
-    }
-
-    // Create a Mill executable configured for testing our plugin
-    object millExecutable extends JavaModule {
-      def mvnDeps = Seq(mvn&quot;com.lihaoyi:mill-runner-launcher_3:$millVersion&quot;)
-      def mainClass = Some(&quot;mill.launcher.MillLauncherMain&quot;)
-    }
   }
 
   // Publishing Config
@@ -735,30 +712,10 @@ library (whether written in Java or Scala) can be used in a Mill <code>build.mil
 </div>
 <div class="paragraph">
 <p>The above <code>build.mill</code> file sets up a <code>object myplugin extends ScalaModule</code> not just to
-compile your Mill plugin project, but also to run automated tests using <code>mill-testkit</code>,
+compile your Mill plugin project, but also to run unit tests using <code>mill-testkit</code>,
 and to configure it for publishing to Maven Central via <code>PublishModule</code>.
-It looks like any other Scala project, except for a few things to take note:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>We set the <code>platformSuffix</code> to indicate which Mill binary API version
-they are compiled against (to ensure that improper usage raises an easy to understand
-error)</p>
-</li>
-<li>
-<p>A dependency on <code>com.lihaoyi:mill-libs:$millVersion</code>, which transitively includes
-all APIs available in your <code>build.mill</code> that plugins can use</p>
-</li>
-<li>
-<p>A test dependency on <code>com.lihaoyi::mill-testkit:$millVersion</code></p>
-</li>
-<li>
-<p>An <code>object millExecutable</code> that adds some resources to the published <code>mill-dist</code>
-assembly to configure it to rewire <code>//| mvnDeps</code> to instead use the local compiled
-classfiles for testing.</p>
-</li>
-</ul>
+It looks like any other Scala project, except for a few dependencies on <code>mill-libs</code>
+and <code>mill-testkit</code> to bring in the appropriate libraries</p>
 </div>
 </div>
 </div>
@@ -792,7 +749,7 @@ it defines an abstract <code>def lineCountResourceFileName</code> task, it adds 
 <code>def lineCount</code> task, and it overrides the <code>def resources</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/src/LineCountJavaModule.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/7-writing-mill-plugins/myplugin/src/LineCountJavaModule.scala">browse</a>)</div>
+<div class="title">myplugin/src/LineCountJavaModule.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/1-writing-mill-plugins/myplugin/src/LineCountJavaModule.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 import mill.*
@@ -837,12 +794,7 @@ command, as shown below:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill myplugin.test
-+ myplugin.UnitTests.unit...
-
-&gt; ./mill myplugin.integration
-+ myplugin.IntegrationTests.integration...
-+ myplugin.ExampleTests.example...
-...</code></pre>
++ myplugin.UnitTests.unit...</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -862,7 +814,7 @@ and can be used to evaluate tasks (by direct reference or by string-selector) an
 the results in-memory:</p>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/test/src/mill/testkit/UnitTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/7-writing-mill-plugins/myplugin/test/src/mill/testkit/UnitTests.scala">browse</a>)</div>
+<div class="title">myplugin/test/src/mill/testkit/UnitTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/1-writing-mill-plugins/myplugin/test/src/mill/testkit/UnitTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 
@@ -908,7 +860,7 @@ object UnitTests extends TestSuite {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/test/resources/unit-test-project/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/7-writing-mill-plugins/myplugin/test/resources/unit-test-project/src/foo/Foo.java">browse</a>)</div>
+<div class="title">myplugin/test/resources/unit-test-project/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/1-writing-mill-plugins/myplugin/test/resources/unit-test-project/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -938,12 +890,96 @@ but that should not be a concern for most Mill plugins.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_publishing"><a class="anchor" href="#_publishing"></a>Publishing</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sed -i.bak 's/0.0.1/0.0.2/g' build.mill
+
+&gt; ./mill myplugin.publishLocal
+Publishing Artifact(com.lihaoyi,myplugin_millSNAPSHOT_3,0.0.2) to ivy repo...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill plugins are JVM libraries like any other library written in Java or Scala. Thus they
+are published the same way: by extending <code>PublishModule</code> and defining the module’s <code>publishVersion</code>
+and <code>pomSettings</code>. Once done, you can publish the plugin locally via <code>publishLocal</code>,
+or to Maven Central via <code>mill.scalalib.PublishModule/</code> for other developers to
+use. For more details on publishing Mill projects, see the documentation for
+<a href="../scalalib/publishing.html" class="xref page">Publishing Scala Projects</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_integration_tests"><a class="anchor" href="#_integration_tests"></a>Integration Tests</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Integration tests are one step up from Unit tests: they are significantly slower to run due
 to running Mill in a subprocess, but are able to exercise the end-to-end lifecycle of a Mill
-command. Unlike unit tests which define a <code>TestRootModule</code> in-memory as part of the test code,
+command. Integration tests require further build configuration, which is shown below:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-extending-plugins-2-plugin-integration-tests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/2-plugin-integration-tests">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*, publish.*
+import mill.util.BuildInfo.{millVersion, millBinPlatform}
+
+object myplugin extends ScalaModule, PublishModule {
+  def scalaVersion = &quot;3.7.1&quot;
+
+  // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
+  def platformSuffix = s&quot;_mill$millBinPlatform&quot;
+
+  // Depend on `mill-libs` so we can compile against Mill APIs
+  def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-libs:$millVersion&quot;)
+
+  // Setup for integration/example tests
+  object integration extends ScalaTests, TestModule.Utest {
+    def mvnDeps = Seq(mvn&quot;com.lihaoyi::mill-testkit:$millVersion&quot;)
+    def forkEnv = Task {
+      val artifact = s&quot;${myplugin.pomSettings().organization}-${myplugin.artifactId()}&quot;
+        .replaceAll(&quot;[.-]&quot;, &quot;_&quot;)
+        .toUpperCase
+
+      val localClasspathString = myplugin.localClasspath().map(_.path).mkString(&quot;\n&quot;)
+      Map(
+        &quot;MILL_EXECUTABLE_PATH&quot; -&gt; millExecutable.assembly().path.toString,
+        s&quot;MILL_LOCAL_TEST_OVERRIDE_$artifact&quot; -&gt; localClasspathString
+      )
+    }
+
+    // Create a Mill executable configured for testing our plugin
+    object millExecutable extends JavaModule {
+      def mvnDeps = Seq(mvn&quot;com.lihaoyi:mill-runner-launcher_3:$millVersion&quot;)
+      def mainClass = Some(&quot;mill.launcher.MillLauncherMain&quot;)
+    }
+  }
+
+  // Publishing Config
+  def publishVersion = &quot;0.0.1&quot;
+
+  def pomSettings = PomSettings(
+    description = &quot;Line Count Mill Plugin&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/lihaoyi/myplugin&quot;,
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;myplugin&quot;),
+    developers = Seq(Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;, &quot;https://github.com/lihaoyi&quot;))
+  )
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill myplugin.integration
++ myplugin.IntegrationTests.integration...
++ myplugin.ExampleTests.example...
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Unlike unit tests which define a <code>TestRootModule</code> in-memory as part of the test code,
 Mill’s integration tests rely on a <code>build.mill</code> that is processed and compiled as part of the
 test initialization, and can only perform assertions on the four things that are returned from
 any subprocess:</p>
@@ -961,13 +997,13 @@ any subprocess:</p>
 </li>
 <li>
 <p>Any files that are generated on disk. In particular, files generated by tasks
-can be fetched via the <code>tester.out(&quot;…​&quot;).*</code> APIs to be read as JSON strings (via <code>.text</code>),
+can be fetched via the <code>tester.out(&quot;...​&quot;).*</code> APIs to be read as JSON strings (via <code>.text</code>),
 parsed <code>ujson.Value</code> ASTs (<code>.json</code>), or parsed into a typed Scala value (<code>.value[T]</code>)</p>
 </li>
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/integration/src/mill/testkit/IntegrationTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/7-writing-mill-plugins/myplugin/integration/src/mill/testkit/IntegrationTests.scala">browse</a>)</div>
+<div class="title">myplugin/integration/src/mill/testkit/IntegrationTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/src/mill/testkit/IntegrationTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 import mill.testkit.IntegrationTester
@@ -1010,7 +1046,7 @@ object IntegrationTests extends TestSuite {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/integration/resources/integration-test-project/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/7-writing-mill-plugins/myplugin/integration/resources/integration-test-project/src/foo/Foo.java">browse</a>)</div>
+<div class="title">myplugin/integration/resources/integration-test-project/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/resources/integration-test-project/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -1033,7 +1069,7 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/integration/resources/integration-test-project/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/7-writing-mill-plugins/myplugin/integration/resources/integration-test-project/build.mill">browse</a>)</div>
+<div class="title">myplugin/integration/resources/integration-test-project/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/resources/integration-test-project/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
 //| - com.lihaoyi::myplugin::0.0.1
@@ -1066,7 +1102,7 @@ extended by a module) and what commands they can run exercising the plugin and t
 output they should expect:</p>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/integration/src/mill/testkit/ExampleTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/7-writing-mill-plugins/myplugin/integration/src/mill/testkit/ExampleTests.scala">browse</a>)</div>
+<div class="title">myplugin/integration/src/mill/testkit/ExampleTests.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/src/mill/testkit/ExampleTests.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package myplugin
 import mill.testkit.ExampleTester
@@ -1088,7 +1124,7 @@ object ExampleTests extends TestSuite {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/integration/resources/example-test-project/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/7-writing-mill-plugins/myplugin/integration/resources/example-test-project/src/foo/Foo.java">browse</a>)</div>
+<div class="title">myplugin/integration/resources/example-test-project/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/resources/example-test-project/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -1111,7 +1147,7 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">myplugin/integration/resources/example-test-project/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/7-writing-mill-plugins/myplugin/integration/resources/example-test-project/build.mill">browse</a>)</div>
+<div class="title">myplugin/integration/resources/example-test-project/build.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/extending/plugins/2-plugin-integration-tests/myplugin/integration/resources/example-test-project/build.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
 //| - com.lihaoyi::myplugin::0.0.1
@@ -1153,11 +1189,11 @@ Line Count: 19
 <p>If the command is expected to fail, the following lines should be prefixed by `error: `</p>
 </li>
 <li>
-<p>Expected output lines can contain <code>…​</code> wildcards to match against parts of the output
+<p>Expected output lines can contain <code>...​</code> wildcards to match against parts of the output
 which are unstable or unnecessary for someone reading through the <code>build.mill</code>.</p>
 </li>
 <li>
-<p>A <code>…​</code> wildcard on its own line can be used to match against any number of additional
+<p>A <code>...​</code> wildcard on its own line can be used to match against any number of additional
 lines of output</p>
 </li>
 </ul>
@@ -1165,7 +1201,7 @@ lines of output</p>
 <div class="paragraph">
 <p>The line-matching for example tests is intentionally fuzzy: it does not assert that the
 ordering of the lines printed by the command matches the ordering given, as long as every
-line printed is given and every line given is printed. <code>…​</code> wildcards intentionally add
+line printed is given and every line given is printed. <code>...​</code> wildcards intentionally add
 additional fuzziness to the matching. The point of example tests is not to match
 character-for-character exactly what the output must be, but to match on the &quot;important&quot;
 parts of the output while simultaneously emphasizing these important parts to someone who
@@ -1178,27 +1214,6 @@ usually a good idea to have at least one example test for your Mill plugin, so a
 wishes to use it can take the <code>build.mill</code> and associated files and immediately have a Mill
 build that is runnable using your plugin, along with a list of commands they can run and
 what output they should expect.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_publishing"><a class="anchor" href="#_publishing"></a>Publishing</h2>
-<div class="sectionbody">
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sed -i.bak 's/0.0.1/0.0.2/g' build.mill
-
-&gt; ./mill myplugin.publishLocal
-Publishing Artifact(com.lihaoyi,myplugin_millSNAPSHOT_3,0.0.2) to ivy repo...</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Mill plugins are JVM libraries like any other library written in Java or Scala. Thus they
-are published the same way: by extending <code>PublishModule</code> and defining the module’s <code>publishVersion</code>
-and <code>pomSettings</code>. Once done, you can publish the plugin locally via <code>publishLocal</code>,
-or to Maven Central via <code>mill.scalalib.PublishModule/</code> for other developers to
-use. For more details on publishing Mill projects, see the documentation for
-<a href="../scalalib/publishing.html" class="xref page">Publishing Scala Projects</a></p>
 </div>
 </div>
 </div>

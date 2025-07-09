@@ -79,7 +79,7 @@
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
         <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
-        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
 
@@ -380,15 +380,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -590,7 +590,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/index.html">Mill API Reference</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -620,7 +620,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.0-RC3-31-eb2d11/index.html">dev-1.0.0-RC3-31-eb2d11</a>
+          <a href="../../dev-1.0.0-RC3-43-eee39e/index.html">dev-1.0.0-RC3-43-eee39e</a>
         </li>
         <li class="version is-latest">
           <a href="../../index.html">0.12.14</a>
@@ -662,7 +662,7 @@
 <h2 id="_common_configuration_overrides"><a class="anchor" href="#_common_configuration_overrides"></a>Common Configuration Overrides</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-javascriptlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javascriptlib/module/1-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-javascriptlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javascriptlib/module/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -755,7 +755,7 @@ MyOtherResource: My Other Resource Contents</code></pre>
 <h2 id="_custom_tasks"><a class="anchor" href="#_custom_tasks"></a>Custom Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-javascriptlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javascriptlib/module/2-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-javascriptlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javascriptlib/module/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -886,7 +886,7 @@ labels representing existing Mill tasks:</p>
 </center>
 </div>
 <div class="paragraph">
-<p>Mill lets you define new cached Tasks using the <code>Task {…​}</code> syntax,
+<p>Mill lets you define new cached Tasks using the <code>Task {...​}</code> syntax,
 depending on existing Tasks e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
 syntax to extract their current value, as shown in <code>lineCount</code> above. The
 return-type of a Task has to be JSON-serializable (using
@@ -915,7 +915,7 @@ Line count: 9</code></pre>
 <h2 id="_overriding_tasks"><a class="anchor" href="#_overriding_tasks"></a>Overriding Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-javascriptlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javascriptlib/module/3-override-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-javascriptlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javascriptlib/module/3-override-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -960,7 +960,7 @@ object `package` extends TypeScriptModule {
 want to refer to the originally defined task. The above example shows how to
 override <code>compile</code> and <code>run</code> to add additional logging messages, and we
 override <code>sources</code> which was <code>Task.Sources</code> for the <code>src/</code> folder with a plain
-<code>T{…​}</code> task that generates the  necessary source files on-the-fly.</p>
+<code>T{...​}</code> task that generates the  necessary source files on-the-fly.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -991,7 +991,7 @@ Running... added tags</code></pre>
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-javascriptlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javascriptlib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-javascriptlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javascriptlib/module/4-compilation-execution-flags">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1033,7 +1033,7 @@ Hello World!</code></pre>
 <h2 id="_filesystem_resources"><a class="anchor" href="#_filesystem_resources"></a>Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-javascriptlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javascriptlib/module/5-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-javascriptlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javascriptlib/module/5-resources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1135,7 +1135,7 @@ files, especially when running in parallel.</p>
 <div class="paragraph">
 <p>Mill runs test processes in a <a href="../depth/sandboxing.html" class="xref page">sandbox/ folder</a>, not in your project root folder, to
 prevent you from accidentally accessing files without explicitly passing them. Thus
-you cannot just read resources off disk via <code>with fs.readFile(&quot;foo/resources/test-file-a.txt&quot;, {…​})</code> as file.
+you cannot just read resources off disk via <code>with fs.readFile(&quot;foo/resources/test-file-a.txt&quot;, {...​})</code> as file.
 If you have legacy tests that need to run in the project root folder to work, you
 can configure your test suite with <code>def testSandboxWorkingDir = false</code> to disable
 the sandbox and make the tests run in the project root.</p>
@@ -1146,7 +1146,7 @@ the sandbox and make the tests run in the project root.</p>
 <h2 id="_bundling_configuration"><a class="anchor" href="#_bundling_configuration"></a>Bundling Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-javascriptlib-module-6-executable-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javascriptlib/module/6-executable-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-javascriptlib-module-6-executable-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javascriptlib/module/6-executable-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1190,7 +1190,7 @@ Hello World!</code></pre>
 as the root module of the file:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-javascriptlib-module-7-root-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javascriptlib/module/7-root-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-javascriptlib-module-7-root-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/javascriptlib/module/7-root-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1227,7 +1227,7 @@ with the expected source directory in <code>bar/src</code>.</p>
 <p>The <code>moduleName</code> is used in the generated <code>tsconfig</code> files <code>compilerOptions['paths']</code>
 as the modules <code>src/</code> path mapping and to define the default <code>mainFileName</code>, which is
 the modules entry file.
-The generated mapping for this example would be <code>&quot;foo/*&quot;: […​]</code>. and its expected main file
+The generated mapping for this example would be <code>&quot;foo/*&quot;: [...​]</code>. and its expected main file
 woudld be <code>foo.ts</code> located in top-level <code>src/</code></p>
 </div>
 <div class="listingblock">

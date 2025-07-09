@@ -79,7 +79,7 @@
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
         <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
-        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
 
@@ -380,15 +380,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -590,7 +590,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/index.html">Mill API Reference</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -620,7 +620,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.0-RC3-31-eb2d11/index.html">dev-1.0.0-RC3-31-eb2d11</a>
+          <a href="../../dev-1.0.0-RC3-43-eee39e/index.html">dev-1.0.0-RC3-43-eee39e</a>
         </li>
         <li class="version is-latest">
           <a href="../../index.html">0.12.14</a>
@@ -769,7 +769,7 @@ making use of the most common <code>Task.Source</code>, <code>Task</code>, and <
 to define a simple build graph with some input source files and intermediate build steps:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-fundamentals-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/tasks/1-task-graph">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-fundamentals-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/tasks/1-task-graph">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -789,10 +789,7 @@ def assembly = Task {
   for (p &lt;- Seq(compile(), resources())) os.copy(p.path, Task.dest, mergeFolders = true)
 
   val mainFlags = mainClass().toSeq.flatMap(Seq(&quot;-e&quot;, _))
-  os.call(
-    (&quot;jar&quot;, &quot;-c&quot;, mainFlags, &quot;-f&quot;, Task.dest / &quot;assembly.jar&quot;, &quot;.&quot;),
-    cwd = Task.dest
-  )
+  os.call((&quot;jar&quot;, &quot;-c&quot;, mainFlags, &quot;-f&quot;, Task.dest / &quot;assembly.jar&quot;, &quot;.&quot;))
 
   PathRef(Task.dest / &quot;assembly.jar&quot;)
 }
@@ -1191,31 +1188,31 @@ skipped is due to <a href="../large/selective-execution.html" class="xref page">
 <div class="ulist">
 <ul>
 <li>
-<p><a href="#_sources">Sources</a>, defined using <code>Task.Sources {…​}</code></p>
+<p><a href="#_sources">Sources</a>, defined using <code>Task.Sources(...​)</code></p>
 </li>
 <li>
-<p><a href="#_tasks">Tasks</a>, defined using <code>Task {…​}</code></p>
+<p><a href="#_tasks">Tasks</a>, defined using <code>Task {...​}</code></p>
 </li>
 <li>
-<p><a href="#_commands">Commands</a>, defined using <code>Task.Command {…​}</code></p>
+<p><a href="#_commands">Commands</a>, defined using <code>Task.Command {...​}</code></p>
 </li>
 </ul>
 </div>
 <div class="sect2">
 <h3 id="_sources"><a class="anchor" href="#_sources"></a>Sources</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-fundamentals-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/tasks/2-primary-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-fundamentals-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/tasks/2-primary-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
 import mill.{Module, T, _}
 
-def sources = Task.Source { &quot;src&quot; }
-def resources = Task.Source { &quot;resources&quot; }</code></pre>
+def sources = Task.Source(&quot;src&quot;)
+def resources = Task.Source(&quot;resources&quot;)</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>Source</code>s are defined using <code>Task.Source{…​}</code> taking one path, or <code>Task.Sources{…​}</code>,
+<p><code>Source</code>s are defined using <code>Task.Source(...​)</code> taking one path, or <code>Task.Sources(...​)</code>,
 taking multiple paths as arguments. Both accept <code>os.Path</code>, <code>os.SubPath</code>, <code>os.RelPath</code>
 or a <code>String</code> containing a sub-path. All relative paths will be resolve against the <code>moduleDir</code>
 of the enclosing module. A <code>Source</code>'s:
@@ -1290,9 +1287,9 @@ def lineCount: T[Int] = Task {
 </center>
 </div>
 <div class="paragraph">
-<p><code>Tasks</code>s are defined using the <code>def foo = Task {…​}</code> syntax, and dependencies
+<p><code>Tasks</code>s are defined using the <code>def foo = Task {...​}</code> syntax, and dependencies
 on other tasks are defined using <code>foo()</code> to extract the value from them.
-Apart from the <code>foo()</code> calls, the <code>Task {…​}</code> block contains arbitrary code that
+Apart from the <code>foo()</code> calls, the <code>Task {...​}</code> block contains arbitrary code that
 does some work and returns a result. Note that tasks cannot have circular dependencies
 between each other.</p>
 </div>
@@ -1391,8 +1388,7 @@ you want to return:</p>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def classFiles = Task {
   println(&quot;Generating classfiles&quot;)
 
-  os.proc(&quot;javac&quot;, allSources().map(_.path), &quot;-d&quot;, Task.dest)
-    .call(cwd = Task.dest)
+  os.call(cmd = (&quot;javac&quot;, allSources().map(_.path), &quot;-d&quot;, Task.dest))
 
   PathRef(Task.dest)
 }
@@ -1402,7 +1398,10 @@ def jar = Task {
   os.copy(classFiles().path, Task.dest, mergeFolders = true)
   os.copy(resources().path, Task.dest, mergeFolders = true)
 
-  os.proc(&quot;jar&quot;, &quot;-cfe&quot;, Task.dest / &quot;foo.jar&quot;, &quot;foo.Foo&quot;, &quot;.&quot;).call(cwd = Task.dest)
+  os.call(
+    cmd = (&quot;jar&quot;, &quot;-cfe&quot;, Task.dest / &quot;foo.jar&quot;, &quot;foo.Foo&quot;, &quot;.&quot;),
+    cwd = Task.dest
+  )
 
   PathRef(Task.dest / &quot;foo.jar&quot;)
 }</code></pre>
@@ -1471,6 +1470,10 @@ Generating jar
 &quot;.../out/jar.dest/foo.jar&quot;</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>If you do not want the <code>Task.dest</code> folder to be cleared between invocations, you
+can use a <a href="#_persistent_tasks">Persistent Task</a></p>
+</div>
 <div class="admonitionblock note">
 <table>
 <tbody><tr>
@@ -1478,11 +1481,10 @@ Generating jar
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<strong><code>os.pwd</code> within a <code>Task</code> is set to the <code>Task.dest</code> folder by default.</strong>
-This is to stop you from accidentally reading and writing files to the base repository root,
-which would cause problems with Mill’s caches not invalidating properly or files from different
-tasks colliding and causing issues. In the rare case where
-you truly need the Mill project root folder, you can access it via <code>mill.api.BuildCtx.workspaceRoot</code>
+<strong><code>os.pwd</code> within a <code>Task</code> is set to the <code>Task.dest</code> folder by default.</strong>,
+and a task may only read from upstream <code>Task.dest</code> folders and write to its own
+<code>Task.dest</code> folder. See <a href="../depth/sandboxing.html#_task_sandboxing" class="xref page">Task Sandboxing</a>
+for more details and how to work around it.
 </td>
 </tr>
 </tbody></table>
@@ -1581,8 +1583,9 @@ Finding Largest File
 &quot;&lt;no-huge-file&gt;&quot;</code></pre>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_custom_return_types"><a class="anchor" href="#_custom_return_types"></a>Custom Return Types</h4>
+</div>
+<div class="sect2">
+<h3 id="_custom_return_types"><a class="anchor" href="#_custom_return_types"></a>Custom Return Types</h3>
 <div class="paragraph">
 <p>All Task return types must be JSON serializable via
 <a href="https://github.com/com-lihaoyi/upickle">uPickle</a>, and
@@ -1590,15 +1593,13 @@ uPickle comes with built-in support for most Scala primitive types and
 builtin data structures: tuples, collections, <code>PathRef</code>s, etc. can be
 returned and automatically serialized/de-serialized as necessary. One
 notable exception is <code>case class</code>es: if you want return your own
-<code>case class</code>, you must mark it JSON-serializable by adding the following
-<code>implicit</code> to its companion object:</p>
+<code>case class</code>, you must mark it JSON-serializable by adding
+<code>derives upickle.default.ReadWriter</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">case class ClassFileData(totalFileSize: Long, largestFile: String)
-object ClassFileData {
-  implicit val rw: upickle.default.ReadWriter[ClassFileData] = upickle.default.macroRW
-}
+    derives upickle.default.ReadWriter
 
 def summarizeClassFileStats = Task {
   val files = os.walk(classFiles().path)
@@ -1652,20 +1653,21 @@ def summarizeClassFileStats = Task {
 <a href="https://github.com/com-lihaoyi/upickle">uPickle library documentation</a></p>
 </div>
 </div>
-</div>
 <div class="sect2">
 <h3 id="_commands"><a class="anchor" href="#_commands"></a>Commands</h3>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(mainClass: String, args: String*) = Task.Command {
-  os.proc(
-    &quot;java&quot;,
-    &quot;-cp&quot;,
-    s&quot;${classFiles().path}:${resources().path}&quot;,
-    mainClass,
-    args
+  os.call(
+    cmd = (
+      &quot;java&quot;,
+      &quot;-cp&quot;,
+      s&quot;${classFiles().path}:${resources().path}&quot;,
+      mainClass,
+      args
+    ),
+    stdout = os.Inherit
   )
-    .call(stdout = os.Inherit)
 }</code></pre>
 </div>
 </div>
@@ -1711,20 +1713,20 @@ def summarizeClassFileStats = Task {
 </center>
 </div>
 <div class="paragraph">
-<p>Defined using <code>Task.Command {…​}</code> syntax, <code>Command</code>s can run arbitrary code, with
+<p>Defined using <code>Task.Command {...​}</code> syntax, <code>Command</code>s can run arbitrary code, with
 dependencies declared using the same <code>foo()</code> syntax (e.g. <code>classFiles()</code> above).
 Commands can be parametrized, but their output is not cached, so they will
 re-evaluate every time even if none of their inputs have changed. The only times
 <code>Command</code>s may be skipped is due to <a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a>.</p>
 </div>
 <div class="paragraph">
-<p>A command with no parameter is defined as <code>def myCommand() = Task.Command {…​}</code>.
+<p>A command with no parameter is defined as <code>def myCommand() = Task.Command {...​}</code>.
 It is a compile error if <code>()</code> is missing.</p>
 </div>
 <div class="paragraph">
 <p>Tasks can take command line params, parsed by the <a href="https://github.com/com-lihaoyi/mainargs">MainArgs</a>
 library. Thus the signature <code>def run(mainClass: String, args: String*)</code> takes
-params of the form <code>--main-class &lt;str&gt; &lt;arg1&gt; &lt;arg2&gt; …​ &lt;argn&gt;</code>:</p>
+params of the form <code>--main-class &lt;str&gt; &lt;arg1&gt; &lt;arg2&gt; ...​ &lt;argn&gt;</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1788,14 +1790,14 @@ path for consumption by external tools.</p>
 <div class="sect2">
 <h3 id="_inputs"><a class="anchor" href="#_inputs"></a>Inputs</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-fundamentals-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/tasks/4-inputs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-fundamentals-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/tasks/4-inputs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
 import mill.api.BuildCtx
 
 def myInput = Task.Input {
-  os.proc(&quot;git&quot;, &quot;rev-parse&quot;, &quot;HEAD&quot;).call(cwd = BuildCtx.workspaceRoot)
+  os.call(cmd = (&quot;git&quot;, &quot;rev-parse&quot;, &quot;HEAD&quot;), cwd = BuildCtx.workspaceRoot)
     .out
     .text()
     .trim()
@@ -1804,7 +1806,7 @@ def myInput = Task.Input {
 </div>
 <div class="paragraph">
 <p>A generalization of <a href="#_sources">Sources</a>, <code>Task.Input</code>s are tasks that re-evaluate
-<em>every time</em> (unlike <a href="#_anonymous_tasks">Anonymous Tasks</a>), containing an
+<em>every time</em>, containing an
 arbitrary block of code.</p>
 </div>
 <div class="paragraph">
@@ -1818,11 +1820,8 @@ even if the external <code>git</code> status changes:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusTask = Task {
   &quot;version-&quot; +
-    os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
-      .call(cwd = BuildCtx.workspaceRoot)
-      .out
-      .text()
-      .trim()
+    os.call(cmd = (&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;), cwd = BuildCtx.workspaceRoot)
+      .out.text().trim()
 }</code></pre>
 </div>
 </div>
@@ -1852,11 +1851,8 @@ not know to re-evaluate when your <code>git log</code> <em>does</em> change. Thi
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusInput = Task.Input {
-  os.proc(&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;)
-    .call(cwd = BuildCtx.workspaceRoot)
-    .out
-    .text()
-    .trim()
+  os.call(cmd = (&quot;git&quot;, &quot;log&quot;, &quot;-1&quot;, &quot;--pretty=format:%h-%B &quot;), cwd = BuildCtx.workspaceRoot)
+    .out.text().trim()
 }
 
 def gitStatusTask2 = Task { &quot;version-&quot; + gitStatusInput() }</code></pre>
@@ -1976,7 +1972,7 @@ and re-use previously-compressed files if a file in the
 input folder did not change:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-fundamentals-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/tasks/5-persistent-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-fundamentals-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/tasks/5-persistent-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -2081,7 +2077,7 @@ which perform their own in-memory caching</p>
 </li>
 <li>
 <p>Classloaders containing plugin code, to avoid classpath conflicts while
-also avoiding classloading cost every time the code is executed</p>
+avoiding the cost of launching subprocesses</p>
 </li>
 </ol>
 </div>
@@ -2093,7 +2089,7 @@ but even if the Mill process is restarted it can load the cache values from disk
 without having to recompute them:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-fundamentals-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/tasks/6-workers">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-fundamentals-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/tasks/6-workers">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -2208,9 +2204,8 @@ Cached from disk: world.txt</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Mill uses workers to manage long-lived instances of the
-<a href="https://github.com/sbt/zinc">Zinc Incremental Scala Compiler</a> and the
-<a href="https://github.com/scala-js/scala-js">Scala.js Optimizer</a>.
+<p>Mill uses workers to manage long-lived instances of heavyweight objects like the
+<a href="https://github.com/sbt/zinc">Zinc Incremental Compiler</a>.
 This lets us keep them in-memory with warm caches and fast incremental execution.</p>
 </div>
 <div class="paragraph">
@@ -2402,12 +2397,12 @@ teardown ByteArrayOutputStream</code></pre>
 <div class="sect2">
 <h3 id="_anonymous_tasks"><a class="anchor" href="#_anonymous_tasks"></a>Anonymous Tasks</h3>
 <div class="paragraph">
-<p>You can define anonymous tasks using the <code>Task.Anon {…​}</code> syntax. These are
+<p>You can define anonymous tasks using the <code>Task.Anon {...​}</code> syntax. These are
 not runnable from the command-line, but can be used to share common code you
 find yourself repeating in <code>Task</code>s and <code>Command</code>s.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-fundamentals-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/tasks/3-anonymous-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-fundamentals-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/tasks/3-anonymous-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -2453,7 +2448,7 @@ World!</code></pre>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../migrating/sbt.html">Migrating From sbt to Mill</a></span>
+  <span class="prev"><a href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a></span>
   <span class="next"><a href="modules.html">Modules</a></span>
 </nav>
 </article>

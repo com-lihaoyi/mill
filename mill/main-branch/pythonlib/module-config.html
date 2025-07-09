@@ -79,7 +79,7 @@
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
         <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
-        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
 
@@ -380,15 +380,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -590,7 +590,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/index.html">Mill API Reference</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -620,7 +620,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.0-RC3-31-eb2d11/index.html">dev-1.0.0-RC3-31-eb2d11</a>
+          <a href="../../dev-1.0.0-RC3-43-eee39e/index.html">dev-1.0.0-RC3-43-eee39e</a>
         </li>
         <li class="version is-latest">
           <a href="../../index.html">0.12.14</a>
@@ -677,7 +677,7 @@ Also we have support for <code>forkenv</code> and  <code>pythonOptions</code> to
 add variables for environment and options for python respectively.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-pythonlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/pythonlib/module/1-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-pythonlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/pythonlib/module/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -687,7 +687,7 @@ object foo extends PythonModule {
   def pythonDeps = Seq(&quot;MarkupSafe==3.0.2&quot;, &quot;Jinja2==3.1.4&quot;)
 
   // choose a main Script to run if there are multiple present
-  def mainScript = Task.Source { &quot;custom-src/foo2.py&quot; }
+  def mainScript = Task.Source(&quot;custom-src/foo2.py&quot;)
 
   // Add (or replace) source folders for the module to use
   def customSources = Task.Sources(&quot;custom-src&quot;)
@@ -802,7 +802,7 @@ env variable defined in <code>forkEnv</code> and print it when the program runs<
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-pythonlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/pythonlib/module/2-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-pythonlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/pythonlib/module/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -811,7 +811,7 @@ object foo extends PythonModule {
 
   def pythonDeps = Seq(&quot;argparse==1.4.0&quot;, &quot;jinja2==3.1.4&quot;)
 
-  def mainScript = Task.Source { &quot;src/foo.py&quot; }
+  def mainScript = Task.Source(&quot;src/foo.py&quot;)
 
   def generatedSources: T[Seq[PathRef]] = Task {
     val destPath = Task.dest / &quot;generatedSources&quot;
@@ -955,7 +955,7 @@ labels representing existing Mill tasks:</p>
 </center>
 </div>
 <div class="paragraph">
-<p>Mill lets you define new cached Tasks using the <code>Task {…​}</code> syntax,
+<p>Mill lets you define new cached Tasks using the <code>Task {...​}</code> syntax,
 depending on existing Tasks e.g. <code>foo.sources</code> via the <code>foo.sources()</code>
 syntax to extract their current value, as shown in <code>lineCount</code> above. The
 return-type of a Task has to be JSON-serializable (using
@@ -991,7 +991,7 @@ My_Line_Count:  23
 <p>Custom tasks can contain arbitrary code. Whether you want to download files
 using <code>requests.get</code>, generate sources to feed into a Python Interpreter, or
 create some custom pex bundle with the files you want , all of these
-can simply be custom tasks with your code running in the <code>Task {…​}</code> block.</p>
+can simply be custom tasks with your code running in the <code>Task {...​}</code> block.</p>
 </div>
 <div class="paragraph">
 <p>You can create arbitrarily long chains of dependent tasks, and Mill will
@@ -1027,7 +1027,7 @@ the task’s inputs change.</p>
 <h2 id="_overriding_tasks"><a class="anchor" href="#_overriding_tasks"></a>Overriding Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-pythonlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/pythonlib/module/3-override-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-pythonlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/pythonlib/module/3-override-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -1071,7 +1071,7 @@ object foo extends PythonModule {
 want to refer to the originally defined task. The above example shows how to
 override <code>typeCheck</code> and <code>run</code> to add additional logging messages, and we
 override <code>sources</code> which was <code>Task.Sources</code> for the <code>src/</code> folder with a plain
-<code>T{…​}</code> task that generates the  necessary source files on-the-fly.</p>
+<code>T{...​}</code> task that generates the  necessary source files on-the-fly.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1132,13 +1132,13 @@ Hello World</code></pre>
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-pythonlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/pythonlib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-pythonlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/pythonlib/module/4-compilation-execution-flags">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
 
 object `package` extends PythonModule {
-  def mainScript = Task.Source { &quot;src/foo.py&quot; }
+  def mainScript = Task.Source(&quot;src/foo.py&quot;)
   def pythonOptions = Seq(&quot;-Wall&quot;, &quot;-Xdev&quot;)
   def forkEnv = Map(&quot;MY_ENV_VAR&quot; -&gt; &quot;HELLO MILL!&quot;)
 }</code></pre>
@@ -1164,13 +1164,13 @@ environment-variables via <code>forkEnv</code>.</p>
 <h2 id="_pythonpath_and_filesystem_resources"><a class="anchor" href="#_pythonpath_and_filesystem_resources"></a>PythonPath and Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/pythonlib/module/5-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-pythonlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/pythonlib/module/5-resources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
 
 object foo extends PythonModule {
-  def mainScript = Task.Source { &quot;src/foo.py&quot; }
+  def mainScript = Task.Source(&quot;src/foo.py&quot;)
 
   // Add (or replace) resource folders for the module to use
   def customResources = Task.Sources(&quot;custom&quot;)

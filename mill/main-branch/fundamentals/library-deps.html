@@ -79,7 +79,7 @@
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
         <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
-        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
 
@@ -380,15 +380,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -590,7 +590,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/index.html">Mill API Reference</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -620,7 +620,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.0-RC3-31-eb2d11/index.html">dev-1.0.0-RC3-31-eb2d11</a>
+          <a href="../../dev-1.0.0-RC3-43-eee39e/index.html">dev-1.0.0-RC3-43-eee39e</a>
         </li>
         <li class="version is-latest">
           <a href="../../index.html">0.12.14</a>
@@ -692,7 +692,7 @@ For more details about coursier, refer to the <a href="https://get-coursier.io/d
 <div class="paragraph">
 <p>When working in other Java and Scala projects, you will find some synonyms, which typically all mean the same.
 For example in the Maven ecosystem, the <code>organization</code> is called the <code>group</code> and the <code>name</code> is called the <code>artifact</code>.
-The whole triplet is often called <code>GAV</code>.</p>
+The whole triplet is often called <code>GAV</code>, short for &quot;Group, Artifact, Version&quot;.</p>
 </div>
 <div class="paragraph">
 <p>In Mill we use the additional term <code>artifactId</code> which is identical to the <code>name</code> when used in the normal form shown above.
@@ -775,7 +775,7 @@ There is no special test scope in Mill.</p>
 <h2 id="_transitive_dependencies"><a class="anchor" href="#_transitive_dependencies"></a>Transitive dependencies</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To render a tree of dependencies (transitive included) you can run <code>mill myModule.mvnDepsTree</code>. Here is how the start of <code>./mill __.mvnDepsTree</code> looks like in the <code>mill</code> project itself:</p>
+<p>To render a tree of dependencies (transitive included) you can run <code>mill myModule.showMvnDepsTree</code>. Here is how the start of <code>./mill __.showMvnDepsTree</code> looks like in the <code>mill</code> project itself:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -795,7 +795,7 @@ There is no special test scope in Mill.</p>
 </div>
 <div class="paragraph">
 <p>After compiling your module(s) you can find and examine files such as <code>mvnDeps.json</code> and <code>transitiveMvnDeps.json</code> in your <code>out</code> build’s folder for a given module.
-After running the <code>mvnDepsTree</code> command you’ll also find the <code>mvnDepsTree.json</code> and <code>mvnDepsTree.log</code> file that contain the output of the above <code>mvnDepsTree</code> command.</p>
+After running the <code>showMvnDepsTree</code> command you’ll also find the <code>showMvnDepsTree.json</code> and <code>showMvnDepsTree.log</code> file that contain the output of the above <code>showMvnDepsTree</code> command.</p>
 </div>
 <div class="paragraph">
 <p>You can observe the actual version being used by running <code>mill show myModule.resolvedMvnDeps</code>. If you run <code>mill myModule.resolvedMvnDeps</code>, the same information is available in <code>out/myModule/resolvedMvnDeps.json</code>.</p>
@@ -804,7 +804,7 @@ After running the <code>mvnDepsTree</code> command you’ll also find the <code>
 <h3 id="_figuring_out_where_a_dependency_comes_from"><a class="anchor" href="#_figuring_out_where_a_dependency_comes_from"></a>Figuring out where a dependency comes from</h3>
 <div class="paragraph">
 <p>There will be times when you want to figure out where a dependency is coming
-from. The output of <code>mvnDepsTree</code> can be quite large in larger projects so the
+from. The output of <code>showMvnDepsTree</code> can be quite large in larger projects so the
 command provides a nice utility to be able to target the part of the tree that
 brings in a specific dependency.</p>
 </div>
@@ -815,8 +815,8 @@ artifact is coming from using the <code>--whatDependsOn</code> argument:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">❯ ./mill -i dev.run ~/Documents/scala-workspace/com-lihaoyi/mill  main.mvnDepsTree --whatDependsOn com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13
-[33/33] main.mvnDepsTree
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">❯ ./mill -i dev.run ~/Documents/scala-workspace/com-lihaoyi/mill  main.showMvnDepsTree --whatDependsOn com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13
+[33/33] main.showMvnDepsTree
 └─ com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13:2.13.5
    ├─ io.get-coursier:coursier_2.13:2.1.0-RC1
    └─ org.virtuslab.scala-cli:config_2.13:0.1.16
@@ -859,7 +859,7 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <p>There is also a short notation available:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example: Shot notation to exclude <code>fansi_2.12</code> library from transitive dependency set of <code>pprint</code>.</div>
+<div class="title">Example: Short notation to exclude <code>fansi_2.12</code> library from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def deps = Seq(
   mvn&quot;com.lihaoyi::pprint:0.5.3;exclude=com.lihaoyi:fansi_2.12&quot;
@@ -958,7 +958,7 @@ whose Maven coordinates are <code>com.google.cloud:libraries-bom:26.50.0</code><
 <p>Pass an external BOM to a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code> with <code>bomMvnDeps</code>, like</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-fundamentals-dependencies-1-external-bom.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/dependencies/1-external-bom">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-fundamentals-dependencies-1-external-bom.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/dependencies/1-external-bom">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -994,7 +994,7 @@ for a dependency, all exclusions are added to that dependency.</p>
 <p>Pass dependencies to <code>depManagement</code> in a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code>, like</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/dependencies/2-managed">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/dependencies/2-managed">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, javalib.*
@@ -1151,7 +1151,7 @@ dependencies with particularly weird version numbers. For example, given the fol
 build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-43-eee39e/mill-dist-1.0.0-RC3-43-eee39e-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/dependencies/3-search-updates">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0-RC3-44-a0bad8/mill-dist-1.0.0-RC3-44-a0bad8-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0-RC3/example/fundamentals/dependencies/3-search-updates">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*

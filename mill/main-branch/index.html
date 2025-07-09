@@ -78,7 +78,7 @@
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
         <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
-        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
 
@@ -379,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/index.html">Mill API Reference</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -619,7 +619,7 @@
           <a href="index.html">main-branch</a>
         </li>
         <li class="version">
-          <a href="../dev-1.0.0-RC3-31-eb2d11/index.html">dev-1.0.0-RC3-31-eb2d11</a>
+          <a href="../dev-1.0.0-RC3-43-eee39e/index.html">dev-1.0.0-RC3-43-eee39e</a>
         </li>
         <li class="version is-latest">
           <a href="../index.html">0.12.14</a>
@@ -772,7 +772,7 @@ codebase (built using Maven, Gradle, or SBT) to Mill, see:</p>
 and <a href="depth/parallelism.html" class="xref page">parallelizes build tasks</a> and <a href="https://mill-build.org/blog/11-jvm-test-parallelism.html">tests</a>
 to keep local development fast, <a href="https://mill-build.org/blog/9-mill-faster-assembly-jars.html">incrementally builds assembly jars</a>
 to speed up manual testing workflows, and shortens CI times with <a href="large/selective-execution.html" class="xref page">selective test execution</a>
-to only runs the subset of tests necessary to validate a code change.</p>
+to only run the subset of tests necessary to validate a code change.</p>
 </li>
 <li>
 <p><strong>Builtins</strong>: Mill has builtin support for most common workflows: not just compile/run/test, but also
@@ -1022,7 +1022,7 @@ also has a rich ecosystem of third party plugins for less common use cases:</p>
 <h3 id="_contributing_and_community"><a class="anchor" href="#_contributing_and_community"></a>Contributing and Community</h3>
 <div class="paragraph">
 <p>If you want to contribute to Mill, or are interested in the fundamental ideas behind
-Mill rather than the user-facing benefits discussed above, check out the page on
+Mill rather than the user-facing features discussed above, check out the page on
 <a href="depth/design-principles.html" class="xref page">Mill Design Principles</a>. In particular, this video
 is a must-watch to help you understand the fundamental concepts behind Mill and why
 they are interesting:</p>

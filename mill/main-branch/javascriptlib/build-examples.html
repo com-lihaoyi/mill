@@ -78,7 +78,7 @@
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
         <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
-        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
 
@@ -379,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/index.html">Mill API Reference</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -619,7 +619,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.0-RC3-31-eb2d11/index.html">dev-1.0.0-RC3-31-eb2d11</a>
+          <a href="../../dev-1.0.0-RC3-43-eee39e/index.html">dev-1.0.0-RC3-43-eee39e</a>
         </li>
         <li class="version is-latest">
           <a href="../../index.html">0.12.14</a>
@@ -694,7 +694,7 @@ package.json
 tsconfig.json
 
 
-.build.mill ({mill-download-url}/mill-dist-1.0.0-RC3-43-eee39e-example-thirdparty-ollama-js.zip[download], {mill-example-url}/example/thirdparty/ollama-js[browse])
+.build.mill ({mill-download-url}/mill-dist-1.0.0-RC3-44-a0bad8-example-thirdparty-ollama-js.zip[download], {mill-example-url}/example/thirdparty/ollama-js[browse])
 [source,scala,subs=&quot;attributes,verbatim&quot;]</code></pre>
 </div>
 </div>
@@ -796,7 +796,7 @@ def unbuild = Task {
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>os.call(&quot;node_modules/.bin/unbuild&quot;, cwd = Task.dest)</pre>
+<pre>os.call(&quot;node_modules/.bin/unbuild&quot;)</pre>
 </div>
 </div>
 <div class="literalblock">
@@ -973,15 +973,15 @@ from running the `tsc` command. We can turn of its generation by settig the task
  },
  &quot;homepage&quot;: &quot;https://github.com/ollama/ollama-js&quot;,
  &quot;repository&quot;: {
-   …​
+   ...​
  },
  &quot;author&quot;: &quot;Saul Boyd&quot;,
  &quot;license&quot;: &quot;MIT&quot;,
  &quot;devDependencies&quot;: {
-   …​
+   ...​
  },
  &quot;dependencies&quot;: {
-   …​
+   ...​
  }
 }</p>
 </div>
@@ -1047,8 +1047,8 @@ from running the `tsc` command. We can turn of its generation by settig the task
 <blockquote>
 <div class="paragraph">
 <div class="title">/mill checkFormatPrettier # expected failures, equivalent of running <code>prettier --check .</code></div>
-<p>…​
-Checking formatting…​
+<p>...​
+Checking formatting...​
 [warn] examples/abort/abort-all-requests.ts
 [warn] examples/abort/abort-single-request.ts
 [warn] examples/structured_outputs/structured-outputs-image.ts
@@ -1061,7 +1061,7 @@ Checking formatting…​
 [warn] src/interfaces.ts
 [warn] src/utils.ts
 [warn] test/utils.test.ts
-…​</p>
+...​</p>
 </div>
 </blockquote>
 </div>
@@ -1069,24 +1069,24 @@ Checking formatting…​
 <blockquote>
 <div class="paragraph">
 <div class="title">/mill reformatPrettier # fixes code style issues with prettier, equivalent of running <code>npm run format</code></div>
-<p>…​
-examples/abort/abort-all-requests.ts…​
-examples/abort/abort-single-request.ts…​
-examples/fill-in-middle/fill.ts…​
-examples/multimodal/multimodal.ts…​
-examples/pull-progress/pull.ts…​
-examples/structured_outputs/structured-outputs-image.ts…​
-examples/structured_outputs/structured-outputs.ts…​
-examples/tools/calculator.ts…​
-examples/tools/flight-tracker.ts…​
-src/browser.ts…​
-src/constant.ts…​
-src/index.ts…​
-src/interfaces.ts…​
-src/utils.ts…​
-src/version.ts…​
-test/index.test.ts…​
-test/utils.test.ts…​
+<p>...​
+examples/abort/abort-all-requests.ts...​
+examples/abort/abort-single-request.ts...​
+examples/fill-in-middle/fill.ts...​
+examples/multimodal/multimodal.ts...​
+examples/pull-progress/pull.ts...​
+examples/structured_outputs/structured-outputs-image.ts...​
+examples/structured_outputs/structured-outputs.ts...​
+examples/tools/calculator.ts...​
+examples/tools/flight-tracker.ts...​
+src/browser.ts...​
+src/constant.ts...​
+src/index.ts...​
+src/interfaces.ts...​
+src/utils.ts...​
+src/version.ts...​
+test/index.test.ts...​
+test/utils.test.ts...​
 All matched files have been reformatted!</p>
 </div>
 </blockquote>
@@ -1095,8 +1095,8 @@ All matched files have been reformatted!</p>
 <blockquote>
 <div class="paragraph">
 <div class="title">/mill checkFormatPrettier # no more failures after formatting, equivalent of running <code>prettier --check .</code></div>
-<p>…​
-Checking formatting…​
+<p>...​
+Checking formatting...​
 All matched files use Prettier code style!</p>
 </div>
 </blockquote>
@@ -1105,13 +1105,13 @@ All matched files use Prettier code style!</p>
 <blockquote>
 <div class="paragraph">
 <div class="title">/mill test # Run vitest, this would be the equivalent of the <code>npm run test</code> command</div>
-<p>…​
-…​/index.test.ts (15 tests) …​
-…​/utils.test.ts (5 tests) …​
-…​
-…​Test Files  2 passed (2)
-…​     Tests  20 passed (20)
-…​</p>
+<p>...​
+...​/index.test.ts (15 tests) ...​
+...​/utils.test.ts (5 tests) ...​
+...​
+...​Test Files  2 passed (2)
+...​     Tests  20 passed (20)
+...​</p>
 </div>
 </blockquote>
 </div>
@@ -1119,7 +1119,7 @@ All matched files use Prettier code style!</p>
 <blockquote>
 <div class="paragraph">
 <div class="title">/mill examples.abort.run</div>
-<p>…​Aborting all requests…​</p>
+<p>...​Aborting all requests...​</p>
 </div>
 </blockquote>
 </div>
@@ -1127,10 +1127,10 @@ All matched files use Prettier code style!</p>
 <blockquote>
 <div class="paragraph">
 <div class="title">/mill examples.fill-in-middle.run</div>
-<p>…​syscall: 'connect',
-…​address: '127.0.0.1',
-…​port: 11434
-…​</p>
+<p>...​syscall: 'connect',
+...​address: '127.0.0.1',
+...​port: 11434
+...​</p>
 </div>
 </blockquote>
 </div>
@@ -1138,10 +1138,10 @@ All matched files use Prettier code style!</p>
 <blockquote>
 <div class="paragraph">
 <div class="title">/mill examples.multimodal.run</div>
-<p>…​syscall: 'connect',
-…​address: '127.0.0.1',
-…​port: 11434
-…​</p>
+<p>...​syscall: 'connect',
+...​address: '127.0.0.1',
+...​port: 11434
+...​</p>
 </div>
 </blockquote>
 </div>
@@ -1149,10 +1149,10 @@ All matched files use Prettier code style!</p>
 <blockquote>
 <div class="paragraph">
 <div class="title">/mill examples.pull-progress.run</div>
-<p>…​syscall: 'connect',
-…​address: '127.0.0.1',
-…​port: 11434
-…​</p>
+<p>...​syscall: 'connect',
+...​address: '127.0.0.1',
+...​port: 11434
+...​</p>
 </div>
 </blockquote>
 </div>
@@ -1160,10 +1160,10 @@ All matched files use Prettier code style!</p>
 <blockquote>
 <div class="paragraph">
 <div class="title">/mill examples.structured_outputs.run</div>
-<p>…​syscall: 'connect',
-…​address: '127.0.0.1',
-…​port: 11434
-…​</p>
+<p>...​syscall: 'connect',
+...​address: '127.0.0.1',
+...​port: 11434
+...​</p>
 </div>
 </blockquote>
 </div>
@@ -1171,10 +1171,10 @@ All matched files use Prettier code style!</p>
 <blockquote>
 <div class="paragraph">
 <div class="title">/mill examples.tools.run</div>
-<p>…​syscall: 'connect',
-…​address: '127.0.0.1',
-…​port: 11434
-…​</p>
+<p>...​syscall: 'connect',
+...​address: '127.0.0.1',
+...​port: 11434
+...​</p>
 </div>
 </blockquote>
 </div>

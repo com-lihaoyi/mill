@@ -79,7 +79,7 @@
       <div class="navbar-end">
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
         <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
-        <a class="navbar-item" href="https://mill-build.org/api/latest/index.html">API</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
         <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
 
@@ -380,15 +380,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -590,7 +590,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/index.html">Mill API Reference</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -620,7 +620,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.0-RC3-31-eb2d11/index.html">dev-1.0.0-RC3-31-eb2d11</a>
+          <a href="../../dev-1.0.0-RC3-43-eee39e/index.html">dev-1.0.0-RC3-43-eee39e</a>
         </li>
         <li class="version is-latest">
           <a href="../../index.html">0.12.14</a>
@@ -1108,7 +1108,7 @@ directly, without having to find a &quot;xyz build plugin&quot; wrapper.</p>
 <div class="sect2">
 <h3 id="_simple_custom_tasks"><a class="anchor" href="#_simple_custom_tasks"></a>Simple Custom Tasks</h3>
 <div class="paragraph">
-<p>The following Mill build is a minimal Java module <code>foo.</code>. It contains no custom configuration, and
+<p>The following Mill build is a minimal Java module <code>foo</code>. It contains no custom configuration, and
 so inherits all the defaults from <code>mill.javalib.JavaModule</code>: default source folder layout, default
 assembly configuration, default compiler flags, and so on. This <em>convention over configuration</em>
 is a philosophy that Mill inherited from Maven and other JVM build tools:</p>
@@ -1130,7 +1130,7 @@ Compiling 1 Java source...</code></pre>
 </div>
 <div class="paragraph">
 <p>If you want to add a custom task, this is as simple as defining a method e.g.
-<code>def lineCount = Task { …​ }</code>. The body of <code>Task</code> performs the action we want, and
+<code>def lineCount = Task { ...​ }</code>. The body of <code>Task</code> performs the action we want, and
 can depend on other tasks such as <code>allSourceFiles()</code> below:</p>
 </div>
 <div class="listingblock">
@@ -1149,12 +1149,19 @@ object foo extends JavaModule {
 <div class="paragraph">
 <p>Once we define a new task, we can immediately begin using it in our build.
 <code>lineCount</code> is not used by any existing <code>JavaModule</code> tasks, but we can still
-show its value via the Mill command line to evaluate it:</p>
+show its value via the Mill command line to evaluate it, or inspect its metadata:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show foo.lineCount
-17</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo.lineCount
+17
+
+&gt; ./mill inspect foo.lineCount
+foo.lineCount(build.mill:4)
+    Total number of lines in module source files
+
+Inputs:
+    foo.allSourceFiles</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1214,16 +1221,17 @@ which includes usage of third-party libraries in the build.</p>
 <div class="sect2">
 <h3 id="_using_third_party_jvm_libraries_in_tasks"><a class="anchor" href="#_using_third_party_jvm_libraries_in_tasks"></a>Using Third-Party JVM Libraries in Tasks</h3>
 <div class="paragraph">
-<p>One example use case of customizing your build tool is pre-rendering HTML pages in the build so
-they can be served at runtime: if a page never changes, rendering it on every request is
+<p>Many build tasks require third-party libraries. One example is pre-rendering HTML pages
+in the build so they can be served at runtime: if a page never changes, rendering it on every request is
 wasteful, and even rendering it once on startup and then caching it
 can impact your application startup time. Thus, you may want to move some HTML rendering to
 build-time, but with traditional build tools such a move is sufficiently inconvenient and
-complicated that people rarely do it.</p>
+complicated that people rarely do it. Other use cases may include custom linters, custom
+deployment artifacts, custom debugging metadata, and so on.</p>
 </div>
 <div class="paragraph">
-<p>With Mill, pre-rendering HTML at build time is really easy, even if you need a third-party
-library. Mill does not ship with a bundled HTML templating engine, but you can use the
+<p>With Mill, using third-party libraries in your build tasks is very easy. Mill does not
+ship with a bundled HTML templating engine, but you can use the
 <a href="../extending/import-mvn-plugins.html" class="xref page">//| mvnDeps</a> syntax to include one such as
 <a href="https://www.thymeleaf.org/">Thymeleaf</a>, which would immediately make the
 Thymeleaf classes available for you to import and use in your build as below:</p>
@@ -1357,14 +1365,19 @@ tasks.named(&quot;processResources&quot;) {
 lies. The problem lies in the fact that the Gradle &quot;config as code&quot; doesn’t <em>actually</em>
 look like the code you are writing day-to-day: although it is written in Kotlin,
 things like <code>task.named</code>, <code>dependsOn</code>, <code>inputs.files</code> and <code>outputs.file</code>, <code>doLast</code>
-(or should we use <code>doFirst</code>?) are not &quot;normal&quot; Kotlin. And just
-because you know Kotlin doesn’t mean you know how any of this stuff works and can
-debug it when it misbehaves!</p>
+(or should we use <code>doFirst</code>?) are not &quot;normal&quot; Kotlin. The stringly-typed <code>&quot;generateLineCount&quot;</code>,
+<code>&quot;generated-resources&quot;</code>, <code>&quot;processResources&quot;</code>, values add to the potential for error.
+The end result is that although you may know Kotlin as a compiled language with great
+IDE support, you will likely be unfamiliar with Gradle’s flavor of Kotlin, and your
+IDE will likely not be as useful as you would like.</p>
 </div>
 <div class="paragraph">
 <p>In fact, there is even a bug in the above Gradle config that will cause the build to
 be non-deterministically slower sometimes, but not other times.
-Can you spot it? The difficulty of catching these issues e.g. during code review
+Can you spot it?</p>
+</div>
+<div class="paragraph">
+<p>The difficulty of catching these issues e.g. during code review
 illustrates how difficult it is to write &quot;correct&quot; Gradle config: if even the simplest
 hello-world customization results in impossible-to-find bugs slowing things down, how many
 bugs will there be in any more-complex real-world customization or plugin? It’s no wonder
@@ -1437,7 +1450,7 @@ identify that <code>compileArgs</code> exists and has the type <code>List&lt;Str
 <div class="paragraph">
 <p>Often working with build configurations feels like hitting dead ends: if you don’t have
 <code>options.compilerArgs</code> memorized in your head, there is literally nothing you can do in
-your editor to make progress figuring out what it is or what it is used for. That leaves
+your IDE to figure out what it is or what it is used for. That leaves
 you googling for answers, which can be a frustrating experience that distracts you from
 the task at hand.</p>
 </div>
@@ -1535,7 +1548,7 @@ both users and to IDEs.</p>
 <div class="paragraph">
 <p>Mill has a lot of improvements over build tools like Maven or Gradle, but it begs the
 question: why can’t other build tools improve performance, extensibility, IDE support
-as well? It turns out that other tools have been working on improving performance,
+as well? It turns out that other tools <em>have</em> been working on improving performance,
 extensibility and IDE support - for decades in the case of Maven or Gradle - but Mill
 does have secret sauce that makes providing this experience in Mill much easier than
 providing it in any other build tool.</p>
@@ -1569,15 +1582,15 @@ define templated, customizable graph-computations when setting up their build pi
 <svg width="767px" height="364px" viewBox="0.00 0.00 767.02 364.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
-<g id="clust2" class="cluster">
-<title>cluster_1</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-124 126.09,-232 617.74,-232 617.74,-124 126.09,-124"></polygon>
-<text text-anchor="middle" x="371.92" y="-215.4" font-family="Times,serif" font-size="14.00">bar</text>
-</g>
 <g id="clust1" class="cluster">
 <title>cluster_0</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 484.87,-348 484.87,-240 8,-240"></polygon>
 <text text-anchor="middle" x="246.43" y="-331.4" font-family="Times,serif" font-size="14.00">foo</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-124 126.09,-232 617.74,-232 617.74,-124 126.09,-124"></polygon>
+<text text-anchor="middle" x="371.92" y="-215.4" font-family="Times,serif" font-size="14.00">bar</text>
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_2</title>
@@ -2259,7 +2272,7 @@ trait MyJavaModule extends JavaModule {
 </center>
 </div>
 <div class="paragraph">
-<p>If you want to further customize either of those modules, you simply <code>override</code>
+<p>If you want to further customize either of those modules, you can <code>override</code>
 one or more of the inherited methods. And if you want to publish your customizations
 for others to use in their own projects,
 you can <a href="../extending/writing-plugins.html#_publishing" class="xref page">publish
