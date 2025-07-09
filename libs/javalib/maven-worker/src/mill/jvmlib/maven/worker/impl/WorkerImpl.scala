@@ -1,4 +1,4 @@
-package mill.jvmlib.maven.worker.impl
+package mill.javalib.maven.worker.impl
 
 import ch.qos.logback.classic.{Level, Logger}
 import mill.javalib.MavenWorkerSupport

@@ -1,4 +1,4 @@
-package mill.jvmlib.maven.worker.impl
+package mill.javalib.maven.worker.impl
 
 import mill.javalib.MavenWorkerSupport.RemoteM2Publisher
 import org.eclipse.aether.DefaultRepositorySystemSession
