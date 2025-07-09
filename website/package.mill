@@ -422,7 +422,7 @@ object `package` extends mill.Module {
       mill.api.BuildCtx.workspaceRoot
     )
 
-    for(p <- os.walk(siteDir) if p.ext == "html"){
+    for (p <- os.walk(siteDir) if p.ext == "html") {
       // Manually un-substitute ellipses in normal text to reverse the antora unicode
       // substitution, because the font for the unicode ellipses looks very bad
       os.write.over(p, os.read(p).replace("…", "..."))
