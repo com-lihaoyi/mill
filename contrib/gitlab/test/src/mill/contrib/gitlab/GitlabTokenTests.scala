@@ -141,7 +141,10 @@ object GitlabTokenTests extends TestSuite {
 
       val artifact = Artifact("test.group", "id", "0.0.0")
 
-      publisher.publish(Seq(fakeFile -> "data.file"), artifact)
+      publisher.publish(
+        Map(os.SubPath("data.file") -> fakeFile),
+        artifact
+      )
 
       os.remove(fakeFile)
 

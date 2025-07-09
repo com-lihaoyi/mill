@@ -1,5 +1,7 @@
 package mill.integration
 
+import mill.testkit.{asTestValue, withTestClues}
+
 import java.util.regex.Pattern
 import scala.util.Try
 import utest.assert
@@ -23,28 +25,33 @@ object GenIdeaUtils {
     val expectedResourcePath = workspaceSourcePath / "idea" / resource
     val actualResourcePath = workspacePath / ".idea" / resource
 
-    println(s"Checking ${expectedResourcePath.relativeTo(workspaceSourcePath)} ...")
-    val expectedResourceString = os.read.lines(expectedResourcePath).mkString("\n")
-    val actualResourceString = normaliseLibraryPaths(os.read(actualResourcePath), workspacePath)
+    withTestClues(
+      asTestValue(expectedResourcePath),
+      asTestValue(actualResourcePath)
+    ) {
+      println(s"Checking ${expectedResourcePath.relativeTo(workspaceSourcePath)} ...")
+      val expectedResourceString = os.read.lines(expectedResourcePath).mkString("\n")
+      val actualResourceString = normaliseLibraryPaths(os.read(actualResourcePath), workspacePath)
 
-    if (updateResources) {
-      val matches = partialContentMatches(
-        found = actualResourceString,
-        expected = expectedResourceString,
-        resource.toString()
-      )
-      if (!matches) {
-        System.err.println(s"Writing $expectedResourcePath")
-        os.write.over(expectedResourcePath, actualResourceString)
-      }
-    } else
-      assert(
-        partialContentMatches(
+      if (updateResources) {
+        val matches = partialContentMatches(
           found = actualResourceString,
           expected = expectedResourceString,
           resource.toString()
         )
-      )
+        if (!matches) {
+          System.err.println(s"Writing $expectedResourcePath")
+          os.write.over(expectedResourcePath, actualResourceString)
+        }
+      } else
+        assert(
+          partialContentMatches(
+            found = actualResourceString,
+            expected = expectedResourceString,
+            resource.toString()
+          )
+        )
+    }
   }
 
   def partialContentMatches(found: String, expected: String, context: String = ""): Boolean =

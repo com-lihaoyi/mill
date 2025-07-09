@@ -46,6 +46,7 @@ export mill.javalib.RunModule
 
 export mill.javalib.SonatypeCentralPublisher
 
+type SonatypeCentralPublishModule = mill.javalib.SonatypeCentralPublishModule
 object SonatypeCentralPublishModule
     extends mill.api.ExternalModule.Alias(mill.javalib.SonatypeCentralPublishModule)
 

@@ -31,7 +31,7 @@ class SonatypeCentralPublisher(
     new SyncSonatypeClient(credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)
 
   def publish(
-      fileMapping: Seq[(os.Path, String)],
+      fileMapping: Map[os.SubPath, os.Path],
       artifact: Artifact,
       publishingType: PublishingType
   ): Unit = {
@@ -41,32 +41,15 @@ class SonatypeCentralPublisher(
   def publishAll(
       publishingType: PublishingType,
       singleBundleName: Option[String],
-      artifacts: (Seq[(os.Path, String)], Artifact)*
+      artifacts: (Map[os.SubPath, os.Path], Artifact)*
   ): Unit = {
-    val mappings = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
-    log.info(s"mappings ${pprint.apply(mappings.map { case (a, kvs) => (a, kvs.map(_._1)) })}")
-    val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
-    if (snapshots.nonEmpty) {
-      val snapshotNames = snapshots.map(_._1)
-        .map { case Artifact(group, id, version) => s"$group:$id:$version" }
-      throw new Result.Exception(
-        s"""Publishing snapshots to Sonatype Central Portal is currently not supported by Mill.
-           |This is tracked under https://github.com/com-lihaoyi/mill/issues/4421
-           |The following snapshots will not be published:
-           |  ${snapshotNames.mkString("\n  ")}""".stripMargin
-      )
-    }
-    if (releases.isEmpty) {
-      log.error("No releases to publish to Sonatype Central.")
-      val errorMessage =
-        "No releases to publish to Sonatype Central." +
-          (if (snapshots.nonEmpty)
-             "It seems there were only snapshots to publish, which is not supported by Mill, currently."
-           else "Please check your build configuration.")
-      throw new Result.Exception(errorMessage)
-    }
-
-    val releaseGroups = releases.groupBy(_._1.group)
+    val releases = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
+    log.info(s"mappings ${pprint.apply(
+        releases.map { case (a, fileSetContents) =>
+          (a, fileSetContents.keys.toVector.sorted.map(_.toString))
+        }
+      )}")
+    val releaseGroups = releases.groupBy(_.artifact.group)
     val wd = os.pwd / "out/publish-central"
     os.makeDir.all(wd)
 
@@ -75,7 +58,9 @@ class SonatypeCentralPublisher(
         groupReleases.foreach { case (artifact, data) =>
           val fileNameWithoutExtension = s"${artifact.group}-${artifact.id}-${artifact.version}"
           val zipFile = streamToFile(fileNameWithoutExtension, wd) { outputStream =>
-            log.info(s"bundle $fileNameWithoutExtension with ${pprint.apply(data.map(_._1))}")
+            log.info(
+              s"bundle $fileNameWithoutExtension with ${pprint.apply(data.keys.toVector.sorted.map(_.toString))}"
+            )
             zipFilesToJar(data, outputStream)
           }
 
@@ -150,11 +135,11 @@ class SonatypeCentralPublisher(
   }
 
   private def zipFilesToJar(
-      files: Seq[(String, Array[Byte])],
+      files: Map[os.SubPath, Array[Byte]],
       jarOutputStream: JarOutputStream
   ): Unit = {
     files.foreach { case (filename, fileAsBytes) =>
-      val zipEntry = new ZipEntry(filename)
+      val zipEntry = new ZipEntry(filename.toString)
       jarOutputStream.putNextEntry(zipEntry)
       jarOutputStream.write(fileAsBytes)
       jarOutputStream.closeEntry()

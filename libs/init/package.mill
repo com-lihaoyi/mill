@@ -90,13 +90,13 @@ object `package` extends MillPublishScalaModule {
   }
   object maven extends MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
-    def mvnDeps = Seq(
-      Deps.mavenEmbedder,
-      Deps.mavenResolverConnectorBasic,
-      Deps.mavenResolverSupplier,
-      Deps.mavenResolverTransportFile,
-      Deps.mavenResolverTransportHttp,
-      Deps.mavenResolverTransportWagon
+    override def mvnDeps = Seq(
+      Deps.MavenInit.mavenEmbedder,
+      Deps.MavenInit.mavenResolverConnectorBasic,
+      Deps.MavenInit.mavenResolverSupplier,
+      Deps.MavenInit.mavenResolverTransportFile,
+      Deps.MavenInit.mavenResolverTransportHttp,
+      Deps.MavenInit.mavenResolverTransportWagon
     )
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
   }

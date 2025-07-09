@@ -39,6 +39,7 @@ object PublishInfo {
       classifier = Some("sources"),
       ivyConfig = "compile"
     )
+
   private[mill] def docJar(docJar: PathRef): PublishInfo =
     PublishInfo(
       docJar,

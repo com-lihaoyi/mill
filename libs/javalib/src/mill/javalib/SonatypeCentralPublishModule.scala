@@ -1,8 +1,8 @@
 package mill.javalib
 
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
-import mill._
-import javalib._
+import mill.*
+import javalib.*
 import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.api.DefaultTaskModule
@@ -19,7 +19,7 @@ import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
 
-trait SonatypeCentralPublishModule extends PublishModule {
+trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport {
 
   /**
    * @return (keyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
@@ -36,14 +36,46 @@ trait SonatypeCentralPublishModule extends PublishModule {
 
   def sonatypeCentralShouldRelease: T[Boolean] = Task { true }
 
+  /**
+   * @param username override the username from the environment
+   * @param password override the password from the environment
+   * @param sources whether to include sources
+   * @param docs whether to include docs
+   */
   def publishSonatypeCentral(
       username: String = defaultCredentials,
-      password: String = defaultCredentials
-  ): Task.Command[Unit] =
-    Task.Command {
-      val publishData = publishArtifacts()
-      val fileMapping = publishData.withConcretePath._1
+      password: String = defaultCredentials,
+      sources: Boolean = true,
+      docs: Boolean = true
+  ): Task.Command[Unit] = Task.Command {
+    val artifact = artifactMetadata()
+    val finalCredentials = getSonatypeCredentials(username, password)()
 
+    def publishSnapshot(): Unit = {
+      val uri = sonatypeCentralSnapshotUri
+      val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2Artifacts(
+        pom().path,
+        artifact,
+        defaultPublishInfos(sources = sources, docs = docs)()
+      )
+
+      Task.log.info(
+        s"Detected a 'SNAPSHOT' version, publishing to Sonatype Central Snapshots at '$uri'"
+      )
+      val worker = mavenWorker()
+      val result = worker.publishToRemote(
+        uri = uri,
+        workspace = Task.dest / "maven",
+        username = finalCredentials.username,
+        password = finalCredentials.password,
+        artifacts
+      )
+      Task.log.info(s"Deployment to '$uri' finished with result: $result")
+    }
+
+    def publishRelease(): Unit = {
+      val fileMapping =
+        publishArtifactsPayload(sources = sources, docs = docs)().view.mapValues(_.path).toMap
       val maybeKeyId = PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
       val keyId = maybeKeyId.getOrElse(throw new IllegalArgumentException(
         s"Publishing to Sonatype Central requires a PGP key. Please set the '${PublishModule.EnvVarPgpSecretBase64}' " +
@@ -51,8 +83,6 @@ trait SonatypeCentralPublishModule extends PublishModule {
       ))
 
       val gpgArgs = sonatypeCentralGpgArgs()(keyId)
-      val artifact = publishData.meta
-      val finalCredentials = getSonatypeCredentials(username, password)()
       val publisher = new SonatypeCentralPublisher(
         credentials = finalCredentials,
         gpgArgs = gpgArgs,
@@ -69,6 +99,11 @@ trait SonatypeCentralPublishModule extends PublishModule {
         getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
       )
     }
+
+    // The snapshot publishing does not use the same API as release publishing.
+    if (artifact.version.endsWith("SNAPSHOT")) publishSnapshot()
+    else publishRelease()
+  }
 }
 
 /**
@@ -99,10 +134,8 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
       bundleName: String = ""
   ): Command[Unit] = Task.Command {
 
-    val artifacts: Seq[(Seq[(os.Path, String)], Artifact)] =
-      Task.sequence(publishArtifacts.value)().map {
-        case data @ PublishModule.PublishData(_, _) => data.withConcretePath
-      }
+    val artifacts =
+      Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val finalCredentials = getSonatypeCredentials(username, password)()
