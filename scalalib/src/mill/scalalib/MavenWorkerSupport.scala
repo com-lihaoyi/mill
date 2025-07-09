@@ -26,19 +26,19 @@ object MavenWorkerSupport {
 
     /** Publishes artifacts to a remote Maven repository. */
     def publishToRemote(
-      uri: String,
-      workspace: os.Path,
-      username: String,
-      password: String,
-      artifacts: IterableOnce[RemoteM2Publisher.M2Artifact]
+        uri: String,
+        workspace: os.Path,
+        username: String,
+        password: String,
+        artifacts: IterableOnce[RemoteM2Publisher.M2Artifact]
     ): RemoteM2Publisher.DeployResult
   }
 
   object RemoteM2Publisher {
     def asM2Artifacts(
-      pom: os.Path,
-      artifact: Artifact,
-      publishInfos: IterableOnce[PublishInfo]
+        pom: os.Path,
+        artifact: Artifact,
+        publishInfos: IterableOnce[PublishInfo]
     ): List[M2Artifact] =
       M2Artifact.POM(
         pom,
@@ -52,11 +52,11 @@ object MavenWorkerSupport {
     }
 
     case class DeployResult(
-      // The classes which Maven returns aren't loaded here, thus we'd need to perform a translation, but we do not use
-      // the result for anything else but logging, thus we just convert them to strings on the worker side.
-      artifacts: Vector[String],
-      // Same
-      metadatas: Vector[String]
+        // The classes which Maven returns aren't loaded here, thus we'd need to perform a translation, but we do not use
+        // the result for anything else but logging, thus we just convert them to strings on the worker side.
+        artifacts: Vector[String],
+        // Same
+        metadatas: Vector[String]
     ) {
       override def toString: String =
         s"""DeployResult(
