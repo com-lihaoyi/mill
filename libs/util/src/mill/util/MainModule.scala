@@ -2,13 +2,14 @@ package mill.util
 
 import mill.{util, *}
 import mill.api.*
-import mill.api.daemon.internal.{EvaluatorApi, MainModuleApi, TaskApi}
+import mill.api.daemon.internal.MainModuleApi
 import mill.api.*
-import mill.api.internal.{RootModule0, RootModule}
+import mill.api.internal.{RootModule, RootModule0}
 import mill.api.SelectMode.Separated
 import mill.api.daemon.Watchable
 import mill.moduledefs.Scaladoc
 import mill.api.BuildCtx
+import mill.api.daemon.internal.bsp.BspMainModuleApi
 
 import java.util.concurrent.LinkedBlockingQueue
 import scala.collection.mutable
@@ -24,7 +25,14 @@ abstract class MainRootModule()(implicit
  * [[mill.api.Module]] containing all the default tasks that Mill provides: [[resolve]],
  * [[show]], [[inspect]], [[plan]], etc.
  */
-trait MainModule extends RootModule0 with MainModuleApi {
+trait MainModule extends RootModule0, MainModuleApi {
+
+  private lazy val bspExt = {
+    import bsp.BspMainModule.given
+    ModuleRef(this.internalBspMainModule)
+  }
+
+  private[mill] def bspMainModule: () => BspMainModuleApi = () => bspExt()
 
   /**
    * Show the mill version.
@@ -138,13 +146,6 @@ trait MainModule extends RootModule0 with MainModuleApi {
         ujson.Obj.from(res.flatMap(_._2))
       }
     }
-
-  private[mill] def bspClean(
-      evaluator: EvaluatorApi,
-      tasks: String*
-  ): TaskApi[Seq[java.nio.file.Path]] = Task.Anon {
-    cleanTask(evaluator.asInstanceOf[Evaluator], tasks*)().map(_.path.toNIO)
-  }
 
   /**
    * Deletes the given targets from the out directory. Providing no targets
