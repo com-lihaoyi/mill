@@ -924,7 +924,7 @@ and makes all of them easy to set up and use.</p>
 <h2 id="_extensibility"><a class="anchor" href="#_extensibility"></a>Extensibility</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_builtins"><a class="anchor" href="#_builtins"></a>Builtins</h3>
+<h3 id="_rich_builtins"><a class="anchor" href="#_rich_builtins"></a>Rich Builtins</h3>
 <div class="paragraph">
 <p>Mill comes with a lot more functionality built in than other tools such as Maven,
 Gradle, or SBT. In general, most common development workflows are built in to Mill:
@@ -1065,8 +1065,14 @@ find plugins and evaluate their relevance, quality, and level of maintenance:</p
 </tbody>
 </table>
 <div class="paragraph">
-<p>Apart from the builtin features, Mill also has a rich ecosystem of third party plugins
-for less common use cases:</p>
+<p>Mill’s builtin functionality means you can get very far without spending time fiddling
+with plugins. These builtins are all designed, tested, and maintained to the same level of quality
+as Mill itself, letting you skip the tedious task of finding and vetting a list of third-party
+plugins of appropriate quality for use in your project.</p>
+</div>
+<div class="paragraph">
+<p>When the time comes that you do need functionality not bundled with Mill, Mill also has
+a rich ecosystem of third party plugins for less common use cases:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1563,15 +1569,15 @@ define templated, customizable graph-computations when setting up their build pi
 <svg width="767px" height="364px" viewBox="0.00 0.00 767.02 364.00" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
-<g id="clust1" class="cluster">
-<title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 484.87,-348 484.87,-240 8,-240"></polygon>
-<text text-anchor="middle" x="246.43" y="-331.4" font-family="Times,serif" font-size="14.00">foo</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="126.09,-124 126.09,-232 617.74,-232 617.74,-124 126.09,-124"></polygon>
 <text text-anchor="middle" x="371.92" y="-215.4" font-family="Times,serif" font-size="14.00">bar</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 484.87,-348 484.87,-240 8,-240"></polygon>
+<text text-anchor="middle" x="246.43" y="-331.4" font-family="Times,serif" font-size="14.00">foo</text>
 </g>
 <g id="clust3" class="cluster">
 <title>cluster_2</title>
