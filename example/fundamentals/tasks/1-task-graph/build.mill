@@ -19,10 +19,7 @@ def assembly = Task {
   for (p <- Seq(compile(), resources())) os.copy(p.path, Task.dest, mergeFolders = true)
 
   val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-  os.call(
-    ("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", "."),
-    cwd = Task.dest
-  )
+  os.call(("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", "."))
 
   PathRef(Task.dest / "assembly.jar")
 }

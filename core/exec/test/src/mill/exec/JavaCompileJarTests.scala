@@ -37,9 +37,9 @@ object JavaCompileJarTests extends TestSuite {
         //           resourceRoot ---->  jar
         //                                ^
         //           readmePath---------- |
-        def readme = Task.Source { readmePath }
-        def sourceRoot = Task.Sources { sourceRootPath }
-        def resourceRoot = Task.Sources { resourceRootPath }
+        def readme = Task.Source(readmePath)
+        def sourceRoot = Task.Sources(sourceRootPath)
+        def resourceRoot = Task.Sources(resourceRootPath)
         def allSources =
           Task { sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) }
         def classFiles = Task { compileAll(allSources()) }

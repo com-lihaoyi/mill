@@ -772,7 +772,7 @@ trait JavaModule
    * The folders where the resource files for this module live.
    * If you need resources to be seen by the compiler, use [[compileResources]].
    */
-  def resources: T[Seq[PathRef]] = Task.Sources { "resources" }
+  def resources: T[Seq[PathRef]] = Task.Sources("resources")
 
   /**
    * The folders where the compile time resource files for this module live.
