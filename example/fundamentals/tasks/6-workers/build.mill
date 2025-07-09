@@ -11,7 +11,7 @@
 //    which perform their own in-memory caching
 //
 // 2. Classloaders containing plugin code, to avoid classpath conflicts while
-//    also avoiding classloading cost every time the code is executed
+//    avoiding the cost of launching subprocesses
 //
 // This example uses a Worker to provide simple two-level cache: in-memory caching
 // for compressed files, in addition to caching them on disk. This means that if the
@@ -120,9 +120,8 @@ Cached from disk: world.txt
 
 */
 
-// Mill uses workers to manage long-lived instances of the
-// https://github.com/sbt/zinc[Zinc Incremental Scala Compiler] and the
-// https://github.com/scala-js/scala-js[Scala.js Optimizer].
+// Mill uses workers to manage long-lived instances of heavyweight objects like the
+// https://github.com/sbt/zinc[Zinc Incremental Compiler].
 // This lets us keep them in-memory with warm caches and fast incremental execution.
 //
 // Like any other task, you can use `./mill clean` to wipe out any cached in-memory or

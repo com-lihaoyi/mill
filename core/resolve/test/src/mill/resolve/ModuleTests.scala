@@ -1,7 +1,7 @@
 package mill.resolve
 
 import mill.api.Result
-import mill.api.{Discover, ModuleRef, Task, TaskModule}
+import mill.api.{Discover, ModuleRef, Task, DefaultTaskModule}
 import mill.testkit.TestRootModule
 import mill.api.DynamicModule
 import mill.api.TestGraphs.*
@@ -16,7 +16,7 @@ object ModuleTests extends TestSuite {
         def test1 = Task {}
       }
 
-      object test2 extends TaskModule {
+      object test2 extends DefaultTaskModule {
         override def defaultTask() = "test2"
 
         def test2() = Task.Command {}
@@ -27,7 +27,7 @@ object ModuleTests extends TestSuite {
       def test3 = Task {}
     }
 
-    object test4 extends TaskModule {
+    object test4 extends DefaultTaskModule {
       override def defaultTask() = "test4"
 
       def test4() = Task.Command {}

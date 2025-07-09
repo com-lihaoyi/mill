@@ -51,9 +51,9 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithSpecificSources extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBSources: T[Seq[PathRef]] = Task.Sources {
-        moduleDir / "protobuf/tutorial/Tutorial.proto"
-      }
+      override def scalaPBSources: T[Seq[PathRef]] = Task.Sources(
+        "protobuf/tutorial/Tutorial.proto"
+      )
 
       override def scalaPBSearchDeps = true
       override def scalaPBIncludePath = Task.Sources(

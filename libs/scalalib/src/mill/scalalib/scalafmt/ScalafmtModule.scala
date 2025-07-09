@@ -5,7 +5,7 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 import mill.*
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.api.Result
-import mill.api.{Discover, ExternalModule, TaskModule}
+import mill.api.{Discover, ExternalModule, DefaultTaskModule}
 import mill.scalalib.*
 import mainargs.arg
 import mill.util.Tasks
@@ -75,7 +75,7 @@ trait ScalafmtModule extends JavaModule {
 
 }
 
-object ScalafmtModule extends ExternalModule with ScalafmtModule with TaskModule {
+object ScalafmtModule extends ExternalModule with ScalafmtModule with DefaultTaskModule {
   override def defaultTask(): String = "reformatAll"
 
   def reformatAll(@arg(positional = true) sources: Tasks[Seq[PathRef]] =

@@ -103,7 +103,7 @@ def osPwdTask = Task { println(os.pwd.toString) }
 // its `os.getcwd()`, which is our `osProcTask.dest/` sandbox folder:
 
 def osProcTask = Task {
-  println(os.call(("python3", "-c", "import os; print(os.getcwd())"), cwd = Task.dest).out.trim())
+  println(os.call(("python3", "-c", "import os; print(os.getcwd())")).out.trim())
 }
 
 /** Usage

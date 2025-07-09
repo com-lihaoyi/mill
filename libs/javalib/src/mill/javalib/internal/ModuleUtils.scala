@@ -1,6 +1,6 @@
 package mill.javalib.internal
 
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 
 import scala.annotation.tailrec
 

@@ -4,11 +4,11 @@ import java.nio.file.Path
 import mill.api.BuildCtx
 import mill.*
 import mill.api.Result
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import mill.constants.CodeGenConstants.buildFileExtensions
 import mill.constants.OutFiles.*
 import mill.api.{Discover, PathRef, Task}
-import mill.api.internal.RootModule0
+import mill.api.internal.RootModule
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
 import mill.javalib.api.{CompilationResult, Versions}
 import mill.util.{BuildInfo, MainRootModule}
@@ -26,7 +26,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
  */
 @internal
 trait MillBuildRootModule()(implicit
-    rootModuleInfo: RootModule0.Info
+    rootModuleInfo: RootModule.Info
 ) extends ScalaModule {
   override def bspDisplayName0: String = rootModuleInfo
     .projectRoot
@@ -301,7 +301,7 @@ trait MillBuildRootModule()(implicit
 object MillBuildRootModule {
 
   class BootstrapModule()(implicit
-      rootModuleInfo: RootModule0.Info
+      rootModuleInfo: RootModule.Info
   ) extends MainRootModule() with MillBuildRootModule() {
     override lazy val millDiscover = Discover[this.type]
   }
@@ -314,7 +314,7 @@ object MillBuildRootModule {
 
   def parseBuildFiles(
       parser: MillScalaParser,
-      millBuildRootModuleInfo: RootModule0.Info
+      millBuildRootModuleInfo: RootModule.Info
   ): FileImportGraph = {
     FileImportGraph.parseBuildFiles(
       millBuildRootModuleInfo.topLevelProjectRoot,

@@ -1,7 +1,7 @@
 package mill.scalajslib.internal
 
 import mill.PathRef
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import mill.scalajslib.api.Report
 
 @internal

@@ -6,7 +6,7 @@ import mill.api.daemon.internal.EvaluatorApi
 import mill.bsp.Constants
 import mill.api.{Logger, Result, SystemStreams}
 import mill.client.lock.Lock
-import mill.api.internal.Watchable
+import mill.api.daemon.Watchable
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.PrintWriter

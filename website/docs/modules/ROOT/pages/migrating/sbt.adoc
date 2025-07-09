@@ -1,4 +1,4 @@
-= Migrating From sbt to Mill
+= Importing `sbt` Projects
 :page-aliases: Migrating_An_sbt_Build_to_Mill.adoc
 :icons: font
 

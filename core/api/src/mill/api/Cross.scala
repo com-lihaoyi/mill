@@ -158,12 +158,17 @@ object Cross {
  */
 trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.api.Module {
 
+  private class Lazy[T](t: () => T) extends Function0[T] {
+    lazy val value: T = t()
+    def apply(): T = value
+  }
+
   val ctx: ModuleCtx = moduleCtx
 
   trait Item {
     def crossValues: List[Any]
     def crossSegments: List[String]
-    def module: Lazy[M]
+    def module: Function0[M]
     def cls: Class[?]
   }
 
@@ -209,7 +214,7 @@ trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.api
    * A list of the cross modules, in
    * the order the original cross values were given in
    */
-  lazy val crossModules: Seq[M] = items.map(_.module.value)
+  lazy val crossModules: Seq[M] = items.map(_.module())
 
   /**
    * A mapping of the raw cross values to the cross modules, in
@@ -219,7 +224,7 @@ trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.api
     .map { i => (i.crossValues, i.module) }
     .to(collection.mutable.LinkedHashMap)
     .view
-    .mapValues(_.value)
+    .mapValues(_())
 
   /**
    * A mapping of the string-ified string segments to the cross modules, in
@@ -229,7 +234,7 @@ trait Cross[M <: Cross.Module[?]](factories: Cross.Factory[M]*) extends mill.api
     .map { i => (i.crossSegments, i.module) }
     .to(collection.mutable.LinkedHashMap)
     .view
-    .mapValues(_.value)
+    .mapValues(_())
 
   /**
    * The default cross segments to use, when no cross value is specified.

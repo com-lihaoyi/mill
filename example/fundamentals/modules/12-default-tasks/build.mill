@@ -3,9 +3,9 @@
 
 package build
 import mill.*, javalib.*
-import mill.api.TaskModule
+import mill.api.DefaultTaskModule
 
-object foo extends TaskModule {
+object foo extends DefaultTaskModule {
   override def defaultTask() = "bar"
   def bar() = Task.Command { println("Hello Bar") }
   def qux() = Task.Command { println("Hello Qux") }

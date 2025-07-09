@@ -3,6 +3,7 @@ package mill.javalib.spotless
 import mainargs.Flag
 import mill.constants.OutFiles.out
 import mill.api.*
+import mill.api.internal.RootModule0
 import mill.javalib.{CoursierModule, Dep, OfflineSupportModule}
 import mill.util.Jvm
 
@@ -76,7 +77,7 @@ trait SpotlessModule extends CoursierModule, OfflineSupportModule {
    * @see [[https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/nio/file/FileSystem.html#getPathMatcher(java.lang.String) Path matcher pattern]]
    */
   def spotlessExcludes: Task[Seq[String]] = this match
-    case _: BaseModule => Task { Seq(s"glob:$out") }
+    case _: RootModule0 => Task { Seq(s"glob:$out") }
     case _ => Task { Seq.empty[String] }
 
   private def spotlessWorkerClasspath = Task {
@@ -121,7 +122,7 @@ trait SpotlessModule extends CoursierModule, OfflineSupportModule {
   }
 }
 @mill.api.experimental
-object SpotlessModule extends ExternalModule, TaskModule, SpotlessModule {
+object SpotlessModule extends ExternalModule, DefaultTaskModule, SpotlessModule {
   lazy val millDiscover = Discover[this.type]
   def defaultTask() = "spotless"
 }

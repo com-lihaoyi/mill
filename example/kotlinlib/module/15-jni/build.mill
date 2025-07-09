@@ -14,18 +14,20 @@ object `package` extends KotlinModule {
   def nativeCompiled = Task {
     val cSourceFiles = nativeSources().map(_.path).flatMap(os.walk(_)).filter(_.ext == "c")
     val output = "libhelloworld.so"
-    os.proc(
-      "clang",
-      "-shared",
-      "-fPIC",
-      "-I" + sys.props("java.home") + "/include/", // global JVM header files
-      "-I" + sys.props("java.home") + "/include/darwin",
-      "-I" + sys.props("java.home") + "/include/linux",
-      "-o",
-      Task.dest / output,
-      cSourceFiles
+    os.call(
+      cmd = (
+        "clang",
+        "-shared",
+        "-fPIC",
+        "-I" + sys.props("java.home") + "/include/", // global JVM header files
+        "-I" + sys.props("java.home") + "/include/darwin",
+        "-I" + sys.props("java.home") + "/include/linux",
+        "-o",
+        Task.dest / output,
+        cSourceFiles
+      ),
+      stdout = os.Inherit
     )
-      .call(stdout = os.Inherit)
 
     PathRef(Task.dest / output)
   }

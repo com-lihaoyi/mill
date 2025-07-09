@@ -2,7 +2,7 @@ package mill.javalib.spotless
 
 import mill.api.{PathRef, TaskCtx}
 
-@mill.api.internal.internal
+@mill.api.daemon.internal.internal
 trait SpotlessWorker extends AutoCloseable {
 
   /**

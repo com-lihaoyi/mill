@@ -153,7 +153,7 @@ and makes all of them easy to set up and use.
 
 == Extensibility
 
-=== Builtins
+=== Rich Builtins
 
 Mill comes with a lot more functionality built in than other tools such as Maven,
 Gradle, or SBT. In general, most common development workflows are built in to Mill:
@@ -163,11 +163,15 @@ find plugins and evaluate their relevance, quality, and level of maintenance:
 
 include::partial$Feature_Support.adoc[]
 
-Apart from the builtin features, Mill also has a rich ecosystem of third party plugins
-for less common use cases:
+Mill's builtin functionality means you can get very far without spending time fiddling
+with plugins. These builtins are all designed, tested, and maintained to the same level of quality
+as Mill itself, letting you skip the tedious task of finding and vetting a list of third-party
+plugins of appropriate quality for use in your project.
+
+When the time comes that you do need functionality not bundled with Mill, Mill also has
+a rich ecosystem of third party plugins for less common use cases:
 
 - xref::extending/thirdparty-plugins.adoc[]
-
 
 === Extending Mill
 
@@ -190,7 +194,7 @@ directly, without having to find a "xyz build plugin" wrapper.
 
 === Simple Custom Tasks
 
-The following Mill build is a minimal Java module `foo.`. It contains no custom configuration, and
+The following Mill build is a minimal Java module `foo`. It contains no custom configuration, and
 so inherits all the defaults from `mill.javalib.JavaModule`: default source folder layout, default
 assembly configuration, default compiler flags, and so on. This _convention over configuration_
 is a philosophy that Mill inherited from Maven and other JVM build tools:
@@ -229,12 +233,19 @@ object foo extends JavaModule {
 
 Once we define a new task, we can immediately begin using it in our build.
 `lineCount` is not used by any existing `JavaModule` tasks, but we can still
-show its value via the Mill command line to evaluate it:
+show its value via the Mill command line to evaluate it, or inspect its metadata:
 
 [source,console]
 ----
-> mill show foo.lineCount
+> ./mill show foo.lineCount
 17
+
+> ./mill inspect foo.lineCount
+foo.lineCount(build.mill:4)
+    Total number of lines in module source files
+
+Inputs:
+    foo.allSourceFiles
 ----
 
 Note that as `lineCount` is a `Task`, we get automatic caching, invalidation, and
@@ -288,15 +299,16 @@ which includes usage of third-party libraries in the build.
 
 === Using Third-Party JVM Libraries in Tasks
 
-One example use case of customizing your build tool is pre-rendering HTML pages in the build so
-they can be served at runtime: if a page never changes, rendering it on every request is
+Many build tasks require third-party libraries. One example is pre-rendering HTML pages
+in the build so they can be served at runtime: if a page never changes, rendering it on every request is
 wasteful, and even rendering it once on startup and then caching it
 can impact your application startup time. Thus, you may want to move some HTML rendering to
 build-time, but with traditional build tools such a move is sufficiently inconvenient and
-complicated that people rarely do it.
+complicated that people rarely do it. Other use cases may include custom linters, custom
+deployment artifacts, custom debugging metadata, and so on.
 
-With Mill, pre-rendering HTML at build time is really easy, even if you need a third-party
-library. Mill does not ship with a bundled HTML templating engine, but you can use the
+With Mill, using third-party libraries in your build tasks is very easy. Mill does not
+ship with a bundled HTML templating engine, but you can use the
 xref:extending/import-mvn-plugins.adoc[//| mvnDeps] syntax to include one such as
 https://www.thymeleaf.org/[Thymeleaf], which would immediately make the
 Thymeleaf classes available for you to import and use in your build as below:
@@ -414,13 +426,17 @@ While the Gradle config is a bit more verbose than Mill's, that is not where the
 lies. The problem lies in the fact that the Gradle "config as code" doesn't _actually_
 look like the code you are writing day-to-day: although it is written in Kotlin,
 things like `task.named`, `dependsOn`, `inputs.files` and `outputs.file`, `doLast`
-(or should we use `doFirst`?) are not "normal" Kotlin. And just
-because you know Kotlin doesn't mean you know how any of this stuff works and can
-debug it when it misbehaves!
+(or should we use `doFirst`?) are not "normal" Kotlin. The stringly-typed `"generateLineCount"`,
+`"generated-resources"`, `"processResources"`, values add to the potential for error.
+The end result is that although you may know Kotlin as a compiled language with great
+IDE support, you will likely be unfamiliar with Gradle's flavor of Kotlin, and your
+IDE will likely not be as useful as you would like.
 
 In fact, there is even a bug in the above Gradle config that will cause the build to
 be non-deterministically slower sometimes, but not other times.
-Can you spot it? The difficulty of catching these issues e.g. during code review
+Can you spot it?
+
+The difficulty of catching these issues e.g. during code review
 illustrates how difficult it is to write "correct" Gradle config: if even the simplest
 hello-world customization results in impossible-to-find bugs slowing things down, how many
 bugs will there be in any more-complex real-world customization or plugin? It's no wonder
@@ -478,13 +494,15 @@ identify that `compileArgs` exists and has the type `List<String>`:
 
 image:comparisons/IntellijMockitoGradleCompileOptions.png[]
 
-But if you try to jump to definition or find out anything else about it you hit a wall:
+But if you try to jump to definition or find out anything else about it you hit a wall.
+The IDE is able to bring you to the getter and setter, but it isn't able to tell you
+_where the value is coming from_, _how it is computed_, or _where it is used_:
 
 image:comparisons/IntellijMockitoGradleCompileOptions2.png[]
 
 Often working with build configurations feels like hitting dead ends: if you don't have
 `options.compilerArgs` memorized in your head, there is literally nothing you can do in
-your editor to make progress figuring out what it is or what it is used for. That leaves
+your IDE to figure out what it is or what it is used for. That leaves
 you googling for answers, which can be a frustrating experience that distracts you from
 the task at hand.
 
@@ -556,7 +574,7 @@ both users and to IDEs.
 
 Mill has a lot of improvements over build tools like Maven or Gradle, but it begs the
 question: why can't other build tools improve performance, extensibility, IDE support
-as well? It turns out that other tools have been working on improving performance,
+as well? It turns out that other tools _have_ been working on improving performance,
 extensibility and IDE support - for decades in the case of Maven or Gradle - but Mill
 does have secret sauce that makes providing this experience in Mill much easier than
 providing it in any other build tool.
@@ -810,7 +828,7 @@ digraph G {
 }
 ....
 
-If you want to further customize either of those modules, you simply `override`
+If you want to further customize either of those modules, you can `override`
 one or more of the inherited methods. And if you want to publish your customizations
 for others to use in their own projects,
 you can xref:extending/writing-plugins.adoc#_publishing[publish

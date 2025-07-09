@@ -4,7 +4,7 @@ import mill.api.Task
 import mill.*
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 import mill.api.daemon.internal.bsp.BspModuleApi.Tag
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 
 trait BspModule extends mill.api.Module with BspModuleApi {
 

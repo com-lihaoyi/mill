@@ -3,7 +3,7 @@ package mill.javalib.bsp
 import java.nio.file.Path
 
 import mill.api.daemon.internal.bsp.BspRunModuleApi
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import mill.api.{Discover, ExternalModule, ModuleCtx}
 import mill.api.JsonFormatters.given
 import mill.javalib.{JavaModule, RunModule, TestModule}

@@ -2,7 +2,7 @@ package mill
 package javalib
 
 import coursier.core.{Configuration, DependencyManagement}
-import mill.api.{ExternalModule, Task, TaskModule}
+import mill.api.{ExternalModule, Task, DefaultTaskModule}
 import mill.api.PathRef
 import mill.api.Result
 import mill.util.JarManifest
@@ -582,7 +582,7 @@ trait PublishModule extends JavaModule { outer =>
   }
 }
 
-object PublishModule extends ExternalModule with TaskModule {
+object PublishModule extends ExternalModule with DefaultTaskModule {
   def defaultTask(): String = "publishAll"
   val defaultGpgArgs: Seq[String] = defaultGpgArgsForPassphrase(None)
 

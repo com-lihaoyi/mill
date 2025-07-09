@@ -1,7 +1,7 @@
 package mill.main.maven
 
 import mainargs.{Flag, ParserForClass, arg, main}
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import mill.main.buildgen.*
 import mill.main.buildgen.BuildGenUtil.*
 import org.apache.maven.model.{Dependency, Model, Parent}

@@ -1,6 +1,6 @@
 package mill.javalib.worker
 
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import java.util.Optional
 import sbt.internal.inc.Locate
 import xsbti.VirtualFile

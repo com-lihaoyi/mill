@@ -5,7 +5,7 @@ import java.nio.file.Path
 import mill.Task
 import mill.api.Segments
 import mill.api.daemon.internal.idea.{GenIdeaInternalApi, ResolvedModule}
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import mill.api.{Discover, ExternalModule, ModuleCtx, PathRef}
 import mill.javalib.{BoundDep, Dep, JavaModule}
 import mill.api.JsonFormatters.given

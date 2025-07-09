@@ -3,4 +3,6 @@
 
 
 
-include::partial$example/extending/plugins/7-writing-mill-plugins.adoc[]
+include::partial$example/extending/plugins/1-writing-mill-plugins.adoc[]
+
+include::partial$example/extending/plugins/2-plugin-integration-tests.adoc[]

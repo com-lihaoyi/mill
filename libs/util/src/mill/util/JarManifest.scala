@@ -1,7 +1,8 @@
 package mill.util
 
-import mill.api.{BuildInfo, Mirrors}
-import mill.api.Mirrors.autoMirror
+import mill.api.BuildInfo
+import mill.api.internal.Mirrors
+import mill.api.internal.Mirrors.autoMirror
 import mill.util.JarManifest
 import upickle.default.ReadWriter
 

@@ -2,9 +2,11 @@ package mill.api
 
 import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
 import mill.api.*
-import mill.api.internal.Watchable
+import mill.api.daemon.Watchable
 import mill.api.BuildCtx
 import mill.api.daemon.internal.{EvaluatorApi, TaskApi}
+import mill.api.internal.RootModule0
+
 import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
@@ -25,7 +27,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def outPath: os.Path
   private[mill] def outPathJava = outPath.toNIO
   private[mill] def codeSignatures: Map[String, Int]
-  private[mill] def rootModule: BaseModule
+  private[mill] def rootModule: RootModule0
   private[mill] def workerCache: mutable.Map[String, (Int, Val)]
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int
