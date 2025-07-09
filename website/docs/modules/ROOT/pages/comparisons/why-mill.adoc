@@ -153,7 +153,7 @@ and makes all of them easy to set up and use.
 
 == Extensibility
 
-=== Builtins
+=== Rich Builtins
 
 Mill comes with a lot more functionality built in than other tools such as Maven,
 Gradle, or SBT. In general, most common development workflows are built in to Mill:
@@ -163,11 +163,15 @@ find plugins and evaluate their relevance, quality, and level of maintenance:
 
 include::partial$Feature_Support.adoc[]
 
-Apart from the builtin features, Mill also has a rich ecosystem of third party plugins
-for less common use cases:
+Mill's builtin functionality means you can get very far without spending time fiddling
+with plugins. These builtins are all designed, tested, and maintained to the same level of quality
+as Mill itself, letting you skip the tedious task of finding and vetting a list of third-party
+plugins of appropriate quality for use in your project.
+
+When the time comes that you do need functionality not bundled with Mill, Mill also has
+a rich ecosystem of third party plugins for less common use cases:
 
 - xref::extending/thirdparty-plugins.adoc[]
-
 
 === Extending Mill
 

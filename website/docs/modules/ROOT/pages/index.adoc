@@ -9,7 +9,8 @@ in the JVM ecosystem:
 * Mill builds the same Java project xref:comparisons/why-mill.adoc#_performance[3-6x
  faster than Maven or Gradle] due to aggressive caching & parallelism
 
-* Mill builds require xref:comparisons/why-mill.adoc#_builtins[fewer plugins for common workflows],
+* Mill's xref:comparisons/why-mill.adoc#_object_oriented_builds[object-oriented builds] require
+xref:comparisons/why-mill.adoc#_rich_builtins[less fiddling with plugins]
 and are xref:comparisons/why-mill.adoc#_extending_mill[easier to extend with custom tasks]
 
 * Mill has better IDE support than other build tools, with
@@ -17,8 +18,8 @@ xref:comparisons/why-mill.adoc#_ide_support[superior autocomplete and navigation
 
 Although the Java compiler is very fast and the Java language is easy to learn,
 JVM build tools have a reputation for being sluggish and confusing. Mill tries to
-offer a better alternative, its xref:comparisons/why-mill.adoc#_object_oriented_builds[object-oriented builds]
-letting your build system take full advantage of the Java platform's performance, usability, and IDE support.
+offer a better alternative, letting your build system take full advantage of the Java
+platform's performance, usability, and IDE support.
 
 If you prefer a video introduction to Mill, see:
 
