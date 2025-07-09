@@ -1,4 +1,4 @@
-package mill.main.graphviz
+package mill.graphviz
 
 import com.caoccao.javet.annotations.V8Function
 import com.caoccao.javet.interception.logging.JavetStandardConsoleInterceptor
