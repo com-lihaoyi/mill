@@ -3,7 +3,7 @@ package mill.javascriptlib
 import mill.*
 import mill.api.BuildCtx
 
-trait TestModule extends TaskModule {
+trait TestModule extends DefaultTaskModule {
   import TestModule.TestResult
 
   def testForked(args: String*): Command[TestResult] =

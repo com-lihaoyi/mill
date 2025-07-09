@@ -8,7 +8,7 @@ import mill.api.TaskCtx
 import mill.javalib.JavaHomeModule
 import mill.api.BuildCtx
 
-trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer =>
+trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule { outer =>
 
   /**
    *  The direct dependencies of this module.
