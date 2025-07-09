@@ -247,6 +247,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/daemon/internal/bsp.html#","e":false,"i":"","n":"mill.api.daemon.internal.bsp","t":"mill.api.daemon.internal.bsp","d":"","k":"package","x":""},
 {"l":"mill/api/daemon/internal/bsp/BspBuildTarget.html#","e":false,"i":"","n":"BspBuildTarget","t":"BspBuildTarget(displayName: Option[String], baseDirectory: Option[Path], tags: Seq[String], languageIds: Seq[String], canCompile: Boolean, canTest: Boolean, canRun: Boolean, canDebug: Boolean)","d":"mill.api.daemon.internal.bsp","k":"class","x":""},
 {"l":"mill/api/daemon/internal/bsp/BspJavaModuleApi.html#","e":false,"i":"","n":"BspJavaModuleApi","t":"BspJavaModuleApi extends ModuleApi","d":"mill.api.daemon.internal.bsp","k":"trait","x":""},
+{"l":"mill/api/daemon/internal/bsp/BspMainModuleApi.html#","e":false,"i":"","n":"BspMainModuleApi","t":"BspMainModuleApi extends ModuleApi","d":"mill.api.daemon.internal.bsp","k":"trait","x":""},
 {"l":"mill/api/daemon/internal/bsp/BspModuleApi.html#","e":false,"i":"","n":"BspModuleApi","t":"BspModuleApi extends ModuleApi","d":"mill.api.daemon.internal.bsp","k":"trait","x":""},
 {"l":"mill/api/daemon/internal/bsp/BspModuleApi$.html#","e":false,"i":"","n":"BspModuleApi","t":"BspModuleApi","d":"mill.api.daemon.internal.bsp","k":"object","x":""},
 {"l":"mill/api/daemon/internal/bsp/BspModuleApi$$LanguageId$.html#","e":false,"i":"","n":"LanguageId","t":"LanguageId","d":"mill.api.daemon.internal.bsp.BspModuleApi","k":"object","x":""},
