@@ -182,22 +182,27 @@ object Deps {
     mvn"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.1".withDottyCompat(scalaVersion)
   val requests = mvn"com.lihaoyi::requests:0.9.0"
   val logback = mvn"ch.qos.logback:logback-classic:1.5.17"
-  val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.3.0"
+  val sonatypeCentralClient = mvn"com.lumidion::sonatype-central-client-requests:0.5.0"
   val kotlinVersion = "2.1.20"
   val kotlinCompiler = mvn"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
-  val mavenVersion = "3.9.9"
-  val mavenEmbedder = mvn"org.apache.maven:maven-embedder:$mavenVersion"
-  val mavenResolverVersion = "1.9.22"
-  val mavenResolverConnectorBasic =
-    mvn"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion"
-  val mavenResolverSupplier =
-    mvn"org.apache.maven.resolver:maven-resolver-supplier:$mavenResolverVersion"
-  val mavenResolverTransportFile =
-    mvn"org.apache.maven.resolver:maven-resolver-transport-file:$mavenResolverVersion"
-  val mavenResolverTransportHttp =
-    mvn"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
-  val mavenResolverTransportWagon =
-    mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
+
+  /** Used for the `mill init` from a Maven project. */
+  object MavenInit {
+    val mavenVersion = "3.9.9"
+    val mavenEmbedder = mvn"org.apache.maven:maven-embedder:$mavenVersion"
+    val mavenResolverVersion = "1.9.22"
+    val mavenResolverConnectorBasic =
+      mvn"org.apache.maven.resolver:maven-resolver-connector-basic:$mavenResolverVersion"
+    val mavenResolverSupplier =
+      mvn"org.apache.maven.resolver:maven-resolver-supplier:$mavenResolverVersion"
+    val mavenResolverTransportFile =
+      mvn"org.apache.maven.resolver:maven-resolver-transport-file:$mavenResolverVersion"
+    val mavenResolverTransportHttp =
+      mvn"org.apache.maven.resolver:maven-resolver-transport-http:$mavenResolverVersion"
+    val mavenResolverTransportWagon =
+      mvn"org.apache.maven.resolver:maven-resolver-transport-wagon:$mavenResolverVersion"
+  }
+
   val coursierJvmIndexVersion = "0.0.4-111-eb6e08"
   val gradleApi = mvn"dev.gradleplugins:gradle-api:8.11.1"
 

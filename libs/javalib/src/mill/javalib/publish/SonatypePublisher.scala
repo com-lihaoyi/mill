@@ -4,6 +4,14 @@ import mill.api.Logger
 
 import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
 
+/**
+ * The publisher for the end-of-life OSSRH Sonatype publishing.
+ *
+ * You should migrate to [[mill.javalib.SonatypeCentralPublisher]] instead.
+ *
+ * @see https://central.sonatype.org/pages/ossrh-eol/
+ */
+@deprecated("Use mill.javalib.SonatypeCentralPublisher instead", "1.0.0")
 class SonatypePublisher(
     uri: String,
     snapshotUri: String,
