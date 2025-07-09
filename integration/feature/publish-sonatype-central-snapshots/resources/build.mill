@@ -1,0 +1,25 @@
+package build
+
+import mill._, scalalib._, publish._
+
+object testProject extends ScalaModule with SonatypeCentralPublishModule {
+  def scalaVersion = "3.3.6"
+  def publishVersion = "0.0.1-SNAPSHOT"
+
+  def publishOrganization = Task.Input {
+    sys.env.get("MILL_TESTS_PUBLISH_ORG").getOrElse(
+      throw new Exception("MILL_TESTS_PUBLISH_ORG is not set")
+    )
+  }
+
+  def pomSettings = Task {
+    PomSettings(
+      description = "Hello",
+      organization = publishOrganization(),
+      url = "https://github.com/lihaoyi/example",
+      licenses = Seq(License.MIT),
+      versionControl = VersionControl.github("lihaoyi", "example"),
+      developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+    )
+  }
+}

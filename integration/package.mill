@@ -44,6 +44,17 @@ object `package` extends RootModule {
       def mode: String = millModuleSegments.parts.last
       def scalaVersion = build.Deps.scalaVersion
 
+      /** Extracts the values of the provided keys from the environment. */
+      private def extractFromEnv(keys: String*): Task[Map[String, String]] = Task.Anon {
+        val env = Task.env
+        keys.foldLeft(Map.empty[String, String]) { (map, key) =>
+          env.get(key) match {
+            case Some(value) => map.updated(key, value)
+            case None => map
+          }
+        }
+      }
+
       def forkEnv =
         super.forkEnv() ++
           IntegrationTestModule.this.forkEnv() ++
@@ -53,7 +64,12 @@ object `package` extends RootModule {
             "MILL_LAUNCHER" -> build.dist.bootstrapLauncher().path.toString,
             "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
-          )
+          ) ++
+          extractFromEnv(
+            "MILL_TESTS_PUBLISH_ORG",
+            SonatypeHelpers.USERNAME_ENV_VARIABLE_NAME,
+            SonatypeHelpers.PASSWORD_ENV_VARIABLE_NAME
+          )()
 
       def millIntegrationLauncher: T[PathRef]
 

@@ -87,12 +87,12 @@ object `package` extends RootModule with build.MillPublishScalaModule {
   object maven extends build.MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
     def ivyDeps = Agg(
-      build.Deps.mavenEmbedder,
-      build.Deps.mavenResolverConnectorBasic,
-      build.Deps.mavenResolverSupplier,
-      build.Deps.mavenResolverTransportFile,
-      build.Deps.mavenResolverTransportHttp,
-      build.Deps.mavenResolverTransportWagon
+      build.Deps.MavenInit.mavenEmbedder,
+      build.Deps.MavenInit.mavenResolverConnectorBasic,
+      build.Deps.MavenInit.mavenResolverSupplier,
+      build.Deps.MavenInit.mavenResolverTransportFile,
+      build.Deps.MavenInit.mavenResolverTransportHttp,
+      build.Deps.MavenInit.mavenResolverTransportWagon
     )
     def testModuleDeps = super.testModuleDeps ++ Seq(build.scalalib, buildgen.test)
   }
