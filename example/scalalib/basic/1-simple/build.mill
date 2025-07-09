@@ -58,7 +58,7 @@ object foo extends ScalaModule {
 //         ...
 // ----
 //
-// NOTE: The default Mill source folder layout `foo/src/` differs from that of `sbt`'s
+// NOTE: The default Mill source folder layout `foo/src/` differs from that of ``sbt``'s
 // `foo/src/main/scala`.
 // If you wish to use the `sbt` source folder layout, e.g. for migrating
 // an existing codebase, you should use

@@ -10,7 +10,7 @@ def myInput = Task.Input {
 }
 
 // A generalization of <<_sources>>, ``Task.Input``s are tasks that re-evaluate
-// _every time_ (unlike <<_anonymous_tasks>>), containing an
+// _every time_, containing an
 // arbitrary block of code.
 //
 // Inputs can be used to force re-evaluation of some external property that may
