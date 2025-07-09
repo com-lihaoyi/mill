@@ -1,6 +1,6 @@
 package mill.api.daemon
 
-import scala.collection.{BuildFrom, Factory, mutable}
+import scala.collection.Factory
 import scala.util.boundary
 
 /**
