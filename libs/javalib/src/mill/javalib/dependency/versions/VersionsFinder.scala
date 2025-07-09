@@ -1,9 +1,10 @@
 package mill.javalib.dependency.versions
 
-import mill.api.{BaseModule, Evaluator, Task}
+import mill.api.{Evaluator, Task}
 import mill.javalib.dependency.metadata.{MetadataLoader, MetadataLoaderFactory}
 import mill.javalib.{BoundDep, JavaModule, Lib}
 import mill.api.TaskCtx
+import mill.api.internal.RootModule0
 
 import java.time.{Clock, Instant, ZoneId}
 import java.util.concurrent.atomic.AtomicInteger
@@ -13,7 +14,7 @@ private[dependency] object VersionsFinder {
   def findVersions(
       evaluator: Evaluator,
       ctx: TaskCtx,
-      rootModule: BaseModule
+      rootModule: RootModule0
   ): Seq[ModuleDependenciesVersions] = {
 
     val javaModules = rootModule.moduleInternal.modules.collect {

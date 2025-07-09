@@ -2,11 +2,11 @@ package mill.pythonlib
 
 import mill.Task
 import mill.Command
-import mill.TaskModule
+import mill.DefaultTaskModule
 import mill.T
 import mill.api.BuildCtx
 
-trait TestModule extends TaskModule {
+trait TestModule extends DefaultTaskModule {
   import TestModule.TestResult
 
   /**

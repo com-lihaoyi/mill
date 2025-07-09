@@ -66,7 +66,7 @@ trait KtfmtModule extends KtfmtBaseModule {
   }
 }
 
-object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
+object KtfmtModule extends ExternalModule with KtfmtBaseModule with DefaultTaskModule {
 
   lazy val millDiscover = Discover[this.type]
 

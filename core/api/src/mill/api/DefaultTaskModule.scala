@@ -4,7 +4,7 @@ package mill.api
  * A [[Module]] that has a [[defaultTask]] that will be automatically
  * executed if the module name is provide at the Mill command line
  */
-trait TaskModule extends Module {
+trait DefaultTaskModule extends Module {
 
   /**
    * The name of the default command, which will be automatically executed if

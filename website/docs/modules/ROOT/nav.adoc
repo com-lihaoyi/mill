@@ -31,6 +31,10 @@
 ** xref:kotlinlib/web-examples.adoc[]
 []
 * Experimental Platform Support
+** Building Android Apps
+*** xref:android/java.adoc[]
+*** xref:android/kotlin.adoc[]
+*** xref:android/android-linting.adoc[]
 ** xref:pythonlib/intro.adoc[]
 *** xref:pythonlib/module-config.adoc[]
 *** xref:pythonlib/dependencies.adoc[]
@@ -45,10 +49,6 @@
 *** xref:javascriptlib/linting.adoc[]
 *** xref:javascriptlib/publishing.adoc[]
 *** xref:javascriptlib/build-examples.adoc[]
-** Building Android Apps
-*** xref:android/java.adoc[]
-*** xref:android/kotlin.adoc[]
-*** xref:android/android-linting.adoc[]
 * xref:comparisons/why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]

@@ -494,7 +494,9 @@ identify that `compileArgs` exists and has the type `List<String>`:
 
 image:comparisons/IntellijMockitoGradleCompileOptions.png[]
 
-But if you try to jump to definition or find out anything else about it you hit a wall:
+But if you try to jump to definition or find out anything else about it you hit a wall.
+The IDE is able to bring you to the getter and setter, but it isn't able to tell you
+_where the value is coming from_, _how it is computed_, or _where it is used_:
 
 image:comparisons/IntellijMockitoGradleCompileOptions2.png[]
 

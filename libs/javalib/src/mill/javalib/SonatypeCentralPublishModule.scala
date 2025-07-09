@@ -5,7 +5,7 @@ import mill._
 import javalib._
 import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
-import mill.api.TaskModule
+import mill.api.DefaultTaskModule
 import mill.api.{Result, experimental}
 import mill.javalib.SonatypeCentralPublishModule.{
   defaultAwaitTimeout,
@@ -74,7 +74,7 @@ trait SonatypeCentralPublishModule extends PublishModule {
 /**
  * External module to publish artifacts to `central.sonatype.org`
  */
-object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
+object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModule {
 
   def self = this
   val defaultCredentials: String = ""

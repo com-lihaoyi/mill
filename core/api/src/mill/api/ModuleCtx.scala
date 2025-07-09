@@ -1,6 +1,6 @@
 package mill.api
 
-import mill.api.internal.OverrideMapping
+import mill.api.internal.{RootModule0, OverrideMapping}
 
 import scala.annotation.{compileTimeOnly, implicitNotFound}
 
@@ -80,7 +80,7 @@ object ModuleCtx extends LowPriCtx {
     private[mill] def millSourcePath: os.Path
 
     /**
-     * The full path of this task or module, from the [[BaseModule]]
+     * The full path of this task or module, from the [[RootModule0]]
      */
     private[mill] def segments: Segments
 
@@ -90,7 +90,7 @@ object ModuleCtx extends LowPriCtx {
     private[mill] def external: Boolean
 
     /**
-     * The [[Discover]] instance associate with this [[BaseModule]] hierarchy
+     * The [[Discover]] instance associate with this [[RootModule0]] hierarchy
      */
     private[mill] def discover: Discover
 

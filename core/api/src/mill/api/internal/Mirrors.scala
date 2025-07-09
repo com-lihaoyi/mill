@@ -1,14 +1,12 @@
-package mill.api
+package mill.api.internal
 
 import mill.api.daemon.internal.internal
 
-import scala.quoted.*
 import scala.deriving.Mirror
-
-import mill.api.daemon.internal.internal
+import scala.quoted.*
 
 @internal
-object Mirrors {
+private[mill] object Mirrors {
 
   /** A store for one or more mirrors, with Root type `R`. */
   sealed trait Root[R] {

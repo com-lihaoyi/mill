@@ -2,7 +2,7 @@ package mill.api
 
 import mainargs.arg
 import mill.*
-import mill.api.{Cross, Discover, TaskModule}
+import mill.api.{Cross, Discover, DefaultTaskModule}
 import mill.testkit.TestRootModule
 
 /**
@@ -230,7 +230,7 @@ object TestGraphs {
       def scalaVersion = crossValue
 
       object cross2 extends mill.Cross[Cross2]("jvm", "js", "native")
-      trait Cross2 extends mill.Cross.Module[String] with TaskModule {
+      trait Cross2 extends mill.Cross.Module[String] with DefaultTaskModule {
         def platform = crossValue
         override def defaultTask(): String = "suffixCmd"
         def suffixCmd(@arg(positional = true) suffix: String = "default"): Command[String] =

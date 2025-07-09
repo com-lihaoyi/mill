@@ -1,9 +1,9 @@
 package mill.javalib
 
-import mill.api.Mirrors
 import upickle.default.{ReadWriter => RW}
-import mill.api.Mirrors.autoMirror
+import mill.api.internal.Mirrors.autoMirror
 import mill.api.daemon.internal.TestReporter
+import mill.api.internal.Mirrors
 
 trait JsonFormatters {
   import JsonFormatters.mirrors.given

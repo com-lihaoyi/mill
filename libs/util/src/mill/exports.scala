@@ -8,7 +8,7 @@ export mill.api.Args
 export mill.api.Task
 export mill.api.Task.Command
 export mill.api.Task.Worker
-export mill.api.TaskModule
+export mill.api.DefaultTaskModule
 export mill.api.JsonFormatters.*
 export mill.util.TokenReaders.*
 export upickle.implicits.namedTuples.default.given

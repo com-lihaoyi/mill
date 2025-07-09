@@ -168,7 +168,7 @@ trait PmdModule extends CoursierModule, OfflineSupportModule {
  *
  * Allows usage via `import mill.javalib.pmd/` in build.mill.
  */
-object PmdModule extends ExternalModule, PmdModule, TaskModule {
+object PmdModule extends ExternalModule, PmdModule, DefaultTaskModule {
   lazy val millDiscover: Discover = Discover[this.type]
   override def defaultTask() = "pmd"
 }

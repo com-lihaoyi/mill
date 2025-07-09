@@ -18,7 +18,7 @@ import mill.api.daemon.internal.bsp.{
 }
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
-import mill.api.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
+import mill.api.{ModuleRef, PathRef, Segment, Task, TaskCtx, DefaultTaskModule}
 import mill.javalib.api.CompilationResult
 import mill.javalib.bsp.{BspJavaModule, BspModule}
 import mill.javalib.internal.ModuleUtils
@@ -35,7 +35,7 @@ trait JavaModule
     extends mill.api.Module
     with WithJvmWorkerModule
     with TestModule.JavaModuleBase
-    with TaskModule
+    with DefaultTaskModule
     with RunModule
     with GenIdeaModule
     with CoursierModule

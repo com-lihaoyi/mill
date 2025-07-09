@@ -1,6 +1,7 @@
 package mill.javalib.dependency
 
 import mill.api.*
+import mill.api.internal.RootModule0
 import mill.javalib.dependency.updates.{DependencyUpdates, ModuleDependenciesUpdates, UpdatesFinder}
 import mill.javalib.dependency.versions.{ModuleDependenciesVersions, VersionsFinder}
 
@@ -9,7 +10,7 @@ object DependencyUpdatesImpl {
   def apply(
       evaluator: Evaluator,
       ctx: TaskCtx,
-      rootModule: BaseModule,
+      rootModule: RootModule0,
       discover: Discover,
       allowPreRelease: Boolean
   ): Seq[ModuleDependenciesUpdates] = {
