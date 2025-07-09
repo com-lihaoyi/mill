@@ -267,7 +267,7 @@ object JetNews extends mill.api.Module {
   }
 }
 
-/** Usage
+/** Usage JetLagged
 
 > ./mill JetLagged.app.androidApk
 
@@ -308,3 +308,45 @@ object JetNews extends mill.api.Module {
 > ./mill show JetLagged.app.deleteAndroidVirtualDevice
 
 */
+
+/** Usage JetNews
+
+ > ./mill JetNews.app.androidApk
+
+ > ./mill show JetNews.app.createAndroidVirtualDevice
+ ...Name: test, DeviceId: medium_phone...
+
+ > ./mill show JetNews.app.startAndroidEmulator
+
+ > ./mill show JetNews.app.androidInstall
+ ...All files should be loaded. Notifying the device...
+
+ > ./mill show JetNews.app.androidRun --activity com.example.jetnews.ui.MainActivity
+ [
+ "Starting: Intent { cmp=com.example.jetnews/.ui.MainActivity }",
+ "Status: ok",
+ "LaunchState: COLD",
+ "Activity: com.example.jetnews/.ui.MainActivity",
+ "TotalTime: ...",
+ "WaitTime: ...",
+ "Complete"
+ ]
+
+ > ./mill show JetNews.app.androidTest
+ {
+ "msg": "",
+ "results": [
+ {
+ "fullyQualifiedName": "com.example.jetnews.JetnewsTests.app_launches",
+ selector": "com.example.jetnews.JetnewsTests.app_launches",
+ "duration": ...,
+ "status": "Success"
+ }
+ ]
+ }
+
+ > ./mill show JetNews.app.stopAndroidEmulator
+
+ > ./mill show JetNews.app.deleteAndroidVirtualDevice
+
+ */
