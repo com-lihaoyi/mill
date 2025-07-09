@@ -189,7 +189,10 @@ object Deps {
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.14.0"
   val requests = ivy"com.lihaoyi::requests:0.9.0"
   val logback = ivy"ch.qos.logback:logback-classic:1.5.16"
-  val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.5.0"
+  // We can't update to a newer client because it bumps up `upickle` version and it starts failing
+  // with `[2451]   upickle.core.AbortException: expected string got sequence at index 59` in a
+  // bunch of locations :(
+  val sonatypeCentralClient = ivy"com.lumidion::sonatype-central-client-requests:0.3.0"
   val kotlinVersion = "2.0.21"
   val kotlinCompiler = ivy"org.jetbrains.kotlin:kotlin-compiler:$kotlinVersion"
 
