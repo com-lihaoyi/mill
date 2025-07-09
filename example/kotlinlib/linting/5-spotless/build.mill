@@ -10,7 +10,7 @@
 package build
 
 import mill.kotlinlib.KotlinModule
-import mill.scalalib.spotless.SpotlessModule
+import mill.javalib.spotless.SpotlessModule
 
 object `package` extends KotlinModule, SpotlessModule {
   def kotlinVersion = "2.1.20"
@@ -70,7 +70,7 @@ formatted 3 files
 // if you prefer not to have to extend `SpotlessModule`.
 
 /** Usage
-> ./mill mill.scalalib.spotless.SpotlessModule/ --check
+> ./mill mill.javalib.spotless.SpotlessModule/ --check
 checking format in 1 mill files
 checking format in 1 java files
 checking format in 1 kt files

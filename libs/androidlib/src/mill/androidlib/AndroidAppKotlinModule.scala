@@ -2,8 +2,8 @@ package mill.androidlib
 
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.kotlinlib.{Dep, DepSyntax}
-import mill.scalalib.TestModule.Junit5
-import mill.scalalib.{JavaModule, TestModule}
+import mill.javalib.TestModule.Junit5
+import mill.javalib.{JavaModule, TestModule}
 import mill.*
 import mill.api.JsonFormatters.given
 import mill.androidlib.Versions
@@ -81,6 +81,10 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     }
     def composePreviewRendererVersion: T[String] = Task {
       Versions.composePreviewRendererVersion
+    }
+
+    def screenshotValidationJunitEngineVersion: T[String] = Task {
+      Versions.screenshotValidationJunitEngineVersion
     }
 
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
@@ -302,7 +306,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
     def androidPreviewScreenshotTestEngineClasspath: T[Seq[PathRef]] = Task {
       defaultResolver().classpath(
         Seq(
-          mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
+          mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:${screenshotValidationJunitEngineVersion()}"
         )
       )
     }

@@ -2,7 +2,7 @@ package build
 
 import mill._
 import mill.api.PathRef
-import mill.api.shared.internal.ModuleApi
+import mill.api.daemon.internal.ModuleApi
 import mill.scalalib._
 
 trait HelloBspModule extends ScalaModule {

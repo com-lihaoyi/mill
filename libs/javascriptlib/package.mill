@@ -6,5 +6,5 @@ import millbuild.*
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version with pythonlib is released,
 //  because currently there is no previous artifact version
 object `package` extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.libs.jvmlib)
+  def moduleDeps = Seq(build.libs.javalib)
 }

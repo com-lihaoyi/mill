@@ -1,7 +1,7 @@
 package mill.init
 import mill.constants.OutFiles
 import mill.constants.CodeGenConstants.buildFileExtensions
-private[mill] object Util {
+object Util {
 
   def scalafmtConfigFile: os.Path =
     os.temp(

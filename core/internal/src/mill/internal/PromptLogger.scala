@@ -58,7 +58,7 @@ private[mill] class PromptLogger(
   private object runningState extends RunningState(
         enableTicker,
         () => promptUpdaterThread.interrupt(),
-        clearOnPause = () => streamManager.clearOnPause(),
+        clearOnPause = () => streamManager.refreshPrompt(),
         synchronizer = this
       )
 
@@ -92,7 +92,7 @@ private[mill] class PromptLogger(
 
   def refreshPrompt(ending: Boolean = false): Unit = synchronized {
     val updated = promptLineState.updatePrompt(ending)
-    if (updated) streamManager.refreshPrompt()
+    if (updated || ending) streamManager.refreshPrompt()
   }
 
   if (enableTicker && autoUpdate) promptUpdaterThread.start()
@@ -264,18 +264,28 @@ private[mill] object PromptLogger {
 
     def awaitPumperEmpty(): Unit = { while (pipe.input.available() != 0) Thread.sleep(2) }
 
-    private var promptShown = true
+    @volatile var lastPromptHeight = 0
 
     def writeCurrentPrompt(): Unit = {
-      systemStreams0.err.write(getCurrentPrompt())
+      if (!paused()) {
+        val currentPrompt = getCurrentPrompt()
+        systemStreams0.err.write(currentPrompt)
+        if (interactive()) lastPromptHeight = new String(currentPrompt).linesIterator.size
+        else lastPromptHeight = 0
+      } else lastPromptHeight = 0
+
+      if (interactive()) systemStreams0.err.write(AnsiNav.clearScreen(0).getBytes)
     }
 
-    def refreshPrompt(): Unit = if (promptShown) writeCurrentPrompt()
+    def moveUp() = {
+      if (lastPromptHeight != 0) {
+        systemStreams0.err.write((AnsiNav.left(9999) + AnsiNav.up(lastPromptHeight)).getBytes)
+      }
+    }
 
-    def clearOnPause(): Unit = {
-      // Clear the prompt so the code in `t` has a blank terminal to work with
-      systemStreams0.err.write(PromptLoggerUtil.clearScreenToEndBytes)
-      systemStreams0.err.flush()
+    def refreshPrompt(): Unit = synchronizer.synchronized {
+      moveUp()
+      writeCurrentPrompt()
     }
 
     object pumper extends ProxyStream.Pumper(
@@ -290,42 +300,46 @@ private[mill] object PromptLogger {
       override def preRead(src: InputStream): Unit = synchronizer.synchronized {
 
         if (
+          enableTicker &&
           // Only bother printing the prompt after the streams have become quiescent
-          // and there is no more stuff to print. This helps us to print the prompt on
+          // and there is no more stuff to print. This helps us avoid printing the prompt on
           // every small write when most such prompts will get immediately over-written
           // by subsequent writes
-          enableTicker && src.available() == 0 &&
+          src.available() == 0 &&
+          // For non-interactive mode, the prompt is printed at regular intervals in
+          // `promptUpdaterThread`, and isn't printed as part of normal writes
+          interactive() &&
           // Do not print the prompt when it is paused. Ideally stream redirecting would
           // prevent any writes from coming to this stream when paused, somehow writes
           // sometimes continue to come in, so just handle them gracefully.
-          interactive() && !paused() &&
+          !paused() &&
           // Only print the prompt when the last character that was written is a newline,
           // to ensure we don't cut off lines halfway
           lastCharWritten == '\n'
         ) {
-          promptShown = true
-          writeCurrentPrompt()
+          synchronizer.synchronized {
+            // `preRead` may be run more than once per `write` call, and so we
+            // only write out the current prompt if it has not already been written
+            if (lastPromptHeight == 0) writeCurrentPrompt()
+            systemStreams0.err.flush()
+          }
         }
       }
 
       override def write(dest: OutputStream, buf: Array[Byte], end: Int): Unit = {
-        lastCharWritten = buf(end - 1).toChar
-        val clearLines = enableTicker && interactive()
-        if (clearLines && promptShown) dest.write(AnsiNav.clearScreen(0).getBytes)
-        if (interactive() && !paused() && promptShown) promptShown = false
-
-        if (clearLines) {
+        if (enableTicker && interactive()) {
+          lastCharWritten = buf(end - 1).toChar
+          synchronizer.synchronized {
+            moveUp()
+            lastPromptHeight = 0
+          }
           // Clear each line as they are drawn, rather than relying on clearing
           // the entire screen before each batch of writes, to try and reduce the
           // amount of terminal flickering in slow terminals (e.g. windows)
           // https://stackoverflow.com/questions/71452837/how-to-reduce-flicker-in-terminal-re-drawing
-          dest.write(
-            new String(buf, 0, end)
-              .replaceAll("(\r\n|\n|\t)", "$1" + AnsiNav.clearScreen(0))
-              .getBytes
-          )
+          PromptLoggerUtil.streamToPrependNewlines(dest, buf, end, AnsiNav.clearLine(0).getBytes)
         } else {
-          dest.write(new String(buf, 0, end).getBytes)
+          dest.write(buf, 0, end)
         }
       }
     }
@@ -398,7 +412,7 @@ private[mill] object PromptLogger {
       )
 
       val oldPromptBytes = currentPromptBytes
-      currentPromptBytes = renderPromptWrapped(currentPromptLines, interactive, ending).getBytes
+      currentPromptBytes = renderPromptWrapped(currentPromptLines, interactive).getBytes
       !java.util.Arrays.equals(oldPromptBytes, currentPromptBytes)
     }
 

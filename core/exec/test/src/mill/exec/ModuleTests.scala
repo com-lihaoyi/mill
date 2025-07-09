@@ -10,7 +10,7 @@ import mill.api.ExternalModule
 import utest._
 
 object `package` extends ExternalModule.Alias(TestExternalModule)
-object TestExternalModule extends mill.api.ExternalModule with mill.api.TaskModule {
+object TestExternalModule extends mill.api.ExternalModule with mill.api.DefaultTaskModule {
   def defaultTask() = "x"
   def x = Task { 13 }
   trait Trait extends mill.Module {

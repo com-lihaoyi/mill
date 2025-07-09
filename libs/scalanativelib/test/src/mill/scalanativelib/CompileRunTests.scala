@@ -3,7 +3,7 @@ package mill.scalanativelib
 import mill._
 import mill.api.Discover
 import mill.api.ExecutionPaths
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.{PublishModule, ScalaModule, TestModule}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.scalanativelib.api._
@@ -57,7 +57,7 @@ object CompileRunTests extends TestSuite {
       )
 
       object test extends ScalaNativeTests with TestModule.Utest {
-        override def sources = Task.Sources { this.moduleDir / "src/utest" }
+        override def sources = Task.Sources("src/utest")
         override def utestVersion: T[String] = testUtestVersion
       }
     }

@@ -22,8 +22,7 @@ https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://img.s
 https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=latest-unstable&versionPrefix=0.12.[Maven Central Version]]
 
 
-Mill is a fast, scalable, multi-language build tool that supports Java, Scala,
-Kotlin, and Python:
+Mill is a build tool that supports Java, Scala, and Kotlin:
 
 * Mill builds the same Java project 3-6x faster than Maven
 or Gradle due to aggressive caching & parallelism
@@ -52,8 +51,8 @@ object foo extends JavaModule {
     mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
-  object test extends JavaTests with TestModule.Junit4 {
-    def mvnDeps = super.mvnDeps() ++ Seq(
+  object test extends JavaTests, TestModule.Junit4 {
+    def mvnDeps = Seq(
       mvn"com.google.guava:guava:33.3.0-jre"
     )
   }

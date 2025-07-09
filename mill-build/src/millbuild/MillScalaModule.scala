@@ -22,8 +22,6 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
 
   def semanticDbVersion = Deps.semanticDBscala.version
 
-  def scaladocOptions = Seq("-Xsource:3")
-
   def scalacOptions =
     super.scalacOptions() ++ Seq(
       "-deprecation",

@@ -20,6 +20,9 @@ jobs:
     env:
       REPO_DEPLOY_KEY: ${{ secrets.REPO_DEPLOY_KEY }}
       MILL_STABLE_VERSION: 1
+      # Disable scaladoc annotations when publishing the docsite since they clutter
+      # up the generated scaladoc
+      MILL_DISABLE_SCALADOC_ANNOTATION: 1
 
     steps:
       - uses: actions/checkout@v4

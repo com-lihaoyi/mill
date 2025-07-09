@@ -11,16 +11,19 @@ import coursier.params.ResolutionParams
 import mill.api.Result
 import mill.api.ModuleRef
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
-import mill.jvmlib.api.{CompilationResult, JvmWorkerApi}
-import mill.api.shared.internal.{CompileProblemReporter, internal}
-import mill.scalalib.{JavaModule, JvmWorkerModule, Lib}
+import mill.javalib.api.{CompilationResult, JvmWorkerApi}
+import mill.api.daemon.internal.{CompileProblemReporter, internal}
+import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
 import mill.*
 import java.io.File
 
 import mainargs.Flag
-import mill.api.shared.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 
+/**
+ * Core configuration required to compile a single Kotlin module
+ */
 trait KotlinModule extends JavaModule { outer =>
 
   /**

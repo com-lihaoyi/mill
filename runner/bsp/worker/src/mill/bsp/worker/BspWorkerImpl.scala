@@ -2,18 +2,18 @@ package mill.bsp.worker
 
 import ch.epfl.scala.bsp4j.BuildClient
 import mill.bsp.BuildInfo
-import mill.api.shared.internal.EvaluatorApi
+import mill.api.daemon.internal.EvaluatorApi
 import mill.bsp.Constants
 import mill.api.{Logger, Result, SystemStreams}
 import mill.client.lock.Lock
-import mill.api.internal.Watchable
+import mill.api.daemon.Watchable
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import java.io.PrintWriter
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ExecutorService, Executors, ThreadFactory}
 import scala.concurrent.{CancellationException, Future, Promise}
-import mill.api.shared.internal.bsp.{BspServerHandle, BspServerResult}
+import mill.api.daemon.internal.bsp.{BspServerHandle, BspServerResult}
 
 object BspWorkerImpl {
 

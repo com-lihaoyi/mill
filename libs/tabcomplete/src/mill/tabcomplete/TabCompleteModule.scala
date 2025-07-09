@@ -10,7 +10,7 @@ import mainargs.arg
  * Handles Bash and Zsh tab completions, which provide an array of tokens in the current
  * shell and the index of the token currently being completed.
  */
-object TabCompleteModule extends ExternalModule {
+private[this] object TabCompleteModule extends ExternalModule {
 
   lazy val millDiscover = Discover[this.type]
 

@@ -3,7 +3,7 @@ package twirllib
 
 import coursier.Repository
 import mill.api.PathRef
-import mill.scalalib.*
+import mill.javalib.*
 
 import mill.api.Task
 import mill.util.BuildInfo
@@ -28,9 +28,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
     }
   }
 
-  def twirlSources: T[Seq[PathRef]] = Task.Sources {
-    moduleDir / "views"
-  }
+  def twirlSources: T[Seq[PathRef]] = Task.Sources("views")
 
   /**
    * Replicate the logic from twirl build,
@@ -96,7 +94,7 @@ trait TwirlModule extends mill.Module { twirlModule =>
 
   def twirlInclusiveDot: Boolean = false
 
-  def compileTwirl: T[mill.jvmlib.api.CompilationResult] = Task(persistent = true) {
+  def compileTwirl: T[mill.javalib.api.CompilationResult] = Task(persistent = true) {
     TwirlWorker
       .compile(
         twirlClassLoader(),

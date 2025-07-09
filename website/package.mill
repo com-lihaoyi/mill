@@ -11,9 +11,7 @@ import mill.api.BuildCtx
 
 /** Generates the mill documentation with Antora. */
 object `package` extends mill.Module {
-  // This module isn't really a ScalaModule, but we use it to generate
-  // consolidated documentation using the Scaladoc tool.
-  object site extends UnidocModule {
+  object apidocs extends UnidocModule {
     def unidocDocumentTitle = Task { "Mill" }
 
     def unidocCompileClasspath =
@@ -200,7 +198,7 @@ object `package` extends mill.Module {
       "main-branch",
       "main-branch",
       build.millLastTag(),
-      build.millDownloadUrl()
+      build.millDownloadUrlCurrent()
     )
     PathRef(dest)
   }
@@ -424,8 +422,14 @@ object `package` extends mill.Module {
       mill.api.BuildCtx.workspaceRoot
     )
 
+    for (p <- os.walk(siteDir) if p.ext == "html") {
+      // Manually un-substitute ellipses in normal text to reverse the antora unicode
+      // substitution, because the font for the unicode ellipses looks very bad
+      os.write.over(p, os.read(p).replace("…", "..."))
+    }
+
     // only copy the "api" sub-dir; api docs contains a top-level index.html with we don't want
-    val unidocSrc = if (authorMode) site.unidocLocal().path else site.unidocSite().path
+    val unidocSrc = if (authorMode) apidocs.unidocLocal().path else apidocs.unidocSite().path
     Task.log.streams.err.println(s"Copying API docs from ${unidocSrc} ...")
     os.copy(unidocSrc, siteDir / "api/latest", createFolders = true)
 
@@ -579,9 +583,6 @@ object `package` extends mill.Module {
           path,
           localLinks
             .filter(_._2 != "#")
-            .filter(_._2.contains(
-              "AggWrapper$"
-            )) // Not sure why these pages are not getting generated
             .filter(_._2.startsWith("///"))
             .flatMap { case (elementString, url) =>
               val (baseUrl, anchorOpt) = url match {

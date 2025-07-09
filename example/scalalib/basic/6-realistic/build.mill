@@ -23,7 +23,7 @@ trait MyModule extends PublishModule {
 trait MyScalaModule extends MyModule, CrossScalaModule {
   def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.13.1")
   object test extends ScalaTests {
-    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.8")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
     def testFramework = "utest.runner.Framework"
   }
 }

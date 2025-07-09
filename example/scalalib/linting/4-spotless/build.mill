@@ -13,7 +13,7 @@ package build
 
 import mill.Cross
 import mill.scalalib.CrossScalaModule
-import mill.scalalib.spotless.SpotlessModule
+import mill.javalib.spotless.SpotlessModule
 
 object `package` extends SpotlessModule {
   object lib extends Cross[LibModule]("2.13.15", "3.7.0")
@@ -82,7 +82,7 @@ formatted 4 files
 // if you prefer not to have to extend `SpotlessModule`.
 
 /** Usage
-> ./mill mill.scalalib.spotless.SpotlessModule/ --check
+> ./mill mill.javalib.spotless.SpotlessModule/ --check
 checking format in 1 java files
 checking format in 1 scala files
 checking format in 1 scala files

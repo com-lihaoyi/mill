@@ -2,18 +2,21 @@ package mill
 package scalajslib
 
 import mainargs.{Flag, arg}
-import mill.api.shared.internal.{ScalaJSModuleApi, ScalaPlatform, internal}
-import mill.api.shared.internal.bsp.ScalaBuildTarget
+import mill.api.daemon.internal.{ScalaJSModuleApi, ScalaPlatform, internal}
+import mill.api.daemon.internal.bsp.ScalaBuildTarget
 import mill.api.Result
 import mill.api.CrossVersion
 import mill.scalalib.{Dep, DepSyntax, Lib, TestModule}
-import mill.jvmlib.api.JvmWorkerUtil
-import mill.testrunner.{TestResult, TestRunner, TestRunnerUtils}
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalajslib.api.*
 import mill.scalajslib.worker.{ScalaJSWorker, ScalaJSWorkerExternalModule}
 import mill.*
+import mill.javalib.testrunner.{TestResult, TestRunner, TestRunnerUtils}
 import upickle.implicits.namedTuples.default.given
 
+/**
+ * Core configuration required to compile a single Scala.js module
+ */
 trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =>
 
   def scalaJSVersion: T[String]

@@ -19,7 +19,7 @@ trait FooModule extends Cross.Module[String] {
   }
 
   trait FooTestModule extends TestModule.Utest {
-    def utestVersion = "0.8.8"
+    def utestVersion = "0.8.9"
   }
 
   trait SharedJS extends Shared, ScalaJSModule {

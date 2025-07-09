@@ -2,9 +2,9 @@ package mill.daemon
 
 import mill.api.Val
 import mill.api.JsonFormatters._
-import mill.api.shared.internal.{EvaluatorApi, internal, PathRefApi}
-import mill.api.internal.RootModule0
-import mill.api.internal.Watchable
+import mill.api.daemon.internal.{EvaluatorApi, internal, PathRefApi}
+import mill.api.internal.RootModule
+import mill.api.daemon.Watchable
 import mill.api.MillURLClassLoader
 import upickle.default.{ReadWriter, macroRW}
 
@@ -29,7 +29,7 @@ import upickle.default.{ReadWriter, macroRW}
  */
 @internal
 case class RunnerState(
-    bootstrapModuleOpt: Option[RootModule0],
+    bootstrapModuleOpt: Option[RootModule],
     frames: Seq[RunnerState.Frame],
     errorOpt: Option[String],
     buildFile: Option[String] = None

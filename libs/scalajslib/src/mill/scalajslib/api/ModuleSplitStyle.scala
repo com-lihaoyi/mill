@@ -5,5 +5,5 @@ import upickle.default.ReadWriter
 enum ModuleSplitStyle derives ReadWriter {
   case FewestModules
   case SmallestModules
-  case SmallModulesFor(packages: List[String])
+  case SmallModulesFor(packages: String*)
 }

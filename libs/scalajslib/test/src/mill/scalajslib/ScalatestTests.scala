@@ -1,6 +1,6 @@
 package mill.scalajslib
 
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import utest._
 
 object ScalatestTests extends TestSuite {

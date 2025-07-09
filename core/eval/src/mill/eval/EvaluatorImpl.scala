@@ -1,11 +1,12 @@
 package mill.eval
 
 import mill.api.*
-import mill.api.shared.internal.{CompileProblemReporter, ExecutionResultsApi, TestReporter}
+import mill.api.daemon.internal.{CompileProblemReporter, ExecutionResultsApi, TestReporter}
 import mill.constants.OutFiles
 import mill.constants.OutFiles.*
 import mill.api.{PathRef, *}
-import mill.api.internal.{ResolveChecker, Watchable}
+import mill.api.internal.{RootModule0, ResolveChecker}
+import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
 import mill.resolve.Resolve
 
@@ -30,7 +31,7 @@ final class EvaluatorImpl private[mill] (
   private[mill] def baseLogger = execution.baseLogger
   private[mill] def outPath = execution.outPath
   private[mill] def codeSignatures = execution.codeSignatures
-  private[mill] def rootModule = execution.rootModule.asInstanceOf[BaseModule]
+  private[mill] def rootModule = execution.rootModule.asInstanceOf[RootModule0]
   private[mill] def workerCache = execution.workerCache
   private[mill] def env = execution.env
   private[mill] def effectiveThreadCount = execution.effectiveThreadCount

@@ -4,7 +4,7 @@ import coursier.Repository
 import mill.*
 import mill.androidlib.AndroidSdkModule
 import mill.api.{Discover, ExternalModule}
-import mill.scalalib.*
+import mill.javalib.*
 import mill.util.Jvm
 import mill.androidlib.Versions
 

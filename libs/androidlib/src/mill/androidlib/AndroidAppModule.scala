@@ -3,17 +3,18 @@ package mill.androidlib
 import coursier.params.ResolutionParams
 import mill.*
 import mill.api.Logger
-import mill.api.internal.{internal, *}
+import mill.api.internal.*
+import mill.api.daemon.internal.internal
 import mill.api.{ModuleRef, PathRef, Task}
-import mill.scalalib.*
-import mill.testrunner.TestResult
+import mill.javalib.*
 import os.{Path, RelPath, zip}
 import upickle.default.*
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
 
-import mill.api.shared.internal.bsp.BspBuildTarget
-import mill.api.shared.internal.EvaluatorApi
+import mill.api.daemon.internal.bsp.BspBuildTarget
+import mill.api.daemon.internal.EvaluatorApi
+import mill.javalib.testrunner.TestResult
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats

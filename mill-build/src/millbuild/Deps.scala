@@ -136,7 +136,7 @@ object Deps {
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
   val pprint = mvn"com.lihaoyi::pprint:0.9.0"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.6"
-  val millModuledefsVersion = "0.11.9"
+  val millModuledefsVersion = "0.11.10"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
@@ -274,7 +274,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
-    val utest = mvn"com.lihaoyi::utest:0.8.8"
+    val utest = mvn"com.lihaoyi::utest:0.8.9"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
 
@@ -294,14 +294,19 @@ object Deps {
     val composePreviewRenderer =
       mvn"com.android.tools.compose:compose-preview-renderer-model:0.0.1-alpha09"
     val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
+    val screenshotValidationJunitEngine =
+      mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
 
+    // TODO: uiTooling is needed for screenshot tests
+    // so we handle it diferrently.
+    // Removed it from updaetable for now
     def updateable = Seq(
       manifestMerger,
       bundleTool,
       layoutLibRenderer,
       layoutLibRuntime,
       composePreviewRenderer,
-      uiTooling
+      screenshotValidationJunitEngine
     )
 
   }

@@ -139,7 +139,7 @@ jobs:
             install-sbt: true
 
           - java-version: 17
-            millargs: "'libs.{main,jvmlib,testrunner,vcs,androidlib,graphviz,init,tabcomplete}.__.test'"
+            millargs: "'libs.{util,javalib,androidlib,graphviz,init,tabcomplete}.__.test'"
             install-android-sdk: false
             install-sbt: true
 
@@ -222,7 +222,7 @@ jobs:
             install-sbt: false
 
           - java-version: 11
-            millargs: "'integration.{failure,feature,ide}.__.packaged.daemon'"
+            millargs: "'integration.{failure,feature,ide}.__.native.daemon'"
             install-android-sdk: false
             install-sbt: false
 
@@ -265,7 +265,7 @@ jobs:
           # * One job each for local/packaged/native tests
           # * At least one job for each of fork/server tests, and example/integration tests
           - java-version: 11
-            millargs: '"libs.{main,jvmlib}.__.test"'
+            millargs: '"libs.{util,javalib}.__.test"'
             install-sbt: false
 
           - java-version: 11
@@ -277,7 +277,7 @@ jobs:
             install-sbt: true
 
           - java-version: 17
-            millargs: "'integration.{feature,failure}.__.packaged.nodaemon'"
+            millargs: "'integration.{feature,failure}.__.native.nodaemon'"
             install-sbt: false
 
           - java-version: 24 # Run this with Mill native launcher as a smoketest
@@ -325,3 +325,11 @@ jobs:
       buildcmd: |
         set -eux
         ./mill -i mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
+  mima:
+    needs: build-linux
+    uses: ./.github/workflows/post-build-raw.yml
+    with:
+      java-version: '17'
+      buildcmd: |
+        set -eux
+        ./mill -i __.mimaReportBinaryIssues

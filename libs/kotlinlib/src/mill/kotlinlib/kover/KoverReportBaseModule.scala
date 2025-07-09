@@ -8,7 +8,7 @@ import mill._
 import mill.api.Result
 import mill.api.{PathRef}
 import mill.kotlinlib.{Dep, DepSyntax, Versions}
-import mill.scalalib.CoursierModule
+import mill.javalib.CoursierModule
 
 trait KoverReportBaseModule extends CoursierModule {
 

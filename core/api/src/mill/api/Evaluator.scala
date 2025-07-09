@@ -1,14 +1,24 @@
 package mill.api
 
-import mill.api.shared.internal.{CompileProblemReporter, TestReporter}
+import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
 import mill.api.*
-import mill.api.internal.Watchable
+import mill.api.daemon.Watchable
 import mill.api.BuildCtx
-import mill.api.shared.internal.{EvaluatorApi, TaskApi}
+import mill.api.daemon.internal.{EvaluatorApi, TaskApi}
+import mill.api.internal.RootModule0
+
 import scala.util.DynamicVariable
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
 
+/**
+ * An API that allows you to resolve, plan, and execute Mill tasks.
+ *
+ * [[Evaluator]] can be taken as a parameter to [[Task.Command]]s marked as `exclusive = true`,
+ * providing those commands with the ability to inspect the build and dynamically decide what
+ * to evaluate. Many builtin commands like `show`, `plan`, `path`, etc. are implemented in
+ * this way
+ */
 trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def allowPositionalCommandArgs: Boolean
   private[mill] def selectiveExecution: Boolean
@@ -17,7 +27,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
   private[mill] def outPath: os.Path
   private[mill] def outPathJava = outPath.toNIO
   private[mill] def codeSignatures: Map[String, Int]
-  private[mill] def rootModule: BaseModule
+  private[mill] def rootModule: RootModule0
   private[mill] def workerCache: mutable.Map[String, (Int, Val)]
   private[mill] def env: Map[String, String]
   private[mill] def effectiveThreadCount: Int

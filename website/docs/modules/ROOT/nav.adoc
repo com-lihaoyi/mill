@@ -31,6 +31,10 @@
 ** xref:kotlinlib/web-examples.adoc[]
 []
 * Experimental Platform Support
+** Building Android Apps
+*** xref:android/java.adoc[]
+*** xref:android/kotlin.adoc[]
+*** xref:android/android-linting.adoc[]
 ** xref:pythonlib/intro.adoc[]
 *** xref:pythonlib/module-config.adoc[]
 *** xref:pythonlib/dependencies.adoc[]
@@ -45,10 +49,6 @@
 *** xref:javascriptlib/linting.adoc[]
 *** xref:javascriptlib/publishing.adoc[]
 *** xref:javascriptlib/build-examples.adoc[]
-** Building Android Apps
-*** xref:android/java.adoc[]
-*** xref:android/kotlin.adoc[]
-*** xref:android/android-linting.adoc[]
 * xref:comparisons/why-mill.adoc[]
 ** xref:comparisons/maven.adoc[]
 ** xref:comparisons/gradle.adoc[]
@@ -84,7 +84,6 @@
 ** xref:extending/contrib-plugins.adoc[]
 // See also the list in Contrib_Plugins.adoc
 *** xref:contrib/artifactory.adoc[]
-*** xref:contrib/bintray.adoc[]
 *** xref:contrib/buildinfo.adoc[]
 *** xref:contrib/codeartifact.adoc[]
 *** xref:contrib/docker.adoc[]
@@ -125,6 +124,6 @@
 // but may need to look up once in a while, and thus should be written down
 // *somewhere*.
 * Reference
-** {mill-doc-url}/api/latest/mill/index.html[Mill Scaladoc]
+** {mill-doc-url}/api/latest/mill.html[Mill API Reference]
 ** {mill-github-url}/blob/main/changelog.adoc[Changelog]
 ** xref:reference/talks-blog-posts.adoc[]]
