@@ -505,7 +505,8 @@ trait PublishModule extends JavaModule { outer =>
       stagingRelease: Boolean = true
   ): Task.Command[Unit] = Task.Command {
     val (contents, artifact) = publishArtifacts().withConcretePath
-    val gpgArgs0 = PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, gpgArgs.split(','))
+    val gpgArgs0 =
+      PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, gpgArgs.split(','))
     new SonatypePublisher(
       uri = sonatypeLegacyOssrhUri,
       snapshotUri = sonatypeCentralSnapshotUri,
