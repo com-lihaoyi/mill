@@ -234,7 +234,7 @@ object JetNews extends mill.api.Module {
     def androidMinSdk = Versions.androidMinSdk
 
     object androidTest extends AndroidAppKotlinInstrumentedTests, AndroidR8AppModule,
-    AndroidTestModule.AndroidJUnit {
+          AndroidTestModule.AndroidJUnit {
 
       def bomMvnDeps = super.mvnDeps() ++ Seq(
         mvn"androidx.compose:compose-bom:2025.05.00"
