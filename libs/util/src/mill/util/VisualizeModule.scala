@@ -155,7 +155,7 @@ object VisualizeModule extends ExternalModule {
           g = g.graphAttr().`with`(Rank.dir(RankDir.LEFT_TO_RIGHT))
 
           mill.util.Jvm.callProcess(
-            mainClass = "mill.main.graphviz.GraphvizTools",
+            mainClass = "mill.graphviz.GraphvizTools",
             classPath = toolsClasspath().map(_.path).toVector,
             mainArgs = Seq(s"${os.temp(g.toString)};$dest;txt,dot,json,png,svg"),
             stdin = os.Inherit,
