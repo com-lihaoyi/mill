@@ -1,0 +1,3 @@
+package build.foo
+
+def myProjectVersion = {sys.error("boom versions"); 1}
