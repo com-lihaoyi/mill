@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -656,8 +656,7 @@
 </aside>
 <article class="doc">
 <h1 class="page">Mill Sandboxing</h1>
-<div class="sect1">
-<h2 id="_task_sandboxing"><a class="anchor" href="#_task_sandboxing"></a>Task Sandboxing</h2>
+<div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
 <p>In order to help manage your build, Mill performs some rudimentary filesystem
@@ -666,6 +665,17 @@ This tries to ensure your tasks only read and write from their designated <code>
 folders, which are unique to each task and thus guaranteed not to collide with
 the filesystem operations of other tasks that may be occurring in parallel.</p>
 </div>
+<div class="paragraph">
+<p>Mill sandboxing is not meant to be fully hermetic, and is instead just a set of
+guardrails meant to nudge Mill users towards Mill&#8217;s best practices and coding conventions.
+Every Mill sandboxing guardrail has an escape-hatch to bypass it (at your own risk!) if
+really necessary.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_task_sandboxing"><a class="anchor" href="#_task_sandboxing"></a>Task Sandboxing</h2>
+<div class="sectionbody">
 <div class="sect2">
 <h3 id="_task_dest"><a class="anchor" href="#_task_dest"></a><code>Task.dest</code></h3>
 <div class="paragraph">
@@ -675,10 +685,11 @@ property. This is available within any task, and gives you access to the
 each task is lazily initialized when <code>Task.dest</code> is referenced and used:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-depth-sandbox-1-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/1-task">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-depth-sandbox-1-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/depth/sandbox/1-task">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._
+import mill.*
+import mill.api.BuildCtx
 
 object foo extends Module {
   def tDestTask = Task { println(Task.dest.toString) }
@@ -687,11 +698,111 @@ object foo extends Module {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.tDestTask
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.tDestTask
 .../out/foo/tDestTask.dest</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>If you really need to reference paths outside of the <code>Task.dest</code>, you can do
+so via <code>BuildCtx.workspaceRoot</code>.</p>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_filesystem_readwrite_checks"><a class="anchor" href="#_filesystem_readwrite_checks"></a>Filesystem Read/Write Checks</h3>
+<div class="paragraph">
+<p>Mill enforces limits on what you can read and write while a task is executing.
+In general, a task may only write to its own <code>Task.dest</code> folder, and may only
+read from the <code>PathRef</code>s provided to it from upstream tasks</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def bannedWriteTask = Task {
+  os.write(BuildCtx.workspaceRoot / "banned-path", "hello")
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bannedWriteTask
+error: ...Writing to banned-path not allowed during execution of `bannedWriteTask`</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def bannedReadTask = Task {
+  os.read(BuildCtx.workspaceRoot / "build.mill")
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bannedReadTask
+error: ...Reading from build.mill not allowed during execution of `bannedReadTask`</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def bannedReadTask2 = Task {
+  os.read(BuildCtx.workspaceRoot / "out/foo/tDestTask.json")
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bannedReadTask2
+error: ...Reading from out/foo/tDestTask.json not allowed during execution of `bannedReadTask2`</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Furthermore, code <em>outside</em> of a task that runs during module initialization can only
+read from disk if wrapped in a <code>BuildCtx.watchValue</code> block. This ensures that such
+reads are tracked by Mill&#8217;s <code>--watch</code> and cache-invalidation logic.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val listed = BuildCtx.watchValue(os.list(BuildCtx.workspaceRoot).map(_.last))</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_bypassing_task_sandboxing"><a class="anchor" href="#_bypassing_task_sandboxing"></a>Bypassing Task Sandboxing</h3>
+<div class="paragraph">
+<p>You can bypass Mill&#8217;s filesystem read/write limitations via
+<code>BuildCtx.withFilesystemCheckerDisabled</code>. Note that this bypasses the
+best-practices that Mill tries to enforce on your tasks and may result in strange
+bugs around caching, parallelism, and invalidation, so you shouldn&#8217;t do this unless
+you really know what you are doing:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def bannedWriteTaskOverridden = Task {
+  BuildCtx.withFilesystemCheckerDisabled {
+    os.write(BuildCtx.workspaceRoot / "banned-path", "hello")
+    println(os.read(BuildCtx.workspaceRoot / "banned-path"))
+  }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bannedWriteTaskOverridden
+hello</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also disable it globally by passing in <code>--no-filesystem-checker</code> to Mill:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill --no-filesystem-checker bannedReadTask</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_os_pwd_redirection"><a class="anchor" href="#_os_pwd_redirection"></a><code>os.pwd</code> redirection</h2>
+<div class="sectionbody">
 <div class="sect2">
 <h3 id="_task_os_pwd_redirection"><a class="anchor" href="#_task_os_pwd_redirection"></a>Task <code>os.pwd</code> redirection</h3>
 <div class="paragraph">
@@ -705,7 +816,7 @@ such that that also points towards a running task&#8217;s own <code>.dest/</code
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill osPwdTask
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill osPwdTask
 .../out/osPwdTask.dest</code></pre>
 </div>
 </div>
@@ -717,13 +828,13 @@ its <code>os.getcwd()</code>, which is our <code>osProcTask.dest/</code> sandbox
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def osProcTask = Task {
-  println(os.call(("python3", "-c", "import os; print(os.getcwd())"), cwd = Task.dest).out.trim())
+  println(os.call(("python3", "-c", "import os; print(os.getcwd())")).out.trim())
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill osProcTask
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill osProcTask
 .../out/osProcTask.dest</code></pre>
 </div>
 </div>
@@ -733,7 +844,7 @@ its <code>os.getcwd()</code>, which is our <code>osProcTask.dest/</code> sandbox
 <div class="paragraph">
 <p>Lastly, there is the possibily of calling <code>os.pwd</code> outside of a task. When outside of
 a task there is no <code>.dest/</code> folder associated, so instead Mill will redirect <code>os.pwd</code>
-towards an empty <code>sandbox/</code> folder in <code>out/mill-server/&#8230;&#8203;</code>:</p>
+towards an empty <code>sandbox/</code> folder in <code>out/mill-daemon/&#8230;&#8203;</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -743,23 +854,9 @@ def externalPwdTask = Task { println(externalPwd.toString) }</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill externalPwdTask
-.../out/mill-server/.../sandbox</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill externalPwdTask
+.../out/mill-daemon/sandbox</code></pre>
 </div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_limitations_of_mills_sandboxing"><a class="anchor" href="#_limitations_of_mills_sandboxing"></a>Limitations of Mill&#8217;s Sandboxing</h3>
-<div class="paragraph">
-<p>Mill&#8217;s approach to filesystem sandboxing is designed to avoid accidental interference
-between different Mill tasks. It is not designed to block intentional misbehavior, and
-tasks are always able to traverse the filesystem and do whatever they want. Furthermore,
-Mill&#8217;s redirection of <code>os.pwd</code> does not apply to <code>java.io</code> or <code>java.nio</code> APIs, which are
-outside of Mill&#8217;s control.</p>
-</div>
-<div class="paragraph">
-<p>However, by setting <code>os.pwd</code> to safe sandbox folders, we hope to minimize the cases where
-someone accidentally causes issues with their build by doing the wrong thing.</p>
 </div>
 </div>
 </div>
@@ -773,13 +870,13 @@ following build with two modules <code>foo</code> and <code>bar</code>, and thei
 <code>foo.test</code> and <code>bar.test</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/2-test">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-depth-sandbox-2-test.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/depth/sandbox/2-test">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 trait MyModule extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }
 
 object foo extends MyModule {
@@ -795,7 +892,7 @@ logic in their corresponding non-test module, but also do some basic filesystem
 operations at the same time, writing out a <code>generated.html</code> file and then reading it:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/2-test/foo/src/foo/Foo.java">browse</a>)</div>
+<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/depth/sandbox/2-test/foo/src/foo/Foo.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -807,7 +904,7 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/2-test/foo/test/src/foo/FooTests.java">browse</a>)</div>
+<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/depth/sandbox/2-test/foo/test/src/foo/FooTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
 
@@ -828,7 +925,7 @@ public class FooTests {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/src/bar/Bar.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/2-test/bar/src/bar/Bar.java">browse</a>)</div>
+<div class="title">bar/src/bar/Bar.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/depth/sandbox/2-test/bar/src/bar/Bar.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package bar;
 
@@ -840,7 +937,7 @@ public class Bar {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/test/src/bar/BarTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/2-test/bar/test/src/bar/BarTests.java">browse</a>)</div>
+<div class="title">bar/test/src/bar/BarTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/depth/sandbox/2-test/bar/test/src/bar/BarTests.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package bar;
 
@@ -865,7 +962,7 @@ public class BarTests {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill __.test</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill __.test</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -881,10 +978,10 @@ of the respective task and module. For example:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>foo.test</code> runs in <code>out/foo/test/test.dest/</code></p>
+<p><code>foo.test</code> runs in <code>out/foo/test/testForked.dest/</code></p>
 </li>
 <li>
-<p><code>bar.test</code> runs in <code>out/bar/test/test.dest/</code></p>
+<p><code>bar.test</code> runs in <code>out/bar/test/testForked.dest/</code></p>
 </li>
 </ul>
 </div>
@@ -894,14 +991,14 @@ working directory, without colliding with each other on disk:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; find . | grep generated.html
-.../out/foo/test/test.dest/sandbox/generated.html
-.../out/bar/test/test.dest/sandbox/generated.html
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; find . | grep generated.html
+.../out/foo/test/testForked.dest/sandbox/generated.html
+.../out/bar/test/testForked.dest/sandbox/generated.html
 
-&gt; cat out/foo/test/test.dest/sandbox/generated.html
+&gt; cat out/foo/test/testForked.dest/sandbox/generated.html
 &lt;h1&gt;hello&lt;/h1&gt;
 
-&gt; cat out/bar/test/test.dest/sandbox/generated.html
+&gt; cat out/bar/test/testForked.dest/sandbox/generated.html
 &lt;p&gt;world&lt;/p&gt;</code></pre>
 </div>
 </div>
@@ -911,71 +1008,25 @@ reading and writing to the filesystem does not cause tests to interefere with
 one another, which helps keep tests stable and deterministic even when run in
 parallel</p>
 </div>
+<div class="sect2">
+<h3 id="_bypassing_the_test_sandbox"><a class="anchor" href="#_bypassing_the_test_sandbox"></a>Bypassing the Test Sandbox</h3>
 <div class="paragraph">
-<p>Like Mill&#8217;s Task sandboxing, Mill&#8217;s Test sandboxing does not guard against
-intentional misbehavior: tests can still walk the filesystem from the
-sandbox folder via <code>..</code> or from the root folder <code>/</code> or home folder <code>~/</code>.
-Nevertheless, it should add some simple guardrails to prevent many common
-causes of inter-test interference, letting your test suite run in parallel both
-quickly and reliably</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_breaking_out_of_sandbox_folders"><a class="anchor" href="#_breaking_out_of_sandbox_folders"></a>Breaking Out Of Sandbox Folders</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill&#8217;s sandboxing approach is best effort: while it tries to guide you into using
-isolated sandbox folders, Mill cannot guarantee it, and in fact provides the
-<code>Task.workspace</code> property and <code>MILL_WORKSPACE_ROOT</code> environment variable to reference the
-project root folder for scenarios where you may need it. This can be useful for a variety
-of reasons:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Migrating legacy applications that assume access to the workspace root</p>
-</li>
-<li>
-<p>Scenarios where writing the the original source repository is necessary:
-code auto-formatters, auto-fixers, auto-updaters. etc.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p><code>Task.workspace</code> can be used in tasks:</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-depth-sandbox-3-breaking.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/3-breaking">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
-
-def myTask = Task { println(Task.workspace) }</code></pre>
-</div>
+<p>Within a test, you can use the <code>MILL_WORKSPACE_ROOT</code> environment variable
+to access the workspace root directory:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill myTask</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Whereas <code>MILL_WORKSPACE_ROOT</code> as well as in tests, which can access the
-workspace root via the <code>MILL_WORKSPACE_ROOT</code> environment variable</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends JavaModule {
-  object test extends JavaTests with TestModule.Junit4
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object qux extends JavaModule {
+  object test extends JavaTests, TestModule.Junit4
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo/Foo.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/3-breaking/foo/src/foo/Foo.java">browse</a>)</div>
+<div class="title">qux/src/qux/Qux.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/depth/sandbox/2-test/qux/src/qux/Qux.java">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package qux;
 
-public class Foo {
+public class Qux {
   public static String generateHtml(String text) {
     return "&lt;h1&gt;" + text + "&lt;/h1&gt;";
   }
@@ -983,9 +1034,9 @@ public class Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/foo/FooTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/sandbox/3-breaking/foo/test/src/foo/FooTests.java">browse</a>)</div>
+<div class="title">qux/test/src/qux/QuxTests.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/depth/sandbox/2-test/qux/test/src/qux/QuxTests.java">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo;
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package qux;
 
 import static org.junit.Assert.assertEquals;
 
@@ -993,13 +1044,13 @@ import java.nio.file.*;
 import java.util.stream.Collectors;
 import org.junit.Test;
 
-public class FooTests {
+public class QuxTests {
   @Test
   public void simple() throws Exception {
     String workspaceRoot = System.getenv("MILL_WORKSPACE_ROOT");
 
     for (Path subpath : Files.list(Paths.get(workspaceRoot)).collect(Collectors.toList())) {
-      String result = Foo.generateHtml(subpath.getFileName().toString());
+      String result = Qux.generateHtml(subpath.getFileName().toString());
       Path tmppath = Paths.get(subpath.getFileName() + ".html");
       Files.write(tmppath, result.getBytes());
       assertEquals("&lt;h1&gt;" + subpath.getFileName() + "&lt;/h1&gt;", Files.readString(tmppath));
@@ -1010,17 +1061,31 @@ public class FooTests {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill __.test</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; find . | grep .html
-...
-.../out/foo/test/test.dest/sandbox/foo.html
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill qux.test
 
-&gt; cat out/foo/test/test.dest/sandbox/foo.html
+
+&gt; find . | grep .html
+...
+.../out/qux/test/testForked.dest/sandbox/foo.html
+
+&gt; cat out/qux/test/testForked.dest/sandbox/foo.html
 &lt;h1&gt;foo&lt;/h1&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Test sandboxing can also be disabled by setting <code>def testSandboxWorkingDir = false</code>
+on your test module, which makes your unit tests run in the root of your
+project workspace, with full access to the project files on disk.</p>
+</div>
+<div class="paragraph">
+<p>Disabling the test sandbox can be useful when migrating existing projects, as
+other build tools like Maven, Gradle or SBT do not enforce such sandboxes by default,
+so many tests are written with the assumption they run in the project root. But
+it is advisable to use or adopt the default config of <code>def testSandboxWorkingDir = true</code>
+where possible as that will ensure that inputs to tests are properly tracked by
+the build tool, so features like <a href="../cli/flags.html#_watch_w" class="xref page">cli/flags.adoc#_watch_w</a> or
+<a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a> are able to precisely determine when a test needs
+to be run and when it can be skipped.</p>
 </div>
 </div>
 </div>
@@ -1030,14 +1095,19 @@ public class FooTests {
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill&#8217;s approach to filesystem sandboxing is designed to avoid accidental interference
-between different Mill tasks. It is not designed to block intentional misbehavior, and
-tasks are always able to traverse the filesystem and do whatever they want. Furthermore,
+between different Mill tasks and tests. It is not designed to block intentional misbehavior,
+and tasks are always able to traverse the filesystem and do whatever they want. Furthermore,
 Mill&#8217;s redirection of <code>os.pwd</code> does not apply to <code>java.io</code> or <code>java.nio</code> APIs, which are
 outside of Mill&#8217;s control.</p>
 </div>
 <div class="paragraph">
-<p>However, by setting <code>os.pwd</code> to safe sandbox folders, we hope to minimize the cases where
-someone accidentally causes issues with their build by doing the wrong thing.</p>
+<p>However, by setting <code>os.pwd</code> to safe sandbox folders, and performing some basic checks
+on <code>os.*</code> read/write operations, we hope to minimize the cases where someone accidentally
+causes issues with their build by doing the wrong thing. The escape hatches of <code>BuildCtx.workspaceRoot</code>,
+<code>MILL_WORKSPACE_ROOT</code>, or <code>BuildCtx.withFilesystemCheckerDisabled</code> are provided to be used
+in cases you do need to do something unusual, but usage of them should be minimized if possible
+as they may result in <code>--watch</code> or <code>selective.test</code> not missing some implicit dependencies
+between your tasks and source files on disk.</p>
 </div>
 </div>
 </div>

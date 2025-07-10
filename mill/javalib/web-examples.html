@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -668,18 +668,18 @@ It covers setting up a basic backend server with a variety of server frameworks<
 <h2 id="_jetty_hello_world_app"><a class="anchor" href="#_jetty_hello_world_app"></a>Jetty Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javalib-web-1-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javalib/web/1-hello-jetty">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javalib-web-1-hello-jetty.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javalib/web/1-hello-jetty">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
+import mill.*, javalib.*
 
-object `package` extends RootModule with JavaModule {
-  def ivyDeps = Agg(
-    ivy"org.eclipse.jetty:jetty-server:9.4.43.v20210629",
-    ivy"javax.servlet:javax.servlet-api:4.0.1"
+object `package` extends JavaModule {
+  def mvnDeps = Seq(
+    mvn"org.eclipse.jetty:jetty-server:9.4.43.v20210629",
+    mvn"javax.servlet:javax.servlet-api:4.0.1"
   )
 
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }</code></pre>
 </div>
 </div>
@@ -689,15 +689,15 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
 ...HelloJettyTest.testHelloJetty finished...
 
-&gt; mill runBackground
+&gt; ./mill runBackground
 
 &gt; curl http://localhost:8085
 ...&lt;h1&gt;Hello, World!&lt;/h1&gt;...
 
-&gt; mill clean runBackground</code></pre>
+&gt; ./mill clean runBackground</code></pre>
 </div>
 </div>
 </div>
@@ -706,20 +706,20 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <h2 id="_spring_boot_hello_world_app"><a class="anchor" href="#_spring_boot_hello_world_app"></a>Spring Boot Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javalib-web-2-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javalib/web/2-hello-spring-boot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javalib-web-2-hello-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javalib/web/2-hello-spring-boot">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
+import mill.*, javalib.*
 
-object `package` extends RootModule with JavaModule {
-  def ivyDeps = Agg(
-    ivy"org.springframework.boot:spring-boot-starter-web:2.5.6",
-    ivy"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
+object `package` extends JavaModule {
+  def mvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-starter-web:2.5.6",
+    mvn"org.springframework.boot:spring-boot-starter-actuator:2.5.6"
   )
 
-  object test extends JavaTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
+  object test extends JavaTests, TestModule.Junit5 {
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }
 }</code></pre>
@@ -731,15 +731,15 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
 ...com.example.HelloSpringBootTest#shouldReturnDefaultMessage() finished...
 
-&gt; mill runBackground
+&gt; ./mill runBackground
 
 &gt; curl http://localhost:8086
 ...&lt;h1&gt;Hello, World!&lt;/h1&gt;...
 
-&gt; mill clean runBackground</code></pre>
+&gt; ./mill clean runBackground</code></pre>
 </div>
 </div>
 </div>
@@ -748,42 +748,42 @@ able to handle a single HTTP request at <code>/</code> and reply with a single r
 <h2 id="_spring_boot_todomvc_app"><a class="anchor" href="#_spring_boot_todomvc_app"></a>Spring Boot TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javalib-web-3-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javalib/web/3-todo-spring-boot">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javalib-web-3-todo-spring-boot.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javalib/web/3-todo-spring-boot">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
+import mill.*, javalib.*
 
-object `package` extends RootModule with JavaModule {
-  def ivyDeps = Agg(
-    ivy"org.springframework.boot:spring-boot-starter-data-jpa:2.5.4",
-    ivy"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",
-    ivy"org.springframework.boot:spring-boot-starter-validation:2.5.4",
-    ivy"org.springframework.boot:spring-boot-starter-web:2.5.4",
-    ivy"javax.xml.bind:jaxb-api:2.3.1",
-    ivy"org.webjars:webjars-locator:0.41",
-    ivy"org.webjars.npm:todomvc-common:1.0.5",
-    ivy"org.webjars.npm:todomvc-app-css:2.4.1"
+object `package` extends JavaModule {
+  def mvnDeps = Seq(
+    mvn"org.springframework.boot:spring-boot-starter-data-jpa:2.5.4",
+    mvn"org.springframework.boot:spring-boot-starter-thymeleaf:2.5.4",
+    mvn"org.springframework.boot:spring-boot-starter-validation:2.5.4",
+    mvn"org.springframework.boot:spring-boot-starter-web:2.5.4",
+    mvn"javax.xml.bind:jaxb-api:2.3.1",
+    mvn"org.webjars:webjars-locator:0.41",
+    mvn"org.webjars.npm:todomvc-common:1.0.5",
+    mvn"org.webjars.npm:todomvc-app-css:2.4.1"
   )
 
-  trait HelloTests extends JavaTests with TestModule.Junit5 {
+  trait HelloTests extends JavaTests, TestModule.Junit5 {
     def mainClass = Some("com.example.TodomvcApplication")
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"org.springframework.boot:spring-boot-starter-test:2.5.6"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"org.springframework.boot:spring-boot-starter-test:2.5.6"
     )
   }
 
   object test extends HelloTests {
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.h2database:h2:2.3.230"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"com.h2database:h2:2.3.230"
     )
   }
 
   object integration extends HelloTests {
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"org.testcontainers:testcontainers:1.18.0",
-      ivy"org.testcontainers:junit-jupiter:1.18.0",
-      ivy"org.testcontainers:postgresql:1.18.0",
-      ivy"org.postgresql:postgresql:42.6.0"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"org.testcontainers:testcontainers:1.18.0",
+      mvn"org.testcontainers:junit-jupiter:1.18.0",
+      mvn"org.testcontainers:postgresql:1.18.0",
+      mvn"org.postgresql:postgresql:42.6.0"
     )
   }
 }</code></pre>
@@ -815,20 +815,20 @@ this example also demonstrates:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
 ...com.example.TodomvcTests#homePageLoads() finished...
 ...com.example.TodomvcTests#addNewTodoItem() finished...
 
-&gt; mill integration
+&gt; ./mill integration
 ...com.example.TodomvcIntegrationTests#homePageLoads() finished...
 ...com.example.TodomvcIntegrationTests#addNewTodoItem() finished...
 
-&gt; mill test.runBackground
+&gt; ./mill test.runBackground
 
 &gt; curl http://localhost:8087
 ...&lt;h1&gt;todos&lt;/h1&gt;...
 
-&gt; mill clean runBackground</code></pre>
+&gt; ./mill clean runBackground</code></pre>
 </div>
 </div>
 </div>
@@ -837,26 +837,29 @@ this example also demonstrates:</p>
 <h2 id="_micronaut_hello_world_app"><a class="anchor" href="#_micronaut_hello_world_app"></a>Micronaut Hello World App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javalib-web-4-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javalib/web/4-hello-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javalib-web-4-hello-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javalib/web/4-hello-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
+import mill.*, javalib.*
 
-object `package` extends RootModule with MicronautModule {
+object `package` extends MicronautModule {
   def micronautVersion = "4.5.3"
-  def ivyDeps = Agg(
-    ivy"io.micronaut:micronaut-http-server-netty:$micronautVersion",
-    ivy"io.micronaut.serde:micronaut-serde-jackson:2.10.1",
-    ivy"ch.qos.logback:logback-classic:1.5.3"
+  def mvnDeps = Seq(
+    mvn"io.micronaut:micronaut-http-server-netty:$micronautVersion",
+    mvn"io.micronaut.serde:micronaut-serde-jackson:2.10.1",
+    mvn"ch.qos.logback:logback-classic:1.5.3"
   )
 
-  object test extends MavenTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.micronaut:micronaut-http-client:$micronautVersion",
-      ivy"io.micronaut.test:micronaut-test-junit5:4.4.0",
-      ivy"org.junit.jupiter:junit-jupiter-api:5.8.1",
-      ivy"org.junit.jupiter:junit-jupiter-engine:5.8.1"
+  object test extends MavenTests, TestModule.Junit5 {
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"io.micronaut:micronaut-http-client:$micronautVersion",
+      mvn"io.micronaut.test:micronaut-test-junit5:4.4.0",
+      mvn"org.junit.jupiter:junit-jupiter-api:5.8.1",
+      mvn"org.junit.jupiter:junit-jupiter-engine:5.8.1"
     )
+
+    // Micronaut test not compatible with running in parallel
+    def testParallelism = false
   }
 }
 
@@ -865,12 +868,12 @@ trait MicronautModule extends MavenModule {
 
   def processors = Task {
     defaultResolver().classpath(
-      Agg(
-        ivy"io.micronaut.data:micronaut-data-processor:4.7.0",
-        ivy"io.micronaut:micronaut-http-validation:$micronautVersion",
-        ivy"io.micronaut.serde:micronaut-serde-processor:2.9.0",
-        ivy"io.micronaut.validation:micronaut-validation-processor:4.5.0",
-        ivy"io.micronaut:micronaut-inject-java:$micronautVersion"
+      Seq(
+        mvn"io.micronaut.data:micronaut-data-processor:4.7.0",
+        mvn"io.micronaut:micronaut-http-validation:$micronautVersion",
+        mvn"io.micronaut.serde:micronaut-serde-processor:2.9.0",
+        mvn"io.micronaut.validation:micronaut-validation-processor:4.5.0",
+        mvn"io.micronaut:micronaut-inject-java:$micronautVersion"
       )
     )
   }
@@ -910,15 +913,15 @@ extended with more features as necessary.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
 ...example.micronaut.HelloControllerTest#testHello()...
 
-&gt; mill runBackground
+&gt; ./mill runBackground
 
 &gt; curl http://localhost:8088/hello
 ...Hello World...
 
-&gt; mill clean runBackground</code></pre>
+&gt; ./mill clean runBackground</code></pre>
 </div>
 </div>
 </div>
@@ -927,39 +930,42 @@ extended with more features as necessary.</p>
 <h2 id="_micronaut_todomvc_app"><a class="anchor" href="#_micronaut_todomvc_app"></a>Micronaut TodoMvc App</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javalib-web-5-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javalib/web/5-todo-micronaut">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javalib-web-5-todo-micronaut.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javalib/web/5-todo-micronaut">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
+import mill.*, javalib.*
 
-object `package` extends RootModule with MicronautModule {
+object `package` extends MicronautModule {
   def micronautVersion = "4.4.3"
-  def runIvyDeps = Agg(
-    ivy"ch.qos.logback:logback-classic:1.5.3",
-    ivy"com.h2database:h2:2.2.224"
+  def runMvnDeps = Seq(
+    mvn"ch.qos.logback:logback-classic:1.5.3",
+    mvn"com.h2database:h2:2.2.224"
   )
 
-  def ivyDeps = Agg(
-    ivy"io.micronaut:micronaut-http-server-netty:$micronautVersion",
-    ivy"io.micronaut.serde:micronaut-serde-jackson:2.9.0",
-    ivy"io.micronaut.data:micronaut-data-jdbc:4.7.0",
-    ivy"io.micronaut.sql:micronaut-jdbc-hikari:5.6.0",
-    ivy"io.micronaut.validation:micronaut-validation:4.5.0",
-    ivy"io.micronaut.views:micronaut-views-htmx:5.2.0",
-    ivy"io.micronaut.views:micronaut-views-thymeleaf:5.2.0",
-    ivy"org.webjars.npm:todomvc-common:1.0.5",
-    ivy"org.webjars.npm:todomvc-app-css:2.4.1",
-    ivy"org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10"
+  def mvnDeps = Seq(
+    mvn"io.micronaut:micronaut-http-server-netty:$micronautVersion",
+    mvn"io.micronaut.serde:micronaut-serde-jackson:2.9.0",
+    mvn"io.micronaut.data:micronaut-data-jdbc:4.7.0",
+    mvn"io.micronaut.sql:micronaut-jdbc-hikari:5.6.0",
+    mvn"io.micronaut.validation:micronaut-validation:4.5.0",
+    mvn"io.micronaut.views:micronaut-views-htmx:5.2.0",
+    mvn"io.micronaut.views:micronaut-views-thymeleaf:5.2.0",
+    mvn"org.webjars.npm:todomvc-common:1.0.5",
+    mvn"org.webjars.npm:todomvc-app-css:2.4.1",
+    mvn"org.webjars.npm:github-com-bigskysoftware-htmx:1.9.10"
   )
 
-  object test extends MavenTests with TestModule.Junit5 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.h2database:h2:2.2.224",
-      ivy"io.micronaut:micronaut-http-client:$micronautVersion",
-      ivy"io.micronaut.test:micronaut-test-junit5:4.4.0",
-      ivy"org.junit.jupiter:junit-jupiter-api:5.8.1",
-      ivy"org.junit.jupiter:junit-jupiter-engine:5.8.1"
+  object test extends MavenTests, TestModule.Junit5 {
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"com.h2database:h2:2.2.224",
+      mvn"io.micronaut:micronaut-http-client:$micronautVersion",
+      mvn"io.micronaut.test:micronaut-test-junit5:4.4.0",
+      mvn"org.junit.jupiter:junit-jupiter-api:5.8.1",
+      mvn"org.junit.jupiter:junit-jupiter-engine:5.8.1"
     )
+
+    // Micronaut test not compatible with running in parallel
+    def testParallelism = false
   }
 }
 
@@ -968,12 +974,12 @@ trait MicronautModule extends MavenModule {
 
   def processors = Task {
     defaultResolver().classpath(
-      Agg(
-        ivy"io.micronaut.data:micronaut-data-processor:4.7.0",
-        ivy"io.micronaut:micronaut-http-validation:$micronautVersion",
-        ivy"io.micronaut.serde:micronaut-serde-processor:2.9.0",
-        ivy"io.micronaut.validation:micronaut-validation-processor:4.5.0",
-        ivy"io.micronaut:micronaut-inject-java:$micronautVersion"
+      Seq(
+        mvn"io.micronaut.data:micronaut-data-processor:4.7.0",
+        mvn"io.micronaut:micronaut-http-validation:$micronautVersion",
+        mvn"io.micronaut.serde:micronaut-serde-processor:2.9.0",
+        mvn"io.micronaut.validation:micronaut-validation-processor:4.5.0",
+        mvn"io.micronaut:micronaut-inject-java:$micronautVersion"
       )
     )
   }
@@ -1025,19 +1031,19 @@ and can be extended to cover additional functionality in future</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test
 ...example.micronaut.LearnJsonTest...
 ...example.micronaut.TodoTest...
 ...example.micronaut.TodoItemMapperTest...
 ...example.micronaut.TodoItemControllerTest...
 ...example.micronaut.HtmxWebJarsTest...
 
-&gt; mill runBackground
+&gt; ./mill runBackground
 
 &gt; curl http://localhost:8089
  ...&lt;h1&gt;todos&lt;/h1&gt;...
 
-&gt; mill clean runBackground</code></pre>
+&gt; ./mill clean runBackground</code></pre>
 </div>
 </div>
 </div>

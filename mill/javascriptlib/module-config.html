@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -660,12 +660,12 @@
 <h2 id="_common_configuration_overrides"><a class="anchor" href="#_common_configuration_overrides"></a>Common Configuration Overrides</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javascriptlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javascriptlib/module/1-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javascriptlib-module-1-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javascriptlib/module/1-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._
-import mill.javascriptlib._
+import mill.*
+import mill.javascriptlib.*
 
 object foo extends TypeScriptModule {
 
@@ -673,14 +673,16 @@ object foo extends TypeScriptModule {
 
   def sources = Task { super.sources() ++ customSource() }
 
-  def resources = super.resources() ++ Seq(PathRef(moduleDir / "custom-resources"))
+  def customResources = Task.Sources("custom-resources")
+
+  def resources = super.resources() ++ customResources()
 
   def generatedSources = Task {
     for (name &lt;- Seq("A", "B", "C")) os.write(
       Task.dest / s"foo-$name.ts",
       s"""export default class Foo$name {
-  static value: string = "Hello $name"
-}
+         |  static value: string = "Hello $name"
+         |}
       """.stripMargin
     )
 
@@ -724,7 +726,7 @@ ensuring downstream tasks properly invalidate when contents change.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 hello2
 Hello A
 Hello B
@@ -732,7 +734,7 @@ Hello C
 my-env-value
 MyResource: My Resource Contents
 
-&gt; mill foo.bundle
+&gt; ./mill foo.bundle
 Build succeeded!
 
 &gt; MY_CUSTOM_ENV=my-env-value node out/foo/bundle.dest/bundle.js
@@ -751,11 +753,11 @@ MyOtherResource: My Other Resource Contents</code></pre>
 <h2 id="_custom_tasks"><a class="anchor" href="#_custom_tasks"></a>Custom Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javascriptlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javascriptlib/module/2-custom-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javascriptlib-module-2-custom-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javascriptlib/module/2-custom-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object foo extends TypeScriptModule {
 
@@ -772,8 +774,8 @@ object foo extends TypeScriptModule {
     os.write(
       Task.dest / "bar.ts",
       s"""export default class Bar {
-  static value: number = 123
-}
+         |  static value: number = 123
+         |}
       """.stripMargin
     )
 
@@ -900,7 +902,7 @@ implementation.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run "Hello World!"
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run "Hello World!"
 Bar.value: 123
 text: Hello World!
 Line count: 9</code></pre>
@@ -912,14 +914,14 @@ Line count: 9</code></pre>
 <h2 id="_overriding_tasks"><a class="anchor" href="#_overriding_tasks"></a>Overriding Tasks</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javascriptlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javascriptlib/module/3-override-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javascriptlib-module-3-override-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javascriptlib/module/3-override-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._
-import mill.javascriptlib._
+import mill.*
+import mill.javascriptlib.*
 
-object `package` extends RootModule with TypeScriptModule {
+object `package` extends TypeScriptModule {
   def moduleName = "foo"
 
   def sources = Task {
@@ -931,8 +933,8 @@ object `package` extends RootModule with TypeScriptModule {
     os.write.over(
       filePath,
       """(function () {
-  console.log("Hello World!")
-})()
+        |  console.log("Hello World!")
+        |})()
       """.stripMargin
     )
 
@@ -944,7 +946,7 @@ object `package` extends RootModule with TypeScriptModule {
     super.compile()
   }
 
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
     println("Running... " + args.value.mkString(" "))
     super.run(args)()
   }
@@ -976,7 +978,7 @@ override <code>sources</code> and use <code>super</code> to include the original
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run "added tags"
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run "added tags"
 Compiling...
 Hello World!
 Running... added tags</code></pre>
@@ -988,12 +990,12 @@ Running... added tags</code></pre>
 <h2 id="_compilation_execution_flags"><a class="anchor" href="#_compilation_execution_flags"></a>Compilation &amp; Execution Flags</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javascriptlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javascriptlib/module/4-compilation-execution-flags">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javascriptlib-module-4-compilation-execution-flags.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javascriptlib/module/4-compilation-execution-flags">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._
-import mill.javascriptlib._
+import mill.*
+import mill.javascriptlib.*
 
 object foo extends TypeScriptModule {
   def compilerOptions =
@@ -1017,7 +1019,7 @@ object foo extends TypeScriptModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 Debugger listening on ws://...
 ...
 Foo:
@@ -1030,15 +1032,15 @@ Hello World!</code></pre>
 <h2 id="_filesystem_resources"><a class="anchor" href="#_filesystem_resources"></a>Filesystem Resources</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javascriptlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javascriptlib/module/5-resources">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javascriptlib-module-5-resources.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javascriptlib/module/5-resources">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._, javascriptlib._
-import ujson._
+import mill.*, javascriptlib.*
+import ujson.*
 
 object foo extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Jest {
+  object test extends TypeScriptTests, TestModule.Jest {
     def otherFiles = Task.Source("other-files")
 
     def forkEnv = super.forkEnv() + ("OTHER_FILES_DIR" -&gt; otherFiles().path.toString)
@@ -1048,17 +1050,17 @@ object foo extends TypeScriptModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 Hello World Resource File
 
-&gt; mill foo.test
+&gt; ./mill foo.test
 PASS .../foo.test.ts
 ...
 Test Suites:...1 passed, 1 total...
 Tests:...3 passed, 3 total...
 ...
 
-&gt; mill foo.bundle
+&gt; ./mill foo.bundle
 Build succeeded!
 
 &gt; mv out/foo/bundle.dest ./bundle.dest &amp;&amp; rm -rf out/
@@ -1099,25 +1101,25 @@ provide the folder path as an environment variable that the test can make use of
 <p>Example application code demonstrating the techniques above can be seen below:</p>
 </div>
 <div class="listingblock">
-<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javascriptlib/module/5-resources/foo/resources/file.txt">browse</a>)</div>
+<div class="title">foo/resources/file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javascriptlib/module/5-resources/foo/resources/file.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Hello World Resource File</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javascriptlib/module/5-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
+<div class="title">foo/test/resources/test-file-a.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javascriptlib/module/5-resources/foo/test/resources/test-file-a.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File A</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javascriptlib/module/5-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
+<div class="title">foo/test/resources/test-file-b.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javascriptlib/module/5-resources/foo/test/resources/test-file-b.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Test Hello World Resource File B</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javascriptlib/module/5-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
+<div class="title">foo/test/other-files/other-file.txt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javascriptlib/module/5-resources/foo/test/other-files/other-file.txt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">Other Hello World File</code></pre>
 </div>
@@ -1143,12 +1145,12 @@ the sandbox and make the tests run in the project root.</p>
 <h2 id="_bundling_configuration"><a class="anchor" href="#_bundling_configuration"></a>Bundling Configuration</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javascriptlib-module-6-executable-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javascriptlib/module/6-executable-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javascriptlib-module-6-executable-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javascriptlib/module/6-executable-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._
-import mill.javascriptlib._
+import mill.*
+import mill.javascriptlib.*
 
 object foo extends TypeScriptModule {
   def bundleFlags =
@@ -1170,11 +1172,80 @@ and usage is based on project logic like which args to include with command.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.bundle
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.bundle
 Build succeeded!
 
 &gt; node out/foo/bundle.dest/bundle.js
 Hello World!</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_root_module"><a class="anchor" href="#_root_module"></a>Root Module</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can use <code>object <code>package</code> extends mill.Module</code> to use a <code>Module</code>
+as the root module of the file:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javascriptlib-module-7-root-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javascriptlib/module/7-root-module">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, javascriptlib.*
+
+object `package` extends TypeScriptModule {
+  def moduleName = "foo"
+  def npmDeps = Seq("immutable@4.3.7")
+  object test extends TypeScriptTests, TestModule.Jest
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Since our <code>object <code>package</code> extends mill.Module</code>, its files live in a
+top-level <code>src/</code> folder.</p>
+</div>
+<div class="paragraph">
+<p>Mill will ordinarily use the name of the singleton object, as
+the default value for the <code>moduleName</code> task.</p>
+</div>
+<div class="paragraph">
+<p>For exmaple:</p>
+</div>
+<div class="paragraph">
+<p>The <code>moduleName</code> for the singleton <code>bar</code> defined as
+<code>object bar extends TypeScriptModule</code> would be <code>bar</code>,
+with the expected source directory in <code>bar/src</code>.</p>
+</div>
+<div class="paragraph">
+<p>For this example, since we use the <code>RootModule</code> we would need to manually define our
+<code>moduleName</code>.</p>
+</div>
+<div class="paragraph">
+<p>The <code>moduleName</code> is used in the generated <code>tsconfig</code> files <code>compilerOptions['paths']</code>
+as the modules <code>src/</code> path mapping and to define the default <code>mainFileName</code>, which is
+the modules entry file.
+The generated mapping for this example would be <code>"foo/*": [&#8230;&#8203;]</code>. and its expected main file
+woudld be <code>foo.ts</code> located in top-level <code>src/</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run James Bond prof
+Hello James Bond Professor
+
+&gt; ./mill test
+PASS .../foo.test.ts
+...
+Test Suites:...1 passed, 1 total...
+Tests:...3 passed, 3 total...
+...
+
+&gt; ./mill show bundle
+Build succeeded!
+
+&gt; node out/bundle.dest/bundle.js James Bond prof
+Hello James Bond Professor</code></pre>
 </div>
 </div>
 </div>

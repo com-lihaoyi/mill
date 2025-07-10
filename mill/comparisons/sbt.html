@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -659,6 +659,11 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
+<p>This page goes into the weeds comparing the Mill and SBT build tools.
+For a higher-level comparison of Mill vs other tools, and why Mill is interesting,
+see the page <a href="why-mill.html" class="xref page">Why Use Mill?</a>.</p>
+</div>
+<div class="paragraph">
 <p>Compared to <code>sbt</code>,</p>
 </div>
 <div class="ulist">
@@ -674,30 +679,31 @@ with each other.</p>
 <p><strong>Mill is much more performant</strong>: <code>sbt</code> has enough overhead that even a dozen
 subprojects is enough to slow it down, while Mill can handle hundreds of modules without issue.
 Custom tasks in <code>sbt</code> re-execute every time, whereas in Mill they are cached automatically.
-Mill&#8217;s watch-for-changes-and-re-run implementation has much lower latency than `sbt&#8217;s. The
-list of ways Mill improves upon `sbt&#8217;s performance is long, and at the command line you
+Mill&#8217;s watch-for-changes-and-re-run implementation has much lower latency than <code>sbt</code>'s.
+The list of ways Mill improves upon <code>sbt</code>'s performance is long, and at the command line you
 can really feel it</p>
 </li>
 <li>
 <p><strong>Mill builds are much easier to understand</strong>: Your Mill build is made of bog-standard
-<code>object</code>s and <code>def</code>s, rather than <code>sbt&#8217;s
-<a href="https://eed3si9n.com/4th-dimension-with-sbt-013/">four-dimensional task matrix</a>. Your IDE&#8217;s
-"<strong>jump-to-definition</strong>" in Mill actually brings you to the implementation of a task, rather
-than an `sbt</code> <code>taskKey</code> declaration. Customizing things is as simple as writing or overriding
-`def`s. The net effect is that despite both tools' build files being written in Scala,
+<code>object</code>s and <code>def</code>s, rather than <code>sbt</code>'s
+<a href="https://eed3si9n.com/4th-dimension-with-sbt-013/">four-dimensional task matrix</a>.
+Your IDE&#8217;s "<strong>jump-to-definition</strong>" in Mill actually brings you to the implementation of a task, rather
+than an <code>sbt</code> <code>taskKey</code> declaration.
+Customizing things is as simple as writing or overriding <code>def</code>s.
+The net effect is that despite both tools' build files being written in Scala,
 Mill&#8217;s build files are much easier to understand and maintain.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>This page compares using Mill to <code>sbt</code>, using the <a href="https://github.com/gatling/gatling">Gatling Load Testing Framework</a>
-codebase as the example. Gatling is a medium sized codebase, 40,000 lines of Scala split over 21
-subprojects. By porting it to Mill, this case study should give you an idea of how Mill compares
-to <code>sbt</code> in more realistic, real-world projects.</p>
+<p>This page compares using Mill to <code>sbt</code>, using the <a href="https://github.com/gatling/gatling">Gatling Load Testing Framework</a> codebase as the example.
+Gatling is a medium-sized codebase, 40,000 lines of Scala split over 21 subprojects.
+By porting it to Mill, this case study should give you an idea of how Mill compares to <code>sbt</code> in more realistic, real-world projects.</p>
 </div>
 <div class="paragraph">
 <p>In general, in the ideal case Mill and <code>sbt</code> have similar performance: caching, parallelism, incremental
-compilation, and so on. Mill&#8217;s main advantage over <code>sbt</code> is its simplicity:</p>
+compilation, and so on.
+Mill&#8217;s main advantage over <code>sbt</code> is its simplicity:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -707,9 +713,9 @@ or juggle multiple terminal windows to run <code>sbt</code> in one and Bash in a
 run Mill like any command line tool, and Mill caches and parallelizes to maximize performance automatically</p>
 </li>
 <li>
-<p>Mill&#8217;s IDE support is better than <code>sbt&#8217;s due to how Mill is designed: peek-at-documentation,
+<p>Mill&#8217;s IDE support is better than <code>sbt</code>'s due to how Mill is designed: peek-at-documentation,
 jump-to-definition, find-overrides, etc. is much more useful since your IDE understands Mill
-much better than it understands `sbt</code>.</p>
+much better than it understands <code>sbt</code>.</p>
 </li>
 <li>
 <p>Mill comes with a lot of useful debugging tools builtin, without needing to juggle external plugins:
@@ -737,9 +743,8 @@ change any other files in the repository:</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The Mill build for Gatling is not 100% complete, but it covers most of the major parts of Gatling:
-compiling Scala, running tests. It does not currently cover linting via
-<a href="https://github.com/diffplug/spotless">Spotless</a>, as that is not built-in to Mill, but it could be
-added as necessary.</p>
+compiling Scala, running tests.
+It does not currently cover linting via <a href="https://github.com/diffplug/spotless">Spotless</a>, as that is not built-in to Mill, but it could be added as necessary.</p>
 </div>
 <div class="paragraph">
 <p>The goal of this exercise is not to be 100% feature complete enough to replace the <code>sbt</code> build
@@ -801,7 +806,7 @@ distinction, and can only be run directly from the command line. The Hot <code>s
 reports timings to the nearest second, so that is the number used in this comparison.</p>
 </div>
 <div class="paragraph">
-<p>The Mill build benchmarks for Gatling is generally much snappier than the Cold <code>sbt</code> benchmark,
+<p>The Mill build benchmarks for Gatling is generally much snappier than the cold <code>sbt</code> benchmark,
 and comparable to that Hot <code>sbt</code> benchmark. Mill is marginally faster in the
 <code>Parallel Clean Compile All</code> benchmark (10s vs 14s), but more importantly does not have the same
 <em>Cold vs Hot</em> distinction that <code>sbt</code> has: as Mill is always run "cold" from the command line and
@@ -818,7 +823,7 @@ since Mill doesn&#8217;t bundle them and instead expects them to be invoked sepa
 <h3 id="_parallel_clean_compile_all"><a class="anchor" href="#_parallel_clean_compile_all"></a>Parallel Clean Compile All</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ sbt clean; time sbt test:compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ sbt clean; time sbt test:compile
 34.28s
 32.84s
 34.55s
@@ -847,7 +852,7 @@ comparison for sequential execution times.</p>
 <h3 id="_clean_compile_single_module"><a class="anchor" href="#_clean_compile_single_module"></a>Clean Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sbt clean; time sbt gatling-commons/compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sbt clean; time sbt gatling-commons/compile
 10.1
 10.7
 10.1
@@ -873,7 +878,7 @@ and all the downstream submodules.</p>
 <h3 id="_incremental_compile_single_module"><a class="anchor" href="#_incremental_compile_single_module"></a>Incremental Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ echo "" &gt;&gt; gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ echo "" &gt;&gt; gatling-commons/src/main/scala/io/gatling/commons/util/Arrays.scala
 $ time sbt gatling-commons/compile
 6.6s
 6.2s
@@ -908,7 +913,7 @@ a fraction of a second, while Cold <code>sbt</code> has substantial overhead.</p
 <h3 id="_no_op_compile_single_module"><a class="anchor" href="#_no_op_compile_single_module"></a>No-Op Compile Single-Module</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ time sbt gatling-commons/compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ time sbt gatling-commons/compile
 4.2s
 4.2s
 4.2s
@@ -941,10 +946,9 @@ in comparison substantial &gt;4s overhead.</p>
 <h2 id="_ide_support"><a class="anchor" href="#_ide_support"></a>IDE Support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>One area that Mill does significantly better than <code>sbt</code> is in the IDE support. For example, although
-IDEs like IntelliJ are nominally able to parse and analyze your <code>sbt</code> files, the assistance they can
-provide is often not very useful. For example, consider the inspection and jump-to-definition experience
-of looking into an <code>sbt</code> Task:</p>
+<p>One area that Mill does significantly better than <code>sbt</code> is in the IDE support.
+For example, although IDEs like IntelliJ are nominally able to parse and analyze your <code>sbt</code> files, the assistance they can provide is often not very useful.
+For example, consider the inspection and jump-to-definition experience of looking into an <code>sbt</code> Task:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -972,10 +976,8 @@ of looking into an <code>sbt</code> Task:</p>
 <div class="paragraph">
 <p>In general, although your IDE can make sure the name of the task exists, and the type is correct, it
 is unable to pull up any further information about the task: its documentation, its implementation,
-usages, any upstream overridden implementations, etc.. Some of this is the limitations of the IDE,
-but some of it is fundamental: because <code>sbt</code> makes the developer define the <code>val myTask</code> separate
-from the assignment of <code>myTask := something</code>, jumping to the definition of <code>myTask</code> tells you nothing
-at all: what it does, where it is assigned, etc.</p>
+usages, any upstream overridden implementations, etc..
+Some of this is the limitations of the IDE, but some of it is fundamental: because <code>sbt</code> makes the developer define the <code>val myTask</code> separate from the assignment of <code>myTask := something</code>, jumping to the definition of <code>myTask</code> tells you nothing at all: what it does, where it is assigned, etc.</p>
 </div>
 <div class="paragraph">
 <p>In comparison, for Mill, IDEs like Intellij are able to provide much more intelligence. e.g. when
@@ -1019,9 +1021,10 @@ documentation in-line in the editor or jump to their full implementation:</p>
 </div>
 <div class="paragraph">
 <p>In general, navigating around your build in Mill is much more straightforward than
-navigating around your build in <code>sbt</code>. All your normal IDE functionality works perfectly:
-jump-to-definition, find-usages, peek-at-documentation, and so on. Although the Mill
-and <code>sbt</code> builds end up doing the same basic things - compiling Scala, running tests,
+navigating around your build in <code>sbt</code>.
+All your normal IDE functionality works perfectly:
+jump-to-definition, find-usages, peek-at-documentation, and so on.
+Although the Mill and <code>sbt</code> builds end up doing the same basic things - compiling Scala, running tests,
 zipping up jars - Mill helps de-mystify things considerably so you are never blocked
 wondering what your build tool is doing.</p>
 </div>
@@ -1032,9 +1035,10 @@ wondering what your build tool is doing.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Another area that Mill does better than <code>sbt</code> is providing builtin tools for you to understand
-what your build is doing. For example, the Gatling project build discussed has 21 submodules
-and associated test suites, but how do these different modules depend on each other? With
-Mill, you can run <code>./mill visualize __.compile</code>, and it will show you how the
+what your build is doing.
+For example, the Gatling project build discussed has 21 submodules
+and associated test suites, but how do these different modules depend on each other?
+With Mill, you can run <code>./mill visualize __.compile</code>, and it will show you how the
 <code>compile</code> task of each module depends on the others:</p>
 </div>
 <div class="imageblock">
@@ -1044,8 +1048,8 @@ Mill, you can run <code>./mill visualize __.compile</code>, and it will show you
 </div>
 <div class="paragraph">
 <p>Apart from the static dependency graph, another thing of interest may be the performance
-profile and timeline: where the time is spent when you actually compile everything. With
-Mill, when you run a compilation using <code>./mill -j 10 __.compile</code>, you automatically get a
+profile and timeline: where the time is spent when you actually compile everything.
+With Mill, when you run a compilation using <code>./mill -j 10 __.compile</code>, you automatically get a
 <code>out/mill-chrome-profile.json</code> file that you can load into your <code>chrome://tracing</code> page and
 visualize where your build is spending time and where the performance bottlenecks are:</p>
 </div>
@@ -1056,12 +1060,12 @@ visualize where your build is spending time and where the performance bottleneck
 </div>
 <div class="paragraph">
 <p>If you want to inspect the tree of third-party dependencies used by any module, the
-built in <code>ivyDepsTree</code> command lets you do that easily:</p>
+built in <code>mvnDepsTree</code> command lets you do that easily:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">$ ./mill gatling-app.ivyDepsTree
-[137/137] gatling-app.ivyDepsTree
+<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">$ ./mill gatling-app.mvnDepsTree
+[137/137] gatling-app.mvnDepsTree
 ├─ org.scala-lang:scala-library:2.13.14
 ├─ io.gatling:gatling-shared-model_2.13:0.0.6
 │  ├─ io.gatling:gatling-shared-util_2.13:0.0.8
@@ -1097,17 +1101,17 @@ take ownership of the build tool.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Both the Mill and <code>sbt</code> builds we discussed in this case study do the same thing: they
-compile Java and Scala code and run tests. If set up and used properly, <code>sbt</code> builds
-are performant and do what needs to be done.</p>
+compile Java and Scala code and run tests.
+If set up and used properly, <code>sbt</code> builds are performant and do what needs to be done.</p>
 </div>
 <div class="paragraph">
-<p>Where Mill has an advantage over <code>sbt</code> is in its simplicity and understandability. You
-do not need to worry about using it "the wrong way" and ending up with workflows running
-slower than necessary. You can explore your build using your IDE like you would any other
+<p>Where Mill has an advantage over <code>sbt</code> is in its simplicity and understandability.
+You do not need to worry about using it "the wrong way" and ending up with workflows running
+slower than necessary.
+You can explore your build using your IDE like you would any other
 project, tracing task dependencies using the same jump-to-definition you use to trace
-method calls in your application code. Mill provides builtin tools to help you navigate,
-visualize, and understand your build, turning a normally opaque "build config" into
-something that&#8217;s transparent and easily understandable.</p>
+method calls in your application code.
+Mill provides builtin tools to help you navigate, visualize, and understand your build, turning a normally opaque "build config" into something that&#8217;s transparent and easily understandable.</p>
 </div>
 </div>
 </div>

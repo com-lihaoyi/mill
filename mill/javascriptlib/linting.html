@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -671,13 +671,13 @@ codebases using the Mill build tool</p>
 <p>Eslint and Prettier are tools that analyzes your Typescript source code, performing intelligent analyses and code quality checks, and is often able to automatically fix the issues that it discovers. It can also perform automated refactoring.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javascriptlib-linting-1-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javascriptlib/linting/1-linting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javascriptlib-linting-1-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javascriptlib/linting/1-linting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
-object foo extends TypeScriptModule with TsLintModule</code></pre>
+object foo extends TypeScriptModule, TsLintModule</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -690,7 +690,7 @@ The task <code>npmLintDeps</code> works the same way as <code>npmDeps</code> or 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat foo/src/foo.ts # initial code with lint errors.
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat foo/src/foo.ts # initial code with lint errors.
 export class Foo{
   static main(
     args: string[
@@ -699,7 +699,7 @@ export class Foo{
   }
 }
 
-&gt; mill foo.checkFormatAll # run eslint
+&gt; ./mill foo.checkFormatAll # run eslint
 ...
 foo/src/foo.ts
   3:5  error  'args' is defined but never used  @typescript-eslint/no-unused-vars
@@ -717,18 +717,18 @@ export class Foo{
   }
 }
 
-&gt; mill foo.checkFormatAll # run eslint
+&gt; ./mill foo.checkFormatAll # run eslint
 All matched files use Eslint code style!</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javascriptlib-linting-2-autoformatting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javascriptlib/linting/2-autoformatting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javascriptlib-linting-2-autoformatting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javascriptlib/linting/2-autoformatting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
-object foo extends TypeScriptModule with TsLintModule</code></pre>
+object foo extends TypeScriptModule, TsLintModule</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -753,7 +753,7 @@ if no path is provided mill will default to using "<strong>/</strong>*/*.ts".</p
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat foo/src/foo.ts # initial poorly formatted source code
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat foo/src/foo.ts # initial poorly formatted source code
 export class Foo{
 static main(
 args: string[
@@ -762,7 +762,7 @@ args: string[
 }
 }
 
-&gt; mill foo.checkFormatAll # run linter - since both eslint and prettier configurations are present, mill will opt to use eslint.
+&gt; ./mill foo.checkFormatAll # run linter - since both eslint and prettier configurations are present, mill will opt to use eslint.
 ...
 foo/src/foo.ts
   2:1   error  Expected indentation of 2 spaces but found 0                                   indent
@@ -779,7 +779,7 @@ foo/src/foo.ts
 ...10 problems (10 errors, 0 warnings)
 ...10 errors and 0 warnings potentially fixable with running foo.reformatAll.
 
-&gt; mill foo.reformatAll
+&gt; ./mill foo.reformatAll
 ...
 All matched files have been reformatted!
 
@@ -794,12 +794,12 @@ export class Foo{
 
 &gt; rm -rf eslint.config.mjs # since there is no eslint config file `eslint.config.(js|mjs|cjs)`, mill will use the prettier configuration available.
 
-&gt; mill foo.checkFormatAll # run lint with prettier configuration.
+&gt; ./mill foo.checkFormatAll # run lint with prettier configuration.
 Checking formatting...
 [warn] foo/src/foo.ts
 [warn] Code style issues found. Run foo.reformatAll to fix.
 
-&gt; mill foo.reformatAll
+&gt; ./mill foo.reformatAll
 ...
 All matched files have been reformatted!
 
@@ -820,26 +820,26 @@ export class Foo {
 <p>Mill supports code coverage analysis with multiple Typescript testing frameworks.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-javascriptlib-linting-3-code-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/javascriptlib/linting/3-code-coverage">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javascriptlib-linting-3-code-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javascriptlib/linting/3-code-coverage">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._, javascriptlib._
+import mill.*, javascriptlib.*
 
 object foo extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Jest
+  object test extends TypeScriptTests, TestModule.Jest
 }
 
 object bar extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Mocha
+  object test extends TypeScriptTests, TestModule.Mocha
 }
 
 object baz extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Vitest
+  object test extends TypeScriptTests, TestModule.Vitest
 }
 
 object qux extends TypeScriptModule {
-  object test extends TypeScriptTests with TestModule.Jasmine
+  object test extends TypeScriptTests, TestModule.Jasmine
 }</code></pre>
 </div>
 </div>
@@ -892,7 +892,7 @@ for coverage, when using either, to use custom coverage configurations you must 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.test.coverage
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.test.coverage
 ...Calculator
 ...
 ---------------|---------|----------|---------|---------|-------------------
@@ -906,7 +906,7 @@ Test Suites:...1 passed, 1 total...
 Tests:...4 passed, 4 total...
 ...
 
-&gt; mill bar.test.coverage
+&gt; ./mill bar.test.coverage
 ...
 ...2 passing...
 ...
@@ -917,7 +917,7 @@ File...| % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s...
 ...calculator.ts...|...66.66 |...0 |...66.66 |...62.5 | 7-10...
 ---------------|---------|----------|---------|---------|-------------------
 
-&gt; mill baz.test.coverage
+&gt; ./mill baz.test.coverage
 .../calculator.test.ts...
 ...Test Files  1 passed...
 ...Tests  4 passed...
@@ -930,7 +930,7 @@ File...| % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s...
 ...calculator.ts...|...100 |...100 |...100 |...100 |...
 ---------------|---------|----------|---------|---------|-------------------
 
-&gt; mill qux.test.coverage
+&gt; ./mill qux.test.coverage
 ...
 4 specs, 0 failures
 ...

@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -676,7 +676,7 @@ For more details about coursier, refer to the <a href="https://get-coursier.io/d
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>ivy"{organization}:{name}:{version}"</pre>
+<pre>mvn"{organization}:{name}:{version}"</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -684,13 +684,13 @@ For more details about coursier, refer to the <a href="https://get-coursier.io/d
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>ivy"{organization}:{name}:{version}[;{attribute}={value}]*"</pre>
+<pre>mvn"{organization}:{name}:{version}[;{attribute}={value}]*"</pre>
 </div>
 </div>
 <div class="paragraph">
 <p>When working in other Java and Scala projects, you will find some synonyms, which typically all mean the same.
 For example in the Maven ecosystem, the <code>organization</code> is called the <code>group</code> and the <code>name</code> is called the <code>artifact</code>.
-The whole triplet is often called <code>GAV</code>.</p>
+The whole triplet is often called <code>GAV</code>, short for "Group, Artifact, Version".</p>
 </div>
 <div class="paragraph">
 <p>In Mill we use the additional term <code>artifactId</code> which is identical to the <code>name</code> when used in the normal form shown above.
@@ -699,8 +699,8 @@ When a different form is used, e.g. some double-colons are used between the part
 <div class="listingblock">
 <div class="title">Example for a simple Java Dependency</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def ivyDeps = Agg(
-  ivy"org.slf4j:slf4j-api:1.7.25"
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mvnDeps = Seq(
+  mvn"org.slf4j:slf4j-api:1.7.25"
 )</code></pre>
 </div>
 </div>
@@ -710,20 +710,20 @@ When a different form is used, e.g. some double-colons are used between the part
 <p>One difference between Mill and other build tools like sbt or Maven is the fact, that tests are ordinary submodules on their own.
 For convenience, most modules already come with a pre-configured trait for a test submodule,
 which already inherits all dependencies of their parent module.
-If you need additional test dependencies, you simply add them by overriding <code>def ivyDeps</code>, as you would do with normal library dependencies.</p>
+If you need additional test dependencies, you simply add them by overriding <code>def mvnDeps</code>, as you would do with normal library dependencies.</p>
 </div>
 <div class="paragraph">
 <p>When migrating a sbt project and seeing a dependency like this: <code>"ch.qos.logback" % "logback-classic" % "1.2.3" % "test"</code>,
-simply add it to the test module&#8217;s <code>ivyDeps</code> as ordinary dependency.
+simply add it to the test module&#8217;s <code>mvnDeps</code> as ordinary dependency.
 There is no special test scope in Mill.</p>
 </div>
 <div class="listingblock">
 <div class="title">Example</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object main extends JavaModule {
-  object test extends JavaModuleTests {
-    def ivyDeps = Agg(
-      ivy"org.qos.logback:logback-classic:1.2.3"
+  object test extends JavaTests {
+    def mvnDeps = Seq(
+      mvn"org.qos.logback:logback-classic:1.2.3"
     )
   }
 }</code></pre>
@@ -733,13 +733,13 @@ There is no special test scope in Mill.</p>
 <div class="sect2">
 <h3 id="_compile_only_dependencies_provided_scope"><a class="anchor" href="#_compile_only_dependencies_provided_scope"></a>Compile-only dependencies (<code>provided</code> scope)</h3>
 <div class="paragraph">
-<p>If you want to use a dependency only at compile time, you can declare it with the <code>compileIvyDeps</code> task.</p>
+<p>If you want to use a dependency only at compile time, you can declare it with the <code>compileMvnDeps</code> task.</p>
 </div>
 <div class="listingblock">
 <div class="title">Example</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compileIvyDeps = Agg(
-  ivy"org.slf4j:slf4j-api:1.7.25"
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compileMvnDeps = Seq(
+  mvn"org.slf4j:slf4j-api:1.7.25"
 )</code></pre>
 </div>
 </div>
@@ -753,18 +753,18 @@ There is no special test scope in Mill.</p>
 <div class="sect2">
 <h3 id="_runtime_dependencies"><a class="anchor" href="#_runtime_dependencies"></a>Runtime dependencies</h3>
 <div class="paragraph">
-<p>If you want to declare dependencies to be used at runtime (but not at compile time), you can use the <code>runIvyDeps</code> tasks.</p>
+<p>If you want to declare dependencies to be used at runtime (but not at compile time), you can use the <code>runMvnDeps</code> tasks.</p>
 </div>
 <div class="listingblock">
 <div class="title">Example</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def runIvyDeps = Agg(
-  ivy"ch.qos.logback:logback-classic:1.2.0"
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def runMvnDeps = Seq(
+  mvn"ch.qos.logback:logback-classic:1.2.0"
 )</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>It is also possible to use a higher version of the same library dependencies already defined in <code>ivyDeps</code>, to ensure you compile against a minimal API version, but actually run with the latest available version.</p>
+<p>It is also possible to use a higher version of the same library dependencies already defined in <code>mvnDeps</code>, to ensure you compile against a minimal API version, but actually run with the latest available version.</p>
 </div>
 </div>
 </div>
@@ -773,7 +773,7 @@ There is no special test scope in Mill.</p>
 <h2 id="_transitive_dependencies"><a class="anchor" href="#_transitive_dependencies"></a>Transitive dependencies</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To render a tree of dependencies (transitive included) you can run <code>mill myModule.ivyDepsTree</code>. Here is how the start of <code>./mill __.ivyDepsTree</code> looks like in the <code>mill</code> project itself:</p>
+<p>To render a tree of dependencies (transitive included) you can run <code>mill myModule.showMvnDepsTree</code>. Here is how the start of <code>./mill __.showMvnDepsTree</code> looks like in the <code>mill</code> project itself:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -792,17 +792,17 @@ There is no special test scope in Mill.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>After compiling your module(s) you can find and examine files such as <code>ivyDeps.json</code> and <code>transitiveIvyDeps.json</code> in your <code>out</code> build&#8217;s folder for a given module.
-After running the <code>ivyDepsTree</code> command you&#8217;ll also find the <code>ivyDepsTree.json</code> and <code>ivyDepsTree.log</code> file that contain the output of the above <code>ivyDepsTree</code> command.</p>
+<p>After compiling your module(s) you can find and examine files such as <code>mvnDeps.json</code> and <code>transitiveMvnDeps.json</code> in your <code>out</code> build&#8217;s folder for a given module.
+After running the <code>showMvnDepsTree</code> command you&#8217;ll also find the <code>showMvnDepsTree.json</code> and <code>showMvnDepsTree.log</code> file that contain the output of the above <code>showMvnDepsTree</code> command.</p>
 </div>
 <div class="paragraph">
-<p>You can observe the actual version being used by running <code>mill show myModule.resolvedIvyDeps</code>. If you run <code>mill myModule.resolvedIvyDeps</code>, the same information is available in <code>out/myModule/resolvedIvyDeps.json</code>.</p>
+<p>You can observe the actual version being used by running <code>mill show myModule.resolvedMvnDeps</code>. If you run <code>mill myModule.resolvedMvnDeps</code>, the same information is available in <code>out/myModule/resolvedMvnDeps.json</code>.</p>
 </div>
 <div class="sect2">
 <h3 id="_figuring_out_where_a_dependency_comes_from"><a class="anchor" href="#_figuring_out_where_a_dependency_comes_from"></a>Figuring out where a dependency comes from</h3>
 <div class="paragraph">
 <p>There will be times when you want to figure out where a dependency is coming
-from. The output of <code>ivyDepsTree</code> can be quite large in larger projects so the
+from. The output of <code>showMvnDepsTree</code> can be quite large in larger projects so the
 command provides a nice utility to be able to target the part of the tree that
 brings in a specific dependency.</p>
 </div>
@@ -813,8 +813,8 @@ artifact is coming from using the <code>--whatDependsOn</code> argument:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">❯ ./mill -i dev.run ~/Documents/scala-workspace/com-lihaoyi/mill  main.ivyDepsTree --whatDependsOn com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13
-[33/33] main.ivyDepsTree
+<pre class="highlightjs highlight"><code class="language-txt hljs" data-lang="txt">❯ ./mill -i dev.run ~/Documents/scala-workspace/com-lihaoyi/mill  main.showMvnDepsTree --whatDependsOn com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13
+[33/33] main.showMvnDepsTree
 └─ com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13:2.13.5
    ├─ io.get-coursier:coursier_2.13:2.1.0-RC1
    └─ org.virtuslab.scala-cli:config_2.13:0.1.16
@@ -845,8 +845,8 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="listingblock">
 <div class="title">Example: Exclude <code>fansi_2.12</code> library from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def deps = Agg(
-  ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -&gt; "fansi_2.12")
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def deps = Seq(
+  mvn"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -&gt; "fansi_2.12")
 )</code></pre>
 </div>
 </div>
@@ -857,17 +857,17 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <p>There is also a short notation available:</p>
 </div>
 <div class="listingblock">
-<div class="title">Example: Shot notation to exclude <code>fansi_2.12</code> library from transitive dependency set of <code>pprint</code>.</div>
+<div class="title">Example: Short notation to exclude <code>fansi_2.12</code> library from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def deps = Agg(
-  ivy"com.lihaoyi::pprint:0.5.3;exclude=com.lihaoyi:fansi_2.12"
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def deps = Seq(
+  mvn"com.lihaoyi::pprint:0.5.3;exclude=com.lihaoyi:fansi_2.12"
 )</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Example: Exclude all <code>com.lihaoyi</code> libraries from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Seq(mvn"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -876,8 +876,8 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="listingblock">
 <div class="title">Example: Excluding a library (fansi) by name from transitive dependency set of <code>pprint</code>.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Agg(
-  ivy"com.lihaoyi::pprint:0.5.3"
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">val deps = Seq(
+  mvn"com.lihaoyi::pprint:0.5.3"
     .excludeName("fansi_2.12")
     .excludeName("sourcecode")
 )</code></pre>
@@ -892,22 +892,22 @@ Use the special name <code>*</code> to match all <code>organization</code>s or <
 <div class="ulist">
 <ul>
 <li>
-<p>You declare a dependency <code>val deps = Agg(ivy"com.lihaoyi::fansi:0.2.14")</code></p>
+<p>You declare a dependency <code>val deps = Seq(mvn"com.lihaoyi::fansi:0.2.14")</code></p>
 </li>
 <li>
-<p>There is another dependency, <code>val deps = Agg(ivy"com.lihaoyi::PPrint:0.8.1")</code></p>
+<p>There is another dependency, <code>val deps = Seq(mvn"com.lihaoyi::PPrint:0.8.1")</code></p>
 </li>
 <li>
 <p>PPrint 0.8.1 uses fansi 0.4.0, so it is a transitive dependency</p>
 </li>
 <li>
-<p><code>mill show myModule.resolvedIvyDeps | grep "fansi"</code> should show fansi 0.4.0</p>
+<p><code>mill show myModule.resolvedMvnDeps | grep "fansi"</code> should show fansi 0.4.0</p>
 </li>
 <li>
-<p>If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use <code>val deps = Agg(ivy"com.lihaoyi::fansi:0.2.14".forceVersion())</code></p>
+<p>If you want to force to the older version (to prevent it being evicted, and replaced by 0.4.0) then you can use <code>val deps = Seq(mvn"com.lihaoyi::fansi:0.2.14".forceVersion())</code></p>
 </li>
 <li>
-<p><code>mill show myModule.resolvedIvyDeps | grep "fansi"</code> should show fansi 0.2.14</p>
+<p><code>mill show myModule.resolvedMvnDeps | grep "fansi"</code> should show fansi 0.2.14</p>
 </li>
 </ul>
 </div>
@@ -928,7 +928,7 @@ that</p>
 <p>if it ends up being fetched transitively, its version will be forced to the one in dependency management</p>
 </li>
 <li>
-<p>if its version is empty in an <code>ivyDeps</code> section in Mill, the version from dependency management will be used</p>
+<p>if its version is empty in an <code>mvnDeps</code> section in Mill, the version from dependency management will be used</p>
 </li>
 </ul>
 </div>
@@ -953,20 +953,20 @@ whose Maven coordinates are <code>com.google.cloud:libraries-bom:26.50.0</code><
 <div class="sect2">
 <h3 id="_external_bill_of_material_bom"><a class="anchor" href="#_external_bill_of_material_bom"></a>External Bill of Material (BOM)</h3>
 <div class="paragraph">
-<p>Pass an external BOM to a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code> with <code>bomIvyDeps</code>, like</p>
+<p>Pass an external BOM to a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code> with <code>bomMvnDeps</code>, like</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-fundamentals-dependencies-1-external-bom.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/fundamentals/dependencies/1-external-bom">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-fundamentals-dependencies-1-external-bom.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/fundamentals/dependencies/1-external-bom">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
-  def bomIvyDeps = Agg(
-    ivy"com.google.cloud:libraries-bom:26.50.0"
+  def bomMvnDeps = Seq(
+    mvn"com.google.cloud:libraries-bom:26.50.0"
   )
-  def ivyDeps = Agg(
-    ivy"io.grpc:grpc-protobuf"
+  def mvnDeps = Seq(
+    mvn"io.grpc:grpc-protobuf"
   )
 }</code></pre>
 </div>
@@ -981,8 +981,8 @@ But the BOM specifies another version for that dependency, <code>4.28.3</code>, 
 protobuf-java <code>4.28.3</code> ends up being pulled here.</p>
 </div>
 <div class="paragraph">
-<p>Several BOMs can be passed to <code>bomIvyDeps</code>. If several specify a version for a dependency,
-the version from the first one in the <code>bomIvyDeps</code> list is used. If several specify exclusions
+<p>Several BOMs can be passed to <code>bomMvnDeps</code>. If several specify a version for a dependency,
+the version from the first one in the <code>bomMvnDeps</code> list is used. If several specify exclusions
 for a dependency, all exclusions are added to that dependency.</p>
 </div>
 </div>
@@ -992,18 +992,18 @@ for a dependency, all exclusions are added to that dependency.</p>
 <p>Pass dependencies to <code>depManagement</code> in a <code>JavaModule</code> / <code>ScalaModule</code> / <code>KotlinModule</code>, like</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/fundamentals/dependencies/2-managed">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-fundamentals-dependencies-2-managed.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/fundamentals/dependencies/2-managed">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule {
-  def depManagement = Agg(
-    ivy"com.google.protobuf:protobuf-java:4.28.3",
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+  def depManagement = Seq(
+    mvn"com.google.protobuf:protobuf-java:4.28.3",
+    mvn"io.grpc:grpc-protobuf:1.67.1"
   )
-  def ivyDeps = Agg(
-    ivy"io.grpc:grpc-protobuf"
+  def mvnDeps = Seq(
+    mvn"io.grpc:grpc-protobuf"
   )
 }</code></pre>
 </div>
@@ -1023,20 +1023,20 @@ protobuf-java <code>4.28.3</code> ends up being pulled here.</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object bar extends JavaModule {
-  def depManagement = Agg(
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+  def depManagement = Seq(
+    mvn"io.grpc:grpc-protobuf:1.67.1"
       .exclude(("com.google.protobuf", "protobuf-java"))
   )
-  def ivyDeps = Agg(
-    ivy"io.grpc:grpc-protobuf"
+  def mvnDeps = Seq(
+    mvn"io.grpc:grpc-protobuf"
   )
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Here, grpc-protobuf has an empty version in <code>ivyDeps</code>, so the one in <code>depManagement</code>,
+<p>Here, grpc-protobuf has an empty version in <code>mvnDeps</code>, so the one in <code>depManagement</code>,
 <code>1.67.1</code>, is used. Also, <code>com.google.protobuf:protobuf-java</code> is excluded from grpc-protobuf
-in <code>depManagement</code>, so it ends up being excluded from it in <code>ivyDeps</code> too.</p>
+in <code>depManagement</code>, so it ends up being excluded from it in <code>mvnDeps</code> too.</p>
 </div>
 <div class="paragraph">
 <p>If one wants to add exclusions via <code>depManagement</code>, specifying a version is optional,
@@ -1045,12 +1045,12 @@ like</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object baz extends JavaModule {
-  def depManagement = Agg(
-    ivy"io.grpc:grpc-protobuf"
+  def depManagement = Seq(
+    mvn"io.grpc:grpc-protobuf"
       .exclude(("com.google.protobuf", "protobuf-java"))
   )
-  def ivyDeps = Agg(
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+  def mvnDeps = Seq(
+    mvn"io.grpc:grpc-protobuf:1.67.1"
   )
 }</code></pre>
 </div>
@@ -1065,13 +1065,13 @@ like</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myBom extends BomModule {
-  // Importing external BOMs from our BOM module with bomIvyDeps
-  def bomIvyDeps = Agg(
-    ivy"com.google.protobuf:protobuf-bom:4.28.1"
+  // Importing external BOMs from our BOM module with bomMvnDeps
+  def bomMvnDeps = Seq(
+    mvn"com.google.protobuf:protobuf-bom:4.28.1"
   )
   // Managing versions directly from our BOM module with depManagement
-  def depManagement = Agg(
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+  def depManagement = Seq(
+    mvn"io.grpc:grpc-protobuf:1.67.1"
   )
 }</code></pre>
 </div>
@@ -1085,8 +1085,8 @@ like</p>
   def bomModuleDeps = Seq(
     myBom
   )
-  def ivyDeps = Agg(
-    ivy"io.grpc:grpc-protobuf"
+  def mvnDeps = Seq(
+    mvn"io.grpc:grpc-protobuf"
   )
 }</code></pre>
 </div>
@@ -1097,12 +1097,12 @@ packaging type <code>pom</code>, usable as a BOM from other build tools:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myPublishedBom extends BomModule with MyPublishModule {
-  def bomIvyDeps = Agg(
-    ivy"com.google.protobuf:protobuf-bom:4.28.1"
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object myPublishedBom extends BomModule, MyPublishModule {
+  def bomMvnDeps = Seq(
+    mvn"com.google.protobuf:protobuf-bom:4.28.1"
   )
-  def depManagement = Agg(
-    ivy"io.grpc:grpc-protobuf:1.67.1"
+  def depManagement = Seq(
+    mvn"io.grpc:grpc-protobuf:1.67.1"
   )
 }</code></pre>
 </div>
@@ -1113,12 +1113,12 @@ but we can still use it right from our build with bomModuleDeps:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object publishedBomUser extends JavaModule with MyPublishModule {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object publishedBomUser extends JavaModule, MyPublishModule {
   def bomModuleDeps = Seq(
     myPublishedBom
   )
-  def ivyDeps = Agg(
-    ivy"io.grpc:grpc-protobuf"
+  def mvnDeps = Seq(
+    mvn"io.grpc:grpc-protobuf"
   )
 }
 
@@ -1149,10 +1149,10 @@ dependencies with particularly weird version numbers. For example, given the fol
 build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/fundamentals/dependencies/3-search-updates">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-fundamentals-dependencies-3-search-updates.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/fundamentals/dependencies/3-search-updates">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
 trait MyModule extends ScalaModule {
   def scalaVersion = "2.13.11"
@@ -1160,11 +1160,14 @@ trait MyModule extends ScalaModule {
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs:0.4.0")
+  def mvnDeps = Seq(mvn"com.lihaoyi::mainargs:0.4.0")
 }
 
 object bar extends MyModule {
-  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.8.2")
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::mainargs:0.4.0",
+    mvn"com.lihaoyi::scalatags:0.8.2"
+  )
 }</code></pre>
 </div>
 </div>
@@ -1173,9 +1176,29 @@ object bar extends MyModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill mill.scalalib.Dependency/showUpdates
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.javalib.Dependency/showUpdates
+Found 2 dependency update for bar
+  com.lihaoyi:mainargs_2.13 : 0.4.0 -&gt; 0.5.0 -&gt; 0.5.1 -&gt; 0.5.2 -&gt; 0.5.3 -&gt; ...
+  com.lihaoyi:scalatags_2.13 : 0.8.2 -&gt; 0.8.3 -&gt; 0.8.4 -&gt; 0.8.5 -&gt; 0.8.6 -&gt; ...
+Found 1 dependency update for foo
+  com.lihaoyi:mainargs_2.13 : 0.4.0 -&gt; 0.5.0 -&gt; 0.5.1 -&gt; 0.5.2 -&gt; 0.5.3 -&gt; ...
 
-&gt; mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions</code></pre>
+&gt; ./mill mill.scalalib.Dependency/showUpdates --format PerDependency
+com.lihaoyi:mainargs_2.13 : 0.4.0 -&gt; 0.5.0 -&gt; 0.5.1 -&gt; 0.5.2 -&gt; 0.5.3 -&gt; ... in
+  bar
+  foo
+com.lihaoyi:scalatags_2.13 : 0.8.2 -&gt; 0.8.3 -&gt; 0.8.4 -&gt; 0.8.5 -&gt; 0.8.6 -&gt; ... in
+  bar
+
+&gt; ./mill mill.javalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you have a meta-build, you can also search for updates there</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill --meta-level 1 mill.javalib.Dependency/showUpdates</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1185,13 +1208,10 @@ object bar extends MyModule {
 <ul>
 <li>
 <p>Only works for <code>JavaModule</code> modules (including <code>ScalaModule</code>s,
-<code>CrossScalaModule</code>s, etc.) and Maven repositories.</p>
+<code>CrossScalaModule</code>s, <code>KotlinModule</code>s, etc.) and Maven repositories.</p>
 </li>
 <li>
 <p>Always applies to all modules in the build.</p>
-</li>
-<li>
-<p>Doesn&#8217;t apply to <code>$ivy</code> dependencies used in the build definition itself.</p>
 </li>
 </ul>
 </div>

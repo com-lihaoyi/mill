@@ -6,7 +6,7 @@
     <title>Configuring JVM Versions :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/fundamentals/configuring-jvm-versions.html">
     <link rel="prev" href="bundled-libraries.html">
-    <link rel="next" href="../extending/import-ivy-plugins.html">
+    <link rel="next" href="../extending/import-mvn-plugins.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -660,13 +660,9 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>By default, Mill uses the same JVM that it itself is running on to compile/test/run
-Java/Scala/Kotlin modules. This page goes into more detail about downloading
-and using a custom Java home on a per-module basis.</p>
-</div>
-<div class="paragraph">
-<p>To override the default Java home, you can create a custom
-<code>ZincWorkerModule</code> and override the <code>zincWorker</code> method in your
-<code>JavaModule</code> or <code>ScalaModule</code> by pointing it to that custom object:</p>
+Java/Scala/Kotlin modules, typically whatever <code>java</code> command you have available globally
+or what you have configured in your <a href="../cli/build-header.html" class="xref page">Build Header Config</a>. This page goes into
+more detail about downloading and using a custom Java home on a per-module basis.</p>
 </div>
 </div>
 </div>
@@ -674,12 +670,11 @@ and using a custom Java home on a per-module basis.</p>
 <h2 id="_setting_the_jvm_version_of_a_javamodule"><a class="anchor" href="#_setting_the_jvm_version_of_a_javamodule"></a>Setting the JVM version of a JavaModule</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The <code>ZincWorkerModule.ForJvm</code> class takes a Jvm dependency string as its
-contructor argument and configures the module to fetch and cache the Jvm
-using coursier and use it for the compile, run, and test tasks.</p>
+<p>Configuring custom JVMs is done by setting the <code>def jvmId</code>
+of any <code>JavaModule</code>, <code>ScalaModule</code>, or <code>KotlinModule</code></p>
 </div>
 <div class="paragraph">
-<p>The string has the form:</p>
+<p>The <code>jvmId</code> string has the form:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -691,39 +686,33 @@ using coursier and use it for the compile, run, and test tasks.</p>
 and architecture <a href="https://github.com/coursier/jvm-index/blob/master/indices/linux-arm64.json">here</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/depth/javahome/1-custom-jvms">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-depth-javahome-1-custom-jvms.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/depth/javahome/1-custom-jvms">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, javalib._
-import mill.define.ModuleRef
-
-object ZincWorkerJava extends ZincWorkerModule {
-  def jvmId = "temurin:18.0.2"
-}
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, javalib.*
+import mill.api.ModuleRef
 
 object foo extends JavaModule {
-  def zincWorker = ModuleRef(ZincWorkerJava)
+  def jvmId = "temurin:18.0.2"
 
-  object test extends JavaTests with TestModule.Junit4
+  object test extends JavaTests, TestModule.Junit4
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 Foo running on Java 18.0.2
 
-&gt; mill foo.test
+&gt; ./mill foo.test
 Testing with JVM version: 18.0.2
 Test foo.FooTest.testSimple finished...</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Selecting a custom JVM via <code>ZincWorkerModule.ForJvm</code> means that JVM is used for
+<p>Selecting a custom JVM via <code>jvmId</code> means that JVM is used for
 compiling, testing, and running that module via Mill. Note that <code>.assembly</code> is not
 affected, as JVM assembly jars do not bundle a JVM and have to be run using a
-JVM installed on the target host machine. Configuration is done via <code>ZincWorkerModule</code>
-as the <a href="https://github.com/sbt/zinc">Zinc</a> incremental compiler is used for compiling
-Java and Scala sources.</p>
+JVM installed on the target host machine.</p>
 </div>
 </div>
 </div>
@@ -740,29 +729,29 @@ index version from the Maven Central:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/">JVM Indices on Maven Central</a>)</p>
+<p><a href="https://repo1.maven.org/maven2/io/get-coursier/jvm/indices/">JVM Indices on Maven Central</a></p>
 </li>
 </ul>
 </div>
+<div class="paragraph">
+<p>Or alternatively pass in <code>"latest.release"</code> to pick the latest JVM index available,
+although that might mean the JVM version is no longer stable and might change over
+time as new releases are published:</p>
+</div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import scalalib._
-
-object ZincWorkerJavaLatest extends ZincWorkerModule {
-  def jvmId = "temurin:23.0.1"
-  def jvmIndexVersion = "latest.release"
-}
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import scalalib.*
 
 object bar extends ScalaModule {
   def scalaVersion = "2.13.12"
-  def zincWorker = ModuleRef(ZincWorkerJavaLatest)
-
+  def jvmId = "temurin:23.0.1"
+  def jvmIndexVersion = "latest.release"
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill bar.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar.run
 Bar running on Java 23.0.1</code></pre>
 </div>
 </div>
@@ -780,9 +769,10 @@ OS/CPU combinations</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import kotlinlib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import kotlinlib.*
 
-object ZincWorkerJavaUrl extends ZincWorkerModule {
+object qux extends KotlinModule {
+  def kotlinVersion = "2.0.20"
   def jvmId =
     if (sys.props("os.name") == "Mac OS X") {
       "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_aarch64_mac_hotspot_22.0.2_9.tar.gz"
@@ -790,17 +780,12 @@ object ZincWorkerJavaUrl extends ZincWorkerModule {
       "https://github.com/adoptium/temurin22-binaries/releases/download/jdk-22.0.2%2B9/OpenJDK22U-jdk_x64_linux_hotspot_22.0.2_9.tar.gz"
     }
 
-}
-
-object qux extends KotlinModule {
-  def kotlinVersion = "2.0.20"
-  def zincWorker = ModuleRef(ZincWorkerJavaUrl)
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill qux.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill qux.run
 Qux running on Java 22.0.2</code></pre>
 </div>
 </div>
@@ -814,13 +799,8 @@ Qux running on Java 22.0.2</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object ZincWorkerLocalJvm extends ZincWorkerModule {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object baz extends JavaModule {
   def javaHome = Some(PathRef(os.Path("/my/java/home"), quick = true))
-}
-
-object baz extends JavaModule {
-  def zincWorker = ModuleRef(ZincWorkerLocalJvm)
-
 }</code></pre>
 </div>
 </div>
@@ -828,7 +808,7 @@ object baz extends JavaModule {
 </div>
 <nav class="pagination">
   <span class="prev"><a href="bundled-libraries.html">Bundled Libraries</a></span>
-  <span class="next"><a href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a></span>
+  <span class="next"><a href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a></span>
 </nav>
 </article>
   </div>

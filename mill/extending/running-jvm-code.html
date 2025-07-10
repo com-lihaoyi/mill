@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -659,7 +659,7 @@
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>While <a href="import-ivy-plugins.html" class="xref page">import $ivy</a> is convenient,
+<p>While <a href="import-mvn-plugins.html" class="xref page">//| mvnDeps</a> is convenient,
 it comes with limitations as the JVM library it imports is global to your build:</p>
 </div>
 <div class="olist arabic">
@@ -673,7 +673,7 @@ needing to download the library when working on parts that don&#8217;t need it c
 <p>The library can only have one version across the entire build. This can be an issue if
 you need to have multiple versions of the library used in different parts of your build.
 e.g. different parts of a large Groovy codebase may use different versions of the Groovy
-interpreter, and so the Groovy interpreter cannot be included via <code>import $ivy</code> because the
+interpreter, and so the Groovy interpreter cannot be included via <code>//| mvnDeps</code> because the
 different versions would collide.</p>
 </li>
 <li>
@@ -681,13 +681,13 @@ different versions would collide.</p>
 it as part of your <a href="meta-build.html" class="xref page">Meta-Build</a>, that comes with additional
 complexity and limitations. In a large codebase, you often end up building modules that
 are shared between production deployments as well as local tooling: in such cases
-<code>import $ivy</code> is not a good fit</p>
+<code>//| mvnDeps</code> is not a good fit</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
 <p>In scenarios where these limitations cause issues, Mill provides other ways to run arbitrary
-JVM code apart from <code>import $ivy</code>.</p>
+JVM code apart from <code>//| mvnDeps</code>.</p>
 </div>
 </div>
 </div>
@@ -696,15 +696,15 @@ JVM code apart from <code>import $ivy</code>.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This example demonstrates how to resolve a third-party library from Maven Central,
-but instead of using <a href="import-ivy-plugins.html" class="xref page">import $ivy</a> (which loads the
+but instead of using <a href="import-mvn-plugins.html" class="xref page">//| mvnDeps</a> (which loads the
 library as part of the main build) we use:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><code>defaultResolver().resolveDeps</code> to resolve the dependencies from Maven Central,
+<p><code>defaultResolver().classpath</code> to resolve the dependencies from Maven Central,
 converting <code>org:name:version</code> coordinates (and their transitive dependencies) to
-`PathRef`s referring to files on disk</p>
+<code>PathRef</code>s referring to files on disk</p>
 </li>
 <li>
 <p><code>Jvm.runSubprocess</code>, which runs the given classpath files in a subprocess, starting
@@ -718,29 +718,28 @@ can be used to create any processes, JVM subprocesses are common enough have eno
 idiosyncracies (e.g. classpaths) that Mill provides helper methods specifically for them.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-extending-jvmcode-1-subprocess.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/jvmcode/1-subprocess">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-extending-jvmcode-1-subprocess.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/jvmcode/1-subprocess">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
+import mill.*, javalib.*
 import mill.util.Jvm
 
 object foo extends JavaModule {
-  def groovyClasspath: Task[Agg[PathRef]] = Task {
-    defaultResolver().classpath(Agg(ivy"org.codehaus.groovy:groovy:3.0.9"))
+  def groovyClasspath: Task[Seq[PathRef]] = Task {
+    defaultResolver().classpath(Seq(mvn"org.codehaus.groovy:groovy:3.0.9"))
   }
 
   def groovyScript = Task.Source("generate.groovy")
 
   def groovyGeneratedResources = Task {
-    Jvm.runSubprocess(
+    Jvm.callProcess(
       mainClass = "groovy.ui.GroovyMain",
-      classPath = groovyClasspath().map(_.path),
+      classPath = groovyClasspath().map(_.path).toSeq,
       mainArgs = Seq(
         groovyScript().path.toString,
         "Groovy!",
         (Task.dest / "groovy-generated.html").toString
-      ),
-      workingDir = Task.dest
+      )
     )
     PathRef(Task.dest)
   }
@@ -764,13 +763,13 @@ by <code>foo.run</code> and printed to the terminal output as shown below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 Contents of groovy-generated.html is &lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;Groovy!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>As mentioned above, <code>defaultResolver().resolveDeps</code> and <code>Jvm.runSubprocess</code> are an
-alternative to <code>import $ivy</code>, providing you more flexibility to resolve dependencies
+<p>As mentioned above, <code>defaultResolver().classpath</code> and <code>Jvm.runSubprocess</code> are an
+alternative to <code>//| mvnDeps</code>, providing you more flexibility to resolve dependencies
 on-demand as part of your task graph only when necessary, and keeping it isolated from
 the build in a subprocess preventing classpath collisions.</p>
 </div>
@@ -786,7 +785,7 @@ a subprocess, but:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>We use <code>Jvm.inprocess</code> to
+<p>We use <code>Jvm.withClassLoader</code> to
 load the Groovy interpreter classpath files into an in-memory in-process classloader,</p>
 </li>
 <li>
@@ -795,21 +794,21 @@ load the Groovy interpreter classpath files into an in-memory in-process classlo
 </ul>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-extending-jvmcode-2-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/jvmcode/2-classloader">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-extending-jvmcode-2-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/jvmcode/2-classloader">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
+import mill.*, javalib.*
 import mill.util.Jvm
 
 object foo extends JavaModule {
-  def groovyClasspath: Task[Agg[PathRef]] = Task {
-    defaultResolver().classpath(Agg(ivy"org.codehaus.groovy:groovy:3.0.9"))
+  def groovyClasspath: Task[Seq[PathRef]] = Task {
+    defaultResolver().classpath(Seq(mvn"org.codehaus.groovy:groovy:3.0.9"))
   }
 
   def groovyScript = Task.Source("generate.groovy")
 
   def groovyGeneratedResources = Task {
-    Jvm.runClassloader(classPath = groovyClasspath().map(_.path)) { classLoader =&gt;
+    Jvm.withClassLoader(classPath = groovyClasspath().map(_.path).toSeq) { classLoader =&gt;
       classLoader
         .loadClass("groovy.ui.GroovyMain")
         .getMethod("main", classOf[Array[String]])
@@ -831,19 +830,19 @@ object foo extends JavaModule {
 </div>
 </div>
 <div class="paragraph">
-<p>Note that unlike <code>Jvm.runSubprocess</code>, <code>Jvm.runClassloader</code> does not take a <code>workingDir</code>
+<p>Note that unlike <code>Jvm.runSubprocess</code>, <code>Jvm.withClassLoader</code> does not take a <code>workingDir</code>
 on <code>mainArgs</code>: it instead provides you an in-memory <code>classLoader</code> that contains the
 classpath you gave it. From there, you can use <code>.loadClass</code> and <code>.getMethod</code> to fish out
 the classes and methods you want, and <code>.invoke</code> to call them.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 Contents of groovy-generated.html is &lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;Groovy!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>Jvm.runClassloader</code> has significantly less overhead than <code>Jvm.runSubprocess</code>: both in terms
+<p><code>Jvm.withClassLoader</code> has significantly less overhead than <code>Jvm.runSubprocess</code>: both in terms
 of wall-clock time and in terms of memory footprint. However, it does have somewhat less
 isolation, as the code is running inside your JVM and cannot be configured to have a separate
 working directory, environment variables, and other process-global configs. Which one is
@@ -868,20 +867,20 @@ a subprocess, but instead of using <code>Jvm.runSubprocess</code> we use <code>C
 load the Groovy interpreter classpath files:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-extending-jvmcode-3-worker.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/jvmcode/3-worker">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-extending-jvmcode-3-worker.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/jvmcode/3-worker">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
+import mill.*, javalib.*
 import mill.util.Jvm
 
 object coursierModule extends CoursierModule
 
-def groovyClasspath: Task[Agg[PathRef]] = Task {
-  coursierModule.defaultResolver().classpath(Agg(ivy"org.codehaus.groovy:groovy:3.0.9"))
+def groovyClasspath: Task[Seq[PathRef]] = Task {
+  coursierModule.defaultResolver().classpath(Seq(mvn"org.codehaus.groovy:groovy:3.0.9"))
 }
 
 def groovyWorker: Worker[java.net.URLClassLoader] = Task.Worker {
-  Jvm.spawnClassloader(groovyClasspath().map(_.path).toSeq)
+  Jvm.createClassLoader(groovyClasspath().map(_.path).toSeq)
 }
 
 trait GroovyGenerateJavaModule extends JavaModule {
@@ -924,7 +923,7 @@ method of <code>groovy.ui.GroovyMain</code>, which also happens to require us to
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 Contents of groovy-generated.html is &lt;html&gt;&lt;body&gt;&lt;h1&gt;Hello!&lt;/h1&gt;&lt;p&gt;Foo Groovy!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;
 
 &gt; ./mill bar.run
@@ -958,6 +957,57 @@ rely on mutable state, see <a href="#_caching_and_re_using_jvm_subprocesses_and_
 </div>
 </div>
 <div class="sect1">
+<h2 id="_running_a_javamodule_in_a_classloader"><a class="anchor" href="#_running_a_javamodule_in_a_classloader"></a>Running a JavaModule in a Classloader</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This example demonstrates how to run your own Java code within a classloader
+as part of your build. We run the <code>bar</code> module code built as part of the project
+within an in-memory classloader via <code>Jvm.withClassloader</code>, which in this example
+serves as a code-generated to generated the <code>sources</code> of the <code>foo</code> module:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-extending-jvmcode-4-module-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/jvmcode/4-module-classloader">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+import mill.util.Jvm
+
+object foo extends JavaModule {
+  def moduleDeps = Seq(bar)
+
+  def sources = Task {
+    Jvm.withClassLoader(classPath = bar.runClasspath().map(_.path)) { classLoader =&gt;
+      classLoader
+        .loadClass("bar.Bar")
+        .getMethod("main", classOf[Array[String]])
+        .invoke(null, Array(Task.dest.toString) ++ super.sources().map(_.path.toString))
+    }
+    Seq(PathRef(Task.dest))
+  }
+}
+
+object bar extends JavaModule</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As mentioned in the section on
+<a href="#_in_process_isolated_classloaders">In-process Isolated Classloaders</a>,
+this provides less overhead over running <code>bar</code>'s classpath in a subprocess, at
+the expense of the classloader providing weaker isolation than a subprocess.
+Thus we cannot rely on the working directory inside the <code>bar.Bar</code> code to be in the
+right place, and instead we need to pass in the <code>Task.dest</code> path explicitly as a
+<code>main</code> method parameter to the <code>bar.Bar</code> main class.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
+...
+Foo.value: HELLO</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_running_a_scalamodule_in_a_subprocess"><a class="anchor" href="#_running_a_scalamodule_in_a_subprocess"></a>Running a ScalaModule in a Subprocess</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -966,14 +1016,14 @@ than pulling the code we need off of Maven Central, we instead build the code
 within the <code>bar</code> module as <code>bar/src/Bar.scala</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-extending-jvmcode-4-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/jvmcode/4-module-run-task">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-extending-jvmcode-5-module-run-task.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/jvmcode/5-module-run-task">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 import mill.util.Jvm
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.13.8"
+  def scalaVersion = "2.13.16"
   def moduleDeps = Seq(bar)
 
   def sources = Task {
@@ -983,8 +1033,8 @@ object foo extends ScalaModule {
 }
 
 object bar extends ScalaModule {
-  def scalaVersion = "2.13.8"
-  def ivyDeps = Agg(ivy"com.lihaoyi::os-lib:0.10.7")
+  def scalaVersion = "2.13.16"
+  def mvnDeps = Seq(mvn"com.lihaoyi::os-lib:0.10.7")
 }</code></pre>
 </div>
 </div>
@@ -999,7 +1049,7 @@ task automatically.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 ...
 Foo.value: HELLO</code></pre>
 </div>
@@ -1034,57 +1084,6 @@ arguments if you wish to override the defaults.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_running_a_javamodule_in_a_classloader"><a class="anchor" href="#_running_a_javamodule_in_a_classloader"></a>Running a JavaModule in a Classloader</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>While the previously example showed how to use the <code>runner().run</code> helpers
-to run a <code>ScalaModule</code>'s code, but you can also use <code>JavaModule</code>s for this
-purpose, with a source code generator written in Java. We also run the
-<code>bar</code> code within an in-memory classloader via <code>Jvm.runClassloader</code> as
-we saw earlier:</p>
-</div>
-<div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-extending-jvmcode-5-module-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/jvmcode/5-module-classloader">browse</a>)</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
-import mill.util.Jvm
-
-object foo extends JavaModule {
-  def moduleDeps = Seq(bar)
-
-  def sources = Task {
-    Jvm.runClassloader(classPath = bar.runClasspath().map(_.path)) { classLoader =&gt;
-      classLoader
-        .loadClass("bar.Bar")
-        .getMethod("main", classOf[Array[String]])
-        .invoke(null, Array(Task.dest.toString) ++ super.sources().map(_.path.toString))
-    }
-    Seq(PathRef(Task.dest))
-  }
-}
-
-object bar extends JavaModule</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>As mentioned in the section on
-<a href="#_in_process_isolated_classloaders">In-process Isolated Classloaders</a>,
-this provides less overhead over running <code>bar</code>'s classpath in a subprocess, at
-the expense of the classloader providing weaker isolation than a subprocess.
-Thus we cannot rely on the working directory inside the <code>bar.Bar</code> code to be in the
-right place, and instead we need to pass in the <code>Task.dest</code> path explicitly.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run
-...
-Foo.value: HELLO</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_caching_and_re_using_jvm_subprocesses_and_classloaders"><a class="anchor" href="#_caching_and_re_using_jvm_subprocesses_and_classloaders"></a>Caching and Re-using JVM subprocesses and classloaders</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1104,12 +1103,12 @@ which ensures that the classloaders are created when necessary,
 cached/re-used where possible, and torn down properly when no longer necessary.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-extending-jvmcode-6-module-cached-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/jvmcode/6-module-cached-classloader">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-extending-jvmcode-6-module-cached-classloader.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/jvmcode/6-module-cached-classloader">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 import mill.util.Jvm
-import mill.api.CachedFactory
+import mill.util.CachedFactory
 import java.net.{URL, URLClassLoader}
 
 trait FooModule extends JavaModule {
@@ -1137,7 +1136,7 @@ def barWorker: Worker[BarWorker] = Task.Worker {
 class BarWorker(runClasspath: Seq[os.Path]) extends CachedFactory[Unit, URLClassLoader] {
   def setup(key: Unit) = {
     println("Setting up Classloader")
-    Jvm.spawnClassloader(runClasspath)
+    Jvm.createClassLoader(runClasspath)
   }
   def teardown(key: Unit, value: URLClassLoader) = {
     println("Tearing down Classloader")
@@ -1151,14 +1150,14 @@ object bar extends JavaModule</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill '{foo1,foo2,foo3}.run' # 3 classloaders are setup, one is torn down due to maxCacheSize
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill '{foo1,foo2,foo3}.run' # 3 classloaders are setup, one is torn down due to maxCacheSize
 Setting up Classloader
 Setting up Classloader
 Setting up Classloader
 Tearing down Classloader
 Foo.value: HELLO
 
-&gt; mill clean # mill clean tears down the 2 remaining classloaders
+&gt; ./mill clean # mill clean tears down the 2 remaining classloaders
 Tearing down Classloader
 Tearing down Classloader</code></pre>
 </div>

@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -668,15 +668,15 @@ codebases using the Mill build tool</p>
 <h2 id="_linting_with_detekt"><a class="anchor" href="#_linting_with_detekt"></a>Linting with Detekt</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-kotlinlib-linting-1-detekt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/kotlinlib/linting/1-detekt">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-kotlinlib-linting-1-detekt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/linting/1-detekt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._
+import mill.*
 import kotlinlib.KotlinModule
 import kotlinlib.detekt.DetektModule
 
-object `package` extends RootModule with KotlinModule with DetektModule {
+object `package` extends KotlinModule, DetektModule {
   def kotlinVersion = "1.9.24"
 }</code></pre>
 </div>
@@ -687,7 +687,7 @@ static code analyzer for linting a <code>KotlinModule</code>, by mixing in the t
 <code>DetektModule</code> and calling the <code>detekt</code> task:</p>
 </div>
 <div class="listingblock">
-<div class="title">src/example/Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/kotlinlib/linting/1-detekt/src/example/Foo.kt">browse</a>)</div>
+<div class="title">src/example/Foo.kt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/linting/1-detekt/src/example/Foo.kt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package example
 
@@ -712,7 +712,7 @@ fun main() {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill detekt
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill detekt
 error: ...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]
 
 &gt; ./mill detekt --check false
@@ -725,20 +725,22 @@ error: ...Foo.kt:5:5: Function main is nested too deeply. [NestedBlockDepth]
 <h2 id="_linting_with_ktlint"><a class="anchor" href="#_linting_with_ktlint"></a>Linting with KtLint</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-kotlinlib-linting-2-ktlint.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/kotlinlib/linting/2-ktlint">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-kotlinlib-linting-2-ktlint.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/linting/2-ktlint">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._
+import mill.*
 import mill.util.Jvm
-import mill.api.Loose
+
 import kotlinlib.KotlinModule
 import kotlinlib.ktlint.KtlintModule
+import mill.api.BuildCtx
 
-object `package` extends RootModule with KotlinModule with KtlintModule {
+object `package` extends KotlinModule, KtlintModule {
   def kotlinVersion = "1.9.24"
 
-  def ktlintConfig = Some(PathRef(Task.workspace / ".editorconfig"))
+  def ktlintConfig0 = Task.Source(BuildCtx.workspaceRoot / ".editorconfig")
+  def ktlintConfig = Some(ktlintConfig0())
 }</code></pre>
 </div>
 </div>
@@ -750,7 +752,7 @@ code formatting violations, via the <code>--format</code> flag shown below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill ktlint --check true # run ktlint to produce a report, defaults to warning without error
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill ktlint --check true # run ktlint to produce a report, defaults to warning without error
 error: ...src/example/FooWrong.kt:6:28: Missing newline before ")" (standard:parameter-list-wrapping)...
 ...src/example/FooWrong.kt:6:28: Newline expected before closing parenthesis (standard:function-signature)...
 ...src/example/FooWrong.kt:6:28: Missing trailing comma before ")" (standard:trailing-comma-on-declaration-site)...
@@ -768,17 +770,17 @@ error: ...src/example/FooWrong.kt:6:28: Missing newline before ")" (standard:par
 <h2 id="_autoformatting_with_ktfmt"><a class="anchor" href="#_autoformatting_with_ktfmt"></a>Autoformatting with KtFmt</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-kotlinlib-linting-3-ktfmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/kotlinlib/linting/3-ktfmt">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-kotlinlib-linting-3-ktfmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/linting/3-ktfmt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._
+import mill.*
 import mill.util.Jvm
-import mill.api.Loose
+
 import kotlinlib.KotlinModule
 import kotlinlib.ktfmt.KtfmtModule
 
-object `package` extends RootModule with KotlinModule with KtfmtModule {
+object `package` extends KotlinModule, KtfmtModule {
   def kotlinVersion = "1.9.24"
 }</code></pre>
 </div>
@@ -790,7 +792,7 @@ source files. You can configure a non-default version of KtFmt by overriding <co
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill ktfmt --format=false # run ktfmt to produce a list of files which should be formatter
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill ktfmt --format=false # run ktfmt to produce a list of files which should be formatter
 error: ...src/example/FooWrong.kt...
 
 &gt; ./mill ktfmt # running without arguments will format all files
@@ -804,25 +806,378 @@ Done formatting ...src/example/FooWrong.kt
 </div>
 </div>
 <div class="sect1">
-<h2 id="_code_coverage_with_kover"><a class="anchor" href="#_code_coverage_with_kover"></a>Code Coverage with Kover</h2>
+<h2 id="_auto_formatting_with_spotless"><a class="anchor" href="#_auto_formatting_with_spotless"></a>Auto-formatting with Spotless</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>If your project has file groups each requiring different formatting,
+you may want to give Mill&#8217;s <a href="https://github.com/diffplug/spotless">Spotless</a> plugin a try.
+It supports formatting all files with a single command
+as opposed to using a different plugin/command for each group.</p>
+</div>
+<div class="paragraph">
+<p>We define a module that extends <a href="https://mill-build.org/api/latest/mill/scalalib/spotless/SpotlessModule.html">SpotlessModule</a> and
+provide a JSON configuration file with the format specifications.</p>
+</div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-kotlinlib-linting-4-kover.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/kotlinlib/linting/4-kover">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-kotlinlib-linting-5-spotless.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/linting/5-spotless">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._, kotlinlib._
+import mill.kotlinlib.KotlinModule
+import mill.javalib.spotless.SpotlessModule
+
+object `package` extends KotlinModule, SpotlessModule {
+  def kotlinVersion = "2.1.20"
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/A.kt (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/linting/5-spotless/src/A.kt">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import a.*
+
+import kotlinx.android.synthetic.main.layout_name.*
+
+import a.b.c.*
+import a.b
+
+fun main() {
+    fun name() { a(); return b }
+    println(";")
+    println();
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/B.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/linting/5-spotless/src/B.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mylib.Unused;
+import mylib.UsedB;
+import mylib.UsedA;
+
+public class A {
+/**
+ * Some javadoc.
+ */
+public static void main(String[] args) {
+System.out.println("A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.");
+UsedB.someMethod();
+UsedA.someMethod();
+}
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">LICENSE (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/linting/5-spotless/LICENSE">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// GPL</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">.spotless-formats.json (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/linting/5-spotless/.spotless-formats.json">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">[
+  {
+    "includes": [
+      "glob:build.mill"
+    ],
+    "steps": [
+      {
+        "$type": "ScalaFmt"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**.java"
+    ],
+    "steps": [
+      {
+        "$type": "PalantirJavaFormat"
+      },
+      {
+        "$type": "LicenseHeader",
+        "delimiter": "(package|import|public|class|module) "
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**.{kt,kts}"
+    ],
+    "steps": [
+      {
+        "$type": "Ktfmt"
+      },
+      {
+        "$type": "LicenseHeader",
+        "delimiter": "(package |@file|import )"
+      }
+    ]
+  }
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As per the specifications:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The <code>build.mill</code> is to be formatted using <code>ScalaFmt</code> step.</p>
+</li>
+<li>
+<p>All Java files are to be formatted using <code>PalantirFormatJava</code> and <code>LicenseHeader</code> steps.</p>
+</li>
+<li>
+<p>All Kotlin files are to be formatted using <code>Ktfmt</code> and <code>LicenseHeader</code> steps.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Most fields have default values and can be omitted in the JSON file.
+An example is the <code>LicenseHeader.header</code> field that references the <code>LICENSE</code> file.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+as <code>.mill</code> files use Scala 3 syntax, we need the <code>.scalafmt.conf</code> above to
+configure ScalaFmt to use Scala 3 compatible formatting
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Next, we run the inherited <code>spotless</code> command to check/apply the format specifications.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill spotless --check   # check fails initially
+checking format in 1 mill files
+format errors in build.mill
+checking format in 1 java files
+format errors in src/B.java
+checking format in 1 kt files
+format errors in src/A.kt
+format errors in 3 files
+error: ...format check failed for 3 files
+
+&gt; ./mill spotless           # auto-fix format
+formatting build.mill
+formatting src/B.java
+formatting src/A.kt
+formatted 3 files
+
+&gt; ./mill spotless           # fast incremental format
+1 mill files are already formatted
+1 java files are already formatted
+1 kt files are already formatted</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This demonstrates how different file groups can be formatted with a single command.</p>
+</div>
+<div class="paragraph">
+<p>For the full list of format steps and configuration options, please refer to the
+<a href="https://mill-build.org/api/latest/mill/scalalib/spotless/Format.html">API documentation</a>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+For a multi-module project, it is sufficient to extend <code>SpotlessModule</code> in your
+build root module and define a format specification for each use-case.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can also run <code>spotless</code> <a href="../fundamentals/modules.html#_external_modules" class="xref page">globally</a>
+if you prefer not to have to extend <code>SpotlessModule</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.javalib.spotless.SpotlessModule/ --check
+checking format in 1 mill files
+checking format in 1 java files
+checking format in 1 kt files
+format check completed</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ratchet"><a class="anchor" href="#_ratchet"></a>Ratchet</h3>
+<div class="paragraph">
+<p>Similar to the Spotless Gradle and Maven plugins, Mill provides the ability to
+enforce formatting gradually aka <a href="https://github.com/diffplug/spotless/tree/main/plugin-gradle#ratchet">ratchet</a>.</p>
+</div>
+<div class="paragraph">
+<p>We define a module with an incorrectly formatted file.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javalib-linting-5-spotless-ratchet.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javalib/linting/5-spotless-ratchet">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.javalib.JavaModule
+import mill.javalib.spotless.SpotlessModule
+
+object `package` extends JavaModule with SpotlessModule</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/A.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javalib/linting/5-spotless-ratchet/src/A.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mylib.Unused;
+import mylib.UsedB;
+import mylib.UsedA;
+
+public class A {
+/**
+ * Some javadoc.
+ */
+public static void main(String[] args) {
+System.out.println("A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.");
+UsedB.someMethod();
+UsedA.someMethod();
+}
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A Git repository is initialized and a base commit is created with the incorrectly formatted file.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Since no <code>.spotless-formats.json</code> file is present, a default list of format specifications is used.
+The default is meant for use cases where some basic formatting is sufficient.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init . -b main
+&gt; git add .gitignore build.mill src/A.java
+&gt; git commit -a -m "1"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, we create a new file with format errors.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo " module hello {}" &gt; src/module-info.java  # content has leading space at start
+
+&gt; ./mill spotless --check
+format errors in build.mill
+format errors in src/A.java
+format errors in src/module-info.java
+error: ...format check failed for 3 files</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>spotless</code> command finds format errors in all files.
+But we do not want to fix the formatting in files that were committed previously.</p>
+</div>
+<div class="paragraph">
+<p>Instead, we use the <code>ratchet</code> command to identify and format files that differ between Git trees.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill ratchet --check      # format changes in working tree since HEAD commit
+ratchet found changes in 1 files
+format errors in src/module-info.java
+error: ...format check failed for 1 files
+
+&gt; ./mill ratchet              # auto-fix formatting in changeset
+ratchet found changes in 1 files
+formatting src/module-info.java
+formatted 1 files</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This demonstrates how to introduce formatting incrementally into your project.</p>
+</div>
+<div class="paragraph">
+<p>You can also set up actions on CI systems that compare and check/fix formatting between 2
+<a href="https://javadoc.io/doc/org.eclipse.jgit/org.eclipse.jgit/latest/org.eclipse.jgit/org/eclipse/jgit/lib/Repository.html#resolve(java.lang.String)">revisions</a>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git add src/module-info.java        # stage and
+&gt; git commit -a -m "2"                # commit changes
+
+&gt; ./mill ratchet --check HEAD^ HEAD   # format changes between last 2 commits
+ratchet found changes in 1 files
+1 java files are already formatted</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+CI actions may require additional
+<a href="https://github.com/diffplug/spotless/tree/main/plugin-gradle#using-ratchetfrom-on-ci-systems">setup</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>ratchet</code> command is also available globally.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.javalib.spotless.SpotlessModule/ratchet --check HEAD^ HEAD
+ratchet found changes in 1 files</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_code_coverage_with_kover"><a class="anchor" href="#_code_coverage_with_kover"></a>Code Coverage with Kover</h2>
+<div class="sectionbody">
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-kotlinlib-linting-4-kover.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/linting/4-kover">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, kotlinlib.*
 import kotlinlib.kover.KoverModule
 
-object `package` extends RootModule with KotlinModule with KoverModule {
+object `package` extends KotlinModule, KoverModule {
 
   trait KotestTests extends TestModule.Junit5 {
     override def forkArgs: T[Seq[String]] = Task {
       super.forkArgs() ++ Seq("-Dkotest.framework.classpath.scanning.autoscan.disable=true")
 
     }
-    override def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"io.kotest:kotest-runner-junit5-jvm:5.9.1"
+    override def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"io.kotest:kotest-runner-junit5:5.9.1"
     )
   }
 
@@ -830,11 +1185,11 @@ object `package` extends RootModule with KotlinModule with KoverModule {
 
   override def koverVersion = "0.8.3"
 
-  object test extends KotlinTests with KotestTests with KoverTests
+  object test extends KotlinTests, KotestTests, KoverTests
 
-  object bar extends KotlinModule with KoverModule {
+  object bar extends KotlinModule, KoverModule {
     def kotlinVersion = "1.9.24"
-    object test extends KotlinTests with KotestTests with KoverTests
+    object test extends KotlinTests, KotestTests, KoverTests
   }
 }</code></pre>
 </div>
@@ -857,7 +1212,7 @@ running <code>./mill show mill.kotlinlib.kover/htmlReportAll</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill test # Run the tests and produce the coverage data
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test # Run the tests and produce the coverage data
 ...
 ... foo.FooTests kotlin - success started
 

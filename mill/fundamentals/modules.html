@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -674,7 +674,7 @@ of related <code>Task</code>s and sub-<code>Module</code>s while allowing custom
 </ol>
 </div>
 <div class="paragraph">
-<p>Mill&#8217;s comes with built in modules such as <code>mill.scalalib.ScalaModule</code> and
+<p>Mill&#8217;s comes with built-in modules such as <code>mill.scalalib.ScalaModule</code> and
 <code>mill.scalalib.CrossSbtModule</code>, but you can also define your own modules to do
 things that are not built-in to Mill.</p>
 </div>
@@ -689,10 +689,10 @@ path you would use to run tasks within that module from the command line. e.g.
 for the following <code>build.mill</code>:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-fundamentals-modules-6-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/fundamentals/modules/6-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-fundamentals-modules-6-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/fundamentals/modules/6-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._
+import mill.*
 
 object foo extends Module {
   def bar = Task { "hello" }
@@ -787,7 +787,7 @@ respectively.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.bar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.bar
 &gt; ./mill foo.qux.baz
 
 &gt; ./mill show foo.bar
@@ -979,7 +979,7 @@ the task graph</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show foo1.bar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show foo1.bar
 "hello"
 
 &gt; ./mill show foo1.qux
@@ -1008,10 +1008,10 @@ and not <code>class</code>es due to implementation limitations</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_millsourcepath"><a class="anchor" href="#_millsourcepath"></a>millSourcePath</h2>
+<h2 id="_moduledir"><a class="anchor" href="#_moduledir"></a>moduleDir</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Each Module has a <code>millSourcePath</code> field that corresponds to the path that
+<p>Each Module has a <code>moduleDir</code> field that corresponds to the path that
 module expects its input files to be on disk.</p>
 </div>
 <div class="listingblock">
@@ -1131,18 +1131,18 @@ object outer extends MyModule {
 <div class="ulist">
 <ul>
 <li>
-<p>The <code>outer</code> module has a <code>millSourcePath</code> of <code>outer/</code>, and thus a
+<p>The <code>outer</code> module has a <code>moduleDir</code> of <code>outer/</code>, and thus a
 <code>outer.sources</code> referencing <code>outer/sources/</code></p>
 </li>
 <li>
-<p>The <code>inner</code> module has a <code>millSourcePath</code> of <code>outer/inner/</code>, and thus a
+<p>The <code>inner</code> module has a <code>moduleDir</code> of <code>outer/inner/</code>, and thus a
 <code>outer.inner.sources</code> referencing <code>outer/inner/sources/</code></p>
 </li>
 </ul>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show outer.task
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show outer.task
 "hello contents of file inside outer/sources/"
 
 &gt; ./mill show outer.inner.task
@@ -1150,31 +1150,31 @@ object outer extends MyModule {
 </div>
 </div>
 <div class="paragraph">
-<p>You should use <code>millSourcePath</code> to set the source folders of your
+<p>You should use <code>moduleDir</code> to set the source folders of your
 modules to match the build structure. In almost every case, a module&#8217;s source files
-live at some relative path within the module&#8217;s folder, and using <code>millSourcePath</code>
+live at some relative path within the module&#8217;s folder, and using <code>moduleDir</code>
 ensures that the relative path to the module&#8217;s source files remains the same
 regardless of where your module lives in the build hierarchy.</p>
 </div>
 <div class="paragraph">
 <p>E.g. for <code>mill.scalalib.ScalaModule</code>, the Scala source code is assumed by
-default to be in <code>millSourcePath / "src"</code> while resources are automatically
-assumed to be in <code>millSourcePath / "resources"</code>.</p>
+default to be in <code>moduleDir / "src"</code> while resources are automatically
+assumed to be in <code>moduleDir / "resources"</code>.</p>
 </div>
 <div class="paragraph">
-<p>You can also override <code>millSourcePath</code>:</p>
+<p>You can also override <code>moduleDir</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object outer2 extends MyModule {
-  def millSourcePath = super.millSourcePath / "nested"
+  def moduleDir = super.moduleDir / "nested"
   object inner extends MyModule
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show outer2.task
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show outer2.task
 "hello contents of file inside outer2/nested/sources/"
 
 &gt; ./mill show outer2.inner.task
@@ -1183,19 +1183,19 @@ assumed to be in <code>millSourcePath / "resources"</code>.</p>
 </div>
 <div class="paragraph">
 <p>Any overrides propagate down to the module&#8217;s children: in the above example,
-<code>outer2</code> would have its <code>millSourcePath</code> be <code>outer2/nested/</code> while
-<code>outer.inner</code> would have its <code>millSourcePath</code> be <code>outer2/nested/inner/</code>.</p>
+<code>outer2</code> would have its <code>moduleDir</code> be <code>outer2/nested/</code> while
+<code>outer.inner</code> would have its <code>moduleDir</code> be <code>outer2/nested/inner/</code>.</p>
 </div>
 <div class="paragraph">
-<p>Note that <code>millSourcePath</code> is meant to be used for a module&#8217;s input source
+<p>Note that <code>moduleDir</code> is meant to be used for a module&#8217;s input source
 files: source code, config files, library binaries, etc. Output is always in
 the <code>out/</code> folder and cannot be changed, e.g. even with the overridden
-<code>millSourcePath</code> the output paths are still the default <code>./out/outer2</code> and
+<code>moduleDir</code> the output paths are still the default <code>./out/outer2</code> and
 <code>./out/outer2/inner</code> folders:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat ./out/outer2/task.json
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat ./out/outer2/task.json
 ..."value": "hello contents of file inside outer2/nested/sources/"...
 
 &gt; cat ./out/outer2/inner/task.json
@@ -1210,11 +1210,11 @@ the <code>out/</code> folder and cannot be changed, e.g. even with the overridde
 </td>
 <td class="content">
 <strong><code>os.pwd</code> of the Mill process is set to an empty <code>sandbox/</code> folder by default.</strong>
-When defining a module&#8217;s source files, you should always use <code>millSourcePath</code> to ensure the
+When defining a module&#8217;s source files, you should always use <code>moduleDir</code> to ensure the
 paths defined are relative to the module&#8217;s root folder, so the module logic can continue
 to work even if moved into a different subfolder. In the rare case where you need the
 Mill project root path, and you truly know what you are doing, you can call
-g`mill.api.WorkspaceRoot.workspaceRoot`.
+<code>WorkspaceRoot.workspaceRoot</code>.
 </td>
 </tr>
 </table>
@@ -1308,7 +1308,7 @@ object bar extends Bar</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show bar.sourceContents # includes both source folders
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show bar.sourceContents # includes both source folders
 [
   "File Data From src/",
   "File Data From src2/"
@@ -1318,34 +1318,34 @@ object bar extends Bar</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_rootmodule"><a class="anchor" href="#_rootmodule"></a>RootModule</h2>
+<h2 id="_root_modules"><a class="anchor" href="#_root_modules"></a>Root Modules</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You can use <code>object <code>package</code> extends RootModule</code> to use a <code>Module</code>
+<p>You can use <code>object <code>package</code> extends mill.Module</code> to use a <code>Module</code>
 as the root module of the file:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-fundamentals-modules-7-root-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/fundamentals/modules/7-root-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-fundamentals-modules-7-root-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/fundamentals/modules/7-root-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
+import mill.*, javalib.*
 
-object `package` extends RootModule with JavaModule {
-  def ivyDeps = Agg(
-    ivy"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    ivy"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+object `package` extends JavaModule {
+  def mvnDeps = Seq(
+    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
+    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
-  object test extends JavaTests with TestModule.Junit4 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.google.guava:guava:33.3.0-jre"
+  object test extends JavaTests, TestModule.Junit4 {
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"com.google.guava:guava:33.3.0-jre"
     )
   }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Since our <code>object <code>package</code> extends RootModule</code>, its files live in a
+<p>Since our <code>object <code>package</code> extends mill.Module</code>, its files live in a
 top-level <code>src/</code> folder, and you can call its tasks via un-prefixed <code>bar</code></p>
 </div>
 <div class="listingblock">
@@ -1370,7 +1370,7 @@ out/
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill compile # compile sources into classfiles
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile # compile sources into classfiles
 ...
 compiling 1 Java source to...
 
@@ -1410,10 +1410,10 @@ so far into a worked example: implementing our own minimal version of
 <code>mill.scalalib.JavaModule</code> from first principles.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-fundamentals-modules-8-diy-java-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/fundamentals/modules/8-diy-java-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-fundamentals-modules-8-diy-java-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/fundamentals/modules/8-diy-java-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._
+import mill.*
 
 trait DiyJavaModule extends Module {
   def moduleDeps: Seq[DiyJavaModule] = Nil
@@ -1425,7 +1425,9 @@ trait DiyJavaModule extends Module {
   def compile = Task {
     val allSources = os.walk(sources().path)
     val cpFlag = Seq("-cp", upstream().map(_.path).mkString(":"))
-    os.proc("javac", cpFlag, allSources, "-d", Task.dest).call()
+    os.call(
+      cmd = ("javac", cpFlag, allSources, "-d", Task.dest)
+    )
     PathRef(Task.dest)
   }
 
@@ -1435,8 +1437,7 @@ trait DiyJavaModule extends Module {
     for (cp &lt;- classPath()) os.copy(cp.path, Task.dest, mergeFolders = true)
 
     val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-    os.proc("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", ".")
-      .call(cwd = Task.dest)
+    os.call(cmd = ("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", "."))
 
     PathRef(Task.dest / "assembly.jar")
   }
@@ -1551,7 +1552,7 @@ necessary to convert the <code>Seq[T[V]]</code> into a <code>T[Seq[V]]</code> th
 with inside our tasks</p>
 </li>
 <li>
-<p>We use the <code>millSourcePath</code> together with <code>Task.workspace</code> to infer a default
+<p>We use the <code>moduleDir</code> together with <code>mill.api.BuildCtx.workspaceRoot</code> to infer a default
 name for the jar of each module. Users can override it if they want, but
 having a default is very convenient</p>
 </li>
@@ -1589,11 +1590,6 @@ according to our overrides for <code>moduleDeps</code></p>
  viewBox="0.00 0.00 847.08 364.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 360.0)">
 <title>G</title>
-<g id="clust1" class="cluster">
-<title>cluster_0</title>
-<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 567.65,-348 567.65,-240 8,-240"/>
-<text text-anchor="middle" x="287.82" y="-331.4" font-family="Times,serif" font-size="14.00">foo.bar</text>
-</g>
 <g id="clust2" class="cluster">
 <title>cluster_1</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="157.76,-124 157.76,-232 698.19,-232 698.19,-124 157.76,-124"/>
@@ -1603,6 +1599,11 @@ according to our overrides for <code>moduleDeps</code></p>
 <title>cluster_2</title>
 <polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="303.84,-8 303.84,-116 831.08,-116 831.08,-8 303.84,-8"/>
 <text text-anchor="middle" x="567.46" y="-99.4" font-family="Times,serif" font-size="14.00">qux</text>
+</g>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<polygon fill="transparent" stroke="black" stroke-dasharray="5,2" points="8,-240 8,-348 567.65,-348 567.65,-240 8,-240"/>
+<text text-anchor="middle" x="287.82" y="-331.4" font-family="Times,serif" font-size="14.00">foo.bar</text>
 </g>
 <!-- foo.bar.sources -->
 <g id="node1" class="node">
@@ -1800,7 +1801,7 @@ according to our overrides for <code>moduleDeps</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill showNamed __.sources
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill showNamed __.sources
 {
   "foo.sources": ".../foo/src",
   "foo.bar.sources": ".../foo/bar/src",
@@ -1844,38 +1845,38 @@ developed, so you can define your own custom modules when the need arises.</p>
 <h2 id="_default_tasks"><a class="anchor" href="#_default_tasks"></a>Default Tasks</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill modules can extend <code>TaskModule</code> and specify a <code>defaultCommandName</code>, which
+<p>Mill modules can extend <code>TaskModule</code> and specify a <code>defaultTask</code>, which
 allows them to be run directly without needing the task name provided explicitly:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-fundamentals-modules-12-default-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/fundamentals/modules/12-default-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-fundamentals-modules-12-default-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/fundamentals/modules/12-default-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
-import mill.define.TaskModule
+import mill.*, javalib.*
+import mill.api.DefaultTaskModule
 
-object foo extends TaskModule {
-  override def defaultCommandName() = "bar"
+object foo extends DefaultTaskModule {
+  override def defaultTask() = "bar"
   def bar() = Task.Command { println("Hello Bar") }
   def qux() = Task.Command { println("Hello Qux") }
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>In this example, the <code>foo</code> module has a <code>defaultCommandName</code> of <code>bar</code>
+<p>In this example, the <code>foo</code> module has a <code>defaultTask</code> of <code>bar</code>
 That means that we can run <code>foo</code> and it will run <code>foo.bar</code> automatically.
 running <code>foo.bar</code> explicitly is still allowed, as is running other tasks
 e.g. <code>foo.qux</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo # same as running foo.bar
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo # same as running foo.bar
 Hello Bar
 
-&gt; mill foo.bar
+&gt; ./mill foo.bar
 Hello Bar
 
-&gt; mill foo.qux
+&gt; ./mill foo.qux
 Hello Qux</code></pre>
 </div>
 </div>
@@ -1889,11 +1890,11 @@ task to run, e.g. Mill <code>TestModule`s have `test</code> as the default comma
 <h2 id="_backticked_names"><a class="anchor" href="#_backticked_names"></a>Backticked Names</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-fundamentals-modules-9-backticked-names.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/fundamentals/modules/9-backticked-names">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-fundamentals-modules-9-backticked-names.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/fundamentals/modules/9-backticked-names">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 
 object `hyphenated-module` extends Module {
   def `hyphenated-task` = Task {
@@ -1933,7 +1934,7 @@ surrounded by back-ticks (<code>`</code>).</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill hyphenated-module.hyphenated-task
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill hyphenated-module.hyphenated-task
 hyphenated task in a hyphenated module.
 
 &gt; ./mill unhyphenatedModule.unhyphenated_task
@@ -1952,13 +1953,13 @@ shared between all builds which use that library:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
-import mill._
+import mill.*
 
-object Bar extends mill.define.ExternalModule {
+object Bar extends mill.api.ExternalModule {
   def baz = Task { 1 }
   def qux() = Task.Command { println(baz() + 1) }
 
-  lazy val millDiscover = mill.define.Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 }</code></pre>
 </div>
 </div>
@@ -1969,14 +1970,14 @@ from the command line via:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.Bar/baz
-mill foo.Bar/qux</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.Bar/baz
+&gt; mill foo.Bar/qux</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p><code>ExternalModule</code>s are useful for someone providing a library for use with Mill
 that is shared by the entire build: for example,
-<code>mill.scalalib.ZincWorkerApi/zincWorker</code> provides a shared Scala compilation
+<code>mill.scalalib.JvmWorkerApi/jvmWorker</code> provides a shared Scala compilation
 service &amp; cache that is shared between all <code>ScalaModule</code>s, and
 <code>mill.scalalib.GenIdea/idea</code> lets you generate IntelliJ projects without
 needing to define your own <code>Task.Command</code> in your <code>build.mill</code> file</p>
@@ -1989,10 +1990,10 @@ shorthand aliases for external modules that have long names, such as
 <code>mill.javalib.palantirformat.PalantirFormatModule</code> below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-fundamentals-modules-10-external-module-aliases.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/fundamentals/modules/10-external-module-aliases">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-fundamentals-modules-10-external-module-aliases.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/fundamentals/modules/10-external-module-aliases">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
+import mill.*, javalib.*
 
 object foo extends JavaModule
 
@@ -2001,10 +2002,10 @@ def myAutoformat = mill.javalib.palantirformat.PalantirFormatModule</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat foo/src/foo/Foo.java # starts off unformatted
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat foo/src/foo/Foo.java # starts off unformatted
 package foo;public class Foo{ public static void main(String[] args) {System.out.println("Hello World!");}}
 
-&gt; mill myAutoformat # easier to type than `./mill mill.javalib.palantirformat/`
+&gt; ./mill myAutoformat # easier to type than `./mill mill.javalib.palantirformat/`
 
 &gt; cat foo/src/foo/Foo.java # code is now formatted
 package foo;
@@ -2030,16 +2031,16 @@ a <code>ModuleRef(&#8230;&#8203;)</code> to wrap the abstract module, such that 
 not participate in task query resolution:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-fundamentals-modules-11-abstract-module-ref.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/fundamentals/modules/11-abstract-module-ref">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-fundamentals-modules-11-abstract-module-ref.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/fundamentals/modules/11-abstract-module-ref">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._
-import mill.define.ModuleRef
+import mill.*, javalib.*
+import mill.api.ModuleRef
 
 object foo extends JavaModule
 object bar extends JavaModule
 
-trait MyTestModule extends JavaModule with TestModule.Junit4 {
+trait MyTestModule extends JavaModule, TestModule.Junit4 {
   def upstreamModule: ModuleRef[JavaModule]
 
   def moduleDeps = Seq(upstreamModule())
@@ -2055,12 +2056,12 @@ object bartest extends MyTestModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill __.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill __.testForked
 Test foo.FooTests.simple finished, ...
 Test bar.BarTests.simple finished, ...
 ...
 
-&gt; mill resolve foo.upstreamModule._ # This fails since it's a `ModuleRef`, not just a `Module`
+&gt; ./mill resolve foo.upstreamModule._ # This fails since it's a `ModuleRef`, not just a `Module`
 error: resolve Cannot resolve foo.upstreamModule...</code></pre>
 </div>
 </div>

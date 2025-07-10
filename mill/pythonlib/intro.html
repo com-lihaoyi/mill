@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Building Python with Mill :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/pythonlib/intro.html">
-    <link rel="prev" href="../kotlinlib/web-examples.html">
+    <link rel="prev" href="../android/android-linting.html">
     <link rel="next" href="module-config.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../_/css/site.css">
@@ -244,6 +244,25 @@
     <span class="nav-text">Experimental Platform Support</span>
 <ul class="nav-list">
 
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
   <li class="nav-item is-current-page" data-depth="2">
     <button class="nav-item-toggle"></button>
     <a class="nav-link" href="intro.html">Building Python with Mill</a>
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -671,16 +671,27 @@ features that speed up development and CI.</p>
 <div class="paragraph">
 <p>This page contains a quick introduction to getting start with using Mill to build
 a simple python program. It walks through a series of Mill builds of increasing
-complexity to show you the key features and usage of the Mill build tool.</p>
-</div>
-<div class="paragraph">
-<p>The other pages of this section of the documentation go into more depth into individual features,
-with more examples of how to use Mill for python and more details of how the Mill
-build tool works. They aren&#8217;t intended to be read comprehensively top-to-bottom, but
+complexity to show you the key features and usage of the Mill build tool.
+The other pages of this section of the docs go into more depth into individual Mill features.
+These aren&#8217;t intended to be read comprehensively top-to-bottom, but
 rather looked up when you have a particular interest e.g. in
 <a href="testing.html" class="xref page">testing</a>,
-<a href="publishing.html" class="xref page">publishing</a>,
-<a href="web-examples.html" class="xref page">web dev</a>, and so on.</p>
+<a href="publishing.html" class="xref page">publishing</a>, and so on.</p>
+</div>
+<div class="paragraph">
+<p>The API reference for Mill&#8217;s python toolchain can be found at:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/pythonlib.html">mill.pythonlib</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you aren&#8217;t sure why you would use Mill, see <a href="../comparisons/why-mill.html" class="xref page">Why Use Mill?</a> for
+a discussion on the motivations of the project. If you are migrating an existing project,
+see <a href="../migrating/migrating.html" class="xref page">Migrating to Mill</a>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -708,18 +719,18 @@ Please try it out and let us know on Github if you hit any issues!
 <h2 id="_simple_python_module"><a class="anchor" href="#_simple_python_module"></a>Simple Python Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-pythonlib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/pythonlib/basic/1-simple">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-pythonlib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/basic/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source("src/foo.py")
 
   def pythonDeps = Seq("Jinja2==3.1.4")
 
-  object test extends PythonTests with TestModule.Unittest
+  object test extends PythonTests, TestModule.Unittest
 
 }</code></pre>
 </div>
@@ -770,7 +781,7 @@ for HTML rendering and uses it to wrap a given input string in HTML templates wi
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve foo._ # List what tasks are available to run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve foo._ # List what tasks are available to run
 foo.bundle
 ...
 foo.console
@@ -840,19 +851,20 @@ for details on the different task types.</p>
 <h2 id="_custom_build_logic"><a class="anchor" href="#_custom_build_logic"></a>Custom Build Logic</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill makes it very easy to customize your build graph, overriding portions of it with custom logic.
-In this example, we override the <code>resources</code> of our <code>PythonModule</code> - normally the <code>resources/</code> folder
-- to instead contain a single generated text file containing the line count of all the source files in that module</p>
+<p>Mill makes it very easy to customize your build graph, overriding portions of it with custom
+logic. In this example, we override the <code>resources</code> of our <code>PythonModule</code> - normally the
+<code>resources/</code> folder - to additionally contain a single generated text file containing the
+line count of all the source files in that module</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-pythonlib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/pythonlib/basic/2-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-pythonlib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/basic/2-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source("src/foo.py")
 
   /** All Python source files in this module, recursively from the source directories.*/
   def allSourceFiles: T[Seq[PathRef]] = Task {
@@ -872,7 +884,7 @@ object foo extends PythonModule {
     super.resources() ++ Seq(PathRef(Task.dest))
   }
 
-  object test extends PythonTests with TestModule.Unittest
+  object test extends PythonTests, TestModule.Unittest
 }</code></pre>
 </div>
 </div>
@@ -961,7 +973,7 @@ provided by <code>PythonModule</code> (labelled <code>resources.super</code> bel
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run
 Line Count: 10
 
 &gt; ./mill show foo.lineCount
@@ -998,7 +1010,7 @@ you can explore the existing tasks via autocomplete in your IDE, or use the
 <p><code>os.read.lines</code> and <code>os.write</code> come from the <a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a> library,
 which is one of Mill’s <a href="https://mill-build.org/mill/main-branch/fundamentals/bundled-libraries.html">Bundled Libraries</a>.
 You can also import any other library you want from Maven Central using
-<a href="https://mill-build.org/mill/main-branch/extending/import-ivy-plugins.html">import $ivy</a>,
+<a href="https://mill-build.org/mill/main-branch/extending/import-mvn-plugins.html">//| mvnDeps</a>,
 so you are not limited to what is bundled with Mill.</p>
 </div>
 <div class="paragraph">
@@ -1016,23 +1028,23 @@ build logic remains performant and maintainable even as the complexity of your p
 <h2 id="_multi_module_project"><a class="anchor" href="#_multi_module_project"></a>Multi-Module Project</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-pythonlib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/pythonlib/basic/3-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-pythonlib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/basic/3-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
 trait MyModule extends PythonModule {
   def resources = super.resources() ++ Seq(PathRef(moduleDir / "res"))
-  object test extends PythonTests with TestModule.Unittest
+  object test extends PythonTests, TestModule.Unittest
 }
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source("src/foo.py")
 }
 
 object bar extends MyModule {
-  def mainScript = Task.Source { "src/bar.py" }
+  def mainScript = Task.Source("src/bar.py")
   def pythonDeps = Seq("Jinja2==3.1.4")
 }</code></pre>
 </div>
@@ -1090,7 +1102,7 @@ e.g. <code>mill resolve __.run</code> below which lists out all the <code>run</c
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill resolve __.run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill resolve __.run
 bar.run
 ...
 foo.run
@@ -1158,13 +1170,13 @@ preceding it with a backslash (<code>\</code>).</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo._.typeCheck # Runs `typeCheck` for all direct sub-modules of `foo`
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo._.typeCheck # Runs `typeCheck` for all direct sub-modules of `foo`
 
-&gt; mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
+&gt; ./mill foo.__.test # Runs `test` for all transitive sub-modules of `foo`
 
-&gt; mill {foo,bar}.__.testCached # Runs `testCached` for all sub-modules of `foo` and `bar`
+&gt; ./mill {foo,bar}.__.testCached # Runs `testCached` for all sub-modules of `foo` and `bar`
 
-&gt; mill __.typeCheck + foo.__.test # Runs all `typeCheck` tasks and all tests under `foo`.</code></pre>
+&gt; ./mill __.typeCheck + foo.__.test # Runs all `typeCheck` tasks and all tests under `foo`.</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1174,7 +1186,7 @@ preceding it with a backslash (<code>\</code>).</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a></span>
+  <span class="prev"><a href="../android/android-linting.html">Linting Android Projects</a></span>
   <span class="next"><a href="module-config.html">Python Module Configuration</a></span>
 </nav>
 </article>

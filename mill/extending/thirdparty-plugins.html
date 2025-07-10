@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -664,7 +664,7 @@ This list is most likely not complete.
 If you wrote a Mill plugin or find that one is missing in this list, please open a <a href="https://github.com/com-lihaoyi/mill/pulls">pull request</a> and add that plugin with a short description (in alphabetical order).</p>
 </div>
 <div class="paragraph">
-<p>For details about including plugins in your <code>build.mill</code> read <a href="import-ivy-plugins.html" class="xref page">Using Mill Plugins</a>.</p>
+<p>For details about including plugins in your <code>build.mill</code> read <a href="import-mvn-plugins.html" class="xref page">Using Mill Plugins</a>.</p>
 </div>
 <div class="admonitionblock caution">
 <table>
@@ -695,8 +695,9 @@ The usage examples given here are most probably incomplete and sometimes outdate
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
-import $ivy.`com.carlosedp::mill-aliases::0.2.1`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.carlosedp::mill-aliases::0.2.1"]
+
+import mill.*, scalalib.*
 import com.carlosedp.aliases._
 
 object foo extends ScalaModule {
@@ -742,13 +743,12 @@ object MyAliases extends Aliases {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`net.mlbox::mill-antlr:0.1.0`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["net.mlbox::mill-antlr:0.1.0"]
+
 import net.mlbox.millantlr.AntlrModule
 
-object foo extends ScalaModule with AntlrModule {
-  override def antlrGrammarSources = Task.Sources {
-    Seq(os.pwd/"someGrammar.g4").map(PathRef(_))
-  }
+object foo extends ScalaModule, AntlrModule {
+  override def antlrGrammarSources = Task.Sources("someGrammar.g4")
 }</code></pre>
 </div>
 </div>
@@ -765,12 +765,12 @@ object foo extends ScalaModule with AntlrModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
-import mill.scalalib._
-import mill.define._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["de.tototec::de.tobiasroeser.mill.aspectj_mill0.9:0.3.1-12-89db01"]
 
-// Load the plugin from Maven Central via ivy/coursier
-import $ivy.`de.tototec::de.tobiasroeser.mill.aspectj_mill0.9:0.3.1-12-89db01
+import mill.*
+import mill.scalalib._
+import mill.api._
+
 import de.tobiasroeser.mill.aspectj._
 
 object main extends AspectjModule {
@@ -805,7 +805,7 @@ object main extends AspectjModule {
 <h2 id="_bundler"><a class="anchor" href="#_bundler"></a>Bundler</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><code>mill-bundler</code> is comparable to <code>scalajs-bundler</code> for SBT: It manages NPM dependencies for a Scala.js module and
+<p><code>mill-bundler</code> is comparable to <code>scalajs-bundler</code> for <code>sbt</code>: It manages NPM dependencies for a Scala.js module and
 bundling it. Currently Webpack and Rollup are implemented but it&#8217;s easy to use another one.</p>
 </div>
 <div class="paragraph">
@@ -821,7 +821,7 @@ bundling it. Currently Webpack and Rollup are implemented but it&#8217;s easy to
 Mill with the aim to making releasing your project in GitHub Actions to Maven
 easier by automating common setup such as setting up gpg in CI, setting up
 versioning, and ensuring merges to into your main branch get published as a
-SNAPSHOT. If you&#8217;re coming from sbt, then you&#8217;re likely familiar with
+SNAPSHOT. If you&#8217;re coming from <code>sbt</code>, then you&#8217;re likely familiar with
 <a href="https://github.com/sbt/sbt-ci-release"><code>sbt-ci-release</code></a> which this plugin
 imitates.</p>
 </div>
@@ -872,10 +872,11 @@ of code-generating templates.</p>
 <div class="listingblock">
 <div class="title">/opt/coolproj/build.mill</div>
 <div class="content">
-<pre>import $ivy.`com.mchange::mill-daemon:0.0.1`
+<pre>//| mvnDeps: ["com.mchange::mill-daemon:0.0.1"]
+
 import com.mchange.milldaemon.DaemonModule
 
-object coolproj extends RootModule with DaemonModule {
+object coolproj extends RootModule, DaemonModule {
   override def runDaemonPidFile = Some( os.pwd / "coolproj.pid" )
 }</pre>
 </div>
@@ -924,12 +925,12 @@ WantedBy=multi-user.target</pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.github.ajrnz::mill-dgraph:0.2.0`</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.github.ajrnz::mill-dgraph:0.2.0"]</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">sh&gt; mill plugin.dgraph.browseDeps(proj)()</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill plugin.dgraph.browseDeps proj</code></pre>
 </div>
 </div>
 </div>
@@ -964,16 +965,17 @@ parameters for your application using the <code>DockerNativeConfig</code> trait 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, mill.scalalib._, mill.scalalib.scalafmt._
-import $ivy.`com.carlosedp::mill-docker-nativeimage::0.6.0`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.carlosedp::mill-docker-nativeimage::0.6.0"]
+
+import mill.*, mill.scalalib._, mill.scalalib.scalafmt._
 import com.carlosedp.milldockernative.DockerNative
 
-object hello extends ScalaModule with DockerNative {
+object hello extends ScalaModule, DockerNative {
   def scalaVersion = "3.3.0"
   object dockerNative extends DockerNativeConfig {
     // Native Image parameters
     def nativeImageName         = "hello"
-    def nativeImageGraalVmJvmId = T("graalvm-java17:22.3.2")
+    def nativeImageGraalVmJvmId = Task {"graalvm-java17:22.3.2"}
     def nativeImageClassPath    = runClasspath()
     def nativeImageMainClass    = "com.domain.Hello.Hello"
     // GraalVM parameters depending on your application needs
@@ -993,12 +995,12 @@ object hello extends ScalaModule with DockerNative {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">./mill hello.dockerNative.build()
-# Test run
-docker run -it --rm docker.io/myuser/helloapp
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill hello.dockerNative.build()
+&gt; # Test run
+&gt; docker run -it --rm docker.io/myuser/helloapp
 
-# Push to a registry
-./mill hello.dockerNative.push</code></pre>
+&gt; # Push to a registry
+&gt; ./mill hello.dockerNative.push</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1032,21 +1034,16 @@ and also check the provided example code.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
-interp.repositories() =
-  interp.repositories() ++ Seq(coursier.MavenRepository("https://jitpack.io"))
-
-@
-
-import $ivy.`com.github.yyadavalli::mill-ensime:0.0.2`</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.github.yyadavalli::mill-ensime:0.0.2"]
+//| repositories: ["https://jitpack.io"]</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can then run the following to generate the .ensime file</p>
+<p>You can then run the following to generate the <code>.ensime</code> file</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">mill fun.valycorp.mill.GenEnsime/ensimeConfig</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill fun.valycorp.mill.GenEnsime/ensimeConfig</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1054,7 +1051,7 @@ import $ivy.`com.github.yyadavalli::mill-ensime:0.0.2`</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">mill fun.valycorp.mill.GenEnsime/ensimeConfig --server "3.0.0-SNAPSHOT"</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill fun.valycorp.mill.GenEnsime/ensimeConfig --server "3.0.0-SNAPSHOT"</code></pre>
 </div>
 </div>
 </div>
@@ -1063,7 +1060,7 @@ import $ivy.`com.github.yyadavalli::mill-ensime:0.0.2`</code></pre>
 <h2 id="_explicit_deps"><a class="anchor" href="#_explicit_deps"></a>Explicit Deps</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>A plugin that checks that <code>ivyDeps</code> and <code>ivyCompileDeps</code> accurately reflect the direct dependencies of your source code.</p>
+<p>A plugin that checks that <code>mvnDeps</code> and <code>mvnCompileDeps</code> accurately reflect the direct dependencies of your source code.</p>
 </div>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/kierendavies/mill-explicit-deps" class="bare">https://github.com/kierendavies/mill-explicit-deps</a></p>
@@ -1071,23 +1068,24 @@ import $ivy.`com.github.yyadavalli::mill-ensime:0.0.2`</code></pre>
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`io.github.kierendavies::mill-explicit-deps::0.1.0`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["io.github.kierendavies::mill-explicit-deps::0.1.0"]
+
 import io.github.kierendavies.mill.explicitdeps.ExplicitDepsModule
 
-object foo extends ScalaModule with ExplicitDepsModule {
+object foo extends ScalaModule, ExplicitDepsModule {
     // ...
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">&gt; mill foo.checkExplicitDeps
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.checkExplicitDeps
 [37/37] main.checkExplicitDeps
-Found undeclared dependencies: (add these to ivyDeps)
-    ivy"org.typelevel::cats-kernel:2.7.0",
+Found undeclared dependencies: (add these to mvnDeps)
+    mvn"org.typelevel::cats-kernel:2.7.0",
 
-Found unimported dependencies: (remove these from ivyDeps)
-    ivy"org.typelevel::cats-effect:3.3.6",
+Found unimported dependencies: (remove these from mvnDeps)
+    mvn"org.typelevel::cats-effect:3.3.6",
 
 1 tasks failed
 main.checkExplicitDeps Found 1 undeclared dependencies, 1 unimported dependencies</code></pre>
@@ -1120,7 +1118,7 @@ working targets for your template after generation.</p>
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`io.chris-kipp::mill-giter8::0.2.0`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["io.chris-kipp::mill-giter8::0.2.0"]
 
 import io.kipp.mill.giter8.G8Module
 
@@ -1144,17 +1142,16 @@ object g8 extends G8Module {
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/joan38/mill-git" class="bare">https://github.com/joan38/mill-git</a></p>
 </div>
-<div class="paragraph">
-<p><em>build.mill</em>:</p>
-</div>
 <div class="listingblock">
+<div class="title"><em>build.mill</em>:</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.goyeau::mill-git:&lt;latest version&gt;`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.goyeau::mill-git:&lt;latest version&gt;"]
+
 import com.goyeau.mill.git.GitVersionedPublishModule
 import mill.scalalib.JavaModule
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 
-object `jvm-project` extends JavaModule with GitVersionedPublishModule {
+object `jvm-project` extends JavaModule, GitVersionedPublishModule {
   override def pomSettings = PomSettings(
     description = "JVM Project",
     organization = "com.goyeau",
@@ -1168,7 +1165,7 @@ object `jvm-project` extends JavaModule with GitVersionedPublishModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">&gt; mill show jvm-project.publishVersion
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill show jvm-project.publishVersion
 [1/1] show
 [2/2] com.goyeau.mill.git.GitVersionModule.version
 "0.0.0-470-6d0b3d9"</code></pre>
@@ -1217,10 +1214,24 @@ jobs:
 </div>
 </div>
 <div class="sect1">
+<h2 id="_header"><a class="anchor" href="#_header"></a>Header</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><code>header</code> is a plugin that allows you to automate adding headers to the top
+of the files in your projects. It also has an ability to check that all files
+have a certain header in place. The plugin was inspired by and is similar to
+sbt-header.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/lewisjkl/header" class="bare">https://github.com/lewisjkl/header</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_hepek"><a class="anchor" href="#_hepek"></a>Hepek</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><code>mill-hepek</code> is a plugin for writing Scala `object`s to files.</p>
+<p><code>mill-hepek</code> is a plugin for writing Scala <code>object</code>s to files.</p>
 </div>
 <div class="paragraph">
 <p>It is used as a core for Hepek static site generator: <a href="https://sake92.github.io/hepek/hepek/index.html" class="bare">https://sake92.github.io/hepek/hepek/index.html</a> .</p>
@@ -1234,7 +1245,7 @@ jobs:
 <h2 id="_integration_testing_mill_plugins"><a class="anchor" href="#_integration_testing_mill_plugins"></a>Integration Testing Mill Plugins</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Integration testing for mill plugins.</p>
+<p>Integration testing for mill plugins against older Mill versions (0.6.x - 0.11.x).</p>
 </div>
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/lefou/mill-integrationtest" class="bare">https://github.com/lefou/mill-integrationtest</a></p>
@@ -1243,10 +1254,11 @@ jobs:
 <p>We assume, you have a mill plugin named <code>mill-demo</code></p>
 </div>
 <div class="listingblock">
+<div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
-import mill._, mill.scalalib._
-object demo extends ScalaModule with PublishModule {
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, mill.scalalib._
+
+object demo extends ScalaModule, PublishModule {
   // ...
 }</code></pre>
 </div>
@@ -1255,12 +1267,13 @@ object demo extends ScalaModule with PublishModule {
 <p>Add a new test sub-project, e.g. <code>itest</code>.</p>
 </div>
 <div class="listingblock">
+<div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
-import $ivy.`de.tototec::de.tobiasroeser.mill.integrationtest_mill0.9:0.4.0`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["de.tototec::de.tobiasroeser.mill.integrationtest_mill0.9:0.4.0"]
+
 import de.tobiasroeser.mill.integrationtest._
 
-object demo extends ScalaModule with PublishModule {
+object demo extends ScalaModule, PublishModule {
   // ...
 }
 
@@ -1298,14 +1311,8 @@ the plugins publishes all plugins referenced under <code>pluginsUnderTest</code>
 The mill version used in the integration test then used that temporary ivy repository.</p>
 </div>
 <div class="paragraph">
-<p>Instead of referring to your plugin with <code>import $ivy.&#39;your::plugin:version&#39;</code>,
+<p>Instead of referring to your plugin with <code>//| mvnDeps.&#39;your::plugin:version&#39;</code>,
 you can use the following line instead, which ensures you will use the correct locally build plugins.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
-import $exec.plugins</code></pre>
-</div>
 </div>
 <div class="paragraph">
 <p>Effectively, at execution time, this line gets replaced by the content of <code>plugins.sc</code>, a file which was generated just before the test started to execute.</p>
@@ -1339,16 +1346,15 @@ import $exec.plugins</code></pre>
 <p>JBake home: <a href="https://jbake.org" class="bare">https://jbake.org</a></p>
 </div>
 <div class="listingblock">
+<div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
-import mill._
-import $ivy.`de.tototec::de.tobiasroeser.mill.jbake:0.1.0`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["de.tototec::de.tobiasroeser.mill.jbake:0.1.0"]
+
+import mill.*
 import de.tobiasroeser.mill.jbake._
 
 object site extends JBakeModule {
-
   def jbakeVersion = "2.6.4"
-
 }</code></pre>
 </div>
 </div>
@@ -1357,7 +1363,7 @@ object site extends JBakeModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">bash&gt; mill site.jbake</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill site.jbake</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1365,7 +1371,7 @@ object site extends JBakeModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">bash&gt; mill site.jbakeServe</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill site.jbakeServe</code></pre>
 </div>
 </div>
 </div>
@@ -1388,9 +1394,10 @@ It will generate a Java class containing information from your build.</p>
 the desired information via the <code>buildInfoMembers</code> method:</p>
 </div>
 <div class="listingblock">
+<div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
-import $ivy.`com.github.carueda::jbuildinfo:0.1.2`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.github.carueda::jbuildinfo:0.1.2"]
+
 import com.github.carueda.mill.JBuildInfo
 import mill.T
 
@@ -1408,9 +1415,9 @@ object project extends JBuildInfo {
 <p>This will generate:</p>
 </div>
 <div class="listingblock">
+<div class="title"><code>BuildInfo.java</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">// BuildInfo.java
-public class BuildInfo {
+<pre class="highlightjs highlight"><code class="language-java hljs" data-lang="java">public class BuildInfo {
   public static final String getName() { return "some name"; }
   public static final String getVersion() { return "x.y.z"; }
 }</code></pre>
@@ -1458,34 +1465,8 @@ public class BuildInfo {
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/lefou/mill-kotlin" class="bare">https://github.com/lefou/mill-kotlin</a></p>
 </div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// Load the plugin from Maven Central via ivy/coursier
-import $ivy.`de.tototec::de.tobiasroeser.mill.kotlin_mill0.9:0.2.0`
-
-import mill._
-import mill.scalalib._
-import mill.define._
-
-import de.tobiasroeser.mill.kotlin._
-
-object main extends KotlinModule {
-
-  // Select the Kotlin version
-  def kotlinVersion = "1.4.21"
-
-  // Set additional Kotlin compiler options, e.g. the language level and annotation processor
-  // Run `mill main.kotlincHelp` to get a list of supported options
-  def kotlincOptions = super.kotlincOptions() ++ Seq("-verbose")
-
-}</code></pre>
-</div>
-</div>
 <div class="paragraph">
-<p>For documentation please visit the <a href="https://github.com/lefou/mill-kotlin">mill-kotlin project page</a>.</p>
-</div>
-<div class="paragraph">
-<p>You will find there also a version compatibility matrix.</p>
+<p>This project has been moved into the Mill repository since Mill 0.12.</p>
 </div>
 </div>
 </div>
@@ -1514,9 +1495,7 @@ Scala MDoc simply compiles properly marked Scala snippets in plain md files and 
 <p>Project home: <a href="https://github.com/lefou/millw" class="bare">https://github.com/lefou/millw</a></p>
 </div>
 <div class="paragraph">
-<p><code>millw</code> is a small wrapper script around mill and works almost identical to
-mill, but with additional features and compatibility with Windows. It
-automatically downloads a mill release into <code>$HOME/.mill/download</code>.</p>
+<p>This porject has been moved into the Mill repository with Mill 0.13 / 1.0</p>
 </div>
 </div>
 </div>
@@ -1535,15 +1514,15 @@ And set the previous artifacts you want to check binary compatibility.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.github.lolgab::mill-mima_mill0.9:0.0.2"]
 
-import $ivy.`com.github.lolgab::mill-mima_mill0.9:0.0.2`
+import mill.*, scalalib.*
 import com.github.lolgab.mill.mima._
 
-object main extends ScalaModule with Mima {
+object main extends ScalaModule, Mima {
 
-  def mimaPreviousArtifacts = Agg(
-    ivy"my_group_id::main:my_previous_version"
+  def mimaPreviousArtifacts = Seq(
+    mvn"my_group_id::main:my_previous_version"
   )
 
   // other settings ...
@@ -1556,7 +1535,7 @@ object main extends ScalaModule with Mima {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill main.mimaReportBinaryIssues
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill main.mimaReportBinaryIssues
 Binary compatibility check passed.</code></pre>
 </div>
 </div>
@@ -1576,7 +1555,8 @@ Binary compatibility check passed.</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`io.github.hoangmaihuy::mill-missinglink::&lt;latest-version&gt;`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["io.github.hoangmaihuy::mill-missinglink::&lt;latest-version&gt;"]
+
 import io.github.hoangmaihuy.missinglink._
 
 object example extends MissinglinkCheckModule</code></pre>
@@ -1587,7 +1567,7 @@ object example extends MissinglinkCheckModule</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">&gt; mill example.missinglinkCheck</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill example.missinglinkCheck</code></pre>
 </div>
 </div>
 </div>
@@ -1607,12 +1587,13 @@ configuration options:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`io.github.alexarchambault.mill::mill-native-image::0.1.25`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["io.github.alexarchambault.mill::mill-native-image::0.1.25"]
+
 import io.github.alexarchambault.millnativeimage.NativeImage
 
-object hello extends ScalaModule with NativeImage {
+object hello extends ScalaModule, NativeImage {
   def scalaVersion = "3.3.0"
-  def ivyDeps = ... // Your deps here
+  def mvnDeps = ... // Your deps here
 
   def nativeImageName         = "hello"
   def nativeImageMainClass    = "Main"
@@ -1631,7 +1612,7 @@ object hello extends ScalaModule with NativeImage {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill hello.nativeImage
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill hello.nativeImage
 ...
 ------------------------------------------------------------------------------------------------------------------------
                         5.9s (4.9% of total time) in 32 GCs | Peak RSS: 5.71GB | CPU load: 5.84
@@ -1661,11 +1642,12 @@ and more, check the project readme.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, mill.scalalib._
-import $ivy.`de.tototec::de.tobiasroeser.mill.osgi:0.0.5`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["de.tototec::de.tobiasroeser.mill.osgi:0.0.5"]
+
+import mill.*, mill.scalalib._
 import de.tobiasroeser.mill.osgi._
 
-object project extends ScalaModule with OsgiBundleModule {
+object project extends ScalaModule, OsgiBundleModule {
 
   def bundleSymbolicName = "com.example.project"
 
@@ -1704,45 +1686,6 @@ object project extends ScalaModule with OsgiBundleModule {
 <div class="paragraph">
 <p>Project home: <a href="https://github.com/lefou/mill-publishM2" class="bare">https://github.com/lefou/mill-publishM2</a></p>
 </div>
-<div class="paragraph">
-<p>Just mix-in the <code>PublishM2Module</code> into your project.
-<code>PublishM2Module</code> already extends mill&#8217;s built-in <code>PublishModule</code>.</p>
-</div>
-<div class="paragraph">
-<p>File: <code>build.mill</code></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._, publish._
-
-import $ivy.`de.tototec::de.tobiasroeser.mill.publishM2:0.0.1`
-import de.tobiasroeser.mill.publishM2._
-
-object project extends PublishModule with PublishM2Module {
-  // ...
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Publishing to default local Maven repository</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill project.publishM2Local
-[40/40] project.publishM2Local
-Publishing to /home/user/.m2/repository</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Publishing to custom local Maven repository</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill project.publishM2Local /tmp/m2repo
-[40/40] project.publishM2Local
-Publishing to /tmp/m2repo</code></pre>
-</div>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -1774,20 +1717,18 @@ set-up a <code>package.json</code> file with your TypeScript dependencies.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.github.lolgab::mill-scalablytyped::0.0.2"]
 
-import $ivy.`com.github.lolgab::mill-scalablytyped::0.0.2`
+import mill.*, scalalib.*
 import com.github.lolgab.mill.scalablytyped._
 
-object main extends ScalaJSModule with ScalablyTyped {
-
+object main extends ScalaJSModule, ScalablyTyped {
   // other settings ...
-
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>It will run ScalablyTyped and add the converted dependencies to the module&#8217;s <code>ivyDeps</code>.</p>
+<p>It will run ScalablyTyped and add the converted dependencies to the module&#8217;s <code>mvnDeps</code>.</p>
 </div>
 </div>
 </div>
@@ -1805,11 +1746,11 @@ object main extends ScalaJSModule with ScalablyTyped {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`io.github.hoangmaihuy::mill-scala-tsi::&lt;latest-version&gt;`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["io.github.hoangmaihuy::mill-scala-tsi::&lt;latest-version&gt;"]
 
 import io.github.hoangmaihuy.scalatsi._
 
-object example extends ScalaModule with ScalaTsiModule {
+object example extends ScalaModule, ScalaTsiModule {
 // The classes that you want to generate typescript interfaces for
 override def typescriptExports = Seq("MyClass")
 // The output file which will contain the typescript interfaces
@@ -1833,7 +1774,7 @@ override def typescriptGenerationImports = Seq("mymodel._", "MyTypescript._")
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">&gt; mill example.generateTypescript</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill example.generateTypescript</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1863,18 +1804,18 @@ override def typescriptGenerationImports = Seq("mymodel._", "MyTypescript._")
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.goyeau::mill-scalafix:&lt;latest version&gt;`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.goyeau::mill-scalafix:&lt;latest version&gt;"]
 import com.goyeau.mill.scalafix.ScalafixModule
 import mill.scalalib._
 
-object project extends ScalaModule with ScalafixModule {
+object project extends ScalaModule, ScalafixModule {
   def scalaVersion = "2.12.11"
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">&gt; mill project.fix
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill project.fix
 [29/29] project.fix
 /project/project/src/MyClass.scala:12:11: error: [DisableSyntax.var] mutable state should be avoided
   private var hashLength = 7
@@ -1903,7 +1844,7 @@ installed via <a href="https://get-coursier.io/">Coursier</a>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">cs install scip-java</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cs install scip-java</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1912,7 +1853,7 @@ Mill build will generate an index and place it at the root of your project.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">scip-java index</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; scip-java index</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1920,7 +1861,7 @@ Mill build will generate an index and place it at the root of your project.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">mill --import ivy:io.chris-kipp::mill-scip::0.3.7 io.kipp.mill.scip.Scip/generate</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell script hljs" data-lang="shell script">mill --import mvn:io.chris-kipp::mill-scip::0.3.7 io.kipp.mill.scip.Scip/generate</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1961,18 +1902,18 @@ Mill build will generate an index and place it at the root of your project.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
 import mill.scalalib._
 import de.tobiasroeser.mill.spring.boot.SpringBootModule
 
-object app extends MavenModule with SpringBootModule {
+object app extends MavenModule, SpringBootModule {
   override def springBootToolsVersion = "2.7.13"
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># Package as executable Spring-Boot Application
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console"># Package as executable Spring-Boot Application
 $ mill app.springBootAssembly</code></pre>
 </div>
 </div>
@@ -1989,13 +1930,14 @@ $ mill app.springBootAssembly</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`ba.sake::mill-squery-generator_mill0.11:0.6.2`
-import mill._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["ba.sake::mill-squery-generator_mill0.11:0.6.2"]
+
+import mill.*
 import mill.scalalib._
 import ba.sake.squery.generator._
 import ba.sake.squery.generator.mill.SqueryGeneratorModule
 
-object app extends ScalaModule with SqueryGeneratorModule {
+object app extends ScalaModule, SqueryGeneratorModule {
   // use Task.Input(Task.ctx.env("MY_ENV_VAR")) to set sensitive variables like password etc
   def squeryJdbcUrl = "jdbc:..."
   def squeryUsername = ".."
@@ -2007,9 +1949,9 @@ object app extends ScalaModule with SqueryGeneratorModule {
 </div>
 </div>
 <div class="listingblock">
+<div class="title">Generate source files</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># Generate source files
-$ ./mill root.squeryGenerate</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill root.squeryGenerate</code></pre>
 </div>
 </div>
 </div>
@@ -2024,9 +1966,9 @@ $ ./mill root.squeryGenerate</code></pre>
 <p>Project home: <a href="https://github.com/hoangmaihuy/mill-universal-packager" class="bare">https://github.com/hoangmaihuy/mill-universal-packager</a></p>
 </div>
 <div class="listingblock">
+<div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// build.mill
-import $ivy.`io.github.hoangmaihuy::mill-universal-packager::&lt;latest-version&gt;`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["io.github.hoangmaihuy::mill-universal-packager::&lt;latest-version&gt;"]
 
 import io.github.hoangmaihuy.mill.packager.archetypes.JavaAppPackagingModule
 
@@ -2036,9 +1978,9 @@ object example extends JavaAppPackagingModule {
 </div>
 </div>
 <div class="listingblock">
+<div class="title">Package as zip archive with Bash start script</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># Package as zip archive with Bash start script
-$ mill example.universalPackage</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill example.universalPackage</code></pre>
 </div>
 </div>
 </div>
@@ -2058,14 +2000,13 @@ When used with its defaults, the outcome is identical to the version scheme that
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
-import mill.scalalib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2"]
 
-// Load the plugin from Maven Central via ivy/coursier
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2`
+import mill.*
+import mill.scalalib._
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 
-object main extends JavaModule with PublishModule {
+object main extends JavaModule, PublishModule {
   override def publishVersion: T[String] = VcsVersion.vcsState().format()
 }</code></pre>
 </div>

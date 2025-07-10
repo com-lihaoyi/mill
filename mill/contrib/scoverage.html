@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -672,8 +672,9 @@ module. Additionally, you must define a submodule that extends the
 <div class="listingblock">
 <div class="title"><code>build.mill</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION"]
+package build
+
 import mill.contrib.scoverage.ScoverageModule
 
 object foo extends ScoverageModule  {
@@ -681,7 +682,7 @@ object foo extends ScoverageModule  {
   def scoverageVersion = "2.1.1"
 
   object test extends ScoverageTests with TestModule.ScalaTest {
-    def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.2.19")
+    def mvnDeps = Seq(mvn"org.scalatest::scalatest:3.2.19")
   }
 }</code></pre>
 </div>
@@ -692,13 +693,13 @@ modules introduce a few new tasks and changes the behavior of an existing one.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill foo.scoverage.compile              # compiles your module with test instrumentation
-                                        # (you don't have to run this manually, running the test task will force its invocation)
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill foo.scoverage.compile              # compiles your module with test instrumentation
+                                          # (you don't have to run this manually, running the test task will force its invocation)
 
-mill foo.test                           # tests your project and collects metrics on code coverage
-mill foo.scoverage.htmlReport           # uses the metrics collected by a previous test run to generate a coverage report in html format
-mill foo.scoverage.xmlReport            # uses the metrics collected by a previous test run to generate a coverage report in xml format
-mill foo.scoverage.xmlCoberturaReport   # uses the metrics collected by a previous test run to generate a coverage report in Cobertura's xml format</code></pre>
+&gt; mill foo.test                           # tests your project and collects metrics on code coverage
+&gt; mill foo.scoverage.htmlReport           # uses the metrics collected by a previous test run to generate a coverage report in html format
+&gt; mill foo.scoverage.xmlReport            # uses the metrics collected by a previous test run to generate a coverage report in xml format
+&gt; mill foo.scoverage.xmlCoberturaReport   # uses the metrics collected by a previous test run to generate a coverage report in Cobertura's xml format</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -732,11 +733,11 @@ module, <code>ScoverageReport</code>, is available to help aggregate the reports
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill __.test                                 # run tests for all modules
-mill scoverage.htmlReportAll                 # generates report in html format for all modules
-mill scoverage.xmlReportAll                  # generates report in xml format for all modules
-mill scoverage.xmlCoberturaReportAll         # generates report in Cobertura's xml format for all modules
-mill scoverage.consoleReportAll              # reports to the console for all modules</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill __.test                                 # run tests for all modules
+&gt; mill scoverage.htmlReportAll                 # generates report in html format for all modules
+&gt; mill scoverage.xmlReportAll                  # generates report in xml format for all modules
+&gt; mill scoverage.xmlCoberturaReportAll         # generates report in Cobertura's xml format for all modules
+&gt; mill scoverage.consoleReportAll              # reports to the console for all modules</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -747,7 +748,7 @@ for html reports or <code>out/scoverage/xmlReportAll.dest/</code> for xml report
 </div>
 <nav class="pagination">
   <span class="prev"><a href="scalapblib.html">ScalaPB</a></span>
-  <span class="next"><a href="sonatypecentral.html">Sonatype Central</a></span>
+  <span class="next"><a href="sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a></span>
 </nav>
 </article>
   </div>

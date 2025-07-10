@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -672,22 +672,22 @@ as well as example of two modules with a scala-native application.</p>
 <h2 id="_simple"><a class="anchor" href="#_simple"></a>Simple</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-scalalib-native-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/scalalib/native/1-simple">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-scalalib-native-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/native/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._, scalanativelib._
+import mill.*, scalalib.*, scalanativelib.*
 
-object `package` extends RootModule with ScalaNativeModule {
+object `package` extends ScalaNativeModule {
   def scalaVersion = "3.3.4"
-  def scalaNativeVersion = "0.5.5"
+  def scalaNativeVersion = "0.5.8"
 
   // You can have arbitrary numbers of third-party dependencies
-  def ivyDeps = Agg(
-    ivy"com.lihaoyi::mainargs::0.7.6"
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::mainargs::0.7.6"
   )
 
-  object test extends ScalaNativeTests with TestModule.Utest {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.5")
+  object test extends ScalaNativeTests, TestModule.Utest {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.9")
     def testFramework = "utest.runner.Framework"
   }
 }</code></pre>
@@ -700,7 +700,7 @@ Native for native integration and <code>mainargs</code> for command-line argumen
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run --text hello
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run --text hello
 &lt;h1&gt;hello&lt;/h1&gt;
 
 &gt; ./mill show nativeLink  # Build and link native binary
@@ -716,17 +716,17 @@ Native for native integration and <code>mainargs</code> for command-line argumen
 <h2 id="_interop"><a class="anchor" href="#_interop"></a>Interop</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-scalalib-native-2-interop.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/scalalib/native/2-interop">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-scalalib-native-2-interop.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/native/2-interop">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._, scalanativelib._
+import mill.*, scalalib.*, scalanativelib.*
 
-object `package` extends RootModule with ScalaNativeModule {
+object `package` extends ScalaNativeModule {
   def scalaVersion = "3.3.4"
-  def scalaNativeVersion = "0.5.5"
+  def scalaNativeVersion = "0.5.8"
 
   object test extends ScalaNativeTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.5")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.9")
     def testFramework = "utest.runner.Framework"
   }
 
@@ -769,7 +769,7 @@ can be extended if necessary to more elaborate use cases.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
 Running HelloWorld function
 Done...
 Reversed: !dlroW ,olleH
@@ -784,17 +784,17 @@ Tests: 1, Passed: 1, Failed: 0</code></pre>
 <h2 id="_multi_module"><a class="anchor" href="#_multi_module"></a>Multi-Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-scalalib-native-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/scalalib/native/3-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-scalalib-native-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/native/3-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._, scalanativelib._
+import mill.*, scalalib.*, scalanativelib.*
 
 trait MyModule extends ScalaNativeModule {
   def scalaVersion = "3.3.4"
-  def scalaNativeVersion = "0.5.5"
+  def scalaNativeVersion = "0.5.8"
 
   object test extends ScalaNativeTests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.8.5")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest::0.8.9")
     def testFramework = "utest.runner.Framework"
   }
 }
@@ -802,7 +802,7 @@ trait MyModule extends ScalaNativeModule {
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
 
-  def ivyDeps = Agg(ivy"com.lihaoyi::mainargs::0.7.6")
+  def mvnDeps = Seq(mvn"com.lihaoyi::mainargs::0.7.6")
 }
 
 object bar extends MyModule</code></pre>
@@ -810,7 +810,7 @@ object bar extends MyModule</code></pre>
 </div>
 <div class="paragraph">
 <p>This example contains a simple Mill build with two modules, <code>foo</code> and <code>bar</code>.
-We don&#8217;t mark either module as top-level using <code>extends RootModule</code>, so
+We don&#8217;t mark either module as top-level using <code>extends mill.Module</code>, so
 running tasks needs to use the module name as the prefix e.g. <code>foo.run</code> or
 <code>bar.run</code>. You can define multiple modules the same way you define a single
 module, using <code>def moduleDeps</code> to define the relationship between them.</p>
@@ -819,7 +819,7 @@ module, using <code>def moduleDeps</code> to define the relationship between the
 <p>Note that we split out the <code>test</code> submodule configuration common to both
 modules into a separate <code>trait MyModule</code>. This lets us avoid the need to
 copy-paste common settings, while still letting us define any per-module
-configuration such as <code>ivyDeps</code> specific to a particular module.</p>
+configuration such as <code>mvnDeps</code> specific to a particular module.</p>
 </div>
 <div class="paragraph">
 <p>The above builds expect the following project layout:</p>
@@ -854,7 +854,7 @@ and also Scala user forum <a href="https://users.scala-lang.org/t/how-to-test-sc
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill bar.run hello
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill bar.run hello
 Running HelloWorld function
 Done...
 Bar value: Argument length is 5
@@ -873,19 +873,19 @@ Bar.value: The string length of 'hello' is 5</code></pre>
 <h2 id="_common_config"><a class="anchor" href="#_common_config"></a>Common Config</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-scalalib-native-4-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/scalalib/native/4-common-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-scalalib-native-4-common-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/native/4-common-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._, scalanativelib._, scalanativelib.api._
+import mill.*, scalalib.*, scalanativelib.*, scalanativelib.api.*
 
-object `package` extends RootModule with ScalaNativeModule {
+object `package` extends ScalaNativeModule {
   def scalaVersion = "3.3.4"
-  def scalaNativeVersion = "0.5.5"
+  def scalaNativeVersion = "0.5.8"
 
   // You can have arbitrary numbers of third-party dependencies
   // Scala Native uses double colon `::` between organization and the dependency names
-  def ivyDeps = Agg(
-    ivy"com.lihaoyi::fansi::0.5.0"
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::fansi::0.5.0"
   )
 
   // Set the releaseMode to ReleaseFast.
@@ -895,7 +895,7 @@ object `package` extends RootModule with ScalaNativeModule {
   def nativeIncrementalCompilation: T[Boolean] = true
 
   // Set nativeLinkingOptions path to a directory named `target`.
-  def nativeLinkingOptions = Seq("-L" + millSourcePath.toString + "/target")
+  def nativeLinkingOptions = Seq("-L" + moduleDir.toString + "/target")
 
   // Set nativeWorkdir directory to `newDir`
   def nativeWorkdir = Task.dest / "newDir"
@@ -909,12 +909,12 @@ object `package` extends RootModule with ScalaNativeModule {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run
 ...
 Value: &lt;h1&gt;hello&lt;/h1&gt;
 
 &gt; ./mill show releaseMode
-"mill.scalanativelib.api.ReleaseMode.ReleaseFast"
+"ReleaseFast"
 
 &gt; ./mill show nativeIncrementalCompilation
 true

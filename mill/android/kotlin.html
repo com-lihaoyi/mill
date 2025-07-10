@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="3">
+    <a class="nav-link" href="kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item is-current-page" data-depth="3">
-    <a class="nav-link" href="kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -663,25 +663,25 @@
 This workflow is still pretty rough and nowhere near production ready, but can serve as
 a starting point for further experimentation and development.</p>
 </div>
+<div class="paragraph">
+<p><strong>Relevant Modules</strong></p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_relevant_modules"><a class="anchor" href="#_relevant_modules"></a>Relevant Modules</h3>
 <div class="paragraph">
 <p>These are the main Mill Modules that are relevant for building Android apps:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://mill-build.org/api/latest/mill/javalib/android/AndroidSdkModule.html"><code>mill.javalib.android.AndroidSdkModule</code></a>: Handles Android SDK management and tools.</p>
+<p><a href="https://mill-build.org/api/latest/mill/androidlib/AndroidSdkModule.html"><code>mill.androidlib.AndroidSdkModule</code></a>: Handles Android SDK management and tools.</p>
 </li>
 <li>
-<p><a href="https://mill-build.org/api/latest/mill/kotlinlib/android/AndroidAppKotlinModule.html"><code>mill.kotlinlib.android.AndroidAppKotlinModule</code></a>: Provides a framework for building Android applications.</p>
+<p><a href="https://mill-build.org/api/latest/mill/androidlib/AndroidAppKotlinModule.html"><code>mill.kotlinlib.android.AndroidAppKotlinModule</code></a>: Provides a framework for building Android applications.</p>
 </li>
 <li>
 <p><a href="https://mill-build.org/api/latest/mill/kotlinlib/KotlinModule.html"><code>mill.kotlinlib.KotlinModule</code></a>: General Kotlin build tasks like compiling Kotlin code and creating JAR files.</p>
 </li>
 </ul>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -698,15 +698,12 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-android-kotlinlib-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/android/kotlinlib/1-hello-kotlin">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-androidlib-kotlin-1-hello-kotlin.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/androidlib/kotlin/1-hello-kotlin">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
-import mill._
-import kotlinlib._
-import mill.kotlinlib.android.AndroidAppKotlinModule
-import mill.javalib.android.AndroidTestModule
-import mill.javalib.android.AndroidSdkModule
+import mill.*, androidlib.*, kotlinlib.*, scalalib.*
+
 import coursier.maven.MavenRepository</code></pre>
 </div>
 </div>
@@ -728,43 +725,47 @@ import coursier.maven.MavenRepository</code></pre>
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object app extends AndroidAppKotlinModule {
 
   def kotlinVersion = "2.0.20"
-  def androidSdkModule = mill.define.ModuleRef(androidSdkModule0)
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
   def androidMinSdk = 19
   def androidCompileSdk = 35
+  def androidApplicationId = "com.helloworld.app"
+  def androidApplicationNamespace = "com.helloworld.app"
 
-  // Configuration for ReleaseKey
-  def androidReleaseKeyName: T[Option[String]] = Task { Some("releaseKey.jks") }
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
+  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
   def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
   def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
   def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
   override def androidVirtualDeviceIdentifier: String = "kotlin-test"
   override def androidEmulatorPort: String = "5556"
 
-  object test extends AndroidAppKotlinTests with TestModule.Junit4 {
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"junit:junit:4.13.2"
-    )
+  override def androidIsDebug: T[Boolean] = Task { false }
+
+  object test extends AndroidAppKotlinTests, TestModule.Junit4 {
+    def junit4Version = "4.13.2"
   }
 
-  object it extends AndroidAppKotlinInstrumentedTests with AndroidTestModule.AndroidJUnit {
+  object it extends AndroidAppKotlinInstrumentedTests, AndroidTestModule.AndroidJUnit {
 
-    override def instrumentationPackage = "com.helloworld.app"
+    // TODO currently instrumented tests debug mode
+    // is coupled with the app debug mode. Fix so
+    // that instrumented tests can be built with debug
+    // configuration but the apk signature will match
+    // the app apk
+    override def androidIsDebug: T[Boolean] = Task {
+      false
+    }
 
-    /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
-     * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
-     * resolution resolves conflicts between androidJvm and jvm platform types
-     */
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"androidx.test.ext:junit:1.2.1".exclude((
-        "org.jetbrains.kotlinx",
-        "kotlinx-coroutines-core-jvm"
-      )),
-      ivy"androidx.test:runner:1.6.2",
-      ivy"androidx.test.espresso:espresso-core:3.5.1".exclude((
-        "org.jetbrains.kotlinx",
-        "kotlinx-coroutines-core-jvm"
-      )),
-      ivy"junit:junit:4.13.2"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"androidx.test.ext:junit:1.2.1",
+      mvn"androidx.test:runner:1.6.2",
+      mvn"androidx.test.espresso:espresso-core:3.5.1",
+      mvn"junit:junit:4.13.2"
     )
   }
 }</code></pre>
@@ -772,7 +773,7 @@ import coursier.maven.MavenRepository</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show app.androidApk
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.androidApk
 ".../out/app/androidApk.dest/app.apk"</code></pre>
 </div>
 </div>
@@ -810,11 +811,14 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show app.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill -j 1 show app.test
 ...Compiling 2 Kotlin sources...
 
-&gt; cat out/app/test/test.dest/out.json
-["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.text_size_is_correct","selector":"com.helloworld.ExampleUnitTest.text_size_is_correct","duration":...,"status":"Success"},{"fullyQualifiedName":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","selector":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","duration":...,"status":"Success"}]]</code></pre>
+&gt; cat out/app/test/testForked.dest/worker-0/out.json
+["",[...{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.text_size_is_correct","selector":"com.helloworld.ExampleUnitTest.text_size_is_correct","duration":...,"status":"Success"}...]]
+
+&gt; cat out/app/test/testForked.dest/worker-0/out.json
+["",[...{"fullyQualifiedName":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","selector":"com.helloworld.ExampleUnitTestInKotlinDir.kotlin_dir_text_size_is_correct","duration":...,"status":"Success"}...]]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -822,7 +826,7 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill app.createAndroidVirtualDevice
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill app.createAndroidVirtualDevice
 
 &gt; ./mill show app.startAndroidEmulator
 
@@ -831,9 +835,9 @@ all necessary steps (resource generation, APK creation, and signing) are execute
 
 &gt; ./mill show app.it
 ...
-[
-  "",
-  [
+{
+  "msg": "",
+  "results": [
     {
       "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
       "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
@@ -841,10 +845,10 @@ all necessary steps (resource generation, APK creation, and signing) are execute
       "status": "Success"
     }
   ]
-]
+}
 ...
 
-&gt; cat out/app/it/testTask.dest/test-report.xml
+&gt; cat out/app/it/testForked.dest/test-report.xml
 ...
 &lt;?xml version='1.0' encoding='UTF-8'?&gt;
 &lt;testsuites tests="1" failures="0" errors="0" skipped="0" time="..."&gt;

@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -690,9 +690,9 @@ as part of its <a href="../depth/sandboxing.html" class="xref page">Mill Sandbox
 interference between tasks:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-fundamentals-libraries-1-oslib.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/fundamentals/libraries/1-oslib">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-fundamentals-libraries-1-oslib.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/fundamentals/libraries/1-oslib">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
 
 def task1 = Task {
   os.write(os.pwd / "file.txt", "hello")
@@ -721,7 +721,7 @@ without conflict</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill command # mac/linux
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill command # mac/linux
 .../out/task1.dest/file.txt
 hello
 .../out/task2.dest/file.txt
@@ -776,9 +776,9 @@ need to be recomputed</p>
 collections types (<code>Seq</code>s, <code>List</code>s, <code>Tuple</code>s, etc.) are serializable by default.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-fundamentals-libraries-2-upickle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/fundamentals/libraries/2-upickle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-fundamentals-libraries-2-upickle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/fundamentals/libraries/2-upickle">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
 
 def taskInt = Task { 123 }
 def taskBoolean = Task { true }
@@ -787,7 +787,7 @@ def taskString = Task { "hello " + taskInt() + " world " + taskBoolean() }</code
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskInt
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskInt
 123
 
 &gt; ./mill show taskBoolean
@@ -813,7 +813,7 @@ def taskMap = Task { Map("int" -&gt; taskInt().toString, "boolean" -&gt; taskBoo
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskSeq
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskSeq
 [
   123,
   246,
@@ -843,7 +843,7 @@ def taskMap = Task { Map("int" -&gt; taskInt().toString, "boolean" -&gt; taskBoo
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskPath
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskPath
 ".../out/taskPath.dest/file.txt"</code></pre>
 </div>
 </div>
@@ -864,7 +864,7 @@ should return a <code>PathRef</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskPathRef
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskPathRef
 "ref.../out/taskPathRef.dest/file.txt"</code></pre>
 </div>
 </div>
@@ -909,9 +909,9 @@ are downloaded once and cached for later use.</p>
 compile the Remote APIs source code as part of our build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-fundamentals-libraries-3-requests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/fundamentals/libraries/3-requests">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-fundamentals-libraries-3-requests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/fundamentals/libraries/3-requests">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
 
 def remoteApisZip = Task {
   println("downloading bazel-remote-apis sources...")
@@ -960,7 +960,7 @@ invokes Bazel to compile them:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show compiledRemoteApis
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show compiledRemoteApis
 downloading bazel...
 downloading bazel-remote-apis sources...
 Loading: ...
@@ -990,7 +990,7 @@ the Bazel invocation are skipped and the earlier output directly and immediately
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show compiledRemoteApis
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show compiledRemoteApis
 [
   "ref:.../bazel-out/...fastbuild/bin/build/bazel/semver/libsemver_proto-speed.jar",
   "ref:.../bazel-out/...fastbuild/bin/external/com_google_protobuf/libduration_proto-speed.jar",
@@ -1042,9 +1042,9 @@ servers, and so on. So this works out surprisingly well in practice.</p>
 are run from the command line.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-fundamentals-libraries-4-mainargs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/fundamentals/libraries/4-mainargs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-fundamentals-libraries-4-mainargs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/fundamentals/libraries/4-mainargs">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
 
 def commandSimple(str: String, i: Int, bool: Boolean = true) = Task.Command {
   println(s"$str $i $bool")
@@ -1060,7 +1060,7 @@ given at the command line</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill commandSimple --str hello -i 123
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill commandSimple --str hello -i 123
 hello 123 true</code></pre>
 </div>
 </div>
@@ -1079,7 +1079,7 @@ supports parsing OS-Lib <code>os.Path</code>s from the command line:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill commandTakingPath --path foo/bar/baz.txt
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill commandTakingPath --path foo/bar/baz.txt
 ...foo/bar/baz.txt</code></pre>
 </div>
 </div>
@@ -1103,7 +1103,7 @@ task:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill commandTakingTask --str helloworld
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill commandTakingTask --str helloworld
 arg: helloworld</code></pre>
 </div>
 </div>
@@ -1120,7 +1120,7 @@ def taskCallingCommand = Task {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill show taskCallingCommand
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show taskCallingCommand
 "arg: HELLO"</code></pre>
 </div>
 </div>
@@ -1140,26 +1140,21 @@ and plan out what would be necessary to run them</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.eval.{Evaluator, Terminal}
-import mill.resolve.{Resolve, SelectMode}
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.api.{SelectMode, Evaluator}
 
-def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command {
-  Resolve.Tasks.resolve(
-    evaluator.rootModule,
-    tasks,
-    SelectMode.Multi
-  ) match {
-    case Left(err) =&gt; Left(err)
-    case Right(resolved) =&gt;
-      val (sortedGroups, _) = evaluator.plan(resolved)
-      val plan = sortedGroups
-        .keys()
-        .collect { case r: Terminal.Labelled[_] =&gt; r.render }
-        .toArray
+def customPlanCommand(evaluator: Evaluator, tasks: String*) = Task.Command(exclusive = true) {
+  val resolved = evaluator
+    .resolveTasks(tasks, SelectMode.Multi)
+    .get
 
-      plan.foreach(println)
-      Right(())
-  }
+  val plan = evaluator.plan(resolved)
+    .sortedGroups
+    .keys()
+    .map(_.toString)
+    .toArray
+
+  plan.foreach(println)
+  ()
 }</code></pre>
 </div>
 </div>
@@ -1170,7 +1165,7 @@ it needs to run in the order necessary to reach `taskCallingCommand</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill customPlanCommand taskCallingCommand
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill customPlanCommand taskCallingCommand
 upstreamTask
 commandTakingTask
 taskCallingCommand</code></pre>

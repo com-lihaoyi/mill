@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -678,32 +678,29 @@ for <code>KotlinModule</code>.</p>
 <h2 id="_adding_ivy_dependencies"><a class="anchor" href="#_adding_ivy_dependencies"></a>Adding Ivy Dependencies</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-kotlinlib-dependencies-1-ivy-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/kotlinlib/dependencies/1-ivy-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-kotlinlib-dependencies-1-mvn-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/dependencies/1-mvn-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def ivyDeps = Agg(
-    ivy"com.fasterxml.jackson.core:jackson-databind:2.13.4"
+  def mvnDeps = Seq(
+    mvn"com.fasterxml.jackson.core:jackson-databind:2.13.4"
   )
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can define the <code>ivyDeps</code> field to add ivy dependencies to your module,
-named after the <a href="https://ant.apache.org/ivy/history/latest-milestone/settings/resolvers.html">Ivy Dependency Resolver</a>
-and JVM package repository format. The <code>Agg</code> factory function constructs an
-<code>Agg[Dep]</code> collection, which is a collection of `Dep`s without duplicates,
-a type common in Mill builds.</p>
+<p>You can define the <code>mvnDeps</code> field to add ivy dependencies to your module,
+named after the Maven JVM package repository format.</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>Single <code>:</code> syntax (e.g. <code>"ivy"org.testng:testng:6.11"</code>) defines Java
+<p>Single <code>:</code> syntax (e.g. <code>"mvn"org.testng:testng:6.11"</code>) defines Java
 dependencies</p>
 </li>
 </ul>
@@ -714,7 +711,7 @@ dependencies</p>
 <div class="ulist">
 <ul>
 <li>
-<p><code>ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests</code></p>
+<p><code>mvn"org.apache.spark::spark-sql:2.4.0;classifier=tests</code></p>
 </li>
 </ul>
 </div>
@@ -723,42 +720,53 @@ dependencies</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run i am cow
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run i am cow
 JSONified using Jackson: ["i","am","cow"]</code></pre>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_runtime_and_compile_time_dependencies"><a class="anchor" href="#_runtime_and_compile_time_dependencies"></a>Runtime and Compile-time Dependencies</h2>
+<h2 id="_run_time_dependencies"><a class="anchor" href="#_run_time_dependencies"></a>Run-time Dependencies</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>If you want to use additional dependencies at runtime or override
 dependencies and their versions at runtime, you can do so with
-<code>runIvyDeps</code>.</p>
+<code>runMvnDeps</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-kotlinlib-dependencies-2-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/kotlinlib/dependencies/2-run-compile-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-kotlinlib-dependencies-2-run-compile-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/dependencies/2-run-compile-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 
 object foo extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
   def moduleDeps = Seq(bar)
-  def runIvyDeps = Agg(
-    ivy"javax.servlet:servlet-api:2.5",
-    ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
-    ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
+  def runMvnDeps = Seq(
+    mvn"javax.servlet:servlet-api:2.5",
+    mvn"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
+    mvn"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
   )
   def mainClass = Some("bar.BarKt")
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can also declare compile-time-only dependencies with <code>compileIvyDeps</code>.
+<p>Runtime dependencies are not available during compilation, but are available
+at runtime. They are transitive, and so if you <code>run</code> or create an <code>assembly</code>
+of a module it will include the runtime dependencies of all upstream modules on the
+classpath</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_compile_time_dependencies"><a class="anchor" href="#_compile_time_dependencies"></a>Compile-time Dependencies</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can also declare compile-time-only dependencies with <code>compileMvnDeps</code>.
 These are present in the compile classpath, but will not propagate to the
 transitive dependencies.</p>
 </div>
@@ -768,10 +776,10 @@ transitive dependencies.</p>
 
   def kotlinVersion = "1.9.24"
 
-  def compileIvyDeps = Agg(
-    ivy"javax.servlet:servlet-api:2.5",
-    ivy"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
-    ivy"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
+  def compileMvnDeps = Seq(
+    mvn"javax.servlet:servlet-api:2.5",
+    mvn"org.eclipse.jetty:jetty-server:9.4.42.v20210604",
+    mvn"org.eclipse.jetty:jetty-servlet:9.4.42.v20210604"
   )
 }</code></pre>
 </div>
@@ -785,7 +793,7 @@ dependencies. That is why we can run <code>foo</code> as show below:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.runBackground
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.runBackground
 
 &gt; curl http://localhost:8079
 &lt;html&gt;&lt;body&gt;Hello World!&lt;/body&gt;&lt;/html&gt;</code></pre>
@@ -805,7 +813,7 @@ dependencies when publish to Maven or Ivy-Repositories.
 </table>
 </div>
 <div class="paragraph">
-<p>Both <code>compileIvyDeps</code> and <code>runIvyDeps</code> are non-transitive: a module does not
+<p><code>compileMvnDeps</code> are non-transitive: a module does not
 automatically aggregate them from its upstream dependencies. They must be
 defined in every module that they are required in, either explicitly or via
 a <code>trait</code> that the module inherits from.</p>
@@ -826,7 +834,7 @@ in <a href="../fundamentals/library-deps.html" class="xref page">Library Depende
 <h2 id="_unmanaged_jars"><a class="anchor" href="#_unmanaged_jars"></a>Unmanaged Jars</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In most scenarios you should rely on <code>ivyDeps</code>/<code>moduleDeps</code> and let Mill manage
+<p>In most scenarios you should rely on <code>mvnDeps</code>/<code>moduleDeps</code> and let Mill manage
 the compilation/downloading/caching of classpath jars for you, as Mill will
 automatically pull in transitive dependencies which are generally needed for things
 to work, and avoids including different versions of the same classfiles or jar which
@@ -835,18 +843,19 @@ from somewhere and need to include it in your project, <code>unmanagedClasspath<
 way to do it.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-kotlinlib-dependencies-3-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/kotlinlib/dependencies/3-unmanaged-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-kotlinlib-dependencies-3-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/dependencies/3-unmanaged-jars">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
+  def lib = Task.Source("lib")
   def unmanagedClasspath = Task {
-    if (!os.exists(millSourcePath / "lib")) Agg()
-    else Agg.from(os.list(millSourcePath / "lib").map(PathRef(_)))
+    if (!os.exists(lib().path)) Seq()
+    else Seq.from(os.list(lib().path).map(PathRef(_)))
   }
 }</code></pre>
 </div>
@@ -858,7 +867,7 @@ filesystem, e.g. in the above snippet any jars that happen to live in the
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run '{"name":"John","age":30}'     # mac/linux
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run '{"name":"John","age":30}'     # mac/linux
 Key: name, Value: John
 Key: age, Value: 30</code></pre>
 </div>
@@ -875,30 +884,33 @@ download from arbitrary URLs.
 library, one of Mill&#8217;s <a href="../fundamentals/bundled-libraries.html" class="xref page">Bundled Libraries</a>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-kotlinlib-dependencies-4-downloading-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/kotlinlib/dependencies/4-downloading-unmanaged-jars">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-kotlinlib-dependencies-4-downloading-unmanaged-jars.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/dependencies/4-downloading-unmanaged-jars">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, kotlinlib._
+import mill.*, kotlinlib.*
 
-object `package` extends RootModule with KotlinModule {
+object `package` extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
   def unmanagedClasspath = Task {
-    os.write(
-      Task.dest / "fastjavaio.jar",
-      requests.get.stream(
-        "https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar"
+    if (Task.offline) Task.fail("Cannot download classpath when in offline-mode") <i class="conum" data-value="1"></i><b>(1)</b>
+    else {
+      os.write(
+        Task.dest / "fastjavaio.jar",
+        requests.get.stream(
+          "https://github.com/williamfiset/FastJavaIO/releases/download/1.1/fastjavaio.jar"
+        )
       )
-    )
-    Agg(PathRef(Task.dest / "fastjavaio.jar"))
+      Seq(PathRef(Task.dest / "fastjavaio.jar"))
+    }
   }
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill run "textfile.txt" # mac/linux
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run "textfile.txt" # mac/linux
 I am cow
 hear me moo
 I weigh twice as much as you</code></pre>
@@ -910,6 +922,14 @@ cached, so your jar is downloaded only once and re-used indefinitely after that.
 This is usually not a problem, because usually URLs follow the rule that
 <a href="https://www.w3.org/Provider/Style/URI">Cool URIs don&#8217;t change</a>, and so jars
 downloaded from the same URL will always contain the same contents.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill --offline run "textfile.txt"
+I am cow
+hear me moo
+I weigh twice as much as you</code></pre>
+</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -935,37 +955,45 @@ apply here as well.
 <div class="paragraph">
 <p>By default, dependencies are resolved from <a href="https://central.sonatype.com/">Maven Central</a>,
 the standard package repository for JVM languages like Java, Kotlin, or Scala. You
-can also add your own resolvers by overriding the <code>repositoriesTask</code> task in the module:</p>
+can also add your own resolvers by overriding the <code>repositories</code> task in the module:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-kotlinlib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/kotlinlib/dependencies/5-repository-config">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-kotlinlib-dependencies-5-repository-config.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/kotlinlib/dependencies/5-repository-config">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, kotlinlib._
-import mill.javalib.{ZincWorkerModule, CoursierModule}
-import mill.define.ModuleRef
-import coursier.maven.MavenRepository
-
-val sonatypeReleases = Seq(
-  MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-)
+import mill.*, kotlinlib.*
+import mill.javalib.{JvmWorkerModule, CoursierModule}
+import mill.api.ModuleRef
 
 object foo extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def ivyDeps = Agg(
-    ivy"com.github.ajalt.clikt:clikt-jvm:4.4.0",
-    ivy"org.jetbrains.kotlinx:kotlinx-html-jvm:0.11.0"
+  def mvnDeps = Seq(
+    mvn"com.github.ajalt.clikt:clikt:4.4.0",
+    mvn"org.jetbrains.kotlinx:kotlinx-html:0.11.0"
   )
 
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Mill uses the <a href="https://get-coursier.io/">Coursier</a> dependency resolver, and reads
-Coursier config files automatically.</p>
+Coursier config files automatically. The list of valid repository strings is documented
+here:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/coursier/coursier/blob/main/docs/pages/reference-repositories.md" class="bare">https://github.com/coursier/coursier/blob/main/docs/pages/reference-repositories.md</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For more specialized custom repositories which do not follow the standard URL format,
+you can override <code>def repositoriesTask</code> to instantiate a custom <code>coursier.Repository</code>
+instance programmatically.</p>
 </div>
 <div class="paragraph">
 <p>You can configure Coursier to use an alternate download location for Maven Central
@@ -998,33 +1026,37 @@ central.to=http://example.com:8080/nexus/content/groups/public</code></pre>
 </div>
 <div class="paragraph">
 <p>To add custom resolvers to the initial bootstrap of the build, you can create a
-custom <code>ZincWorkerModule</code> (named after the <a href="https://github.com/sbt/zinc">Zinc Incremental compiler</a>
-used to compile the <code>build.mill</code> files) and override the <code>zincWorker</code> method in your
+custom <code>JvmWorkerModule</code> (named after the <a href="https://github.com/sbt/zinc">Zinc Incremental compiler</a>
+used to compile the <code>build.mill</code> files) and override the <code>jvmWorker</code> method in your
 <code>ScalaModule</code> by pointing it to that custom object:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object CustomJvmWorkerModule extends JvmWorkerModule, CoursierModule {
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }
 
 object bar extends KotlinModule {
 
   def kotlinVersion = "1.9.24"
 
-  def zincWorker = ModuleRef(CustomZincWorkerModule)
+  def jvmWorker = ModuleRef(CustomJvmWorkerModule)
   // ... rest of your build definitions
 
-  def repositoriesTask = Task.Anon { super.repositoriesTask() ++ sonatypeReleases }
+  def repositories = Seq("https://oss.sonatype.org/content/repositories/releases")
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill foo.run --text hello
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run --text hello
 
 &gt; ./mill bar.compile</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>See <a href="../extending/import-mvn-plugins.html" class="xref page">Import Libraries and Plugins</a> for customizing repositories used to resolve
+<code>//| mvnDeps</code> used in your <code>build.mill</code> file</p>
 </div>
 </div>
 </div>

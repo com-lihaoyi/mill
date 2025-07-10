@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -688,10 +688,10 @@ tool and package repository</p>
 library necessary for accessing Node.js APIs:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-extending-typescript-1-hello-typescript.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/1-hello-typescript">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-extending-typescript-1-hello-typescript.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/typescript/1-hello-typescript">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._
+import mill.*
 
 def npmInstall = Task {
   os.call(("npm", "install", "--save-dev", "typescript@5.6.3", "@types/node@22.7.8"))
@@ -822,7 +822,7 @@ Again we return a <code>PathRef</code> to the <code>Task.dest</code> folder we o
 the <code>.ts</code> files in out <code>src/</code> folder:</p>
 </div>
 <div class="listingblock">
-<div class="title">src/hello.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/1-hello-typescript/src/hello.ts">browse</a>)</div>
+<div class="title">src/hello.ts (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/typescript/1-hello-typescript/src/hello.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User {
     firstName: string
@@ -841,12 +841,12 @@ console.log("Hello " + user.name + " " + user.lastName)</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile
 error: .../src/hello.ts(...): error ... Property 'name' does not exist on type...
 
 &gt; sed -i.bak 's/user.name/user.firstName/g' src/hello.ts
 
-&gt; mill compile
+&gt; ./mill compile
 
 &gt; cat out/compile.dest/hello.js # Output is stripped of types and converted to javascript
 var user = {
@@ -869,7 +869,7 @@ call <code>node</code> along with the main Javascript file:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mainFileName = Task { "hello.js" }
-def run(args: mill.define.Args) = Task.Command {
+def run(args: mill.api.Args) = Task.Command {
   os.call(
     ("node", compile().path / mainFileName(), args.value),
     stdout = os.Inherit
@@ -961,7 +961,7 @@ the user, rather than capturing it for use in our command.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill run James Bond
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run James Bond
 Hello James Bond</code></pre>
 </div>
 </div>
@@ -985,10 +985,10 @@ we wrote above, and turn it into a re-usable <code>TypeScriptModule</code>.</p>
 <code>trait TypeScriptModule extends Module</code> wrapper:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/2-typescript-modules">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-extending-typescript-2-typescript-modules.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/typescript/2-typescript-modules">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._
+import mill.*
 
 trait TypeScriptModule extends Module {
   def npmInstall = Task {
@@ -1008,8 +1008,8 @@ trait TypeScriptModule extends Module {
     PathRef(Task.dest)
   }
 
-  def mainFileName = Task { s"${millSourcePath.last}.js" }
-  def run(args: mill.define.Args) = Task.Command {
+  def mainFileName = Task { s"${moduleDir.last}.js" }
+  def run(args: mill.api.Args) = Task.Command {
     val mainFile = compile().path / mainFileName()
     os.call(("node", mainFile, args.value), stdout = os.Inherit)
   }
@@ -1029,7 +1029,7 @@ object qux extends TypeScriptModule</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/2-typescript-modules/foo/src/foo.ts">browse</a>)</div>
+<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/typescript/2-typescript-modules/foo/src/foo.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User { firstName: string }
 
@@ -1039,7 +1039,7 @@ console.log("Hello " + user.firstName + " Foo")</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/2-typescript-modules/foo/bar/src/bar.ts">browse</a>)</div>
+<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/typescript/2-typescript-modules/foo/bar/src/bar.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User { firstName: string }
 
@@ -1049,7 +1049,7 @@ console.log("Hello " + user.firstName + " Bar")</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/2-typescript-modules/qux/src/qux.ts">browse</a>)</div>
+<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/typescript/2-typescript-modules/qux/src/qux.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User { firstName: string }
 
@@ -1063,13 +1063,13 @@ console.log("Hello " + user.firstName + " Qux")</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill foo.run James
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill foo.run James
 Hello James Foo
 
-&gt; mill foo.bar.run James
+&gt; ./mill foo.bar.run James
 Hello James Bar
 
-&gt; mill qux.run James
+&gt; ./mill qux.run James
 Hello James Qux</code></pre>
 </div>
 </div>
@@ -1333,10 +1333,10 @@ use in <code>compile</code>, and <code>compiledJavascript</code> for use in <cod
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/3-module-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-extending-typescript-3-module-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/typescript/3-module-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._
+import mill.*
 
 trait TypeScriptModule extends Module {
   def moduleDeps: Seq[TypeScriptModule] = Nil
@@ -1357,7 +1357,7 @@ trait TypeScriptModule extends Module {
 
     val upstreamPaths =
       for (((jsDir, dTsDir), mod) &lt;- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
-        yield (mod.millSourcePath.subRelativeTo(build.millSourcePath) + "/*", dTsDir.path)
+        yield (mod.moduleDir.subRelativeTo(build.moduleDir).toString + "/*", dTsDir.path)
 
     val allPaths = upstreamPaths ++ Seq("*" -&gt; sources().path)
 
@@ -1379,12 +1379,12 @@ trait TypeScriptModule extends Module {
     (PathRef(javascriptOut), PathRef(declarationsOut))
   }
 
-  def mainFileName = Task { s"${millSourcePath.last}.js" }
-  def run(args: mill.define.Args) = Task.Command {
+  def mainFileName = Task { s"${moduleDir.last}.js" }
+  def run(args: mill.api.Args) = Task.Command {
 
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
     for (((jsDir, tTsDir), mod) &lt;- upstream) {
-      os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath))
+      os.copy(jsDir.path, Task.dest / mod.moduleDir.subRelativeTo(build.moduleDir))
     }
     val mainFile = compile()._1.path / mainFileName()
     os.call(
@@ -1418,7 +1418,7 @@ object qux extends TypeScriptModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/3-module-deps/foo/src/foo.ts">browse</a>)</div>
+<div class="title">foo/src/foo.ts (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/typescript/3-module-deps/foo/src/foo.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">interface User {
     firstName: string
@@ -1430,14 +1430,14 @@ export {User}</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/3-module-deps/foo/bar/src/bar.ts">browse</a>)</div>
+<div class="title">foo/bar/src/bar.ts (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/typescript/3-module-deps/foo/bar/src/bar.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">const defaultRole = "Professor"
 export {defaultRole}</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/3-module-deps/qux/src/qux.ts">browse</a>)</div>
+<div class="title">qux/src/qux.ts (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/typescript/3-module-deps/qux/src/qux.ts">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import {User} from "foo/foo.js"
 import {defaultRole} from "foo/bar/bar.js"
@@ -1455,7 +1455,7 @@ console.log("Hello " + user.firstName + " " + user.lastName + " " + user.role)</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill qux.run James Bond
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill qux.run James Bond
 Hello James Bond Professor</code></pre>
 </div>
 </div>
@@ -1730,10 +1730,10 @@ into a <code>def prepareRun</code> task.</p>
 </ol>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-extending-typescript-4-npm-deps-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/extending/typescript/4-npm-deps-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-extending-typescript-4-npm-deps-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/extending/typescript/4-npm-deps-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._
+import mill.*
 
 trait TypeScriptModule extends Module {
   def moduleDeps: Seq[TypeScriptModule] = Nil
@@ -1767,7 +1767,7 @@ trait TypeScriptModule extends Module {
 
     val upstreamPaths =
       for (((jsDir, dTsDir), mod) &lt;- Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps))
-        yield (mod.millSourcePath.subRelativeTo(build.millSourcePath) + "/*", dTsDir.path)
+        yield (mod.moduleDir.subRelativeTo(build.moduleDir).toString + "/*", dTsDir.path)
 
     val allPaths = upstreamPaths ++ Seq("*" -&gt; sources().path, "*" -&gt; npmInstall().path)
 
@@ -1790,19 +1790,19 @@ trait TypeScriptModule extends Module {
     (PathRef(javascriptOut), PathRef(declarationsOut))
   }
 
-  def mainFileName = Task { s"${millSourcePath.last}.js" }
+  def mainFileName = Task { s"${moduleDir.last}.js" }
 
   def prepareRun = Task.Anon {
     val upstream = Task.traverse(moduleDeps)(_.compile)().zip(moduleDeps)
     for (((jsDir, tTsDir), mod) &lt;- upstream) {
-      os.copy(jsDir.path, Task.dest / mod.millSourcePath.subRelativeTo(build.millSourcePath))
+      os.copy(jsDir.path, Task.dest / mod.moduleDir.subRelativeTo(build.moduleDir))
     }
     val mainFile = compile()._1.path / mainFileName()
     val env = Map("NODE_PATH" -&gt; Seq(".", compile()._1.path, npmInstall().path).mkString(":"))
     (mainFile, env)
   }
 
-  def run(args: mill.define.Args) = Task.Command {
+  def run(args: mill.api.Args) = Task.Command {
     val (mainFile, env) = prepareRun()
     os.call(("node", mainFile, args.value), stdout = os.Inherit, env = env)
   }
@@ -1833,10 +1833,10 @@ standalone using <code>node</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill qux.run James Bond prof
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill qux.run James Bond prof
 Hello James Bond Professor
 
-&gt; mill show qux.bundle
+&gt; ./mill show qux.bundle
 ".../out/qux/bundle.dest/bundle.js"
 
 &gt; node out/qux/bundle.dest/bundle.js James Bond prof
@@ -2190,7 +2190,7 @@ additional <code>npmDeps</code> tasks upstream and the <code>bundle</code> tasks
 <p>As mentioned earlier, the <code>TypeScriptModule</code> examples on this page are meant for
 demo purposes: to show what it looks like to add support in Mill for a new
 programming language toolchain. It would take significantly more work to flesh out
-the featureset and performance of <code>TypeScriptModule</code> to be usable in a real world
+the feature set and performance of <code>TypeScriptModule</code> to be usable in a real world
 build. But this should be enough to get you started working with Mill to add support
 to any language you need: whether it&#8217;s TypeScript or some other language, most programming
 language toolchains have similar concepts of <code>compile</code>, <code>run</code>, <code>bundle</code>, etc.</p>

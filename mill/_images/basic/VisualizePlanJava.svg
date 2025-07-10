@@ -3,21 +3,21 @@
 <g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 499.0)">
 <title>example1</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-499 1791,-499 1791,4 -4,4"/>
-<!-- mill.scalalib.ZincWorkerModule.classpath -->
+<!-- mill.scalalib.JvmWorkerModule.classpath -->
 <g id="node1" class="node">
-<title>mill.scalalib.ZincWorkerModule.classpath</title>
+<title>mill.scalalib.JvmWorkerModule.classpath</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="616.12,-387 366.88,-387 366.88,-351 616.12,-351 616.12,-387"/>
-<text text-anchor="middle" x="491.5" y="-363.95" font-family="Times,serif" font-size="14.00">mill.scalalib.ZincWorkerModule.classpath</text>
+<text text-anchor="middle" x="491.5" y="-363.95" font-family="Times,serif" font-size="14.00">mill.scalalib.JvmWorkerModule.classpath</text>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.worker -->
+<!-- mill.scalalib.JvmWorkerModule.worker -->
 <g id="node2" class="node">
-<title>mill.scalalib.ZincWorkerModule.worker</title>
+<title>mill.scalalib.JvmWorkerModule.worker</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="905.5,-387 667.5,-387 667.5,-351 905.5,-351 905.5,-387"/>
-<text text-anchor="middle" x="786.5" y="-363.95" font-family="Times,serif" font-size="14.00">mill.scalalib.ZincWorkerModule.worker</text>
+<text text-anchor="middle" x="786.5" y="-363.95" font-family="Times,serif" font-size="14.00">mill.scalalib.JvmWorkerModule.worker</text>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.classpath&#45;&gt;mill.scalalib.ZincWorkerModule.worker -->
+<!-- mill.scalalib.JvmWorkerModule.classpath&#45;&gt;mill.scalalib.JvmWorkerModule.worker -->
 <g id="edge1" class="edge">
-<title>mill.scalalib.ZincWorkerModule.classpath&#45;&gt;mill.scalalib.ZincWorkerModule.worker</title>
+<title>mill.scalalib.JvmWorkerModule.classpath&#45;&gt;mill.scalalib.JvmWorkerModule.worker</title>
 <path fill="none" stroke="black" d="M616.33,-369C629.38,-369 642.67,-369 655.78,-369"/>
 <polygon fill="black" stroke="black" points="655.73,-372.5 665.73,-369 655.73,-365.5 655.73,-372.5"/>
 </g>
@@ -27,21 +27,21 @@
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1080.88,-306 1020.62,-306 1020.62,-270 1080.88,-270 1080.88,-306"/>
 <text text-anchor="middle" x="1050.75" y="-282.95" font-family="Times,serif" font-size="14.00">compile</text>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.worker&#45;&gt;compile -->
+<!-- mill.scalalib.JvmWorkerModule.worker&#45;&gt;compile -->
 <g id="edge2" class="edge">
-<title>mill.scalalib.ZincWorkerModule.worker&#45;&gt;compile</title>
+<title>mill.scalalib.JvmWorkerModule.worker&#45;&gt;compile</title>
 <path fill="none" stroke="black" d="M874.2,-350.56C884.8,-347.89 895.44,-345.02 905.5,-342 941.38,-331.23 981.19,-316.08 1009.89,-304.56"/>
 <polygon fill="black" stroke="black" points="1010.95,-307.91 1018.9,-300.91 1008.32,-301.42 1010.95,-307.91"/>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.zincLogDebug -->
+<!-- mill.scalalib.JvmWorkerModule.zincLogDebug -->
 <g id="node3" class="node">
-<title>mill.scalalib.ZincWorkerModule.zincLogDebug</title>
+<title>mill.scalalib.JvmWorkerModule.zincLogDebug</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="631.5,-441 351.5,-441 351.5,-405 631.5,-405 631.5,-441"/>
-<text text-anchor="middle" x="491.5" y="-417.95" font-family="Times,serif" font-size="14.00">mill.scalalib.ZincWorkerModule.zincLogDebug</text>
+<text text-anchor="middle" x="491.5" y="-417.95" font-family="Times,serif" font-size="14.00">mill.scalalib.JvmWorkerModule.zincLogDebug</text>
 </g>
-<!-- mill.scalalib.ZincWorkerModule.zincLogDebug&#45;&gt;mill.scalalib.ZincWorkerModule.worker -->
+<!-- mill.scalalib.JvmWorkerModule.zincLogDebug&#45;&gt;mill.scalalib.JvmWorkerModule.worker -->
 <g id="edge3" class="edge">
-<title>mill.scalalib.ZincWorkerModule.zincLogDebug&#45;&gt;mill.scalalib.ZincWorkerModule.worker</title>
+<title>mill.scalalib.JvmWorkerModule.zincLogDebug&#45;&gt;mill.scalalib.JvmWorkerModule.worker</title>
 <path fill="none" stroke="black" d="M592.51,-404.57C618.89,-399.71 647.5,-394.43 674.42,-389.47"/>
 <polygon fill="black" stroke="black" points="674.75,-392.97 683.95,-387.72 673.48,-386.09 674.75,-392.97"/>
 </g>
@@ -93,81 +93,81 @@
 <path fill="none" stroke="black" d="M833.48,-310.27C883.05,-305.16 961.2,-297.12 1008.75,-292.22"/>
 <polygon fill="black" stroke="black" points="1009.04,-295.71 1018.63,-291.2 1008.33,-288.75 1009.04,-295.71"/>
 </g>
-<!-- compileIvyDeps -->
+<!-- compileMvnDeps -->
 <g id="node8" class="node">
-<title>compileIvyDeps</title>
+<title>compileMvnDeps</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="113.12,-225 7.12,-225 7.12,-189 113.12,-189 113.12,-225"/>
-<text text-anchor="middle" x="60.12" y="-201.95" font-family="Times,serif" font-size="14.00">compileIvyDeps</text>
+<text text-anchor="middle" x="60.12" y="-201.95" font-family="Times,serif" font-size="14.00">compileMvnDeps</text>
 </g>
-<!-- transitiveCompileIvyDeps -->
+<!-- transitiveCompileMvnDeps -->
 <g id="node9" class="node">
-<title>transitiveCompileIvyDeps</title>
+<title>transitiveCompileMvnDeps</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="315.5,-225 156.25,-225 156.25,-189 315.5,-189 315.5,-225"/>
-<text text-anchor="middle" x="235.88" y="-201.95" font-family="Times,serif" font-size="14.00">transitiveCompileIvyDeps</text>
+<text text-anchor="middle" x="235.88" y="-201.95" font-family="Times,serif" font-size="14.00">transitiveCompileMvnDeps</text>
 </g>
-<!-- compileIvyDeps&#45;&gt;transitiveCompileIvyDeps -->
+<!-- compileMvnDeps&#45;&gt;transitiveCompileMvnDeps -->
 <g id="edge8" class="edge">
-<title>compileIvyDeps&#45;&gt;transitiveCompileIvyDeps</title>
+<title>compileMvnDeps&#45;&gt;transitiveCompileMvnDeps</title>
 <path fill="none" stroke="black" d="M113.26,-207C123.2,-207 133.86,-207 144.6,-207"/>
 <polygon fill="black" stroke="black" points="144.28,-210.5 154.28,-207 144.28,-203.5 144.28,-210.5"/>
 </g>
-<!-- resolvedIvyDeps -->
+<!-- resolvedMvnDeps -->
 <g id="node13" class="node">
-<title>resolvedIvyDeps</title>
+<title>resolvedMvnDeps</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="545.25,-225 437.75,-225 437.75,-189 545.25,-189 545.25,-225"/>
-<text text-anchor="middle" x="491.5" y="-201.95" font-family="Times,serif" font-size="14.00">resolvedIvyDeps</text>
+<text text-anchor="middle" x="491.5" y="-201.95" font-family="Times,serif" font-size="14.00">resolvedMvnDeps</text>
 </g>
-<!-- transitiveCompileIvyDeps&#45;&gt;resolvedIvyDeps -->
+<!-- transitiveCompileMvnDeps&#45;&gt;resolvedMvnDeps -->
 <g id="edge9" class="edge">
-<title>transitiveCompileIvyDeps&#45;&gt;resolvedIvyDeps</title>
+<title>transitiveCompileMvnDeps&#45;&gt;resolvedMvnDeps</title>
 <path fill="none" stroke="black" d="M315.73,-207C351.11,-207 392.34,-207 425.86,-207"/>
 <polygon fill="black" stroke="black" points="425.86,-210.5 435.86,-207 425.86,-203.5 425.86,-210.5"/>
 </g>
-<!-- ivyDeps -->
+<!-- mvnDeps -->
 <g id="node10" class="node">
-<title>ivyDeps</title>
+<title>mvnDeps</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="90.62,-360 29.63,-360 29.63,-324 90.62,-324 90.62,-360"/>
-<text text-anchor="middle" x="60.12" y="-336.95" font-family="Times,serif" font-size="14.00">ivyDeps</text>
+<text text-anchor="middle" x="60.12" y="-336.95" font-family="Times,serif" font-size="14.00">mvnDeps</text>
 </g>
-<!-- transitiveIvyDeps -->
+<!-- transitiveMvnDeps -->
 <g id="node11" class="node">
-<title>transitiveIvyDeps</title>
+<title>transitiveMvnDeps</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="291.88,-347 179.88,-347 179.88,-311 291.88,-311 291.88,-347"/>
-<text text-anchor="middle" x="235.88" y="-323.95" font-family="Times,serif" font-size="14.00">transitiveIvyDeps</text>
+<text text-anchor="middle" x="235.88" y="-323.95" font-family="Times,serif" font-size="14.00">transitiveMvnDeps</text>
 </g>
-<!-- ivyDeps&#45;&gt;transitiveIvyDeps -->
+<!-- mvnDeps&#45;&gt;transitiveMvnDeps -->
 <g id="edge10" class="edge">
-<title>ivyDeps&#45;&gt;transitiveIvyDeps</title>
+<title>mvnDeps&#45;&gt;transitiveMvnDeps</title>
 <path fill="none" stroke="black" d="M90.99,-339.77C112.22,-338.18 141.57,-335.98 168.23,-333.99"/>
 <polygon fill="black" stroke="black" points="168.24,-337.5 177.95,-333.26 167.72,-330.51 168.24,-337.5"/>
 </g>
-<!-- transitiveIvyDeps&#45;&gt;resolvedIvyDeps -->
+<!-- transitiveMvnDeps&#45;&gt;resolvedMvnDeps -->
 <g id="edge12" class="edge">
-<title>transitiveIvyDeps&#45;&gt;resolvedIvyDeps</title>
+<title>transitiveMvnDeps&#45;&gt;resolvedMvnDeps</title>
 <path fill="none" stroke="black" d="M292.18,-316C300.58,-312.4 308.7,-307.81 315.5,-302 341.49,-279.78 324.03,-254.36 351.5,-234 372.74,-218.26 400.66,-210.98 425.9,-207.83"/>
 <polygon fill="black" stroke="black" points="426.18,-211.32 435.77,-206.81 425.46,-204.35 426.18,-211.32"/>
 </g>
-<!-- resolvedRunIvyDeps -->
+<!-- resolvedRunMvnDeps -->
 <g id="node28" class="node">
-<title>resolvedRunIvyDeps</title>
+<title>resolvedRunMvnDeps</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="556.5,-495 426.5,-495 426.5,-459 556.5,-459 556.5,-495"/>
-<text text-anchor="middle" x="491.5" y="-471.95" font-family="Times,serif" font-size="14.00">resolvedRunIvyDeps</text>
+<text text-anchor="middle" x="491.5" y="-471.95" font-family="Times,serif" font-size="14.00">resolvedRunMvnDeps</text>
 </g>
-<!-- transitiveIvyDeps&#45;&gt;resolvedRunIvyDeps -->
+<!-- transitiveMvnDeps&#45;&gt;resolvedRunMvnDeps -->
 <g id="edge11" class="edge">
-<title>transitiveIvyDeps&#45;&gt;resolvedRunIvyDeps</title>
+<title>transitiveMvnDeps&#45;&gt;resolvedRunMvnDeps</title>
 <path fill="none" stroke="black" d="M292,-340.95C300.62,-344.69 308.86,-349.58 315.5,-356 347.68,-387.08 317.24,-421.23 351.5,-450 369.14,-464.81 392.48,-472.39 414.99,-476.06"/>
 <polygon fill="black" stroke="black" points="414.41,-479.51 424.79,-477.4 415.35,-472.58 414.41,-479.51"/>
 </g>
-<!-- mandatoryIvyDeps -->
+<!-- mandatoryMvnDeps -->
 <g id="node12" class="node">
-<title>mandatoryIvyDeps</title>
+<title>mandatoryMvnDeps</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="120.25,-306 0,-306 0,-270 120.25,-270 120.25,-306"/>
-<text text-anchor="middle" x="60.12" y="-282.95" font-family="Times,serif" font-size="14.00">mandatoryIvyDeps</text>
+<text text-anchor="middle" x="60.12" y="-282.95" font-family="Times,serif" font-size="14.00">mandatoryMvnDeps</text>
 </g>
-<!-- mandatoryIvyDeps&#45;&gt;transitiveIvyDeps -->
+<!-- mandatoryMvnDeps&#45;&gt;transitiveMvnDeps -->
 <g id="edge13" class="edge">
-<title>mandatoryIvyDeps&#45;&gt;transitiveIvyDeps</title>
+<title>mandatoryMvnDeps&#45;&gt;transitiveMvnDeps</title>
 <path fill="none" stroke="black" d="M120.43,-302C136.01,-305.67 152.9,-309.66 168.81,-313.41"/>
 <polygon fill="black" stroke="black" points="167.63,-316.73 178.16,-315.62 169.23,-309.91 167.63,-316.73"/>
 </g>
@@ -177,9 +177,9 @@
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="842.88,-279 730.12,-279 730.12,-243 842.88,-243 842.88,-279"/>
 <text text-anchor="middle" x="786.5" y="-255.95" font-family="Times,serif" font-size="14.00">compileClasspath</text>
 </g>
-<!-- resolvedIvyDeps&#45;&gt;compileClasspath -->
+<!-- resolvedMvnDeps&#45;&gt;compileClasspath -->
 <g id="edge14" class="edge">
-<title>resolvedIvyDeps&#45;&gt;compileClasspath</title>
+<title>resolvedMvnDeps&#45;&gt;compileClasspath</title>
 <path fill="none" stroke="black" d="M545.56,-216.78C594.11,-225.73 666.16,-239.01 718.63,-248.68"/>
 <polygon fill="black" stroke="black" points="717.89,-252.1 728.36,-250.47 719.16,-245.21 717.89,-252.1"/>
 </g>
@@ -345,15 +345,15 @@
 <path fill="none" stroke="black" d="M1668.64,-346.61C1678.39,-337.85 1689.28,-326.74 1697,-315 1724.75,-272.8 1742.75,-216.35 1751.87,-182.45"/>
 <polygon fill="black" stroke="black" points="1755.21,-183.48 1754.34,-172.92 1748.44,-181.72 1755.21,-183.48"/>
 </g>
-<!-- runIvyDeps -->
+<!-- runMvnDeps -->
 <g id="node27" class="node">
-<title>runIvyDeps</title>
+<title>runMvnDeps</title>
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="275.75,-495 196,-495 196,-459 275.75,-459 275.75,-495"/>
-<text text-anchor="middle" x="235.88" y="-471.95" font-family="Times,serif" font-size="14.00">runIvyDeps</text>
+<text text-anchor="middle" x="235.88" y="-471.95" font-family="Times,serif" font-size="14.00">runMvnDeps</text>
 </g>
-<!-- runIvyDeps&#45;&gt;resolvedRunIvyDeps -->
+<!-- runMvnDeps&#45;&gt;resolvedRunMvnDeps -->
 <g id="edge29" class="edge">
-<title>runIvyDeps&#45;&gt;resolvedRunIvyDeps</title>
+<title>runMvnDeps&#45;&gt;resolvedRunMvnDeps</title>
 <path fill="none" stroke="black" d="M276.23,-477C313.17,-477 369.41,-477 415.01,-477"/>
 <polygon fill="black" stroke="black" points="414.84,-480.5 424.84,-477 414.84,-473.5 414.84,-480.5"/>
 </g>
@@ -363,9 +363,9 @@
 <polygon fill="none" stroke="black" stroke-dasharray="5,2" points="1688,-306 1601.5,-306 1601.5,-270 1688,-270 1688,-306"/>
 <text text-anchor="middle" x="1644.75" y="-282.95" font-family="Times,serif" font-size="14.00">runClasspath</text>
 </g>
-<!-- resolvedRunIvyDeps&#45;&gt;runClasspath -->
+<!-- resolvedRunMvnDeps&#45;&gt;runClasspath -->
 <g id="edge30" class="edge">
-<title>resolvedRunIvyDeps&#45;&gt;runClasspath</title>
+<title>resolvedRunMvnDeps&#45;&gt;runClasspath</title>
 <path fill="none" stroke="black" d="M556.85,-476.24C660.6,-475.08 871.25,-473 1049.75,-473 1049.75,-473 1049.75,-473 1256.75,-473 1397.76,-473 1435.63,-441.63 1556.5,-369 1563.36,-364.88 1593.89,-336.06 1616.92,-313.96"/>
 <polygon fill="black" stroke="black" points="1619.13,-316.69 1623.91,-307.23 1614.28,-311.64 1619.13,-316.69"/>
 </g>

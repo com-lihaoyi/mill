@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -709,25 +709,25 @@ interface-implementation-separation to resolve.</p>
 </div>
 <div class="paragraph">
 <p>As a Scala compiler plugin, Acyclic can be enabled on any <code>ScalaModule</code> by
-adding its <code>compileIvyDeps,</code> <code>scalacPluginIvyDeps</code>, and <code>scalacOptions</code> as
+adding its <code>compileMvnDeps,</code> <code>scalacPluginMvnDeps</code>, and <code>scalacOptions</code> as
 shown below:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-scalalib-linting-3-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/scalalib/linting/3-acyclic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-scalalib-linting-3-acyclic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/linting/3-acyclic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
-object `package` extends RootModule with ScalaModule {
+object `package` extends ScalaModule {
   def scalaVersion = "2.13.11"
-  def compileIvyDeps = Agg(ivy"com.lihaoyi:::acyclic:0.3.15")
-  def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi:::acyclic:0.3.15")
+  def compileMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.15")
+  def scalacPluginMvnDeps = Seq(mvn"com.lihaoyi:::acyclic:0.3.15")
   def scalacOptions = Seq("-P:acyclic:force")
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/scalalib/linting/3-acyclic/src/Foo.scala">browse</a>)</div>
+<div class="title">src/Foo.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/linting/3-acyclic/src/Foo.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 object Foo {
@@ -739,7 +739,7 @@ object Foo {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/Bar.scala (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/scalalib/linting/3-acyclic/src/Bar.scala">browse</a>)</div>
+<div class="title">src/Bar.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/linting/3-acyclic/src/Bar.scala">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package foo
 object Bar {
@@ -753,7 +753,7 @@ object Bar {
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile
 error: Unwanted cyclic dependency
 ...src/Bar.scala...
   val value = Foo + " world"
@@ -772,7 +772,7 @@ which allows the code to compile:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; sed -i.bak 's/Foo/Bar/g' src/Bar.scala
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; sed -i.bak 's/Foo/Bar/g' src/Bar.scala
 
 &gt; ./mill compile
 done compiling</code></pre>
@@ -784,18 +784,18 @@ done compiling</code></pre>
 <h2 id="_autoformatting_with_scalafmt"><a class="anchor" href="#_autoformatting_with_scalafmt"></a>Autoformatting with ScalaFmt</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-scalalib-linting-1-scalafmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/scalalib/linting/1-scalafmt">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-scalalib-linting-1-scalafmt.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/linting/1-scalafmt">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
+import mill.*, scalalib.*
 
-object `package` extends RootModule with ScalaModule {
-  def scalaVersion = "2.13.11"
+object `package` extends ScalaModule {
+  def scalaVersion = "3.7.1"
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/scalalib/linting/1-scalafmt/.scalafmt.conf">browse</a>)</div>
+<div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/linting/1-scalafmt/.scalafmt.conf">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala"># Newer versions won't work with Java 8!
 version = "3.7.15"
@@ -811,7 +811,7 @@ By default, ScalaFmt checks for a <code>.scalafmt.conf</code> file at the root o
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat src/Foo.scala # initial poorly formatted source code
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat src/Foo.scala # initial poorly formatted source code
 package foo
 object Foo{
 def main(args:
@@ -823,10 +823,10 @@ Array[String
 }
 
 
-&gt; mill mill.scalalib.scalafmt/checkFormatAll
+&gt; ./mill mill.scalalib.scalafmt/checkFormatAll
 error: ...Found 1 misformatted files
 
-&gt; mill mill.scalalib.scalafmt/
+&gt; ./mill mill.scalalib.scalafmt/
 
 &gt; cat src/Foo.scala
 package foo
@@ -834,7 +834,7 @@ object Foo {
   def main(args: Array[String]): Unit = { println("hello world") }
 }
 
-&gt; mill mill.scalalib.scalafmt/checkFormatAll
+&gt; ./mill mill.scalalib.scalafmt/checkFormatAll
 Everything is formatted already</code></pre>
 </div>
 </div>
@@ -843,9 +843,9 @@ Everything is formatted already</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; echo "maxColumn: 50" &gt;&gt; .scalafmt.conf
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo "maxColumn: 50" &gt;&gt; .scalafmt.conf
 
-&gt; mill mill.scalalib.scalafmt/
+&gt; ./mill mill.scalalib.scalafmt/
 
 &gt; cat src/Foo.scala
 package foo
@@ -865,27 +865,409 @@ to give it a shorter name that&#8217;s easier to type</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_auto_formatting_with_spotless"><a class="anchor" href="#_auto_formatting_with_spotless"></a>Auto-formatting with Spotless</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If your project has file groups each requiring different formatting,
+you may want to give Mill&#8217;s <a href="https://github.com/diffplug/spotless">Spotless</a> plugin a try.
+It supports formatting all files with a single command
+as opposed to using a different plugin/command for each group.</p>
+</div>
+<div class="paragraph">
+<p>We define a module, containing cross Scala modules, that extends
+<a href="https://mill-build.org/api/latest/mill/scalalib/spotless/SpotlessModule.html">SpotlessModule</a> and
+provide a JSON configuration file with the format specifications.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-scalalib-linting-4-spotless.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/linting/4-spotless">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.Cross
+import mill.scalalib.CrossScalaModule
+import mill.javalib.spotless.SpotlessModule
+
+object `package` extends SpotlessModule {
+  object lib extends Cross[LibModule]("2.13.15", "3.7.0")
+  trait LibModule extends CrossScalaModule
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">lib/src/A.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/linting/4-spotless/lib/src/A.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mylib.Unused;
+import mylib.UsedB;
+import mylib.UsedA;
+
+public class A {
+/**
+ * Some javadoc.
+ */
+public static void main(String[] args) {
+System.out.println("A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.");
+UsedB.someMethod();
+UsedA.someMethod();
+}
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">lib/src-2/B.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/linting/4-spotless/lib/src-2/B.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">sealed trait B
+object B{
+case object F extends B
+case object T extends B
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">lib/src-3/B.scala (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/linting/4-spotless/lib/src-3/B.scala">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">enum B:
+  case F,T</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">.scalafmt.conf (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/linting/4-spotless/.scalafmt.conf">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">version = "3.8.5"
+runner.dialect = scala213</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">.scalafmt3.conf (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/linting/4-spotless/.scalafmt3.conf">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">version = "3.8.5"
+runner.dialect = scala3</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">.spotless-formats.json (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/linting/4-spotless/.spotless-formats.json">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">[
+  {
+    "includes": [
+      "glob:**.java"
+    ],
+    "steps": [
+      {
+        "$type": "PalantirJavaFormat"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**.scala"
+    ],
+    "excludes": [
+      "glob:**/src-3**"
+    ],
+    "steps": [
+      {
+        "$type": "ScalaFmt",
+        "version": "3.8.5"
+      }
+    ]
+  },
+  {
+    "includes": [
+      "glob:**/src-3**",
+      "glob:build.mill"
+    ],
+    "steps": [
+      {
+        "$type": "ScalaFmt",
+        "version": "3.8.5",
+        "configFile": ".scalafmt3.conf"
+      }
+    ]
+  }
+]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As per the specifications:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>All Java files are to be formatted using <code>PalantirFormatJava</code> step.</p>
+</li>
+<li>
+<p>All Scala 2 files are to be formatted using <code>Scalafmt</code> step with the configuration in <code>.scalafmt.conf</code>.</p>
+</li>
+<li>
+<p>All Scala 3 files are to be formatted using <code>Scalafmt</code> step with the configuration in <code>.scalafmt3.conf</code>.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Most fields have default values and can be omitted in the JSON file.
+An example is the <code>ScalaFmt.configFile</code> field that references the <code>.scalafmt.conf</code> file.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If no <code>.scalafmt.conf</code> file is provided, the default configuration from <code>scalafmt</code> is used.
+Otherwise, you must also specify the <code>ScalaFmt.version</code> field in the JSON file.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+as <code>.mill</code> files use Scala 3 syntax, we need the <code>.scalafmt.conf</code> above to
+configure ScalaFmt to use Scala 3 compatible formatting
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Next, we run the inherited <code>spotless</code> command to check/apply the format specifications.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill spotless --check     # check fails initially
+checking format in 1 java files
+format errors in lib/src/A.java
+checking format in 1 scala files
+format errors in lib/src-2/B.scala
+checking format in 1 scala files
+format errors in lib/src-3/B.scala
+checking format in 1 scala files
+format errors in build.mill
+format errors in 4 files
+error: ...format check failed for 4 files
+
+&gt; ./mill spotless             # auto-fix format
+formatting lib/src/A.java
+formatting lib/src-2/B.scala
+formatting lib/src-3/B.scala
+formatting build.mill
+formatted 4 files
+
+&gt; ./mill spotless           # fast incremental format
+1 java files are already formatted
+1 scala files are already formatted
+1 scala files are already formatted</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This demonstrates how different file groups can be formatted with a single command.</p>
+</div>
+<div class="paragraph">
+<p>For the full list of format steps and configuration options, please refer to the
+<a href="https://mill-build.org/api/latest/mill/scalalib/spotless/Format.html">API documentation</a>.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+As shown, for a multi-module project, it is sufficient to extend <code>SpotlessModule</code> in your
+build root module and define a format specification for each use-case.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can also run <code>spotless</code> <a href="../fundamentals/modules.html#_external_modules" class="xref page">globally</a>
+if you prefer not to have to extend <code>SpotlessModule</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.javalib.spotless.SpotlessModule/ --check
+checking format in 1 java files
+checking format in 1 scala files
+checking format in 1 scala files
+format check completed</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ratchet"><a class="anchor" href="#_ratchet"></a>Ratchet</h3>
+<div class="paragraph">
+<p>Similar to the Spotless Gradle and Maven plugins, Mill provides the ability to
+enforce formatting gradually aka <a href="https://github.com/diffplug/spotless/tree/main/plugin-gradle#ratchet">ratchet</a>.</p>
+</div>
+<div class="paragraph">
+<p>We define a module with an incorrectly formatted file.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-javalib-linting-5-spotless-ratchet.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javalib/linting/5-spotless-ratchet">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.javalib.JavaModule
+import mill.javalib.spotless.SpotlessModule
+
+object `package` extends JavaModule with SpotlessModule</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">src/A.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/javalib/linting/5-spotless-ratchet/src/A.java">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mylib.Unused;
+import mylib.UsedB;
+import mylib.UsedA;
+
+public class A {
+/**
+ * Some javadoc.
+ */
+public static void main(String[] args) {
+System.out.println("A very very very very very very very very very very very very very very very very very very very very very long string that goes beyond the 100-character line length.");
+UsedB.someMethod();
+UsedA.someMethod();
+}
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A Git repository is initialized and a base commit is created with the incorrectly formatted file.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Since no <code>.spotless-formats.json</code> file is present, a default list of format specifications is used.
+The default is meant for use cases where some basic formatting is sufficient.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init . -b main
+&gt; git add .gitignore build.mill src/A.java
+&gt; git commit -a -m "1"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, we create a new file with format errors.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo " module hello {}" &gt; src/module-info.java  # content has leading space at start
+
+&gt; ./mill spotless --check
+format errors in build.mill
+format errors in src/A.java
+format errors in src/module-info.java
+error: ...format check failed for 3 files</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>spotless</code> command finds format errors in all files.
+But we do not want to fix the formatting in files that were committed previously.</p>
+</div>
+<div class="paragraph">
+<p>Instead, we use the <code>ratchet</code> command to identify and format files that differ between Git trees.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill ratchet --check      # format changes in working tree since HEAD commit
+ratchet found changes in 1 files
+format errors in src/module-info.java
+error: ...format check failed for 1 files
+
+&gt; ./mill ratchet              # auto-fix formatting in changeset
+ratchet found changes in 1 files
+formatting src/module-info.java
+formatted 1 files</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This demonstrates how to introduce formatting incrementally into your project.</p>
+</div>
+<div class="paragraph">
+<p>You can also set up actions on CI systems that compare and check/fix formatting between 2
+<a href="https://javadoc.io/doc/org.eclipse.jgit/org.eclipse.jgit/latest/org.eclipse.jgit/org/eclipse/jgit/lib/Repository.html#resolve(java.lang.String)">revisions</a>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git add src/module-info.java        # stage and
+&gt; git commit -a -m "2"                # commit changes
+
+&gt; ./mill ratchet --check HEAD^ HEAD   # format changes between last 2 commits
+ratchet found changes in 1 files
+1 java files are already formatted</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+CI actions may require additional
+<a href="https://github.com/diffplug/spotless/tree/main/plugin-gradle#using-ratchetfrom-on-ci-systems">setup</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The <code>ratchet</code> command is also available globally.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.javalib.spotless.SpotlessModule/ratchet --check HEAD^ HEAD
+ratchet found changes in 1 files</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_code_coverage_with_scoverage"><a class="anchor" href="#_code_coverage_with_scoverage"></a>Code Coverage with Scoverage</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-scalalib-linting-2-contrib-scoverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/scalalib/linting/2-contrib-scoverage">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-scalalib-linting-2-contrib-scoverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/scalalib/linting/2-contrib-scoverage">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, scalalib._
-import $ivy.`com.lihaoyi::mill-contrib-scoverage:`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
+//| - com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION
 
-import mill.contrib.scoverage._
+package build
 
-object `package` extends RootModule with ScoverageModule {
+import mill.*, scalalib.*
+
+import mill.contrib.scoverage.*
+
+object `package` extends ScoverageModule {
   def scoverageVersion = "2.1.0"
-  def scalaVersion = "2.13.11"
-  def ivyDeps = Agg(
-    ivy"com.lihaoyi::scalatags:0.13.1",
-    ivy"com.lihaoyi::mainargs:0.6.2"
+  def scalaVersion = "3.7.1"
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::scalatags:0.13.1",
+    mvn"com.lihaoyi::mainargs:0.7.6"
   )
 
   object test extends ScoverageTests /*with TestModule.Utest */ {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.8.5")
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.9")
     def testFramework = "utest.runner.Framework"
   }
 }</code></pre>
@@ -907,7 +1289,7 @@ coverage into your console output.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill test # Run the tests and produce the coverage data
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test # Run the tests and produce the coverage data
 ...
 + foo.FooTests...simple ...  &lt;h1&gt;hello&lt;/h1&gt;
 + foo.FooTests...escaping ...  &lt;h1&gt;&amp;lt;hello&amp;gt;&lt;/h1&gt;
@@ -925,7 +1307,7 @@ scoverage.xmlReport
 
 &gt; ./mill scoverage.consoleReport
 ...
-Statement coverage.: 16.67%
+Statement coverage.: 10.53%
 Branch coverage....: 100.00%</code></pre>
 </div>
 </div>

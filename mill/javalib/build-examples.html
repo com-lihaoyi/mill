@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -666,21 +666,21 @@ demonstrating how Mill can be used to build code outside of tiny example codebas
 <div class="sect2">
 <h3 id="_jimfs"><a class="anchor" href="#_jimfs"></a>JimFS</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-thirdparty-jimfs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/thirdparty/jimfs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-thirdparty-jimfs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/thirdparty/jimfs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._, publish._
+import mill.*, javalib.*, publish.*
 
-def sharedCompileIvyDeps = Task {
-  Agg(
-    ivy"com.google.auto.service:auto-service:1.0.1",
-    ivy"com.google.code.findbugs:jsr305:3.0.2",
-    ivy"org.checkerframework:checker-compat-qual:2.5.5",
-    ivy"com.ibm.icu:icu4j:73.1"
+def sharedCompileMvnDeps = Task {
+  Seq(
+    mvn"com.google.auto.service:auto-service:1.0.1",
+    mvn"com.google.code.findbugs:jsr305:3.0.2",
+    mvn"org.checkerframework:checker-compat-qual:2.5.5",
+    mvn"com.ibm.icu:icu4j:73.1"
   )
 }
 
-object jimfs extends PublishModule with MavenModule {
+object jimfs extends PublishModule, MavenModule {
   def publishVersion = "1.3.3.7"
 
   def pomSettings = PomSettings(
@@ -692,22 +692,19 @@ object jimfs extends PublishModule with MavenModule {
     developers = Nil
   )
 
-  def ivyDeps = sharedCompileIvyDeps() ++ Agg(
-    ivy"com.google.guava:guava:31.1-android"
+  def mvnDeps = sharedCompileMvnDeps() ++ Seq(
+    mvn"com.google.guava:guava:31.1-android"
   )
 
   def javacOptions = Seq("-processor", "com.google.auto.service.processor.AutoServiceProcessor")
 
-  object test extends MavenTests {
-    def ivyDeps = sharedCompileIvyDeps() ++ Agg(
-      ivy"junit:junit:4.13.2",
-      ivy"com.google.guava:guava-testlib:31.1-android",
-      ivy"com.google.truth:truth:1.1.3",
-      ivy"com.github.sbt:junit-interface:0.13.2",
-      ivy"com.ibm.icu:icu4j:73.1"
+  object test extends MavenTests, TestModule.Junit4 {
+    def junit4Version = "4.13.2"
+    def mvnDeps = sharedCompileMvnDeps() ++ Seq(
+      mvn"com.google.guava:guava-testlib:31.1-android",
+      mvn"com.google.truth:truth:1.1.3",
+      mvn"com.ibm.icu:icu4j:73.1"
     )
-
-    def testFramework = "com.novocode.junit.JUnitFramework"
   }
 }</code></pre>
 </div>
@@ -721,7 +718,7 @@ to disk.</p>
 <p>It has a relatively simple codebase structure, a single module and test suite.
 It has a number of compile-time-only dependencies shared between the library and
 test suite. One wrinkle is that it uses annotation processors as part of its build,
-which Mill supports by providing the relevant <code>ivyDeps</code> of the annotation processor
+which Mill supports by providing the relevant <code>mvnDeps</code> of the annotation processor
 and providing <code>javacOptions</code> to invoke it.</p>
 </div>
 <div class="paragraph">
@@ -729,7 +726,7 @@ and providing <code>javacOptions</code> to invoke it.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill jimfs.test
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill jimfs.test
 Test run com.google.common.jimfs.FileTest started
 Test run com.google.common.jimfs.FileTest finished: 0 failed, 0 ignored, 7 total...
 ...</code></pre>
@@ -739,21 +736,24 @@ Test run com.google.common.jimfs.FileTest finished: 0 failed, 0 ignored, 7 total
 <div class="sect2">
 <h3 id="_apache_commons_io"><a class="anchor" href="#_apache_commons_io"></a>Apache Commons IO</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-thirdparty-commons-io.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/thirdparty/commons-io">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-thirdparty-commons-io.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/thirdparty/commons-io">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, javalib._, publish._
-import mill.define.ModuleRef
-import $ivy.`com.lihaoyi::mill-contrib-jmh:$MILL_VERSION`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps:
+//| - com.lihaoyi::mill-contrib-jmh:$MILL_VERSION
+
+package build
+
+import mill.*, javalib.*, publish.*
+import mill.api.ModuleRef
 import contrib.jmh.JmhModule
 
-object `package` extends RootModule with PublishModule with MavenModule {
+object `package` extends PublishModule, MavenModule {
 
-  object ZincWorkerJava11 extends ZincWorkerModule {
+  object JvmWorkerJava11 extends JvmWorkerModule {
     def jvmId = "temurin:11.0.24"
   }
 
-  override def zincWorker = ModuleRef(ZincWorkerJava11)
+  override def jvmWorker = ModuleRef(JvmWorkerJava11)
   def javacOptions = Seq("-encoding", "UTF-8")
   def publishVersion = "2.17.0-SNAPSHOT"
 
@@ -766,20 +766,20 @@ object `package` extends RootModule with PublishModule with MavenModule {
     developers = Nil
   )
 
-  object test extends MavenTests with TestModule.Junit5 with JmhModule {
+  object test extends MavenTests, TestModule.Junit5, JmhModule {
     def testSandboxWorkingDir = false
     def jmhCoreVersion = "1.37"
-    def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"org.junit.jupiter:junit-jupiter:5.10.3",
-      ivy"org.junit-pioneer:junit-pioneer:1.9.1",
-      ivy"net.bytebuddy:byte-buddy:1.14.18",
-      ivy"net.bytebuddy:byte-buddy-agent:1.14.18",
-      ivy"org.mockito:mockito-inline:4.11.0",
-      ivy"com.google.jimfs:jimfs:1.3.0",
-      ivy"org.apache.commons:commons-lang3:3.14.0",
-      ivy"commons-codec:commons-codec:1.17.1",
-      ivy"org.openjdk.jmh:jmh-core:1.37",
-      ivy"org.openjdk.jmh:jmh-generator-annprocess:1.37"
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"org.junit.jupiter:junit-jupiter:5.10.3",
+      mvn"org.junit-pioneer:junit-pioneer:1.9.1",
+      mvn"net.bytebuddy:byte-buddy:1.14.18",
+      mvn"net.bytebuddy:byte-buddy-agent:1.14.18",
+      mvn"org.mockito:mockito-inline:4.11.0",
+      mvn"com.google.jimfs:jimfs:1.3.0",
+      mvn"org.apache.commons:commons-lang3:3.14.0",
+      mvn"commons-codec:commons-codec:1.17.1",
+      mvn"org.openjdk.jmh:jmh-core:1.37",
+      mvn"org.openjdk.jmh:jmh-generator-annprocess:1.37"
     )
   }
 }</code></pre>
@@ -799,7 +799,7 @@ supports via the built in JMH plugin</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; ./mill compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill compile
 compiling 254 Java sources...
 ...
 

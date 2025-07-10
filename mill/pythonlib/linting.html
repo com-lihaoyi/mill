@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -678,12 +678,12 @@ code nice and tidy.</p>
 <p>First, make your module extend <code>pythonlib.RuffModule</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-pythonlib-linting-1-ruff-format.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/pythonlib/linting/1-ruff-format">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-pythonlib-linting-1-ruff-format.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/linting/1-ruff-format">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
-object `package` extends RootModule with PythonModule with RuffModule</code></pre>
+object `package` extends PythonModule, RuffModule</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -691,7 +691,7 @@ object `package` extends RootModule with PythonModule with RuffModule</code></pr
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; cat src/main.py # initial poorly formatted source code
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; cat src/main.py # initial poorly formatted source code
 from typing import Self
 class IntWrapper:
    def __init__(self, x:int):
@@ -701,7 +701,7 @@ class IntWrapper:
 print(IntWrapper(2).plus(IntWrapper(3)).x)
 ...
 
-&gt; mill ruffFormat --diff # you can also pass in extra arguments understood by `ruff format`
+&gt; ./mill ruffFormat --diff # you can also pass in extra arguments understood by `ruff format`
 error: ...
 error: @@ -1,7 +1,12 @@
 error:  from typing import Self
@@ -723,7 +723,7 @@ error:  print(IntWrapper(2).plus(IntWrapper(3)).x)
 error: ...
 error: 1 file would be reformatted
 
-&gt; mill ruffFormat
+&gt; ./mill ruffFormat
 ...1 file reformatted
 
 &gt; cat src/main.py # the file is now correctly formatted
@@ -745,9 +745,9 @@ formatting options as desired. For example,</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; echo indent-width=2 &gt; ruff.toml
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; echo indent-width=2 &gt; ruff.toml
 
-&gt; mill ruffFormat
+&gt; ./mill ruffFormat
 ...1 file reformatted
 
 &gt; cat src/main.py # the file is now correctly formatted with 2 spaces indentation
@@ -788,23 +788,23 @@ shorter name that&#8217;s easier to type.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill mill.pythonlib.RuffModule/formatAll</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.pythonlib.RuffModule/formatAll</code></pre>
 </div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_linting"><a class="anchor" href="#_linting"></a>Linting</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-pythonlib-linting-2-ruff-check.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/pythonlib/linting/2-ruff-check">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-pythonlib-linting-2-ruff-check.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/linting/2-ruff-check">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
-import mill._, pythonlib._
+import mill.*, pythonlib.*
 
-object `package` extends RootModule with PythonModule with RuffModule {}</code></pre>
+object `package` extends PythonModule, RuffModule {}</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/main.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/pythonlib/linting/2-ruff-check/src/main.py">browse</a>)</div>
+<div class="title">src/main.py (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/linting/2-ruff-check/src/main.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import os
 
@@ -817,7 +817,7 @@ def doit(x: int):
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill ruffCheck
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill ruffCheck
 error: ...
 error: ...F401 [*] `os` imported but unused
 error:   |
@@ -845,7 +845,7 @@ error: [*] 2 fixable with the `--fix` option.</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill ruffCheck --fix
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill ruffCheck --fix
 Found 2 errors (2 fixed, 0 remaining).
 
 &gt; cat src/main.py
@@ -868,19 +868,19 @@ def doit(x: int):
 <p>You can use it by extending <code>CoverageTests</code> in your test module.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.14/mill-dist-0.12.14-example-pythonlib-linting-3-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/pythonlib/linting/3-coverage">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-pythonlib-linting-3-coverage.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/linting/3-coverage">browse</a>)</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, pythonlib._
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*, pythonlib.*
 
-object `package` extends RootModule with PythonModule {
+object `package` extends PythonModule {
 
-  object test extends PythonTests with TestModule.Pytest with CoverageTests
+  object test extends PythonTests, TestModule.Pytest, CoverageTests
 
 }</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">src/main.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/pythonlib/linting/3-coverage/src/main.py">browse</a>)</div>
+<div class="title">src/main.py (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/linting/3-coverage/src/main.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def f1():
     pass
@@ -890,7 +890,7 @@ def f2():
 </div>
 </div>
 <div class="listingblock">
-<div class="title">test/src/test_main.py (<a href="https://github.com/com-lihaoyi/mill/blob/0.12.14/example/pythonlib/linting/3-coverage/test/src/test_main.py">browse</a>)</div>
+<div class="title">test/src/test_main.py (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/linting/3-coverage/test/src/test_main.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import main
 
@@ -906,7 +906,7 @@ def test_other():
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test.coverageReport
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test.coverageReport
 Name ...                        Stmts   Miss  Cover
 ...------------------------------------------------
 .../src/main.py                 4      1    75%
@@ -921,7 +921,7 @@ For example, you can use it to fail if a coverage threshold is not met:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; mill test.coverageReport --fail-under 90
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill test.coverageReport --fail-under 90
 error: ...
 error: Coverage failure: total of 89 is less than fail-under=90</code></pre>
 </div>

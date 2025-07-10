@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Migrating to Mill :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/migrating/migrating.html">
-    <link rel="prev" href="../cli/query-syntax.html">
+    <link rel="prev" href="../cli/build-header.html">
     <link rel="next" href="maven.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../_/css/site.css">
@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -660,7 +660,7 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>This page documents a playbook for migrating existing projects
-from Maven, Gradle, or SBT to Mill.</p>
+from Maven, Gradle, or <code>sbt</code> to Mill.</p>
 </div>
 <div class="paragraph">
 <p>Some build tools also have additional semi-automated
@@ -669,13 +669,13 @@ tooling.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="maven.html" class="xref page">Migrating From Maven to Mill</a></p>
+<p><a href="maven.html" class="xref page">Importing Maven Projects</a></p>
 </li>
 <li>
-<p><a href="gradle.html" class="xref page">Migrating From Gradle to Mill</a></p>
+<p><a href="gradle.html" class="xref page">Importing Gradle Projects</a></p>
 </li>
 <li>
-<p><a href="sbt.html" class="xref page">Migrating From sbt to Mill</a></p>
+<p><a href="sbt.html" class="xref page">Importing <code>sbt</code> Projects</a></p>
 </li>
 </ul>
 </div>
@@ -757,7 +757,7 @@ faster and easier to use build system are significant (see <a href="../compariso
 especially multiplied over an entire team of engineers who may be working on
 the codebase for multiple years. Generally the more actively a project is developed, and the
 longer you expect development to continue, the more worthwhile it is to migrate from
-Maven/Gradle/SBT
+Maven/Gradle/<code>sbt</code>
 to Mill.</p>
 </div>
 </div>
@@ -793,7 +793,7 @@ perform head-to-head comparisons between old and new build systems</p>
 <p>Sub-project <code>pom.xml</code> and <code>build.gradle</code> files need to be translated into Mill <code>Module</code>s</p>
 </li>
 <li>
-<p>Third-party dependencies need to be translated into Mill&#8217;s <code>def ivyDeps</code></p>
+<p>Third-party dependencies need to be translated into Mill&#8217;s <code>def mvnDeps</code></p>
 </li>
 <li>
 <p>Third-party Plugins need to be replaced by their Mill equivalent, or re-implemented</p>
@@ -825,6 +825,28 @@ system can be removed.</strong></p>
 <p>Of the four steps above, most of the work goes into (2) setting up the parallel Mill
 build for your project. We will walk through each of the sub-bullets in that step
 below</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_run_the_mill_init_project_importer"><a class="anchor" href="#_run_the_mill_init_project_importer"></a>Run the <code>./mill init</code> project importer</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>Run <code>./mill init</code> in your codebase to run the automated build importer, which will perform
+<a href="#_translating_subprojects_to_modules">Translating Subprojects to Modules</a> and <a href="#_translating_third_party_dependencies">Translating Third-Party Dependencies</a>
+on your behalf</p>
+</li>
+<li>
+<p>After that completes, you should not need to do those steps manually, though you should still
+read through them to understand what the <code>./mill init</code> importer was doing</p>
+</li>
+<li>
+<p>Next, you can start again with the manual steps in <a href="#_translating_third_party_plugins">Translating Third-Party Plugins</a>
+and <a href="#_translating_custom_build_logic">Translating Custom Build Logic</a></p>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -951,7 +973,7 @@ will require some degree of third party dependencies that will need to be config
 <div class="ulist">
 <ul>
 <li>
-<p>Define the third-party dependencies for each module with <code>def ivyDeps</code>.</p>
+<p>Define the third-party dependencies for each module with <code>def mvnDeps</code>.</p>
 </li>
 </ul>
 </div>
@@ -989,7 +1011,7 @@ will require some degree of third party dependencies that will need to be config
 </div></div></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">SBT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sbt</code></p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">libraryDependencies += "com.google.guava" % "guava" % "3.3.1-jre"</code></pre>
@@ -1000,14 +1022,14 @@ will require some degree of third party dependencies that will need to be config
 <td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def ivyDeps = Agg(ivy"com.google.guava:guava:3.3.1-jre")</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mvnDeps = Seq(mvn"com.google.guava:guava:3.3.1-jre")</code></pre>
 </div>
 </div></div></td>
 </tr>
 </tbody>
 </table>
 <div class="paragraph">
-<p>If you are building a Scala project using SBT:</p>
+<p>If you are building a Scala project using <code>sbt</code>:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1020,7 +1042,7 @@ will require some degree of third party dependencies that will need to be config
 <td class="tableblock halign-left valign-top"><p class="tableblock">Dependency</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">SBT</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>sbt</code></p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">libraryDependencies += "com.lihaoyi" %% "scalatags" % "0.12.0"</code></pre>
@@ -1031,7 +1053,7 @@ will require some degree of third party dependencies that will need to be config
 <td class="tableblock halign-left valign-top"><p class="tableblock">Mill</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def ivyDeps = Agg(ivy"com.lihaoyi::scalatags:0.12.0")</code></pre>
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def mvnDeps = Seq(mvn"com.lihaoyi::scalatags:0.12.0")</code></pre>
 </div>
 </div></div></td>
 </tr>
@@ -1043,8 +1065,8 @@ will require some degree of third party dependencies that will need to be config
 <p>Again, test-only third-party dependencies are defined inside the <code>object test</code> submodule.</p>
 </li>
 <li>
-<p>Compile-only dependencies can be defined with <code>def compileIvyDeps</code>, and runtime-only/provided
-dependencies defined with <code>def runIvyDeps</code></p>
+<p>Compile-only dependencies can be defined with <code>def compileMvnDeps</code>, and runtime-only/provided
+dependencies defined with <code>def runMvnDeps</code></p>
 </li>
 </ul>
 </div>
@@ -1058,7 +1080,7 @@ has more details: how to configure unmanaged jars, repositories, pinning version
 <h2 id="_translating_third_party_plugins"><a class="anchor" href="#_translating_third_party_plugins"></a>Translating Third-Party Plugins</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>At a high level, you want to take plugins that you use in Maven/Gradle/SBT and replace
+<p>At a high level, you want to take plugins that you use in Maven/Gradle/<code>sbt</code> and replace
 them either with builtin Mill functionality:</p>
 </div>
 <div class="ulist">
@@ -1104,7 +1126,7 @@ HTTP requests (<a href="../fundamentals/bundled-libraries.html#_requests_scala" 
 <li>
 <p>For using third-party libraries in your build, these are usually published
 to Maven Central or some other package repository, in which case they are
-easy to directly import and use in your custom tasks (see <a href="../extending/import-ivy-plugins.html" class="xref page">Import Libraries and Plugins</a>)</p>
+easy to directly import and use in your custom tasks (see <a href="../extending/import-mvn-plugins.html" class="xref page">Import Libraries and Plugins</a>)</p>
 </li>
 <li>
 <p>For more sophisticated integrations, e.g. if you need to dynamically compile
@@ -1133,7 +1155,7 @@ rather than the <code>"resources/"</code> folder directly in code, since Mill ru
 <a href="../depth/sandboxing.html" class="xref page">Sandboxes</a> that guard against unwanted filesystem access.</p>
 </li>
 <li>
-<p>Similarly, you may need to us <code>Task.workspace</code> or <code>mill.api.WorkspaceRoot.workspaceRoot</code>
+<p>Similarly, you may need to use <code>mill.api.BuildCtx.workspaceRoot</code> or <code>WorkspaceRoot.workspaceRoot</code>
 to access the project root folder in custom build tasks, since the Mill build process
 also runs in a sandbox by default</p>
 </li>
@@ -1209,8 +1231,8 @@ which becomes more true as the lifespan and pace of development on a project gro
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../cli/query-syntax.html">Task Query Syntax</a></span>
-  <span class="next"><a href="maven.html">Migrating From Maven to Mill</a></span>
+  <span class="prev"><a href="../cli/build-header.html">Build Header Config</a></span>
+  <span class="next"><a href="maven.html">Importing Maven Projects</a></span>
 </nav>
 </article>
   </div>

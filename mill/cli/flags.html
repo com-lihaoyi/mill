@@ -246,6 +246,25 @@
 
   <li class="nav-item" data-depth="2">
     <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
     <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
 <ul class="nav-list">
 
@@ -299,24 +318,9 @@
   <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
   </li>
-</ul>
-  </li>
 
-  <li class="nav-item" data-depth="2">
-    <button class="nav-item-toggle"></button>
-    <span class="nav-text">Building Android Apps</span>
-<ul class="nav-list">
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
   </li>
 </ul>
   </li>
@@ -362,6 +366,10 @@
   <li class="nav-item is-active" data-depth="2">
     <a class="nav-link" href="query-syntax.html">Task Query Syntax</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="build-header.html">Build Header Config</a>
+  </li>
 </ul>
   </li>
 
@@ -371,15 +379,15 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Migrating From Maven to Mill</a>
+    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Migrating From Gradle to Mill</a>
+    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
   </li>
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Migrating From sbt to Mill</a>
+    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
   </li>
 </ul>
   </li>
@@ -425,7 +433,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../extending/import-ivy-plugins.html">Import Libraries and Plugins</a>
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -438,18 +446,10 @@
   </li>
 
   <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bintray.html">Bintray</a>
-  </li>
-
-  <li class="nav-item" data-depth="3">
-    <a class="nav-link" href="../contrib/bloop.html">Bloop</a>
-  </li>
-
-  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
   </li>
 
-  <li class="nav-item is-active" data-depth="3">
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
   </li>
 
@@ -486,7 +486,7 @@
   </li>
 
   <li class="nav-item is-active" data-depth="3">
-    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central</a>
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
   </li>
 
   <li class="nav-item is-active" data-depth="3">
@@ -554,7 +554,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../depth/execution-model.html">The Mill Execution Model</a>
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -589,7 +589,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="https://mill-build.org/api/latest/mill/index.html">Mill Scaladoc</a>
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
   </li>
 
   <li class="nav-item" data-depth="2">
@@ -609,7 +609,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.12.14</span>
+    <span class="version">1.0.0</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -618,11 +618,11 @@
         <li class="version">
           <a href="../main-branch/index.html">main-branch</a>
         </li>
-        <li class="version">
-          <a href="../dev-1.0.0-RC3-59-61974e/index.html">dev-1.0.0-RC3-59-61974e</a>
-        </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">0.12.14</a>
+          <a href="../index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
           <a href="../0.11.x/index.html">0.11.13</a>
@@ -674,13 +674,14 @@ These are configured using <a href="../javalib/module-config.html#_compilation_e
 </li>
 <li>
 <p>The Mill build tool process, e.g. <code>./mill --jobs 10</code>. These can be passed directly after the
-<code>./mill</code> executable name, or set in a <code>.mill-opts</code> file as shown below in
-<a href="#_repo_level_mill_options">Repo-Level Mill Options</a></p>
+<code>./mill</code> executable name, or set in your <a href="build-header.html" class="xref page">Build Header Config</a> or <code>.mill-opts</code> file as shown below in
+<a href="build-header.html#_repo_level_mill_options" class="xref page">Repo-Level Mill Options</a></p>
 </li>
 <li>
 <p>The JVM running the Mill build tool process, which may take flags. e.g.
-<code>java -Xss10m -Xmx10G</code>. These are passed via <code>JAVA_OPTs</code> or via a <code>.mill-jvm-opts</code> flag
-as shown below in <a href="#_running_mill_with_custom_jvm_options">Mill with custom JVM options</a></p>
+<code>java -Xss10m -Xmx10G</code>. These are passed via <code>JAVA_OPTs</code>, your  <a href="build-header.html" class="xref page">Build Header Config</a>
+or via a <code>.mill-jvm-opts</code> file
+as shown below in <a href="build-header.html#_running_mill_with_custom_jvm_options" class="xref page">Mill with custom JVM options</a></p>
 </li>
 </ol>
 </div>
@@ -699,8 +700,8 @@ to the right place.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">$ ./mill --help
-Mill Build Tool, version 0.12.5-13-0e02e6
+<pre class="highlightjs highlight"><code class="language-none hljs">$ ./mill --help
+Mill Build Tool, version 0.13.0-M1
 Usage: mill [options] task [task-options] [+ task ...]
 
 task cheat sheet:
@@ -737,8 +738,6 @@ options:
   -d --debug           Show debug output on STDOUT
   --disable-callgraph  Disables fine-grained invalidation of tasks based on analyzing code changes.
                        If passed, you need to manually run `clean` yourself after build changes.
-  --disable-prompt     Disables the new multi-line status prompt used for showing thread status at
-                       the command line and falls back to the legacy ticker
   --help               Print this help message and exit.
   -i --interactive     Run Mill in interactive mode, suitable for opening REPLs and taking user
                        input. This implies --no-server. Must be the first argument.
@@ -750,7 +749,10 @@ options:
   -k --keep-going      Continue build, even after build failures.
   --meta-level &lt;int&gt;   Select a meta-level to run the given tasks. Level 0 is the main project in
                        `build.mill`, level 1 the first meta-build in `mill-build/build.mill`, etc.
-  --no-server          Run without a background server. Must be the first argument.
+  --no-server          Run without a background daemon. Must be the first argument.
+  --offline            Try to work offline. This tells modules that support it to work offline and
+                       avoid any access to the internet. This is on a best effort basis. There are
+                       currently no guarantees that modules don't attempt to fetch remote sources.
   -s --silent          Make ivy logs during script import resolution go silent instead of printing
   --ticker &lt;bool&gt;      Enable ticker log (e.g. short-lived prints of stages and progress bars).
   -v --version         Show mill version information and exit.
@@ -775,7 +777,7 @@ Please see the documentation at https://mill-build.org for more details</code></
 <code>ScalaModule#console</code>, <code>ScalaModule#repl</code>, and so on.</p>
 </div>
 <div class="paragraph">
-<p>By default, Mill runs tasks in a long-lived background server. While this is good for
+<p>By default, Mill runs tasks in a long-lived background daemon. While this is good for
 performance (as it avoids paying the server startup time each command), it is incompatible
 with tasks like <code>.repl</code> which require a direct <code>stdin</code>/<code>stdout</code> forwarding connection to
 the user&#8217;s terminal. <code>--interactive</code>/<code>-i</code> instead runs tasks in a short-lived background
@@ -792,10 +794,10 @@ change:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill --watch foo.compile
-$ mill --watch foo.run
-$ mill -w foo.compile
-$ mill -w foo.run</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill --watch foo.compile
+&gt; mill --watch foo.run
+&gt; mill -w foo.compile
+&gt; mill -w foo.run</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -809,12 +811,12 @@ forcefully terminating the previous process even though it may be still alive:</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ mill -w foo.runBackground</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill -w foo.runBackground</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Note that even if you interrupt mill watch via CTRL+C, the server spawned by <code>runBackground</code> still runs in the
-background. To actually stop the background server use:</p>
+<p>Note that even if you interrupt mill watch via CTRL+C, the server spawned by runBackground still runs in the background.
+To actually stop the background server use:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -825,135 +827,24 @@ background. To actually stop the background server use:</p>
 <div class="sect2">
 <h3 id="_jobs_j"><a class="anchor" href="#_jobs_j"></a><code>--jobs</code>/<code>-j</code></h3>
 <div class="paragraph">
-<p>By default, Mill will evaluate all tasks in parallel, with the number of concurrent
-tasks equal to the number of cores on your machine. You can use the <code>--jobs</code> (<code>-j</code>) to configure
-explicitly how many concurrent tasks you wish to run. To disable parallel execution use <code>-j1</code>.</p>
+<p>Configures how much <a href="../depth/parallelism.html" class="xref page">Parallelism</a> Mill should run with.
+Defaults to the number of cores available on your system.</p>
 </div>
 <div class="paragraph">
 <p>Example: Use up to 4 parallel threads to compile all modules:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">mill -j4 __.compile</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; mill -j4 __.compile</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>You can also set Mill&#8217;s parallelism to some multiple of the number of cores, e.g.
 <code>-j0.5C</code> to use half as many threads as cores, or <code>-j2C</code> to use twice as many threads as cores.
-These can be useful as <a href="#_repo_level_mill_options">Repo-Level Mill Options</a> to configure an appropriate level
+These can be useful as <a href="build-header.html#_repo_level_mill_options" class="xref page">cli/build-header.adoc#_repo_level_mill_options</a> to configure an appropriate level
 of parallelism that scales based on the number of cores available (which might differ
 between e.g. developer laptops and CI machines)</p>
 </div>
-<div class="paragraph">
-<p>Every <code>mill</code> run generates an output file in <code>out/mill-chrome-profile.json</code> that can be
-loaded into the Chrome browser&#8217;s <code>chrome://tracing</code> page for visualization.
-This can make it much easier to analyze your parallel runs to find out what&#8217;s
-taking the most time:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="../_images/basic/ChromeTracing.png" alt="ChromeTracing.png">
-</div>
-</div>
-<div class="paragraph">
-<p>Note that the maximal possible parallelism depends both on the number of cores
-available as well as the task and module structure of your project, as tasks that
-depend on one another other cannot be processed in parallel</p>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_repo_level_mill_options"><a class="anchor" href="#_repo_level_mill_options"></a>Repo-Level Mill Options</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Mill supports the <code>.mill-opts</code> file for passing a default set of command line
-options to Mill itself. For example, if your project&#8217;s tasks are CPU heavy, you
-may want everyone using your project to run only 0.5 concurrent tasks per CPU. This
-can be done by setting <code>.mill-opts</code> to:</p>
-</div>
-<div class="paragraph">
-<p><em>.mill-opts</em></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>--jobs=0.5C</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The file name <code>.mill-opts</code> can be overridden via the <code>MILL_OPTS_PATH</code> environment variable.
-You can also pass in flags like <code>--jobs=10</code> explicitly to override the value passed in
-<code>.mill-opts</code>.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<code>.mill-jvm-opts</code> is for passing JVM options to the JVM running Mill,
-and <code>.mill-opts</code> is for passing options to Mill itself. If you want to pass JVM options
-to the project that Mill is building and running, see the section on
-<a href="../javalib/module-config.html#_compilation_execution_flags" class="xref page">Compilation and Execution Flags</a>.
-</td>
-</tr>
-</table>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_running_mill_with_custom_jvm_options"><a class="anchor" href="#_running_mill_with_custom_jvm_options"></a>Running Mill with custom JVM options</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>It&#8217;s possible to pass JVM options to the Mill launcher. To do this you can either set
-the <code>JAVA_OPTS</code> environment variable, or  create a <code>.mill-jvm-opts</code> file in your project&#8217;s
-root that contains JVM options one per line.</p>
-</div>
-<div class="paragraph">
-<p>For example, if your build requires a lot of memory and bigger stack size, you could run</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">&gt; JAVA_OPTS='-Xss10m -Xmx10G' ./mill __.compile</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Or you could create a <code>.mill-jvm-opts</code>:</p>
-</div>
-<div class="paragraph">
-<p><em>.mill-jvm-opts</em></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>-Xss10m
--Xmx10G</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Note that <code>.mill-jvm-opts</code> requires each CLI token to be on a separate line, so
-<code>-Xss10m -Xmx10G</code> on a single line is not allowed (as it would pass <code>"-Xss10m -Xmx10G"</code>
-as a single token and fail argument parsing)</p>
-</div>
-<div class="paragraph">
-<p><code>.mill-jvm-opts</code> also supports environment variable interpolation, e.g.</p>
-</div>
-<div class="paragraph">
-<p><em>.mill-jvm-opts</em></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre># PWD on mac/linux
--Dmy.jvm.property=${PWD}</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Missing environment variables are
-converted to the empty string.</p>
-</div>
-<div class="paragraph">
-<p>The file name <code>.mill-jvm-opts</code> can be overridden via the <code>MILL_JVM_OPTS_PATH</code> environment
-variable.</p>
 </div>
 </div>
 </div>
