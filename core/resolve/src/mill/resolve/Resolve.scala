@@ -316,10 +316,7 @@ private[mill] trait Resolve[T] {
           }
         }
 
-        Result
-          .sequence(selected)
-          .flatMap(Result.sequence(_))
-          .map(_.flatten)
+        Result.sequence(selected.map(_.flatten)).map(_.flatten)
       }
 
       Result.sequence(resolved)
