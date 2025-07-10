@@ -620,7 +620,7 @@
           <a href="../index.html">main-branch</a>
         </li>
         <li class="version">
-          <a href="../../dev-1.0.0-RC3-56-3ba698/index.html">dev-1.0.0-RC3-56-3ba698</a>
+          <a href="../../dev-1.0.0-RC3-58-254214/index.html">dev-1.0.0-RC3-58-254214</a>
         </li>
         <li class="version is-latest">
           <a href="../../index.html">0.12.14</a>
@@ -700,7 +700,7 @@ object mymodule extends SonatypeCentralPublishModule {
 mill.contrib.sonatypecentral/publishAll \
 --username myusername \
 --password mypassword \
---gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,--armor,--detach-sign \
+--gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \
 --publishArtifacts __.publishArtifacts \
 --readTimeout  36000 \
 --awaitTimeout 36000 \
@@ -745,7 +745,7 @@ mill.contrib.sonatypecentral/publishAll \
 <p><code>password</code>: The password for calling the Sonatype Central publishing api. Defaults to the <code>SONATYPE_PASSWORD</code> environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown.<br /></p>
 </div>
 <div class="paragraph">
-<p><code>gpgArgs</code>: Arguments to pass to the gpg package for signing artifacts. Uses the <code>MILL_PGP_PASSPHRASE</code> environment variable if set. <em>Default: <code>[--passphrase=$MILL_PGP_PASSPHRASE], --no-tty, --pinentry-mode, loopback, --batch, --yes, --armor, --detach-sign</code>.</em><br /></p>
+<p><code>gpgArgs</code>: Arguments to pass to the gpg package for signing artifacts. Uses the <code>MILL_PGP_PASSPHRASE</code> environment variable if set. <em>Default: <code>[--passphrase=$MILL_PGP_PASSPHRASE], --no-tty, --pinentry-mode, loopback, --batch, --yes, -a, -b</code>.</em><br /></p>
 </div>
 <div class="paragraph">
 <p><code>publishArtifacts</code>: The command for generating all publishable artifacts (ex. <code>__.publishArtifacts</code>). Required.<br /></p>
