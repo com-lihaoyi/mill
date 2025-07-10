@@ -3,12 +3,12 @@
 
 
 This page provides an example of using Mill as a build tool against more real like examples, using the
-official [compose samples](https://github.com/android/compose-samples)
+official https://github.com/android/compose-samples[compose samples]
 
 *Example Apps*
 
-- [JetLagged](https://github.com/android/compose-samples/tree/main/JetLagged)
-- [JetNews](https://github.com/android/compose-samples/tree/main/JetNews)
+- https://github.com/android/compose-samples/tree/main/JetLagged[JetLagged]
+- https://github.com/android/compose-samples/tree/main/JetNews[JetNews]
 
 == Android Mill Setup for building JetLagged and JetNews
 
