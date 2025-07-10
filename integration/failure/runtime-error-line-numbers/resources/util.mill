@@ -1,5 +1,5 @@
 package build
-import mill.*, scalalib.*
+import mill.*
 
 def myScalaVersion = sys.error("boom util")
 
