@@ -325,11 +325,11 @@ jobs:
       buildcmd: |
         set -eux
         ./mill -i mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
-#  mima:
-#    needs: build-linux
-#    uses: ./.github/workflows/post-build-raw.yml
-#    with:
-#      java-version: '17'
-#      buildcmd: |
-#        set -eux
-#        ./mill -i __.mimaReportBinaryIssues
+  mima:
+    needs: build-linux
+    uses: ./.github/workflows/post-build-raw.yml
+    with:
+      java-version: '17'
+      buildcmd: |
+        set -eux
+        ./mill -i __.mimaReportBinaryIssues

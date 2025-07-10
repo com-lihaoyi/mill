@@ -16,7 +16,6 @@ import scala.util.{Try, Using}
  * Logic around the "watch and wait" functionality in Mill: re-run on change,
  * re-run when the user presses Enter, printing status messages, etc.
  */
-@internal
 object Watching {
   case class Result[T](watched: Seq[Watchable], error: Option[String], result: T)
 

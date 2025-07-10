@@ -24,7 +24,6 @@ import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Using}
 
-@internal
 object MillMain0 {
 
   def handleMillException[T](

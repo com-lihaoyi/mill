@@ -42,7 +42,6 @@ import scala.collection.mutable.Buffer
  * re-evaluation. This should be transparent, improving performance without
  * affecting behavior.
  */
-@internal
 class MillBuildBootstrap(
     projectRoot: os.Path,
     output: os.Path,
@@ -357,7 +356,6 @@ class MillBuildBootstrap(
 
 }
 
-@internal
 object MillBuildBootstrap {
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
   // tend to capture the entire enclosing instance, causing memory leaks
