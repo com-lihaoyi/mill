@@ -581,6 +581,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       "--status-fd",
       "1"
     )
+    println(s"Running ${cmd.iterator.map(pprint.Util.literalize(_)).mkString(" ")}")
     val res = os.call(cmd, stdin = java.util.Base64.getDecoder.decode(secretBase64))
     val outLines = res.out.lines()
     val importRegex = """^\[GNUPG:\] IMPORT_OK \d+ (\w+)""".r
