@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Mill: A Better Build Tool for Java, Scala, &amp; Kotlin :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/index.html">
+    <link rel="next" href="javalib/intro.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.0.0-RC3-56-3ba698">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="scalalib/spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="android/android-linting.html">Linting Android Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="migrating/maven.html">Importing Maven Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="migrating/gradle.html">Importing Gradle Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="migrating/sbt.html">Importing <code>sbt</code> Projects</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.0.0-RC3-56-3ba698</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-current">
+          <a href="index.html">dev-1.0.0-RC3-56-3ba698</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../index.html">0.12.14</a>
+        </li>
+        <li class="version">
+          <a href="../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Mill: A Better Build Tool for Java, Scala, &amp; Kotlin</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc"><span class="image"><img src="https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=stable-version&amp;versionSuffix=1.0.0-RC3-56-3ba698" alt="d"></span></a>
+<a href="https://central.sonatype.com/artifact/com.lihaoyi/mill-dist"><span class="image"><img src="https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=unstable-dev-version" alt="Maven Central Version"></span></a></p>
+</div>
+<div class="paragraph">
+<p>Mill is a build tool that tries to improve upon the tools traditionally used
+in the JVM ecosystem:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Mill builds the same Java project <a href="comparisons/why-mill.html#_performance" class="xref page">3-6x
+faster than Maven or Gradle</a> due to aggressive caching &amp; parallelism</p>
+</li>
+<li>
+<p>Mill&#8217;s rich featureset means
+<a href="comparisons/why-mill.html#_rich_builtins" class="xref page">less fiddling with plugins</a>,
+since everything needed for development is built in</p>
+</li>
+<li>
+<p>Mill builds are <a href="comparisons/why-mill.html#_ide_support" class="xref page">easily explorable in your IDE</a>,
+letting you work on them without constantly googling for help</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Although the Java compiler is very fast and the Java language is easy to learn,
+JVM build tools have a reputation for being sluggish and confusing. Mill tries to
+offer a better alternative, its <a href="comparisons/why-mill.html#_object_oriented_builds" class="xref page">object-oriented builds</a>
+reducing the learning curve and letting your build system take
+full advantage of the Java platform&#8217;s performance, usability, and IDE support.</p>
+</div>
+<div class="paragraph">
+<p>If you prefer a video introduction to Mill, see:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.youtube.com/watch?v=3NllMpXMBT8">Video: Better Java Builds with the Mill Build Tool</a>,
+GeeCon Krakow 16 May 2025</p>
+</li>
+<li>
+<p><a href="https://www.youtube.com/watch?v=fyf2AWUyq24">Video: Solving Scala&#8217;s Build Problem with the Mill Build Tool</a>, SF Scala Meetup 22 April 2025</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For more discussion on the motivation behind the project, see <a href="comparisons/why-mill.html" class="xref page">Why Use Mill?</a></p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_getting_started"><a class="anchor" href="#_getting_started"></a>Getting Started</h3>
+<div class="paragraph">
+<p>To get started using Mill for the first time, or migrating an existing JVM
+codebase (built using Maven, Gradle, or SBT) to Mill, see:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p><a href="cli/installation-ide.html" class="xref page">Installation &amp; IDE Setup</a></p>
+</li>
+</ul>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="ulist">
+<ul>
+<li>
+<p><a href="migrating/migrating.html" class="xref page">Migrating to Mill</a></p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Or see the language-specific introductory documentation linked below:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><a href="javalib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-java.svg" alt="java" width="32"></span> Java with Mill</a></p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><a href="scalalib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-scala.svg" alt="scala" width="20"></span> Scala with Mill</a></p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><a href="kotlinlib/intro.html" class="xref page"><span class="image"><img src="_images/index/iconscout-kotlin.svg" alt="kotlin" width="28"></span> Kotlin with Mill</a></p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_mill_features"><a class="anchor" href="#_mill_features"></a>Mill Features</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Performance</strong>: Mill automatically <a href="depth/evaluation-model.html#_caching_in_mill" class="xref page">caches</a>
+and <a href="depth/parallelism.html" class="xref page">parallelizes build tasks</a> and <a href="https://mill-build.org/blog/11-jvm-test-parallelism.html">tests</a>
+to keep local development fast, <a href="https://mill-build.org/blog/9-mill-faster-assembly-jars.html">incrementally builds assembly jars</a>
+to speed up manual testing workflows, and shortens CI times with <a href="large/selective-execution.html" class="xref page">selective test execution</a>
+to only run the subset of tests necessary to validate a code change.</p>
+</li>
+<li>
+<p><strong>Builtins</strong>: Mill has builtin support for most common workflows: not just compile/run/test, but also
+<a href="fundamentals/configuring-jvm-versions.html" class="xref page">managing JVM versions</a>, <a href="javalib/linting.html" class="xref page">linting</a>,
+<a href="javalib/publishing.html#_publishing_to_sonatype_maven_central" class="xref page">publishing</a>,
+building <a href="javalib/publishing.html#_building_executable_assemblies" class="xref page">executable assemblies</a>,
+<a href="javalib/publishing.html#_building_native_image_binaries_with_graal_vm" class="xref page">native binaries</a>
+or <a href="javalib/publishing.html#_java_installers_using_jpackage" class="xref page">installers</a>,
+etc. This lets you focus on your actual project and spend less time
+fiddling with tooling and plugins.</p>
+</li>
+<li>
+<p><strong>Maintainability</strong>: Mill&#8217;s config and <a href="javalib/intro.html#_custom_build_logic" class="xref page">custom logic</a>
+is written in <a href="depth/why-scala.html" class="xref page">concise type-checked JVM code</a>,
+with an immutable <a href="depth/design-principles.html" class="xref page">module tree and task graph</a>. This
+catches configuration issues early, and helps both humans and IDEs
+(<a href="cli/installation-ide.html#_intellij" class="xref page">IntelliJ</a> or
+<a href="cli/installation-ide.html#_vscode" class="xref page">VSCode</a>)
+understand your Mill build better than any other build system</p>
+</li>
+<li>
+<p><strong>Flexibility</strong>: Mill&#8217;s tasks and modules allow anything from adding
+<a href="fundamentals/tasks.html#primitive-tasks" class="xref page">simple build steps</a>, up to
+entire <a href="extending/example-python-support.html" class="xref page">language toolchains</a>.
+You can <a href="extending/import-mvn-plugins.html" class="xref page">import any JVM library</a> in your build,
+use Mill&#8217;s rich ecosystem of <a href="extending/thirdparty-plugins.html" class="xref page">Third-Party Mill Plugins</a>,
+or <a href="extending/writing-plugins.html" class="xref page">write plugins yourself</a> and
+publish them to Maven Central for others to use.</p>
+</li>
+<li>
+<p><strong>Scalability</strong> Mill scales well from small projects to
+<a href="large/large.html" class="xref page">large monorepos</a> with hundreds of modules and
+<a href="large/multi-language-builds.html" class="xref page">multiple languages</a>.
+Even projects with hundreds or thousands of sub-modules can be handled performantly
+and with minimal overhead.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Mill is used to build many real-world projects, such as:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/swaldman/c3p0">C3P0 JDBC Connection Pool</a></p>
+</li>
+<li>
+<p><a href="https://github.com/coursier/coursier">Coursier dependency resolver</a></p>
+</li>
+<li>
+<p><a href="https://github.com/com-lihaoyi/Ammonite">Ammonite REPL</a></p>
+</li>
+<li>
+<p><a href="https://github.com/SpinalHDL/SpinalHDL">SpinalHDL</a> and <a href="https://github.com/chipsalliance/chisel">Chisel</a> chip design frameworks</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Mill can be used for applications built on top of common JVM frameworks like
+Spring Boot (both <a href="javalib/web-examples.html#_spring_boot_todomvc_app" class="xref page">in Java</a>
+and <a href="kotlinlib/web-examples.html#_spring_boot_todomvc_app" class="xref page">in Kotlin</a>),
+<a href="javalib/web-examples.html#_micronaut_todomvc_app" class="xref page">Micronaut</a>,
+<a href="kotlinlib/web-examples.html#_ktor_todomvc_app" class="xref page">Ktor</a>, or
+<a href="scalalib/web-examples.html#_todomvc_http4s_web_app" class="xref page">Http4S</a>.</p>
+</div>
+<div class="paragraph">
+<p>Mill borrows ideas from other tools like <a href="https://maven.apache.org/">Maven</a>,
+<a href="https://gradle.org/">Gradle</a>, <a href="https://bazel.build/">Bazel</a>, and
+<a href="https://www.scala-sbt.org/">sbt</a>, but tries to learn from the
+strengths of each tool and improve on their weaknesses. For comparisons with existing
+build tools, check out these pages:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><a href="comparisons/maven.html" class="xref page"><span class="image"><img src="_images/index/maven.png" alt="maven" width="24"></span> Mill vs Maven</a></p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><a href="comparisons/gradle.html" class="xref page"><span class="image"><img src="_images/index/gradle.svg" alt="gradle" width="32"></span> Mill vs Gradle</a></p>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><a href="comparisons/sbt.html" class="xref page"><span class="image"><img src="_images/index/sbt.png" alt="sbt" width="32"></span> Mill vs sbt</a></p>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_tool_framework_support"><a class="anchor" href="#_tool_framework_support"></a>Tool &amp; Framework Support</h3>
+<div class="paragraph">
+<p>Mill supports most common JVM development workflows and tools built in, so you can
+get very far before you need to reach for third-party plugins or write custom code
+to extend your build pipelines. The table
+below links to the relevant part of the documentation and examples for each tool:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><strong>Languages</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/intro.html" class="xref page">Java</a>, <a href="kotlinlib/intro.html" class="xref page">Kotlin</a>, <a href="scalalib/intro.html" class="xref page">Scala</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Dependency Management</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/dependencies.html#_adding_ivy_dependencies" class="xref page">Adding Dependencies</a></p>
+</li>
+<li>
+<p><a href="fundamentals/library-deps.html#_dependency_management" class="xref page">Dependency Version Management and BOMs</a></p>
+</li>
+<li>
+<p><a href="javalib/dependencies.html#_unmanaged_jars" class="xref page">Unmanaged Dependencies</a></p>
+</li>
+<li>
+<p><a href="fundamentals/configuring-jvm-versions.html" class="xref page">JVM Version Management</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Testing</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/testing.html#_defining_unit_test_suites" class="xref page">JUnit4, JUnit5, TestNG, ScalaTest, Specs2, Munit</a></p>
+</li>
+<li>
+<p><a href="javalib/testing.html#_defining_integration_test_suites" class="xref page">Integration Testing</a></p>
+</li>
+<li>
+<p><a href="javalib/testing.html#_test_parallelism" class="xref page">Test Parallelism</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Linting</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/linting.html#_linting_with_errorprone" class="xref page">ErrorProne</a>, <a href="javalib/linting.html#_linting_with_checkstyle" class="xref page">Checkstyle</a>, <a href="javalib/linting.html#_autoformatting_with_palantir_java_format" class="xref page">Palantir Java Format</a>, <a href="javalib/linting.html#_code_coverage_with_jacoco" class="xref page">Jacoco</a>, <a href="javalib/linting.html#_static_analysis_with_pmd" class="xref page">PMD</a>, <a href="javalib/publishing.html#_checking_api_compatibility" class="xref page">RevApi</a></p>
+</li>
+<li>
+<p><a href="kotlinlib/linting.html#_linting_with_detekt" class="xref page">Detekt</a>, <a href="kotlinlib/linting.html#_linting_with_ktlint" class="xref page">KtLint</a>, <a href="kotlinlib/linting.html#_autoformatting_with_ktfmt" class="xref page">KtFmt</a>, <a href="kotlinlib/linting.html#_code_coverage_with_kover" class="xref page">Kover</a></p>
+</li>
+<li>
+<p><a href="scalalib/linting.html#_linting_and_autofixing_with_scalafix" class="xref page">Scalafix</a>, <a href="scalalib/linting.html#_autoformatting_with_scalafmt" class="xref page">Scalafmt</a>, <a href="scalalib/linting.html#_code_coverage_with_scoverage" class="xref page">Scoverage</a>, <a href="scalalib/linting.html#_binary_compatibility_enforcement" class="xref page">Mima</a></p>
+</li>
+</ul>
+</div></div></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p><strong>Packaging</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/publishing.html#_building_executable_assemblies" class="xref page">Executable Assemblies</a></p>
+</li>
+<li>
+<p><a href="javalib/publishing.html#_building_native_image_binaries_with_graal_vm" class="xref page">Graal Native Image</a>, <a href="javalib/publishing.html#_java_app_and_bundles_using_jlink" class="xref page">JLink</a>, <a href="javalib/publishing.html#_java_installers_using_jpackage" class="xref page">JPackage</a></p>
+</li>
+<li>
+<p><a href="contrib/docker.html" class="xref page">Docker</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Publishing</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/publishing.html#_publishing_to_sonatype_maven_central" class="xref page">Maven Central</a>, <a href="contrib/artifactory.html" class="xref page">Artifactory</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Web Frameworks</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/web-examples.html#_spring_boot_todomvc_app" class="xref page">Spring Boot</a>, <a href="javalib/web-examples.html#_micronaut_todomvc_app" class="xref page">Micronaut</a></p>
+</li>
+<li>
+<p><a href="kotlinlib/web-examples.html#_ktor_todomvc_app" class="xref page">Ktor</a>, <a href="kotlinlib/web-examples.html#_ktor_webapp_kotlinjs_client" class="xref page">Kotlin.js</a></p>
+</li>
+<li>
+<p><a href="scalalib/web-examples.html#_todomvc_http4s_web_app" class="xref page">Http4s</a>, <a href="scalalib/web-examples.html#_scala_js_webserver_integration" class="xref page">Scala.js</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Others</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="javalib/module-config.html#_annotation_processors" class="xref page">Java Annotation Processors</a>, <a href="kotlinlib/module-config.html#_kotlin_compiler_plugins" class="xref page">Kotlin Compiler Plugins</a>, <a href="scalalib/module-config.html#_scala_compiler_plugins" class="xref page">Scala Compiler Plugins</a></p>
+</li>
+<li>
+<p><a href="javalib/module-config.html#_native_c_code_with_jni" class="xref page">JNI</a></p>
+</li>
+<li>
+<p><a href="scalalib/spark.html" class="xref page">Apache Spark</a>, <a href="scalalib/native-examples.html" class="xref page">Scala-Native</a></p>
+</li>
+<li>
+<p><a href="large/selective-execution.html" class="xref page">Selective Test Execution</a>, <a href="large/multi-language-builds.html" class="xref page">Multi-Language Builds</a></p>
+</li>
+</ul>
+</div></div></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>When the time comes that you do need something not in its builtin feature set, Mill
+also has a rich ecosystem of third party plugins for less common use cases:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="extending/thirdparty-plugins.html" class="xref page">Third-Party Plugins</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_contributing_and_community"><a class="anchor" href="#_contributing_and_community"></a>Contributing and Community</h3>
+<div class="paragraph">
+<p>If you want to contribute to Mill, or are interested in the fundamental ideas behind
+Mill rather than the user-facing features discussed above, check out the page on
+<a href="depth/design-principles.html" class="xref page">Mill Design Principles</a>. In particular, this video
+is a must-watch to help you understand the fundamental concepts behind Mill and why
+they are interesting:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.youtube.com/watch?v=UsXgCeU-ovI">Video: A Deep Dive into the Mill Build Tool</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To engage Mill with the community, you can use the channels below:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/discussions">Mill Github Discussions</a></p>
+</li>
+<li>
+<p><a href="https://discord.com/invite/scala">Scala Discord</a>, in the <code>TOOLING#mill</code> channel</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Mill maintains an open list of issue bounties below, with payouts ranging from
+500USD to 3000USD per issue. Feel free to look through the list and try your
+hand at any bounties that may interest you</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/orgs/com-lihaoyi/discussions/6">Open Issue Bounties</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Commercial support and services related to Mill are available if you need help with
+training, adoption, or maintenance in your organization. Email <a href="mailto:info@mill-build.org">info@mill-build.org</a>
+with details on what you need and we can make an arrangement.</p>
+</div>
+</div>
+<nav class="pagination">
+  <span class="next"><a href="javalib/intro.html">Building Java with Mill</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../_/js/site.js" data-ui-root-path="../../_"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+<script src="../../_/js/vendor/lunr.js"></script>
+<script src="../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../.." data-snippet-length="100" data-stylesheet="../../_/css/search.css"></script>
+<script async src="../../search-index.js"></script>
+  </body>
+</html>
