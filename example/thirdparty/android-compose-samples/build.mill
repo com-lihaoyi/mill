@@ -267,6 +267,11 @@ object JetNews extends mill.api.Module {
   }
 }
 
+// The compose samples repository, contains many sample apps!
+// Let's say we are building 2 apps with a shared android emulator!
+
+// First we build, run and test JetLagged
+
 /** Usage
 
 > ./mill JetLagged.app.androidApk
@@ -303,20 +308,13 @@ object JetNews extends mill.api.Module {
   ]
 }
 
-> ./mill show JetLagged.app.stopAndroidEmulator
-
-> ./mill show JetLagged.app.deleteAndroidVirtualDevice
-
 */
 
-/** Usage
+// Then on the same emulator we build, run and test JetNews too
+
+/** Usage JetNews
 
 > ./mill JetNews.app.androidApk
-
-> ./mill show JetNews.app.createAndroidVirtualDevice
-...Name: test, DeviceId: medium_phone...
-
-> ./mill show JetNews.app.startAndroidEmulator
 
 > ./mill show JetNews.app.androidInstall
 ...All files should be loaded. Notifying the device...
@@ -339,32 +337,32 @@ object JetNews extends mill.api.Module {
     {
       "fullyQualifiedName": "com.example.jetnews.HomeScreenTests.postsContainError_snackbarShown",
       "selector": "com.example.jetnews.HomeScreenTests.postsContainError_snackbarShown",
-      "duration": 2,
+      "duration": ...,
       "status": "Success"
     },
     {
       "fullyQualifiedName": "com.example.jetnews.JetnewsTests.app_opensArticle",
       "selector": "com.example.jetnews.JetnewsTests.app_opensArticle",
-      "duration": 1,
+      "duration": ...,
       "status": "Success"
     },
     {
       "fullyQualifiedName": "com.example.jetnews.JetnewsTests.app_launches",
       "selector": "com.example.jetnews.JetnewsTests.app_launches",
-      "duration": 1,
+      "duration": ...,
       "status": "Success"
     },
     {
       "fullyQualifiedName": "com.example.jetnews.JetnewsTests.app_opensInterests",
       "selector": "com.example.jetnews.JetnewsTests.app_opensInterests",
-      "duration": 1,
+      "duration": ...,
       "status": "Success"
     }
   ]
 }
 
-> ./mill show JetNews.app.stopAndroidEmulator
+> ./mill show JetLagged.app.stopAndroidEmulator
 
-> ./mill show JetNews.app.deleteAndroidVirtualDevice
+> ./mill show JetLagged.app.deleteAndroidVirtualDevice
 
 */
