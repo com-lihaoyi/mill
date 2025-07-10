@@ -299,7 +299,7 @@ object `package` extends mill.Module {
     }.dropRight(1) ++
       // Set the latest stable branch as the "master" docs that people default to
       Seq(
-        (Settings.docTags.last, Settings.docTags.last, Settings.docTags.last, "master", false),
+        (Settings.docTags.last, Settings.docTags.last, Settings.docTags.last, "master", true),
         ("dev", "dev", "dev", "dev", true)
       )
 
