@@ -12,8 +12,6 @@ import mill.util.Jvm
 import mill.T
 
 import scala.annotation.unused
-import scala.concurrent.Await
-import scala.concurrent.duration.Duration
 
 /**
  * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
@@ -104,11 +102,7 @@ trait CoursierModule extends mill.api.Module {
 
   // Bincompat stub
   private[mill] def repositoriesTask0 = Task.Anon {
-    val resolve = Resolve()
-    val repos = Await.result(
-      resolve.finalRepositories.future()(using resolve.cache.ec),
-      Duration.Inf
-    )
+    val repos = Resolve.defaultRepositories
     Jvm.reposFromStrings(repositories()).map(_ ++ repos)
   }
 

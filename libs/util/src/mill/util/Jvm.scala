@@ -574,7 +574,7 @@ object Jvm {
     val coursierCache0 = coursierCache(ctx, coursierCacheCustomizer)
     JvmIndex.load(
       cache = coursierCache0, // the coursier.cache.Cache instance to use
-      repositories = Resolve().repositories, // repositories to use
+      repositories = Resolve.defaultRepositories, // repositories to use
       indexChannel = JvmChannel.module(
         JvmChannel.centralModule(),
         version = jvmIndexVersion
