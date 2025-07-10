@@ -9,7 +9,7 @@ import millbuild.*
  * This module contains basic constants and helpers shared between the client,
  * server, and the rest of the Mill codebase.
  */
-object `package` extends MillPublishJavaModule with BuildInfo {
+object `package` extends MillStableJavaModule with BuildInfo {
   def buildInfoPackageName = "mill.constants"
   def buildInfoMembers = Seq(
     BuildInfo.Value("millVersion", build.millVersion(), "Mill version."),
