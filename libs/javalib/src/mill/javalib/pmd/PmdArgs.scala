@@ -1,7 +1,7 @@
 package mill.javalib.pmd
 
 import mainargs.{Leftover, ParserForClass, arg, main}
-import mill.api.daemon.experimental
+import mill.api.experimental
 
 @main(doc = "Arguments for PmdModule")
 @experimental
