@@ -30,7 +30,7 @@ $ mill -i \
 mill.contrib.sonatypecentral/publishAll \
 --username myusername \
 --password mypassword \
---gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,--armor,--detach-sign \
+--gpgArgs --passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \
 --publishArtifacts __.publishArtifacts \
 --readTimeout  36000 \
 --awaitTimeout 36000 \
@@ -69,7 +69,7 @@ The `mill.contrib.sonatypecentral/publishAll` method takes the following argumen
 
 `password`: The password for calling the Sonatype Central publishing api. Defaults to the `SONATYPE_PASSWORD` environment variable if unset. If neither the parameter nor the environment variable are set, an error will be thrown. +
 
-`gpgArgs`: Arguments to pass to the gpg package for signing artifacts. Uses the `MILL_PGP_PASSPHRASE` environment variable if set. _Default: `[--passphrase=$MILL_PGP_PASSPHRASE], --no-tty, --pinentry-mode, loopback, --batch, --yes, --armor, --detach-sign`._ +
+`gpgArgs`: Arguments to pass to the gpg package for signing artifacts. Uses the `MILL_PGP_PASSPHRASE` environment variable if set. _Default: `[--passphrase=$MILL_PGP_PASSPHRASE], --no-tty, --pinentry-mode, loopback, --batch, --yes, -a, -b`._ +
 
 `publishArtifacts`: The command for generating all publishable artifacts (ex. `__.publishArtifacts`). Required. +
 

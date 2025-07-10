@@ -20,12 +20,8 @@ import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAM
 import mill.api.BuildCtx
 
 trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport {
-
-  /**
-   * @return (keyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
-   */
-  def sonatypeCentralGpgArgs: Task[String => Seq[String]] = Task.Anon { (keyId: String) =>
-    PublishModule.makeGpgArgs(Task.env, maybeKeyId = Some(keyId), providedGpgArgs = Seq.empty)
+  def sonatypeCentralGpgArgs: T[String] = Task {
+    PublishModule.defaultGpgArgsForPassphrase(Task.env.get("MILL_PGP_PASSPHRASE")).mkString(",")
   }
 
   def sonatypeCentralConnectTimeout: T[Int] = Task { defaultConnectTimeout }
@@ -68,17 +64,12 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
     def publishRelease(): Unit = {
       val publishData = publishArtifacts()
       val fileMapping = publishData.withConcretePath._1
-
-      val maybeKeyId = PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
-      val keyId = maybeKeyId.getOrElse(throw new IllegalArgumentException(
-        s"Publishing to Sonatype Central requires a PGP key. Please set the '${PublishModule.EnvVarPgpSecretBase64}' " +
-          s"and '${PublishModule.EnvVarPgpPassphrase}' (if needed) environment variables."
-      ))
-
-      val gpgArgs = sonatypeCentralGpgArgs()(keyId)
+      val artifact = publishData.meta
+      val finalCredentials = getSonatypeCredentials(username, password)()
+      PublishModule.pgpImportSecretIfProvided(Task.env)
       val publisher = new SonatypeCentralPublisher(
         credentials = finalCredentials,
-        gpgArgs = gpgArgs,
+        gpgArgs = sonatypeCentralGpgArgs().split(",").toIndexedSeq,
         connectTimeout = sonatypeCentralConnectTimeout(),
         readTimeout = sonatypeCentralReadTimeout(),
         log = Task.log,
@@ -132,11 +123,13 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val finalCredentials = getSonatypeCredentials(username, password)()
-    val gpgArgs0 =
-      PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, gpgArgs.split(','))
+    PublishModule.pgpImportSecretIfProvided(Task.env)
     val publisher = new SonatypeCentralPublisher(
       credentials = finalCredentials,
-      gpgArgs = gpgArgs0,
+      gpgArgs = gpgArgs match {
+        case "" => PublishModule.defaultGpgArgsForPassphrase(Task.env.get("MILL_PGP_PASSPHRASE"))
+        case gpgArgs => gpgArgs.split(",").toIndexedSeq
+      },
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
       log = Task.log,
