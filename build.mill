@@ -1,4 +1,4 @@
-//| mill-version: 1.0.0-RC3-58-254214
+//| mill-version: 1.0.0
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C"]
 
