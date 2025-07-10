@@ -47,7 +47,7 @@ But for most people upgrading, the most relevant changes are listed in the chang
 script in order to work, due to changes in the Sonatype Central package registry that
 forced a change in the download URLs for new releases going forward. To update your
 bootstrap script, you can use
-
++
 ```
 # linux
 curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-mill.sh -o mill
@@ -66,7 +66,7 @@ echo 1.0.0 > .mill-version
   Any third-party libraries used must be Scala 3 compatible (most already are). You may now
   use Scala 3 language features such as https://docs.scala-lang.org/scala3/reference/other-new-features/indentation.html[Optional Braces]
   in your `.mill` files
-
++
 ```scala
 package build
 import mill.*, javalib.*
@@ -88,7 +88,7 @@ object foo extends JavaModule:
   file, defined by line comments starting with `//|` ({link-pr}/4969[#4969]). This replaces
   the `import $ivy...` syntax and allows external configuration files like `.mill-version`,
   `.mill-jvm-version`, etc. to be configured together e.g.
-
++
 ```scala
 //| mill-version: 1.0.0
 //| mill-jvm-version: 17
@@ -114,8 +114,7 @@ package build
 
 * The `Agg()`/`Agg[T]` collection types have been removed and replaced by `Seq()`/`Seq[T]`
   ({link-pr}/4525[#4525]):
-
-
++
 ```diff
 -def ivyDeps = Agg(
 +def mvnDeps = Seq(
@@ -127,8 +126,7 @@ package build
   definitions ({link-pr}/4462[#4462]), e.g. if you have a `package build.foo.bar`
   containing `def qux` you can refer to the definition via `build.foo.bar.qux`
   or `import build.foo.bar.qux` without needing the `import $file`
-
-
++
 ```diff
 -import $file.foo.bar.Qux
 +import build.foo.bar.Qux
@@ -155,7 +153,7 @@ package build
   to make it clear it is meant to be the root of the module hierarchy, and not the class hierarchy
 
 * The `T.*` methods have been removed. These were replaced by `Task.*` equivalents in 0.12.x.
-
++
 ```diff
 - def foo = T {
 -   ...T.dest...
@@ -225,7 +223,7 @@ package build
 * Root modules in `build.mill` and `package.mill` files no longer need an explicit `extends RootModule`
   superclass, as they can be identified unambiguously by the `object package` name, so
   setting up the appropriate superclass is now taken care of by Mill automatically ({link-pr}/5008[#5008])
-
++
 ```diff
 -object `package` extends RootModule with JavaModule {
 +object `package` extends JavaModule {
@@ -247,7 +245,7 @@ package build
 * `Task.Source`, `Task.Sources`, and `Task.Input` are no longer allowed to have upstream
   tasks ({link-pr}/4524[#4524]). Most cases where a `Task.Sources` was receiving an upstream
   task can be replaced by a separate `Task.Sources` and `Task{}`
-
++
 ```diff
 - def sources = Task.Sources{ super.sources() ++ Seq(PathRef(...)) }
 + def customSources =  Task.Sources(...)
@@ -297,7 +295,7 @@ package build
   download an appropriate JVM distribution on demand if necessary ({link-pr}/4597[#4597])
 
 * `Cross` can now be applied to root modules ({link-pr}/4593[#4593])
-
++
 ```scala
 object `package` extends Cross[FooModule]("3.6.2", "2.13.16") {
   ...
@@ -324,7 +322,7 @@ object `package` extends Cross[FooModule]("3.6.2", "2.13.16") {
 
 * Scala 3.7 https://docs.scala-lang.org/sips/named-tuples.html[Scala 3.7.0 Named Tuples]
   can be used as task return values:
-
++
 ```scala
 import upickle.implicits.namedTuples.default.given
 def namedTupleTask = Task {
@@ -401,7 +399,7 @@ _2025-05-18_
 * NOTE: Mill 0.12.13 requires an updated bootstrap script in order to work, due to changes in Sonatype
   Central that forced a change in the download URLs for new releases going forward. To update your 
   bootstrap script, you can use
-
++
 ```
 curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.13/mill-dist-0.12.13-mill.sh -o mill
 chmod +x mill

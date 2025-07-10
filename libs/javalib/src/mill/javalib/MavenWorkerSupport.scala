@@ -22,7 +22,7 @@ private[mill] trait MavenWorkerSupport extends CoursierModule with OfflineSuppor
   }
 
   protected def mavenWorker: Task.Worker[MavenWorkerSupport.Api] = Task.Worker {
-    mavenWorkerClassloader().loadClass("mill.jvmlib.maven.worker.impl.WorkerImpl")
+    mavenWorkerClassloader().loadClass("mill.javalib.maven.worker.impl.WorkerImpl")
       .getConstructor().newInstance().asInstanceOf[MavenWorkerSupport.Api]
   }
 }
