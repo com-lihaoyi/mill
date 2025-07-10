@@ -55,7 +55,7 @@ object SonatypeHelpers {
     val fileName = file.toString
     val logArgs = args match {
       case PublishModule.GpgArgs.MillGenerated(args) => args.map(_.toString)
-      case fromUser: PublishModule.GpgArgs.UserProvided => 
+      case fromUser: PublishModule.GpgArgs.UserProvided =>
         Seq(s"<${fromUser.args.size} user provided args @ ${fromUser.file}:${fromUser.line}>")
     }
     def mkCommand(args: Seq[String]) = "gpg" +: args :+ fileName

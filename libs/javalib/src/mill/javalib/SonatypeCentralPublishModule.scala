@@ -7,7 +7,14 @@ import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.api.DefaultTaskModule
 import mill.api.Result
-import mill.javalib.SonatypeCentralPublishModule.{defaultAwaitTimeout, defaultConnectTimeout, defaultCredentials, defaultReadTimeout, getPublishingTypeFromReleaseFlag, getSonatypeCredentials}
+import mill.javalib.SonatypeCentralPublishModule.{
+  defaultAwaitTimeout,
+  defaultConnectTimeout,
+  defaultCredentials,
+  defaultReadTimeout,
+  getPublishingTypeFromReleaseFlag,
+  getSonatypeCredentials
+}
 import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
@@ -30,10 +37,14 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
    * @return (keyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
    */
   def sonatypeCentralGpgArgsTypesafe: Task[String => GpgArgs] = Task.Anon { (keyId: String) =>
-    //noinspection ScalaDeprecation
+    // noinspection ScalaDeprecation
     (sonatypeCentralGpgArgs()(keyId): @nowarn("cat=deprecation")) match {
       case `sonatypeCentralGpgArgsSentinelValue` =>
-        PublishModule.makeGpgArgs(Task.env, maybeKeyId = Some(keyId), providedGpgArgs = GpgArgs.UserProvided(Seq.empty))
+        PublishModule.makeGpgArgs(
+          Task.env,
+          maybeKeyId = Some(keyId),
+          providedGpgArgs = GpgArgs.UserProvided(Seq.empty)
+        )
       case other =>
         GpgArgs.UserProvided(other)
     }
@@ -143,7 +154,10 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val finalCredentials = getSonatypeCredentials(username, password)()
-    val gpgArgs0 = PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, GpgArgs.fromUserProvided(gpgArgs))
+    val gpgArgs0 = PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
+      Task.env,
+      GpgArgs.fromUserProvided(gpgArgs)
+    )
     val publisher = new SonatypeCentralPublisher(
       credentials = finalCredentials,
       gpgArgs = gpgArgs0,
