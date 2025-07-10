@@ -296,11 +296,18 @@ trait MillBuildRootModule()(implicit
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
       ).map {
         res =>
+          // Perform the line-number updating in a copy of the classfiles, because
+          // mangling the original class files messes up zinc incremental compilation
+          val transformedClasses = Task.dest / "transformed-classes"
+          os.remove.all(transformedClasses)
+          os.copy(res.classes.path, transformedClasses)
+
           MillBuildRootModule.updateLineNumbers(
-            res.classes.path,
+            transformedClasses,
             generatedScriptSources().wrapped.head.path
           )
-        res
+
+          res.copy(classes = PathRef(transformedClasses))
       }
   }
 }
