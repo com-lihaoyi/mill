@@ -2,7 +2,7 @@ package millbuild
 
 import mill.*
 import mill.scalalib.*
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.api.BuildCtx
 // import com.goyeau.mill.scalafix.ScalafixModule
 

@@ -105,7 +105,7 @@ object `package` extends mill.Module {
 
     expandDiagramsInDirectoryAdocFile(
       Task.dest,
-      mill.main.VisualizeModule.toolsClasspath().map(_.path)
+      mill.util.VisualizeModule.toolsClasspath().map(_.path)
     )
 
     PathRef(Task.dest)
@@ -171,7 +171,7 @@ object `package` extends mill.Module {
     }
 
     mill.util.Jvm.callProcess(
-      mainClass = "mill.main.graphviz.GraphvizTools",
+      mainClass = "mill.graphviz.GraphvizTools",
       classPath = visualizeClassPath.toSeq,
       mainArgs = orderedDiagrams.map { case (p, i, src, dest) =>
         Task.log.debug(s"Rendering graphviz: ${p} (${i}) to ${dest}")
@@ -233,7 +233,7 @@ object `package` extends mill.Module {
     os.copy(blogFolder0().path, Task.dest, mergeFolders = true)
     expandDiagramsInDirectoryAdocFile(
       Task.dest,
-      mill.main.VisualizeModule.toolsClasspath().map(_.path)
+      mill.util.VisualizeModule.toolsClasspath().map(_.path)
     )
     PathRef(Task.dest)
   }
@@ -304,7 +304,7 @@ object `package` extends mill.Module {
       )
 
   def oldDocSources = Task {
-    Task.traverse(oldDocs.items.map(_.module))(_.value.oldDocSource)()
+    Task.traverse(oldDocs.items.map(_.module))(_().oldDocSource)()
   }
 
   object oldDocs extends Cross[OldDocModule](versionLabels)
@@ -352,7 +352,7 @@ object `package` extends mill.Module {
 
       expandDiagramsInDirectoryAdocFile(
         outputFolder,
-        mill.main.VisualizeModule.toolsClasspath().map(_.path)
+        mill.util.VisualizeModule.toolsClasspath().map(_.path)
       )
 
       val useOldDownloadUrl =
