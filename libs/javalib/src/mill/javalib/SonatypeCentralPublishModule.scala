@@ -6,26 +6,37 @@ import javalib.*
 import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.api.DefaultTaskModule
-import mill.api.{Result, experimental}
-import mill.javalib.SonatypeCentralPublishModule.{
-  defaultAwaitTimeout,
-  defaultConnectTimeout,
-  defaultCredentials,
-  defaultReadTimeout,
-  getPublishingTypeFromReleaseFlag,
-  getSonatypeCredentials
-}
+import mill.api.Result
+import mill.javalib.SonatypeCentralPublishModule.{defaultAwaitTimeout, defaultConnectTimeout, defaultCredentials, defaultReadTimeout, getPublishingTypeFromReleaseFlag, getSonatypeCredentials}
 import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
+import mill.javalib.PublishModule.GpgArgs
+
+import scala.annotation.nowarn
 
 trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport {
+  private val sonatypeCentralGpgArgsSentinelValue = Seq("<user did not override this method>")
 
   /**
    * @return (keyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
    */
-  def sonatypeCentralGpgArgs: Task[String => Seq[String]] = Task.Anon { (keyId: String) =>
-    PublishModule.makeGpgArgs(Task.env, maybeKeyId = Some(keyId), providedGpgArgs = Seq.empty)
+  @deprecated("Use `sonatypeCentralGpgArgsTypesafe` instead.", "1.0.1")
+  def sonatypeCentralGpgArgs: Task[String => Seq[String]] = Task.Anon { (_: String) =>
+    sonatypeCentralGpgArgsSentinelValue
+  }
+
+  /**
+   * @return (keyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
+   */
+  def sonatypeCentralGpgArgsTypesafe: Task[String => GpgArgs] = Task.Anon { (keyId: String) =>
+    //noinspection ScalaDeprecation
+    (sonatypeCentralGpgArgs()(keyId): @nowarn("cat=deprecation")) match {
+      case `sonatypeCentralGpgArgsSentinelValue` =>
+        PublishModule.makeGpgArgs(Task.env, maybeKeyId = Some(keyId), providedGpgArgs = Seq.empty)
+      case other =>
+        GpgArgs.UserProvided(other)
+    }
   }
 
   def sonatypeCentralConnectTimeout: T[Int] = Task { defaultConnectTimeout }
@@ -75,7 +86,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
           s"and '${PublishModule.EnvVarPgpPassphrase}' (if needed) environment variables."
       ))
 
-      val gpgArgs = sonatypeCentralGpgArgs()(keyId)
+      val gpgArgs = sonatypeCentralGpgArgsTypesafe()(keyId)
       val publisher = new SonatypeCentralPublisher(
         credentials = finalCredentials,
         gpgArgs = gpgArgs,

@@ -19,7 +19,7 @@ import java.util.zip.ZipEntry
  */
 class SonatypeCentralPublisher(
     credentials: SonatypeCredentials,
-    gpgArgs: Seq[String],
+    gpgArgs: PublishModule.GpgArgs,
     readTimeout: Int,
     connectTimeout: Int,
     log: Logger,

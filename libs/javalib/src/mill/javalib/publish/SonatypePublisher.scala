@@ -1,7 +1,7 @@
 package mill.javalib.publish
 
 import mill.api.Logger
-
+import mill.javalib.PublishModule
 import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
 
 /**
@@ -17,7 +17,7 @@ class SonatypePublisher(
     snapshotUri: String,
     credentials: String,
     signed: Boolean,
-    gpgArgs: Seq[String],
+    gpgArgs: PublishModule.GpgArgs,
     readTimeout: Int,
     connectTimeout: Int,
     log: Logger,

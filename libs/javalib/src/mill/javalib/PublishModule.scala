@@ -2,11 +2,10 @@ package mill
 package javalib
 
 import coursier.core.{Configuration, DependencyManagement}
-import mill.api.{ExternalModule, Task, DefaultTaskModule}
+import mill.api.{DefaultTaskModule, ExternalModule, Task}
 import mill.api.PathRef
 import mill.api.Result
-import mill.util.JarManifest
-import mill.util.Tasks
+import mill.util.{JarManifest, Secret, PossiblySecret, Tasks}
 import mill.javalib.PublishModule.checkSonatypeCreds
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.javalib.publish.{Artifact, SonatypePublisher}
@@ -539,7 +538,7 @@ trait PublishModule extends JavaModule { outer =>
 
 object PublishModule extends ExternalModule with DefaultTaskModule {
   def defaultTask(): String = "publishAll"
-  val defaultGpgArgs: Seq[String] = defaultGpgArgsForPassphrase(None)
+  val defaultGpgArgs: Seq[PossiblySecret[String]] = defaultGpgArgsForPassphrase(passphrase = None)
 
   /**
    * Imports a Base64 encoded GPG secret, if one is provided in the environment.
@@ -587,7 +586,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
     outLines.collectFirst { case importRegex(key) => key }.toRight(outLines)
   }
 
-  def defaultGpgArgsForPassphrase(passphrase: Option[GpgKey]): Seq[String] = {
+  def defaultGpgArgsForPassphrase(passphrase: Option[GpgKey]): Seq[PossiblySecret[String]] = {
     passphrase.iterator.flatMap(_.gpgArgs).toSeq ++ Seq(
       "--no-tty",
       "--pinentry-mode",
@@ -602,8 +601,12 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   def pgpImportSecretIfProvidedAndMakeGpgArgs(
       env: Map[String, String],
       providedGpgArgs: Seq[String]
-  ): Seq[String] = {
+  ): GpgArgs = {
     val maybeKeyId = pgpImportSecretIfProvidedOrThrow(env)
+    println(maybeKeyId match {
+      case Some(keyId) => s"Imported GPG key with ID '$keyId'"
+      case None => "No GPG key was imported."
+    })
     makeGpgArgs(env, maybeKeyId, providedGpgArgs)
   }
 
@@ -611,23 +614,38 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       env: Map[String, String],
       maybeKeyId: Option[String],
       providedGpgArgs: Seq[String]
-  ): Seq[String] = {
-    if (providedGpgArgs.nonEmpty) providedGpgArgs
+  ): GpgArgs = {
+    if (providedGpgArgs.nonEmpty) GpgArgs.UserProvided(providedGpgArgs)
     else {
       val maybePassphrase = GpgKey.createFromEnvVarsOrThrow(
         maybeKeyId = maybeKeyId,
         maybePassphrase = env.get(EnvVarPgpPassphrase)
       )
-      defaultGpgArgsForPassphrase(maybePassphrase)
+      GpgArgs.MillGenerated(defaultGpgArgsForPassphrase(maybePassphrase))
     }
   }
 
   val EnvVarPgpPassphrase = "MILL_PGP_PASSPHRASE"
   val EnvVarPgpSecretBase64 = "MILL_PGP_SECRET_BASE64"
 
+  enum GpgArgs {
+    /** When user provides the args himself, we can not log them because we do not know which ones are sensitive
+     * information like a key passphrase. */
+    case UserProvided(args: Seq[String])
+
+    /** When we generate the args ourselves we know which ones are secret. */
+    case MillGenerated(args: Seq[PossiblySecret[String]])
+
+    /** Turns this into the `gpg` arguments. */
+    def asCommandArgs: Seq[String] = this match {
+      case GpgArgs.UserProvided(args) => args
+      case GpgArgs.MillGenerated(args) => args.iterator.map(Secret.unpack).toSeq
+    }
+  }
+
   case class GpgKey private (keyId: String, passphrase: Option[String]) {
-    def gpgArgs: Seq[String] =
-      Seq("--local-user", keyId) ++ passphrase.iterator.flatMap(p => Seq("--passphrase", p))
+    def gpgArgs: Seq[PossiblySecret[String]] =
+      Seq("--local-user", keyId) ++ passphrase.iterator.flatMap(p => Seq("--passphrase", Secret(p)))
   }
 
   object GpgKey {
