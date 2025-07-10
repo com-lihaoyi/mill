@@ -12,7 +12,7 @@ object AsmPositionUpdater {
                                               delegate: asm.MethodVisitor
                                             ) extends asm.MethodVisitor(asm.Opcodes.ASM9, delegate) {
     override def visitLineNumber(line: Int, start: asm.Label): Unit =
-      super.visitLineNumber(line + lineNumberOffset, start)
+      super.visitLineNumber(math.max(0, line + lineNumberOffset), start)
   }
 
   private class LineNumberTableClassVisitor(
@@ -29,7 +29,7 @@ object AsmPositionUpdater {
                             ): asm.MethodVisitor = {
       val main = super.visitMethod(access, name, descriptor, signature, exceptions)
       new LineNumberTableMethodVisitor(lineNumberOffset, main)
-      
+
     }
   }
 
