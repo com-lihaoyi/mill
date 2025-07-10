@@ -16,26 +16,21 @@ import mill.javalib.PublishModule.GpgArgs
 import scala.annotation.nowarn
 
 trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport {
-  private val sonatypeCentralGpgArgsSentinelValue = Seq("<user did not override this method>")
+  private val sonatypeCentralGpgArgsSentinelValue = "<user did not override this method>"
+
+  @deprecated("Use `sonatypeCentralGpgArgsForKey` instead.", "1.0.1")
+  def sonatypeCentralGpgArgs: T[String] = Task { sonatypeCentralGpgArgsSentinelValue }
 
   /**
    * @return (keyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
    */
-  @deprecated("Use `sonatypeCentralGpgArgsTypesafe` instead.", "1.0.1")
-  def sonatypeCentralGpgArgs: Task[String => Seq[String]] = Task.Anon { (_: String) =>
-    sonatypeCentralGpgArgsSentinelValue
-  }
-
-  /**
-   * @return (keyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
-   */
-  def sonatypeCentralGpgArgsTypesafe: Task[String => GpgArgs] = Task.Anon { (keyId: String) =>
+  def sonatypeCentralGpgArgsForKey: Task[String => GpgArgs] = Task.Anon { (keyId: String) =>
     //noinspection ScalaDeprecation
-    (sonatypeCentralGpgArgs()(keyId): @nowarn("cat=deprecation")) match {
+    sonatypeCentralGpgArgs() match {
       case `sonatypeCentralGpgArgsSentinelValue` =>
         PublishModule.makeGpgArgs(Task.env, maybeKeyId = Some(keyId), providedGpgArgs = GpgArgs.UserProvided(Seq.empty))
       case other =>
-        GpgArgs.UserProvided(other)
+        GpgArgs.fromUserProvided(other)
     }
   }
 
@@ -86,7 +81,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
           s"and '${PublishModule.EnvVarPgpPassphrase}' (if needed) environment variables."
       ))
 
-      val gpgArgs = sonatypeCentralGpgArgsTypesafe()(keyId)
+      val gpgArgs = sonatypeCentralGpgArgsForKey()(keyId)
       val publisher = new SonatypeCentralPublisher(
         credentials = finalCredentials,
         gpgArgs = gpgArgs,
