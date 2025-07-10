@@ -223,6 +223,15 @@ trait ScalaNativeModule extends ScalaModule { outer =>
    */
   def nativeMultithreading: T[Option[Boolean]] = Task { None }
 
+  /**
+   * List of service providers which shall be allowed in the final binary.
+   * Example:
+   *   Map("java.nio.file.spi.FileSystemProvider" -> Seq("my.lib.MyCustomFileSystem"))
+   *   Makes the implementation for the FileSystemProvider trait in `my.lib.MyCustomFileSystem`
+   *   included in the binary for reflective instantiation.
+   */
+  def nativeServiceProviders: T[Map[String, Seq[String]]] = Task { Map.empty[String, Seq[String]] }
+
   private def nativeConfig: Task[NativeConfig] = Task.Anon {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
     withScalaNativeBridge.apply().apply(_.config(
@@ -243,6 +252,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       nativeIncrementalCompilation(),
       nativeDump(),
       nativeMultithreading(),
+      nativeServiceProviders(),
       toWorkerApi(logLevel()),
       toWorkerApi(nativeBuildTarget())
     )) match {
