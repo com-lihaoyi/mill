@@ -33,7 +33,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
     //noinspection ScalaDeprecation
     (sonatypeCentralGpgArgs()(keyId): @nowarn("cat=deprecation")) match {
       case `sonatypeCentralGpgArgsSentinelValue` =>
-        PublishModule.makeGpgArgs(Task.env, maybeKeyId = Some(keyId), providedGpgArgs = Seq.empty)
+        PublishModule.makeGpgArgs(Task.env, maybeKeyId = Some(keyId), providedGpgArgs = GpgArgs.UserProvided(Seq.empty))
       case other =>
         GpgArgs.UserProvided(other)
     }
@@ -143,8 +143,9 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val finalCredentials = getSonatypeCredentials(username, password)()
-    val gpgArgs0 =
-      PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, gpgArgs.split(','))
+    val gpgArgs0 = PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
+      Task.env, GpgArgs.UserProvided(gpgArgs.split(','))
+    )
     val publisher = new SonatypeCentralPublisher(
       credentials = finalCredentials,
       gpgArgs = gpgArgs0,

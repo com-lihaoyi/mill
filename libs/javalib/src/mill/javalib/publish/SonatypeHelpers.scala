@@ -45,7 +45,7 @@ object SonatypeHelpers {
       }
     }
   }
-  
+
   private def gpgSigned(
       file: os.Path,
       args: PublishModule.GpgArgs,
@@ -55,7 +55,8 @@ object SonatypeHelpers {
     val fileName = file.toString
     val logArgs = args match {
       case PublishModule.GpgArgs.MillGenerated(args) => args.map(_.toString)
-      case PublishModule.GpgArgs.UserProvided(_) => Seq("<user provided args>")
+      case fromUser: PublishModule.GpgArgs.UserProvided => 
+        Seq(s"<user provided args @ ${fromUser.file}:${fromUser.line}>")
     }
     def mkCommand(args: Seq[String]) = "gpg" +: args :+ fileName
     val logCommand = mkCommand(logArgs)

@@ -504,8 +504,9 @@ trait PublishModule extends JavaModule { outer =>
       stagingRelease: Boolean = true
   ): Task.Command[Unit] = Task.Command {
     val (contents, artifact) = publishArtifacts().withConcretePath
-    val gpgArgs0 =
-      PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, gpgArgs.split(','))
+    val gpgArgs0 = PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
+      Task.env, PublishModule.GpgArgs.UserProvided(gpgArgs.split(','))
+    )
     new SonatypePublisher(
       uri = sonatypeLegacyOssrhUri,
       snapshotUri = sonatypeCentralSnapshotUri,
@@ -600,7 +601,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
 
   def pgpImportSecretIfProvidedAndMakeGpgArgs(
       env: Map[String, String],
-      providedGpgArgs: Seq[String]
+      providedGpgArgs: GpgArgs.UserProvided
   ): GpgArgs = {
     val maybeKeyId = pgpImportSecretIfProvidedOrThrow(env)
     println(maybeKeyId match {
@@ -613,9 +614,9 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   def makeGpgArgs(
       env: Map[String, String],
       maybeKeyId: Option[String],
-      providedGpgArgs: Seq[String]
+      providedGpgArgs: GpgArgs.UserProvided
   ): GpgArgs = {
-    if (providedGpgArgs.nonEmpty) GpgArgs.UserProvided(providedGpgArgs)
+    if (providedGpgArgs.args.nonEmpty) providedGpgArgs
     else {
       val maybePassphrase = GpgKey.createFromEnvVarsOrThrow(
         maybeKeyId = maybeKeyId,
@@ -631,7 +632,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   enum GpgArgs {
     /** When user provides the args himself, we can not log them because we do not know which ones are sensitive
      * information like a key passphrase. */
-    case UserProvided(args: Seq[String])
+    case UserProvided(args: Seq[String])(using val file: sourcecode.File, val line: sourcecode.Line)
 
     /** When we generate the args ourselves we know which ones are secret. */
     case MillGenerated(args: Seq[PossiblySecret[String]])
@@ -751,7 +752,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   ): Task.Command[Unit] = Task.Command {
     val withConcretePaths = Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
 
-    val gpgArgs0 = pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, gpgArgs.split(','))
+    val gpgArgs0 = pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, GpgArgs.UserProvided(gpgArgs.split(',')))
 
     new SonatypePublisher(
       sonatypeUri,
