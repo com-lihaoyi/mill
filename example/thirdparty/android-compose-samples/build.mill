@@ -267,7 +267,7 @@ object JetNews extends mill.api.Module {
   }
 }
 
-/** Usage JetLagged
+/** Usage
 
 > ./mill JetLagged.app.androidApk
 
@@ -309,7 +309,7 @@ object JetNews extends mill.api.Module {
 
 */
 
-/** Usage JetNews
+/** Usage
 
 > ./mill JetNews.app.androidApk
 
@@ -337,9 +337,27 @@ object JetNews extends mill.api.Module {
   "msg": "",
   "results": [
     {
+      "fullyQualifiedName": "com.example.jetnews.HomeScreenTests.postsContainError_snackbarShown",
+      "selector": "com.example.jetnews.HomeScreenTests.postsContainError_snackbarShown",
+      "duration": 2,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.example.jetnews.JetnewsTests.app_opensArticle",
+      "selector": "com.example.jetnews.JetnewsTests.app_opensArticle",
+      "duration": 1,
+      "status": "Success"
+    },
+    {
       "fullyQualifiedName": "com.example.jetnews.JetnewsTests.app_launches",
-      selector": "com.example.jetnews.JetnewsTests.app_launches",
-      "duration": ...,
+      "selector": "com.example.jetnews.JetnewsTests.app_launches",
+      "duration": 1,
+      "status": "Success"
+    },
+    {
+      "fullyQualifiedName": "com.example.jetnews.JetnewsTests.app_opensInterests",
+      "selector": "com.example.jetnews.JetnewsTests.app_opensInterests",
+      "duration": 1,
       "status": "Success"
     }
   ]
