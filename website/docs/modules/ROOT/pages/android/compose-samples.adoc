@@ -1,0 +1,18 @@
+= Android Jetpack Compose
+:page-aliases: android_jetpack_compose.adoc
+
+
+This page provides an example of using Mill as a build tool against more real like examples, using the
+official [compose samples](https://github.com/android/compose-samples)
+
+*Example Apps*
+
+- [JetLagged](https://github.com/android/compose-samples/tree/main/JetLagged)
+- [JetNews](https://github.com/android/compose-samples/tree/main/JetNews)
+
+== Android Mill Setup for building JetLagged and JetNews
+
+include::partial$example/thirdparty/android-compose-samples.adoc[]
+
+This example demonstrates how to build multiple Android Apps from the same project, translating
+their Gradle configuration to Mill and using R8 to optimise the App in a similar configuration as the original Gradle setup.
