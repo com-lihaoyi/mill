@@ -8,25 +8,25 @@ import java.io.InputStream
 object AsmPositionUpdater {
 
   private class LineNumberTableMethodVisitor(
-                                              lineNumberOffset: Int,
-                                              delegate: asm.MethodVisitor
-                                            ) extends asm.MethodVisitor(asm.Opcodes.ASM9, delegate) {
+      lineNumberOffset: Int,
+      delegate: asm.MethodVisitor
+  ) extends asm.MethodVisitor(asm.Opcodes.ASM9, delegate) {
     override def visitLineNumber(line: Int, start: asm.Label): Unit =
       super.visitLineNumber(math.max(0, line + lineNumberOffset), start)
   }
 
   private class LineNumberTableClassVisitor(
-                                             lineNumberOffset: Int,
-                                             cw: asm.ClassWriter
-                                           ) extends asm.ClassVisitor(asm.Opcodes.ASM9, cw) {
+      lineNumberOffset: Int,
+      cw: asm.ClassWriter
+  ) extends asm.ClassVisitor(asm.Opcodes.ASM9, cw) {
 
     override def visitMethod(
-                              access: Int,
-                              name: String,
-                              descriptor: String,
-                              signature: String,
-                              exceptions: Array[String]
-                            ): asm.MethodVisitor = {
+        access: Int,
+        name: String,
+        descriptor: String,
+        signature: String,
+        exceptions: Array[String]
+    ): asm.MethodVisitor = {
       val main = super.visitMethod(access, name, descriptor, signature, exceptions)
       new LineNumberTableMethodVisitor(lineNumberOffset, main)
 

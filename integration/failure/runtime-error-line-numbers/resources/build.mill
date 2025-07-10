@@ -1,8 +1,7 @@
 package build
 import mill.*
 
-object `package` extends mill.Module{
-  def rootBoom = Task{ sys.error("boom"); 1 }
-  def rootUtilBoom = Task{ myScalaVersion; 1 }
+object `package` extends mill.Module {
+  def rootBoom = Task { sys.error("boom"); 1 }
+  def rootUtilBoom = Task { myScalaVersion; 1 }
 }
-

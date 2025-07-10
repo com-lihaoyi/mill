@@ -294,13 +294,14 @@ trait MillBuildRootModule()(implicit
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation(),
         auxiliaryClassFileExtensions = zincAuxiliaryClassFileExtensions()
-      ).map { res =>
-        MillBuildRootModule.updateLineNumbers(
-          res.classes.path,
-          generatedScriptSources().wrapped.head.path
-        )
-      res
-    }
+      ).map {
+        res =>
+          MillBuildRootModule.updateLineNumbers(
+            res.classes.path,
+            generatedScriptSources().wrapped.head.path
+          )
+        res
+      }
   }
 }
 
@@ -326,7 +327,8 @@ object MillBuildRootModule {
         val sourceFile = generatedScriptSourcesPath / rel / os.up / s"$prefix.mill"
         if (os.exists(sourceFile)) {
 
-          val lineNumberOffset = os.read.lines(sourceFile).indexOf("//SOURCECODE_ORIGINAL_CODE_START_MARKER") + 1
+          val lineNumberOffset =
+            os.read.lines(sourceFile).indexOf("//SOURCECODE_ORIGINAL_CODE_START_MARKER") + 1
           os.write.over(
             p,
             os
