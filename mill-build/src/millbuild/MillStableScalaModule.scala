@@ -1,15 +1,15 @@
 package millbuild
-import com.github.lolgab.mill.mima._
+//import com.github.lolgab.mill.mima._
 import mill._, scalalib._
 
 /** Publishable module which contains strictly handled API. */
-trait MillStableScalaModule extends MillPublishScalaModule with Mima {
+trait MillStableScalaModule extends MillPublishScalaModule /*with Mima*/ {
 
-  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq.empty[ProblemFilter]
-
-  def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
-
-  def mimaPreviousArtifacts: T[Seq[Dep]] = Task {
+//  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = Seq.empty[ProblemFilter]
+//
+//  def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
+//
+//  def mimaPreviousArtifacts: T[Seq[Dep]] = Task {
 //    Settings.mimaBaseVersions
 //      .map({ version =>
 //        val patchedSuffix = {
@@ -27,8 +27,8 @@ trait MillStableScalaModule extends MillPublishScalaModule with Mima {
 //        val patchedId = artifactName() + patchedSuffix
 //        mvn"${pomSettings().organization}:${patchedId}:${version}"
 //      })
-    Seq.empty[Dep]
-  }
-
-  def mimaExcludeAnnotations = Seq("mill.api.internal.internal", "mill.api.experimental")
+//    Seq.empty[Dep]
+//  }
+//
+//  def mimaExcludeAnnotations = Seq("mill.api.internal.internal", "mill.api.experimental")
 }

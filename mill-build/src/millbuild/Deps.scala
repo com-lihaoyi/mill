@@ -1,7 +1,7 @@
 package millbuild
 
 import mill.scalalib.*
-import mill.jvmlib.api.*
+import mill.javalib.api.*
 
 object Deps {
 
