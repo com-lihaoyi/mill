@@ -312,7 +312,7 @@ object JetNews extends mill.api.Module {
 
 // Then on the same emulator we build, run and test JetNews too
 
-/** Usage JetNews
+/** Usage
 
 > ./mill JetNews.app.androidApk
 
