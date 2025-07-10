@@ -5,14 +5,14 @@ import coursier.maven.MavenRepository
 import mill._
 import mill.util.Tasks
 import mill.scalalib._
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
 import mill.api.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross
-import mill.testrunner.TestResult
+import mill.javalib.testrunner.TestResult
 import millbuild.*
 import upickle.implicits.namedTuples.default.given
 import mill.api.BuildCtx
