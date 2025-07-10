@@ -36,6 +36,7 @@
 *** xref:android/kotlin.adoc[]
 *** xref:android/android-linting.adoc[]
 *** xref:android/compose-samples.adoc[]
+*** xref:android/hilt-sample.adoc[]
 ** xref:pythonlib/intro.adoc[]
 *** xref:pythonlib/module-config.adoc[]
 *** xref:pythonlib/dependencies.adoc[]
