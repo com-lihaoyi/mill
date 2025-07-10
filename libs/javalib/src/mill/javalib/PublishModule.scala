@@ -505,7 +505,7 @@ trait PublishModule extends JavaModule { outer =>
   ): Task.Command[Unit] = Task.Command {
     val (contents, artifact) = publishArtifacts().withConcretePath
     val gpgArgs0 = PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
-      Task.env, PublishModule.GpgArgs.UserProvided(gpgArgs.split(','))
+      Task.env, PublishModule.GpgArgs.fromUserProvided(gpgArgs)
     )
     new SonatypePublisher(
       uri = sonatypeLegacyOssrhUri,
@@ -643,6 +643,13 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       case GpgArgs.MillGenerated(args) => args.iterator.map(Secret.unpack).toSeq
     }
   }
+  object GpgArgs {
+    /**
+     * @param args a comma separated string, for example "--yes,--batch"
+     */
+    def fromUserProvided(args: String)(using sourcecode.File, sourcecode.Line): UserProvided =
+      UserProvided(if (args.isBlank) Seq.empty else args.split(','))
+  }
 
   case class GpgKey private (keyId: String, passphrase: Option[String]) {
     def gpgArgs: Seq[PossiblySecret[String]] =
@@ -752,7 +759,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   ): Task.Command[Unit] = Task.Command {
     val withConcretePaths = Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
 
-    val gpgArgs0 = pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, GpgArgs.UserProvided(gpgArgs.split(',')))
+    val gpgArgs0 = pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, GpgArgs.fromUserProvided(gpgArgs))
 
     new SonatypePublisher(
       sonatypeUri,

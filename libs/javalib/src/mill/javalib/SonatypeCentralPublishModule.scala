@@ -143,9 +143,7 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val finalCredentials = getSonatypeCredentials(username, password)()
-    val gpgArgs0 = PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
-      Task.env, GpgArgs.UserProvided(gpgArgs.split(','))
-    )
+    val gpgArgs0 = PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, GpgArgs.fromUserProvided(gpgArgs))
     val publisher = new SonatypeCentralPublisher(
       credentials = finalCredentials,
       gpgArgs = gpgArgs0,
