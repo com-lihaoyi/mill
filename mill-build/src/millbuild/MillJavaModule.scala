@@ -52,7 +52,7 @@ trait MillJavaModule extends JavaModule {
 
   def localTestOverridesEnv = Task {
     val localRepos = localTestRepositories()
-      .map(_.path.toNIO.toUri.toASCIIString)
+      .map(_.path.toString)
       .mkString(File.pathSeparator)
     Seq("MILL_LOCAL_TEST_REPO" -> localRepos)
   }
