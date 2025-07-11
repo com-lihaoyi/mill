@@ -45,11 +45,12 @@ object `package` extends MillStableScalaModule {
     super.testForkEnv() ++ Map("LC_ALL" -> locale)
   }
 
-  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] = super.mimaBinaryIssueFilters() ++ Seq(
-    // This was `private[mill]`, package private doesn't have the JVM bytecode equivalent, so mima can't check it.
-    ProblemFilter.exclude[Problem]("mill.javalib.PublishModule.checkSonatypeCreds"),
-    ProblemFilter.exclude[Problem]("mill.javalib.publish.SonatypeHelpers.getArtifactMappings"),
-  )
+  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] =
+    super.mimaBinaryIssueFilters() ++ Seq(
+      // This was `private[mill]`, package private doesn't have the JVM bytecode equivalent, so mima can't check it.
+      ProblemFilter.exclude[Problem]("mill.javalib.PublishModule.checkSonatypeCreds"),
+      ProblemFilter.exclude[Problem]("mill.javalib.publish.SonatypeHelpers.getArtifactMappings")
+    )
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
     def mvnDeps = Seq(Deps.sbtTestInterface)

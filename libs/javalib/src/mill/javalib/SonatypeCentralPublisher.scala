@@ -1,6 +1,10 @@
 package mill.javalib
 
-import com.lumidion.sonatype.central.client.core.{DeploymentName, PublishingType, SonatypeCredentials}
+import com.lumidion.sonatype.central.client.core.{
+  DeploymentName,
+  PublishingType,
+  SonatypeCredentials
+}
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
 import mill.javalib.internal.PublishModule.GpgArgs
@@ -27,17 +31,23 @@ class SonatypeCentralPublisher(
 ) {
   // bincompat forwarder
   def this(
-    credentials: SonatypeCredentials,
-    gpgArgs: Seq[String],
-    readTimeout: Int,
-    connectTimeout: Int,
-    log: Logger,
-    workspace: os.Path,
-    env: Map[String, String],
-    awaitTimeout: Int
+      credentials: SonatypeCredentials,
+      gpgArgs: Seq[String],
+      readTimeout: Int,
+      connectTimeout: Int,
+      log: Logger,
+      workspace: os.Path,
+      env: Map[String, String],
+      awaitTimeout: Int
   ) = this(
-    credentials, UserProvided(gpgArgs), readTimeout = readTimeout, connectTimeout = connectTimeout, log, workspace,
-    env, awaitTimeout = awaitTimeout
+    credentials,
+    UserProvided(gpgArgs),
+    readTimeout = readTimeout,
+    connectTimeout = connectTimeout,
+    log,
+    workspace,
+    env,
+    awaitTimeout = awaitTimeout
   )
 
   private val sonatypeCentralClient =

@@ -8,6 +8,7 @@ import mill.util.{PossiblySecret, Secret}
 
 @internal
 object PublishModule {
+
   /**
    * Imports a Base64 encoded GPG secret, if one is provided in the environment.
    *
@@ -72,8 +73,8 @@ object PublishModule {
     GpgKey.gpgArgsForPassphrase(passphrase) ++ defaultGpgArgs
 
   def pgpImportSecretIfProvidedAndMakeGpgArgs(
-    env: Map[String, String],
-    providedGpgArgs: GpgArgs.UserProvided
+      env: Map[String, String],
+      providedGpgArgs: GpgArgs.UserProvided
   ): GpgArgs = {
     val maybeKeyId = pgpImportSecretIfProvidedOrThrow(env)
     println(maybeKeyId match {
@@ -84,9 +85,9 @@ object PublishModule {
   }
 
   def makeGpgArgs(
-    env: Map[String, String],
-    maybeKeyId: Option[String],
-    providedGpgArgs: GpgArgs.UserProvided
+      env: Map[String, String],
+      maybeKeyId: Option[String],
+      providedGpgArgs: GpgArgs.UserProvided
   ): GpgArgs = {
     if (providedGpgArgs.args.nonEmpty) providedGpgArgs
     else {

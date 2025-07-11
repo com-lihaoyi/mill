@@ -552,7 +552,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   def defaultGpgArgsForPassphrase(passphrase: Option[String]): Seq[String] =
     internal.PublishModule.defaultGpgArgsForPassphrase(passphrase).map(Secret.unpack)
 
-  case class GpgKey private(keyId: String, passphrase: Option[String]) {
+  case class GpgKey private (keyId: String, passphrase: Option[String]) {
     def gpgArgs: Seq[PossiblySecret[String]] =
       Seq("--local-user", keyId) ++ GpgKey.gpgArgsForPassphrase(passphrase)
   }
@@ -571,8 +571,8 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
      * @param maybePassphrase will be [[None]] if the PGP passphrase was not provided in the environment.
      */
     def createFromEnvVars(
-      maybeKeyId: Option[String],
-      maybePassphrase: Option[String]
+        maybeKeyId: Option[String],
+        maybePassphrase: Option[String]
     ): Option[Either[String, GpgKey]] =
       (maybeKeyId, maybePassphrase) match {
         case (None, None) => None
@@ -583,8 +583,8 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       }
 
     def createFromEnvVarsOrThrow(
-      maybeKeyId: Option[String],
-      maybePassphrase: Option[String]
+        maybeKeyId: Option[String],
+        maybePassphrase: Option[String]
     ): Option[GpgKey] =
       createFromEnvVars(maybeKeyId, maybePassphrase)
         .map(_.fold(err => throw new IllegalArgumentException(err), identity))
@@ -663,7 +663,10 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
     val withConcretePaths = Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
 
     val gpgArgs0 =
-      internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, GpgArgs.fromUserProvided(gpgArgs))
+      internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
+        Task.env,
+        GpgArgs.fromUserProvided(gpgArgs)
+      )
 
     new SonatypePublisher(
       sonatypeUri,
