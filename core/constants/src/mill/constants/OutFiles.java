@@ -55,7 +55,7 @@ public class OutFiles {
   /**
    * Subfolder of `out/` used to contain the Mill subprocess when run in no-server mode
    */
-  public static final String millNoDaemon = "mill-no-deamon";
+  public static final String millNoDaemon = "mill-no-daemon";
 
   /**
    * Lock file used for exclusive access to the Mill output directory
