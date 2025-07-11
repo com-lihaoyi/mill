@@ -9,6 +9,8 @@ import mill.Task
 import mill.scalalib.Dep
 import mill.scalalib.JavaModule
 
+import java.io.File
+
 import scala.util.Properties
 
 trait MillJavaModule extends JavaModule {
@@ -29,13 +31,20 @@ trait MillJavaModule extends JavaModule {
   def localTestOverridePaths =
     Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
 
-  def transitiveLocalTestOverrides: T[Map[String, String]] = Task {
-    val upstream = Task.traverse(moduleDeps ++ compileModuleDeps) {
-      case m: MillJavaModule => m.transitiveLocalTestOverrides.map(Some(_))
-      case _ => Task.Anon(None)
-    }().flatten.flatten
-    val current = Seq(localTestOverride())
-    upstream.toMap ++ current
+  def localTestExtraRepositories: T[Seq[PathRef]] = Task(Seq.empty[PathRef])
+  def localTestRepositories: T[Seq[PathRef]] = {
+    val allModules = (Seq(this) ++ recursiveModuleDeps ++ recursiveRunModuleDeps).distinct
+    Task {
+      val mainRepos = Task.traverse(allModules) {
+        case m: MillPublishJavaModule => m.stagePublish.map(Seq(_))
+        case _ => Task.Anon(Nil)
+      }().flatten
+      val extraRepos = Task.traverse(allModules) {
+        case m: MillPublishJavaModule => m.localTestExtraRepositories.map(Seq(_))
+        case _ => Task.Anon(Nil)
+      }().flatten.flatten
+      mainRepos ++ extraRepos
+    }
   }
 
   def testMvnDeps: T[Seq[Dep]] = Seq(Deps.TestDeps.utest)
@@ -45,10 +54,10 @@ trait MillJavaModule extends JavaModule {
     else Seq(this, build.core.api.test)
 
   def localTestOverridesEnv = Task {
-    transitiveLocalTestOverrides()
-      .map { case (k, v) =>
-        ("MILL_LOCAL_TEST_OVERRIDE_" + k.replaceAll("[.-]", "_").toUpperCase, v)
-      }
+    val localRepos = localTestRepositories()
+      .map(_.path.toString)
+      .mkString(File.pathSeparator)
+    Seq("MILL_LOCAL_TEST_REPO" -> localRepos)
   }
 
   def repositoriesTask = Task.Anon {
