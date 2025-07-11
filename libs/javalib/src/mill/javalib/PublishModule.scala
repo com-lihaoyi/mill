@@ -536,6 +536,15 @@ trait PublishModule extends JavaModule { outer =>
     )
   }
 
+  /**
+   * Creates a Maven repository directory with artifacts for this module
+   *
+   * This results in a directory which contains things like
+   * `my/organization/my-module/VERSION/my-module-VERSION.{pom,jar}`.
+   * Such directories can later be used as Maven repositories during
+   * artifact resolution, or be merged together and then used as repository,
+   * for example.
+   */
   def stagePublish(
       sources: Boolean = true,
       doc: Boolean = true
