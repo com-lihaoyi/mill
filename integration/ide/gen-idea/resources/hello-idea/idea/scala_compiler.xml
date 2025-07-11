@@ -4,6 +4,7 @@
             <parameters>
                 <parameter value="-Xplugin:<!-- IGNORE -->/com/lihaoyi/scalac-mill-moduledefs-plugin_3.7.1/0.11.10/scalac-mill-moduledefs-plugin_3.7.1-0.11.10.jar"/>
                 <parameter value="-deprecation"/>
+                <parameter value="-Wconf:msg=will be encoded on the classpath:silent"/>
             </parameters>
             <plugins>
                 <plugin path="<!-- IGNORE -->/com/lihaoyi/scalac-mill-moduledefs-plugin_3.7.1/0.11.10/scalac-mill-moduledefs-plugin_3.7.1-0.11.10.jar"/>

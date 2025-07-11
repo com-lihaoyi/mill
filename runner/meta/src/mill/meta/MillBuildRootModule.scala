@@ -249,7 +249,12 @@ trait MillBuildRootModule()(implicit
       .exclude("com.lihaoyi" -> "sourcecode_3")
   )
 
-  override def scalacOptions: T[Seq[String]] = Task { super.scalacOptions() ++ Seq("-deprecation") }
+  override def scalacOptions: T[Seq[String]] = Task {
+    super.scalacOptions() ++
+      // This warning comes up for package names with dashes in them like "package build.`foo-bar`",
+      // but Mill generally handles these fine, so no need to warn the user
+      Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent")
+  }
 
   /** Used in BSP IntelliJ, which can only work with directories */
   def dummySources: Task[Seq[PathRef]] = Task.Sources(Task.dest)
