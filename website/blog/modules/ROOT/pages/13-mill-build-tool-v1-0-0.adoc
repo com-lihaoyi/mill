@@ -5,7 +5,7 @@
 
 // tag::header[]
 :author: Li Haoyi
-:revdate: ???
+:revdate: 10 July 2025
 
 _{author}, {revdate}_
 
