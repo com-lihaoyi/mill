@@ -27,6 +27,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
   def pomSettings = MillPublishJavaModule.commonPomSettings(artifactName())
   def javacOptions = Seq("-source", "11", "-target", "11", "-encoding", "UTF-8")
 
+  // Just remove this method when re-bootstrapping, Mill itself should provide it then
   def stagePublish(
       sources: Boolean = true,
       doc: Boolean = true
