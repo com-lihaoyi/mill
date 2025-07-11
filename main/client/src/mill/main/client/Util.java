@@ -45,6 +45,24 @@ public class Util {
       !System.getProperty("java.specification.version").startsWith("1.");
   private static Charset utf8 = Charset.forName("UTF-8");
 
+  private static final boolean hasConsole0;
+
+  static {
+    Console console = System.console();
+
+    boolean foundConsole;
+    if (console != null) {
+      try {
+        Method method = console.getClass().getMethod("isTerminal");
+        foundConsole = (Boolean) method.invoke(console);
+      } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException ignored) {
+        foundConsole = true;
+      }
+    } else foundConsole = false;
+
+    hasConsole0 = foundConsole;
+  }
+
   /**
    * Determines if we have an interactive console attached to the application.
    * <p>
@@ -58,16 +76,7 @@ public class Util {
    * both JDK versions before 22 and later.
    */
   public static boolean hasConsole() {
-    Console console = System.console();
-
-    if (console != null) {
-      try {
-        Method method = console.getClass().getMethod("isTerminal");
-        return (Boolean) method.invoke(console);
-      } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException ignored) {
-        return true;
-      }
-    } else return false;
+    return hasConsole0;
   }
 
   /**
