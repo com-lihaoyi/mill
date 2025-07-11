@@ -9,8 +9,8 @@
 
 _{author}, {revdate}_
 
-{mill-doc-url}[Mill] is a JVM build tool targeting Java, Scala, and Kotlin that aims to
-improve upon existing build tools like in areas like
+{mill-doc-url}[Mill] is a build tool for Java, Scala, and Kotlin that aims to
+improve upon existing build tools in areas like
 xref:mill::comparisons/why-mill.adoc#_performance[performance],
 xref:mill::comparisons/why-mill.adoc#_extensibility[extensibility],
 and xref:mill::comparisons/why-mill.adoc#_ide_support[IDE support].
@@ -47,7 +47,7 @@ Mill's Graal Native Image launcher, Mill's command-line experience feels as snap
 as any native binary, because it is one!
 
 Apart from being a Graal Native Image itself, Mill also can be used to build your
-own native images. See
+own Java, Scala, and Kotlin apps into native images. See
 xref:mill::javalib/publishing.adoc#_building_native_image_binaries_with_graal_vm[Building
 Native Image Binaries with Graal VM] for more details.
 
@@ -56,7 +56,8 @@ Native Image Binaries with Graal VM] for more details.
 
 One consequence of using a Graal native launcher is that Mill's launcher
 no longer needs a JVM pre-installed in order to run. The launcher binary is self-contained,
-and is able to download and cache any JVM it needs in order to start up other Java processes.
+and is able to download and cache any JVM it needs in order to start itself or other Java
+processes.
 
 ```bash
 $ echo temurin:23 > .mill-jvm-version
@@ -86,9 +87,14 @@ necessary with zero installation up front. That's pretty unique among the wide v
 of CLI tools out there, and should hopefully make it convenient for Mill users to build their
 JVM projects on the wide variety of different environments out there in the wild.
 
+See the docs for configuring xref:mill::cli/build-header.adoc#_mill_jvm_version[mill-jvm-version]
+for more details.
+
 === Bash/Zsh Tab-Completion
 
-Mill 1.0.0 comes with built-in support for Bash and Zsh tab-completion. This can be installed via
+Mill 1.0.0 comes with built-in support for
+xref:mill::cli/installation-ide.adoc#_bashzsh_tab_completion[Bash and Zsh tab-completion].
+This can be installed via
 
 ```bash
 $ ./mill mill.tabcomplete/install
@@ -161,6 +167,8 @@ developers in the right direction to follow Mill's conventions and coding style,
 that developers will naturally fall into configuring Mill the "right" way that leads
 to the fewest surprises.
 
+See the documentation for xref:mill::depth/sandboxing.adoc[Mill Sandboxing] for more details.
+
 === YAML Build Headers for Early Configuration
 
 Mill now supports a build header comment syntax for "early" configuration that needs to be processed
@@ -208,6 +216,9 @@ dependency configuration and code, similar to
 https://docs.astral.sh/uv/guides/scripts/#running-a-script-without-dependencies[uv scripts]
 in Python.
 
+See the docs for configuring xref:mill::cli/build-header.adoc[Build Header Config]
+for more details.
+
 === Mill Support for Kotlin Builds is now Stable
 
 Mill 1.0.0 includes substantial improvements for building Kotlin projects with Mill:
@@ -225,6 +236,7 @@ binary-compatibility enforcement for `mill.kotlinlib` just as we already have fo
 `mill.javalib` and `mill.scalalib`. We hope that you will try out Mill in your Kotlin
 projects, and let us know how it goes in https://github.com/com-lihaoyi/mill/discussions[Mill's Github Discussions].
 
+See the docs for xref:mill::kotlinlib/intro.adoc[Building Kotlin with Mill] for more details
 
 === Mill Support for Android Builds
 
@@ -251,14 +263,15 @@ immense amount of work:
 {link-pr}/5013[#5013], {link-pr}/5053[#5053]
 
 
-Updating the xref:mill::android/java.adoc[Mill Android documentation for Java] and
-the xref:mill::android/java.adoc[Mill Android documentation for Kotlin] is a work in
-progress. We
+Updating the Mill Android documentation is a work in progress. We
 will be fleshing out the Mill Android docs over the following weeks and months and
 writing up blog posts on our experience integrating Mill with the Android toolchain
 But if you are unsatisfied with Gradle and interested in trying out an
 alternate Android build tool, you should definitely take a look and try it out
 and let us know how it goes in https://github.com/com-lihaoyi/mill/discussions[Mill's Github Discussions].
+
+See Mill's docs for xref:mill::android/java.adoc[Android Java Projects] or
+xref:mill::android/java.adoc[Android Kotlin Projects] for more details.
 
 == Quality Highlights
 
@@ -267,7 +280,7 @@ and let us know how it goes in https://github.com/com-lihaoyi/mill/discussions[M
 Mill has always had a xref:mill::comparisons/why-mill.adoc#_ide_support[best-in-class IDE experience]
 in IntelliJ and VSCode that surpasses the experience you get with Maven, Gradle, or SBT.
 For example, in Mill builds your IDE is able to autocomplete, pull up docs, or otherwise
-navigate around your build logic as easily as you can any application codebase in Java, Scala,
+navigate around your build graph as easily as you can any application codebase in Java, Scala,
 or Kotlin:
 
 image:blog::IntelliJAutoComplete.png[]
