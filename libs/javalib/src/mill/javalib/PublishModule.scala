@@ -5,12 +5,12 @@ import coursier.core.{Configuration, DependencyManagement}
 import mill.api.{DefaultTaskModule, ExternalModule, Task}
 import mill.api.PathRef
 import mill.api.Result
-import mill.util.{JarManifest, Secret, PossiblySecret, Tasks}
-import mill.javalib.PublishModule.checkSonatypeCreds
+import mill.util.{JarManifest, PossiblySecret, Secret, Tasks}
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.javalib.publish.{Artifact, SonatypePublisher}
 import os.Path
 import mill.api.BuildCtx
+import mill.javalib.internal.PublishModule.{GpgArgs, checkSonatypeCreds}
 
 /**
  * Configuration necessary for publishing a Scala module to Maven Central or similar
@@ -443,10 +443,10 @@ trait PublishModule extends JavaModule { outer =>
       .map(PathRef(_).withRevalidateOnce)
   }
 
-  /** @see [[PublishModule.sonatypeLegacyOssrhUri]] */
+  /** @see [[internal.PublishModule.sonatypeLegacyOssrhUri]] */
   def sonatypeLegacyOssrhUri: String = PublishModule.sonatypeLegacyOssrhUri
 
-  /** @see [[PublishModule.sonatypeCentralSnapshotUri]] */
+  /** @see [[internal.PublishModule.sonatypeCentralSnapshotUri]] */
   def sonatypeCentralSnapshotUri: String = PublishModule.sonatypeCentralSnapshotUri
 
   def publishArtifacts: T[PublishModule.PublishData] = {
@@ -504,9 +504,9 @@ trait PublishModule extends JavaModule { outer =>
       stagingRelease: Boolean = true
   ): Task.Command[Unit] = Task.Command {
     val (contents, artifact) = publishArtifacts().withConcretePath
-    val gpgArgs0 = PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
+    val gpgArgs0 = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
-      PublishModule.GpgArgs.fromUserProvided(gpgArgs)
+      GpgArgs.fromUserProvided(gpgArgs)
     )
     new SonatypePublisher(
       uri = sonatypeLegacyOssrhUri,
@@ -540,128 +540,22 @@ trait PublishModule extends JavaModule { outer =>
 
 object PublishModule extends ExternalModule with DefaultTaskModule {
   def defaultTask(): String = "publishAll"
-  val defaultGpgArgs: Seq[PossiblySecret[String]] = defaultGpgArgsForPassphrase(passphrase = None)
 
-  /**
-   * Imports a Base64 encoded GPG secret, if one is provided in the environment.
-   *
-   * @return Some(Right(the key ID of the imported secret)), Some(Left(error message)) if the import failed, None if
-   *         the environment variable is not set.
-   */
-  def pgpImportSecretIfProvided(env: Map[String, String]): Option[Either[String, String]] = {
-    for (secret <- env.get(EnvVarPgpSecretBase64)) yield {
-      pgpImportSecret(secret).left.map { errorLines =>
-        s"""Could not import PGP secret from environment variable '$EnvVarPgpSecretBase64'. gpg output:
-           |
-           |${errorLines.mkString("\n")}""".stripMargin
-      }
-    }
-  }
+  val defaultGpgArgs: Seq[PossiblySecret[String]] =
+    internal.PublishModule.defaultGpgArgsForKey(key = None)
 
-  /** Imports a Base64 encoded GPG secret, if one is provided in the environment. Throws if the import fails. */
-  def pgpImportSecretIfProvidedOrThrow(env: Map[String, String]): Option[String] =
-    pgpImportSecretIfProvided(env).map(_.fold(
-      err => throw new IllegalArgumentException(err),
-      identity
-    ))
+  @deprecated("This API should have been internal and is not guaranteed to stay.", "1.0.1")
+  def pgpImportSecretIfProvided(env: Map[String, String]): Unit =
+    internal.PublishModule.pgpImportSecretIfProvidedOrThrow(env)
 
-  /**
-   * Imports a Base64 encoded GPG secret.
-   *
-   * @return Right(the key ID of the imported secret), or Left(gnupg output) if the import failed.
-   */
-  def pgpImportSecret(secretBase64: String): Either[Vector[String], String] = {
-    val cmd = Seq(
-      "gpg",
-      "--import",
-      "--no-tty",
-      "--batch",
-      "--yes",
-      // Use the machine parseable output format and send it to stdout.
-      "--with-colons",
-      "--status-fd",
-      "1"
-    )
-    println(s"Running ${cmd.iterator.map(pprint.Util.literalize(_)).mkString(" ")}")
-    val res = os.call(cmd, stdin = java.util.Base64.getDecoder.decode(secretBase64))
-    val outLines = res.out.lines()
-    val importRegex = """^\[GNUPG:\] IMPORT_OK \d+ (\w+)""".r
-    outLines.collectFirst { case importRegex(key) => key }.toRight(outLines)
-  }
+  @deprecated("This API should have been internal and is not guaranteed to stay.", "1.0.1")
+  def defaultGpgArgsForPassphrase(passphrase: Option[String]): Seq[String] =
+    internal.PublishModule.defaultGpgArgsForPassphrase(passphrase).map(Secret.unpack)
 
-  def defaultGpgArgsForPassphrase(passphrase: Option[GpgKey]): Seq[PossiblySecret[String]] = {
-    passphrase.iterator.flatMap(_.gpgArgs).toSeq ++ Seq(
-      "--no-tty",
-      "--pinentry-mode",
-      "loopback",
-      "--batch",
-      "--yes",
-      "--armor",
-      "--detach-sign"
-    )
-  }
-
-  def pgpImportSecretIfProvidedAndMakeGpgArgs(
-      env: Map[String, String],
-      providedGpgArgs: GpgArgs.UserProvided
-  ): GpgArgs = {
-    val maybeKeyId = pgpImportSecretIfProvidedOrThrow(env)
-    println(maybeKeyId match {
-      case Some(keyId) => s"Imported GPG key with ID '$keyId'"
-      case None => "No GPG key was imported."
-    })
-    makeGpgArgs(env, maybeKeyId, providedGpgArgs)
-  }
-
-  def makeGpgArgs(
-      env: Map[String, String],
-      maybeKeyId: Option[String],
-      providedGpgArgs: GpgArgs.UserProvided
-  ): GpgArgs = {
-    if (providedGpgArgs.args.nonEmpty) providedGpgArgs
-    else {
-      val maybePassphrase = GpgKey.createFromEnvVarsOrThrow(
-        maybeKeyId = maybeKeyId,
-        maybePassphrase = env.get(EnvVarPgpPassphrase)
-      )
-      GpgArgs.MillGenerated(defaultGpgArgsForPassphrase(maybePassphrase))
-    }
-  }
-
-  val EnvVarPgpPassphrase = "MILL_PGP_PASSPHRASE"
-  val EnvVarPgpSecretBase64 = "MILL_PGP_SECRET_BASE64"
-
-  enum GpgArgs {
-
-    /**
-     * When user provides the args himself, we can not log them because we do not know which ones are sensitive
-     * information like a key passphrase.
-     */
-    case UserProvided(args: Seq[String])(using val file: sourcecode.File, val line: sourcecode.Line)
-
-    /** When we generate the args ourselves we know which ones are secret. */
-    case MillGenerated(args: Seq[PossiblySecret[String]])
-
-    /** Turns this into the `gpg` arguments. */
-    def asCommandArgs: Seq[String] = this match {
-      case GpgArgs.UserProvided(args) => args
-      case GpgArgs.MillGenerated(args) => args.iterator.map(Secret.unpack).toSeq
-    }
-  }
-  object GpgArgs {
-
-    /**
-     * @param args a comma separated string, for example "--yes,--batch"
-     */
-    def fromUserProvided(args: String)(using sourcecode.File, sourcecode.Line): UserProvided =
-      UserProvided(if (args.isBlank) Seq.empty else args.split(','))
-  }
-
-  case class GpgKey private (keyId: String, passphrase: Option[String]) {
+  case class GpgKey private(keyId: String, passphrase: Option[String]) {
     def gpgArgs: Seq[PossiblySecret[String]] =
-      Seq("--local-user", keyId) ++ passphrase.iterator.flatMap(p => Seq("--passphrase", Secret(p)))
+      Seq("--local-user", keyId) ++ GpgKey.gpgArgsForPassphrase(passphrase)
   }
-
   object GpgKey {
 
     /** Creates an instance if the passphrase is not empty. */
@@ -677,8 +571,8 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
      * @param maybePassphrase will be [[None]] if the PGP passphrase was not provided in the environment.
      */
     def createFromEnvVars(
-        maybeKeyId: Option[String],
-        maybePassphrase: Option[String]
+      maybeKeyId: Option[String],
+      maybePassphrase: Option[String]
     ): Option[Either[String, GpgKey]] =
       (maybeKeyId, maybePassphrase) match {
         case (None, None) => None
@@ -689,11 +583,14 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       }
 
     def createFromEnvVarsOrThrow(
-        maybeKeyId: Option[String],
-        maybePassphrase: Option[String]
+      maybeKeyId: Option[String],
+      maybePassphrase: Option[String]
     ): Option[GpgKey] =
       createFromEnvVars(maybeKeyId, maybePassphrase)
         .map(_.fold(err => throw new IllegalArgumentException(err), identity))
+
+    def gpgArgsForPassphrase(passphrase: Option[String]): Seq[PossiblySecret[String]] =
+      passphrase.iterator.flatMap(p => Iterator("--passphrase", Secret(p))).toSeq
   }
 
   /**
@@ -756,8 +653,8 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       signed: Boolean = true,
       gpgArgs: String = "",
       release: Boolean = true,
-      sonatypeUri: String = sonatypeLegacyOssrhUri,
-      sonatypeSnapshotUri: String = sonatypeCentralSnapshotUri,
+      sonatypeUri: String = PublishModule.sonatypeLegacyOssrhUri,
+      sonatypeSnapshotUri: String = PublishModule.sonatypeCentralSnapshotUri,
       readTimeout: Int = 30 * 60 * 1000,
       connectTimeout: Int = 30 * 60 * 1000,
       awaitTimeout: Int = 30 * 60 * 1000,
@@ -766,12 +663,12 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
     val withConcretePaths = Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
 
     val gpgArgs0 =
-      pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, GpgArgs.fromUserProvided(gpgArgs))
+      internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, GpgArgs.fromUserProvided(gpgArgs))
 
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
-      checkSonatypeCreds(sonatypeCreds)(),
+      internal.PublishModule.checkSonatypeCreds(sonatypeCreds)(),
       signed,
       gpgArgs0,
       readTimeout,
@@ -786,37 +683,6 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       withConcretePaths*
     )
   }
-
-  private def getSonatypeCredsFromEnv: Task[(String, String)] = Task.Anon {
-    (for {
-      // Allow legacy environment variables as well
-      username <- Task.env.get(USERNAME_ENV_VARIABLE_NAME).orElse(Task.env.get("SONATYPE_USERNAME"))
-      password <- Task.env.get(PASSWORD_ENV_VARIABLE_NAME).orElse(Task.env.get("SONATYPE_PASSWORD"))
-    } yield {
-      (username, password)
-    }).getOrElse(
-      Task.fail(
-        s"Consider using ${USERNAME_ENV_VARIABLE_NAME}/${PASSWORD_ENV_VARIABLE_NAME} environment variables or passing `sonatypeCreds` argument"
-      )
-    )
-  }
-
-  private[mill] def checkSonatypeCreds(sonatypeCreds: String): Task[String] =
-    if (sonatypeCreds.isEmpty) {
-      for {
-        (username, password) <- getSonatypeCredsFromEnv
-      } yield s"$username:$password"
-    } else {
-      Task.Anon {
-        if (sonatypeCreds.split(":").length >= 2) {
-          sonatypeCreds
-        } else {
-          Task.fail(
-            "Sonatype credentials must be set in the following format - username:password. Incorrect format received."
-          )
-        }
-      }
-    }
 
   lazy val millDiscover: mill.api.Discover = mill.api.Discover[this.type]
 

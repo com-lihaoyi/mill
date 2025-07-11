@@ -18,24 +18,21 @@ import mill.javalib.SonatypeCentralPublishModule.{
 import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
-import mill.javalib.PublishModule.GpgArgs
-
-import scala.annotation.nowarn
+import mill.javalib.internal.PublishModule.GpgArgs
 
 trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport {
-  private val sonatypeCentralGpgArgsSentinelValue = "<user did not override this method>"
-
   @deprecated("Use `sonatypeCentralGpgArgsForKey` instead.", "1.0.1")
-  def sonatypeCentralGpgArgs: T[String] = Task { sonatypeCentralGpgArgsSentinelValue }
+  def sonatypeCentralGpgArgs: T[String] = Task { SonatypeCentralPublishModule.sonatypeCentralGpgArgsSentinelValue }
 
   /**
    * @return (keyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
    */
   def sonatypeCentralGpgArgsForKey: Task[String => GpgArgs] = Task.Anon { (keyId: String) =>
+    val sentinel = SonatypeCentralPublishModule.sonatypeCentralGpgArgsSentinelValue
     // noinspection ScalaDeprecation
     sonatypeCentralGpgArgs() match {
-      case `sonatypeCentralGpgArgsSentinelValue` =>
-        PublishModule.makeGpgArgs(
+      case `sentinel` =>
+        internal.PublishModule.makeGpgArgs(
           Task.env,
           maybeKeyId = Some(keyId),
           providedGpgArgs = GpgArgs.UserProvided(Seq.empty)
@@ -86,10 +83,11 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
       val publishData = publishArtifacts()
       val fileMapping = publishData.withConcretePath._1
 
-      val maybeKeyId = PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
+      val maybeKeyId = internal.PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
       val keyId = maybeKeyId.getOrElse(throw new IllegalArgumentException(
-        s"Publishing to Sonatype Central requires a PGP key. Please set the '${PublishModule.EnvVarPgpSecretBase64}' " +
-          s"and '${PublishModule.EnvVarPgpPassphrase}' (if needed) environment variables."
+        s"Publishing to Sonatype Central requires a PGP key. Please set the " +
+          s"'${internal.PublishModule.EnvVarPgpSecretBase64}' and '${internal.PublishModule.EnvVarPgpPassphrase}' " +
+          s"(if needed) environment variables."
       ))
 
       val gpgArgs = sonatypeCentralGpgArgsForKey()(keyId)
@@ -120,6 +118,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
  * External module to publish artifacts to `central.sonatype.org`
  */
 object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModule {
+  private final val sonatypeCentralGpgArgsSentinelValue = "<user did not override this method>"
 
   def self = this
   val defaultCredentials: String = ""
@@ -149,7 +148,7 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val finalCredentials = getSonatypeCredentials(username, password)()
-    val gpgArgs0 = PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
+    val gpgArgs0 = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
       GpgArgs.fromUserProvided(gpgArgs)
     )

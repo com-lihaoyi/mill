@@ -1,6 +1,7 @@
 package mill.javalib.publish
 
 import mill.javalib.PublishModule
+import mill.javalib.internal.PublishModule.GpgArgs
 
 import java.math.BigInteger
 import java.security.MessageDigest
@@ -13,7 +14,7 @@ object SonatypeHelpers {
 
   private[mill] def getArtifactMappings(
       isSigned: Boolean,
-      gpgArgs: PublishModule.GpgArgs,
+      gpgArgs: GpgArgs,
       workspace: os.Path,
       env: Map[String, String],
       artifacts: Seq[(Seq[(os.Path, String)], Artifact)]
@@ -48,14 +49,14 @@ object SonatypeHelpers {
 
   private def gpgSigned(
       file: os.Path,
-      args: PublishModule.GpgArgs,
+      args: GpgArgs,
       workspace: os.Path,
       env: Map[String, String]
   ): os.Path = {
     val fileName = file.toString
     val logArgs = args match {
-      case PublishModule.GpgArgs.MillGenerated(args) => args.map(_.toString)
-      case fromUser: PublishModule.GpgArgs.UserProvided =>
+      case GpgArgs.MillGenerated(args) => args.map(_.toString)
+      case fromUser: GpgArgs.UserProvided =>
         Seq(s"<${fromUser.args.size} user provided args @ ${fromUser.file}:${fromUser.line}>")
     }
     def mkCommand(args: Seq[String]) = "gpg" +: args :+ fileName
