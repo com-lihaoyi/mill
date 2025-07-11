@@ -70,9 +70,9 @@ You can also pass in flags like `--jobs=10` explicitly to override the value pas
 `.mill-opts`. See xref:cli/flags.adoc[Mill Command-Line Flags] for documentation on what
 flags the Mill executable can take.
 
-NOTE: `.mill-jvm-opts` is for passing JVM options to the JVM running Mill,
-and `.mill-opts` is for passing options to Mill itself.If you want to pass JVM options
-to the project that Mill is building and running, see the section on
+NOTE: `.mill-opts` is for passing options to Mill itself, and `.mill-jvm-opts` is for passing
+JVM options to the JVM running Mill. If you want to pass JVM options to the project that Mill
+is building and running, see the section on
 xref:javalib/module-config.adoc#_compilation_execution_flags[Compilation and Execution Flags].
 
 
