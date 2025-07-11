@@ -2,7 +2,6 @@ package mill.javalib.internal
 
 import mill.api.Task
 import mill.api.daemon.internal.internal
-import mill.javalib.PublishModule.GpgKey
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.util.{PossiblySecret, Secret}
 
@@ -100,6 +99,48 @@ object PublishModule {
 
   val EnvVarPgpPassphrase = "MILL_PGP_PASSPHRASE"
   val EnvVarPgpSecretBase64 = "MILL_PGP_SECRET_BASE64"
+
+  case class GpgKey private(keyId: String, passphrase: Option[String]) {
+    def gpgArgs: Seq[PossiblySecret[String]] =
+      Seq("--local-user", keyId) ++ GpgKey.gpgArgsForPassphrase(passphrase)
+  }
+
+  object GpgKey {
+
+    /** Creates an instance if the passphrase is not empty. */
+    def apply(keyId: String, passphrase: Option[String]): GpgKey =
+      new GpgKey(keyId = keyId, passphrase = passphrase.filter(_.nonEmpty))
+
+    /** Creates an instance if the passphrase is not empty. */
+    def apply(keyId: String, passphrase: String): GpgKey =
+      new GpgKey(keyId = keyId, passphrase = if (passphrase.isEmpty) None else Some(passphrase))
+
+    /**
+     * @param maybeKeyId      will be [[None]] if the PGP key was not provided in the environment.
+     * @param maybePassphrase will be [[None]] if the PGP passphrase was not provided in the environment.
+     */
+    def createFromEnvVars(
+      maybeKeyId: Option[String],
+      maybePassphrase: Option[String]
+    ): Option[Either[String, GpgKey]] =
+      (maybeKeyId, maybePassphrase) match {
+        case (None, None) => None
+        case (Some(keyId), maybePassphrase) => Some(Right(apply(keyId = keyId, maybePassphrase)))
+        // If passphrase is provided, key is required.
+        case (None, Some(_)) =>
+          Some(Left("A passphrase was provided, but key was not successfully imported."))
+      }
+
+    def createFromEnvVarsOrThrow(
+      maybeKeyId: Option[String],
+      maybePassphrase: Option[String]
+    ): Option[GpgKey] =
+      createFromEnvVars(maybeKeyId, maybePassphrase)
+        .map(_.fold(err => throw new IllegalArgumentException(err), identity))
+
+    def gpgArgsForPassphrase(passphrase: Option[String]): Seq[PossiblySecret[String]] =
+      passphrase.iterator.flatMap(p => Iterator("--passphrase", Secret(p))).toSeq
+  }
 
   enum GpgArgs {
 

@@ -443,10 +443,10 @@ trait PublishModule extends JavaModule { outer =>
       .map(PathRef(_).withRevalidateOnce)
   }
 
-  /** @see [[internal.PublishModule.sonatypeLegacyOssrhUri]] */
+  /** @see [[PublishModule.sonatypeLegacyOssrhUri]] */
   def sonatypeLegacyOssrhUri: String = PublishModule.sonatypeLegacyOssrhUri
 
-  /** @see [[internal.PublishModule.sonatypeCentralSnapshotUri]] */
+  /** @see [[PublishModule.sonatypeCentralSnapshotUri]] */
   def sonatypeCentralSnapshotUri: String = PublishModule.sonatypeCentralSnapshotUri
 
   def publishArtifacts: T[PublishModule.PublishData] = {
@@ -552,46 +552,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   def defaultGpgArgsForPassphrase(passphrase: Option[String]): Seq[String] =
     internal.PublishModule.defaultGpgArgsForPassphrase(passphrase).map(Secret.unpack)
 
-  case class GpgKey private(keyId: String, passphrase: Option[String]) {
-    def gpgArgs: Seq[PossiblySecret[String]] =
-      Seq("--local-user", keyId) ++ GpgKey.gpgArgsForPassphrase(passphrase)
-  }
-  object GpgKey {
-
-    /** Creates an instance if the passphrase is not empty. */
-    def apply(keyId: String, passphrase: Option[String]): GpgKey =
-      new GpgKey(keyId = keyId, passphrase = passphrase.filter(_.nonEmpty))
-
-    /** Creates an instance if the passphrase is not empty. */
-    def apply(keyId: String, passphrase: String): GpgKey =
-      new GpgKey(keyId = keyId, passphrase = if (passphrase.isEmpty) None else Some(passphrase))
-
-    /**
-     * @param maybeKeyId      will be [[None]] if the PGP key was not provided in the environment.
-     * @param maybePassphrase will be [[None]] if the PGP passphrase was not provided in the environment.
-     */
-    def createFromEnvVars(
-      maybeKeyId: Option[String],
-      maybePassphrase: Option[String]
-    ): Option[Either[String, GpgKey]] =
-      (maybeKeyId, maybePassphrase) match {
-        case (None, None) => None
-        case (Some(keyId), maybePassphrase) => Some(Right(apply(keyId = keyId, maybePassphrase)))
-        // If passphrase is provided, key is required.
-        case (None, Some(_)) =>
-          Some(Left("A passphrase was provided, but key was not successfully imported."))
-      }
-
-    def createFromEnvVarsOrThrow(
-      maybeKeyId: Option[String],
-      maybePassphrase: Option[String]
-    ): Option[GpgKey] =
-      createFromEnvVars(maybeKeyId, maybePassphrase)
-        .map(_.fold(err => throw new IllegalArgumentException(err), identity))
-
-    def gpgArgsForPassphrase(passphrase: Option[String]): Seq[PossiblySecret[String]] =
-      passphrase.iterator.flatMap(p => Iterator("--passphrase", Secret(p))).toSeq
-  }
+  
 
   /**
    * Uri for publishing to the old / legacy Sonatype OSSRH.
