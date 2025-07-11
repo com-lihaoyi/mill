@@ -95,7 +95,7 @@ trait OllamaModule extends TypeScriptModule {
     )
       .foreach(p => os.copy.over(p, Task.dest / p.relativeTo(out), createFolders = true))
 
-    os.call("node_modules/.bin/unbuild", cwd = Task.dest)
+    os.call("node_modules/.bin/unbuild")
 
     // prepare bundled ouptut to be used as `unmanagedDeps` in examples section.
     os.makeDir.all(Task.dest / "ollama")

@@ -23,6 +23,8 @@ bootstrap script, included. You can also download the bootstrap script manually:
 > curl -L {mill-download-url}/mill-dist-{mill-version}-mill.sh -o mill
 > chmod +x mill
 > echo "//| mill-version: {mill-version}" > build.mill
+> ./mill version
+{mill-version}
 ----
 
 .Windows
@@ -30,6 +32,8 @@ bootstrap script, included. You can also download the bootstrap script manually:
 ----
 > curl.exe -L {mill-download-url}/mill-dist-{mill-version}-mill.bat -o mill.bat
 > echo "//| mill-version: {mill-version}" > build.mill
+> ./mill version
+{mill-version}
 ----
 
 [CAUTION]
@@ -116,6 +120,16 @@ You can also choose to write the tab-completion script to a manually-specified p
 When `--dest` is given, Mill simply generate the tab-completion script without registering it,
 assuming you want to register the script yourself (e.g. by placing it in a relevant folder).
 
+== Github Syntax Highlighting
+
+Github doesn't yet have built-in support for syntax highlighting `.mill` files appropriately 
+(see https://github.com/github-linguist/linguist/pull/7028[github-linguist/linguist#7028])
+but you can set this up in your own projects by creating a `.gitattributes` file in the root
+of your Github repository
+
+```
+> echo '*.mill linguist-language=Scala' > .gitattributes
+```
 
 [#_ide_support]
 == IDE Support

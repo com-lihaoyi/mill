@@ -2,7 +2,7 @@ package millbuild
 
 import mill.*
 import mill.scalalib.*
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.api.BuildCtx
 // import com.goyeau.mill.scalafix.ScalafixModule
 
@@ -21,8 +21,6 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
   def scalafixConfig = Task { Some(BuildCtx.workspaceRoot / ".scalafix.conf") }
 
   def semanticDbVersion = Deps.semanticDBscala.version
-
-  def scaladocOptions = Seq("-Xsource:3")
 
   def scalacOptions =
     super.scalacOptions() ++ Seq(

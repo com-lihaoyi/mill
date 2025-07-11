@@ -3,14 +3,14 @@ package build.libs.androidlib
 import coursier.MavenRepository
 import mill.*
 import mill.contrib.buildinfo.BuildInfo
-import mill.scalalib.*
+import mill.javalib.*
 import millbuild.*
 
 // TODO when android hardcoded versions are fixed, generate a build info
 // TODO change MillPublishScalaModule to MillStableScalaModule after mill version when androidlib is stable and released.
 object `package` extends MillPublishScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.libs.jvmlib, build.libs.kotlinlib)
+  def moduleDeps = Seq(build.libs.javalib, build.libs.kotlinlib)
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(
       build.libs.kotlinlib.worker.localTestOverride()
@@ -41,7 +41,12 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       Deps.AndroidDeps.composePreviewRenderer.version,
       "Version of ComposePreviewRenderer"
     ),
-    BuildInfo.Value("uiToolingVersion", Deps.AndroidDeps.uiTooling.version, "Version of uiTooling")
+    BuildInfo.Value("uiToolingVersion", Deps.AndroidDeps.uiTooling.version, "Version of uiTooling"),
+    BuildInfo.Value(
+      "screenshotValidationJunitEngineVersion",
+      Deps.AndroidDeps.screenshotValidationJunitEngine.version,
+      "Version of screenshotValidationJunitEngine"
+    )
   )
 
   trait MillAndroidModule extends MillPublishScalaModule {
@@ -56,7 +61,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   }
 
   object api extends MillAndroidModule {
-    def moduleDeps = Seq(build.libs.testrunner)
+    def moduleDeps = Seq(build.libs.javalib.testrunner)
 
     override def compileMvnDeps: T[Seq[Dep]] = Task {
       super.compileMvnDeps() ++ Seq(

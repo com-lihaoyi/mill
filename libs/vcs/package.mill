@@ -1,7 +1,0 @@
-package build.libs.vcs
-import mill._
-import millbuild.*
-
-object `package` extends MillStableScalaModule {
-  def moduleDeps = Seq(build.core.api)
-}

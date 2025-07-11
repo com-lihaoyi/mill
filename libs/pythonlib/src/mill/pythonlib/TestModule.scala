@@ -2,11 +2,11 @@ package mill.pythonlib
 
 import mill.Task
 import mill.Command
-import mill.TaskModule
+import mill.DefaultTaskModule
 import mill.T
 import mill.api.BuildCtx
 
-trait TestModule extends TaskModule {
+trait TestModule extends DefaultTaskModule {
   import TestModule.TestResult
 
   /**
@@ -46,7 +46,7 @@ trait TestModule extends TaskModule {
 object TestModule {
 
   // TODO: this is a dummy for now, however we should look into re-using
-  // mill.testrunner.TestResults
+  // mill.javalib.testrunner.TestResults
   type TestResult = Unit
 
   /** TestModule that uses Python's standard unittest module to run tests. */

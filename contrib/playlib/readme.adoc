@@ -190,7 +190,7 @@ be find for a production deployment.
 
 == Using `RootModule`
 
-The `RootModule0` abstract class allows you to have the build descriptor at the same level as the
+The `RootModule` abstract class allows you to have the build descriptor at the same level as the
 source code on the filesystem. You can move from there to a multi-module build either by refactoring
 your directory layout into multiple subdirectories or by using mill's nested modules feature.
 
@@ -237,7 +237,7 @@ The directory layout was:
         └── controllers
 ----
 
-by extending `RootModule0` in your build:
+by extending `RootModule` in your build:
 
 .`build.mill`
 [source,scala]
@@ -304,7 +304,7 @@ object app extends ScalaModule with RouterModule {
 
 * `def playVersion: T[String]` (mandatory) - The version of Play to use to compile the routes file.
 * `def scalaVersion: T[String]` - The scalaVersion in use in your project.
-* `def routes: Sources` - The directory which contains your route files. (Defaults to : `routes/`)
+* `def routes: T[Seq[Sources]]` - The directory which contains your route files. (Defaults to : `routes/`)
 * `def routesAdditionalImport: Seq[String]` - Additional imports to use in the generated routers.
 (Defaults to `Seq("controllers.Assets.Asset", "play.libs.F")`
 * `def generateForwardsRouter: Boolean = true` - Enables the forward router generation.

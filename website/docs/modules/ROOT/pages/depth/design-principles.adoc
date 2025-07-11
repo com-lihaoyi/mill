@@ -351,7 +351,7 @@ a build:
  inheritance
 
 * Modifying the default ``Task``s within a project, making use of the old value
- to compute the new value, is simply `override`ing them and using `super.foo()`
+ to compute the new value, is simply ``override``ing them and using `super.foo()`
 
 * Required configuration parameters within a `project` are `abstract` members
 

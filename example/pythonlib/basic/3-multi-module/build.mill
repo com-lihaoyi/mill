@@ -8,11 +8,11 @@ trait MyModule extends PythonModule {
 
 object foo extends MyModule {
   def moduleDeps = Seq(bar)
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source("src/foo.py")
 }
 
 object bar extends MyModule {
-  def mainScript = Task.Source { "src/bar.py" }
+  def mainScript = Task.Source("src/bar.py")
   def pythonDeps = Seq("Jinja2==3.1.4")
 }
 

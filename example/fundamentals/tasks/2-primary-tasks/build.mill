@@ -1,6 +1,6 @@
 // There are three primary kinds of _Tasks_ that you should care about:
 //
-// * <<_sources>>, defined using `Task.Sources {...}`
+// * <<_sources>>, defined using `Task.Sources(...)`
 // * <<_tasks>>, defined using `Task {...}`
 // * <<_commands>>, defined using `Task.Command {...}`
 
@@ -9,10 +9,10 @@ package build
 
 import mill.{Module, T, _}
 
-def sources = Task.Source { "src" }
-def resources = Task.Source { "resources" }
+def sources = Task.Source("src")
+def resources = Task.Source("resources")
 
-// ``Source``s are defined using `Task.Source{...}` taking one path, or `Task.Sources{...}`,
+// ``Source``s are defined using `Task.Source(...)` taking one path, or `Task.Sources(...)`,
 // taking multiple paths as arguments. Both accept `os.Path`, `os.SubPath`, `os.RelPath`
 // or a `String` containing a sub-path. All relative paths will be resolve against the `moduleDir`
 // of the enclosing module. A ``Source``'s:
@@ -118,7 +118,7 @@ Computing line count
 
 // === Task.dest
 //
-// Each task is assigned a unique {mill-doc-url}/api/latest/mill/api/Ctx.html#dest:os.Path[Task.dest]
+// Each task is assigned a unique `Task.dest`
 // folder on disk (e.g. `classFiles` is given `out/classFiles.dest/`). `Task.dest` is
 // reset every time a task is recomputed, and can be used as scratch space or to store the task's
 // output files. Any metadata returned from the task is automatically JSON-serialized
@@ -130,8 +130,7 @@ Computing line count
 def classFiles = Task {
   println("Generating classfiles")
 
-  os.proc("javac", allSources().map(_.path), "-d", Task.dest)
-    .call(cwd = Task.dest)
+  os.call(cmd = ("javac", allSources().map(_.path), "-d", Task.dest))
 
   PathRef(Task.dest)
 }
@@ -141,7 +140,10 @@ def jar = Task {
   os.copy(classFiles().path, Task.dest, mergeFolders = true)
   os.copy(resources().path, Task.dest, mergeFolders = true)
 
-  os.proc("jar", "-cfe", Task.dest / "foo.jar", "foo.Foo", ".").call(cwd = Task.dest)
+  os.call(
+    cmd = ("jar", "-cfe", Task.dest / "foo.jar", "foo.Foo", "."),
+    cwd = Task.dest
+  )
 
   PathRef(Task.dest / "foo.jar")
 }
@@ -169,11 +171,13 @@ Generating jar
 
 */
 
-// NOTE: *`os.pwd` within a `Task` is set to the `Task.dest` folder by default.*
-// This is to stop you from accidentally reading and writing files to the base repository root,
-// which would cause problems with Mill's caches not invalidating properly or files from different
-// tasks colliding and causing issues. In the rare case where
-// you truly need the Mill project root folder, you can access it via `mill.api.BuildCtx.workspaceRoot`
+// If you do not want the `Task.dest` folder to be cleared between invocations, you
+// can use a xref:#_persistent_tasks[Persistent Task]
+//
+// NOTE: *`os.pwd` within a `Task` is set to the `Task.dest` folder by default.*,
+// and a task may only read from upstream `Task.dest` folders and write to its own
+// `Task.dest` folder. See xref:depth/sandboxing.adoc#_task_sandboxing[Task Sandboxing]
+// for more details and how to work around it.
 //
 // === Dependent Tasks
 //
@@ -223,7 +227,7 @@ Finding Largest File
 
 */
 
-// ==== Custom Return Types
+// === Custom Return Types
 //
 // All Task return types must be JSON serializable via
 // https://github.com/com-lihaoyi/upickle[uPickle], and
@@ -231,13 +235,11 @@ Finding Largest File
 // builtin data structures: tuples, collections, ``PathRef``s, etc. can be
 // returned and automatically serialized/de-serialized as necessary. One
 // notable exception is ``case class``es: if you want return your own
-// `case class`, you must mark it JSON-serializable by adding the following
-// `implicit` to its companion object:
+// `case class`, you must mark it JSON-serializable by adding
+// `derives upickle.default.ReadWriter`:
 
 case class ClassFileData(totalFileSize: Long, largestFile: String)
-object ClassFileData {
-  implicit val rw: upickle.default.ReadWriter[ClassFileData] = upickle.default.macroRW
-}
+    derives upickle.default.ReadWriter
 
 def summarizeClassFileStats = Task {
   val files = os.walk(classFiles().path)
@@ -273,14 +275,16 @@ def summarizeClassFileStats = Task {
 // === Commands
 
 def run(mainClass: String, args: String*) = Task.Command {
-  os.proc(
-    "java",
-    "-cp",
-    s"${classFiles().path}:${resources().path}",
-    mainClass,
-    args
+  os.call(
+    cmd = (
+      "java",
+      "-cp",
+      s"${classFiles().path}:${resources().path}",
+      mainClass,
+      args
+    ),
+    stdout = os.Inherit
   )
-    .call(stdout = os.Inherit)
 }
 
 // [graphviz]

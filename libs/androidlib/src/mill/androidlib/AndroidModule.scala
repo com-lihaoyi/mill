@@ -6,9 +6,9 @@ import coursier.params.ResolutionParams
 import mill.T
 import mill.androidlib.manifestmerger.AndroidManifestMerger
 import mill.api.{ModuleRef, PathRef, Task}
-import mill.scalalib.*
+import mill.javalib.*
 import mill.api.JsonFormatters.given
-import mill.jvmlib.api.CompilationResult
+import mill.javalib.api.CompilationResult
 import os.Path
 
 import scala.collection.immutable
@@ -199,9 +199,7 @@ trait AndroidModule extends JavaModule {
   /**
    * Android res folder
    */
-  def androidResources: T[Seq[PathRef]] = Task.Sources {
-    moduleDir / "src/main/res"
-  }
+  def androidResources: T[Seq[PathRef]] = Task.Sources("src/main/res")
 
   /**
    * Constructs the run classpath by extracting JARs from AAR files where

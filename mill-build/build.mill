@@ -8,14 +8,13 @@ object `package` extends MillBuildRootModule {
   def sources = super.sources() ++ sources0()
 
   override def mvnDeps = Seq(
-//    mvn"de.tototec::de.tobiasroeser.mill.vcs.version::0.4.1",
-//    mvn"com.github.lolgab::mill-mima::0.1.1",
+    // Hardcode MIMA version so test-mill-bootstrap.sh works with
+    // the locally-built `SNAPSHOT` version
+    mvn"com.github.lolgab::mill-mima_mill1:0.2.0",
     mvn"net.sourceforge.htmlcleaner:htmlcleaner:2.29",
     // TODO: implement empty version for ivy deps as we do in import parser
     mvn"com.lihaoyi::mill-contrib-buildinfo:${mill.api.BuildInfo.millVersion}",
 //    mvn"com.goyeau::mill-scalafix::0.5.0",
-    mvn"com.lihaoyi::mill-libs-graphviz:${mill.api.BuildInfo.millVersion}",
-    // TODO: document, why we have this dependency
     mvn"org.jsoup:jsoup:1.18.1"
   )
 }

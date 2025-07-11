@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   JvmTestEnvironmentParams,
   JvmTestEnvironmentResult
 }
-import mill.api.shared.internal.{JavaModuleApi, RunModuleApi, TestModuleApi}
+import mill.api.daemon.internal.{JavaModuleApi, RunModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
 import java.util.concurrent.CompletableFuture
 

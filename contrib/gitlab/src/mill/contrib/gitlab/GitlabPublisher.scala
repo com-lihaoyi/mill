@@ -1,7 +1,7 @@
 package mill.contrib.gitlab
 
 import mill.api.Logger
-import mill.scalalib.publish.Artifact
+import mill.javalib.publish.Artifact
 import requests.Response
 
 class GitlabPublisher(

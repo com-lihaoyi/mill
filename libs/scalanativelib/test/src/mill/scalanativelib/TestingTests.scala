@@ -2,9 +2,9 @@ package mill.scalanativelib
 
 import mill.*
 import mill.api.ExecResult
+import mill.javalib.testrunner.TestResult
 import mill.scalanativelib.api.*
 import mill.testkit.UnitTester
-import mill.testrunner.TestResult
 import utest.*
 
 object TestingTests extends TestSuite {

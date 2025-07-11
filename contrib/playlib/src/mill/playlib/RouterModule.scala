@@ -3,12 +3,12 @@ package mill.playlib
 import mill.api.PathRef
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib._
-import mill.jvmlib.api._
+import mill.javalib.api._
 import mill.{T, Task}
 
 trait RouterModule extends ScalaModule with Version {
 
-  def routes: T[Seq[PathRef]] = Task.Sources { "routes" }
+  def routes: T[Seq[PathRef]] = Task.Sources("routes")
 
   def routeFiles = Task {
     val paths = routes().flatMap(file => os.walk(file.path))

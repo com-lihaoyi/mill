@@ -60,7 +60,7 @@ trait KtlintModule extends JavaModule {
   }
 }
 
-object KtlintModule extends ExternalModule with KtlintModule with TaskModule {
+object KtlintModule extends ExternalModule with KtlintModule with DefaultTaskModule {
   override def defaultTask(): String = "reformatAll"
 
   lazy val millDiscover = Discover[this.type]

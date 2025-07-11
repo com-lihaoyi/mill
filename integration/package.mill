@@ -5,14 +5,14 @@ import coursier.maven.MavenRepository
 import mill._
 import mill.util.Tasks
 import mill.scalalib._
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
 import mill.api.SelectMode
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross
-import mill.testrunner.TestResult
+import mill.javalib.testrunner.TestResult
 import millbuild.*
 import upickle.implicits.namedTuples.default.given
 import mill.api.BuildCtx
@@ -25,7 +25,7 @@ object `package` extends mill.Module {
   trait IntegrationTestModule extends Cross.Module[String] {
     def moduleDir = super.moduleDir / crossValue
 
-    def moduleDeps = Seq(build.libs.main.test, build.testkit, build.runner.daemon)
+    def moduleDeps = Seq(build.libs.util.test, build.testkit, build.runner.daemon)
 
     def resources: T[Seq[PathRef]]
     def runClasspath: T[Seq[PathRef]]
@@ -40,11 +40,14 @@ object `package` extends mill.Module {
       def mode: String = moduleSegments.parts.last
       def scalaVersion = Deps.scalaVersion
 
-      private def envUpdateSnapshots: Task.Simple[Map[String, String]] = Task.Input {
-        val key = "MILL_TESTS_BSP_UPDATE_SNAPSHOTS"
-        Task.env.get(key) match {
-          case Some(value) => Map(key -> value)
-          case None => Map.empty
+      /** Extracts the values of the provided keys from the environment. */
+      private def extractFromEnv(keys: String*): Task[Map[String, String]] = Task.Anon {
+        val env = Task.env
+        keys.foldLeft(Map.empty[String, String]) { (map, key) =>
+          env.get(key) match {
+            case Some(value) => map.updated(key, value)
+            case None => map
+          }
         }
       }
 
@@ -58,7 +61,12 @@ object `package` extends mill.Module {
             "MILL_LAUNCHER_BAT" -> build.dist.bootstrapLauncherBat().path.toString,
             "MILL_INTEGRATION_LAUNCHER" -> millIntegrationLauncher().path.toString
           ) ++
-          envUpdateSnapshots() ++
+          extractFromEnv(
+            "MILL_TESTS_BSP_UPDATE_SNAPSHOTS",
+            "MILL_TESTS_PUBLISH_ORG",
+            SonatypeHelpers.USERNAME_ENV_VARIABLE_NAME,
+            SonatypeHelpers.PASSWORD_ENV_VARIABLE_NAME
+          )() ++
           (if (millIntegrationIsPackagedLauncher()) Map() else build.dist.localTestOverridesEnv())
       }
 
@@ -133,7 +141,7 @@ object `package` extends mill.Module {
   }
 
   object `bsp-util` extends MillScalaModule {
-    def moduleDeps = Seq(build.libs.main.test, build.runner.bsp)
+    def moduleDeps = Seq(build.libs.util.test, build.runner.bsp, build.libs.javalib.testrunner)
     def mvnDeps = super.mvnDeps() ++ Seq(
       Deps.bsp4j
     )

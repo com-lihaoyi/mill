@@ -1,8 +1,8 @@
 package mill.scalajslib.api
 
+import mill.api.internal.Mirrors
 import upickle.default.{ReadWriter => RW, macroRW}
-import mill.api.Mirrors.autoMirror
-import mill.api.Mirrors
+import mill.api.internal.Mirrors.autoMirror
 
 class OutputPatterns private (
     val jsFile: String,

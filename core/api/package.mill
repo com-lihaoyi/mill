@@ -10,7 +10,7 @@ import millbuild.*
  * defining Tasks, Modules, helper code, and other related data structures.
  */
 object `package` extends MillStableScalaModule with BuildInfo {
-  def moduleDeps = Seq(build.core.api.shared)
+  def moduleDeps = Seq(build.core.api.daemon)
 
   def compileMvnDeps = Task {
     if (scalaVersion().startsWith("3.")) Seq(Deps.scalaCompiler(scalaVersion()))

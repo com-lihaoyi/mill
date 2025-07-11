@@ -1,7 +1,7 @@
 // Mill comes with a number of useful commands out of the box. These are listed
 // in the API Docs:
 //
-// * {mill-doc-url}/api/latest/mill/main/MainModule.html[mill.main.MainModule]
+// * {mill-doc-url}/api/latest/mill/util/MainModule.html[mill.main.MainModule]
 //
 // Mill's built-in commands are typically not directly related to building your
 // application code, but instead are utilities that help you understand and work

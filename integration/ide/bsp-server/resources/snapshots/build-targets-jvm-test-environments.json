@@ -18,7 +18,7 @@
         "file:///workspace/app/test/compile-resources",
         "file:///workspace/app/test/resources",
         "file:///workspace/out/app/test/compile.dest/classes",
-        "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-testrunner-entrypoint.jar",
+        "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
       "jvmOptions": [],
@@ -29,7 +29,7 @@
       },
       "mainClasses": [
         {
-          "className": "mill.testrunner.entrypoint.TestRunnerMain",
+          "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
           "arguments": [
             "",
             "/workspace/out/app/test/getTestEnvironmentVars.dest/testargs"
@@ -52,7 +52,7 @@
         "file:///workspace/hello-java/test/compile-resources",
         "file:///workspace/hello-java/test/resources",
         "file:///workspace/out/hello-java/test/compile.dest/classes",
-        "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-testrunner-entrypoint.jar",
+        "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
       "jvmOptions": [],
@@ -63,7 +63,7 @@
       },
       "mainClasses": [
         {
-          "className": "mill.testrunner.entrypoint.TestRunnerMain",
+          "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
           "arguments": [
             "",
             "/workspace/out/hello-java/test/getTestEnvironmentVars.dest/testargs"
@@ -87,7 +87,7 @@
         "file:///workspace/hello-scala/test/compile-resources",
         "file:///workspace/hello-scala/test/resources",
         "file:///workspace/out/hello-scala/test/compile.dest/classes",
-        "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-testrunner-entrypoint.jar",
+        "file:///user-home/.ivy2/local/com.lihaoyi/mill-libs-javalib-testrunner-entrypoint/SNAPSHOT/jars/mill-libs-javalib-testrunner-entrypoint.jar",
         "file:///coursier-cache/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar"
       ],
       "jvmOptions": [],
@@ -98,7 +98,7 @@
       },
       "mainClasses": [
         {
-          "className": "mill.testrunner.entrypoint.TestRunnerMain",
+          "className": "mill.javalib.testrunner.entrypoint.TestRunnerMain",
           "arguments": [
             "",
             "/workspace/out/hello-scala/test/getTestEnvironmentVars.dest/testargs"

@@ -1,7 +1,7 @@
 package mill
 package playlib
 
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.{TestSuite, Tests, assert, _}
 import mill.api.Discover

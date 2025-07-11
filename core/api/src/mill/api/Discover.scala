@@ -4,7 +4,8 @@ import scala.collection.mutable
 
 /**
  * Macro to walk the module tree and generate `mainargs` entrypoints for any
- * `Task.Command` methods that it finds.
+ * `Task.Command` methods that it finds. Needs to be provided for every
+ * [[ExternalModule]] that you define.
  *
  * Note that unlike the rest of Mill's module-handling logic which uses Java
  * reflection, generation of entrypoints requires typeclass resolution, and so

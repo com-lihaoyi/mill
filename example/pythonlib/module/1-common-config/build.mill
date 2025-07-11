@@ -12,7 +12,7 @@ object foo extends PythonModule {
   def pythonDeps = Seq("MarkupSafe==3.0.2", "Jinja2==3.1.4")
 
   // choose a main Script to run if there are multiple present
-  def mainScript = Task.Source { "custom-src/foo2.py" }
+  def mainScript = Task.Source("custom-src/foo2.py")
 
   // Add (or replace) source folders for the module to use
   def customSources = Task.Sources("custom-src")

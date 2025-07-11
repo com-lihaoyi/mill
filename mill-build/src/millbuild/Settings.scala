@@ -18,9 +18,10 @@ object Settings {
   )
   val docTags: Seq[String] = Seq(
     "0.11.13",
-    "0.12.14"
+    "0.12.14",
+    "1.0.0"
   )
-  val mimaBaseVersions: Seq[String] = Seq("0.13.0-M0")
+  val mimaBaseVersions: Seq[String] = Seq("1.0.0")
 
   val graalvmJvmId = "graalvm-community:23.0.1"
 }

@@ -34,7 +34,7 @@ object ExecutionTests extends TestSuite {
   }
 
   object sourceBuild extends TestRootModule {
-    def source = Task.Source { "hello/world.txt" }
+    def source = Task.Source("hello/world.txt")
     def task = Task { os.read(source().path) + " !" }
     lazy val millDiscover = Discover[this.type]
   }

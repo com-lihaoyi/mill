@@ -22,7 +22,7 @@ object `package` extends AppScalaModule {
   }
 
   object test extends ScalaTests, TestModule.Utest {
-    def utestVersion = "0.8.8"
+    def utestVersion = "0.8.9"
     def mvnDeps = Seq(
       mvn"com.lihaoyi::requests::0.6.9"
     )

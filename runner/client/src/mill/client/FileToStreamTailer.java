@@ -20,7 +20,7 @@ public class FileToStreamTailer extends Thread implements AutoCloseable {
   private volatile boolean flush = false;
 
   public FileToStreamTailer(File file, PrintStream stream, int intervalMsec) {
-    super("Tail");
+    super("FileToStreamTailerThread");
     this.intervalMsec = intervalMsec;
     setDaemon(true);
     this.file = file;

@@ -5,7 +5,7 @@ import coursier.maven.MavenRepository
 import mill._
 import mill.util.Tasks
 import mill.scalalib._
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
 import mill.api.SelectMode
@@ -18,7 +18,7 @@ import millbuild.*
  * [[build.contrib]] contains user-contributed Mill plugins that satisfy
  * a range of use cases not covered by the core Mill builtins. `contrib`
  * modules are typically less polished than builtins in [[build.libs.javalib]]
- * or [[build.libs.jvmlib]], and do not offer binary or source compatibility
+ * or [[build.libs.javalib]], and do not offer binary or source compatibility
  * guarantees between Mill versions, but provide a place for the community
  * to collaborate on Mill plugins that is more discoverable than individuals
  * hosting their own Github repositories
@@ -36,9 +36,9 @@ object `package` extends mill.Module {
     def transitiveLocalTestOverrides =
       super.transitiveLocalTestOverrides() ++
         Seq(
-          build.libs.jvmlib.localTestOverride(),
-          build.libs.jvmlib.worker.localTestOverride(),
-          build.libs.testrunner.entrypoint.localTestOverride()
+          build.libs.javalib.localTestOverride(),
+          build.libs.javalib.worker.localTestOverride(),
+          build.libs.javalib.testrunner.entrypoint.localTestOverride()
         )
 
     // pure Java implementation
@@ -47,18 +47,19 @@ object `package` extends mill.Module {
     def mvnDeps = Seq(Deps.sbtTestInterface)
     def compileMvnDeps = Seq(Deps.testng)
     def runMvnDeps = Seq(Deps.testng)
-    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.jvmlib)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.javalib)
     def docJar: T[PathRef] = super[JavaModule].docJar
+    def compileModuleDeps = super.moduleDeps ++ Seq(build.libs.javalib)
   }
 
   object twirllib extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.jvmlib)
-    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.jvmlib)
+    def compileModuleDeps = Seq(build.libs.javalib)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
 
   object playlib extends ContribModule {
     def moduleDeps = Seq(twirllib, playlib.api)
-    def compileModuleDeps = Seq(build.libs.jvmlib)
+    def compileModuleDeps = Seq(build.libs.scalalib)
 
     def transitiveLocalTestOverrides =
       super.transitiveLocalTestOverrides() ++ Task.traverse(
@@ -76,7 +77,7 @@ object `package` extends mill.Module {
         )
     }
 
-    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.jvmlib)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
 
     object api extends MillPublishJavaModule
 
@@ -100,15 +101,15 @@ object `package` extends mill.Module {
   }
 
   object scalapblib extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.jvmlib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib)
+    def compileModuleDeps = Seq(build.libs.scalalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
 
   object scoverage extends ContribModule {
     object api extends MillPublishJavaModule
 
     def moduleDeps = Seq(scoverage.api)
-    def compileModuleDeps = Seq(build.libs.jvmlib)
+    def compileModuleDeps = Seq(build.libs.scalalib)
 
     def transitiveLocalTestOverrides =
       super.transitiveLocalTestOverrides() ++ Seq(worker2.localTestOverride())
@@ -124,7 +125,7 @@ object `package` extends mill.Module {
     def testModuleDeps =
       super.testModuleDeps ++
         Seq(
-          build.libs.jvmlib,
+          build.libs.javalib,
           build.libs.scalajslib,
           build.libs.scalanativelib,
           build.contrib.buildinfo
@@ -134,7 +135,7 @@ object `package` extends mill.Module {
     object worker2 extends MillPublishScalaModule {
       def localTestOverridePaths = Task { Seq(compile().classes) }
       def compileModuleDeps = Seq(
-        build.core.api.shared,
+        build.core.api.daemon,
         scoverage.api
       )
       def compileMvnDeps = Task {
@@ -152,14 +153,14 @@ object `package` extends mill.Module {
   object buildinfo extends ContribModule {
     def compileModuleDeps =
       Seq(
-        build.libs.jvmlib,
+        build.libs.javalib,
         build.libs.scalajslib,
         build.libs.scalanativelib,
         build.libs.kotlinlib
       )
     def testModuleDeps =
       super.testModuleDeps ++ Seq(
-        build.libs.jvmlib,
+        build.libs.javalib,
         build.libs.scalajslib,
         build.libs.scalanativelib,
         build.libs.kotlinlib
@@ -167,26 +168,27 @@ object `package` extends mill.Module {
   }
 
   object proguard extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.jvmlib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib)
+    def compileModuleDeps = Seq(build.libs.javalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
+    def moduleDeps = super.moduleDeps ++ Seq(build.libs.scalalib)
   }
 
   object flyway extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.jvmlib)
+    def compileModuleDeps = Seq(build.libs.javalib)
     def mvnDeps = Seq(Deps.flywayCore)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
   }
 
   object docker extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.jvmlib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib)
+    def compileModuleDeps = Seq(build.libs.javalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
   }
 
   // object bloop extends ContribModule with BuildInfo {
-  //   def compileModuleDeps = Seq(build.libs.jvmlib, build.libs.scalajslib, build.libs.scalanativelib)
+  //   def compileModuleDeps = Seq(build.libs.javalib, build.libs.scalajslib, build.libs.scalanativelib)
   //   def mvnDeps = Seq(Deps.bloopConfig.exclude("*" -> s"jsoniter-scala-core_2.13"))
   //   def testModuleDeps = super.testModuleDeps ++ Seq(
-  //     build.libs.jvmlib,
+  //     build.libs.javalib,
   //     build.libs.scalajslib,
   //     build.libs.scalanativelib
   //   )
@@ -197,36 +199,31 @@ object `package` extends mill.Module {
   // }
 
   object artifactory extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.jvmlib)
+    def compileModuleDeps = Seq(build.libs.javalib)
     def mvnDeps = Seq(Deps.requests)
   }
 
   object codeartifact extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.jvmlib)
+    def compileModuleDeps = Seq(build.libs.javalib)
     def mvnDeps = Seq(Deps.requests)
   }
 
   object versionfile extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.jvmlib)
+    def compileModuleDeps = Seq(build.libs.javalib)
   }
 
   object sonatypecentral extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.jvmlib)
-  }
-
-  object bintray extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.jvmlib)
-    def mvnDeps = Seq(Deps.requests)
+    def compileModuleDeps = Seq(build.libs.javalib)
   }
 
   object gitlab extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.jvmlib)
+    def compileModuleDeps = Seq(build.libs.javalib)
     def mvnDeps = Seq(Deps.requests, Deps.osLib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
   }
 
   object jmh extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.jvmlib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib)
+    def compileModuleDeps = Seq(build.libs.javalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
 }

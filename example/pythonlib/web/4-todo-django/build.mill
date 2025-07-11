@@ -6,7 +6,7 @@ import mill.*, pythonlib.*
 
 object todo extends PythonModule {
 
-  def mainScript = Task.Source { "src/manage.py" }
+  def mainScript = Task.Source("src/manage.py")
 
   def pythonDeps = Seq("django==5.1.4")
 

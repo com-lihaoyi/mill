@@ -108,7 +108,8 @@ object PromptLoggerTests extends TestSuite {
       promptLogger.prompt.setPromptHeaderPrefix("123/456")
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
-        "[123/456] ============================== TITLE =============================="
+        "[123/456] ============================== TITLE ==============================",
+        ""
       )
       promptLogger.prompt.setPromptLine(Seq("1"), "/456", "my-task")
 
@@ -123,7 +124,8 @@ object PromptLoggerTests extends TestSuite {
         "[1/456] my-task",
         "[1] HELLO",
         "[123/456] ============================= TITLE ============================= 10s",
-        "[1] my-task 10s"
+        "[1] my-task 10s",
+        ""
       )
 
       prefixLogger.streams.out.println("WORLD")
@@ -135,7 +137,8 @@ object PromptLoggerTests extends TestSuite {
         "[1] HELLO",
         "[1] WORLD",
         "[123/456] ============================= TITLE ============================= 10s",
-        "[1] my-task 10s"
+        "[1] my-task 10s",
+        ""
       )
 
       // Adding new ticker entries doesn't appear immediately,
@@ -166,7 +169,8 @@ object PromptLoggerTests extends TestSuite {
         "[3] hello short lived",
         "[3] goodbye short lived",
         "[123/456] ============================= TITLE ============================= 10s",
-        "[1] my-task 10s"
+        "[1] my-task 10s",
+        ""
       )
 
       newPrefixLogger3.prompt.removePromptLine(Seq("3"))
@@ -187,7 +191,8 @@ object PromptLoggerTests extends TestSuite {
         "[3] goodbye short lived",
         "[123/456] ============================= TITLE ============================= 11s",
         "[1] my-task 11s",
-        "[2] my-task-new 1s"
+        "[2] my-task-new 1s",
+        ""
       )
 
       promptLogger.prompt.removePromptLine(Seq("1"))
@@ -208,7 +213,8 @@ object PromptLoggerTests extends TestSuite {
         "[3] goodbye short lived",
         "[123/456] ============================= TITLE ============================= 11s",
         "[1] my-task 11s",
-        "[2] my-task-new 1s"
+        "[2] my-task-new 1s",
+        ""
       )
 
       now += 1000
@@ -228,6 +234,7 @@ object PromptLoggerTests extends TestSuite {
         "[3] goodbye short lived",
         "[123/456] ============================= TITLE ============================= 12s",
         "[2] my-task-new 2s",
+        "",
         ""
       )
 
@@ -246,7 +253,8 @@ object PromptLoggerTests extends TestSuite {
         "[3] hello short lived",
         "[3] goodbye short lived",
         "[123/456] ============================= TITLE ============================= 22s",
-        "[2] my-task-new 12s"
+        "[2] my-task-new 12s",
+        ""
       )
       now += 10000
       promptLogger.close()
@@ -282,19 +290,22 @@ object PromptLoggerTests extends TestSuite {
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
         "[123/456] ============================== TITLE ============================= 1s",
-        "[1] my-task 1s detail"
+        "[1] my-task 1s detail",
+        ""
       )
       prefixLogger.ticker("detail-too-long-gets-truncated-abcdefghijklmnopqrstuvwxyz1234567890")
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
         "[123/456] ============================== TITLE ============================= 1s",
-        "[1] my-task 1s detail-too-long-gets-truncated...fghijklmnopqrstuvwxyz1234567890"
+        "[1] my-task 1s detail-too-long-gets-truncated...fghijklmnopqrstuvwxyz1234567890",
+        ""
       )
       promptLogger.prompt.removePromptLine(Seq("1"))
       now += 10000
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(
-        "[123/456] ============================= TITLE ============================= 11s"
+        "[123/456] ============================= TITLE ============================= 11s",
+        ""
       )
     }
   }

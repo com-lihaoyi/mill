@@ -1,4 +1,4 @@
-= Migrating From Maven to Mill
+= Importing Maven Projects
 :page-aliases: Migrating_A_Maven_Build_to_Mill.adoc
 :icons: font
 

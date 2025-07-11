@@ -14,7 +14,9 @@ trait DiyJavaModule extends Module {
   def compile = Task {
     val allSources = os.walk(sources().path)
     val cpFlag = Seq("-cp", upstream().map(_.path).mkString(":"))
-    os.proc("javac", cpFlag, allSources, "-d", Task.dest).call()
+    os.call(
+      cmd = ("javac", cpFlag, allSources, "-d", Task.dest)
+    )
     PathRef(Task.dest)
   }
 
@@ -24,8 +26,7 @@ trait DiyJavaModule extends Module {
     for (cp <- classPath()) os.copy(cp.path, Task.dest, mergeFolders = true)
 
     val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
-    os.proc("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", ".")
-      .call(cwd = Task.dest)
+    os.call(cmd = ("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", "."))
 
     PathRef(Task.dest / "assembly.jar")
   }

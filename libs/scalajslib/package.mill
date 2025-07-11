@@ -9,7 +9,7 @@ import mill.api.Cross
 import millbuild.*
 
 object `package` extends MillStableScalaModule with BuildInfo {
-  def moduleDeps = Seq(build.libs.jvmlib, api)
+  def moduleDeps = Seq(build.libs.scalalib, api)
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(worker("1").localTestOverride())
   def buildInfoPackageName = "mill.scalajslib"
@@ -49,7 +49,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
     def scalajsWorkerVersion = crossValue
     def moduleDir: os.Path = super.moduleDir / scalajsWorkerVersion
     def compileModuleDeps =
-      Seq(build.libs.scalajslib.api, build.core.constants, build.core.api.shared)
+      Seq(build.libs.scalajslib.api, build.core.constants, build.core.api.daemon)
     def mandatoryMvnDeps = Seq.empty[Dep]
     def mvnDeps = Seq(Deps.scalafmtDynamic)
     def compileMvnDeps = super.mandatoryMvnDeps() ++ Seq(

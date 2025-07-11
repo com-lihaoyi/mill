@@ -79,7 +79,7 @@ trait RuffModule extends PythonModule {
 
 }
 
-object RuffModule extends ExternalModule with RuffModule with TaskModule {
+object RuffModule extends ExternalModule with RuffModule with DefaultTaskModule {
 
   override def defaultTask(): String = "formatAll"
 

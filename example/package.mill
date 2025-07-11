@@ -5,7 +5,7 @@ import coursier.maven.MavenRepository
 import mill.*
 import mill.util.Tasks
 import mill.scalalib.*
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.publish.*
 import mill.util.Jvm
 import mill.api.SelectMode
@@ -222,7 +222,7 @@ object `package` extends Module {
     }
 
     def resources = Seq(testRepoRoot())
-    def runClasspath = build.libs.main.test.runClasspath()
+    def runClasspath = build.libs.util.test.runClasspath()
     def localRunClasspath = build.testkit.localRunClasspath()
 
     def forkEnv = Map("LANG" -> "C")

@@ -21,7 +21,8 @@ object ClientServerTests extends TestSuite {
       override val processId: String,
       daemonDir: os.Path,
       locks: Locks,
-      testLogEvenWhenServerIdWrong: Boolean
+      testLogEvenWhenServerIdWrong: Boolean,
+      commandSleepMillis: Int = 0
   ) extends Server[Option[Int]](daemonDir, 1000, locks, testLogEvenWhenServerIdWrong)
       with Runnable {
 
@@ -29,10 +30,6 @@ object ClientServerTests extends TestSuite {
 
     override def out = os.temp.dir()
 
-    override def exitServer() = {
-      serverLog("exiting server")
-      super.exitServer()
-    }
     def stateCache0 = None
 
     override def serverLog0(s: String) = {
@@ -40,6 +37,11 @@ object ClientServerTests extends TestSuite {
       super.serverLog0(s)
     }
 
+    @volatile var runCompleted = false
+    override def run() = {
+      super.run()
+      runCompleted = true
+    }
     def main0(
         args: Array[String],
         stateCache: Option[Int],
@@ -51,29 +53,28 @@ object ClientServerTests extends TestSuite {
         initialSystemProperties: Map[String, String],
         systemExit: Int => Nothing
     ) = {
-
-      val reader = new BufferedReader(new InputStreamReader(streams.in))
-      val str = reader.readLine()
-      Thread.sleep(200)
-      if (args.nonEmpty) {
-        streams.out.println(str + args(0))
+      Thread.sleep(commandSleepMillis)
+      if (!runCompleted) {
+        val reader = new BufferedReader(new InputStreamReader(streams.in))
+        val str = reader.readLine()
+        Thread.sleep(200)
+        if (args.nonEmpty) {
+          streams.out.println(str + args(0))
+        }
+        env.toSeq.sortBy(_._1).foreach {
+          case (key, value) => streams.out.println(s"$key=$value")
+        }
+        if (args.nonEmpty) {
+          streams.err.println(str.toUpperCase + args(0))
+        }
+        streams.out.flush()
+        streams.err.flush()
       }
-      env.toSeq.sortBy(_._1).foreach {
-        case (key, value) => streams.out.println(s"$key=$value")
-      }
-      systemProperties.toSeq.sortBy(_._1).foreach {
-        case (key, value) => streams.out.println(s"$key=$value")
-      }
-      if (args.nonEmpty) {
-        streams.err.println(str.toUpperCase + args(0))
-      }
-      streams.out.flush()
-      streams.err.flush()
       (true, None)
     }
   }
 
-  class Tester(testLogEvenWhenServerIdWrong: Boolean) {
+  class Tester(testLogEvenWhenServerIdWrong: Boolean, commandSleepMillis: Int = 0) {
 
     var nextServerId: Int = 0
     val terminatedServers = collection.mutable.Set.empty[String]
@@ -108,7 +109,8 @@ object ClientServerTests extends TestSuite {
             processId,
             os.Path(daemonDir, os.pwd),
             locks,
-            testLogEvenWhenServerIdWrong
+            testLogEvenWhenServerIdWrong,
+            commandSleepMillis = commandSleepMillis
           )).start()
           null
         }
@@ -164,7 +166,7 @@ object ClientServerTests extends TestSuite {
         // Make sure the server times out of not used for a while
         Thread.sleep(2000)
 
-        assert(res2.logsFor("Interrupting after 1000ms") == Seq("server-0"))
+        assert(res2.logsFor("shutting down due inactivity") == Seq("server-0"))
         assert(res2.logsFor("exiting server") == Seq("server-0"))
 
         // Have a third client spawn/connect-to a new server at the same path
@@ -180,7 +182,7 @@ object ClientServerTests extends TestSuite {
         Thread.sleep(1000)
 
         assert(res3.logsFor("processId file missing") == Seq("server-1"))
-        assert(res3.logsFor("exiting server") == Seq("server-1", "server-1"))
+        assert(res3.logsFor("exiting server") == Seq("server-1"))
       }
     }
     test("dontLogWhenOutFolderDeleted") - retry(3) {
@@ -249,6 +251,17 @@ object ClientServerTests extends TestSuite {
             "server-0 client interrupted while server was executing command",
             "server-0 exiting server"
           )
+      )
+    }
+    test("longCommandNotInterrupted") {
+      // Make sure that when the command at 3000ms takes longer than the server
+      // timeout at 1000ms, the command still finishes running and the server doesn't
+      // shut down half way through
+      val tester = new Tester(testLogEvenWhenServerIdWrong = true, commandSleepMillis = 3000)
+      val res1 = tester(args = Array("world"))
+      assert(
+        res1.out == s"helloworld$ENDL",
+        res1.err == s"HELLOworld$ENDL"
       )
     }
 

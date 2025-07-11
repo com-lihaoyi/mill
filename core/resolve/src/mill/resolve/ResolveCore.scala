@@ -1,7 +1,7 @@
 package mill.resolve
 
 import mill.api.*
-import mill.api.internal.Reflect
+import mill.api.internal.{RootModule0, Reflect}
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -107,7 +107,7 @@ private object ResolveCore {
       s"it's required to wrap it in ModuleRef."
   }
   def resolve(
-      rootModule: BaseModule,
+      rootModule: RootModule0,
       remainingQuery: List[Segment],
       current: Resolved,
       querySoFar: Segments,
@@ -271,7 +271,7 @@ private object ResolveCore {
   }
 
   def instantiateModule(
-      rootModule: BaseModule,
+      rootModule: RootModule0,
       segments: Segments,
       cache: Cache
   ): mill.api.Result[Module] = cache.instantiatedModules.getOrElseUpdate(
@@ -312,7 +312,7 @@ private object ResolveCore {
   )
 
   def resolveTransitiveChildren(
-      rootModule: BaseModule,
+      rootModule: RootModule0,
       cls: Class[?],
       nameOpt: Option[String],
       segments: Segments,
@@ -388,7 +388,7 @@ private object ResolveCore {
       }
 
   def resolveDirectChildren(
-      rootModule: BaseModule,
+      rootModule: RootModule0,
       cls: Class[?],
       nameOpt: Option[String],
       segments: Segments,
@@ -421,7 +421,7 @@ private object ResolveCore {
   }
 
   def resolveDirectChildren0(
-      rootModule: BaseModule,
+      rootModule: RootModule0,
       segments: Segments,
       cls: Class[?],
       nameOpt: Option[String],
@@ -477,7 +477,7 @@ private object ResolveCore {
   }
 
   def notFoundResult(
-      rootModule: BaseModule,
+      rootModule: RootModule0,
       querySoFar: Segments,
       current: Resolved,
       next: Segment,

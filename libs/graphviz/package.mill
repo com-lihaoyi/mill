@@ -3,6 +3,6 @@ import mill._
 import millbuild.*
 
 object `package` extends MillPublishScalaModule {
-  def moduleDeps = Seq(build.libs.jvmlib)
+  def moduleDeps = Seq(build.libs.javalib)
   def mvnDeps = Seq(Deps.jgraphtCore) ++ Deps.graphvizJava ++ Deps.javet
 }

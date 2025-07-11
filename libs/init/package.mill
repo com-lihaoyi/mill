@@ -10,7 +10,7 @@ import mill.api.BuildCtx
 
 object `package` extends MillPublishScalaModule {
 
-  def moduleDeps = Seq(build.libs.jvmlib)
+  def moduleDeps = Seq(build.libs.scalalib)
 
   override def resources = Task {
     super.resources() ++ Seq(exampleList())
@@ -69,8 +69,8 @@ object `package` extends MillPublishScalaModule {
   }
 
   object buildgen extends MillPublishScalaModule {
-    def moduleDeps = Seq(build.libs.init, build.core.internal, build.core.util)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib)
+    def moduleDeps = Seq(build.libs.init, build.core.internal, build.libs.util)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
 
     // I tried moving `Tree` into this module, but it doesn't compile with Scala 2.12.20.
     /*
@@ -86,19 +86,19 @@ object `package` extends MillPublishScalaModule {
       Deps.gradleApi,
       Deps.logback
     )
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib, buildgen.test)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
   }
   object maven extends MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
-    def mvnDeps = Seq(
-      Deps.mavenEmbedder,
-      Deps.mavenResolverConnectorBasic,
-      Deps.mavenResolverSupplier,
-      Deps.mavenResolverTransportFile,
-      Deps.mavenResolverTransportHttp,
-      Deps.mavenResolverTransportWagon
+    override def mvnDeps = Seq(
+      Deps.MavenInit.mavenEmbedder,
+      Deps.MavenInit.mavenResolverConnectorBasic,
+      Deps.MavenInit.mavenResolverSupplier,
+      Deps.MavenInit.mavenResolverTransportFile,
+      Deps.MavenInit.mavenResolverTransportHttp,
+      Deps.MavenInit.mavenResolverTransportWagon
     )
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib, buildgen.test)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
   }
 
   object sbt extends MillPublishScalaModule with BuildInfo {
@@ -110,7 +110,7 @@ object `package` extends MillPublishScalaModule {
       PathRef(Task.dest)
     }
     def resources: T[Seq[PathRef]] = Task { super.resources() ++ Seq(sbtPluginJarResources()) }
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.jvmlib, buildgen.test)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
 
     def buildInfoPackageName = "mill.main.sbt"
     def buildInfoObjectName: String = "Versions"

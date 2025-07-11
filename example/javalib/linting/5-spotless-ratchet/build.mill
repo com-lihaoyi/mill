@@ -5,7 +5,7 @@
 package build
 
 import mill.javalib.JavaModule
-import mill.scalalib.spotless.SpotlessModule
+import mill.javalib.spotless.SpotlessModule
 
 object `package` extends JavaModule with SpotlessModule
 
@@ -71,6 +71,6 @@ ratchet found changes in 1 files
 // The `ratchet` command is also available globally.
 
 /** Usage
-> ./mill mill.scalalib.spotless.SpotlessModule/ratchet --check HEAD^ HEAD
+> ./mill mill.javalib.spotless.SpotlessModule/ratchet --check HEAD^ HEAD
 ratchet found changes in 1 files
 */

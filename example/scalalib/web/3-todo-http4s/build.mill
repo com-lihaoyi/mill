@@ -12,7 +12,7 @@ object `package` extends ScalaModule {
 
   object test extends ScalaTests, TestModule.Utest {
     def mvnDeps = Seq(
-      mvn"com.lihaoyi::utest::0.8.8",
+      mvn"com.lihaoyi::utest::0.8.9",
       mvn"org.typelevel::cats-effect-testing-utest::1.6.0",
       mvn"org.http4s::http4s-client::0.23.30"
     )

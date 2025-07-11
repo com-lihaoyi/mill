@@ -8,7 +8,7 @@ import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest._
 
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 
 object CompileLinkTests extends TestSuite {
   trait HelloJSWorldModule
@@ -44,7 +44,7 @@ object CompileLinkTests extends TestSuite {
       )
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
-        override def sources = Task.Sources { "src/utest" }
+        override def sources = Task.Sources("src/utest")
         override def utestVersion =
           if (JvmWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
       }

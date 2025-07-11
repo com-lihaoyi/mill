@@ -2,6 +2,7 @@ package mill.api
 
 import utest._
 import mill.testkit.TestRootModule
+
 object MacroErrorTests extends TestSuite {
 
   val tests = Tests {
@@ -214,6 +215,52 @@ object MacroErrorTests extends TestSuite {
       assert(error.msg.contains(
         "Could not summon ToSegments[sun.misc.Unsafe]"
       ))
+    }
+
+    test("taskWithinATask") {
+      val nestedTaskError = "A `Task[A]` cannot be a parameter of another `Task[A]`"
+
+      test("simple") {
+        val error = utest.compileError(
+          """
+          object foo extends TestRootModule {
+            def taskWithinTask = Task.Anon { Task.Anon { 42 } }
+
+            lazy val millDiscover = Discover[this.type]
+          }
+          """
+        )
+
+        assert(error.msg.contains(nestedTaskError))
+      }
+
+      test("nested") {
+        val error = utest.compileError(
+          """
+          object foo extends TestRootModule {
+            def taskWithinTask = Task.Anon { Seq(Task.Anon { 42 }) }
+
+            lazy val millDiscover = Discover[this.type]
+          }
+          """
+        )
+
+        assert(error.msg.contains(nestedTaskError))
+      }
+
+      test("inAnotherType") {
+        val error = utest.compileError(
+          """
+          object foo extends TestRootModule {
+            def taskWithinTask = Seq(Task.Anon { Task.Anon { 42 } })
+
+            lazy val millDiscover = Discover[this.type]
+          }
+          """
+        )
+
+        assert(error.msg.contains(nestedTaskError))
+      }
     }
   }
 }

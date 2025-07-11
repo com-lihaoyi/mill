@@ -1,23 +1,26 @@
-= Mill: A Better JVM Build Tool
+= Mill: A Better Build Tool for Java, Scala, & Kotlin
 
 https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=stable-version&versionSuffix={mill-version}[d]]
 https://central.sonatype.com/artifact/com.lihaoyi/mill-dist[image:https://img.shields.io/maven-central/v/com.lihaoyi/mill-dist?label=unstable-dev-version[Maven Central Version]]
 
-Mill is a JVM build tool that supports Java, Scala, and Kotlin:
+Mill is a build tool that tries to improve upon the tools traditionally used
+in the JVM ecosystem:
 
 * Mill builds the same Java project xref:comparisons/why-mill.adoc#_performance[3-6x
  faster than Maven or Gradle] due to aggressive caching & parallelism
 
-* Mill builds require xref:comparisons/why-mill.adoc#_builtins[fewer plugins for common workflows],
-and are xref:comparisons/why-mill.adoc#_extending_mill[easier to extend with custom tasks]
+* Mill's rich featureset means
+xref:comparisons/why-mill.adoc#_rich_builtins[less fiddling with plugins],
+since everything needed for development is built in
 
-* Mill has better IDE support than other build tools, with
-xref:comparisons/why-mill.adoc#_ide_support[superior autocomplete and navigation in IntelliJ]
+* Mill builds are xref:comparisons/why-mill.adoc#_ide_support[easily explorable in your IDE],
+letting you work on them without constantly googling for help
 
 Although the Java compiler is very fast and the Java language is easy to learn,
 JVM build tools have a reputation for being sluggish and confusing. Mill tries to
 offer a better alternative, its xref:comparisons/why-mill.adoc#_object_oriented_builds[object-oriented builds]
-letting your build system take full advantage of the Java platform's performance, usability, and IDE support.
+reducing the learning curve and letting your build system take
+full advantage of the Java platform's performance, usability, and IDE support.
 
 If you prefer a video introduction to Mill, see:
 
@@ -52,7 +55,7 @@ Or see the language-specific introductory documentation linked below:
 and xref:depth/parallelism.adoc[parallelizes build tasks] and https://mill-build.org/blog/11-jvm-test-parallelism.html[tests]
 to keep local development fast, https://mill-build.org/blog/9-mill-faster-assembly-jars.html[incrementally builds assembly jars]
 to speed up manual testing workflows, and shortens CI times with xref:large/selective-execution.adoc[selective test execution]
-to only runs the subset of tests necessary to validate a code change.
+to only run the subset of tests necessary to validate a code change.
 
 * *Builtins*: Mill has builtin support for most common workflows: not just compile/run/test, but also
 xref:fundamentals/configuring-jvm-versions.adoc[managing JVM versions], xref:javalib/linting.adoc[linting],
@@ -110,7 +113,7 @@ build tools, check out these pages:
 |===
 | xref:comparisons/maven.adoc[image:index/maven.png[maven,24] Mill vs Maven]
 | xref:comparisons/gradle.adoc[image:index/gradle.svg[gradle,32] Mill vs Gradle]
-| xref:comparisons/sbt.adoc[image:index/sbt.png[sbt,32] Mill vs `sbt`]
+| xref:comparisons/sbt.adoc[image:index/sbt.png[sbt,32] Mill vs sbt]
 |===
 
 === Tool & Framework Support
@@ -130,7 +133,7 @@ also has a rich ecosystem of third party plugins for less common use cases:
 === Contributing and Community
 
 If you want to contribute to Mill, or are interested in the fundamental ideas behind
-Mill rather than the user-facing benefits discussed above, check out the page on
+Mill rather than the user-facing features discussed above, check out the page on
 xref:depth/design-principles.adoc[Mill Design Principles]. In particular, this video
 is a must-watch to help you understand the fundamental concepts behind Mill and why
 they are interesting:

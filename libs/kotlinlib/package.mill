@@ -10,7 +10,7 @@ import millbuild.*
 //  because currently there is no previous artifact version
 object `package` extends MillStableScalaModule with BuildInfo {
 
-  def moduleDeps = Seq(build.libs.jvmlib, build.libs.testrunner, api)
+  def moduleDeps = Seq(build.libs.javalib, build.libs.javalib.testrunner, api)
   def transitiveLocalTestOverrides =
     super.transitiveLocalTestOverrides() ++ Seq(worker.localTestOverride())
 
@@ -49,7 +49,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
   }
 
   object api extends MillKotlinModule {
-    def moduleDeps = Seq(build.libs.testrunner)
+    def moduleDeps = Seq(build.libs.javalib.testrunner)
 
     override def compileMvnDeps: T[Seq[Dep]] = Seq(
       Deps.osLib

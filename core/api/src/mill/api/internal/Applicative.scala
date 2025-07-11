@@ -1,6 +1,7 @@
 package mill.api.internal
 
-import mill.api.internal.internal
+import mill.api.Task
+import mill.api.daemon.internal.internal
 import scala.annotation.compileTimeOnly
 
 import scala.quoted.*
@@ -24,14 +25,68 @@ object Applicative {
 
   type Id[+T] = T
 
+  /**
+   * @param allowNestedTasks whether `Task[Task[A]]` or `Task[Something[Task[A]]]` and similar structures
+   *                         are allowed.
+   */
   private[mill] def impl[M[_]: Type, W[_]: Type, Z[_]: Type, T: Type, Ctx: Type](using
       Quotes
   )(
       traverseCtx: (Expr[Seq[W[Any]]], Expr[(Seq[Any], Ctx) => Z[T]]) => Expr[M[T]],
       t: Expr[Z[T]],
-      allowTaskReferences: Boolean = true
+      allowTaskReferences: Boolean = true,
+      allowNestedTasks: Boolean = false
   ): Expr[M[T]] = {
     import quotes.reflect.*
+
+    def checkForNestedTasks() = {
+      val taskType = TypeRepr.of[Task[_]]
+
+      def isTask(tpr: TypeRepr): Boolean =
+        // We use `typeSymbol` for a robust check.
+        tpr.typeSymbol == taskType.typeSymbol
+
+      def containsTask(tpr: TypeRepr): Boolean = {
+        // Dealias to handle type aliases like `type MyTask[A] = Task[A]`
+        val currentType = tpr.dealias
+
+        if (isTask(currentType)) true
+        else
+          // Otherwise, check all of its type arguments recursively.
+          // e.g., for Map[Int, String], this would be [Int, String]
+          currentType.typeArgs.exists(containsTask)
+      }
+
+      val resultTypeRepr = TypeRepr.of[M[T]].dealias
+
+      if (isTask(resultTypeRepr)) {
+
+        /** The `A` to the `Task[A]`. */
+        val innerTypeRepr = resultTypeRepr.typeArgs match {
+          case innerTypeRepr :: Nil => innerTypeRepr
+          case other => throw new IllegalStateException(
+              s"Task[_] should have exactly one type parameter, but got ${other.map(_.show)}. " +
+                "This is a bug in mill."
+            )
+        }
+
+        if (containsTask(innerTypeRepr)) {
+          report.errorAndAbort(
+            // report.warning(
+            s"""|A `Task[A]` cannot be a parameter of another `Task[A]` because the inner task would not
+                |be executed.
+                |
+                |See https://github.com/com-lihaoyi/mill/issues/5263 for more information.
+                |
+                |Type of the result: ${resultTypeRepr.show}
+                |""".stripMargin,
+            Position.ofMacroExpansion
+          )
+        }
+      }
+    }
+
+    if (!allowNestedTasks) checkForNestedTasks()
 
     val targetApplySym = TypeRepr.of[Applyable[Nothing, ?]].typeSymbol.methodMember("apply").head
 
@@ -99,6 +154,7 @@ object Applicative {
 
       val newBody = treeMap.transformTree(t.asTerm)(Symbol.spliceOwner).asExprOf[Z[T]]
       val exprsList = Expr.ofList(exprs.toList.map(_.asExprOf[W[Any]]))
+
       (newBody, exprsList)
     }
 
@@ -119,5 +175,4 @@ object Applicative {
     else
       traverseCtx(exprsList, callback)
   }
-
 }

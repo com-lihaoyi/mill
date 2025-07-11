@@ -4,6 +4,9 @@ import java.util.regex.Matcher
 
 final case class ExecutionPaths private[mill] (dest: os.Path, meta: os.Path, log: os.Path) {}
 
+/**
+ * Logic to resolve a [[Task]]'s [[Segments]] to the various paths on disk owned by that task.
+ */
 object ExecutionPaths {
 
   def resolve(

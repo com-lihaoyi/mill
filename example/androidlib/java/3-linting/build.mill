@@ -26,11 +26,11 @@ object app extends AndroidAppModule {
   def androidApplicationNamespace = "com.helloworld.app"
 
   // Set path to the custom `lint.xml` config file. It is usually at the root of the project
-  def androidLintConfigPath0 = Task.Sources { "lint.xml" }
+  def androidLintConfigPath0 = Task.Sources("lint.xml")
   def androidLintConfigPath = Task { androidLintConfigPath0().headOption }
 
   // Set path to the custom `baseline.xml` file. It is usually at the root of the project
-  def androidLintBaselinePath0 = Task.Sources { "lint-baseline.xml" }
+  def androidLintBaselinePath0 = Task.Sources("lint-baseline.xml")
   def androidLintBaselinePath = Task { androidLintBaselinePath0().headOption }
 
   // Set the linting report to be generated as both text and html files

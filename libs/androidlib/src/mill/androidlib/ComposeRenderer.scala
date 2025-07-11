@@ -1,6 +1,6 @@
 package mill.androidlib
 
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 
 private[androidlib] object ComposeRenderer {
 

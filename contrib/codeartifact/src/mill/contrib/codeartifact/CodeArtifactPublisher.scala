@@ -4,7 +4,7 @@ import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 
 import mill.api.Logger
-import mill.scalalib.publish.Artifact
+import mill.javalib.publish.Artifact
 
 class CodeartifactPublisher(
     releaseUri: String,

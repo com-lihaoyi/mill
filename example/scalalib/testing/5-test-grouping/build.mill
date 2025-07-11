@@ -10,7 +10,7 @@ import mill.*, scalalib.*
 object foo extends ScalaModule {
   def scalaVersion = "3.7.1"
   object test extends ScalaTests, TestModule.Utest {
-    def utestVersion = "0.8.8"
+    def utestVersion = "0.8.9"
 
     def testForkGrouping = discoveredTestClasses().grouped(1).toSeq
     def testParallelism = false

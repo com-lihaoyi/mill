@@ -1,7 +1,7 @@
 package mill
 package kotlinlib
 
-import mill.scalalib.TestModule
+import mill.javalib.TestModule
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.api.ExecResult
 import mill.api.Discover

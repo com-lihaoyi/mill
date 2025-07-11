@@ -30,13 +30,15 @@ object MillDaemonMain {
       )
 
       val acceptTimeoutMillis =
-        Try(System.getProperty("mill.server_timeout").toInt).getOrElse(30 * 60 * 1000) // 30 minutes
+        Try(System.getProperty("mill.server_timeout").toInt).getOrElse(30 * 1000) // 30 minutes
 
       new MillDaemonMain(
         daemonDir = os.Path(args0(0)),
         acceptTimeoutMillis = acceptTimeoutMillis,
         Locks.files(args0(0))
       ).run()
+
+      System.exit(ClientUtil.ExitServerCodeWhenIdle())
     }
   }
 }
@@ -50,9 +52,6 @@ class MillDaemonMain(
       locks
     ) {
 
-  override def exitServer(): Unit = {
-    super.exitServer(); System.exit(ClientUtil.ExitServerCodeWhenIdle())
-  }
   def stateCache0 = RunnerState.empty
 
   val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)

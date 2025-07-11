@@ -1,7 +1,7 @@
 package mill.contrib.artifactory
 
 import mill.api.Logger
-import mill.scalalib.publish.Artifact
+import mill.javalib.publish.Artifact
 
 class ArtifactoryPublisher(
     releaseUri: String,

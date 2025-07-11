@@ -7,7 +7,7 @@ import mill.*, pythonlib.*
 
 object todo extends PythonModule {
 
-  def mainScript = Task.Source { "src/app.py" }
+  def mainScript = Task.Source("src/app.py")
 
   def pythonDeps = Seq("flask==3.1.0", "Flask-SQLAlchemy==3.1.1", "Flask-WTF==1.2.2")
 

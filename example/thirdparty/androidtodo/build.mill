@@ -222,7 +222,7 @@ object `shared-test` extends AndroidKotlinModule, AndroidHiltSupport {
 
   def androidEnableCompose = true
 
-  def androidNamespace = "com.example.android.architecture.blueprints.todoapp.shared.test"
+  def androidNamespace = "com.example.android.architecture.blueprints.todoapp.daemon.test"
 
   def kotlinSymbolProcessors: T[Seq[Dep]] = Seq(
     mvn"androidx.room:room-compiler:2.6.1",

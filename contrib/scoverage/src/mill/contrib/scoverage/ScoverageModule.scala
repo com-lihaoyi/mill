@@ -7,7 +7,7 @@ import mill.api.BuildCtx
 import mill.api.{Result}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi2.ReportType
 import mill.util.BuildInfo
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 
 /**

@@ -3,7 +3,7 @@ package mill.contrib.gitlab
 import mill.api.Result
 import mill.contrib.gitlab.GitlabTokenLookup.*
 import mill.internal.DummyLogger
-import mill.scalalib.publish.*
+import mill.javalib.publish.*
 import utest.{TestSuite, Tests, assert, assertMatch, test}
 
 import scala.collection.mutable.ListBuffer

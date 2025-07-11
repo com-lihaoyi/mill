@@ -6,7 +6,8 @@ import mill.Task
 import mill.javalib.MavenModule
 
 /**
- * A [[KotlinModule]] with a Maven compatible directory layout.
+ * A [[KotlinModule]] with a Maven compatible directory layout:
+ * `src/main/kotlin`, `src/test/resources`, etc.
  */
 trait KotlinMavenModule extends KotlinModule with MavenModule {
   private def sources0 = Task.Sources("src/main/kotlin")

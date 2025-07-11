@@ -1,6 +1,6 @@
 package mill.api
 
-import mill.api.shared.internal.{ModuleApi, internal}
+import mill.api.daemon.internal.{ModuleApi, internal}
 import mill.api.internal.{OverrideMapping, Reflect}
 import mill.api.Task.Simple
 

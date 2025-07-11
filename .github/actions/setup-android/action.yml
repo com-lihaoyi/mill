@@ -11,7 +11,7 @@ runs:
       with:
         log-accepted-android-sdk-licenses: false
         cmdline-tools-version: 11076708
-        packages: tools cmdline-tools;latest platform-tools emulator system-images;android-35;google_apis_playstore;x86_64
+        packages: cmdline-tools;latest platform-tools emulator system-images;android-35;google_apis_playstore;x86_64
 
     - name: Enable KVM group perms
       run: |

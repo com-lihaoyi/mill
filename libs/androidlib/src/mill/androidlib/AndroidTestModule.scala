@@ -1,7 +1,7 @@
 package mill.androidlib
 
 import mill.T
-import mill.scalalib.TestModule
+import mill.javalib.TestModule
 
 @mill.api.experimental
 trait AndroidTestModule extends TestModule {}

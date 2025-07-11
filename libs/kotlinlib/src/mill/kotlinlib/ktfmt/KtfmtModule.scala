@@ -5,7 +5,7 @@ import mill.api.{PathRef}
 import mill.api.{Discover, ExternalModule}
 import mill.kotlinlib.{DepSyntax, KotlinModule, Versions}
 import mill.util.Tasks
-import mill.scalalib.JavaModule
+import mill.javalib.JavaModule
 import mill.util.Jvm
 
 trait KtfmtBaseModule extends JavaModule {
@@ -66,7 +66,7 @@ trait KtfmtModule extends KtfmtBaseModule {
   }
 }
 
-object KtfmtModule extends ExternalModule with KtfmtBaseModule with TaskModule {
+object KtfmtModule extends ExternalModule with KtfmtBaseModule with DefaultTaskModule {
 
   lazy val millDiscover = Discover[this.type]
 
