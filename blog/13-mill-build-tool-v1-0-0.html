@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Releasing v1.0.0 of the Mill JVM Build Tool :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/blog/13-mill-build-tool-v1-0-0.html">
+    <link rel="prev" href="index.html">
+    <link rel="next" href="12-direct-style-build-tool.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="blog" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="13-mill-build-tool-v1-0-0.html">Releasing v1.0.0 of the Mill JVM Build Tool</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="12-direct-style-build-tool.html">Mill as a Direct Style Build Tool</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="11-jvm-test-parallelism.html">Strategies for Efficiently Parallelizing JVM Test Suites</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="10-bytecode-callgraph-analysis.html">Invalidating build caches using JVM bytecode callgraph analysis</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="9-mill-faster-assembly-jars.html">Fast Incremental JVM Assembly Jar Creation with Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="8-what-is-a-build-tool.html">What does a Build Tool do?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="7-graal-native-executables.html">How to Compile Java into Native Binaries with Mill and Graal</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="6-garbage-collector-perf.html">Understanding JVM Garbage Collector Performance</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="5-executable-jars.html">How JVM Executable Assembly Jars Work</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="4-flaky-tests.html">How To Manage Flaky Tests in your CI Workflows</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="3-selective-testing.html">Faster CI with Selective Testing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="1-java-compile.html">How Fast Does Java Compile?</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">The Mill Build Engineering Blog</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+    <li class="component">
+      <div class="title"><a href="../mill/index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mill/main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../mill/index.html">1.0.0</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.12.x/index.html">0.12.14</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <div class="title"><a href="index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/13-mill-build-tool-v1-0-0.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Releasing v1.0.0 of the Mill JVM Build Tool</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, ???</em></p>
+</div>
+<div class="paragraph">
+<p><a href="https://mill-build.org">Mill</a> is a build tool for Java, Scala, and Kotlin that aims to
+improve upon existing build tools in areas like
+<a href="../mill/comparisons/why-mill.html#_performance" class="xref page">performance</a>,
+<a href="../mill/comparisons/why-mill.html#_extensibility" class="xref page">extensibility</a>,
+and <a href="../mill/comparisons/why-mill.html#_ide_support" class="xref page">IDE support</a>.
+The new release of Mill 1.0.0 is a major breaking version of the Mill project focused on setting
+a solid technical foundation for the coming years of development. While the
+<a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#100">Changelog</a> contains a thorough
+listing of the various changes, as well as detailed migration instructions, this article
+instead spends more time discussing some of the highlights of the Mill 1.0.0 release.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_feature_highlights"><a class="anchor" href="#_feature_highlights"></a>Feature Highlights</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_graal_native_launchers_by_default"><a class="anchor" href="#_graal_native_launchers_by_default"></a>Graal Native Launchers by Default</h3>
+<div class="paragraph">
+<p>Mill 1.0.0 defaults to using a <a href="https://www.graalvm.org/latest/reference-manual/native-image/">Graal-Native Image</a>
+launchers by default. This shaves significant overhead off of Mill command line invocations,
+meaning running <code>./mill</code> commands in the terminal can often complete in as little as 100ms:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$  time ./mill foo.compile
+[35/35] foo.compile
+[35] [info] compiling 1 Java source...
+[35] [info] done compiling
+./mill foo.compile  0.01s user 0.01s system 20% cpu 0.109 total</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Slow startups and long warmup times have always been a pain point working in the
+JVM ecosystem, and this has always applied to JVM command-line tooling as well. Mill had
+previously used a <a href="../mill/depth/process-architecture.html" class="xref page">long-lived background daemons</a> to
+try and mitigate the problem, but even if the heavyweight background daemon is long-lived,
+the lightweight launcher/client process still adds a substantial overhead. With
+Mill&#8217;s Graal Native Image launcher, Mill&#8217;s command-line experience feels as snappy
+as any native binary, because it is one!</p>
+</div>
+<div class="paragraph">
+<p>Apart from being a Graal Native Image itself, Mill also can be used to build your
+own Java, Scala, and Kotlin apps into native images. See
+<a href="../mill/javalib/publishing.html#_building_native_image_binaries_with_graal_vm" class="xref page">Building
+Native Image Binaries with Graal VM</a> for more details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_jvm_free_installation_and_bootstrapping"><a class="anchor" href="#_jvm_free_installation_and_bootstrapping"></a>JVM-free Installation and Bootstrapping</h3>
+<div class="paragraph">
+<p>One consequence of using a Graal native launcher is that Mill&#8217;s launcher
+no longer needs a JVM pre-installed in order to run. The launcher binary is self-contained,
+and is able to download and cache any JVM it needs in order to start itself or other Java
+processes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ echo temurin:23 &gt; .mill-jvm-version
+
+$ ./mill foo.test
+https://github.com/adoptium/temurin23-binaries/releases/download/jdk-23.0.2%2B7/OpenJDK23U-jdk_aarch64_mac_hotspot_23.0.2_7.tar.gz
+  100.0% [##########] 197.6 MiB (11.1 MiB / s)
+[build.mill-60/65] compile
+[build.mill-60] [info] compiling 3 Scala sources to /Users/lihaoyi/test/mill-dist-1.0.0-RC2-68-43069c-example-javalib-basic-1-simple/out/mill-build/compile.dest/classes ...
+[build.mill-60] [info] done compiling
+[81/95] foo.compile
+[81] [info] compiling 1 Java source...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This means that Mill is able to manage your JVM installations completely on your behalf,
+without you needing to first install a JVM ahead of time, external tools like
+<a href="https://github.com/jenv/jenv">JEnv</a> or <a href="https://sdkman.io/">SDKMan</a>, or package managers like
+<a href="https://brew.sh/">Homebrew</a>. Mill can manage the JVM necessary for Mill itself to run, any JVM
+necessary for your project modules to run, as well as any third-party libraries used in both
+scenarios.</p>
+</div>
+<div class="paragraph">
+<p>With this change, Mill becomes one of the few CLI tools that is truly zero-install: by using
+Mill&#8217;s <a href="../mill/cli/installation-ide.html#_bootstrap_scripts" class="xref page">bootstrap script</a>
+(an idea borrowed from Gradle&#8217;s <code>./gradlew</code> and Maven&#8217;s <code>./mvnw</code>) you can run <code>./mill</code> on any
+clean Mac, Linux, or Windows or development machine or CI worker and have it bootstrap everything
+necessary with zero installation up front. That&#8217;s pretty unique among the wide variety
+of CLI tools out there, and should hopefully make it convenient for Mill users to build their
+JVM projects on the wide variety of different environments out there in the wild.</p>
+</div>
+<div class="paragraph">
+<p>See the docs for configuring <a href="../mill/cli/build-header.html#_mill_jvm_version" class="xref page">mill-jvm-version</a>
+for more details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_bashzsh_tab_completion"><a class="anchor" href="#_bashzsh_tab_completion"></a>Bash/Zsh Tab-Completion</h3>
+<div class="paragraph">
+<p>Mill 1.0.0 comes with built-in support for
+<a href="../mill/cli/installation-ide.html#_bashzsh_tab_completion" class="xref page">Bash and Zsh tab-completion</a>.
+This can be installed via</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill mill.tabcomplete/install
+Writing to /Users/lihaoyi/.cache/mill/download/mill-completion.sh
+Writing to /Users/lihaoyi/.bash_profile
+Writing to /Users/lihaoyi/.zshrc</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once set up, you can then use <code>&lt;TAB&gt;</code> to auto-complete Mill modules and tasks from the command-line:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill f&lt;TAB&gt;
+$ ./mill foo
+
+$ ./mill foo.run&lt;TAB&gt;
+foo.run                foo.runClasspath       foo.runMain            foo.runMainLocal       foo.runUseArgsFile
+foo.runBackground      foo.runLocal           foo.runMainBackground  foo.runMvnDeps
+
+$ ./mill foo.runB&lt;TAB&gt;
+$ ./mill foo.runBackground</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>While this is not rocket science, we expect that this will be a significant quality-of-life
+improvement to everyone using Mill. Nobody memorizes the names of every module and task within
+a large project, and using <code>./mill resolve</code> to try and list things or opening your IDE to rely
+on in-code autocomplete can be tedious and annoying. Mill&#8217;s Bash/Zsh tab-completion relies on
+the same underlying infrastructure that powers <code>./mill resolve</code> and other existing functionality,
+but integrates it nicely into your shell so you have a smooth experience exploring and interacting
+with your build from the command line</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_task_filesystem_sandbox_enforcement"><a class="anchor" href="#_task_filesystem_sandbox_enforcement"></a>Task Filesystem Sandbox Enforcement</h3>
+<div class="paragraph">
+<p>Like Gradle, Mill build files contain arbitrary JVM code. And like Gradle, writing arbitrary
+code means you have a chance to make a big mess of your Mill build files. For example,
+although Mill relies on the assumption that tasks would only write to their destination
+folder (available as <code>Task.dest</code> within any task body), and that module initialization
+did not write to the filesystem, there was never enforcement of these expectations:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object foo extends Module {
+  def bannedWriteTask = Task {
+    os.write(BuildCtx.workspaceRoot / "banned-path", "hello")  // bad!
+  }
+
+  os.write(moduleDir / "banned-write.txt", "hello") // bad!
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This meant it was possible to write code that violated Mill&#8217;s internal expectations,
+which could cause all sorts of things to go wrong: cache invalidation issues, race
+conditions, etc. So onboarding new developers to use
+Mill often resulted in a long process to teach them these conventions since the tool
+itself would not give any feedback until things loudly (or worse, silently!) misbehaved.</p>
+</div>
+<div class="paragraph">
+<p>In Mill 1.0.0, most common filesystem read/write APIs have been instrumented to check
+that they are not misused. That means code that violates Mill&#8217;s conventions raises an
+immediate error:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill foo.bannedWriteTask
+error: ...Writing to banned-path not allowed during execution of `foo.bannedWriteTask`</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These sandboxes are not intended to be fully hermetic: there are escape hatches
+(e.g. <code>BuildCtx.withFilesystemCheckerDisabled{ &#8230;&#8203; }</code>), not all APIs are instrumented
+(e.g. direct use of <code>java.io.</code>/<code>java.nio</code>), and they are not intended to be a security
+boundary against malicious code. Rather, they are meant to be simple guardrails to nudge
+developers in the right direction to follow Mill&#8217;s conventions and coding style, so
+that developers will naturally fall into configuring Mill the "right" way that leads
+to the fewest surprises.</p>
+</div>
+<div class="paragraph">
+<p>See the documentation for <a href="../mill/depth/sandboxing.html" class="xref page">Mill Sandboxing</a> for more details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_yaml_build_headers_for_early_configuration"><a class="anchor" href="#_yaml_build_headers_for_early_configuration"></a>YAML Build Headers for Early Configuration</h3>
+<div class="paragraph">
+<p>Mill now supports a build header comment syntax for "early" configuration that needs to be processed
+before the main <code>build.mill</code> file is compiled and evaluated, and
+contains configuration like the <code>mill-version</code>, <code>mill-jvm-version</code>, the <code>build.mill</code> file&#8217;s <code>mvnDeps</code>
+(separate from your application code&#8217;s <code>mvnDeps</code>!) in a single <code>//|</code>-prefixed comment block.
+This is reminiscent of <a href="https://jekyllrb.com/docs/front-matter/">Jekyll FrontMatter</a> or Python&#8217;s
+<a href="https://peps.python.org/pep-0723/">PEP723 Inline script metadata</a>:</p>
+</div>
+<div class="paragraph">
+<p><em>build.mill</em></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-version: 1.0.0
+//| mill-jvm-version: 17
+//| repositories: [$PWD_URI/custom-repo]
+//| mvnDeps:
+//| - com.grack:nanojson:1.8-custom-test
+//| - com.lihaoyi::scalatags:0.12.0
+
+package build
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Previously, Mill had a wide variety of ways these things were configured:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>A <code>.mill-version</code> file to configure your Mill version</p>
+</li>
+<li>
+<p>A <code>.mill-jvm-version</code> file to configure the JVM used to run the Mill process</p>
+</li>
+<li>
+<p><code>.config/mill-version</code> and <code>.config/mill-jvm-version</code> flavors of these config files</p>
+</li>
+<li>
+<p><code>import $ivy</code> for configuring dependencies for your <code>build.mill</code></p>
+</li>
+<li>
+<p><code>import $repo</code> for configuring maven repositories used to resolve dependencies for compiling your <code>build.mill</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These are all configuration values that need to be used early on in the Mill
+bootstrapping process, and thus we couldn&#8217;t rely on them being configured in the "main"
+<code>build.mill</code> config-as-code. For example, before even compiling your <code>build.mill</code>, Mill
+already needs to know what version of Mill you want to use and what JVM to run it on!</p>
+</div>
+<div class="paragraph">
+<p>With Mill&#8217;s YAML build headers, we can consolidate this zoo of different configuration
+styles into a single compact block at the top of every <code>build.mill</code>. While the older
+configuration styles continue to be supported for migration-compatibility, using
+Mill&#8217;s build headers is the recommended approach for configuring these values going forward.</p>
+</div>
+<div class="paragraph">
+<p>Lastly, build headers are expected to future-proof this "early" configuration
+and allow all sorts of interesting use cases in future. For example, we can extend this
+format to support running self-contained Java/Scala/Kotlin scripts that contain both their
+dependency configuration and code, similar to
+<a href="https://docs.astral.sh/uv/guides/scripts/#running-a-script-without-dependencies">uv scripts</a>
+in Python.</p>
+</div>
+<div class="paragraph">
+<p>See the docs for configuring <a href="../mill/cli/build-header.html" class="xref page">Build Header Config</a>
+for more details.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mill_support_for_kotlin_builds_is_now_stable"><a class="anchor" href="#_mill_support_for_kotlin_builds_is_now_stable"></a>Mill Support for Kotlin Builds is now Stable</h3>
+<div class="paragraph">
+<p>Mill 1.0.0 includes substantial improvements for building Kotlin projects with Mill:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/pull/4557">#4557</a>, <a href="https://github.com/com-lihaoyi/mill/pull/4786">#4786</a>, <a href="https://github.com/com-lihaoyi/mill/pull/4771">#4771</a>,
+<a href="https://github.com/com-lihaoyi/mill/pull/4779">#4779</a>, <a href="https://github.com/com-lihaoyi/mill/pull/4797">#4797</a>, <a href="https://github.com/com-lihaoyi/mill/pull/4963">#4963</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>These PRs really flesh out the previously-experimental support for Kotlin projects in Mill:
+main class discovery, compiler plugins, BuildInfo support, etc.. Other PRs upstream in the
+<a href="https://get-coursier.io/">Coursier</a> add support for resolving Kotlin Multiplatform dependencies,
+supporting Kotlin-JS and Kotlin-Android projects.</p>
+</div>
+<div class="paragraph">
+<p>With 1.0.0, Kotlin support in Mill is no longer experimental, and we are enabling
+binary-compatibility enforcement for <code>mill.kotlinlib</code> just as we already have for
+<code>mill.javalib</code> and <code>mill.scalalib</code>. We hope that you will try out Mill in your Kotlin
+projects, and let us know how it goes in <a href="https://github.com/com-lihaoyi/mill/discussions">Mill&#8217;s Github Discussions</a>.</p>
+</div>
+<div class="paragraph">
+<p>See the docs for <a href="../mill/kotlinlib/intro.html" class="xref page">Building Kotlin with Mill</a> for more details</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mill_support_for_android_builds"><a class="anchor" href="#_mill_support_for_android_builds"></a>Mill Support for Android Builds</h3>
+<div class="paragraph">
+<p>A huge amount of work went into 1.0.0 improving Mill&#8217;s support for Android builds. Android
+apps have traditionally only been buildable using Gradle, and Mill is one of the only
+other build tools that you can use as an alternative. While
+in 0.12.x Android support was a demo-quality integration, in 1.0.0 it has been
+fleshed out into a robust and complete framework that can build many of the
+sample apps available in the Android ecosystem.</p>
+</div>
+<div class="paragraph">
+<p>For example, Mill is now able to build, run, and test the <a href="https://github.com/android/compose-samples/tree/main/JetLagged">JetLagged Android Example App</a>:</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="_images/AndroidJetLagged.png" alt="AndroidJetLagged"></span></p>
+</div>
+<div class="paragraph">
+<p>As well as the <a href="https://android.googlesource.com/platform/ndk/+/froyo-release/samples/san-angeles">San Angeles NDK example</a>:</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="_images/AndroidSanAngeles.png" alt="AndroidSanAngeles"></span></p>
+</div>
+<div class="paragraph">
+<p>This work was done by the folks <a href="https://www.vaslabs.io/">VasLabs</a>, who put in an
+immense amount of work:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/pull/4485">#4485</a>, <a href="https://github.com/com-lihaoyi/mill/pull/4540">#4540</a>, <a href="https://github.com/com-lihaoyi/mill/pull/4583">#4583</a>,
+<a href="https://github.com/com-lihaoyi/mill/pull/4626">#4626</a>, <a href="https://github.com/com-lihaoyi/mill/pull/4759">#4759</a>, <a href="https://github.com/com-lihaoyi/mill/pull/4892">#4892</a>, <a href="https://github.com/com-lihaoyi/mill/pull/4947">#4947</a>,
+<a href="https://github.com/com-lihaoyi/mill/pull/5013">#5013</a>, <a href="https://github.com/com-lihaoyi/mill/pull/5053">#5053</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Updating the Mill Android documentation is a work in progress. We
+will be fleshing out the Mill Android docs over the following weeks and months and
+writing up blog posts on our experience integrating Mill with the Android toolchain
+But if you are unsatisfied with Gradle and interested in trying out an
+alternate Android build tool, you should definitely take a look and try it out
+and let us know how it goes in <a href="https://github.com/com-lihaoyi/mill/discussions">Mill&#8217;s Github Discussions</a>.</p>
+</div>
+<div class="paragraph">
+<p>See Mill&#8217;s docs for <a href="../mill/android/java.html" class="xref page">Android Java Projects</a> or
+<a href="../mill/android/java.html" class="xref page">Android Kotlin Projects</a> for more details.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_quality_highlights"><a class="anchor" href="#_quality_highlights"></a>Quality Highlights</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_ide_support"><a class="anchor" href="#_ide_support"></a>IDE Support</h3>
+<div class="paragraph">
+<p>Mill has always had a <a href="../mill/comparisons/why-mill.html#_ide_support" class="xref page">best-in-class IDE experience</a>
+in IntelliJ and VSCode that surpasses the experience you get with Maven, Gradle, or SBT.
+For example, in Mill builds your IDE is able to autocomplete, pull up docs, or otherwise
+navigate around your build graph as easily as you can any application codebase in Java, Scala,
+or Kotlin:</p>
+</div>
+<div class="paragraph">
+<p><span class="image"><img src="_images/IntelliJAutoComplete.png" alt="IntelliJAutoComplete"></span></p>
+</div>
+<div class="paragraph">
+<p>But even so, there was a ton of room for improvement.
+Many PRs went into improving Mill&#8217;s IDE support with IntelliJ and VSCode, which
+goes through the "BSP" <a href="https://github.com/build-server-protocol/build-server-protocol">build-server-protocol</a>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/pull/5275">#5275</a>, <a href="https://github.com/com-lihaoyi/mill/pull/5265">#5265</a>,
+<a href="https://github.com/com-lihaoyi/mill/pull/5220">#5220</a>, <a href="https://github.com/com-lihaoyi/mill/pull/5202">#5202</a>, <a href="https://github.com/com-lihaoyi/mill/pull/5200">#5200</a>m <a href="https://github.com/com-lihaoyi/mill/pull/4851">#4851</a>, <a href="https://github.com/com-lihaoyi/mill/pull/4873">#4873</a>,
+<a href="https://github.com/com-lihaoyi/mill/pull/4876">#4876</a>, <a href="https://github.com/com-lihaoyi/mill/pull/4881">#4881</a>, <a href="https://github.com/com-lihaoyi/mill/pull/4873">#4873</a>,
+<a href="https://github.com/com-lihaoyi/mill/pull/4940">#4940</a>, <a href="https://github.com/com-lihaoyi/mill/pull/4941">#4941</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>There were also some fixes on the IntelliJ side of the build-tool-integration:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://youtrack.jetbrains.com/issue/SCL-23262">SCL-23262</a>,
+<a href="https://youtrack.jetbrains.com/issue/SCL-23198">SCL-23198</a>,
+<a href="https://youtrack.jetbrains.com/issue/SCL-23961">SCL-23961</a>,
+<a href="https://youtrack.jetbrains.com/issue/SCL-23975">SCL-23976</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>And on the VSCode side of things:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/scalameta/metals/pull/7193">#7193</a>,
+<a href="https://github.com/scalameta/metals/pull/7200">#7200</a>,
+<a href="https://github.com/scalameta/metals/pull/7429">#7429</a>,
+<a href="https://github.com/scalameta/metals/pull/7544">#7544</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>As Mill builds is able to leverage the existing IntelliJ/VSCode IDE infrastructure,
+we did not need to implement support for the Mill build tool from scratch in its
+own plugin. But nevertheless there is still a lot of work to properly wire up
+Mill to talk to these IDEs and pass the necessary data so the IDEs can do their thing.</p>
+</div>
+<div class="paragraph">
+<p>Improving IDE support is a grind: lots of fiddling with undocumented APIs and
+undocumented behavior, with bugs randomly scattered across organizational boundaries
+(some in Mill, some in IntelliJ, some in VSCode). But hopefully this work will provide
+a smoother experience for anyone getting using Mill, and improve upon Mill&#8217;s
+ability to provide a best-in-class IDE experience for your build system.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_classpath_cleanup_and_stabilization"><a class="anchor" href="#_classpath_cleanup_and_stabilization"></a>Classpath Cleanup and Stabilization</h3>
+<div class="paragraph">
+<p>Mill 1.0.0 runs your build logic with a much more minimal JVM classpath than earlier versions.
+We expect that this will provide faster downloads, speedup compiles, and also allow
+better long-term backwards compatibility as the Mill project itself and user&#8217;s
+Mill builds both evolve over time.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Mill 0.12.x compiled and ran your <code>build.mill</code> with the entire Mill assembly jar
+on the classpath. That meant that
+your <code>build.mill</code> could access all of Mill&#8217;s internal code and dependencies,
+and versions of dependencies used by Mill are pinned and unchangeable
+(e.g. see <a href="https://github.com/com-lihaoyi/mill/issues/2985">#2985</a>)</p>
+</li>
+<li>
+<p>Mill 1.0.0 compiles and runs your <code>build.mill</code> with only the code and
+dependencies that it actually requires on the classpath, with the rest of
+Mill&#8217;s internal code and internal dependencies isolated via subprocess or
+classloader isolation, with interop happening through a narrow interface</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>While this may seem like an esoteric change, concretely it means two things:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>You are now much free-er to use or upgrade third-party dependencies
+in your <code>build.mill</code> via <code>//| mvnDeps</code>: they will not conflict with Mill&#8217;s internal
+dependencies, and are not pinned to the versions that Mill uses. This is important
+because <a href="../mill/comparisons/why-mill.html#_extensibility" class="xref page">extending Mill
+with third-party libraries</a> is a core part of its unique value proposition.</p>
+</li>
+<li>
+<p>Mill can evolve much more freely without worrying about breaking user code. All
+of Mill&#8217;s internal code is now completely hidden from the user, so users don&#8217;t
+need to worry about accidentally depending on some internal class or static method
+that may change and cause breakage when they upgrade.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Clean classpaths aren&#8217;t a "feature" in the common sense of the word, but regardless
+we hope that this classpath cleanup will pay dividends over time.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_try_out_mill_1_0_0"><a class="anchor" href="#_try_out_mill_1_0_0"></a>Try out Mill 1.0.0!</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This blog post covers just the highlights of the new Mill 1.0.0 release; the full
+changelog goes into a lot more breadth and depth about the changes, and what migration
+steps are necessary for upgrading from earlier versions of Mill:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#100">Mill 1.0.0 Changelog</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you would like to try Mill 1.0.0 for the first time, check out the links below:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../mill/javalib/intro.html" class="xref page">Building Java with Mill</a>, for starting a greenfield Mill project with Java</p>
+</li>
+<li>
+<p><a href="../mill/scalalib/intro.html" class="xref page">Building Scala with Mill</a>, for starting a greenfield Mill project with Scala</p>
+</li>
+<li>
+<p><a href="../mill/kotlinlib/intro.html" class="xref page">Building Kotlin with Mill</a>, for trying out the newly-stable Kotlin support in Mill</p>
+</li>
+<li>
+<p><a href="../mill/migrating/migrating.html" class="xref page">Migrating to Mill</a>, for migrating an existing project from to Mill from
+Maven, Gradle or SBT</p>
+</li>
+<li>
+<p><a href="../mill/android/java.html" class="xref page">Android Java Projects</a>, for trying out the experimental Android support in Mill</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you are curious about the motivation behind the Mill project, see:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="../mill/comparisons/why-mill.html" class="xref page">Why Use Mill?</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="index.html">The Mill Build Engineering Blog</a></span>
+  <span class="next"><a href="12-direct-style-build-tool.html">Mill as a Direct Style Build Tool</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
+<script src="../_/js/vendor/lunr.js"></script>
+<script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
+<script async src="../search-index.js"></script>
+  </body>
+</html>
