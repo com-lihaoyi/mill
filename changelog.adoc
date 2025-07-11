@@ -22,16 +22,14 @@ _2025-07-10_
 :prev-version: 1.0.0-RC3
 
 `1.0.0` is a major backwards incompatible release that fixes many long-standing
-issues and aims to build a strong
-technical foundation for the next few years of development. Any breakages or problems surfaced
-by RC1 will be fixed in following RC releases, with the hope to release 1.0.0 final on 30 June
-2025. For any questions or discussion about `1.0.0`, please use the following thread:
+issues and aims to build a strong technical foundation for the next few years of development. 
+For any questions or discussion about `1.0.0`, please use the following thread:
 
 - https://github.com/com-lihaoyi/mill/discussions/5497
 
 Any third-party Mill plugins you use will need to be re-published for Mill 1.0.0 if you would
 like to use them in your builds. Builtin functionality in `mill.*lib` packages or contrib
-plugins in `mill.contrib` are available immediately
+plugins in `mill.contrib` are available immediately.
 
 We expect it will take some work from projects on Mill 0.12.x or earlier to migrate to 1.0.0.
 There are a lot of breaking changes in the release, but we hope that these breaking changes will
@@ -46,7 +44,7 @@ But for most people upgrading, the most relevant changes are listed in the chang
 * NOTE: Mill 1.0.0 (and all other versions since 0.12.13) requires an updated bootstrap
 script in order to work, due to changes in the Sonatype Central package registry that
 forced a change in the download URLs for new releases going forward. To update your
-bootstrap script, you can use
+bootstrap script, you can use:
 +
 ```
 # linux
