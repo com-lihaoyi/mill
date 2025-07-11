@@ -6,7 +6,7 @@ import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAM
 import mill.util.{PossiblySecret, Secret}
 
 @internal
-object PublishModule {
+private[mill] object PublishModule {
 
   /**
    * Imports a Base64 encoded GPG secret, if one is provided in the environment.
