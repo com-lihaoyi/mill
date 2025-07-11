@@ -235,13 +235,13 @@ object `package` extends MillJavaModule with DistModule {
     for (path <- examplePaths()) yield {
       val example = path.subRelativeTo(BuildCtx.workspaceRoot)
       val artifactName = example.segments.mkString("-")
-      (path, s"${build.dist.artifactFileNamePrefix()}-$artifactName")
+      s"${build.dist.artifactFileNamePrefix()}-$artifactName"
     }
   }
 
   def exampleZips: T[Seq[PathRef]] = Task {
     examplePathRefs().zip(exampleArtifactNames()).map {
-      case (pr, (examplePath, exampleStr)) =>
+      case (pr, exampleStr) =>
         os.copy(pr.path, Task.dest / exampleStr, createFolders = true)
         val ignoreErrorsOnCI = Task.dest / exampleStr / "ignoreErrorsOnCI"
         if (os.exists(ignoreErrorsOnCI)) os.remove(ignoreErrorsOnCI)
