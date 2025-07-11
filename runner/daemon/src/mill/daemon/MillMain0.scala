@@ -24,7 +24,6 @@ import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Using}
 
-@internal
 object MillMain0 {
 
   def handleMillException[T](
@@ -601,7 +600,7 @@ object MillMain0 {
 
   def checkMillVersionFromFile(projectDir: os.Path, stderr: PrintStream): Unit = {
     readBestMillVersion(projectDir).foreach { case (file, version) =>
-      if (BuildInfo.millVersion != version.stripSuffix("-native")) {
+      if (BuildInfo.millVersion != version.stripSuffix("-native").stripSuffix("-jvm")) {
         val msg =
           s"""Mill version ${BuildInfo.millVersion} is different than configured for this directory!
              |Configured version is ${version} (${file})""".stripMargin
