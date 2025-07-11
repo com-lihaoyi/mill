@@ -9,9 +9,15 @@ import mill.Task
 import mill.scalalib.Dep
 import mill.scalalib.JavaModule
 
+import java.io.File
+
 import scala.util.Properties
 
 trait MillJavaModule extends JavaModule {
+
+  // Test setup
+  def localTestOverride =
+    Task { (s"com.lihaoyi-${artifactId()}", localTestOverridePaths().map(_.path).mkString("\n")) }
 
   def testArgs: T[Seq[String]] = Task {
     // Workaround for Zinc/JNA bug
@@ -22,6 +28,21 @@ trait MillJavaModule extends JavaModule {
       else Nil
     jnaArgs ++ userLang
   }
+  def localTestOverridePaths =
+    Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
+
+  def localTestExtraRepositories: T[Seq[PathRef]] = Task(Seq.empty[PathRef])
+  def localTestRepositories: T[Seq[PathRef]] = Task {
+    val mainRepos = Task.traverse(Seq(this) ++ moduleDeps ++ runModuleDeps) {
+      case m: MillPublishJavaModule => m.stagePublish.map(Seq(_))
+      case _ => Task.Anon(Nil)
+    }().flatten
+    val extraRepos = Task.traverse(Seq(this) ++ moduleDeps ++ runModuleDeps) {
+      case m: MillPublishJavaModule => m.localTestExtraRepositories.map(Seq(_))
+      case _ => Task.Anon(Nil)
+    }().flatten.flatten
+    mainRepos ++ extraRepos
+  }
 
   def testMvnDeps: T[Seq[Dep]] = Seq(Deps.TestDeps.utest)
   def testForkEnv: T[Map[String, String]] = forkEnv() ++ localTestOverridesEnv()
@@ -30,8 +51,10 @@ trait MillJavaModule extends JavaModule {
     else Seq(this, build.core.api.test)
 
   def localTestOverridesEnv = Task {
-    val localRepo0 = build.dist.localRepo().path
-    Seq("MILL_LOCAL_TEST_REPO" -> localRepo0.toString)
+    val localRepos = localTestRepositories()
+      .map(_.path.toNIO.toUri.toASCIIString)
+      .mkString(File.pathSeparator)
+    Seq("MILL_LOCAL_TEST_REPO" -> localRepos)
   }
 
   def repositoriesTask = Task.Anon {

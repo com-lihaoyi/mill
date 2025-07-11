@@ -11,6 +11,8 @@ import millbuild.*
 object `package` extends MillStableScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.libs.javalib, build.libs.javalib.testrunner, api)
+  def localTestExtraRepositories =
+    super.localTestExtraRepositories() ++ Seq(worker.stagePublish())
 
   def buildInfoPackageName = "mill.kotlinlib"
   def buildInfoObjectName = "Versions"

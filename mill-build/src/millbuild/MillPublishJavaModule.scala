@@ -28,48 +28,24 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
   def javacOptions = Seq("-source", "11", "-target", "11", "-encoding", "UTF-8")
 
   // Just remove this method when re-bootstrapping, Mill itself should provide it then
-  def stagePublish(
-      sources: Boolean = true,
-      doc: Boolean = true
-  ): Task[PathRef] = {
-    val sourcesJarOpt =
-      if (sources)
-        Task.Anon(Some(
-          PublishInfo(
-            sourceJar(),
-            ivyType = "src",
-            classifier = Some("sources"),
-            ivyConfig = "compile"
-          )
-        ))
-      else
-        Task.Anon(None)
-    val docJarOpt =
-      if (doc)
-        Task.Anon(Some(
-          PublishInfo(
-            docJar(),
-            ivyType = "doc",
-            classifier = Some("javadoc"),
-            ivyConfig = "compile"
-          )
-        ))
-      else
-        Task.Anon(None)
-
-    Task {
-      val publisher = new LocalM2Publisher(Task.dest)
-      val publishInfos = defaultPublishInfos() ++
-        sourcesJarOpt().toSeq ++
-        docJarOpt().toSeq ++
-        extraPublish()
-      publisher.publish(
-        pom = pom().path,
-        artifact = artifactMetadata(),
-        publishInfos = publishInfos
-      )
-      PathRef(Task.dest)
-    }
+  def stagePublish: Task[PathRef] = Task {
+    val publisher = new LocalM2Publisher(Task.dest)
+    val publishInfos = defaultPublishInfos() ++
+      Seq(
+        PublishInfo(
+          sourceJar(),
+          ivyType = "src",
+          classifier = Some("sources"),
+          ivyConfig = "compile"
+        )
+      ) ++
+      extraPublish()
+    publisher.publish(
+      pom = pom().path,
+      artifact = artifactMetadata(),
+      publishInfos = publishInfos
+    )
+    PathRef(Task.dest)
   }
 }
 

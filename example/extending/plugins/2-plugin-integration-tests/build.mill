@@ -21,14 +21,9 @@ object myplugin extends ScalaModule, PublishModule {
   object integration extends ScalaTests, TestModule.Utest {
     def mvnDeps = Seq(mvn"com.lihaoyi::mill-testkit:$millVersion")
     def forkEnv = Task {
-      val artifact = s"${myplugin.pomSettings().organization}-${myplugin.artifactId()}"
-        .replaceAll("[.-]", "_")
-        .toUpperCase
-
-      val localClasspathString = myplugin.localClasspath().map(_.path).mkString("\n")
       Map(
         "MILL_EXECUTABLE_PATH" -> millExecutable.assembly().path.toString,
-        "MILL_USER_TEST_REPO" -> stagePublish(doc = false)().path.toString
+        "MILL_USER_TEST_REPO" -> stagePublish().path.toString
       )
     }
 

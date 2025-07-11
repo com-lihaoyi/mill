@@ -537,7 +537,7 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   /**
-   * Creates a Maven repository directory with artifacts for this module
+   * Creates a Maven repository directory with main and source artifacts for this module
    *
    * This results in a directory which contains things like
    * `my/organization/my-module/VERSION/my-module-VERSION.{pom,jar}`.
@@ -545,30 +545,17 @@ trait PublishModule extends JavaModule { outer =>
    * artifact resolution, or be merged together and then used as repository,
    * for example.
    */
-  def stagePublish(
-      sources: Boolean = true,
-      doc: Boolean = true
-  ): Task[PathRef] = {
-    val sourcesJarOpt =
-      if (sources) Task.Anon(Some(PublishInfo.sourcesJar(sourceJar())))
-      else Task.Anon(None)
-    val docJarOpt =
-      if (doc) Task.Anon(Some(PublishInfo.docJar(docJar())))
-      else Task.Anon(None)
-
-    Task {
-      val publisher = new LocalM2Publisher(Task.dest)
-      val publishInfos = defaultPublishInfos() ++
-        sourcesJarOpt().toSeq ++
-        docJarOpt().toSeq ++
-        extraPublish()
-      publisher.publish(
-        pom = pom().path,
-        artifact = artifactMetadata(),
-        publishInfos = publishInfos
-      )
-      PathRef(Task.dest)
-    }
+  def stagePublish: Task[PathRef] = Task {
+    val publisher = new LocalM2Publisher(Task.dest)
+    val publishInfos = defaultPublishInfos() ++
+      Seq(PublishInfo.sourcesJar(sourceJar())) ++
+      extraPublish()
+    publisher.publish(
+      pom = pom().path,
+      artifact = artifactMetadata(),
+      publishInfos = publishInfos
+    )
+    PathRef(Task.dest)
   }
 }
 

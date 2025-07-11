@@ -9,5 +9,10 @@ object `package` extends MillPublishScalaModule {
   // we depend on scalalib for re-using some common infrastructure (e.g. License
   // management of projects), NOT for reusing build logic
   def moduleDeps = Seq(build.libs.javalib)
+  def localTestExtraRepositories =
+    super.localTestExtraRepositories() ++ Seq(
+      build.libs.javalib.backgroundwrapper.stagePublish()
+    )
+
   def testModuleDeps = super.testModuleDeps ++ Seq(build.runner.client)
 }

@@ -164,16 +164,6 @@ object `package` extends MillJavaModule with DistModule {
     PathRef(Task.dest / filename)
   }
 
-  def localRepo = {
-    val publishAll = Task.traverse(allPublishModules)(_.stagePublish(doc = false))
-    Task {
-      val repo = Task.dest
-      for (path <- publishAll().map(_.path); elem <- os.walk(path).filter(os.isFile))
-        os.copy.over(elem, repo / elem.relativeTo(path).asSubPath, createFolders = true)
-      PathRef(repo)
-    }
-  }
-
   def run(args: Task[Args] = Task.Anon(Args())) = Task.Command(exclusive = true) {
     args().value match {
       case Nil => mill.api.Result.Failure("Need to pass in cwd as first argument to dist.run")
