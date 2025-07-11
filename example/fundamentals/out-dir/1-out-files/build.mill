@@ -278,7 +278,7 @@ out/mill-daemon
 // of thd same task-related and Mill-related files as the top-level `out/` folder, but
 // related for compiling your `build.mill` rather than compiling your project's source files.
 //
-// === `mill-daemon/`, `mill-no-deamon/`
+// === `mill-daemon/`, `mill-no-daemon/`
 //
 // Each Mill process needs to keep some temporary files in one of these directories.
 // Deleting it will also terminate the associated server instance, if it is still running.

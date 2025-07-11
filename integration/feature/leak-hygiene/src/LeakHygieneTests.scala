@@ -14,12 +14,14 @@ import utest._
  */
 object LeakHygieneTests extends UtestIntegrationTestSuite {
   def checkClassloaders(tester: IntegrationTester)(kvs: (String, Int)*) = {
-    val res = tester.eval(("show", "countClassLoaders"))
+    val res = tester.eval(("show", "countClassLoaders"), check = true)
 
     val read = upickle.default.read[SortedMap[String, Int]](res.out)
     val expected = SortedMap(kvs*)
-    // pprint.log(read)
-    // pprint.log(expected)
+    if (read != expected) {
+      pprint.log(expected)
+      pprint.log(read)
+    }
     assert(read == expected)
   }
 
@@ -64,7 +66,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         mill.constants.DebugLog("\nstart")
         checkClassloaders(tester)(
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-          "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
           "mill.javalib.JvmWorkerModule#worker cl" -> 1,
           "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
         )
@@ -85,7 +86,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "clean"))
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
-            "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
             "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
@@ -110,7 +110,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         for (i <- Range(0, 2)) {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
-            "mill.codesig.ExternalSummary.apply upstreamClassloader" -> 1,
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
             "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
@@ -133,7 +132,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
         // Exercise post-shutdown
 
-        tester.eval(("shutdown"))
+        tester.eval(("shutdown"), check = true)
         checkClassloaders(tester)(
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.javalib.JvmWorkerModule#worker cl" -> 1

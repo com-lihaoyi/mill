@@ -39,6 +39,23 @@ doc-site:
 
 - https://mill-build.org/mill/index.html
 
+If you are upgrading from an earlier version of Mill 0.12.x, you may want to look through the
+upgrade PRs for various `com-lihaoyi` projects to get a sense of what upgrading a typical
+project looks like
+
+- https://github.com/com-lihaoyi/sourcecode/pull/191
+- https://github.com/com-lihaoyi/requests-scala/pull/201
+- https://github.com/com-lihaoyi/os-lib/pull/396
+- https://github.com/com-lihaoyi/mainargs/pull/195
+- https://github.com/com-lihaoyi/upickle/pull/670
+- https://github.com/com-lihaoyi/scalatags/pull/288
+- https://github.com/com-lihaoyi/fastparse/pull/329
+- https://github.com/com-lihaoyi/cask/pull/169
+- https://github.com/com-lihaoyi/fansi/pull/124
+- https://github.com/com-lihaoyi/geny/pull/99
+- https://github.com/com-lihaoyi/PPrint/pull/154
+- https://github.com/com-lihaoyi/utest/pull/378
+
 But for most people upgrading, the most relevant changes are listed in the changelog below:
 
 * NOTE: Mill 1.0.0 (and all other versions since 0.12.13) requires an updated bootstrap

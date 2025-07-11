@@ -15,7 +15,7 @@ xref:mill::comparisons/why-mill.adoc#_performance[performance],
 xref:mill::comparisons/why-mill.adoc#_extensibility[extensibility],
 and xref:mill::comparisons/why-mill.adoc#_ide_support[IDE support].
 The new release of Mill 1.0.0 is a major breaking version of the Mill project focused on setting
-a solid technical foundation for the coming years of development. While the
+a solid technical foundation that can provide stability for the coming years of development. While the
 https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#100[Changelog] contains a thorough
 listing of the various changes, as well as detailed migration instructions, this article
 instead spends more time discussing some of the highlights of the Mill 1.0.0 release.

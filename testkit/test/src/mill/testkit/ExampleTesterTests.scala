@@ -13,7 +13,7 @@ object ExampleTesterTests extends TestSuite {
         millExecutable = os.Path(sys.env("MILL_EXECUTABLE_PATH"))
       )
 
-      assert(os.exists(workspacePath / "out/mill-no-deamon"))
+      assert(os.exists(workspacePath / "out/mill-no-daemon"))
 
       assert(TestkitTestUtils.getProcessIdFiles(workspacePath).isEmpty)
     }
