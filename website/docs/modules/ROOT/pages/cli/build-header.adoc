@@ -67,7 +67,8 @@ _build.mill_
 
 The file name `.mill-opts` can be overridden via the `MILL_OPTS_PATH` environment variable.
 You can also pass in flags like `--jobs=10` explicitly to override the value passed in
-`.mill-opts`.
+`.mill-opts`. See xref:cli/flags.adoc[Mill Command-Line Flags] for documentation on what
+flags the Mill executable can take.
 
 NOTE: `.mill-jvm-opts` is for passing JVM options to the JVM running Mill,
 and `.mill-opts` is for passing options to Mill itself.If you want to pass JVM options
@@ -94,6 +95,8 @@ or dev environment. If `mill-jvm-version` is not provided, Mill uses the globall
 `java` installation if there is one present on your `PATH`, and otherwise will download and
 cache a default version of Java for usage.
 
+For configuring different JVM versions for individual modules within your build, see
+xref:fundamentals/configuring-jvm-versions.adoc[Configuring JVM Versions].
 
 == mill-jvm-opts
 
