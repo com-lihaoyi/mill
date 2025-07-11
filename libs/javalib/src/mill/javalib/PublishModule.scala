@@ -552,8 +552,6 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   def defaultGpgArgsForPassphrase(passphrase: Option[String]): Seq[String] =
     internal.PublishModule.defaultGpgArgsForPassphrase(passphrase).map(Secret.unpack)
 
-
-
   /**
    * Uri for publishing to the old / legacy Sonatype OSSRH.
    *
