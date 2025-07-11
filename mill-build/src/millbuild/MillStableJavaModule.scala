@@ -10,5 +10,5 @@ trait MillStableJavaModule extends MillPublishJavaModule with Mima {
 
   def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
 
-  def mimaExcludeAnnotations: Task.Simple[Seq[String]] = Seq("mill.api.daemon.experimental")
+  def mimaExcludeAnnotations = Seq("mill.api.daemon.experimental")
 }
