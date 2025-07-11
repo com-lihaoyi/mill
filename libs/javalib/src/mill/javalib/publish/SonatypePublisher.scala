@@ -29,22 +29,31 @@ class SonatypePublisher(
 ) {
   // bincompat forwarder
   def this(
-    uri: String,
-    snapshotUri: String,
-    credentials: String,
-    signed: Boolean,
-    gpgArgs: Seq[String],
-    readTimeout: Int,
-    connectTimeout: Int,
-    log: Logger,
-    workspace: os.Path,
-    env: Map[String, String],
-    awaitTimeout: Int,
-    stagingRelease: Boolean
+      uri: String,
+      snapshotUri: String,
+      credentials: String,
+      signed: Boolean,
+      gpgArgs: Seq[String],
+      readTimeout: Int,
+      connectTimeout: Int,
+      log: Logger,
+      workspace: os.Path,
+      env: Map[String, String],
+      awaitTimeout: Int,
+      stagingRelease: Boolean
   ) = this(
-    uri = uri, snapshotUri = snapshotUri, credentials = credentials, signed = signed,
-    gpgArgs = GpgArgs.UserProvided(gpgArgs), readTimeout = readTimeout, connectTimeout = connectTimeout,
-    log = log, workspace = workspace, env = env, awaitTimeout = awaitTimeout, stagingRelease = stagingRelease
+    uri = uri,
+    snapshotUri = snapshotUri,
+    credentials = credentials,
+    signed = signed,
+    gpgArgs = GpgArgs.UserProvided(gpgArgs),
+    readTimeout = readTimeout,
+    connectTimeout = connectTimeout,
+    log = log,
+    workspace = workspace,
+    env = env,
+    awaitTimeout = awaitTimeout,
+    stagingRelease = stagingRelease
   )
 
   private val api = new SonatypeHttpApi(

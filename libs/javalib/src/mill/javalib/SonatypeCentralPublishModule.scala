@@ -22,7 +22,8 @@ import mill.javalib.internal.PublishModule.GpgArgs
 
 trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport {
   @deprecated("Use `sonatypeCentralGpgArgsForKey` instead.", "1.0.1")
-  def sonatypeCentralGpgArgs: T[String] = Task { SonatypeCentralPublishModule.sonatypeCentralGpgArgsSentinelValue }
+  def sonatypeCentralGpgArgs: T[String] =
+    Task { SonatypeCentralPublishModule.sonatypeCentralGpgArgsSentinelValue }
 
   /**
    * @return (keyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.

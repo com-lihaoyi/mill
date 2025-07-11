@@ -552,7 +552,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   def defaultGpgArgsForPassphrase(passphrase: Option[String]): Seq[String] =
     internal.PublishModule.defaultGpgArgsForPassphrase(passphrase).map(Secret.unpack)
 
-  
+
 
   /**
    * Uri for publishing to the old / legacy Sonatype OSSRH.
@@ -624,7 +624,10 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
     val withConcretePaths = Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
 
     val gpgArgs0 =
-      internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(Task.env, GpgArgs.fromUserProvided(gpgArgs))
+      internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
+        Task.env,
+        GpgArgs.fromUserProvided(gpgArgs)
+      )
 
     new SonatypePublisher(
       sonatypeUri,
