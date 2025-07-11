@@ -251,6 +251,8 @@ trait MillBuildRootModule()(implicit
 
   override def scalacOptions: T[Seq[String]] = Task {
     super.scalacOptions() ++
+      // This warning comes up for package names with dashes in them like "package build.`foo-bar`",
+      // but Mill generally handles these fine, so no need to warn the user
       Seq("-deprecation", "-Wconf:msg=will be encoded on the classpath:silent")
   }
 
