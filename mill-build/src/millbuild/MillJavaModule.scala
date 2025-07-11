@@ -32,16 +32,19 @@ trait MillJavaModule extends JavaModule {
     Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
 
   def localTestExtraRepositories: T[Seq[PathRef]] = Task(Seq.empty[PathRef])
-  def localTestRepositories: T[Seq[PathRef]] = Task {
-    val mainRepos = Task.traverse(Seq(this) ++ moduleDeps ++ runModuleDeps) {
-      case m: MillPublishJavaModule => m.stagePublish.map(Seq(_))
-      case _ => Task.Anon(Nil)
-    }().flatten
-    val extraRepos = Task.traverse(Seq(this) ++ moduleDeps ++ runModuleDeps) {
-      case m: MillPublishJavaModule => m.localTestExtraRepositories.map(Seq(_))
-      case _ => Task.Anon(Nil)
-    }().flatten.flatten
-    mainRepos ++ extraRepos
+  def localTestRepositories: T[Seq[PathRef]] = {
+    val allModules = (Seq(this) ++ recursiveModuleDeps ++ recursiveRunModuleDeps).distinct
+    Task {
+      val mainRepos = Task.traverse(allModules) {
+        case m: MillPublishJavaModule => m.stagePublish.map(Seq(_))
+        case _ => Task.Anon(Nil)
+      }().flatten
+      val extraRepos = Task.traverse(allModules) {
+        case m: MillPublishJavaModule => m.localTestExtraRepositories.map(Seq(_))
+        case _ => Task.Anon(Nil)
+      }().flatten.flatten
+      mainRepos ++ extraRepos
+    }
   }
 
   def testMvnDeps: T[Seq[Dep]] = Seq(Deps.TestDeps.utest)
