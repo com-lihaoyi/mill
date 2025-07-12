@@ -18,6 +18,7 @@ import utest.*
 import mill.util.TokenReaders._
 import scala.jdk.CollectionConverters.*
 import scala.xml.NodeSeq
+import mill.javalib.internal
 
 object PublishModuleTests extends TestSuite {
 
@@ -47,7 +48,7 @@ object PublishModuleTests extends TestSuite {
       override def versionScheme = Some(VersionScheme.EarlySemVer)
 
       def checkSonatypeCreds(sonatypeCreds: String) = Task.Command {
-        PublishModule.checkSonatypeCreds(sonatypeCreds)()
+        internal.PublishModule.checkSonatypeCreds(sonatypeCreds)()
       }
     }
 

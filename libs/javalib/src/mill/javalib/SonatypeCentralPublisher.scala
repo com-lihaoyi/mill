@@ -6,7 +6,9 @@ import com.lumidion.sonatype.central.client.core.{
   SonatypeCredentials
 }
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
-import mill.api.{Logger, Result}
+import mill.api.Logger
+import mill.javalib.internal.PublishModule.GpgArgs
+import mill.javalib.internal.PublishModule.GpgArgs.UserProvided
 import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
 
@@ -19,7 +21,7 @@ import java.util.zip.ZipEntry
  */
 class SonatypeCentralPublisher(
     credentials: SonatypeCredentials,
-    gpgArgs: Seq[String],
+    gpgArgs: GpgArgs,
     readTimeout: Int,
     connectTimeout: Int,
     log: Logger,
@@ -27,6 +29,27 @@ class SonatypeCentralPublisher(
     env: Map[String, String],
     awaitTimeout: Int
 ) {
+  // bincompat forwarder
+  def this(
+      credentials: SonatypeCredentials,
+      gpgArgs: Seq[String],
+      readTimeout: Int,
+      connectTimeout: Int,
+      log: Logger,
+      workspace: os.Path,
+      env: Map[String, String],
+      awaitTimeout: Int
+  ) = this(
+    credentials,
+    UserProvided(gpgArgs),
+    readTimeout = readTimeout,
+    connectTimeout = connectTimeout,
+    log,
+    workspace,
+    env,
+    awaitTimeout = awaitTimeout
+  )
+
   private val sonatypeCentralClient =
     new SyncSonatypeClient(credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)
 

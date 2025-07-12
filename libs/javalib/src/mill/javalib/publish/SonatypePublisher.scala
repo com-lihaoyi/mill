@@ -1,7 +1,8 @@
 package mill.javalib.publish
 
 import mill.api.Logger
-
+import mill.javalib.PublishModule
+import mill.javalib.internal.PublishModule.GpgArgs
 import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
 
 /**
@@ -11,13 +12,13 @@ import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
  *
  * @see https://central.sonatype.org/pages/ossrh-eol/
  */
-@deprecated("Use mill.javalib.SonatypeCentralPublisher instead", "1.0.0")
+@deprecated("Use `mill.javalib.SonatypeCentralPublisher` instead", "1.0.0")
 class SonatypePublisher(
     uri: String,
     snapshotUri: String,
     credentials: String,
     signed: Boolean,
-    gpgArgs: Seq[String],
+    gpgArgs: GpgArgs,
     readTimeout: Int,
     connectTimeout: Int,
     log: Logger,
@@ -26,6 +27,34 @@ class SonatypePublisher(
     awaitTimeout: Int,
     stagingRelease: Boolean
 ) {
+  // bincompat forwarder
+  def this(
+      uri: String,
+      snapshotUri: String,
+      credentials: String,
+      signed: Boolean,
+      gpgArgs: Seq[String],
+      readTimeout: Int,
+      connectTimeout: Int,
+      log: Logger,
+      workspace: os.Path,
+      env: Map[String, String],
+      awaitTimeout: Int,
+      stagingRelease: Boolean
+  ) = this(
+    uri = uri,
+    snapshotUri = snapshotUri,
+    credentials = credentials,
+    signed = signed,
+    gpgArgs = GpgArgs.UserProvided(gpgArgs),
+    readTimeout = readTimeout,
+    connectTimeout = connectTimeout,
+    log = log,
+    workspace = workspace,
+    env = env,
+    awaitTimeout = awaitTimeout,
+    stagingRelease = stagingRelease
+  )
 
   private val api = new SonatypeHttpApi(
     uri,
