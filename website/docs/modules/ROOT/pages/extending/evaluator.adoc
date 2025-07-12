@@ -1,0 +1,18 @@
+= Evaluator API Commands
+
+The Mill `Evaluator` API provides programmatic access to Mill's core functionalities, allowing you to resolve, plan, and execute build tasks directly.
+This API is essential for extending Mill built-in features through interaction and control of the build process.
+
+== Dependency Mapper
+
+In this example, the `depMapper` task demonstrates how to use the `Evaluator` API to resolve and execute multiple build tasks,
+then analyze and report on dependency usage within your source files using both `resolveTasks` and `execute`.
+
+This task:
+
+* Resolves the main and test dependencies, as well as all source files using `resolveTasks`.
+* Executes these tasks to gather the actual dependencies values and source file paths with `execute`.
+* Scans each source file for import statements that match the resolved dependencies with helper methods.
+* Prints a report showing which dependencies are used by which source files, including the specific import statements.
+
+include::partial$example/extending/evaluator/1-resolve-segments.adoc[]
