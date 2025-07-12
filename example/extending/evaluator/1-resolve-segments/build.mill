@@ -20,13 +20,13 @@ object `package` extends ScalaModule {
     val tasks = Seq("mvnDeps", "test.mvnDeps", "allSourceFiles")
     val resolvedTasks = evaluator.resolveTasks(tasks, SelectMode.Multi).get
     val executeResult = evaluator.execute(resolvedTasks)
-    
+
     executeResult.values match {
       case mill.api.Result.Success(values) =>
         val mainDeps = values(0).asInstanceOf[Seq[mill.javalib.Dep]]
         val testDeps = values(1).asInstanceOf[Seq[mill.javalib.Dep]]
         val sourceFiles = values(2).asInstanceOf[Seq[mill.api.PathRef]].map(_.path)
-        
+
         println("--- Dependency Users Report ---")
         (mainDeps ++ testDeps).foreach { dep =>
           val depName = s"${dep.organization}:${dep.name}:${dep.version}"
@@ -40,12 +40,15 @@ object `package` extends ScalaModule {
           }
         }
         println("--- End Report ---")
-      case failure => 
+      case failure =>
         println(s"Task execution failed: $failure")
     }
   }
 
-  def findDependencyUsage(dep: mill.javalib.Dep, sourceFiles: Seq[os.Path]): Seq[(os.Path, Seq[String])] = {
+  def findDependencyUsage(
+      dep: mill.javalib.Dep,
+      sourceFiles: Seq[os.Path]
+  ): Seq[(os.Path, Seq[String])] = {
     sourceFiles.collect {
       case file =>
         val imports = extractImportsForDep(os.read(file), dep)
@@ -55,7 +58,7 @@ object `package` extends ScalaModule {
 
   def extractImportsForDep(content: String, dep: mill.javalib.Dep): Seq[String] = {
     val importRegex = """import\s+([^\s\n;]+)""".r
-    
+
     importRegex.findAllMatchIn(content)
       .map(_.group(1))
       .filter(_.startsWith(dep.name))
