@@ -1,10 +1,8 @@
 package build
 import mill.*, scalalib.*
 
-import mill.define._
-import mill.define.SelectMode
-import mill.api.Result.create
-import mill.api.Result
+import mill.api._
+import mill.api.daemon.SelectMode
 
 object `package` extends ScalaModule {
   def scalaVersion = "2.13.11"
@@ -18,26 +16,61 @@ object `package` extends ScalaModule {
     def testFramework = "utest.runner.Framework"
   }
 
-  def customSegmentCommand(evaluator: Evaluator, tasks: String*) = Task.Command(exclusive = true) {
-    val segmentsResult = evaluator
-      .resolveSegments(tasks, SelectMode.Multi)
-      .get
-
-    segmentsResult.foreach { segment =>
-      println(s"Segment: ${segment.render}")
+  def depMapper(evaluator: Evaluator) = Task.Command(exclusive = true) {
+    val tasks = Seq("mvnDeps", "test.mvnDeps", "allSourceFiles")
+    val resolvedTasks = evaluator.resolveTasks(tasks, SelectMode.Multi).get
+    val executeResult = evaluator.execute(resolvedTasks)
+    
+    executeResult.values match {
+      case mill.api.Result.Success(values) =>
+        val mainDeps = values(0).asInstanceOf[Seq[mill.javalib.Dep]]
+        val testDeps = values(1).asInstanceOf[Seq[mill.javalib.Dep]]
+        val sourceFiles = values(2).asInstanceOf[Seq[mill.api.PathRef]].map(_.path)
+        
+        println("--- Dependency Users Report ---")
+        (mainDeps ++ testDeps).foreach { dep =>
+          val depName = s"${dep.organization}:${dep.name}:${dep.version}"
+          val usageInfo = findDependencyUsage(dep, sourceFiles)
+          if (usageInfo.nonEmpty) {
+            println(s"Dependency: $depName\nUsed By Files:")
+            usageInfo.foreach { case (file, imports) =>
+              println(s" - ${file.relativeTo(os.pwd)} (via: ${imports.mkString(", ")})")
+            }
+            println()
+          }
+        }
+        println("--- End Report ---")
+      case failure => 
+        println(s"Task execution failed: $failure")
     }
-    ()
+  }
+
+  def findDependencyUsage(dep: mill.javalib.Dep, sourceFiles: Seq[os.Path]): Seq[(os.Path, Seq[String])] = {
+    sourceFiles.collect {
+      case file =>
+        val imports = extractImportsForDep(os.read(file), dep)
+        if (imports.nonEmpty) Some((file, imports)) else None
+    }.flatten
+  }
+
+  def extractImportsForDep(content: String, dep: mill.javalib.Dep): Seq[String] = {
+    val importRegex = """import\s+([^\s\n;]+)""".r
+    
+    importRegex.findAllMatchIn(content)
+      .map(_.group(1))
+      .filter(_.startsWith(dep.name))
+      .toSeq
+      .distinct
   }
 
 }
 
-// This command resolves the segments of the given tasks and prints them.
-// The segments are the parts of the task names that are used to group tasks.
+// This command generates a report of dependency usage in source files.
+// It uses resolveTasks and execute to gather information about dependencies and their usage in source files
 
 /** Usage
 
-> ./mill customSegmentCommand compile test
-Segment: compile
-Segment: test
+> ./mill depMapper
+--- Dependency Users Report ---
 
 */
