@@ -11,7 +11,7 @@ import mill.util.Jvm
 /**
  * Module that provides functionality around creating and configuring JVM assembly jars
  */
-trait AssemblyModule extends mill.api.Module {
+trait AssemblyModule extends mill.api.Module with OfflineSupportModule {
   outer =>
 
   def finalMainClassOpt: T[Either[String, String]]
@@ -148,6 +148,11 @@ trait AssemblyModule extends mill.api.Module {
       created.pathRef
     }
   }
+
+  override def prepareOffline(all: mainargs.Flag): Task.Command[Seq[PathRef]] = Task.Command {
+    AssemblyModule.prepareOffline(all)()
+  }
+
 }
 object AssemblyModule extends ExternalModule with CoursierModule with OfflineSupportModule {
 
