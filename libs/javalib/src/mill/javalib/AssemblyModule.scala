@@ -11,7 +11,7 @@ import mill.util.Jvm
 /**
  * Module that provides functionality around creating and configuring JVM assembly jars
  */
-trait AssemblyModule extends mill.api.Module {
+trait AssemblyModule extends mill.api.Module with OfflineSupportModule {
   outer =>
 
   def finalMainClassOpt: T[Either[String, String]]
@@ -148,20 +148,20 @@ trait AssemblyModule extends mill.api.Module {
       created.pathRef
     }
   }
+
+  override def prepareOffline(all: mainargs.Flag): Task.Command[Seq[PathRef]] = Task.Command {
+    (
+      super.prepareOffline(all)() ++
+        AssemblyModule.jarjarabramsWorkerClasspath()
+    ).distinct
+  }
 }
-object AssemblyModule extends ExternalModule with CoursierModule with OfflineSupportModule {
+object AssemblyModule extends ExternalModule with CoursierModule {
 
   def jarjarabramsWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
       Dep.millProjectModule("mill-libs-javalib-jarjarabrams-worker")
     ))
-  }
-
-  override def prepareOffline(all: mainargs.Flag): Task.Command[Seq[PathRef]] = Task.Command {
-    (
-      super.prepareOffline(all)() ++
-        jarjarabramsWorkerClasspath()
-    ).distinct
   }
 
   private[mill] def jarjarabramsWorkerClassloader: Task.Worker[ClassLoader] = Task.Worker {
