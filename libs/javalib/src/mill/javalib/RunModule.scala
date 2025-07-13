@@ -306,11 +306,17 @@ object RunModule {
       val mainArgs = args.value
       val classPath = runClasspath ++ extraRunClasspath
       val jvmArgs = Option(forkArgs).getOrElse(forkArgs0)
-      Option(useCpPassingJar) match {
+      val useCpPassingJar1 = Option(useCpPassingJar) match {
         case Some(b) => b: Boolean
         case None => useCpPassingJar0
       }
       val env = Option(forkEnv).getOrElse(forkEnv0)
+
+      val cpPassingJarPath =
+        if useCpPassingJar1 then
+          Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false))
+        else
+          None
 
       BuildCtx.withFilesystemCheckerDisabled {
         if (background) {
@@ -336,8 +342,7 @@ object RunModule {
             stdin = "",
             stdout = stdout,
             stderr = stderr,
-            cpPassingJarPath =
-              Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
+            cpPassingJarPath = cpPassingJarPath,
             javaHome = javaHome,
             destroyOnExit = false
           )
@@ -352,8 +357,7 @@ object RunModule {
             stdin = os.Inherit,
             stdout = os.Inherit,
             stderr = os.Inherit,
-            cpPassingJarPath =
-              Some(os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)),
+            cpPassingJarPath = cpPassingJarPath,
             javaHome = javaHome
           )
         }
