@@ -12,7 +12,7 @@
 // ----
 //
 // You have a smaller `build.mill` with the config for each sub-folder broken
-// out into that folder's respective `package.mill
+// out into that folder's respective `package.mill`
 //
 // ----
 // foo/
@@ -25,6 +25,11 @@
 //         package.mill
 // build.mill
 // ----
+//
+// This is useful in larger projects, as it co-locates the build definition
+// for each module in the same sub-folder as the relevant code. This can
+// make things easier to find compared to having every module's build configuration
+// in a single large `build.mill` that may grow to thousands of lines long.
 //
 // === Example Project
 //

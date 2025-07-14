@@ -7,7 +7,7 @@ import mill.*, pythonlib.*
 
 object foo extends PythonModule {
   // This Script will be the entry point for the bundle
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source("src/foo.py")
 
   // These Dependencies will be used in the bundle
   def pythonDeps = Seq("pyfiglet==1.0.2", "termcolor==2.5.0")

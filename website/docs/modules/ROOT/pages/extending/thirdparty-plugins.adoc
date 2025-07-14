@@ -67,9 +67,7 @@ Project home: https://github.com/ml86/mill-antlr
 import net.mlbox.millantlr.AntlrModule
 
 object foo extends ScalaModule, AntlrModule {
-  override def antlrGrammarSources = Task.Sources {
-    Seq(os.pwd/"someGrammar.g4").map(PathRef(_))
-  }
+  override def antlrGrammarSources = Task.Sources("someGrammar.g4")
 }
 ----
 

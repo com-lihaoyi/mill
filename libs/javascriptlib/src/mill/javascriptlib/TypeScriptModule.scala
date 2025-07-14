@@ -5,7 +5,7 @@ import os.*
 
 import scala.annotation.tailrec
 import scala.util.Try
-import mill.scalalib.publish.licenseFormat
+import mill.javalib.publish.JsonFormatters.licenseFormat
 import mill.api.BuildCtx
 
 trait TypeScriptModule extends Module { outer =>
@@ -847,7 +847,7 @@ object TypeScriptModule {
       `type`: String = "",
       types: String = "",
       author: String = "",
-      license: mill.scalalib.publish.License = mill.scalalib.publish.License.MIT,
+      license: mill.javalib.publish.License = mill.javalib.publish.License.MIT,
       homepage: String = "",
       bin: ujson.Obj = ujson.Obj(),
       files: ujson.Arr = Seq.empty[String],

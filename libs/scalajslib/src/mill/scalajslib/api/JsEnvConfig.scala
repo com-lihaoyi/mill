@@ -1,8 +1,8 @@
 package mill.scalajslib.api
 
 import upickle.default.{ReadWriter => RW, macroRW}
-import mill.api.Mirrors.autoMirror
-import mill.api.Mirrors
+import mill.api.internal.Mirrors.autoMirror
+import mill.api.internal.Mirrors
 
 sealed trait JsEnvConfig
 object JsEnvConfig {

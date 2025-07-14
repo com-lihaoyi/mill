@@ -6,7 +6,7 @@ import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source("src/foo.py")
 
   def pythonDeps = Seq("flask==3.1.0")
 

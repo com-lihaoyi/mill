@@ -3,7 +3,7 @@ package mill.contrib.gitlab
 import mill.T
 import mill.api.ExecResult.Failure
 import mill.api.Discover
-import mill.scalalib.publish.PomSettings
+import mill.javalib.publish.PomSettings
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.{TestSuite, Tests, assertMatch, test}

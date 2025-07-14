@@ -178,7 +178,7 @@ private object Inspect {
         javaModuleDeps.nonEmpty || javaCompileModuleDeps.nonEmpty || javaRunModuleDeps.nonEmpty
 
       val defaultTaskOpt = module match {
-        case taskMod: TaskModule => Some(s"${module}.${taskMod.defaultTask()}")
+        case taskMod: DefaultTaskModule => Some(s"${module}.${taskMod.defaultTask()}")
         case _ => None
       }
 

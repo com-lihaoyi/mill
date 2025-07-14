@@ -3,7 +3,7 @@ package mill.util
 import mainargs.TokensReader
 import mill.api.*
 import mill.api.daemon.internal.EvaluatorApi
-import mill.util.{LeftoverTaskTokenReader, TokenReaders0}
+import mill.util.{LeftoverTaskTokenReader, TokenReaders}
 private[mill] class EvaluatorTokenReader[T]() extends mainargs.TokensReader.Constant[Evaluator] {
   def read(): Either[String, Evaluator] = Right(
     new EvaluatorProxy(() => Evaluator.currentEvaluator)
@@ -21,8 +21,8 @@ private class LeftoverTaskTokenReader[T](tokensReaderOfT: TokensReader.Leftover[
  * Contains the additional instances of [[mainargs.TokensReader]] necessary to support
  * `Task.Command` entrypoints
  */
-object TokenReaders extends TokenReaders0
-trait TokenReaders0 {
+object TokenReaders extends TokenReaders
+trait TokenReaders {
   implicit def millEvaluatorTokenReader[T]: mainargs.TokensReader[Evaluator] =
     new mill.util.EvaluatorTokenReader[T]()
 

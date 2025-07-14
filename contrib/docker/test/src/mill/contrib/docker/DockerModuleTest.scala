@@ -1,7 +1,7 @@
 package mill
 package contrib.docker
 
-import mill.scalalib.JavaModule
+import mill.javalib.JavaModule
 import mill.api.ExecResult
 import mill.api.Discover
 import mill.testkit.UnitTester

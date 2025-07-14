@@ -6,7 +6,7 @@ import mill.*, pythonlib.*
 
 object foo extends PythonModule {
 
-  def mainScript = Task.Source { "src/foo.py" }
+  def mainScript = Task.Source("src/foo.py")
 
   def moduleDeps = Seq(bar)
 
@@ -23,7 +23,7 @@ object foo extends PythonModule {
 
 object bar extends PythonModule {
 
-  def mainScript = Task.Source { "src/bar.py" }
+  def mainScript = Task.Source("src/bar.py")
 
   object test extends PythonTests, TestModule.Unittest
 

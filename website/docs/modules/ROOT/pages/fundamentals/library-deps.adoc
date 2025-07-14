@@ -27,7 +27,7 @@ mvn"{organization}:{name}:{version}[;{attribute}={value}]*"
 
 When working in other Java and Scala projects, you will find some synonyms, which typically all mean the same.
 For example in the Maven ecosystem, the `organization` is called the `group` and the `name` is called the `artifact`.
-The whole triplet is often called `GAV`.
+The whole triplet is often called `GAV`, short for "Group, Artifact, Version".
 
 In Mill we use the additional term `artifactId` which is identical to the `name` when used in the normal form shown above.
 When a different form is used, e.g. some double-colons are used between the parts, the `artifactId` typically contains suffixes, but the name doesn't.
@@ -97,7 +97,7 @@ It is also possible to use a higher version of the same library dependencies alr
 
 == Transitive dependencies
 
-To render a tree of dependencies (transitive included) you can run `mill myModule.mvnDepsTree`. Here is how the start of `./mill __.mvnDepsTree` looks like in the `mill` project itself:
+To render a tree of dependencies (transitive included) you can run `mill myModule.showMvnDepsTree`. Here is how the start of `./mill __.showMvnDepsTree` looks like in the `mill` project itself:
 
 [source,text]
 ----
@@ -116,14 +116,14 @@ To render a tree of dependencies (transitive included) you can run `mill myModul
 ----
 
 After compiling your module(s) you can find and examine files such as `mvnDeps.json` and `transitiveMvnDeps.json` in your `out` build's folder for a given module.
-After running the `mvnDepsTree` command you'll also find the `mvnDepsTree.json` and `mvnDepsTree.log` file that contain the output of the above `mvnDepsTree` command.
+After running the `showMvnDepsTree` command you'll also find the `showMvnDepsTree.json` and `showMvnDepsTree.log` file that contain the output of the above `showMvnDepsTree` command.
 
 You can observe the actual version being used by running `mill show myModule.resolvedMvnDeps`. If you run `mill myModule.resolvedMvnDeps`, the same information is available in `out/myModule/resolvedMvnDeps.json`.
 
 === Figuring out where a dependency comes from
 
 There will be times when you want to figure out where a dependency is coming
-from. The output of `mvnDepsTree` can be quite large in larger projects so the
+from. The output of `showMvnDepsTree` can be quite large in larger projects so the
 command provides a nice utility to be able to target the part of the tree that
 brings in a specific dependency.
 
@@ -133,8 +133,8 @@ artifact is coming from using the `--whatDependsOn` argument:
 
 [source,txt]
 ----
-❯ ./mill -i dev.run ~/Documents/scala-workspace/com-lihaoyi/mill  main.mvnDepsTree --whatDependsOn com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13
-[33/33] main.mvnDepsTree
+❯ ./mill -i dev.run ~/Documents/scala-workspace/com-lihaoyi/mill  main.showMvnDepsTree --whatDependsOn com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13
+[33/33] main.showMvnDepsTree
 └─ com.github.plokhotnyuk.jsoniter-scala:jsoniter-scala-core_2.13:2.13.5
    ├─ io.get-coursier:coursier_2.13:2.1.0-RC1
    └─ org.virtuslab.scala-cli:config_2.13:0.1.16
@@ -170,7 +170,7 @@ You can also use `.excludeOrg` or `excludeName`:
 
 There is also a short notation available:
 
-.Example: Shot notation to exclude `fansi_2.12` library from transitive dependency set of `pprint`.
+.Example: Short notation to exclude `fansi_2.12` library from transitive dependency set of `pprint`.
 [source,scala]
 ----
 def deps = Seq(

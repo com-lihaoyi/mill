@@ -5,7 +5,7 @@ import coursier.maven.MavenRepository
 import mill._
 import mill.util.Tasks
 import mill.scalalib._
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.util.Jvm
 import mill.api.SelectMode
@@ -49,16 +49,17 @@ object `package` extends mill.Module {
     def runMvnDeps = Seq(Deps.testng)
     def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.javalib)
     def docJar: T[PathRef] = super[JavaModule].docJar
+    def compileModuleDeps = super.moduleDeps ++ Seq(build.libs.javalib)
   }
 
   object twirllib extends ContribModule {
     def compileModuleDeps = Seq(build.libs.javalib)
-    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.javalib)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
 
   object playlib extends ContribModule {
     def moduleDeps = Seq(twirllib, playlib.api)
-    def compileModuleDeps = Seq(build.libs.javalib)
+    def compileModuleDeps = Seq(build.libs.scalalib)
 
     def transitiveLocalTestOverrides =
       super.transitiveLocalTestOverrides() ++ Task.traverse(
@@ -76,7 +77,7 @@ object `package` extends mill.Module {
         )
     }
 
-    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.javalib)
+    def testModuleDeps: Seq[JavaModule] = super.testModuleDeps ++ Seq(build.libs.scalalib)
 
     object api extends MillPublishJavaModule
 
@@ -100,15 +101,15 @@ object `package` extends mill.Module {
   }
 
   object scalapblib extends ContribModule {
-    def compileModuleDeps = Seq(build.libs.javalib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
+    def compileModuleDeps = Seq(build.libs.scalalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
 
   object scoverage extends ContribModule {
     object api extends MillPublishJavaModule
 
     def moduleDeps = Seq(scoverage.api)
-    def compileModuleDeps = Seq(build.libs.javalib)
+    def compileModuleDeps = Seq(build.libs.scalalib)
 
     def transitiveLocalTestOverrides =
       super.transitiveLocalTestOverrides() ++ Seq(worker2.localTestOverride())
@@ -169,6 +170,7 @@ object `package` extends mill.Module {
   object proguard extends ContribModule {
     def compileModuleDeps = Seq(build.libs.javalib)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
+    def moduleDeps = super.moduleDeps ++ Seq(build.libs.scalalib)
   }
 
   object flyway extends ContribModule {
@@ -222,6 +224,6 @@ object `package` extends mill.Module {
 
   object jmh extends ContribModule {
     def compileModuleDeps = Seq(build.libs.javalib)
-    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.javalib)
+    def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
   }
 }

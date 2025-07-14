@@ -18,7 +18,7 @@ trait PlayApiModule extends Dependencies with Router with Server {
       }
       Seq(mvn"org.scalatestplus.play::scalatestplus-play::${scalatestPlusPlayVersion}")
     }
-    override def sources: T[Seq[PathRef]] = Task.Sources { moduleDir }
+    override def sources: T[Seq[PathRef]] = Task.Sources(moduleDir)
   }
 
   def start(args: Task[Args] = Task.Anon(Args())) = Task.Command { run(args)() }

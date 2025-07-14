@@ -5,7 +5,7 @@ import mill.api.Result
 import mill.util.JarManifest
 import mill.api.*
 import mill.api.Task.Simple as T
-import mill.scalalib.Assembly.UnopenedInputStream
+import mill.javalib.Assembly.UnopenedInputStream
 import mill.util.Jvm
 
 /**

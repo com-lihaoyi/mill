@@ -3,14 +3,14 @@ import mill.*
 import mill.api.BuildCtx
 
 def myInput = Task.Input {
-  os.proc("git", "rev-parse", "HEAD").call(cwd = BuildCtx.workspaceRoot)
+  os.call(cmd = ("git", "rev-parse", "HEAD"), cwd = BuildCtx.workspaceRoot)
     .out
     .text()
     .trim()
 }
 
 // A generalization of <<_sources>>, ``Task.Input``s are tasks that re-evaluate
-// _every time_ (unlike <<_anonymous_tasks>>), containing an
+// _every time_, containing an
 // arbitrary block of code.
 //
 // Inputs can be used to force re-evaluation of some external property that may
@@ -21,11 +21,8 @@ def myInput = Task.Input {
 
 def gitStatusTask = Task {
   "version-" +
-    os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
-      .call(cwd = BuildCtx.workspaceRoot)
-      .out
-      .text()
-      .trim()
+    os.call(cmd = ("git", "log", "-1", "--pretty=format:%h-%B "), cwd = BuildCtx.workspaceRoot)
+      .out.text().trim()
 }
 
 /** Usage
@@ -51,11 +48,8 @@ def gitStatusTask = Task {
 // To fix this, you can wrap your `git log` in a `Task.Input`:
 
 def gitStatusInput = Task.Input {
-  os.proc("git", "log", "-1", "--pretty=format:%h-%B ")
-    .call(cwd = BuildCtx.workspaceRoot)
-    .out
-    .text()
-    .trim()
+  os.call(cmd = ("git", "log", "-1", "--pretty=format:%h-%B "), cwd = BuildCtx.workspaceRoot)
+    .out.text().trim()
 }
 
 def gitStatusTask2 = Task { "version-" + gitStatusInput() }

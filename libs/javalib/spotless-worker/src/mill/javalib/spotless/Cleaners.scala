@@ -2,7 +2,7 @@ package mill.javalib.spotless
 
 import com.diffplug.spotless.{java as _, scala as _, *}
 import mill.api.{PathRef, TaskCtx}
-import mill.scalalib.spotless._
+import mill.javalib.spotless._
 import java.nio.charset.Charset
 import java.nio.file.FileSystems
 import scala.collection.mutable

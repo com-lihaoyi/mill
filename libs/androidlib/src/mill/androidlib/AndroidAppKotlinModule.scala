@@ -2,8 +2,8 @@ package mill.androidlib
 
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.kotlinlib.{Dep, DepSyntax}
-import mill.scalalib.TestModule.Junit5
-import mill.scalalib.{JavaModule, TestModule}
+import mill.javalib.TestModule.Junit5
+import mill.javalib.{JavaModule, TestModule}
 import mill.*
 import mill.api.JsonFormatters.given
 import mill.androidlib.Versions

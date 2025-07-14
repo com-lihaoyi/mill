@@ -1,0 +1,119 @@
+// This example demonstrates how to write and test Mill plugin, and publish it to
+// Sonatype's Maven Central so it can be used by other developers over the internet
+// via xref:extending/import-mvn-plugins.adoc[//| mvnDeps].
+
+// == Project Configuration
+package build
+import mill.*, scalalib.*, publish.*
+import mill.util.BuildInfo.{millVersion, millBinPlatform}
+
+object myplugin extends ScalaModule, PublishModule {
+  def scalaVersion = "3.7.1"
+
+  // Set the `platformSuffix` so the name indicates what Mill version it is compiled for
+  def platformSuffix = s"_mill$millBinPlatform"
+
+  // Depend on `mill-libs` so we can compile against Mill APIs
+  def mvnDeps = Seq(mvn"com.lihaoyi::mill-libs:$millVersion")
+
+  object test extends ScalaTests, TestModule.Utest { // Unit test submodule
+    def mvnDeps = Seq(mvn"com.lihaoyi::mill-testkit:$millVersion")
+  }
+
+  // Publishing Config
+  def publishVersion = "0.0.1"
+
+  def pomSettings = PomSettings(
+    description = "Line Count Mill Plugin",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/myplugin",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "myplugin"),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+  )
+}
+
+// Mill plugins are fundamentally just JVM libraries that depend on Mill. Any vanilla JVM
+// library (whether written in Java or Scala) can be used in a Mill `build.mill` file via
+// `//| mvnDeps`, but Mill plugins tend to integrate with Mill by defining a
+// xref:fundamentals/modules.adoc#_module_traits[trait for modules in your `build.mill` to inherit from].
+//
+// The above `build.mill` file sets up a `object myplugin extends ScalaModule` not just to
+// compile your Mill plugin project, but also to run unit tests using `mill-testkit`,
+// and to configure it for publishing to Maven Central via `PublishModule`.
+// It looks like any other Scala project, except for a few dependencies on `mill-libs`
+// and `mill-testkit` to bring in the appropriate libraries
+
+// == Plugin Implementation
+
+// Although Mill plugins can contain arbitrary code, the most common
+// way that plugins interact with your project is by providing ``trait``s for
+// your modules to inherit from.
+//
+// Like any other `trait`, a Mill plugin's traits modules allow you to:
+//
+// * Add additional tasks to an existing module
+// * Override existing tasks, possibly referencing the old task via `super`
+// * Define abstract tasks that the final module must implement
+//
+// In this example, we define a `LineCountJavaModule` that does all of the above:
+// it defines an abstract `def lineCountResourceFileName` task, it adds an additional
+// `def lineCount` task, and it overrides the `def resources`:
+
+/** See Also: myplugin/src/LineCountJavaModule.scala */
+
+// This is a synthetic example, but it serves to illustrate how Mill plugins are typically
+// defined. The plugin can be compiled via:
+
+/** Usage
+
+> ./mill myplugin.compile
+compiling 1 Scala source...
+
+*/
+
+// Mill provides the `mill-testkit` library to make it easy for you to test your Mill
+// plugin. The example project above has set up tests that can be run via the normal `.test`
+// command, as shown below:
+
+/** Usage
+
+> ./mill myplugin.test
++ myplugin.UnitTests.unit...
+
+*/
+
+// `mill-testkit` is the same set of helpers that Mill uses internally for its
+// own testing, and covers three approaches:
+//
+// == Unit Tests
+//
+// These are tests that run in-process, with the Mill `build.mill` defined as a `TestRootModule`,
+// and using a `UnitTester` to run its tasks and inspect their output. `UnitTester` is provided
+// a path to a folder on disk containing the files that are to be built with the given `TestRootModule`,
+// and can be used to evaluate tasks (by direct reference or by string-selector) and inspect
+// the results in-memory:
+
+/** See Also: myplugin/test/src/mill/testkit/UnitTests.scala */
+/** See Also: myplugin/test/resources/unit-test-project/src/foo/Foo.java */
+
+// Mill Unit tests are good for exercising most kinds of business logic in Mill plugins. Their
+// main limitation is that they do not exercise the Mill subprocess-launch and bootstrap process,
+// but that should not be a concern for most Mill plugins.
+//
+// == Publishing
+
+/** Usage
+
+> sed -i.bak 's/0.0.1/0.0.2/g' build.mill
+
+> ./mill myplugin.publishLocal
+Publishing Artifact(com.lihaoyi,myplugin_millSNAPSHOT_3,0.0.2) to ivy repo...
+
+*/
+// Mill plugins are JVM libraries like any other library written in Java or Scala. Thus they
+// are published the same way: by extending `PublishModule` and defining the module's `publishVersion`
+// and `pomSettings`. Once done, you can publish the plugin locally via `publishLocal`,
+// or to Maven Central via `mill.scalalib.PublishModule/` for other developers to
+// use. For more details on publishing Mill projects, see the documentation for
+// xref:scalalib/publishing.adoc[Publishing Scala Projects]

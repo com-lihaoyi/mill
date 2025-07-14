@@ -1,4 +1,4 @@
-= Migrating From Gradle to Mill
+= Importing Gradle Projects
 :page-aliases: Migrating_A_Gradle_Build_to_Mill.adoc
 :icons: font
 

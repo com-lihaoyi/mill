@@ -43,7 +43,7 @@ object NodeJSConfigTests extends TestSuite {
       override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
-        override def sources = Task.Sources { this.moduleDir / "src/utest" }
+        override def sources = Task.Sources("src/utest")
         override def utestVersion = testUtestVersion
         override def jsEnvConfig = Task { JsEnvConfig.NodeJs(args = nodeArgs) }
       }

@@ -2,7 +2,7 @@ package mill.contrib.artifactory
 
 import mill._
 import mill.api.Result
-import scalalib._
+import javalib._
 import mill.contrib.artifactory.ArtifactoryPublishModule.checkArtifactoryCreds
 import mill.api.{ExternalModule, Task}
 
@@ -28,7 +28,7 @@ trait ArtifactoryPublishModule extends PublishModule {
       readTimeout: Int = 60000,
       connectTimeout: Int = 5000
   ): Command[Unit] = Task.Command {
-    val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
+    val (artifacts, artifactInfo) = publishArtifacts().withConcretePath
     new ArtifactoryPublisher(
       artifactoryUri,
       artifactorySnapshotUri,
@@ -36,7 +36,7 @@ trait ArtifactoryPublishModule extends PublishModule {
       readTimeout,
       connectTimeout,
       Task.log
-    ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo)
+    ).publish(artifacts, artifactInfo)
   }
 }
 

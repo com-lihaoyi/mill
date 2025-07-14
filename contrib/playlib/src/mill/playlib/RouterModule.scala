@@ -8,7 +8,7 @@ import mill.{T, Task}
 
 trait RouterModule extends ScalaModule with Version {
 
-  def routes: T[Seq[PathRef]] = Task.Sources { "routes" }
+  def routes: T[Seq[PathRef]] = Task.Sources("routes")
 
   def routeFiles = Task {
     val paths = routes().flatMap(file => os.walk(file.path))

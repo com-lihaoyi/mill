@@ -6,7 +6,7 @@ import mill.scalalib._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import millbuild.*
 
 /**

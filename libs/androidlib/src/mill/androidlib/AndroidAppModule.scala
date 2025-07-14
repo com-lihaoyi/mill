@@ -3,9 +3,10 @@ package mill.androidlib
 import coursier.params.ResolutionParams
 import mill.*
 import mill.api.Logger
-import mill.api.internal.{internal, *}
+import mill.api.internal.*
+import mill.api.daemon.internal.internal
 import mill.api.{ModuleRef, PathRef, Task}
-import mill.scalalib.*
+import mill.javalib.*
 import os.{Path, RelPath, zip}
 import upickle.default.*
 import scala.jdk.OptionConverters.RichOptional
@@ -314,10 +315,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     PathRef(alignedApk)
   }
 
-  // TODO alias, keystore pass and pass below are sensitive credentials and shouldn't be leaked to disk/console.
-  // In the current state they are leaked, because Task dumps output to the json.
-  // Should be fixed ASAP.
-
   /**
    * Name of the key alias in the release keystore. Default is not set.
    */
@@ -345,32 +342,68 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
+   * Saves the private keystore password into a file to be passed to [[androidApk]] via [[androidSignKeyDetails]]
+   * as a file parameter without risking exposing the release password in the logs.
+   *
+   * See more [[https://developer.android.com/tools/apksigner]]
+   * @return
+   */
+  def androidReleaseKeyStorePassFile: T[PathRef] = Task {
+    val filePass = Task.dest / "keystore_password.txt"
+    val keystorePass = androidReleaseKeyStorePass().getOrElse("")
+    os.write(filePass, keystorePass)
+    PathRef(filePass)
+  }
+
+  /**
+   * Saves the private key password into a file to be passed to [[androidApk]] via [[androidSignKeyDetails]]
+   * as a file parameter without risking exposing the release password in the logs.
+   *
+   * See more [[https://developer.android.com/tools/apksigner]]
+   *
+   * @return
+   */
+  def androidReleaseKeyPassFile: T[PathRef] = Task {
+    val filePass = Task.dest / "key_password.txt"
+    val keyPass = androidReleaseKeyPass().getOrElse("")
+    os.write(filePass, keyPass)
+    PathRef(filePass)
+  }
+
+  def androidSignKeyPasswordParams: Task[Seq[String]] = Task.Anon {
+    if (androidIsDebug())
+      Seq(
+        "--ks-pass",
+        s"pass:$debugKeyStorePass",
+        "--key-pass",
+        s"pass:$debugKeyPass"
+      )
+    else
+      Seq(
+        "--ks-pass",
+        s"file:${androidReleaseKeyStorePassFile().path}",
+        "--key-pass",
+        s"file:${androidReleaseKeyPassFile().path}"
+      )
+  }
+
+  /**
    * Generates the command-line arguments required for Android app signing.
    *
    * Uses the release keystore if release build type is set; otherwise, defaults to a generated debug keystore.
    */
   def androidSignKeyDetails: T[Seq[String]] = Task {
 
-    val keystorePass = {
-      if (androidIsDebug()) debugKeyStorePass else androidReleaseKeyStorePass().get
-    }
     val keyAlias = {
       if (androidIsDebug()) debugKeyAlias else androidReleaseKeyAlias().get
-    }
-    val keyPass = {
-      if (androidIsDebug()) debugKeyPass else androidReleaseKeyPass().get
     }
 
     Seq(
       "--ks",
       androidKeystore().path.toString,
       "--ks-key-alias",
-      keyAlias,
-      "--ks-pass",
-      s"pass:$keystorePass",
-      "--key-pass",
-      s"pass:$keyPass"
-    )
+      keyAlias
+    ) ++ androidSignKeyPasswordParams()
   }
 
   /**

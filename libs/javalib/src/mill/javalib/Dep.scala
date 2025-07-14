@@ -136,7 +136,7 @@ object Dep {
       .configure(attributes = attributes)
   }
 
-  @unused private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
+  @unused private implicit val depFormat: RW[Dependency] = mill.javalib.JsonFormatters.depFormat
 
   def unparse(dep: Dep): Option[String] = {
     val org = dep.dep.module.organization.value
@@ -242,7 +242,7 @@ case class BoundDep(
 }
 
 object BoundDep {
-  @unused private implicit val depFormat: RW[Dependency] = mill.scalalib.JsonFormatters.depFormat
+  @unused private implicit val depFormat: RW[Dependency] = mill.javalib.JsonFormatters.depFormat
   private val jsonify0: upickle.default.ReadWriter[BoundDep] = upickle.default.macroRW
 
   // Use literal JSON strings for common cases so that files

@@ -5,10 +5,10 @@ import mill.api.Result
 import mill.constants.DaemonFiles
 import mill.util.Jvm
 import mill.api.TaskCtx
-import mill.scalalib.JavaHomeModule
+import mill.javalib.JavaHomeModule
 import mill.api.BuildCtx
 
-trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer =>
+trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule { outer =>
 
   /**
    *  The direct dependencies of this module.
@@ -55,7 +55,7 @@ trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer
    *
    * Python modules will be defined relative to these directories.
    */
-  def sources: T[Seq[PathRef]] = Task.Sources { "src" }
+  def sources: T[Seq[PathRef]] = Task.Sources("src")
 
   /**
    * The folders where the resource files for this module live.
@@ -65,7 +65,7 @@ trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer
   /**
    * The python script to run. This file may not exist if this module is only a library.
    */
-  def mainScript: T[PathRef] = Task.Source { "src/main.py" }
+  def mainScript: T[PathRef] = Task.Source("src/main.py")
 
   override def pythonToolDeps: T[Seq[String]] = Task {
     super.pythonToolDeps() ++ Seq(
@@ -178,13 +178,13 @@ trait PythonModule extends PipModule with TaskModule with JavaHomeModule { outer
    * @see [[mainScript]]
    */
   def runBackground(args: mill.api.Args) = Task.Command(persistent = true) {
-    val backgroundPaths = mill.scalalib.RunModule.BackgroundPaths(Task.dest)
+    val backgroundPaths = mill.javalib.RunModule.BackgroundPaths(Task.dest)
     val pwd0 = os.Path(java.nio.file.Paths.get(".").toAbsolutePath)
 
     BuildCtx.withFilesystemCheckerDisabled {
       Jvm.spawnProcess(
         mainClass = "mill.javalib.backgroundwrapper.MillBackgroundWrapper",
-        classPath = mill.scalalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
+        classPath = mill.javalib.JvmWorkerModule.backgroundWrapperClasspath().map(_.path).toSeq,
         jvmArgs = Nil,
         env = runnerEnvTask(),
         mainArgs = backgroundPaths.toArgs ++ Seq(

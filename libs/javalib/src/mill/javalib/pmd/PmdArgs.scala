@@ -1,8 +1,10 @@
 package mill.javalib.pmd
 
 import mainargs.{Leftover, ParserForClass, arg, main}
+import mill.api.experimental
 
 @main(doc = "Arguments for PmdModule")
+@experimental
 case class PmdArgs(
     @arg(name = "fail-on-violation", short = 'v', doc = "Fail if violations are found")
     failOnViolation: Boolean = true,
@@ -14,6 +16,7 @@ case class PmdArgs(
     sources: Leftover[String]
 )
 
+@experimental
 object PmdArgs {
   implicit val PFC: ParserForClass[PmdArgs] = ParserForClass[PmdArgs]
 }

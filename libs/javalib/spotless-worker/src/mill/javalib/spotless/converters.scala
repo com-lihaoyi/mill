@@ -9,8 +9,8 @@ import coursier.core.Configuration
 import coursier.core.VariantSelector.ConfigurationBased
 import coursier.parse.DependencyParser
 import mill.api.TaskCtx
-import mill.scalalib.CoursierModule
-import mill.scalalib.spotless.Format.*
+import mill.javalib.CoursierModule
+import mill.javalib.spotless.Format.*
 import os.Path
 
 import java.io.File

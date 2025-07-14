@@ -1,0 +1,35 @@
+package build.libs.scalalib
+import scala.util.Properties
+import scala.util.chaining._
+
+import coursier.maven.MavenRepository
+import mill._
+import mill.util.Tasks
+import mill.scalalib._
+import mill.scalalib.publish._
+import mill.util.Jvm
+import mill.api.SelectMode
+import mill.contrib.buildinfo.BuildInfo
+import mill.T
+import mill.api.Cross
+import millbuild.*
+
+object `package` extends MillStableScalaModule {
+  def moduleDeps = Seq(build.libs.javalib)
+  def mvnDeps =
+    Seq(Deps.scalaXml, Deps.semanticDbShared) ++
+      // despite compiling with Scala 3, we need to include scala-reflect
+      // for the scala.reflect.internal.util.ScalaClassLoader
+      // used in ScalaModule.scalacHelp,
+      // (also transitively included by com.eed3si9n.jarjarabrams:jarjar-abrams-core)
+      // perhaps the class can be copied here?
+      Seq(Deps.scalaReflect(scalaVersion()))
+
+  def compileMvnDeps = Seq(Deps.sonatypeCentralClient)
+  def runMvnDeps = Seq(Deps.sonatypeCentralClient)
+
+  def testForkEnv = {
+    val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
+    super.testForkEnv() ++ Map("LC_ALL" -> locale)
+  }
+}

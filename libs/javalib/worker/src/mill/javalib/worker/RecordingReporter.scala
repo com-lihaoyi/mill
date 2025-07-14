@@ -1,6 +1,6 @@
 package mill.javalib.worker
 
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import sbt.internal.inc.Analysis
 import xsbti.compile.CompileAnalysis
 

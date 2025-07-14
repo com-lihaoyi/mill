@@ -104,32 +104,35 @@ trait NettyJniModule extends NettyModule {
       .toSeq
 
     os.makeDir.all(Task.dest / "src/main/c")
-    os.proc("jar", "xf", sourceJar.path).call(cwd = Task.dest / "src/main/c")
+    os.call(cmd = ("jar", "xf", sourceJar.path), cwd = Task.dest / "src/main/c")
 
-    os.proc(
-      "clang",
-      // CFLAGS
-      "-O3",
-      "-Werror",
-      "-fno-omit-frame-pointer",
-      "-Wunused-variable",
-      "-fvisibility=hidden",
-      "-I" + (Task.dest / "src/main/c"),
-      "-I" + `transport-native-unix-common`.cHeaders().path,
-      "-I" + sys.props("java.home") + "/include/",
-      "-I" + sys.props("java.home") + "/include/darwin",
-      "-I" + sys.props("java.home") + "/include/linux",
-      // LD_FLAGS
-      "-Wl,-weak_library," + (`transport-native-unix-common`.make()._1.path / "libnetty-unix-common.a"),
-      "-Wl,-platform_version,macos,10.9,10.9",
-      "-Wl,-single_module",
-      "-Wl,-undefined",
-      "-Wl,dynamic_lookup",
-      "-fno-common",
-      "-DPIC",
-      // sources
-      os.list(cSources().path)
-    ).call(cwd = Task.dest, env = Map("MACOSX_DEPLOYMENT_TARGET" -> "10.9"))
+    os.call(
+      cmd = (
+        "clang",
+        // CFLAGS
+        "-O3",
+        "-Werror",
+        "-fno-omit-frame-pointer",
+        "-Wunused-variable",
+        "-fvisibility=hidden",
+        "-I" + (Task.dest / "src/main/c"),
+        "-I" + `transport-native-unix-common`.cHeaders().path,
+        "-I" + sys.props("java.home") + "/include/",
+        "-I" + sys.props("java.home") + "/include/darwin",
+        "-I" + sys.props("java.home") + "/include/linux",
+        // LD_FLAGS
+        "-Wl,-weak_library," + (`transport-native-unix-common`.make()._1.path / "libnetty-unix-common.a"),
+        "-Wl,-platform_version,macos,10.9,10.9",
+        "-Wl,-single_module",
+        "-Wl,-undefined",
+        "-Wl,dynamic_lookup",
+        "-fno-common",
+        "-DPIC",
+        // sources
+        os.list(cSources().path)
+      ),
+      env = Map("MACOSX_DEPLOYMENT_TARGET" -> "10.9")
+    )
 
     PathRef(Task.dest / "a.out")
   }
@@ -416,16 +419,19 @@ object `testsuite-http2` extends NettyTestSuiteModule {
     val url = s"https://github.com/summerwind/h2spec/releases/download/v2.6.0/$binaryName"
     os.write(Task.dest / "h2spec.tar.gz", requests.get(url))
 
-    os.proc("tar", "xzf", Task.dest / "h2spec.tar.gz").call(cwd = Task.dest)
+    os.call(cmd = ("tar", "xzf", Task.dest / "h2spec.tar.gz"))
     PathRef(Task.dest / "h2spec")
   }
   override def testForked(args: String*) = Task.Command {
-    val server = os.proc(assembly().path).spawn(stdout = os.Inherit)
+    val server = os.spawn(cmd = assembly().path, stdout = os.Inherit)
     try {
       Thread.sleep(1000) // let the server start up
 
-      os.proc(h2Spec().path, "-p9000", "--junit-report", Task.dest / "report.xml")
-        .call(stdout = os.Inherit, check = false)
+      os.call(
+        cmd = (h2Spec().path, "-p9000", "--junit-report", Task.dest / "report.xml"),
+        stdout = os.Inherit,
+        check = false
+      )
 
       // Use the Scala XML library to parse and fish out the data we want from the report
       val xmlFile = scala.xml.XML.loadFile((Task.dest / "report.xml").toIO)
@@ -581,10 +587,10 @@ object `transport-native-unix-common` extends NettyModule {
 
     os.copy(makefile().path, Task.dest / "Makefile")
     os.copy(cSources().path, Task.dest / "src/main/c", createFolders = true)
-    os.proc("jar", "xf", sourceJar.path).call(cwd = Task.dest / "src/main/c")
+    os.call(cmd = ("jar", "xf", sourceJar.path), cwd = Task.dest / "src/main/c")
 
-    os.proc("make").call(
-      cwd = Task.dest,
+    os.call(
+      cmd = "make",
       env = Map(
         "CC" -> "clang",
         "AR" -> "ar",

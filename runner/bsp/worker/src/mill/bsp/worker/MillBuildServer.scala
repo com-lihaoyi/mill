@@ -706,7 +706,7 @@ private class MillBuildServer(
             val mainModule = ev.rootModule.asInstanceOf[mill.api.daemon.internal.MainModuleApi]
             val compileTaskName = (module.moduleSegments ++ Label("compile")).render
             logger.debug(s"about to clean: ${compileTaskName}")
-            val cleanTask = mainModule.bspClean(ev, Seq(compileTaskName)*)
+            val cleanTask = mainModule.bspMainModule().bspClean(ev, Seq(compileTaskName)*)
             val cleanResult = evaluate(
               ev,
               s"Cleaning cache of ${module.bspDisplayName}",

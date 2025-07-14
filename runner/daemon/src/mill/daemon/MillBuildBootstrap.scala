@@ -12,7 +12,8 @@ import mill.api.daemon.internal.{
 import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.{millBuild, millRunnerState}
-import mill.api.internal.{RootModule0, Watchable}
+import mill.api.daemon.Watchable
+import mill.api.internal.RootModule
 import mill.api.{BuildCtx, PathRef, SelectMode}
 import mill.internal.PrefixLogger
 import mill.meta.{FileImportGraph, MillBuildRootModule}
@@ -28,8 +29,8 @@ import scala.collection.mutable.Buffer
 
 /**
  * Logic around bootstrapping Mill, creating a [[MillBuildRootModule.BootstrapModule]]
- * and compiling builds/meta-builds and classloading their [[RootModule0]]s so we
- * can evaluate the requested tasks on the [[RootModule0]] representing the user's
+ * and compiling builds/meta-builds and classloading their [[RootModule]]s so we
+ * can evaluate the requested tasks on the [[RootModule]] representing the user's
  * `build.mill` file.
  *
  * When Mill is run in client-server mode, or with `--watch`, then data from
@@ -41,7 +42,6 @@ import scala.collection.mutable.Buffer
  * re-evaluation. This should be transparent, improving performance without
  * affecting behavior.
  */
-@internal
 class MillBuildBootstrap(
     projectRoot: os.Path,
     output: os.Path,
@@ -127,7 +127,7 @@ class MillBuildBootstrap(
           else {
             val bootstrapModule =
               new MillBuildRootModule.BootstrapModule()(
-                new RootModule0.Info(currentRoot, output, projectRoot)
+                new RootModule.Info(currentRoot, output, projectRoot)
               )
             RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
           }
@@ -356,7 +356,6 @@ class MillBuildBootstrap(
 
 }
 
-@internal
 object MillBuildBootstrap {
   // Keep this outside of `case class MillBuildBootstrap` because otherwise the lambdas
   // tend to capture the entire enclosing instance, causing memory leaks

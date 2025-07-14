@@ -3,7 +3,7 @@ package mill.javalib.revapi
 import mill.api.PathRef
 import mill.api.Discover
 import mill.javalib.*
-import mill.scalalib.publish.{PomSettings, VersionControl}
+import mill.javalib.publish.{PomSettings, VersionControl}
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.{T, Task}
 import utest.*

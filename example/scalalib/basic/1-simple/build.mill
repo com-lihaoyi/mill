@@ -58,7 +58,7 @@ object foo extends ScalaModule {
 //         ...
 // ----
 //
-// NOTE: The default Mill source folder layout `foo/src/` differs from that of `sbt`'s
+// NOTE: The default Mill source folder layout `foo/src/` differs from that of ``sbt``'s
 // `foo/src/main/scala`.
 // If you wish to use the `sbt` source folder layout, e.g. for migrating
 // an existing codebase, you should use
@@ -83,7 +83,8 @@ foo.compile
 ...
 foo.run
 ...
-
+*/
+/** Usage
 > ./mill inspect foo.compile # Show documentation and inputs of a task
 foo.compile(ScalaModule.scala:...)
     Compiles the current module to generate compiled classfiles/bytecode.
@@ -92,22 +93,27 @@ Inputs:
     foo.upstreamCompileOutput
     foo.allSourceFiles
     foo.compileClasspath
-
+*/
+/** Usage
 > ./mill foo.compile # compile sources into classfiles
 ...
 compiling 1 Scala source to...
-
+*/
+/** Usage
 > ./mill foo.run # run the main method, if any
 error: Missing argument: --text <str>
-
+*/
+/** Usage
 > ./mill foo.run --text hello
 <h1>hello</h1>
-
+*/
+/** Usage
 > ./mill foo.test
 ...
 + foo.FooTests...simple ...  <h1>hello</h1>
 + foo.FooTests...escaping ...  <h1>&lt;hello&gt;</h1>
-
+*/
+/** Usage
 > ./mill foo.assembly # bundle classfiles and libraries into a jar for deployment
 
 > ./mill show foo.assembly # show the output of the assembly task

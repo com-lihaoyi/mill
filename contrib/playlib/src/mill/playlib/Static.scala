@@ -25,7 +25,7 @@ trait Static extends ScalaModule {
   /**
    *  Directories to include assets from
    */
-  def assetSources = Task.Sources { os.sub / "public" }
+  def assetSources = Task.Sources("public")
 
   /*
   Collected static assets for the project

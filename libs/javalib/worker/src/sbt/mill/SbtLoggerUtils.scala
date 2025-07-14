@@ -1,6 +1,6 @@
 package sbt.mill
 
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import sbt.internal.util.{Appender, ManagedLogger}
 import sbt.util.{Level, LoggerContext}
 

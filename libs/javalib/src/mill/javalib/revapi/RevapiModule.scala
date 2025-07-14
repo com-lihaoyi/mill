@@ -4,7 +4,7 @@ import mill.*
 import mill.javalib.*
 import mill.javalib.revapi.RevapiModule.optional
 import mill.javalib.api.Versions
-import mill.scalalib.publish.Artifact
+import mill.javalib.publish.Artifact
 import mill.util.Jvm
 
 /**

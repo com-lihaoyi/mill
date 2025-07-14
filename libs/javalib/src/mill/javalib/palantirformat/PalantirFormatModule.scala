@@ -1,11 +1,11 @@
 package mill.javalib.palantirformat
 
 import mill.api.{TaskCtx, PathRef}
-import mill.api.{Discover, ExternalModule, TaskModule}
+import mill.api.{Discover, ExternalModule, DefaultTaskModule}
 import mill.api.BuildCtx
 import mill.util.Tasks
 import mill.util.TokenReaders.*
-import mill.scalalib.JavaModule
+import mill.javalib.JavaModule
 import mill.util.Jvm
 import mill.{Command, T, Task}
 
@@ -42,7 +42,8 @@ trait PalantirFormatModule extends JavaModule with PalantirFormatBaseModule {
   }
 }
 
-object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule with TaskModule {
+object PalantirFormatModule extends ExternalModule with PalantirFormatBaseModule
+    with DefaultTaskModule {
 
   override def defaultTask(): String = "formatAll"
 

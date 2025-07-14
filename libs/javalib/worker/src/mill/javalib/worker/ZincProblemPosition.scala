@@ -3,7 +3,7 @@ package mill.javalib.worker
 import java.io.File
 import java.util.Optional
 import mill.api.daemon.internal.ProblemPosition
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 
 import scala.jdk.OptionConverters.RichOptional
 

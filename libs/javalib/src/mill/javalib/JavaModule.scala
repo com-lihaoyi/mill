@@ -16,13 +16,13 @@ import mill.api.daemon.internal.bsp.{
   BspUri,
   JvmBuildTarget
 }
-import mill.scalalib.*
+import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
-import mill.api.{ModuleRef, PathRef, Segment, Task, TaskCtx, TaskModule}
+import mill.api.{ModuleRef, PathRef, Segment, Task, TaskCtx, DefaultTaskModule}
 import mill.javalib.api.CompilationResult
-import mill.scalalib.bsp.{BspJavaModule, BspModule}
-import mill.scalalib.internal.ModuleUtils
-import mill.scalalib.publish.Artifact
+import mill.javalib.bsp.{BspJavaModule, BspModule}
+import mill.javalib.internal.ModuleUtils
+import mill.javalib.publish.Artifact
 import mill.util.{JarManifest, Jvm}
 import os.Path
 import scala.util.chaining.scalaUtilChainingOps
@@ -35,7 +35,7 @@ trait JavaModule
     extends mill.api.Module
     with WithJvmWorkerModule
     with TestModule.JavaModuleBase
-    with TaskModule
+    with DefaultTaskModule
     with RunModule
     with GenIdeaModule
     with CoursierModule
@@ -45,15 +45,13 @@ trait JavaModule
     with AssemblyModule
     with JavaModuleApi { outer =>
 
-  private lazy val bspExt = {
-    import BspJavaModule.given
-    ModuleRef(this.internalBspJavaModule)
+  private[mill] lazy val bspExt: ModuleRef[mill.javalib.bsp.BspJavaModule] = {
+    ModuleRef(new BspJavaModule.Wrap(this) {}.internalBspJavaModule)
   }
   override private[mill] def bspJavaModule: () => BspJavaModuleApi = () => bspExt()
 
-  private lazy val genIdeaInternalExt = {
-    import mill.scalalib.idea.GenIdeaInternal.given
-    ModuleRef(this.internalGenIdea)
+  private[mill] lazy val genIdeaInternalExt: ModuleRef[mill.javalib.idea.GenIdeaModule] = {
+    ModuleRef(new mill.javalib.idea.GenIdeaModule.Wrap(this) {}.internalGenIdea)
   }
 
   private[mill] override def genIdeaInternal: () => GenIdeaInternalApi =
@@ -774,7 +772,7 @@ trait JavaModule
    * The folders where the resource files for this module live.
    * If you need resources to be seen by the compiler, use [[compileResources]].
    */
-  def resources: T[Seq[PathRef]] = Task.Sources { "resources" }
+  def resources: T[Seq[PathRef]] = Task.Sources("resources")
 
   /**
    * The folders where the compile time resource files for this module live.

@@ -1,6 +1,6 @@
 package mill.meta
 
-import mill.api.internal.internal
+import mill.api.daemon.internal.internal
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.*
 import mill.api.daemon.internal.MillScalaParser

@@ -13,7 +13,7 @@ import mill.api.ModuleRef
 import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
 import mill.javalib.api.{CompilationResult, JvmWorkerApi}
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
-import mill.scalalib.{JavaModule, JvmWorkerModule, Lib}
+import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
 import mill.*
 import java.io.File

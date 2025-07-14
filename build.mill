@@ -1,4 +1,4 @@
-//| mill-version: 1.0.0-RC3-31-eb2d11
+//| mill-version: 1.0.0-22-ce6899
 //| mill-jvm-opts: ["-XX:NonProfiledCodeHeapSize=250m", "-XX:ReservedCodeCacheSize=500m"]
 //| mill-opts: ["--jobs=0.5C"]
 
@@ -10,12 +10,12 @@ import millbuild.*
 //import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
 import coursier.VersionConstraint
-import mill.vcs.VcsVersion
+import mill.util.VcsVersion
 //import com.goyeau.mill.scalafix.ScalafixModule
 import mill._
 import mill.util.Tasks
 import mill.scalalib._
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.publish._
 import mill.api.SelectMode
 import mill.T
@@ -67,9 +67,6 @@ def millLastTag: T[String] = Task {
 
 def millDownloadPrefix = Task {
   s"${Settings.mavenRepoUrl}/com/lihaoyi/mill-dist"
-}
-def millDownloadUrl = Task {
-  s"${millDownloadPrefix()}/${millLastTag()}"
 }
 
 def millDownloadUrlCurrent = Task {

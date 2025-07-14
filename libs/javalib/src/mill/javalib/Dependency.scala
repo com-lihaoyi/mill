@@ -2,8 +2,8 @@ package mill.javalib
 
 import mill.{Task, given}
 import mill.api.{Discover, Evaluator, ExternalModule}
-import mill.scalalib.dependency.{DependencyUpdatesImpl, Format}
-import mill.scalalib.dependency.updates.ModuleDependenciesUpdates
+import mill.javalib.dependency.{DependencyUpdatesImpl, Format}
+import mill.javalib.dependency.updates.ModuleDependenciesUpdates
 
 /**
  * External module providing helper commands related to dependency updates

@@ -1,8 +1,8 @@
 package mill.javalib.junit5
 
 import mill.api.Discover
-import mill.scalalib.JavaModule
-import mill.scalalib.TestModule
+import mill.javalib.JavaModule
+import mill.javalib.TestModule
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 import mill.util.TokenReaders._
