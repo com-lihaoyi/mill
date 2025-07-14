@@ -46,7 +46,8 @@ object WorkerRemoteM2Publisher {
       artifacts: IterableOnce[M2Artifact]
   ): DeployResult = {
     setupPublishAndRun(workspace, artifacts) { (system, session, deployRequest) =>
-      val remoteRepository = RemoteRepository.Builder("local", "default", s"file://$publishTo").build()
+      val remoteRepository =
+        RemoteRepository.Builder("local", "default", s"file://$publishTo").build()
       deployRequest.setRepository(remoteRepository)
 
       system.deploy(session, deployRequest)

@@ -8,7 +8,14 @@ import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.api.DefaultTaskModule
 import mill.api.Result
-import mill.javalib.SonatypeCentralPublishModule.{defaultAwaitTimeout, defaultConnectTimeout, defaultCredentials, defaultReadTimeout, getPublishingTypeFromReleaseFlag, getSonatypeCredentials}
+import mill.javalib.SonatypeCentralPublishModule.{
+  defaultAwaitTimeout,
+  defaultConnectTimeout,
+  defaultCredentials,
+  defaultReadTimeout,
+  getPublishingTypeFromReleaseFlag,
+  getSonatypeCredentials
+}
 import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
@@ -79,8 +86,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
           artifacts
         )
         Task.log.info(s"Dry-run deployment to '$publishTo' finished with result: $result")
-      }
-      else {
+      } else {
         val result = worker.publishToRemote(
           uri = uri,
           workspace = Task.dest / "maven",
@@ -124,7 +130,9 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
     // The snapshot publishing does not use the same API as release publishing.
     if (artifact.version.endsWith("SNAPSHOT")) publishSnapshot()
     else {
-      if (dryRun.value) throw new IllegalArgumentException("Dry-run publishing is only supported for SNAPSHOT versions.")
+      if (dryRun.value) throw new IllegalArgumentException(
+        "Dry-run publishing is only supported for SNAPSHOT versions."
+      )
       else publishRelease()
     }
   }

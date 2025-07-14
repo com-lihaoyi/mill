@@ -15,7 +15,7 @@ class WorkerImpl extends internal.MavenWorkerSupport.Api {
       workspace: os.Path,
       username: String,
       password: String,
-      artifacts: IterableOnce[RemoteM2Publisher.M2Artifact],
+      artifacts: IterableOnce[RemoteM2Publisher.M2Artifact]
   ): RemoteM2Publisher.DeployResult = {
     // Aether logs everything that happens on the wire in DEBUG log level, so we want to silence that.
     val deployResult = withQuietLogging(List("org.apache.http")) {
@@ -32,7 +32,9 @@ class WorkerImpl extends internal.MavenWorkerSupport.Api {
   }
 
   override def publishToLocal(
-    publishTo: Path, workspace: Path, artifacts: IterableOnce[RemoteM2Publisher.M2Artifact]
+      publishTo: Path,
+      workspace: Path,
+      artifacts: IterableOnce[RemoteM2Publisher.M2Artifact]
   ): RemoteM2Publisher.DeployResult = {
     val deployResult = WorkerRemoteM2Publisher.publishLocal(
       publishTo = publishTo,
@@ -61,7 +63,8 @@ class WorkerImpl extends internal.MavenWorkerSupport.Api {
   }
 }
 object WorkerImpl {
-  def deployResultFromMaven(deployResult: org.eclipse.aether.deployment.DeployResult): RemoteM2Publisher.DeployResult = 
+  def deployResultFromMaven(deployResult: org.eclipse.aether.deployment.DeployResult)
+      : RemoteM2Publisher.DeployResult =
     RemoteM2Publisher.DeployResult(
       artifacts = deployResult.getArtifacts.iterator().asScala.map(_.toString).toVector,
       metadatas = deployResult.getMetadata.iterator().asScala.map(_.toString).toVector
