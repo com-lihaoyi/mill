@@ -76,11 +76,42 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
         workspacePath / "out" / "testProject" / "publishSonatypeCentral.dest" / "repository" / "io" / "github" /
           "mill_tests" / "testProject_3"
 
-      val metadataFile = publishedDir / "maven-metadata.xml"
+      val rootMetadataFile = publishedDir / "maven-metadata.xml"
+      assert(os.exists(rootMetadataFile))
+
+      val rootMetadataContents = os.read(rootMetadataFile)
+      assert(rootMetadataContents.contains("<version>0.0.1-SNAPSHOT</version>"))
+
+      val publishedVersionDir = publishedDir / "0.0.1-SNAPSHOT"
+
+      val metadataFile = publishedVersionDir / "maven-metadata.xml"
       assert(os.exists(metadataFile))
 
-      val metadataContents = os.read(metadataFile)
+      val metadataContents: String = os.read(metadataFile)
       assert(metadataContents.contains("<version>0.0.1-SNAPSHOT</version>"))
+
+      val timestampRegex = """<timestamp>(\d{8}\.\d{6})</timestamp>""".r
+      val timestamp = timestampRegex.findFirstMatchIn(metadataContents).map(_.group(1)).getOrElse{
+        throw new Exception(s"No timestamp found via $timestampRegex in $metadataFile:\n$metadataContents")
+      }
+
+      val expectedFiles = Vector(
+        rootMetadataFile,
+        publishedDir / "maven-metadata.xml.md5",
+        publishedDir / "maven-metadata.xml.sha1",
+        metadataFile,
+        publishedVersionDir / "maven-metadata.xml.md5",
+        publishedVersionDir / "maven-metadata.xml.sha1",
+        publishedVersionDir / s"testProject_3-0.0.1-$timestamp-1.jar",
+        publishedVersionDir / s"testProject_3-0.0.1-$timestamp-1.jar.md5",
+        publishedVersionDir / s"testProject_3-0.0.1-$timestamp-1.jar.sha1",
+        publishedVersionDir / s"testProject_3-0.0.1-$timestamp-1.pom",
+        publishedVersionDir / s"testProject_3-0.0.1-$timestamp-1.pom.md5",
+        publishedVersionDir / s"testProject_3-0.0.1-$timestamp-1.pom.sha1",
+      )
+      val actualFiles = os.walk(publishedDir).toVector
+      val missingFiles = expectedFiles.filterNot(actualFiles.contains)
+      assert(missingFiles.isEmpty)
     }
   }
 }
