@@ -85,6 +85,7 @@ trait JsonFormatters {
 
 object JsonFormatters extends JsonFormatters {
   object Default {
-    val subPathRW: RW[os.SubPath] = upickle.default.readwriter[String].bimap[os.SubPath](_.toString, os.SubPath(_))
+    val subPathRW: RW[os.SubPath] =
+      upickle.default.readwriter[String].bimap[os.SubPath](_.toString, os.SubPath(_))
   }
 }

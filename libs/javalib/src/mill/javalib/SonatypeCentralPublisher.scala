@@ -1,6 +1,10 @@
 package mill.javalib
 
-import com.lumidion.sonatype.central.client.core.{DeploymentName, PublishingType, SonatypeCredentials}
+import com.lumidion.sonatype.central.client.core.{
+  DeploymentName,
+  PublishingType,
+  SonatypeCredentials
+}
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
 import mill.javalib.internal.PublishModule.GpgArgs
@@ -56,7 +60,11 @@ class SonatypeCentralPublisher(
       artifact: Artifact,
       publishingType: PublishingType
   ): Unit =
-    publish(fileMapping.iterator.map { case (path, name) => os.SubPath(name) -> path }.toMap, artifact, publishingType)
+    publish(
+      fileMapping.iterator.map { case (path, name) => os.SubPath(name) -> path }.toMap,
+      artifact,
+      publishingType
+    )
 
   def publish(
       fileMapping: Map[os.SubPath, os.Path],
@@ -85,10 +93,10 @@ class SonatypeCentralPublisher(
   ): Unit = {
     val releases = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
     log.info(s"mappings ${pprint.apply(
-      releases.map { case (a, fileSetContents) =>
-        (a, fileSetContents.keys.toVector.sorted.map(_.toString))
-      }
-    )}")
+        releases.map { case (a, fileSetContents) =>
+          (a, fileSetContents.keys.toVector.sorted.map(_.toString))
+        }
+      )}")
 
     val releaseGroups = releases.groupBy(_.artifact.group)
     val wd = os.pwd / "out/publish-central"

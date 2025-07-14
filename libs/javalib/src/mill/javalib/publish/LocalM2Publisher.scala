@@ -22,7 +22,7 @@ class LocalM2Publisher(m2Repo: os.Path) {
       publishInfos: Seq[PublishInfo]
   )(implicit ctx: TaskCtx.Log): Seq[os.Path] =
     publish(artifact, LocalM2Publisher.createFileSetContents(pom, artifact, publishInfos))
-  
+
   /**
    * Publishes a module in the local Maven repository
    *
@@ -50,9 +50,9 @@ object LocalM2Publisher {
    * @param publishInfos Files to publish in this module
    */
   def createFileSetContents(
-    pom: os.Path,
-    artifact: Artifact,
-    publishInfos: Seq[PublishInfo]
+      pom: os.Path,
+      artifact: Artifact,
+      publishInfos: Seq[PublishInfo]
   ): Map[os.SubPath, os.Path] = {
     val releaseDir =
       (os.RelPath(".") / artifact.group.split("[.]") / artifact.id / artifact.version).asSubPath

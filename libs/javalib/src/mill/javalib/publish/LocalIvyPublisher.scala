@@ -52,6 +52,7 @@ object LocalIvyPublisher
         .map(os.Path(_))
         .getOrElse(os.home / ".ivy2") / "local"
     ) {
+
   /**
    * @param pom          The POM of this module
    * @param ivy          If right, the path to the ivy.xml file of this module; if left, its content as a String
@@ -59,10 +60,10 @@ object LocalIvyPublisher
    * @param publishInfos Files to publish in this module
    */
   def createFileSetContents(
-    pom: os.Path,
-    ivy: FileSetContents.Writable,
-    artifact: Artifact,
-    publishInfos: Seq[PublishInfo]
+      pom: os.Path,
+      ivy: FileSetContents.Writable,
+      artifact: Artifact,
+      publishInfos: Seq[PublishInfo]
   ): Map[os.SubPath, FileSetContents.Writable] = {
     Map(
       os.SubPath("poms") / s"${artifact.id}.pom" -> pom,

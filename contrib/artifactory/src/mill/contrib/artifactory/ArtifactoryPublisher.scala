@@ -35,8 +35,10 @@ class ArtifactoryPublisher(
 
     val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
 
-    if (snapshots.nonEmpty) publishToRepo(snapshotUri, snapshots.iterator.flatMap(_._2).toMap, snapshots.map(_._1))
-    if (releases.nonEmpty) publishToRepo(releaseUri, releases.iterator.flatMap(_._2).toMap, releases.map(_._1))
+    if (snapshots.nonEmpty)
+      publishToRepo(snapshotUri, snapshots.iterator.flatMap(_._2).toMap, snapshots.map(_._1))
+    if (releases.nonEmpty)
+      publishToRepo(releaseUri, releases.iterator.flatMap(_._2).toMap, releases.map(_._1))
   }
 
   private def publishToRepo(

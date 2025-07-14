@@ -567,13 +567,13 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
     "https://central.sonatype.com/repository/maven-snapshots/"
 
   case class PublishData(
-    meta: Artifact,
-    // Unfortunately we can't change the signature of this to `Map[os.SubPath, PathRef]` because
-    // we need to keep the binary compatibility and case classes are notoriously difficult to change
-    // while preserving binary compatibility.
-    //
-    // So instead we convert back and forth.
-    payload: Seq[(PathRef, String)]
+      meta: Artifact,
+      // Unfortunately we can't change the signature of this to `Map[os.SubPath, PathRef]` because
+      // we need to keep the binary compatibility and case classes are notoriously difficult to change
+      // while preserving binary compatibility.
+      //
+      // So instead we convert back and forth.
+      payload: Seq[(PathRef, String)]
   ) {
     def payloadAsMap: Map[os.SubPath, PathRef] = PublishData.seqToMap(payload)
 

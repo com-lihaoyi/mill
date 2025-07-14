@@ -66,7 +66,10 @@ class SonatypePublisher(
 
   // binary compatibility forwarder
   def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact, release: Boolean): Unit =
-    publishAll(release, fileMapping.iterator.map { case (path, name) => os.SubPath(name) -> path }.toMap -> artifact)
+    publishAll(
+      release,
+      fileMapping.iterator.map { case (path, name) => os.SubPath(name) -> path }.toMap -> artifact
+    )
 
   def publish(fileMapping: Map[os.SubPath, os.Path], artifact: Artifact, release: Boolean): Unit =
     publishAll(release, fileMapping -> artifact)
