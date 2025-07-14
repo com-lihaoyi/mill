@@ -24,16 +24,7 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
               PASSWORD_ENV_VARIABLE_NAME -> publishPassword
             )
           )
-          println(
-            s"""Success: ${res.isSuccess}
-               |
-               |stdout:
-               |${res.out}
-               |
-               |stderr:
-               |${res.err}
-               |""".stripMargin
-          )
+          println(res.debugString)
           // Extract the values so that `assert` macro would print them out nicely if the test fails
           // instead of printing `res` twice.
           val isSuccess = res.isSuccess
@@ -72,16 +63,7 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
           PASSWORD_ENV_VARIABLE_NAME -> "mill-tests-password"
         )
       )
-      println(
-        s"""Success: ${res.isSuccess}
-           |
-           |stdout:
-           |${res.out}
-           |
-           |stderr:
-           |${res.err}
-           |""".stripMargin
-      )
+      println(res.debugString)
       // Extract the values so that `assert` macro would print them out nicely if the test fails
       // instead of printing `res` twice.
       val isSuccess = res.isSuccess
