@@ -80,7 +80,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
           workspace = Task.dest / "maven",
           artifacts
         )
-        Task.log.info(s"Dry-run deployment to '$publishTo' finished with result: $result")
+        Task.log.info(s"Dry-run publishing to '$publishTo' finished with result: $result")
       } else {
         val result = worker.publishToRemote(
           uri = uri,
@@ -89,7 +89,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
           password = finalCredentials.password,
           artifacts
         )
-        Task.log.info(s"Deployment to '$uri' finished with result: $result")
+        Task.log.info(s"Publishing to '$uri' finished with result: $result")
       }
     }
 
@@ -117,17 +117,20 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
       )
 
       if (dryRun) {
+        val publishTo = Task.dest / "repository"
         publisher.publishAllToLocal(
-          Task.dest / "repository",
+          publishTo,
           singleBundleName = None,
           (fileMapping, artifact)
         )
+        Task.log.info(s"Dry-run publishing to '$publishTo' finished.")
       } else {
         publisher.publish(
           fileMapping,
           artifact,
           getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
         )
+        Task.log.info("Publishing finished.")
       }
     }
 
