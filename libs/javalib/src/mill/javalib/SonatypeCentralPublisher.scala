@@ -1,10 +1,6 @@
 package mill.javalib
 
-import com.lumidion.sonatype.central.client.core.{
-  DeploymentName,
-  PublishingType,
-  SonatypeCredentials
-}
+import com.lumidion.sonatype.central.client.core.{DeploymentName, PublishingType, SonatypeCredentials}
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
 import mill.javalib.internal.PublishModule.GpgArgs
@@ -12,6 +8,7 @@ import mill.javalib.internal.PublishModule.GpgArgs.UserProvided
 import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
 
+import java.io.File
 import java.nio.file.Files
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
@@ -71,7 +68,7 @@ class SonatypeCentralPublisher(
       artifact: Artifact,
       publishingType: PublishingType
   ): Unit =
-    publishAll(publishingType, None, fileMapping -> artifact)
+    publishAll(publishingType, singleBundleName = None, fileMapping -> artifact)
 
   def publishAll(
       publishingType: PublishingType,
@@ -91,52 +88,90 @@ class SonatypeCentralPublisher(
       singleBundleName: Option[String],
       artifacts: (Map[os.SubPath, os.Path], Artifact)*
   ): Unit = {
+    val prepared = prepareToPublishAll(singleBundleName, artifacts*)
+    log.info(prepared.mappingsString)
+
+    prepared.deployments.foreach { case (zipFile, deploymentName) =>
+      publishFile(zipFile, deploymentName, publishingType)
+    }
+  }
+
+  private[mill] def publishAllToLocal(
+      publishTo: os.Path,
+      singleBundleName: Option[String],
+      artifacts: (Map[os.SubPath, os.Path], Artifact)*
+  ): Unit = {
+    val prepared = prepareToPublishAll(singleBundleName, artifacts*)
+    log.info(prepared.mappingsString)
+
+    prepared.deployments.foreach { case (zipFile, deploymentName) =>
+      val target = publishTo / deploymentName.unapply
+      log.info(s"Unzipping $zipFile to $target")
+      os.makeDir.all(target)
+      os.unzip(os.Path(zipFile.toPath), target)
+    }
+  }
+
+  private case class PreparedArtifacts(
+    mappings: Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
+    deployments: Vector[(zipFile: File, deploymentName: DeploymentName)]
+  ) {
+    def mappingsString: String = s"mappings ${pprint(
+      mappings.map { case (a, fileSetContents) =>
+        (a, fileSetContents.keys.toVector.sorted.map(_.toString))
+      }
+    )}"
+  }
+
+  /** Prepare artifacts for publishing. */
+  private def prepareToPublishAll(
+      singleBundleName: Option[String],
+      artifacts: (Map[os.SubPath, os.Path], Artifact)*
+  ): PreparedArtifacts = {
     val releases = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
-    log.info(s"mappings ${pprint.apply(
-        releases.map { case (a, fileSetContents) =>
-          (a, fileSetContents.keys.toVector.sorted.map(_.toString))
-        }
-      )}")
 
     val releaseGroups = releases.groupBy(_.artifact.group)
     val wd = os.pwd / "out/publish-central"
     os.makeDir.all(wd)
 
-    singleBundleName.fold {
-      for ((_, groupReleases) <- releaseGroups) {
-        groupReleases.foreach { case (artifact, data) =>
-          val fileNameWithoutExtension = s"${artifact.group}-${artifact.id}-${artifact.version}"
-          val zipFile = streamToFile(fileNameWithoutExtension, wd) { outputStream =>
-            log.info(
-              s"bundle $fileNameWithoutExtension with ${pprint.apply(data.keys.toVector.sorted.map(_.toString))}"
+    singleBundleName match {
+      case None =>
+        val deployments = releaseGroups.valuesIterator.flatMap { groupReleases =>
+          groupReleases.map { case (artifact, data) =>
+            val fileNameWithoutExtension = s"${artifact.group}-${artifact.id}-${artifact.version}"
+            val zipFile = streamToFile(fileNameWithoutExtension, wd) { outputStream =>
+              log.info(
+                s"bundle $fileNameWithoutExtension with ${pprint.apply(data.keys.toVector.sorted.map(_.toString))}"
+              )
+              zipFilesToJar(data, outputStream)
+            }
+
+            val deploymentName = DeploymentName.fromArtifact(
+              artifact.group,
+              artifact.id,
+              artifact.version
             )
-            zipFilesToJar(data, outputStream)
+            (zipFile, deploymentName)
           }
+        }.toVector
 
-          val deploymentName = DeploymentName.fromArtifact(
-            artifact.group,
-            artifact.id,
-            artifact.version
-          )
-          publishFile(zipFile, deploymentName, publishingType)
-        }
-      }
+        PreparedArtifacts(releases, deployments)
 
-    } { singleBundleName =>
-      val zipFile = streamToFile(singleBundleName, wd) { outputStream =>
-        for ((_, groupReleases) <- releaseGroups) {
-          groupReleases.foreach { case (_, data) =>
-            zipFilesToJar(data, outputStream)
+      case Some(singleBundleName) =>
+        val zipFile = streamToFile(singleBundleName, wd) { outputStream =>
+          for ((_, groupReleases) <- releaseGroups) {
+            groupReleases.foreach { case (_, data) =>
+              zipFilesToJar(data, outputStream)
+            }
           }
         }
-      }
 
-      val deploymentName = DeploymentName(singleBundleName)
-
-      publishFile(zipFile, deploymentName, publishingType)
+        val deploymentName = DeploymentName(singleBundleName)
+        PreparedArtifacts(releases, Vector((zipFile, deploymentName)))
     }
   }
 
+  /** Publishes a zip file to Sonatype Central. */
   private def publishFile(
       zipFile: java.io.File,
       deploymentName: DeploymentName,

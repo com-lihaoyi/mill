@@ -115,21 +115,22 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
         env = Task.env,
         awaitTimeout = sonatypeCentralAwaitTimeout()
       )
-      publisher.publish(
-        fileMapping,
-        artifact,
-        getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
-      )
+
+      if (dryRun) {
+        publisher.publishAllToLocal(Task.dest / "repository", singleBundleName = None, (fileMapping, artifact))
+      }
+      else {
+        publisher.publish(
+          fileMapping,
+          artifact,
+          getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
+        )
+      }
     }
 
     // The snapshot publishing does not use the same API as release publishing.
     if (artifact.version.endsWith("SNAPSHOT")) publishSnapshot()
-    else {
-      if (dryRun) throw new IllegalArgumentException(
-        "Dry-run publishing is only supported for SNAPSHOT versions."
-      )
-      else publishRelease()
-    }
+    else publishRelease()
   }
 }
 
