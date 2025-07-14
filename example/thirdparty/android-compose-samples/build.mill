@@ -272,7 +272,7 @@ object JetNews extends mill.api.Module {
 
 /** Usage
 
-> ./mill -j1 JetNews.app.androidApk
+> ./mill JetNews.app.androidApk
 
 > ./mill show JetLagged.app.createAndroidVirtualDevice
 ...Name: test, DeviceId: medium_phone...
