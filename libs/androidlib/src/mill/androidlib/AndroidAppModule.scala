@@ -728,7 +728,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
         filePath = debugKeystoreFile.toString,
         password = debugKeyPass
       )
-
     }
 
     PathRef(debugKeystoreFile)

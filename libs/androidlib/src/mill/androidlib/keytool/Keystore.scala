@@ -1,18 +1,14 @@
 package mill.androidlib.keytool
 
-// Manages keystore operations using Bouncy Castle
+// Manages keystore operations
 
 import java.security.KeyStore
 import java.io.{FileInputStream, FileOutputStream, File}
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import java.security.Security
 
 object Keystore:
 
-  Security.addProvider(new BouncyCastleProvider())
-
-  def createKeystore(ksType: String = "PKCS12", provider: String = "BC"): KeyStore =
-    val ks = KeyStore.getInstance(ksType, provider)
+  def createKeystore(ksType: String = "PKCS12"): KeyStore =
+    val ks = KeyStore.getInstance(ksType)
     ks.load(null, null) // initialize empty keystore
     ks
 
@@ -27,17 +23,16 @@ object Keystore:
   def saveEmptyKeystore(
       filePath: String,
       password: String,
-      ksType: String,
-      provider: String
+      ksType: String = "PKCS12"
   ): Unit =
-    val ks = createKeystore(ksType, provider)
+    val ks = createKeystore(ksType)
     saveKeystore(ks, filePath, password)
 
-  def loadKeystore(filePath: String, password: String, ksType: String, provider: String): KeyStore =
-    loadKeystore(new File(filePath), password.toCharArray, ksType, provider)
+  def loadKeystore(filePath: String, password: String, ksType: String = "PKCS12"): KeyStore =
+    loadKeystore(new File(filePath), password.toCharArray, ksType)
 
-  def loadKeystore(file: File, password: Array[Char], ksType: String, provider: String): KeyStore =
-    val ks = KeyStore.getInstance(ksType, provider)
+  private def loadKeystore(file: File, password: Array[Char], ksType: String): KeyStore =
+    val ks = KeyStore.getInstance(ksType)
     val fis = new FileInputStream(file)
     try ks.load(fis, password)
     finally fis.close()
@@ -60,3 +55,11 @@ object Keystore:
       .takeWhile(_.hasMoreElements)
       .map(_.nextElement())
       .toList
+
+  def getKey(ks: KeyStore, alias: String, password: String): Option[java.security.Key] =
+    try {
+      Some(ks.getKey(alias, password.toCharArray))
+    } catch {
+      case _: Exception =>
+        None
+    }

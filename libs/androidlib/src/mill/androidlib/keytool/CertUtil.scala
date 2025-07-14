@@ -12,16 +12,14 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
 object CertUtil:
-
   Security.addProvider(new BouncyCastleProvider())
-
   def createSelfSignedCertificate(
       dname: String,
       keyPair: KeyPair,
       validityDays: Int = 365
   ): X509Certificate = {
     val now = new Date()
-    val notAfter = new Date(now.getTime + validityDays.toLong * 86400000L)
+    val notAfter = new Date(now.getTime + validityDays.toLong * 24 * 60 * 60 * 1000)
 
     val builder: X509v3CertificateBuilder =
       new JcaX509v3CertificateBuilder(

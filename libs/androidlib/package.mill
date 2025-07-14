@@ -65,16 +65,6 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     }
   }
 
-  object api extends MillAndroidModule {
-    def moduleDeps = Seq(build.libs.javalib.testrunner)
-
-    override def compileMvnDeps: T[Seq[Dep]] = Task {
-      super.compileMvnDeps() ++ Seq(
-        Deps.androidTools
-      )
-    }
-  }
-
   object hilt extends MillAndroidModule {
     override def moduleDeps = Seq(build.libs.androidlib)
 
