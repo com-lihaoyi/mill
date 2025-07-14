@@ -65,7 +65,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
     super.scalacPluginMvnDeps() ++
       Option.when(binaryVersion != "3")(Deps.acyclic) ++
-      Option.when(hasModuleDefs)(Deps.millModuledefsPlugin)
+      Option.when(hasModuleDefs)(Deps.millModuledefsPlugin) ++
+      Seq(Deps.unrollPlugin)
   }
 
   def mandatoryMvnDeps = Task {
@@ -73,7 +74,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
     val binaryVersion = JvmWorkerUtil.scalaBinaryVersion(sv)
     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
     super.mandatoryMvnDeps() ++
-      Option.when(hasModuleDefs)(Deps.millModuledefs)
+      Option.when(hasModuleDefs)(Deps.millModuledefs) ++
+      Seq(Deps.unrollAnnotation)
   }
 
   /** Default tests module. */
