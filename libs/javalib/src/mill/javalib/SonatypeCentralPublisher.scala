@@ -15,6 +15,7 @@ import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
 import java.nio.file.Files
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
+import scala.annotation.targetName
 
 /**
  * Publishing logic for the standard Sonatype Central repository `central.sonatype.org`
@@ -53,23 +54,51 @@ class SonatypeCentralPublisher(
   private val sonatypeCentralClient =
     new SyncSonatypeClient(credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)
 
+  // binary compatibility forwarder
   def publish(
       fileMapping: Seq[(os.Path, String)],
       artifact: Artifact,
       publishingType: PublishingType
-  ): Unit = {
+  ): Unit =
+    publish(
+      fileMapping.iterator.map { case (path, name) => os.SubPath(name) -> path }.toMap,
+      artifact,
+      publishingType
+    )
+
+  def publish(
+      fileMapping: Map[os.SubPath, os.Path],
+      artifact: Artifact,
+      publishingType: PublishingType
+  ): Unit =
     publishAll(publishingType, None, fileMapping -> artifact)
-  }
 
   def publishAll(
       publishingType: PublishingType,
       singleBundleName: Option[String],
       artifacts: (Seq[(os.Path, String)], Artifact)*
   ): Unit = {
-    val releases = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
-    log.info(s"mappings ${pprint.apply(releases.map { case (a, kvs) => (a, kvs.map(_._1)) })}")
+    val mappedArtifacts = artifacts.iterator.map { case (fileMapping, artifact) =>
+      val mapping = fileMapping.iterator.map { case (path, name) => os.SubPath(name) -> path }.toMap
+      mapping -> artifact
+    }.toArray
+    publishAll(publishingType, singleBundleName, mappedArtifacts*)
+  }
 
-    val releaseGroups = releases.groupBy(_._1.group)
+  @targetName("publishAllByMap")
+  def publishAll(
+      publishingType: PublishingType,
+      singleBundleName: Option[String],
+      artifacts: (Map[os.SubPath, os.Path], Artifact)*
+  ): Unit = {
+    val releases = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
+    log.info(s"mappings ${pprint.apply(
+        releases.map { case (a, fileSetContents) =>
+          (a, fileSetContents.keys.toVector.sorted.map(_.toString))
+        }
+      )}")
+
+    val releaseGroups = releases.groupBy(_.artifact.group)
     val wd = os.pwd / "out/publish-central"
     os.makeDir.all(wd)
 
@@ -78,7 +107,9 @@ class SonatypeCentralPublisher(
         groupReleases.foreach { case (artifact, data) =>
           val fileNameWithoutExtension = s"${artifact.group}-${artifact.id}-${artifact.version}"
           val zipFile = streamToFile(fileNameWithoutExtension, wd) { outputStream =>
-            log.info(s"bundle $fileNameWithoutExtension with ${pprint.apply(data.map(_._1))}")
+            log.info(
+              s"bundle $fileNameWithoutExtension with ${pprint.apply(data.keys.toVector.sorted.map(_.toString))}"
+            )
             zipFilesToJar(data, outputStream)
           }
 
@@ -153,11 +184,11 @@ class SonatypeCentralPublisher(
   }
 
   private def zipFilesToJar(
-      files: Seq[(String, Array[Byte])],
+      files: Map[os.SubPath, Array[Byte]],
       jarOutputStream: JarOutputStream
   ): Unit = {
     files.foreach { case (filename, fileAsBytes) =>
-      val zipEntry = new ZipEntry(filename)
+      val zipEntry = new ZipEntry(filename.toString)
       jarOutputStream.putNextEntry(zipEntry)
       jarOutputStream.write(fileAsBytes)
       jarOutputStream.closeEntry()
