@@ -3,14 +3,15 @@ import mill.testkit.UtestIntegrationTestSuite
 import utest.*
 
 object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
-  private val PUBLISH_ORG_ENV_VARIABLE_NAME = "MILL_TESTS_PUBLISH_ORG"
+  private val ENV_VAR_PUBLISH_ORG = "MILL_TESTS_PUBLISH_ORG"
+  private val ENV_VAR_DRY_RUN = "MILL_TESTS_PUBLISH_DRY_RUN"
 
   val tests: Tests = Tests {
     test("actual") - integrationTest { tester =>
       import tester.*
 
       val env = sys.env
-      val maybePublishOrg = env.get(PUBLISH_ORG_ENV_VARIABLE_NAME)
+      val maybePublishOrg = env.get(ENV_VAR_PUBLISH_ORG)
       val maybePublishUsername = env.get(USERNAME_ENV_VARIABLE_NAME)
       val maybePublishPassword = env.get(PASSWORD_ENV_VARIABLE_NAME)
 
@@ -19,7 +20,7 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
           val res = eval(
             "testProject.publishSonatypeCentral",
             env = Map(
-              PUBLISH_ORG_ENV_VARIABLE_NAME -> publishOrg,
+              ENV_VAR_PUBLISH_ORG -> publishOrg,
               USERNAME_ENV_VARIABLE_NAME -> publishUsername,
               PASSWORD_ENV_VARIABLE_NAME -> publishPassword
             )
@@ -35,7 +36,7 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
           case class WithName[A](name: String, description: String, value: A)
           val missingEnvVars = Vector(
             WithName(
-              PUBLISH_ORG_ENV_VARIABLE_NAME,
+              ENV_VAR_PUBLISH_ORG,
               "The organization to publish to",
               maybePublishOrg
             ),
@@ -56,11 +57,12 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
       import tester.*
 
       val res = eval(
-        Seq("testProject.publishSonatypeCentral", "--dry-run"),
+        "testProject.publishSonatypeCentral",
         env = Map(
-          PUBLISH_ORG_ENV_VARIABLE_NAME -> "io.github.mill_tests",
+          ENV_VAR_PUBLISH_ORG -> "io.github.mill_tests",
           USERNAME_ENV_VARIABLE_NAME -> "mill-tests-username",
-          PASSWORD_ENV_VARIABLE_NAME -> "mill-tests-password"
+          PASSWORD_ENV_VARIABLE_NAME -> "mill-tests-password",
+          ENV_VAR_DRY_RUN -> "1"
         )
       )
       println(res.debugString)
@@ -70,9 +72,11 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
       val err = res.err
       assert(isSuccess && err.contains("finished with result:"))
 
-      val metadataFile =
+      val publishedDir =
         workspacePath / "out" / "testProject" / "publishSonatypeCentral.dest" / "repository" / "io" / "github" /
-          "mill_tests" / "testProject_3" / "maven-metadata.xml"
+          "mill_tests" / "testProject_3"
+
+      val metadataFile = publishedDir / "maven-metadata.xml"
       assert(os.exists(metadataFile))
 
       val metadataContents = os.read(metadataFile)

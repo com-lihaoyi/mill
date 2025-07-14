@@ -53,17 +53,12 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
   def sonatypeCentralShouldRelease: T[Boolean] = Task { true }
 
   def publishSonatypeCentral(
-      username: String,
-      password: String
-  ): Task.Command[Unit] = publishSonatypeCentral(username, password, Flag())
-
-  def publishSonatypeCentral(
       username: String = defaultCredentials,
-      password: String = defaultCredentials,
-      dryRun: Flag = Flag()
+      password: String = defaultCredentials
   ): Task.Command[Unit] = Task.Command {
     val artifact = artifactMetadata()
     val finalCredentials = getSonatypeCredentials(username, password)()
+    val dryRun = Task.env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
 
     def publishSnapshot(): Unit = {
       val uri = sonatypeCentralSnapshotUri
@@ -78,7 +73,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
       )
       val worker = mavenWorker()
 
-      if (dryRun.value) {
+      if (dryRun) {
         val publishTo = Task.dest / "repository"
         val result = worker.publishToLocal(
           publishTo = publishTo,
@@ -130,7 +125,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
     // The snapshot publishing does not use the same API as release publishing.
     if (artifact.version.endsWith("SNAPSHOT")) publishSnapshot()
     else {
-      if (dryRun.value) throw new IllegalArgumentException(
+      if (dryRun) throw new IllegalArgumentException(
         "Dry-run publishing is only supported for SNAPSHOT versions."
       )
       else publishRelease()

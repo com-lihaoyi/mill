@@ -64,6 +64,7 @@ object `package` extends mill.Module {
           extractFromEnv(
             "MILL_TESTS_BSP_UPDATE_SNAPSHOTS",
             "MILL_TESTS_PUBLISH_ORG",
+            "MILL_TESTS_PUBLISH_DRY_RUN",
             SonatypeHelpers.USERNAME_ENV_VARIABLE_NAME,
             SonatypeHelpers.PASSWORD_ENV_VARIABLE_NAME
           )() ++
