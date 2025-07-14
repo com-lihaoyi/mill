@@ -1,14 +1,13 @@
-import mill.javalib.publish.SonatypeHelpers
+import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.testkit.UtestIntegrationTestSuite
-import utest._
-import SonatypeHelpers.{USERNAME_ENV_VARIABLE_NAME, PASSWORD_ENV_VARIABLE_NAME}
+import utest.*
 
 object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
-  val tests: Tests = Tests {
-    test("publish") - integrationTest { tester =>
-      import tester.*
+  private val PUBLISH_ORG_ENV_VARIABLE_NAME = "MILL_TESTS_PUBLISH_ORG"
 
-      val PUBLISH_ORG_ENV_VARIABLE_NAME = "MILL_TESTS_PUBLISH_ORG"
+  val tests: Tests = Tests {
+    test("actual") - integrationTest { tester =>
+      import tester.*
 
       val env = sys.env
       val maybePublishOrg = env.get(PUBLISH_ORG_ENV_VARIABLE_NAME)
@@ -54,10 +53,48 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
           ).filter(_.value.isEmpty).map(v => s"${v.name} (${v.description})")
 
           println(
-            s"""Test is disabled because the following environment variables are not set:
+            s"""Test is disabled by default (due to the potential flakyness and slowness of Sonatype Central).
+               |
+               |To enable this test, set the following environment variables:
                |${missingEnvVars.mkString("\n")}""".stripMargin
           )
       }
+    }
+
+    test("dryRun") - integrationTest { tester =>
+      import tester.*
+
+      val res = eval(
+        Seq("testProject.publishSonatypeCentral", "--dry-run"),
+        env = Map(
+          PUBLISH_ORG_ENV_VARIABLE_NAME -> "io.github.mill_tests",
+          USERNAME_ENV_VARIABLE_NAME -> "mill-tests-username",
+          PASSWORD_ENV_VARIABLE_NAME -> "mill-tests-password"
+        )
+      )
+      println(
+        s"""Success: ${res.isSuccess}
+           |
+           |stdout:
+           |${res.out}
+           |
+           |stderr:
+           |${res.err}
+           |""".stripMargin
+      )
+      // Extract the values so that `assert` macro would print them out nicely if the test fails
+      // instead of printing `res` twice.
+      val isSuccess = res.isSuccess
+      val err = res.err
+      assert(isSuccess && err.contains("finished with result:"))
+
+      val metadataFile =
+        workspacePath / "out" / "testProject" / "publishSonatypeCentral.dest" / "repository" / "io" / "github" /
+          "mill_tests" / "testProject_3" / "maven-metadata.xml"
+      assert(os.exists(metadataFile))
+
+      val metadataContents = os.read(metadataFile)
+      assert(metadataContents.contains("<version>0.0.1-SNAPSHOT</version>"))
     }
   }
 }

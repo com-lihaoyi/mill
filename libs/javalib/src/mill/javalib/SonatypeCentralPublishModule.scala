@@ -3,18 +3,12 @@ package mill.javalib
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import mill.*
 import javalib.*
+import mainargs.Flag
 import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.api.DefaultTaskModule
 import mill.api.Result
-import mill.javalib.SonatypeCentralPublishModule.{
-  defaultAwaitTimeout,
-  defaultConnectTimeout,
-  defaultCredentials,
-  defaultReadTimeout,
-  getPublishingTypeFromReleaseFlag,
-  getSonatypeCredentials
-}
+import mill.javalib.SonatypeCentralPublishModule.{defaultAwaitTimeout, defaultConnectTimeout, defaultCredentials, defaultReadTimeout, getPublishingTypeFromReleaseFlag, getSonatypeCredentials}
 import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
@@ -52,8 +46,14 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
   def sonatypeCentralShouldRelease: T[Boolean] = Task { true }
 
   def publishSonatypeCentral(
+      username: String,
+      password: String
+  ): Task.Command[Unit] = publishSonatypeCentral(username, password, Flag())
+
+  def publishSonatypeCentral(
       username: String = defaultCredentials,
-      password: String = defaultCredentials
+      password: String = defaultCredentials,
+      dryRun: Flag = Flag()
   ): Task.Command[Unit] = Task.Command {
     val artifact = artifactMetadata()
     val finalCredentials = getSonatypeCredentials(username, password)()
@@ -70,14 +70,26 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
         s"Detected a 'SNAPSHOT' version, publishing to Sonatype Central Snapshots at '$uri'"
       )
       val worker = mavenWorker()
-      val result = worker.publishToRemote(
-        uri = uri,
-        workspace = Task.dest / "maven",
-        username = finalCredentials.username,
-        password = finalCredentials.password,
-        artifacts
-      )
-      Task.log.info(s"Deployment to '$uri' finished with result: $result")
+
+      if (dryRun.value) {
+        val publishTo = Task.dest / "repository"
+        val result = worker.publishToLocal(
+          publishTo = publishTo,
+          workspace = Task.dest / "maven",
+          artifacts
+        )
+        Task.log.info(s"Dry-run deployment to '$publishTo' finished with result: $result")
+      }
+      else {
+        val result = worker.publishToRemote(
+          uri = uri,
+          workspace = Task.dest / "maven",
+          username = finalCredentials.username,
+          password = finalCredentials.password,
+          artifacts
+        )
+        Task.log.info(s"Deployment to '$uri' finished with result: $result")
+      }
     }
 
     def publishRelease(): Unit = {
@@ -111,7 +123,10 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
 
     // The snapshot publishing does not use the same API as release publishing.
     if (artifact.version.endsWith("SNAPSHOT")) publishSnapshot()
-    else publishRelease()
+    else {
+      if (dryRun.value) throw new IllegalArgumentException("Dry-run publishing is only supported for SNAPSHOT versions.")
+      else publishRelease()
+    }
   }
 }
 
