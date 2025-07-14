@@ -1,6 +1,5 @@
 package mill.javalib.publish
 
-import mill.javalib.PublishModule
 import mill.javalib.internal.PublishModule.GpgArgs
 
 import java.math.BigInteger
@@ -17,36 +16,41 @@ object SonatypeHelpers {
       gpgArgs: GpgArgs,
       workspace: os.Path,
       env: Map[String, String],
-      artifacts: Seq[(Seq[(os.Path, String)], Artifact)]
-  ): Seq[(Artifact, Seq[(String, Array[Byte])])] = {
+      artifacts: Seq[(Map[os.SubPath, os.Path], Artifact)]
+  ): Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])] = {
     for ((fileMapping0, artifact) <- artifacts) yield {
-      val publishPath = Seq(
-        artifact.group.replace(".", "/"),
-        artifact.id,
-        artifact.version
-      ).mkString("/")
-      val fileMapping = fileMapping0.map { case (file, name) => (file, publishPath + "/" + name) }
+      val publishPath =
+        os.SubPath(artifact.group.replace(".", "/")) / artifact.id / artifact.version
+      val fileMapping = fileMapping0.map { case (name, contents) => publishPath / name -> contents }
 
       val signedArtifacts =
         if (isSigned) fileMapping.map {
-          case (file, name) =>
-            gpgSigned(file = file, args = gpgArgs, workspace = workspace, env = env) -> s"$name.asc"
+          case (name, file) =>
+            val signatureFile =
+              gpgSigned(file = file, args = gpgArgs, workspace = workspace, env = env)
+            os.SubPath(s"$name.asc") -> signatureFile
         }
-        else Seq()
+        else Map.empty
 
-      artifact -> (fileMapping ++ signedArtifacts).flatMap {
-        case (file, name) =>
-          val content = os.read.bytes(file)
+      val allFiles = (fileMapping ++ signedArtifacts).flatMap { case (name, file) =>
+        val content = os.read.bytes(file)
 
-          Seq(
-            name -> content,
-            (name + ".md5") -> md5hex(content),
-            (name + ".sha1") -> sha1hex(content)
-          )
+        Map(
+          name -> content,
+          os.SubPath(s"$name.md5") -> md5hex(content),
+          os.SubPath(s"$name.sha1") -> sha1hex(content)
+        )
       }
+
+      artifact -> allFiles
     }
   }
 
+  /**
+   * Signs a file with GPG.
+   *
+   * @return The path of the signature file.
+   */
   private def gpgSigned(
       file: os.Path,
       args: GpgArgs,

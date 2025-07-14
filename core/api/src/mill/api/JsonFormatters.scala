@@ -29,6 +29,8 @@ trait JsonFormatters {
   implicit val relPathRW: RW[os.RelPath] = upickle.default.readwriter[String]
     .bimap[os.RelPath](_.toString, os.RelPath(_))
 
+  implicit def subPathRW: RW[os.SubPath] = JsonFormatters.Default.subPathRW
+
   implicit val nioPathRW: RW[java.nio.file.Path] = upickle.default.readwriter[String]
     .bimap[java.nio.file.Path](
       _.toUri().toString(),
@@ -81,4 +83,8 @@ trait JsonFormatters {
   export upickle.implicits.namedTuples.default.given
 }
 
-object JsonFormatters extends JsonFormatters
+object JsonFormatters extends JsonFormatters {
+  object Default {
+    val subPathRW: RW[os.SubPath] = upickle.default.readwriter[String].bimap[os.SubPath](_.toString, os.SubPath(_))
+  }
+}

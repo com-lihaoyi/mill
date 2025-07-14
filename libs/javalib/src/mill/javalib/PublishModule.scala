@@ -451,20 +451,20 @@ trait PublishModule extends JavaModule { outer =>
 
   def publishArtifacts: T[PublishModule.PublishData] = {
     val baseNameTask: Task[String] = Task.Anon { s"${artifactId()}-${publishVersion()}" }
-    val defaultPayloadTask: Task[Seq[(PathRef, String)]] = (pomPackagingType, this) match {
+    val defaultPayloadTask = (pomPackagingType, this) match {
       case (PackagingType.Pom, _) => Task.Anon {
           val baseName = baseNameTask()
-          Seq(
-            pom() -> s"$baseName.pom"
+          Map(
+            os.SubPath(s"$baseName.pom") -> pom()
           )
         }
       case (PackagingType.Jar, _) | _ => Task.Anon {
           val baseName = baseNameTask()
-          Seq(
-            jar() -> s"$baseName.jar",
-            sourceJar() -> s"$baseName-sources.jar",
-            docJar() -> s"$baseName-javadoc.jar",
-            pom() -> s"$baseName.pom"
+          Map(
+            os.SubPath(s"$baseName.jar") -> jar(),
+            os.SubPath(s"$baseName-sources.jar") -> sourceJar(),
+            os.SubPath(s"$baseName-javadoc.jar") -> docJar(),
+            os.SubPath(s"$baseName.pom") -> pom()
           )
         }
     }
@@ -473,7 +473,7 @@ trait PublishModule extends JavaModule { outer =>
       PublishModule.PublishData(
         meta = artifactMetadata(),
         payload = defaultPayloadTask() ++ extraPublish().map(p =>
-          (p.file, s"$baseName${p.classifierPart}.${p.ext}")
+          os.SubPath(s"$baseName${p.classifierPart}.${p.ext}") -> p.file
         )
       )
     }
@@ -541,8 +541,7 @@ trait PublishModule extends JavaModule { outer =>
 object PublishModule extends ExternalModule with DefaultTaskModule {
   def defaultTask(): String = "publishAll"
 
-  val defaultGpgArgs: Seq[PossiblySecret[String]] =
-    internal.PublishModule.defaultGpgArgsForKey(key = None)
+  val defaultGpgArgs: Seq[String] = internal.PublishModule.defaultGpgArgs
 
   @deprecated("This API should have been internal and is not guaranteed to stay.", "1.0.1")
   def pgpImportSecretIfProvided(env: Map[String, String]): Unit =
@@ -567,17 +566,37 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   def sonatypeCentralSnapshotUri: String =
     "https://central.sonatype.com/repository/maven-snapshots/"
 
-  case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)]) {
+  case class PublishData(
+    meta: Artifact,
+    // Unfortunately we can't change the signature of this to `Map[os.SubPath, PathRef]` because
+    // we need to keep the binary compatibility and case classes are notoriously difficult to change
+    // while preserving binary compatibility.
+    //
+    // So instead we convert back and forth.
+    payload: Seq[(PathRef, String)]
+  ) {
+    def payloadAsMap: Map[os.SubPath, PathRef] = PublishData.seqToMap(payload)
 
     /**
      * Maps the path reference to an actual path so that it can be used in publishAll signatures
      */
-    private[mill] def withConcretePath: (Seq[(Path, String)], Artifact) =
-      (payload.map { case (p, f) => (p.path, f) }, meta)
+    private[mill] def withConcretePath: (Map[os.SubPath, os.Path], Artifact) =
+      (payloadAsMap.view.mapValues(_.path).toMap, meta)
   }
   object PublishData {
-    import mill.javalib.publish.JsonFormatters.artifactFormat
-    implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
+    implicit def jsonify: upickle.default.ReadWriter[PublishData] = {
+      import mill.javalib.publish.JsonFormatters.artifactFormat
+      upickle.default.macroRW
+    }
+
+    def apply(meta: Artifact, payload: Map[os.SubPath, PathRef]): PublishData =
+      apply(meta, mapToSeq(payload))
+
+    private[mill] def seqToMap(payload: Seq[(PathRef, String)]): Map[os.SubPath, PathRef] =
+      payload.iterator.map { case (pathRef, name) => os.SubPath(name) -> pathRef }.toMap
+
+    private[mill] def mapToSeq(payload: Map[os.SubPath, PathRef]): Seq[(PathRef, String)] =
+      payload.iterator.map { case (name, pathRef) => pathRef -> name.toString }.toSeq
   }
 
   /**
