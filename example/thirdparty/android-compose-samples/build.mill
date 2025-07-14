@@ -268,53 +268,16 @@ object JetNews extends mill.api.Module {
 }
 
 // The compose samples repository, contains many sample apps!
-// Let's say we are building 2 apps with a shared android emulator!
-
-// First we build, run and test JetLagged
+// The following example is for building, testing and running JetNews.
 
 /** Usage
 
-> ./mill -j1 JetLagged.app.androidApk
+> ./mill -j1 JetNews.app.androidApk
 
 > ./mill show JetLagged.app.createAndroidVirtualDevice
 ...Name: test, DeviceId: medium_phone...
 
 > ./mill show JetLagged.app.startAndroidEmulator
-
-> ./mill show JetLagged.app.androidInstall
-...All files should be loaded. Notifying the device...
-
-> ./mill show JetLagged.app.androidRun --activity com.example.jetlagged.MainActivity
-[
-  "Starting: Intent { cmp=com.example.jetlagged/.MainActivity }",
-  "Status: ok",
-  "LaunchState: COLD",
-  "Activity: com.example.jetlagged/.MainActivity",
-  "TotalTime: ...",
-  "WaitTime: ...",
-  "Complete"
-]
-
-> ./mill show JetLagged.app.androidTest
-{
-  "msg": "",
-  "results": [
-    {
-      "fullyQualifiedName": "com.example.jetlagged.AppTest.app_launches",
-      "selector": "com.example.jetlagged.AppTest.app_launches",
-      "duration": ...,
-      "status": "Success"
-    }
-  ]
-}
-
-*/
-
-// Then on the same emulator we build, run and test JetNews too
-
-/** Usage
-
-> ./mill -j1 JetNews.app.androidApk
 
 > ./mill show JetNews.app.androidInstall
 ...All files should be loaded. Notifying the device...
@@ -361,8 +324,8 @@ object JetNews extends mill.api.Module {
   ]
 }
 
-> ./mill show JetLagged.app.stopAndroidEmulator
+> ./mill show JetNews.app.stopAndroidEmulator
 
-> ./mill show JetLagged.app.deleteAndroidVirtualDevice
+> ./mill show JetNews.app.deleteAndroidVirtualDevice
 
 */
