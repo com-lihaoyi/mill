@@ -399,8 +399,8 @@ trait PublishModule extends JavaModule { outer =>
 
   /** Produce the contents for the ivy publishing. */
   private def publishLocalContentsTask(
-    sources: Boolean,
-    doc: Boolean
+      sources: Boolean,
+      doc: Boolean
   ): Task[(artifact: Artifact, contents: Map[os.SubPath, FileSetContents.Writable])] = {
     Task.Anon {
       val publishInfos = defaultPublishInfos(sources = sources, docs = doc)() ++ extraPublish()
@@ -424,12 +424,12 @@ trait PublishModule extends JavaModule { outer =>
    */
   def publishM2Local(m2RepoPath: String = null): Task.Command[Seq[PathRef]] = m2RepoPath match {
     case null => Task.Command {
-      publishM2LocalTask(
-        Task.Anon { publishM2LocalRepoPath() },
-        sources = true,
-        docs = true
-      )()
-    }
+        publishM2LocalTask(
+          Task.Anon { publishM2LocalRepoPath() },
+          sources = true,
+          docs = true
+        )()
+      }
     case p =>
       Task.Command {
         publishM2LocalTask(
@@ -459,7 +459,9 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   private def publishM2LocalTask(
-    m2RepoPath: Task[os.Path], sources: Boolean, docs: Boolean
+      m2RepoPath: Task[os.Path],
+      sources: Boolean,
+      docs: Boolean
   ): Task[Seq[PathRef]] = Task.Anon {
     val path = m2RepoPath()
     val contents = publishM2LocalContentsTask(sources = sources, docs = docs)()
@@ -492,8 +494,8 @@ trait PublishModule extends JavaModule { outer =>
 
   /** [[publishArtifactsDefaultPayload]] with [[extraPublish]]. */
   def publishArtifactsPayload(
-    sources: Boolean = true,
-    docs: Boolean = true
+      sources: Boolean = true,
+      docs: Boolean = true
   ): Task[Map[os.SubPath, PathRef]] = Task {
     val defaultPayload = publishArtifactsDefaultPayload(sources = sources, docs = docs)()
     val baseName = publishArtifactsBaseName()
@@ -515,28 +517,29 @@ trait PublishModule extends JavaModule { outer =>
    * @param docs whether to include javadoc JAR when [[pomPackagingType]] is [[PackagingType.Jar]]
    */
   def publishArtifactsDefaultPayload(
-    sources: Boolean = true,
-    docs: Boolean = true
+      sources: Boolean = true,
+      docs: Boolean = true
   ): Task[Map[os.SubPath, PathRef]] = {
     pomPackagingType match {
       case PackagingType.Pom => Task.Anon {
-        val baseName = publishArtifactsBaseName()
-        Map(
-          os.SubPath(s"$baseName.pom") -> pom()
-        )
-      }
+          val baseName = publishArtifactsBaseName()
+          Map(
+            os.SubPath(s"$baseName.pom") -> pom()
+          )
+        }
 
       case _ => Task.Anon {
-        val baseName = publishArtifactsBaseName()
-        val baseContent = Map(
-          os.SubPath(s"$baseName.pom") -> pom(),
-          os.SubPath(s"$baseName.jar") -> jar()
-        )
-        val sourcesOpt =
-          if (sources) Map(os.SubPath(s"$baseName-sources.jar") -> sourceJar()) else Map.empty
-        val docsOpt = if (docs) Map(os.SubPath(s"$baseName-javadoc.jar") -> docJar()) else Map.empty
-        baseContent ++ sourcesOpt ++ docsOpt
-      }
+          val baseName = publishArtifactsBaseName()
+          val baseContent = Map(
+            os.SubPath(s"$baseName.pom") -> pom(),
+            os.SubPath(s"$baseName.jar") -> jar()
+          )
+          val sourcesOpt =
+            if (sources) Map(os.SubPath(s"$baseName-sources.jar") -> sourceJar()) else Map.empty
+          val docsOpt =
+            if (docs) Map(os.SubPath(s"$baseName-javadoc.jar") -> docJar()) else Map.empty
+          baseContent ++ sourcesOpt ++ docsOpt
+        }
     }
   }
 
