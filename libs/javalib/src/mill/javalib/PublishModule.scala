@@ -592,10 +592,10 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
     def apply(meta: Artifact, payload: Map[os.SubPath, PathRef]): PublishData =
       apply(meta, mapToSeq(payload))
 
-    private[mill] def seqToMap(payload: Seq[(PathRef, String)]): Map[os.SubPath, PathRef] =
+    private def seqToMap(payload: Seq[(PathRef, String)]): Map[os.SubPath, PathRef] =
       payload.iterator.map { case (pathRef, name) => os.SubPath(name) -> pathRef }.toMap
 
-    private[mill] def mapToSeq(payload: Map[os.SubPath, PathRef]): Seq[(PathRef, String)] =
+    private def mapToSeq(payload: Map[os.SubPath, PathRef]): Seq[(PathRef, String)] =
       payload.iterator.map { case (name, pathRef) => pathRef -> name.toString }.toSeq
   }
 
