@@ -117,9 +117,12 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
       )
 
       if (dryRun) {
-        publisher.publishAllToLocal(Task.dest / "repository", singleBundleName = None, (fileMapping, artifact))
-      }
-      else {
+        publisher.publishAllToLocal(
+          Task.dest / "repository",
+          singleBundleName = None,
+          (fileMapping, artifact)
+        )
+      } else {
         publisher.publish(
           fileMapping,
           artifact,

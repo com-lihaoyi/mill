@@ -1,6 +1,10 @@
 package mill.javalib
 
-import com.lumidion.sonatype.central.client.core.{DeploymentName, PublishingType, SonatypeCredentials}
+import com.lumidion.sonatype.central.client.core.{
+  DeploymentName,
+  PublishingType,
+  SonatypeCredentials
+}
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
 import mill.javalib.internal.PublishModule.GpgArgs
@@ -113,14 +117,14 @@ class SonatypeCentralPublisher(
   }
 
   private case class PreparedArtifacts(
-    mappings: Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
-    deployments: Vector[(zipFile: File, deploymentName: DeploymentName)]
+      mappings: Seq[(artifact: Artifact, contents: Map[os.SubPath, Array[Byte]])],
+      deployments: Vector[(zipFile: File, deploymentName: DeploymentName)]
   ) {
     def mappingsString: String = s"mappings ${pprint(
-      mappings.map { case (a, fileSetContents) =>
-        (a, fileSetContents.keys.toVector.sorted.map(_.toString))
-      }
-    )}"
+        mappings.map { case (a, fileSetContents) =>
+          (a, fileSetContents.keys.toVector.sorted.map(_.toString))
+        }
+      )}"
   }
 
   /** Prepare artifacts for publishing. */
