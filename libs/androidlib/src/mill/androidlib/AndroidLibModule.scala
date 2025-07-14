@@ -51,14 +51,14 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
    */
   override def publishArtifacts: T[PublishModule.PublishData] = {
     val baseNameTask: Task[String] = Task.Anon { s"${artifactId()}-${publishVersion()}" }
-    val defaultPayloadTask: Task[Seq[(PathRef, String)]] = (pomPackagingType, this) match {
+    val defaultPayloadTask = (pomPackagingType, this) match {
       case (PackagingType.Aar, androidLib: AndroidLibModule) => Task.Anon {
           val baseName = baseNameTask()
-          Seq(
-            androidLib.androidAar() -> s"$baseName.aar",
-            sourceJar() -> s"$baseName-sources.jar",
-            docJar() -> s"$baseName-javadoc.jar",
-            pom() -> s"$baseName.pom"
+          Map(
+            os.SubPath(s"$baseName.aar") -> androidLib.androidAar(),
+            os.SubPath(s"$baseName-sources.jar") -> sourceJar(),
+            os.SubPath(s"$baseName-javadoc.jar") -> docJar(),
+            os.SubPath(s"$baseName.pom") -> pom()
           )
         }
       case (otherPackagingType, otherModuleType) =>
@@ -71,7 +71,7 @@ trait AndroidLibModule extends AndroidModule with PublishModule {
       PublishModule.PublishData(
         meta = artifactMetadata(),
         payload = defaultPayloadTask() ++ extraPublish().map(p =>
-          (p.file, s"$baseName${p.classifierPart}.${p.ext}")
+          os.SubPath(s"$baseName${p.classifierPart}.${p.ext}") -> p.file
         )
       )
     }
