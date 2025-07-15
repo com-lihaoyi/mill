@@ -141,6 +141,8 @@ object Deps {
   val millModuledefs = mvn"${millModuledefsString}"
   val millModuledefsPlugin =
     mvn"com.lihaoyi:::scalac-mill-moduledefs-plugin:${millModuledefsVersion}"
+  val unrollAnnotation = mvn"com.lihaoyi::unroll-annotation:0.2.0"
+  val unrollPlugin = mvn"com.lihaoyi::unroll-plugin:0.2.0"
   // can't use newer versions, as these need higher Java versions
   val testng = mvn"org.testng:testng:7.5.1"
   val sbtTestInterface = mvn"org.scala-sbt:test-interface:1.0"
