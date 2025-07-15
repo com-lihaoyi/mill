@@ -35,6 +35,4 @@ object `package` extends PublishModule with MavenModule {
     Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
   )
 
-  def jvmId = "11"
-
 }

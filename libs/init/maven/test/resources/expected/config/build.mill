@@ -1,4 +1,5 @@
 //| mill-version: SNAPSHOT
+//| mill-jvm-version: 11
 package build
 
 import _root_.build_.MyModule
@@ -191,5 +192,4 @@ trait MyModule extends PublishModule with MavenModule {
 
   def publishVersion = "1.0-SNAPSHOT"
 
-  def jvmId = "11"
 }
