@@ -87,7 +87,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
       }
 
       // The snapshot publishing does not use the same API as release publishing.
-      if (artifact.version.endsWith("SNAPSHOT")) publishSnapshot()
+      if (artifact.isSnapshot) publishSnapshot()
       else publishRelease()
     }
 }
@@ -120,6 +120,33 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule {
       Task.sequence(publishArtifacts.value)().map {
         case data @ PublishModule.PublishData(_, _) => data.withConcretePath
       }
+
+    val (snapshotArtifacts, releaseArtifacts) = artifacts.partition(_._2.isSnapshot)
+    val log = Task.log
+
+    if (snapshotArtifacts.nonEmpty) {
+      val commonMessage =
+        "\n" +
+          "Please extend `SonatypeCentralPublishModule` and use its `publishSonatypeCentral` task to publish " +
+          "snapshots.\n" +
+          "\n" +
+          s"Found the following SNAPSHOT artifacts: ${pprint.apply(snapshotArtifacts)}"
+
+      if (releaseArtifacts.isEmpty) {
+        // We can not do anything here because we need more metadata about the published files than `artifacts` provide.
+        throw new IllegalArgumentException(
+          "All artifacts to publish are SNAPSHOTs, but publishing SNAPSHOTs to Sonatype Central is not " +
+            s"supported with this task.\n" +
+            commonMessage
+        )
+      } else {
+        log.error(
+          "Some of the artifacts to publish are SNAPSHOTs, but publishing SNAPSHOTs to Sonatype Central is not " +
+            s"supported with this task. SNAPSHOT artifacts will be skipped.\n" +
+            commonMessage
+        )
+      }
+    }
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val finalCredentials = getSonatypeCredentials(username, password)()
