@@ -5,8 +5,7 @@ import coursier.core.{Configuration, DependencyManagement}
 import mill.api.{DefaultTaskModule, ExternalModule, Task}
 import mill.api.PathRef
 import mill.api.Result
-import mill.util.{JarManifest, PossiblySecret, Secret, Tasks}
-import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
+import mill.util.{JarManifest, Secret, Tasks, FileSetContents}
 import mill.javalib.publish.{Artifact, SonatypePublisher}
 import os.Path
 import mill.api.BuildCtx
@@ -295,17 +294,28 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
-  def defaultPublishInfos: T[Seq[PublishInfo]] = {
-    def defaultPublishJars: Task[Seq[(PathRef, PathRef => PublishInfo)]] = {
-      pomPackagingType match {
-        case PackagingType.Pom => Task.Anon(Seq())
-        case _ => Task.Anon(Seq(
-            (jar(), PublishInfo.jar)
-          ))
-      }
-    }
-    Task {
-      defaultPublishJars().map { case (jar, info) => info(jar) }
+  @deprecated("Use `defaultPublishInfos` that takes parameters instead.", "1.0.1")
+  def defaultPublishInfos: T[Seq[PublishInfo]] =
+    Task { defaultPublishInfos(sources = true, docs = true)() }
+
+  /** The [[PublishInfo]] of the [[defaultMainPublishInfos]] and optionally the [[sourcesJar]] and [[docJar]]. */
+  def defaultPublishInfos(sources: Boolean, docs: Boolean): Task[Seq[PublishInfo]] = {
+    val sourcesJarOpt =
+      if (sources) Task.Anon(Some(PublishInfo.sourcesJar(sourceJar())))
+      else Task.Anon(None)
+
+    val docJarOpt =
+      if (docs) Task.Anon(Some(PublishInfo.docJar(docJar())))
+      else Task.Anon(None)
+
+    Task.Anon(defaultMainPublishInfos() ++ sourcesJarOpt() ++ docJarOpt())
+  }
+
+  /** The [[PublishInfo]] of the main artifact, which can have multiple files. */
+  def defaultMainPublishInfos: Task[Seq[PublishInfo]] = {
+    pomPackagingType match {
+      case PackagingType.Pom => Task.Anon(Seq.empty)
+      case _ => Task.Anon(Seq(PublishInfo.jar(jar())))
     }
   }
 
@@ -367,7 +377,7 @@ trait PublishModule extends JavaModule { outer =>
       sources: Boolean,
       doc: Boolean,
       transitive: Boolean
-  ): Task[Seq[Path]] =
+  ): Task[Seq[Path]] = {
     if (transitive) {
       val publishTransitiveModuleDeps = (transitiveModuleDeps ++ transitiveRunModuleDeps).collect {
         case p: PublishModule => p
@@ -376,39 +386,58 @@ trait PublishModule extends JavaModule { outer =>
         publishMod.publishLocalTask(localIvyRepo, sources, doc, transitive = false)
       }.map(_.flatten)
     } else {
-      val sourcesJarOpt =
-        if (sources) Task.Anon(Some(PublishInfo.sourcesJar(sourceJar())))
-        else Task.Anon(None)
-      val docJarOpt =
-        if (doc) Task.Anon(Some(PublishInfo.docJar(docJar())))
-        else Task.Anon(None)
-
       Task.Anon {
+        val contents = publishLocalContentsTask(sources = sources, doc = doc)()
         val publisher = localIvyRepo() match {
           case None => LocalIvyPublisher
           case Some(path) => new LocalIvyPublisher(path)
         }
-        val publishInfos =
-          defaultPublishInfos() ++ sourcesJarOpt().toSeq ++ docJarOpt().toSeq ++ extraPublish()
-        publisher.publishLocal(
-          pom = pom().path,
-          ivy = Right(ivy().path),
-          artifact = artifactMetadata(),
-          publishInfos = publishInfos
-        )
+        publisher.publishLocal(contents.artifact, contents.contents)
       }
     }
+  }
+
+  /** Produce the contents for the ivy publishing. */
+  private def publishLocalContentsTask(
+      sources: Boolean,
+      doc: Boolean
+  ): Task[(artifact: Artifact, contents: Map[os.SubPath, FileSetContents.Writable])] = {
+    Task.Anon {
+      val publishInfos = defaultPublishInfos(sources = sources, docs = doc)() ++ extraPublish()
+      val artifact = artifactMetadata()
+      val contents = LocalIvyPublisher.createFileSetContents(
+        artifact = artifact,
+        pom = pom().path,
+        ivy = ivy().path,
+        publishInfos = publishInfos
+      )
+      (artifact, contents)
+    }
+  }
 
   /**
    * Publish artifacts to a local Maven repository.
+   *
    * @param m2RepoPath The path to the local repository  as string (default: `$HOME/.m2/repository`).
    *                   If not set, falls back to `maven.repo.local` system property or `~/.m2/repository`
    * @return [[PathRef]]s to published files.
    */
   def publishM2Local(m2RepoPath: String = null): Task.Command[Seq[PathRef]] = m2RepoPath match {
-    case null => Task.Command { publishM2LocalTask(Task.Anon { publishM2LocalRepoPath() })() }
+    case null => Task.Command {
+        publishM2LocalTask(
+          Task.Anon { publishM2LocalRepoPath() },
+          sources = true,
+          docs = true
+        )()
+      }
     case p =>
-      Task.Command { publishM2LocalTask(Task.Anon { os.Path(p, BuildCtx.workspaceRoot) })() }
+      Task.Command {
+        publishM2LocalTask(
+          Task.Anon { os.Path(p, BuildCtx.workspaceRoot) },
+          sources = true,
+          docs = true
+        )()
+      }
   }
 
   /**
@@ -416,7 +445,7 @@ trait PublishModule extends JavaModule { outer =>
    * @return [[PathRef]]s to published files.
    */
   def publishM2LocalCached: T[Seq[PathRef]] = Task {
-    publishM2LocalTask(publishM2LocalRepoPath)()
+    publishM2LocalTask(publishM2LocalRepoPath, sources = true, docs = true)()
   }
 
   /**
@@ -429,18 +458,28 @@ trait PublishModule extends JavaModule { outer =>
       .getOrElse(os.Path(os.home / ".m2", BuildCtx.workspaceRoot)) / "repository"
   }
 
-  private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = Task.Anon {
+  private def publishM2LocalTask(
+      m2RepoPath: Task[os.Path],
+      sources: Boolean,
+      docs: Boolean
+  ): Task[Seq[PathRef]] = Task.Anon {
     val path = m2RepoPath()
-    val publishInfos = defaultPublishInfos() ++
-      Seq(
-        PublishInfo.sourcesJar(sourceJar()),
-        PublishInfo.docJar(docJar())
-      ) ++
-      extraPublish()
+    val contents = publishM2LocalContentsTask(sources = sources, docs = docs)()
 
     new LocalM2Publisher(path)
-      .publish(pom().path, artifactMetadata(), publishInfos)
+      .publish(contents.artifact, contents.contents)
       .map(PathRef(_).withRevalidateOnce)
+  }
+
+  /** Produce the contents for the maven publishing. */
+  private def publishM2LocalContentsTask(sources: Boolean, docs: Boolean)
+      : Task[(artifact: Artifact, contents: Map[os.SubPath, os.Path])] = Task.Anon {
+    val publishInfos = defaultPublishInfos(sources = sources, docs = docs)() ++ extraPublish()
+    val artifact = artifactMetadata()
+    val contents =
+      LocalM2Publisher.createFileSetContents(pom = pom().path, artifact = artifact, publishInfos)
+
+    (artifact, contents)
   }
 
   /** @see [[PublishModule.sonatypeLegacyOssrhUri]] */
@@ -449,33 +488,58 @@ trait PublishModule extends JavaModule { outer =>
   /** @see [[PublishModule.sonatypeCentralSnapshotUri]] */
   def sonatypeCentralSnapshotUri: String = PublishModule.sonatypeCentralSnapshotUri
 
-  def publishArtifacts: T[PublishModule.PublishData] = {
-    val baseNameTask: Task[String] = Task.Anon { s"${artifactId()}-${publishVersion()}" }
-    val defaultPayloadTask = (pomPackagingType, this) match {
-      case (PackagingType.Pom, _) => Task.Anon {
-          val baseName = baseNameTask()
+  def publishArtifacts: T[PublishModule.PublishData] = Task {
+    PublishModule.PublishData(artifactMetadata(), publishArtifactsPayload()())
+  }
+
+  /** [[publishArtifactsDefaultPayload]] with [[extraPublish]]. */
+  def publishArtifactsPayload(
+      sources: Boolean = true,
+      docs: Boolean = true
+  ): Task[Map[os.SubPath, PathRef]] = Task {
+    val defaultPayload = publishArtifactsDefaultPayload(sources = sources, docs = docs)()
+    val baseName = publishArtifactsBaseName()
+    val extraPayload =
+      extraPublish().iterator.map(p =>
+        os.SubPath(s"$baseName${p.classifierPart}.${p.ext}") -> p.file
+      ).toMap
+    defaultPayload ++ extraPayload
+  }
+
+  /** The base name for the published artifacts. */
+  def publishArtifactsBaseName: T[String] =
+    Task { s"${artifactId()}-${publishVersion()}" }
+
+  /**
+   * The default payload for the published artifacts.
+   *
+   * @param sources whether to include sources JAR when [[pomPackagingType]] is [[PackagingType.Jar]]
+   * @param docs whether to include javadoc JAR when [[pomPackagingType]] is [[PackagingType.Jar]]
+   */
+  def publishArtifactsDefaultPayload(
+      sources: Boolean = true,
+      docs: Boolean = true
+  ): Task[Map[os.SubPath, PathRef]] = {
+    pomPackagingType match {
+      case PackagingType.Pom => Task.Anon {
+          val baseName = publishArtifactsBaseName()
           Map(
             os.SubPath(s"$baseName.pom") -> pom()
           )
         }
-      case (PackagingType.Jar, _) | _ => Task.Anon {
-          val baseName = baseNameTask()
-          Map(
-            os.SubPath(s"$baseName.jar") -> jar(),
-            os.SubPath(s"$baseName-sources.jar") -> sourceJar(),
-            os.SubPath(s"$baseName-javadoc.jar") -> docJar(),
-            os.SubPath(s"$baseName.pom") -> pom()
+
+      case _ => Task.Anon {
+          val baseName = publishArtifactsBaseName()
+          val baseContent = Map(
+            os.SubPath(s"$baseName.pom") -> pom(),
+            os.SubPath(s"$baseName.jar") -> jar()
           )
+          val sourcesOpt =
+            if (sources) Map(os.SubPath(s"$baseName-sources.jar") -> sourceJar()) else Map.empty
+          val docsOpt =
+            if (docs) Map(os.SubPath(s"$baseName-javadoc.jar") -> docJar()) else Map.empty
+          baseContent ++ sourcesOpt ++ docsOpt
         }
-    }
-    Task {
-      val baseName = baseNameTask()
-      PublishModule.PublishData(
-        meta = artifactMetadata(),
-        payload = defaultPayloadTask() ++ extraPublish().map(p =>
-          os.SubPath(s"$baseName${p.classifierPart}.${p.ext}") -> p.file
-        )
-      )
     }
   }
 
