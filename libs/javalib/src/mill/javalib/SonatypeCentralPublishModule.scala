@@ -114,6 +114,17 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
     if (artifact.version.endsWith("SNAPSHOT")) publishSnapshot()
     else publishRelease()
   }
+
+  // bin-compat shim
+  def publishSonatypeCentral(
+    username: String,
+    password: String
+  ): Task.Command[Unit] =
+    publishSonatypeCentral(
+      username,
+      password,
+      force = false
+    )
 }
 
 /**
@@ -172,6 +183,31 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
       artifacts*
     )
   }
+
+  // bin-compat shim
+  def publishAll(
+      publishArtifacts: mill.util.Tasks[PublishModule.PublishData],
+      username: String,
+      password: String,
+      shouldRelease: Boolean,
+      gpgArgs: String,
+      readTimeout: Int,
+      connectTimeout: Int,
+      awaitTimeout: Int,
+      bundleName: String
+  ): Command[Unit] =
+    publishAll(
+      publishArtifacts,
+      username,
+      password,
+      shouldRelease,
+      gpgArgs,
+      readTimeout,
+      connectTimeout,
+      awaitTimeout,
+      bundleName,
+      force = false
+    )
 
   private def getPublishingTypeFromReleaseFlag(shouldRelease: Boolean): PublishingType = {
     if (shouldRelease) {
