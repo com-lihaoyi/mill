@@ -203,7 +203,7 @@ jobs:
             install-xvfb: false
 
           - java-version: 17
-            millargs: "'{example,integration}.migrating.__.local.daemon'"
+            millargs: "'example.migrating.__.local.daemon'"
             install-android-sdk: false
             install-sbt: true
             install-xvfb: true
@@ -264,6 +264,12 @@ jobs:
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
+
+          - java-version: 17
+            millargs: "'integration.migrating.__.local.daemon'"
+            install-android-sdk: false
+            install-sbt: true
+            install-xvfb: true
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
