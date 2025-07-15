@@ -2148,12 +2148,12 @@ node0 -> node24;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="defaultPublishInfos-0" data-f-inherited="PublishModule">
+        <div class="documentableElement" id="defaultMainPublishInfos-0" data-f-inherited="PublishModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule.html#defaultPublishInfos-0" t="n" class="documentableName ">defaultPublishInfos</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="publish/PublishInfo.html" t="t">PublishInfo</a>]]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule.html#defaultMainPublishInfos-0" t="n" class="documentableName ">defaultMainPublishInfos</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="publish/PublishInfo.html" t="t">PublishInfo</a>]]
            </div>
           </div>
          </div>
@@ -2162,15 +2162,61 @@ node0 -> node24;
           <div>
            <div class="originInfo"></div>
            <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The <span data-unresolved-link="" title="Problem linking PublishInfo: Couldn't resolve a member for the given link query">PublishInfo</span> of the main artifact, which can have multiple files.</p>
+            </div>
             <div class="cover">
-             <div class="doc"></div>
+             <div class="doc">
+              <p>The <span data-unresolved-link="" title="Problem linking PublishInfo: Couldn't resolve a member for the given link query">PublishInfo</span> of the main artifact, which can have multiple files.</p>
+             </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="PublishModule.html#defaultPublishInfos-0">PublishModule</a>
+               <a href="PublishModule.html#defaultMainPublishInfos-0">PublishModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/PublishModule.scala" target="_blank">PublishModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="defaultPublishInfos-a8b" data-f-inherited="PublishModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule.html#defaultPublishInfos-a8b" t="n" class="documentableName ">defaultPublishInfos</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">sources</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">docs</span>: <span data-unresolved-link="" t="t">Boolean</span>): <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="publish/PublishInfo.html" t="t">PublishInfo</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The <span data-unresolved-link="" title="Problem linking PublishInfo: Couldn't resolve a member for the given link query">PublishInfo</span> of the <a href="PublishModule.html#defaultMainPublishInfos-0">defaultMainPublishInfos</a> and optionally the <span data-unresolved-link="" title="Problem linking sourcesJar: Couldn't resolve a member for the given link query">sourcesJar</span> and <a href="PublishModule.html#docJar-0">docJar</a>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The <span data-unresolved-link="" title="Problem linking PublishInfo: Couldn't resolve a member for the given link query">PublishInfo</span> of the <a href="PublishModule.html#defaultMainPublishInfos-0">defaultMainPublishInfos</a> and optionally the <span data-unresolved-link="" title="Problem linking sourcesJar: Couldn't resolve a member for the given link query">sourcesJar</span> and <a href="PublishModule.html#docJar-0">docJar</a>.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="PublishModule.html#defaultPublishInfos-a8b">PublishModule</a>
               </dd>
               <dt class="body-small">
                Source
@@ -4403,6 +4449,144 @@ node0 -> node24;
               </dt>
               <dd class="body-medium">
                <a href="PublishModule.html#publishArtifacts-0">PublishModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/PublishModule.scala" target="_blank">PublishModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="publishArtifactsBaseName-0" data-f-inherited="PublishModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule.html#publishArtifactsBaseName-0" t="n" class="documentableName ">publishArtifactsBaseName</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">String</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The base name for the published artifacts.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The base name for the published artifacts.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="PublishModule.html#publishArtifactsBaseName-0">PublishModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/PublishModule.scala" target="_blank">PublishModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="publishArtifactsDefaultPayload-a8b" data-f-inherited="PublishModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule.html#publishArtifactsDefaultPayload-a8b" t="n" class="documentableName ">publishArtifactsDefaultPayload</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">sources</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">docs</span>: <span data-unresolved-link="" t="t">Boolean</span>): <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">SubPath</span>, <a href="../api/PathRef.html" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The default payload for the published artifacts.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The default payload for the published artifacts.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               docs
+              </dt>
+              <dd class="body-medium">
+               <p>whether to include javadoc JAR when <a href="PublishModule.html#pomPackagingType-0">pomPackagingType</a> is <span data-unresolved-link="" title="Problem linking PackagingType.Jar: Couldn't resolve a member for the given link query">PackagingType.Jar</span></p>
+              </dd>
+              <dt class="body-small">
+               sources
+              </dt>
+              <dd class="body-medium">
+               <p>whether to include sources JAR when <a href="PublishModule.html#pomPackagingType-0">pomPackagingType</a> is <span data-unresolved-link="" title="Problem linking PackagingType.Jar: Couldn't resolve a member for the given link query">PackagingType.Jar</span></p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="PublishModule.html#publishArtifactsDefaultPayload-a8b">PublishModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/PublishModule.scala" target="_blank">PublishModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="publishArtifactsPayload-a8b" data-f-inherited="PublishModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule.html#publishArtifactsPayload-a8b" t="n" class="documentableName ">publishArtifactsPayload</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">sources</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">docs</span>: <span data-unresolved-link="" t="t">Boolean</span>): <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Map</span>[<span data-unresolved-link="" t="t">SubPath</span>, <a href="../api/PathRef.html" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p><a href="PublishModule.html#publishArtifactsDefaultPayload-a8b">publishArtifactsDefaultPayload</a> with <a href="PublishModule.html#extraPublish-0">extraPublish</a>.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p><a href="PublishModule.html#publishArtifactsDefaultPayload-a8b">publishArtifactsDefaultPayload</a> with <a href="PublishModule.html#extraPublish-0">extraPublish</a>.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="PublishModule.html#publishArtifactsPayload-a8b">PublishModule</a>
               </dd>
               <dt class="body-small">
                Source
@@ -7551,9 +7735,59 @@ node0 -> node24;
         </div>
        </div>
       </section>
+      <section id="Deprecated-and-Inherited-methods">
+       <div class="documentableList expand">
+        <div class="documentableList-expander">
+         <button class="icon-button show-content expand"></button>
+         <h4 class="groupHeader h200">Deprecated and Inherited methods</h4>
+        </div>
+        <div class="documentableElement" id="defaultPublishInfos-0" data-f-inherited="PublishModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule.html#defaultPublishInfos-0" t="n" class="documentableName deprecated">defaultPublishInfos</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="publish/PublishInfo.html" t="t">PublishInfo</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="cover">
+             <div class="doc"></div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Deprecated
+              </dt>
+              <dd class="body-medium">
+               <code>[Since version 1.0.1] </code>Use `defaultPublishInfos` that takes parameters instead.
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="PublishModule.html#defaultPublishInfos-0">PublishModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/PublishModule.scala" target="_blank">PublishModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+       </div>
+      </section>
      </div>
     </section>
    </div>
   </div>
  </div>
-</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Type-members">Type members</a><ul><li><a href="#Inherited-classlikes">Inherited classlikes</a></li></ul></li><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Deprecated-methods">Deprecated methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li><li><a href="#Inherited-and-Abstract-methods">Inherited and Abstract methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
+</section></div><div id="toc" class="body-small"><div id="toc-container"><span class="toc-title h200">In this article</span><nav class="toc-nav"><ul class="toc-list"><li><a href="#attributes">Attributes</a></li><li><a href="#members-list">Members list</a><ul><li><a href="#Type-members">Type members</a><ul><li><a href="#Inherited-classlikes">Inherited classlikes</a></li></ul></li><li><a href="#Value-members">Value members</a><ul><li><a href="#Concrete-methods">Concrete methods</a></li><li><a href="#Deprecated-methods">Deprecated methods</a></li><li><a href="#Inherited-methods">Inherited methods</a></li><li><a href="#Inherited-and-Abstract-methods">Inherited and Abstract methods</a></li><li><a href="#Deprecated-and-Inherited-methods">Deprecated and Inherited methods</a></li></ul></li></ul></li></ul></nav></div></div></div><div id="footer" class="body-small mobile-footer"><div class="left-container">Generated with</div><div class="right-container"><div class="text"></div></div><div class="text-mobile"></div></div></div></div></body></html>
