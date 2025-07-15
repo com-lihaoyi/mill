@@ -7,14 +7,7 @@ import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.api.DefaultTaskModule
 import mill.api.Result
-import mill.javalib.SonatypeCentralPublishModule.{
-  defaultAwaitTimeout,
-  defaultConnectTimeout,
-  defaultCredentials,
-  defaultReadTimeout,
-  getPublishingTypeFromReleaseFlag,
-  getSonatypeCredentials
-}
+import mill.javalib.SonatypeCentralPublishModule.{defaultAwaitTimeout, defaultConnectTimeout, defaultCredentials, defaultReadTimeout, getPublishingTypeFromReleaseFlag, getSonatypeCredentials}
 import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
@@ -63,7 +56,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
       val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2Artifacts(
         pom().path,
         artifact,
-        defaultPublishInfos()
+        defaultPublishInfos(sources = true, docs = true)
       )
 
       Task.log.info(
@@ -110,7 +103,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
     }
 
     // The snapshot publishing does not use the same API as release publishing.
-    if (artifact.version.endsWith("SNAPSHOT")) publishSnapshot()
+    if (artifact.isSnapshot) publishSnapshot()
     else publishRelease()
   }
 }
@@ -143,32 +136,59 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
       awaitTimeout: Int = defaultAwaitTimeout,
       bundleName: String = ""
   ): Command[Unit] = Task.Command {
+    val artifacts = Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
+    val (snapshotArtifacts, releaseArtifacts) = artifacts.partition(_.artifact.isSnapshot)
+    val log = Task.log
 
-    val artifacts =
-      Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
+    if (snapshotArtifacts.nonEmpty) {
+      val commonMessage =
+        "\n" +
+          "Please extend `SonatypeCentralPublishModule` and use its `publishSonatypeCentral` task to publish " +
+          "snapshots.\n" +
+          "\n" +
+          s"Found the following SNAPSHOT artifacts: ${pprint(snapshotArtifacts)}"
+
+      if (releaseArtifacts.isEmpty) {
+        // We can not do anything here because we need more metadata about the published files than `artifacts` provide.
+        throw new IllegalArgumentException(
+          "All artifacts to publish are SNAPSHOTs, but publishing SNAPSHOTs to Sonatype Central is not " +
+            s"supported with this task.\n" +
+            commonMessage
+        )
+      }
+      else {
+        log.warn(
+          "Some of the artifacts to publish are SNAPSHOTs, but publishing SNAPSHOTs to Sonatype Central is not " +
+            s"supported with this task. SNAPSHOT artifacts will be skipped.\n" +
+            commonMessage
+        )
+      }
+    }
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
-    val finalCredentials = getSonatypeCredentials(username, password)()
-    val gpgArgs0 = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
+    val credentials = getSonatypeCredentials(username, password)()
+    val finalGpgArgs = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
       GpgArgs.fromUserProvided(gpgArgs)
     )
+    val publishingType = getPublishingTypeFromReleaseFlag(shouldRelease)
+
     val publisher = new SonatypeCentralPublisher(
-      credentials = finalCredentials,
-      gpgArgs = gpgArgs0,
+      credentials = credentials,
+      gpgArgs = finalGpgArgs,
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
-      log = Task.log,
+      log = log,
       workspace = BuildCtx.workspaceRoot,
       env = Task.env,
       awaitTimeout = awaitTimeout
     )
-    Task.ctx().log.info(s"artifacts ${pprint.apply(artifacts)}")
-    publisher.publishAll(
-      getPublishingTypeFromReleaseFlag(shouldRelease),
-      finalBundleName,
-      artifacts*
+    log.info(
+      s"Publishing all release artifacts to Sonatype Central (publishing type = $publishingType): ${
+        pprint.apply(releaseArtifacts)}"
     )
+    publisher.publishAll(publishingType, singleBundleName = finalBundleName, releaseArtifacts*)
+    log.info(s"Published all release artifacts to Sonatype Central.")
   }
 
   private def getPublishingTypeFromReleaseFlag(shouldRelease: Boolean): PublishingType = {
