@@ -2,8 +2,10 @@ package mill.androidlib.keytool
 
 // Manages keystore operations
 
-import java.security.KeyStore
+import java.security.{KeyStore, KeyPair, Key}
 import java.io.{FileInputStream, FileOutputStream, File}
+import scala.collection.JavaConverters.enumerationAsScalaIteratorConverter
+import scala.concurrent.duration.*
 
 object Keystore:
 
@@ -41,22 +43,19 @@ object Keystore:
   def addKeyPair(
       ks: KeyStore,
       alias: String,
-      keyPair: java.security.KeyPair,
+      keyPair: KeyPair,
       dname: String,
-      password: String
+      password: String,
+      validity: FiniteDuration = FiniteDuration(365, DAYS)
   ): Unit =
-    val cert = CertUtil.createSelfSignedCertificate(dname, keyPair)
+    val cert = CertUtil.createSelfSignedCertificate(dname, keyPair, validity)
     ks.setKeyEntry(alias, keyPair.getPrivate, password.toCharArray, Array(cert))
 
   def listAliases(ks: KeyStore): List[String] =
     val aliases = ks.aliases()
-    Iterator
-      .continually(aliases)
-      .takeWhile(_.hasMoreElements)
-      .map(_.nextElement())
-      .toList
+    aliases.asScala.toList
 
-  def getKey(ks: KeyStore, alias: String, password: String): Option[java.security.Key] =
+  def getKey(ks: KeyStore, alias: String, password: String): Option[Key] =
     try {
       Some(ks.getKey(alias, password.toCharArray))
     } catch {

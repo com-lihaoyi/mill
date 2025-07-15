@@ -1,24 +1,7 @@
-package mill.androidlib
+package mill.androidlib.keytool
 
-import mill.androidlib.keytool.*
-import mill.internal.DummyLogger
 import utest.*
-
-def getKeytoolOutput(args: String*): String = {
-  import scala.sys.process._
-  val cmd = Seq("keytool") ++ args
-  cmd.!!
-}
-
-def removeFile(filename: String): Unit = {
-  import java.io.File
-  val file = new File(filename)
-  if (file.exists()) {
-    if (!file.delete()) {
-      throw new RuntimeException(s"Failed to delete file: $filename")
-    }
-  }
-}
+import scala.util.Try
 
 object KeytoolTest extends TestSuite {
 
@@ -62,14 +45,8 @@ object KeytoolTest extends TestSuite {
       val password = "password"
       val wrongPassword = "wrongpassword"
       Keystore.saveEmptyKeystore(filename, password)
-      try {
-        Keystore.loadKeystore(filename, wrongPassword)
-        assert(false)
-      } catch {
-        case _: Exception => // Expected exception
-      } finally {
-        removeFile(filename)
-      }
+      assert(Try(Keystore.loadKeystore(filename, wrongPassword)).isFailure)
+      removeFile(filename)
     }
     test("load keystore and do NOT load key pair with wrong password") {
       val filename = "keystore_load_wrong_key.test"
@@ -82,6 +59,22 @@ object KeytoolTest extends TestSuite {
       val loadedKs = Keystore.loadKeystore(filename, password)
       val key = Keystore.getKey(loadedKs, "mykey", wrongPassword)
       assert(key.isEmpty)
+    }
+  }
+}
+
+def getKeytoolOutput(args: String*): String = {
+  import scala.sys.process.*
+  val cmd = Seq("keytool") ++ args
+  cmd.!!
+}
+
+def removeFile(filename: String): Unit = {
+  import java.io.File
+  val file = new File(filename)
+  if (file.exists()) {
+    if (!file.delete()) {
+      throw new RuntimeException(s"Failed to delete file: $filename")
     }
   }
 }

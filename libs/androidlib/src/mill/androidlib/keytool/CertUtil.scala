@@ -1,7 +1,7 @@
 package mill.androidlib.keytool
 
 import java.math.BigInteger
-import java.security._
+import java.security.*
 import java.security.cert.X509Certificate
 import java.util.Date
 import javax.security.auth.x500.X500Principal
@@ -11,15 +11,16 @@ import org.bouncycastle.cert.jcajce.{JcaX509v3CertificateBuilder, JcaX509Certifi
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
+import scala.concurrent.duration.*
+
 object CertUtil:
-  Security.addProvider(new BouncyCastleProvider())
   def createSelfSignedCertificate(
       dname: String,
       keyPair: KeyPair,
-      validityDays: Int = 365
+      validity: FiniteDuration = FiniteDuration(365, DAYS)
   ): X509Certificate = {
     val now = new Date()
-    val notAfter = new Date(now.getTime + validityDays.toLong * 24 * 60 * 60 * 1000)
+    val notAfter = new Date(now.getTime + validity.toMillis)
 
     val builder: X509v3CertificateBuilder =
       new JcaX509v3CertificateBuilder(
@@ -32,10 +33,10 @@ object CertUtil:
       )
 
     val signer = new JcaContentSignerBuilder("SHA256withRSA")
-      .setProvider("BC")
+      .setProvider(new BouncyCastleProvider())
       .build(keyPair.getPrivate)
 
     new JcaX509CertificateConverter()
-      .setProvider("BC")
+      .setProvider(new BouncyCastleProvider())
       .getCertificate(builder.build(signer))
   }
