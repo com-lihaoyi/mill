@@ -4,7 +4,6 @@ import mill.codesig.JvmModel.JType.Cls as JCls
 import mill.codesig.JvmModel.*
 import org.objectweb.asm.{ClassReader, ClassVisitor, MethodVisitor, Opcodes}
 
-import java.net.URLClassLoader
 
 import scala.util.Using
 

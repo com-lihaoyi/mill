@@ -28,7 +28,7 @@ private[mill] object TestOverridesRepo extends Repository {
     EitherT.fromEither[F] {
       envFor(module) match {
         case None => Left(s"No test override found for $module")
-        case Some(v) =>
+        case Some(_) =>
           val proj = Project(
             module,
             version,

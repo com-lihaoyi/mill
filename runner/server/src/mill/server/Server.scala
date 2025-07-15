@@ -125,7 +125,7 @@ abstract class Server[T](
           while (!serverSocket.isClosed) {
             val socketOpt =
               try Some(serverSocket.accept())
-              catch { case e: java.net.SocketException => None }
+              catch { case _: java.net.SocketException => None }
 
             socketOpt match {
               case Some(sock) =>
@@ -190,7 +190,7 @@ abstract class Server[T](
       }
     }
 
-    var clientDisappeared = false
+    
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
     // detect client-side connection closing, so instead we send a no-op heartbeat
     // message to see if the socket can receive data.
@@ -318,7 +318,7 @@ abstract class Server[T](
     } finally {
       try writeExitCode(1) // Send a termination if it has not already happened
       catch {
-        case e: Throwable => /*donothing*/
+        case _: Throwable => /*donothing*/
       }
     }
   }

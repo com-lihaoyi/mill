@@ -14,7 +14,7 @@ object `package` extends MillBuildRootModule {
     mvn"net.sourceforge.htmlcleaner:htmlcleaner:2.29",
     // TODO: implement empty version for ivy deps as we do in import parser
     mvn"com.lihaoyi::mill-contrib-buildinfo:${mill.api.BuildInfo.millVersion}",
-//    mvn"com.goyeau::mill-scalafix::0.5.0",
+    mvn"com.goyeau::mill-scalafix::0.6.0",
     mvn"org.jsoup:jsoup:1.18.1"
   )
 }

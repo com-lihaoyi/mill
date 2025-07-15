@@ -12,7 +12,6 @@ import ch.epfl.scala.bsp4j.{
 }
 import mill.api.ExecResult.{Skipped, Success}
 import mill.api.daemon.internal.{
-  CompileProblemReporter,
   ExecutionResultsApi,
   JavaModuleApi,
   TaskApi

@@ -103,7 +103,7 @@ object ResolvedCalls {
         .items
         .flatMap { case (cls, clsInfo) =>
           clsInfo.methods.iterator.filter(_._2.isAbstract).toSeq match {
-            case Seq((k, v)) => Some((cls, k))
+            case Seq((k, _)) => Some((cls, k))
             case _ => None
           }
         }

@@ -6,8 +6,7 @@ import mill.api.daemon.internal.{
   EvaluatorApi,
   MillScalaParser,
   PathRefApi,
-  RootModuleApi,
-  internal
+  RootModuleApi
 }
 import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*

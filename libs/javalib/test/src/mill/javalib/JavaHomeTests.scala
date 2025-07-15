@@ -1,12 +1,11 @@
 package mill.javalib
 
-import mill.api.{Args, Discover, ModuleRef, Task}
+import mill.api.{Args, Discover, Task}
 import mill.api.ExecResult
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*
 import utest.*
 
-import java.io.{ByteArrayOutputStream, PrintStream}
 
 object JavaHomeTests extends TestSuite {
 

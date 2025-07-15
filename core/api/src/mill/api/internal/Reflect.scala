@@ -99,7 +99,7 @@ private[mill] object Reflect {
     val companionClassOpt = outerCls.getName match {
       case s"$prefix$$" =>
         try Some(Class.forName(prefix))
-        catch { case e: Throwable => None }
+        catch { case _: Throwable => None }
       case _ => None
     }
     val second = (Array(outerCls) ++ companionClassOpt)

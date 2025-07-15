@@ -123,7 +123,7 @@ object Assembly {
     }
 
     val generators = Generator.from(pathsWithResources).flatMap {
-      case (path, Some(jarFile)) =>
+      case (_, Some(jarFile)) =>
         Generator.from(jarFile.entries().asScala.filterNot(_.isDirectory))
           .flatMap(entry => shader(entry.getName, () => jarFile.getInputStream(entry)))
       case (path, None) =>
