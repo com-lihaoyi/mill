@@ -1,13 +1,10 @@
 package mill.util.bsp
 
-import mill.api.JsonFormatters.given
 import mill.api.daemon.internal.bsp.BspMainModuleApi
 import mill.api.daemon.internal.{EvaluatorApi, TaskApi, internal}
 import mill.api.{Discover, Evaluator, ExternalModule, ModuleCtx}
 import mill.util.MainModule
 import mill.Task
-
-import java.nio.file.Path
 
 @internal
 private[mill] object BspMainModule extends ExternalModule {

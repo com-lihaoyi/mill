@@ -197,36 +197,36 @@ private[dependency] object VersionOrdering extends Ordering[Version] {
       1
     case (ReleaseVersion(r1), ReleaseVersion(r2)) =>
       compareNumericParts(r1, r2) getOrElse 0
-    case (ReleaseVersion(r1), PreReleaseVersion(r2, p2)) =>
+    case (ReleaseVersion(r1), PreReleaseVersion(r2, _)) =>
       compareNumericParts(r1, r2) getOrElse 1
-    case (ReleaseVersion(r1), PreReleaseBuildVersion(r2, p2, b2)) =>
+    case (ReleaseVersion(r1), PreReleaseBuildVersion(r2, _, _)) =>
       compareNumericParts(r1, r2) getOrElse 1
-    case (ReleaseVersion(r1), BuildVersion(r2, b2)) =>
+    case (ReleaseVersion(r1), BuildVersion(r2, _)) =>
       compareNumericParts(r1, r2) getOrElse -1
-    case (PreReleaseVersion(r1, p1), ReleaseVersion(r2)) =>
+    case (PreReleaseVersion(r1, _), ReleaseVersion(r2)) =>
       compareNumericParts(r1, r2) getOrElse -1
     case (PreReleaseVersion(r1, p1), PreReleaseVersion(r2, p2)) =>
       compareNumericParts(r1, r2) orElse compareParts(p1, p2) getOrElse 0
-    case (PreReleaseVersion(r1, p1), PreReleaseBuildVersion(r2, p2, b2)) =>
+    case (PreReleaseVersion(r1, p1), PreReleaseBuildVersion(r2, p2, _)) =>
       compareNumericParts(r1, r2) orElse compareParts(p1, p2) getOrElse -1
-    case (PreReleaseVersion(r1, p1), BuildVersion(r2, b2)) =>
+    case (PreReleaseVersion(r1, _), BuildVersion(r2, _)) =>
       compareNumericParts(r1, r2) getOrElse -1
-    case (PreReleaseBuildVersion(r1, p1, b1), ReleaseVersion(r2)) =>
+    case (PreReleaseBuildVersion(r1, _, _), ReleaseVersion(r2)) =>
       compareNumericParts(r1, r2) getOrElse -1
-    case (PreReleaseBuildVersion(r1, p1, b1), PreReleaseVersion(r2, p2)) =>
+    case (PreReleaseBuildVersion(r1, p1, _), PreReleaseVersion(r2, p2)) =>
       compareNumericParts(r1, r2) orElse compareParts(p1, p2) getOrElse 1
     case (PreReleaseBuildVersion(r1, p1, b1), PreReleaseBuildVersion(r2, p2, b2)) =>
       compareNumericParts(r1, r2) orElse
         compareParts(p1, p2) orElse
         compareParts(b1, b2) getOrElse
         0
-    case (PreReleaseBuildVersion(r1, p1, b1), BuildVersion(r2, b2)) =>
+    case (PreReleaseBuildVersion(r1, _, _), BuildVersion(r2, _)) =>
       compareNumericParts(r1, r2) getOrElse -1
-    case (BuildVersion(r1, b1), ReleaseVersion(r2)) =>
+    case (BuildVersion(r1, _), ReleaseVersion(r2)) =>
       compareNumericParts(r1, r2) getOrElse 1
-    case (BuildVersion(r1, b1), PreReleaseVersion(r2, p2)) =>
+    case (BuildVersion(r1, _), PreReleaseVersion(r2, _)) =>
       compareNumericParts(r1, r2) getOrElse 1
-    case (BuildVersion(r1, b1), PreReleaseBuildVersion(r2, p2, b2)) =>
+    case (BuildVersion(r1, _), PreReleaseBuildVersion(r2, _, _)) =>
       compareNumericParts(r1, r2) getOrElse 1
     case (BuildVersion(r1, b1), BuildVersion(r2, b2)) =>
       compareNumericParts(r1, r2) orElse compareParts(b1, b2) getOrElse 0

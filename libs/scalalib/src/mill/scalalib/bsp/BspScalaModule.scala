@@ -1,12 +1,8 @@
 package mill.scalalib.bsp
 import mill.scalalib.ScalaModule
-import java.nio.file.Path
-import mill.api.daemon.internal.bsp.BspJavaModuleApi
 import mill.Task
-import mill.api.daemon.internal.{EvaluatorApi, TaskApi, internal}
-import mill.api.{Discover, ExternalModule, ModuleCtx}
-import mill.javalib.{JavaModule, SemanticDbJavaModule}
-import mill.api.JsonFormatters.given
+import mill.api.daemon.internal.internal
+import mill.api.ModuleCtx
 import mill.javalib.bsp.BspModule
 
 trait BspScalaModule extends mill.javalib.bsp.BspJavaModule {

@@ -3,8 +3,6 @@ package mill.util
 import mill.api.PathRef
 import mill.util.RefCountedClassLoaderCache
 
-import java.net.URLClassLoader
-
 /**
  * Combination of [[CachedFactory]] and [[RefCountedClassLoaderCache]], providing an
  * easy way to generate values of type [[T]] to each be used in a single-thread while

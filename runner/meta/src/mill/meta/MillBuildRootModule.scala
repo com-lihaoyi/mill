@@ -324,8 +324,8 @@ object MillBuildRootModule {
       val rel = p.subRelativeTo(classesDir)
       // Hack to reverse engineer the `.mill` name from the `.class` file name
       val sourceNamePrefixOpt0 = rel.last match {
-        case s"${pre}_$rest.class" => Some(pre)
-        case s"${pre}$$$rest.class" => Some(pre)
+        case s"${pre}_$_.class" => Some(pre)
+        case s"${pre}$$$_.class" => Some(pre)
         case s"${pre}.class" => Some(pre)
         case _ => None
       }

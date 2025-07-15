@@ -1,7 +1,6 @@
 package mill.javalib.testrunner
 
 import mill.api.daemon.internal.internal
-import os.Path
 
 @internal object GetTestTasksMain {
   import mill.api.JsonFormatters.PathTokensReader
