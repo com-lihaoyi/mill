@@ -31,7 +31,7 @@ object bar extends JavaModule, RevapiModule {
 /** Usage
 
 > ./mill bar.publishLocal
-Publishing Artifact(com.lihaoyi,bar,0.0.1) to ivy repo...
+Publishing com.lihaoyi:bar:0.0.1 to ivy repo...
 
 > cp dev/src/Visibility.java bar/src/Visibility.java
 

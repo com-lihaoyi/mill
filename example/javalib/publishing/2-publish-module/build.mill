@@ -24,7 +24,7 @@ object foo extends JavaModule, PublishModule {
 /** Usage
 
 > ./mill foo.publishLocal
-Publishing Artifact(com.lihaoyi,foo,0.0.1) to ivy repo...
+Publishing com.lihaoyi:foo:0.0.1 to ivy repo...
 
 */
 
