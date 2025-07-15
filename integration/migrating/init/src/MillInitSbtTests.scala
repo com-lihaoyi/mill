@@ -221,7 +221,7 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
 
     test - integrationTest(url) { tester =>
       // timeout on Windows on CI
-      if (!Util.isWindows) {
+      if (!mill.constants.Util.isWindows) {
         testMillInit(
           tester,
           expectedAllSourceFileNums = Map(
