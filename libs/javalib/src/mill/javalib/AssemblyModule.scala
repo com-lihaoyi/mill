@@ -149,19 +149,22 @@ trait AssemblyModule extends mill.api.Module with OfflineSupportModule {
     }
   }
 
-  override def prepareOffline(all: mainargs.Flag): Task.Command[Seq[PathRef]] = Task.Command {
-    (
-      super.prepareOffline(all)() ++
-        AssemblyModule.jarjarabramsWorkerClasspath()
-    ).distinct
-  }
+  override def prepareOffline(all: mainargs.Flag): Task.Command[Seq[PathRef]] =
+    AssemblyModule.prepareOffline(all)
 }
-object AssemblyModule extends ExternalModule with CoursierModule {
+object AssemblyModule extends ExternalModule with CoursierModule with OfflineSupportModule {
 
   def jarjarabramsWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
       Dep.millProjectModule("mill-libs-javalib-jarjarabrams-worker")
     ))
+  }
+
+  override def prepareOffline(all: mainargs.Flag): Task.Command[Seq[PathRef]] = Task.Command {
+    (
+      super.prepareOffline(all)() ++
+        jarjarabramsWorkerClasspath()
+    ).distinct
   }
 
   private[mill] def jarjarabramsWorkerClassloader: Task.Worker[ClassLoader] = Task.Worker {
