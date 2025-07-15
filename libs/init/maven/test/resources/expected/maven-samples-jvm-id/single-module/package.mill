@@ -1,4 +1,4 @@
-package build.`multi-module`.server
+package build.`single-module`
 
 import mill._
 import mill.javalib._
@@ -6,17 +6,22 @@ import mill.javalib.publish._
 
 object `package` extends PublishModule with MavenModule {
 
+  def artifactName = "single-module-project"
+
   def javacOptions = Seq("-source", "1.6", "-target", "1.6")
 
+  def mvnDeps =
+    Seq(mvn"javax.servlet.jsp:jsp-api:2.2", mvn"javax.servlet:servlet-api:2.5")
+
   def pomSettings = PomSettings(
-    "Logic.",
+    "Sample single module Maven project with a working, deployable site.",
     "com.example.maven-samples",
-    "http://www.example.com/server",
+    "http://www.example.com",
     Seq(),
     VersionControl(
-      Some("http://github.com/gabrielf/maven-samples/server"),
-      Some("scm:git:git@github.com:gabrielf/maven-samples.git/server"),
-      Some("scm:git:git@github.com:gabrielf/maven-samples.git/server"),
+      Some("http://github.com/gabrielf/maven-samples"),
+      Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
+      Some("scm:git:git@github.com:gabrielf/maven-samples.git"),
       Some("HEAD")
     ),
     Seq()
@@ -24,9 +29,7 @@ object `package` extends PublishModule with MavenModule {
 
   def publishVersion = "1.0-SNAPSHOT"
 
-  def pomParentProject = Some(
-    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
-  )
+  def jvmId = "11"
 
   object test extends MavenTests with TestModule.Junit4 {
 

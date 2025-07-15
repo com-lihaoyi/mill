@@ -15,11 +15,11 @@ A nested `test` module is defined, if `src/test` exists, and is configured with 
 Again, note that `mill init` imports a Gradle build on a best-effort basis.
 This means that while simple projects can be expected to complete without issue:
 
-include::partial$example/migrating/javalib/3-gradle-complete.adoc[]
+include::partial$example/migrating/javalib/4-gradle-complete.adoc[]
 
 Projects with a complex build often require some manual tweaking in order to work:
 
-include::partial$example/migrating/javalib/4-gradle-incomplete.adoc[]
+include::partial$example/migrating/javalib/5-gradle-incomplete.adoc[]
 
 == Capabilities
 

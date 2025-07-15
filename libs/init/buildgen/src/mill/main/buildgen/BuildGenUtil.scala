@@ -33,7 +33,7 @@ object BuildGenUtil {
        |
        |${renderRepositories(repositories)}
        |
-       |${jvmId.fold("")(renderJvmId(_))}
+       |${renderJvmId(jvmId, None)}
        |}""".stripMargin
 
   }
@@ -77,6 +77,8 @@ object BuildGenUtil {
            |
            |def testSandboxWorkingDir = false
            |def testParallelism = false
+           |${build.testForkDir.fold("")(v => s"def forkWorkingDir = $v")}
+           |
            |}""".stripMargin
       }
 
@@ -137,6 +139,8 @@ object BuildGenUtil {
        |
        |${renderPublishProperties(publishProperties)}
        |
+       |${renderJvmId(jvmId, if (baseTrait != null) baseTrait.jvmId else None)}
+       |
        |$testModuleTypedef""".stripMargin
 
   }
@@ -186,7 +190,11 @@ object BuildGenUtil {
            |}""".stripMargin
     }.mkString(linebreak2)
 
-    s"""package $pkg
+    val millVersionPrefix =
+      if (node.dirs.nonEmpty) ""
+      else s"//| mill-version: ${mill.util.BuildInfo.millVersion}\n"
+
+    s"""${millVersionPrefix}package $pkg
        |
        |$importStatements
        |
@@ -346,9 +354,13 @@ object BuildGenUtil {
   def renderVersionControl(vc: IrVersionControl): String =
     s"VersionControl(${escapeOption(vc.url)}, ${escapeOption(vc.connection)}, ${escapeOption(vc.devConnection)}, ${escapeOption(vc.tag)})"
 
-  def renderJvmId(jvmId: String): String =
-    s"""
-       |def jvmId = "$jvmId"""".stripMargin
+  def renderJvmId(jvmId: Option[String], superJvmId: Option[String]): String = {
+    (jvmId, superJvmId) match {
+      case (Some(v), s) if !s.contains(v) => s"""def jvmId = "$v""""
+      case _ => ""
+    }
+
+  }
 
   // TODO consider renaming to `renderOptionalDef` or `renderIfArgsNonEmpty`?
   def optional(construct: String, args: IterableOnce[String]): String =

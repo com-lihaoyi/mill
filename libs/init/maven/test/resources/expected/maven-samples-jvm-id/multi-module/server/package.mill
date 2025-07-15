@@ -28,6 +28,8 @@ object `package` extends PublishModule with MavenModule {
     Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
   )
 
+  def jvmId = "11"
+
   object test extends MavenTests with TestModule.Junit4 {
 
     def mvnDeps = Seq(

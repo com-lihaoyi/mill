@@ -298,7 +298,9 @@ object SbtBuildGenMain
       pomParentArtifact = null, // not available
       resources = Nil,
       testResources = Nil,
-      publishProperties = Nil // not available in `sbt` as it seems
+      publishProperties = Nil, // not available in `sbt` as it seems
+      jvmId = cfg.shared.jvmId,
+      testForkDir = None
     )
   }
 

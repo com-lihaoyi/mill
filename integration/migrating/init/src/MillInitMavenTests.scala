@@ -97,13 +97,7 @@ object MillInitMavenDotEnvTests extends BuildGenTestSuite {
       assert(initRes.isSuccess)
 
       val compileRes = eval("__.compile")
-      assert(
-        // JavaModule.JavaTests does not pick compileMvnDeps from outer module
-        compileRes.err.contains(
-          "DotEnvModuleTest.java:3:25: package com.google.inject does not exist"
-        ),
-        !compileRes.isSuccess
-      )
+      assert(compileRes.isSuccess)
     }
   }
 }
@@ -253,6 +247,7 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "codec-xml.compile",
               "codec.compile",
               "common.compile",
+              "common.test.compile",
               "compile",
               "dev-tools.compile",
               "handler-proxy.compile",
@@ -290,7 +285,6 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "codec-stomp.test.compile",
               "codec-xml.test.compile",
               "codec.test.compile", /* missing native dependency */
-              "common.test.compile", /* missing outer compileMvnDeps */
               "example.compile",
               "handler-proxy.test.compile",
               "handler-ssl-ocsp.compile",
@@ -327,7 +321,8 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "buffer.test",
               "resolver.test",
               "transport-native-unix-common.test",
-              "transport-udt.test"
+              "transport-udt.test",
+              "common.test"
             ),
             failed = SortedSet(
               "codec-dns.test",
@@ -342,7 +337,6 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "codec-stomp.test",
               "codec-xml.test",
               "codec.test",
-              "common.test",
               "handler-proxy.test",
               "handler-ssl-ocsp.test",
               "handler.test",

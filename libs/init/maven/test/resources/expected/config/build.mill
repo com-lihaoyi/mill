@@ -1,3 +1,4 @@
+//| mill-version: SNAPSHOT
 package build
 
 import _root_.build_.MyModule
@@ -88,6 +89,8 @@ object `package` extends MyModule {
 
         def testSandboxWorkingDir = false
         def testParallelism = false
+        def forkWorkingDir = moduleDir
+
       }
     }
 
@@ -169,6 +172,8 @@ object `package` extends MyModule {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+      def forkWorkingDir = moduleDir
+
     }
   }
 }
