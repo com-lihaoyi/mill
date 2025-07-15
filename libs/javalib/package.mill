@@ -33,12 +33,12 @@ object `package` extends MillStableScalaModule {
   def runMvnDeps = Seq(Deps.sonatypeCentralClient)
 
   def testMvnDeps = super.testMvnDeps() ++ Seq(Deps.TestDeps.scalaCheck)
-  def localTestExtraRepositories =
-    super.localTestExtraRepositories() ++ Seq(
-      worker.stagePublish(),
-      `classgraph-worker`.stagePublish(),
-      `jarjarabrams-worker`.stagePublish(),
-      `spotless-worker`.stagePublish()
+  def localTestExtraModules =
+    super.localTestExtraModules ++ Seq(
+      worker,
+      `classgraph-worker`,
+      `jarjarabrams-worker`,
+      `spotless-worker`
     )
   def testForkEnv = {
     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"

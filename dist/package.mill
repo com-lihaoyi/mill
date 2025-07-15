@@ -101,6 +101,9 @@ object `package` extends MillJavaModule with DistModule {
 
   def moduleDeps = Seq(build.runner.launcher)
 
+  def localTestExtraModules =
+    allPublishModules
+
   def localBinName = "mill-assembly.jar"
 
   private def millClientJvmArgs = Seq(

@@ -669,6 +669,7 @@ object Jvm {
       Option(System.getenv(envVar))
         .toSeq
         .flatMap(_.split(File.pathSeparator).toSeq)
+        .filter(_.nonEmpty)
         .map { path =>
           MavenRepository(os.Path(path).toNIO.toUri.toASCIIString)
             .withCheckModule(checkGradleModules)

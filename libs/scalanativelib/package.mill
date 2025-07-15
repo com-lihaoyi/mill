@@ -7,8 +7,8 @@ import millbuild.*
 
 object `package` extends MillStableScalaModule {
   def moduleDeps = Seq(build.libs.scalalib, api)
-  def localTestExtraRepositories =
-    super.localTestExtraRepositories() ++ Seq(worker("0.5").stagePublish())
+  def localTestExtraModules =
+    super.localTestExtraModules ++ Seq(worker("0.5"))
 
   object api extends MillStableScalaModule {
     def mvnDeps = Seq(Deps.sbtTestInterface)

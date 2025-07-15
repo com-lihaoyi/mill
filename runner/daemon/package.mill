@@ -12,8 +12,8 @@ import millbuild.*
  */
 object `package` extends MillPublishScalaModule {
 
-  def localTestExtraRepositories =
-    Task.traverse(build.dist.allPublishModules)(_.stagePublish)()
+  def localTestExtraModules =
+    build.dist.allPublishModules
 
   def mvnDeps = Seq(
     Deps.sourcecode,

@@ -29,17 +29,17 @@ object `package` extends mill.Module {
 
   trait ContribModule extends MillPublishScalaModule {
     def readme = Task.Source("readme.adoc")
+
+    def localTestExtraModules =
+      super.localTestExtraModules ++
+        Seq(
+          build.libs.javalib,
+          build.libs.javalib.worker,
+          build.libs.javalib.testrunner.entrypoint
+        )
   }
 
   object testng extends JavaModule with ContribModule {
-
-    def localTestExtraRepositories =
-      super.localTestExtraRepositories() ++
-        Seq(
-          build.libs.javalib.stagePublish(),
-          build.libs.javalib.worker.stagePublish(),
-          build.libs.javalib.testrunner.entrypoint.stagePublish()
-        )
 
     // pure Java implementation
     def artifactSuffix: T[String] = ""
@@ -61,10 +61,8 @@ object `package` extends mill.Module {
     def moduleDeps = Seq(twirllib, playlib.api)
     def compileModuleDeps = Seq(build.libs.scalalib)
 
-    def localTestExtraRepositories =
-      super.localTestExtraRepositories() ++ Task.traverse(
-        Deps.play.keys.toSeq
-      )(worker(_).stagePublish)()
+    def localTestExtraModules =
+      super.localTestExtraModules ++ Deps.play.keys.toSeq.map(worker(_))
 
     def testArgs = Task {
       super.testArgs() ++
@@ -111,8 +109,8 @@ object `package` extends mill.Module {
     def moduleDeps = Seq(scoverage.api)
     def compileModuleDeps = Seq(build.libs.scalalib)
 
-    def localTestExtraRepositories =
-      super.localTestExtraRepositories() ++ Seq(worker2.stagePublish())
+    def localTestExtraModules =
+      super.localTestExtraModules ++ Seq(worker2)
 
     def testArgs = Task {
       super.testArgs() ++
@@ -151,6 +149,15 @@ object `package` extends mill.Module {
   }
 
   object buildinfo extends ContribModule {
+
+    def localTestExtraModules =
+      super.localTestExtraModules ++
+        Seq(
+          build.libs.javalib,
+          build.libs.scalajslib.worker("1"),
+          build.libs.kotlinlib.worker
+        )
+
     def compileModuleDeps =
       Seq(
         build.libs.javalib,

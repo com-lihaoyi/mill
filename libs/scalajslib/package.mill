@@ -10,8 +10,8 @@ import millbuild.*
 
 object `package` extends MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(build.libs.scalalib, api)
-  def localTestExtraRepositories =
-    super.localTestExtraRepositories() ++ Seq(worker("1").stagePublish())
+  def localTestExtraModules =
+    super.localTestExtraModules ++ Seq(worker("1"))
   def buildInfoPackageName = "mill.scalajslib"
   def buildInfoObjectName = "ScalaJSBuildInfo"
 

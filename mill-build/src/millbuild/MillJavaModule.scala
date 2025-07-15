@@ -31,19 +31,54 @@ trait MillJavaModule extends JavaModule {
   def localTestOverridePaths =
     Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
 
-  def localTestExtraRepositories: T[Seq[PathRef]] = Task(Seq.empty[PathRef])
+  def localTestExtraModules: Seq[MillJavaModule] = Nil
   def localTestRepositories: T[Seq[PathRef]] = {
-    val allModules = (Seq(this) ++ recursiveModuleDeps ++ recursiveRunModuleDeps).distinct
+
+    def recursive[T](start: T, deps: T => Seq[T]): Seq[T] = {
+
+      @annotation.tailrec
+      def rec(
+          seenModules: Set[T],
+          acc: List[T],
+          toAnalyze: List[T]
+      ): List[T] =
+        toAnalyze match {
+          case Nil => acc
+          case cand :: remaining =>
+            if (seenModules.contains(cand))
+              rec(
+                seenModules,
+                acc,
+                toAnalyze = remaining
+              )
+            else
+              rec(
+                seenModules + cand,
+                cand :: acc,
+                deps(cand).toList ::: remaining
+              )
+        }
+
+      rec(Set(), Nil, start :: Nil).reverse
+    }
+
+    val allModules = recursive[MillJavaModule](
+      this,
+      m => {
+        val localTestExtraModules0 = m match {
+          case m0: MillJavaModule => m0.localTestExtraModules
+          case _ => Nil
+        }
+        (m.moduleDeps ++ m.runModuleDeps ++ localTestExtraModules0).collect {
+          case m0: MillJavaModule => m0
+        }
+      }
+    )
     Task {
-      val mainRepos = Task.traverse(allModules) {
+      Task.traverse(allModules) {
         case m: MillPublishJavaModule => m.stagePublish.map(Seq(_))
         case _ => Task.Anon(Nil)
       }().flatten
-      val extraRepos = Task.traverse(allModules) {
-        case m: MillPublishJavaModule => m.localTestExtraRepositories.map(Seq(_))
-        case _ => Task.Anon(Nil)
-      }().flatten.flatten
-      mainRepos ++ extraRepos
     }
   }
 

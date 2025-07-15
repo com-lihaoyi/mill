@@ -11,9 +11,9 @@ import millbuild.*
 object `package` extends MillPublishScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.libs.javalib, build.libs.kotlinlib)
-  def localTestExtraRepositories =
-    super.localTestExtraRepositories() ++ Seq(
-      build.libs.kotlinlib.worker.stagePublish()
+  def localTestExtraModules =
+    super.localTestExtraModules ++ Seq(
+      build.libs.kotlinlib.worker
     )
 
   def buildInfoPackageName = "mill.androidlib"
