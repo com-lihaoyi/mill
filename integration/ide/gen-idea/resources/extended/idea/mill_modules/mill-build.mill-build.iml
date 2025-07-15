@@ -20,7 +20,7 @@
         <orderEntry type="library" name="common_2.13-4.13.4.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-codec-1.17.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-compress-1.26.2.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="commons-io-2.18.0.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="commons-io-<!-- IGNORE -->.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-lang3-3.14.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="concurrent-reference-hash-map-1.1.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="config_3-1.8.3.jar" level="project"/>
@@ -35,8 +35,6 @@
         <orderEntry type="library" name="coursier-util_2.13-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" name="coursier_2.13-COURSIER_VERSION.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="dependency_2.13-0.3.2.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="directories-0.1.4.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="directories-jni-0.1.4.jar" level="project"/>
         <orderEntry type="library" name="fansi_3-0.5.0.jar" level="project"/>
         <orderEntry type="library" name="fastparse_3-3.1.1.jar" level="project"/>
         <orderEntry type="library" name="geny_3-1.1.1.jar" level="project"/>
@@ -126,7 +124,7 @@
         <orderEntry type="library" name="sourcecode_3-0.4.3-M5.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="specification-level_3-1.8.3.jar" level="project"/>
         <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="tika-core-3.1.0.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="tika-core-<!-- IGNORE -->.jar" level="project"/>
         <orderEntry type="library" name="trees_2.13-4.13.4.jar" level="project"/>
         <orderEntry type="library" name="ujson_3-4.2.1.jar" level="project"/>
         <orderEntry type="library" name="unroll-annotation_3-0.2.0.jar" level="project"/>

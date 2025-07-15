@@ -15,6 +15,12 @@ object MillNoDaemonMain {
     if (Properties.isWin && Util.hasConsole())
       io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
 
+    if (Properties.isWin)
+      // temporarily disabling FFM use by coursier, which has issues with the way
+      // Mill manages class loaders, throwing things like
+      // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
+      sys.props("coursier.windows.disable-ffm") = "true"
+
     val processId = Server.computeProcessId()
     val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
     Server.watchProcessIdFile(
