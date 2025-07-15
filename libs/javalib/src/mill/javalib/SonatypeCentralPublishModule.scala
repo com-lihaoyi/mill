@@ -142,8 +142,8 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
 
   // bin-compat shim
   def publishSonatypeCentral(
-    username: String,
-    password: String
+      username: String,
+      password: String
   ): Task.Command[Unit] =
     publishSonatypeCentral(
       username,
