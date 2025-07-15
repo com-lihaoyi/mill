@@ -1,6 +1,10 @@
 package mill.scalalib
 
-import com.lumidion.sonatype.central.client.core.{DeploymentName, PublishingType, SonatypeCredentials}
+import com.lumidion.sonatype.central.client.core.{
+  DeploymentName,
+  PublishingType,
+  SonatypeCredentials
+}
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
 import mill.scalalib.publish.Artifact
@@ -37,7 +41,7 @@ class SonatypeCentralPublisher(
       singleBundleName: Option[String],
       artifacts: (Seq[(os.Path, String)], Artifact)*
   ): Unit = {
-    val prepared = prepareToPublishAll(singleBundleName, artifacts*)
+    val prepared = prepareToPublishAll(singleBundleName, artifacts *)
     log.info(prepared.mappingsString)
 
     prepared.deployments.foreach { case (zipFile, deploymentName) =>
@@ -46,11 +50,11 @@ class SonatypeCentralPublisher(
   }
 
   private[mill] def publishAllToLocal(
-    publishTo: os.Path,
-    singleBundleName: Option[String],
-    artifacts: (Seq[(os.Path, String)], Artifact)*
+      publishTo: os.Path,
+      singleBundleName: Option[String],
+      artifacts: (Seq[(os.Path, String)], Artifact)*
   ): Unit = {
-    val prepared = prepareToPublishAll(singleBundleName, artifacts*)
+    val prepared = prepareToPublishAll(singleBundleName, artifacts *)
     log.info(prepared.mappingsString)
 
     prepared.deployments.foreach { case (zipFile, deploymentName) =>
@@ -62,20 +66,20 @@ class SonatypeCentralPublisher(
   }
 
   private case class PreparedArtifacts(
-    mappings: Seq[(Artifact, Seq[(String, Array[Byte])])],
-    deployments: Vector[(File, DeploymentName)]
+      mappings: Seq[(Artifact, Seq[(String, Array[Byte])])],
+      deployments: Vector[(File, DeploymentName)]
   ) {
     def mappingsString: String = s"mappings ${pprint.apply(
-      mappings.map { case (a, fileSetContents) =>
-        (a, fileSetContents.sortBy(_._1).map(_._1))
-      }
-    )}"
+        mappings.map { case (a, fileSetContents) =>
+          (a, fileSetContents.sortBy(_._1).map(_._1))
+        }
+      )}"
   }
 
   /** Prepare artifacts for publishing. */
   private def prepareToPublishAll(
-    singleBundleName: Option[String],
-    artifacts: (Seq[(os.Path, String)], Artifact)*
+      singleBundleName: Option[String],
+      artifacts: (Seq[(os.Path, String)], Artifact)*
   ): PreparedArtifacts = {
     val releases = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
 
