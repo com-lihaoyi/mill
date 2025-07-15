@@ -488,6 +488,10 @@ trait PublishModule extends JavaModule { outer =>
   /** @see [[PublishModule.sonatypeCentralSnapshotUri]] */
   def sonatypeCentralSnapshotUri: String = PublishModule.sonatypeCentralSnapshotUri
 
+  @deprecated(
+    "Do not override this task, override `artifactMetadata`, `publishArtifactsDefaultPayload` or `extraPublish` instead.",
+    "1.0.1"
+  )
   def publishArtifacts: T[PublishModule.PublishData] = Task {
     PublishModule.PublishData(artifactMetadata(), publishArtifactsPayload()())
   }
@@ -641,11 +645,9 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   ) {
     def payloadAsMap: Map[os.SubPath, PathRef] = PublishData.seqToMap(payload)
 
-    /**
-     * Maps the path reference to an actual path so that it can be used in publishAll signatures
-     */
+    /** Maps the path reference to an actual path. */
     private[mill] def withConcretePath: (Map[os.SubPath, os.Path], Artifact) =
-      (payloadAsMap.view.mapValues(_.path).toMap, meta)
+      (PublishData.withConcretePath(payloadAsMap), meta)
   }
   object PublishData {
     implicit def jsonify: upickle.default.ReadWriter[PublishData] = {
@@ -661,6 +663,10 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
 
     private def mapToSeq(payload: Map[os.SubPath, PathRef]): Seq[(PathRef, String)] =
       payload.iterator.map { case (name, pathRef) => pathRef -> name.toString }.toSeq
+
+    /** Maps the path reference to an actual path. */
+    private[mill] def withConcretePath(payload: Map[os.SubPath, PathRef]): Map[os.SubPath, os.Path] =
+      payload.view.mapValues(_.path).toMap
   }
 
   /**

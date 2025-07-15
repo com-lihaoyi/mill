@@ -1,5 +1,6 @@
 package mill.javalib
 
+import com.lihaoyi.unroll
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import mill.*
 import javalib.*
@@ -11,6 +12,7 @@ import mill.javalib.SonatypeCentralPublishModule.{defaultAwaitTimeout, defaultCo
 import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
+import mill.javalib.PublishModule.PublishData
 import mill.javalib.internal.PublishModule.GpgArgs
 
 trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport {
@@ -46,7 +48,9 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
 
   def publishSonatypeCentral(
       username: String = defaultCredentials,
-      password: String = defaultCredentials
+      password: String = defaultCredentials,
+      @unroll sources: Boolean = true,
+      @unroll docs: Boolean = true
   ): Task.Command[Unit] = Task.Command {
     val artifact = artifactMetadata()
     val finalCredentials = getSonatypeCredentials(username, password)()
@@ -56,7 +60,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
       val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2Artifacts(
         pom().path,
         artifact,
-        defaultPublishInfos(sources = true, docs = true)
+        defaultPublishInfos(sources = sources, docs = docs)
       )
 
       Task.log.info(
@@ -74,8 +78,8 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
     }
 
     def publishRelease(): Unit = {
-      val publishData = publishArtifacts()
-      val fileMapping = publishData.withConcretePath._1
+      val publishData = publishArtifactsPayload(sources = sources, docs = docs)()
+      val fileMapping = PublishData.withConcretePath(publishData)
 
       val maybeKeyId = internal.PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
       val keyId = maybeKeyId.getOrElse(throw new IllegalArgumentException(
