@@ -8,7 +8,14 @@ import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.api.DefaultTaskModule
 import mill.api.Result
-import mill.javalib.SonatypeCentralPublishModule.{defaultAwaitTimeout, defaultConnectTimeout, defaultCredentials, defaultReadTimeout, getPublishingTypeFromReleaseFlag, getSonatypeCredentials}
+import mill.javalib.SonatypeCentralPublishModule.{
+  defaultAwaitTimeout,
+  defaultConnectTimeout,
+  defaultCredentials,
+  defaultReadTimeout,
+  getPublishingTypeFromReleaseFlag,
+  getSonatypeCredentials
+}
 import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
@@ -159,8 +166,7 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
             s"supported with this task.\n" +
             commonMessage
         )
-      }
-      else {
+      } else {
         log.warn(
           "Some of the artifacts to publish are SNAPSHOTs, but publishing SNAPSHOTs to Sonatype Central is not " +
             s"supported with this task. SNAPSHOT artifacts will be skipped.\n" +
@@ -189,7 +195,8 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
     )
     log.info(
       s"Publishing all release artifacts to Sonatype Central (publishing type = $publishingType): ${
-        pprint.apply(releaseArtifacts)}"
+          pprint.apply(releaseArtifacts)
+        }"
     )
     publisher.publishAll(publishingType, singleBundleName = finalBundleName, releaseArtifacts*)
     log.info(s"Published all release artifacts to Sonatype Central.")
