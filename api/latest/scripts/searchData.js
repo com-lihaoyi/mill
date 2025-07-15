@@ -578,7 +578,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/api/internal/SubfolderModule.html#","e":false,"i":"","n":"SubfolderModule","t":"SubfolderModule(millDiscover: Discover)(implicit millModuleLine0: Line, millFile0: File, subFolderInfo: Info) extends BaseClass, Module","d":"mill.api.internal","k":"class","x":""},
 {"l":"mill/api/internal/Util$.html#","e":false,"i":"","n":"Util","t":"Util","d":"mill.api.internal","k":"object","x":""},
 {"l":"mill/api/internal/Util$.html#leftPad-165","e":false,"i":"","n":"leftPad","t":"leftPad(s: String, targetLength: Int, char: Char): String","d":"mill.api.internal.Util","k":"def","x":""},
-{"l":"mill/api/internal/Util$.html#renderSecondsSuffix-4a9","e":false,"i":"","n":"renderSecondsSuffix","t":"renderSecondsSuffix(millis: Long): String","d":"mill.api.internal.Util","k":"def","x":""},
+{"l":"mill/api/internal/Util$.html#renderSecondsSuffix-5c8","e":false,"i":"","n":"renderSecondsSuffix","t":"renderSecondsSuffix(millis: Long, dummy: Int): String","d":"mill.api.internal.Util","k":"def","x":""},
 {"l":"mill/api/Args.html#","e":false,"i":"","n":"Args","t":"Args(val value: Seq[String])","d":"mill.api","k":"class","x":""},
 {"l":"mill/api/Args.html#value-0","e":false,"i":"","n":"value","t":"value: Seq[String]","d":"mill.api.Args","k":"val","x":""},
 {"l":"mill/api/Args$.html#","e":false,"i":"","n":"Args","t":"Args","d":"mill.api","k":"object","x":""},
