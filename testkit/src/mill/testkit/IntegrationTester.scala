@@ -1,9 +1,7 @@
 package mill.testkit
 
+import mill.api.{Cached, Segments, SelectMode}
 import mill.constants.OutFiles
-import mill.api.Segments
-import mill.api.Cached
-import mill.api.SelectMode
 import ujson.Value
 
 import scala.concurrent.duration.*
@@ -40,7 +38,18 @@ object IntegrationTester {
    * performing assertions against.
    */
   case class EvalResult(exitCode: Int, out: String, err: String) {
-    def isSuccess = exitCode == 0
+    def isSuccess: Boolean = exitCode == 0
+
+    def debugString: String = {
+      s"""Success: $isSuccess (exit code: $exitCode)
+         |
+         |stdout:
+         |$out
+         |
+         |stderr:
+         |$err
+         |""".stripMargin
+    }
   }
 
   /** An [[Impl.eval]] that is prepared for execution but haven't been executed yet. Run it with [[run]]. */
