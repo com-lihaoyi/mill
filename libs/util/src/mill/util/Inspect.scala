@@ -1,7 +1,6 @@
 package mill.util
 
 import scala.annotation.tailrec
-import mill.api.*
 import mill.api.{Evaluator, *}
 import scala.collection.mutable
 import pprint.{Renderer, Tree, Truncated}

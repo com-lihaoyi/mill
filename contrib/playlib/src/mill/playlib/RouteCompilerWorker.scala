@@ -2,7 +2,7 @@ package mill.playlib
 
 import mill.api.{TaskCtx, PathRef}
 import mill.api.Result
-import mill.playlib.api.{RouteCompilerType, RouteCompilerWorkerApi}
+import mill.playlib.api.RouteCompilerType
 import mill.javalib.api.CompilationResult
 import mill.*
 

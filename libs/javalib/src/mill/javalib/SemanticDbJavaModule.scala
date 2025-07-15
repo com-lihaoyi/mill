@@ -1,7 +1,7 @@
 package mill.javalib
 
 import mill.api.{Result, experimental}
-import mill.api.{BuildCtx, PathRef}
+import mill.api.PathRef
 import mill.api.daemon.internal.SemanticDbJavaModuleApi
 import mill.constants.CodeGenConstants
 import mill.api.ModuleRef

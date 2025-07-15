@@ -1,8 +1,8 @@
 package mill.daemon
 
 import ch.epfl.scala.bsp4j.BuildClient
-import mill.api.daemon.internal.bsp.{BspServerHandle, BspServerResult}
-import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi, internal}
+import mill.api.daemon.internal.bsp.BspServerHandle
+import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.Lock

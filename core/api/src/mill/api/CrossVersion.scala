@@ -22,9 +22,9 @@ enum CrossVersion derives upickle.default.ReadWriter {
     val suffix = this match {
       case cross: Constant =>
         s"${firstSuffix}${cross.value}"
-      case cross: Binary =>
+      case _: Binary =>
         s"${firstSuffix}_${binaryVersion}"
-      case cross: Full =>
+      case _: Full =>
         s"${firstSuffix}_${fullVersion}"
     }
     require(!suffix.contains("/"), "Artifact suffix must not contain `/`s")

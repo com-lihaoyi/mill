@@ -4,7 +4,6 @@ import mill.*
 import os.*
 
 import scala.annotation.tailrec
-import scala.util.Try
 import mill.javalib.publish.JsonFormatters.licenseFormat
 import mill.api.BuildCtx
 
