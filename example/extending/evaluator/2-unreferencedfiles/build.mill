@@ -1,0 +1,90 @@
+package build
+import mill.*, scalalib.*
+
+import mill.api._
+import mill.api.daemon.SelectMode
+
+object `package` extends ScalaModule {
+  def scalaVersion = "2.13.11"
+  def mvnDeps = Seq(
+    mvn"com.lihaoyi::scalatags:0.13.1",
+    mvn"com.lihaoyi::mainargs:0.6.2"
+  )
+
+  object test extends ScalaTests {
+    def mvnDeps = Seq(mvn"com.lihaoyi::utest:0.8.5")
+    def testFramework = "utest.runner.Framework"
+  }
+
+  def unreferencedFiles(evaluator: Evaluator) = Task.Command(exclusive = true) {
+    val sourceFiles = Seq("allSourceFiles")
+    val segmentResult = evaluator.resolveSegments(sourceFiles, SelectMode.Multi).get
+    segmentResult.foreach { segment =>
+      println(s"Planning segment: ${segment.render}")
+    }
+    
+    val resolveResult = evaluator.resolveTasks(sourceFiles, SelectMode.Multi).get
+    val plan = evaluator.plan(resolveResult)
+      .sortedGroups
+      .keys()
+      .map(_.toString)
+      .toIndexedSeq
+    plan.foreach(task => println(s"Planned task: $task"))
+    
+    val executeResult = evaluator.evaluate(plan, SelectMode.Multi).get
+    
+    val knownSources = executeResult.values match {
+      case mill.api.Result.Success(resultVector) =>
+        val allPaths = for {
+          resultList <- resultVector.asInstanceOf[Vector[List[Any]]]
+          item <- resultList
+          pathRef <- item match {
+            case p: mill.api.PathRef => Some(p.path)
+            case _ => None
+          }
+        } yield pathRef
+        
+        println(s"Extracted ${allPaths.size} known source paths")
+        allPaths.toSet
+        
+      case mill.api.Result.Failure(msg) =>
+        println(s"Task execution failed: $msg")
+        Set.empty[os.Path]
+    }
+    
+    // Find all source files on disk
+    val projectRoot = os.pwd
+    val sourceExtensions = Set(".scala")
+    val diskSources = os.walk(projectRoot)
+      .filter(p => sourceExtensions.exists(p.toString.endsWith))
+      .filter(!_.segments.contains(".git"))
+      .filter(!_.segments.contains("out"))
+      .toSet
+    
+    // Find unreferenced files
+    val unreferenced = diskSources -- knownSources
+    if (unreferenced.nonEmpty) {
+      println("--- Unreferenced Source Files ---")
+      unreferenced.toSeq.sorted.foreach { file =>
+        println(s" - ${file.relativeTo(projectRoot)}")
+      }
+      println(s"\nTotal: ${unreferenced.size} unreferenced files")
+    } else {
+      println("No unreferenced source files found!")
+    }
+  }
+
+}
+
+// This command finds source files that are not referenced by any module in the Mill build.
+// It uses resolveSegments, resolveTasks, plan and evaluate to gather information about source files
+// and their dependencies.
+// It also excludes files in the .git directory and Mill's output directory.
+// It prints a report of unreferenced files.
+
+/** Usage
+
+> ./mill unreferencedFiles
+Extracted 2 known source paths
+
+*/

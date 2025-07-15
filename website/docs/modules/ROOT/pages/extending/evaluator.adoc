@@ -1,4 +1,4 @@
-= Evaluator API Commands
+= Example: Evaluator API Commands
 
 The Mill `Evaluator` API provides programmatic access to Mill's core functionalities, allowing you to resolve, plan, and execute build tasks directly.
 This API is essential for extending Mill built-in features through interaction and control of the build process.
@@ -15,4 +15,18 @@ This task:
 * Scans each source file for import statements that match the resolved dependencies with helper methods.
 * Prints a report showing which dependencies are used by which source files, including the specific import statements.
 
-include::partial$example/extending/evaluator/1-resolve-segments.adoc[]
+include::partial$example/extending/evaluator/1-depMapper.adoc[]
+
+== Orphaned Source Files
+In this example, the `unreferencedFiles` task shows how to use the `Evaluator` API to find source files in your project that are not referenced by any module.
+
+This task:
+
+* Resolves all known source files using `resolveSegments` and `resolveTasks`.
+* Plans and evaluates these tasks to collect the set of referenced source file paths using `plan` and `evaluate`.
+* Walks the project directory to find all `.scala` source files, excluding `.git` and Mill's output directories.
+* Compares the discovered files on disk with the referenced files to identify unreferenced (orphaned) source files.
+* Prints a report listing all orphaned files, or a message if none are found.
+
+include::partial$example/extending/evaluator/2-unreferencedfiles.adoc[]
+
