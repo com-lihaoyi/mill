@@ -83,6 +83,7 @@ object `package` extends BaseModule {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 
@@ -110,6 +111,7 @@ object `package` extends BaseModule {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 
@@ -144,6 +146,7 @@ object `package` extends BaseModule {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 

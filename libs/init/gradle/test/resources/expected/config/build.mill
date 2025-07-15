@@ -30,6 +30,7 @@ object `package` extends mill.Module {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 
@@ -41,6 +42,7 @@ object `package` extends mill.Module {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 

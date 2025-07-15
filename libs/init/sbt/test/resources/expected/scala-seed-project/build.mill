@@ -29,5 +29,6 @@ object `package` extends SbtModule with PublishModule {
 
     def testSandboxWorkingDir = false
     def testParallelism = false
+
   }
 }

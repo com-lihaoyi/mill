@@ -1,0 +1,40 @@
+package build.`multi-module`.webapp
+
+import mill._
+import mill.javalib._
+import mill.javalib.publish._
+
+object `package` extends PublishModule with MavenModule {
+
+  def javacOptions = Seq("-source", "1.6", "-target", "1.6")
+
+  def moduleDeps = super.moduleDeps ++ Seq(build.`multi-module`.server)
+
+  def compileMvnDeps =
+    Seq(mvn"javax.servlet.jsp:jsp-api:2.2", mvn"javax.servlet:servlet-api:2.5")
+
+  def pomSettings = PomSettings(
+    "Webapp.",
+    "com.example.maven-samples",
+    "http://www.example.com/webapp",
+    Seq(),
+    VersionControl(
+      Some("http://github.com/gabrielf/maven-samples/webapp"),
+      Some("scm:git:git@github.com:gabrielf/maven-samples.git/webapp"),
+      Some("scm:git:git@github.com:gabrielf/maven-samples.git/webapp"),
+      Some("HEAD")
+    ),
+    Seq()
+  )
+
+  def publishVersion = "1.0-SNAPSHOT"
+
+  def pomPackagingType = "war"
+
+  def pomParentProject = Some(
+    Artifact("com.example.maven-samples", "multi-module-parent", "1.0-SNAPSHOT")
+  )
+
+  def jvmId = "11"
+
+}

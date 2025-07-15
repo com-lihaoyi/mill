@@ -89,6 +89,8 @@ object `package` extends MyModule {
 
         def testSandboxWorkingDir = false
         def testParallelism = false
+        def forkWorkingDir = moduleDir
+
       }
     }
 
@@ -170,6 +172,8 @@ object `package` extends MyModule {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+      def forkWorkingDir = moduleDir
+
     }
   }
 }
