@@ -46,6 +46,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
 
   def sonatypeCentralShouldRelease: T[Boolean] = Task { true }
 
+  //noinspection ScalaUnusedSymbol - used as a Mill task invocable from CLI
   def publishSonatypeCentral(
       username: String = defaultCredentials,
       password: String = defaultCredentials,
