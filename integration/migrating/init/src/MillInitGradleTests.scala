@@ -51,12 +51,9 @@ object MillInitGradleFastCsvTests extends BuildGenTestSuite {
           "lib.test.allSourceFiles" -> 9
         ),
         expectedCompileTaskResults = Some(SplitTaskResults(
-          successful = SortedSet.empty,
+          successful = SortedSet("lib.compile"),
           failed = SortedSet(
             "example.compile",
-            // classpath entry added by JavaModule.compileResources does not exist
-            // error: warnings found and -Werror specified
-            "lib.compile",
             "lib.test.compile"
           )
         )),

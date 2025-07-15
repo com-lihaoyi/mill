@@ -137,31 +137,37 @@ jobs:
             millargs: "'{core,testkit,runner,dist}.__.test'"
             install-android-sdk: false
             install-sbt: true
+            install-xvfb: false
 
           - java-version: 17
             millargs: "'libs.{util,javalib,androidlib,graphviz,init,tabcomplete}.__.test'"
             install-android-sdk: false
             install-sbt: true
+            install-xvfb: false
 
           - java-version: 11
             millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
             install-android-sdk: false
             install-sbt: false
+            install-xvfb: false
 
           - java-version: 17
             millargs: "contrib.__.test"
             install-android-sdk: false
             install-sbt: false
+            install-xvfb: false
 
           - java-version: 17
             millargs: "example.javalib.__.local.daemon"
             install-android-sdk: false
             install-sbt: false
+            install-xvfb: false
 
           - java-version: 17
             millargs: "example.kotlinlib.__.local.daemon"
             install-android-sdk: false
             install-sbt: false
+            install-xvfb: false
 
           # Run this one using `.native` as a smoketest. Also make sure the java-version
           # is the same as that used in the `build-linux` job to avoid diverging code
@@ -170,67 +176,80 @@ jobs:
             millargs: "example.scalalib.__.native.daemon"
             install-android-sdk: false
             install-sbt: false
+            install-xvfb: false
 
           - java-version: 17
             millargs: "'example.androidlib.__.local.daemon'"
             install-android-sdk: true
             install-sbt: false
+            install-xvfb: false
 
           - java-version: 17
             millargs: "'example.thirdparty[androidtodo].local.daemon'"
             install-android-sdk: true
             install-sbt: false
+            install-xvfb: false
 
           - java-version: 17
             millargs: "'example.thirdparty[android-endless-tunnel].local.daemon'"
             install-android-sdk: true
             install-sbt: false
+            install-xvfb: false
 
           - java-version: 17
             millargs: "'example.thirdparty[android-compose-samples].local.daemon'"
             install-android-sdk: true
             install-sbt: false
+            install-xvfb: false
 
           - java-version: 17
-            millargs: "'{example,integration}.migrating.__.local.daemon'"
+            millargs: "'example.migrating.__.local.daemon'"
             install-android-sdk: false
             install-sbt: true
+            install-xvfb: true
 
           - java-version: 17
             millargs: "'example.{pythonlib,javascriptlib}.__.local.daemon'"
             install-android-sdk: false
             install-sbt: false
+            install-xvfb: false
 
           - java-version: 24
             millargs: "'example.thirdparty[{mockito,commons-io}].local.daemon'"
             install-android-sdk: false
             install-sbt: false
+            install-xvfb: false
 
           - java-version: 17
             millargs: "'example.thirdparty[{netty,gatling}].local.daemon'"
             install-android-sdk: false
             install-sbt: false
+            install-xvfb: false
 
           - java-version: '17'
             millargs: "'example.thirdparty[arrow].local.daemon'"
             install-android-sdk: false
             install-sbt: false
+            install-xvfb: false
 
           - java-version: 11
             millargs: "'example.{cli,fundamentals,depth,extending,large}.__.local.daemon'"
             install-android-sdk: false
             install-sbt: false
+            install-xvfb: false
 
           - java-version: 11
             millargs: "'integration.{failure,feature,ide}.__.native.daemon'"
             install-android-sdk: false
             install-sbt: false
+            install-xvfb: false
 
             # run this specifically in `native` mode to make sure our non-JVM native image
             # launcher is able to bootstrap everything necessary without a JVM installed
           - java-version: 17
             millargs: "'integration.bootstrap[no-java-bootstrap].native.daemon'"
             install-android-sdk: false
+            install-xvfb: false
 
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
@@ -238,16 +257,25 @@ jobs:
             millargs: "'integration.invalidation.__.packaged.nodaemon'"
             install-android-sdk: false
             install-sbt: false
+            install-xvfb: false
 
           - java-version: 24
             millargs: "'integration.invalidation.__.packaged.daemon'"
             install-android-sdk: false
             install-sbt: false
+            install-xvfb: false
+
+          - java-version: 17
+            millargs: "'integration.migrating.__.local.daemon'"
+            install-android-sdk: false
+            install-sbt: true
+            install-xvfb: true # used for the example `iluwatar/java-design-patterns` init tests
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
       install-android-sdk: ${{ matrix.install-android-sdk }}
       install-sbt: ${{ matrix.install-sbt || false }}
+      install-xvfb: ${{ matrix.install-xvfb }}
       java-version: ${{ matrix.java-version }}
       millargs: ${{ matrix.millargs }}
       shell: bash

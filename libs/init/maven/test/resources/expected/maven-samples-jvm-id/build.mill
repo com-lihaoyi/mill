@@ -1,4 +1,5 @@
 //| mill-version: SNAPSHOT
+//| mill-jvm-version: 11
 package build
 
 import mill._
@@ -21,7 +22,5 @@ object `package` extends PublishModule with MavenModule {
   def publishVersion = "1.0-SNAPSHOT"
 
   def pomPackagingType = PackagingType.Pom
-
-  def jvmId = "11"
 
 }
