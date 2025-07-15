@@ -4,12 +4,12 @@ import mill.*
 import mill.scalalib.*
 import mill.javalib.api.JvmWorkerUtil
 import mill.api.BuildCtx
-// import com.goyeau.mill.scalafix.ScalafixModule
+import com.goyeau.mill.scalafix.ScalafixModule
 
 /**
  * Some custom scala settings and test convenience
  */
-trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixModule*/ { outer =>
+trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModule { outer =>
   def scalaVersion = Deps.scalaVersion
   def scalapVersion: T[String] = Deps.scala2Version
   def scalafixScalaBinaryVersion = Task {
@@ -65,7 +65,8 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
     super.scalacPluginMvnDeps() ++
       Option.when(binaryVersion != "3")(Deps.acyclic) ++
-      Option.when(hasModuleDefs)(Deps.millModuledefsPlugin)
+      Option.when(hasModuleDefs)(Deps.millModuledefsPlugin) ++
+      Seq(Deps.unrollPlugin)
   }
 
   def mandatoryMvnDeps = Task {
@@ -73,13 +74,14 @@ trait MillScalaModule extends ScalaModule with MillJavaModule /* with ScalafixMo
     val binaryVersion = JvmWorkerUtil.scalaBinaryVersion(sv)
     val hasModuleDefs = binaryVersion == "2.13" || binaryVersion == "3"
     super.mandatoryMvnDeps() ++
-      Option.when(hasModuleDefs)(Deps.millModuledefs)
+      Option.when(hasModuleDefs)(Deps.millModuledefs) ++
+      Seq(Deps.unrollAnnotation)
   }
 
   /** Default tests module. */
   lazy val test: MillScalaTests = new MillScalaTests {}
   trait MillScalaTests extends ScalaTests with MillJavaModule with MillBaseTestsModule
-      /*with ScalafixModule*/ {
+      with ScalafixModule {
     def scalafixConfig = Task { Some(BuildCtx.workspaceRoot / ".scalafix.conf") }
     def forkArgs = super.forkArgs() ++ outer.testArgs()
     def moduleDeps = outer.testModuleDeps

@@ -116,19 +116,25 @@ object MillInitUtils {
               val tasks = expected.successful
               if (tasks.nonEmpty)
                 assertEvalSuccess(eval(
-                  if (expected.failed.isEmpty)
-                    wildcardAllTasks
+                  if (expected.failed.isEmpty) wildcardAllTasks
                   else {
                     if (tasks.size == 1) tasks.head
                     else tasks.mkString("{", ",", "}")
                   }
                 ))
-            } else
+            } else {
+              val missingSuccesses = expected.successful.filter(task => !eval(task).isSuccess)
+              Predef.assert(
+                missingSuccesses.isEmpty,
+                s"expected successes ${missingSuccesses} missing"
+              )
               for (task <- expected.successful)
                 assertEvalSuccess(eval(task), s"task $task failed")
+            }
 
-            for (task <- expected.failed)
-              Predef.assert(!eval(task).isSuccess, s"task $task succeeded")
+            val missingFailures = expected.failed.filter(task => eval(task).isSuccess)
+
+            Predef.assert(missingFailures.isEmpty, s"expected failures ${missingFailures} missing")
           })
         }
 

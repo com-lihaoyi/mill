@@ -5,7 +5,7 @@ import java.nio.file.Path
 import mill.api.daemon.internal.bsp.BspJavaModuleApi
 import mill.Task
 import mill.api.daemon.internal.{EvaluatorApi, TaskApi, internal}
-import mill.api.{Discover, ExternalModule, ModuleCtx}
+import mill.api.ModuleCtx
 import mill.javalib.{JavaModule, SemanticDbJavaModule}
 import mill.api.JsonFormatters.given
 

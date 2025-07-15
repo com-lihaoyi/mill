@@ -24,7 +24,12 @@ include::partial$example/migrating/javalib/2-maven-incomplete.adoc[]
 
 Nevertheless, even for larger builds `mill init` automates most of the tedious
 busy-work of writing `build.mill`/`package.mill` files, and makes it much quicker
-to get a working Mill build for any existing Maven project.
+to get a working Mill build for any existing Maven project. For example,
+the `iluwatar/java-design-patterns` repo has 363 subprojects
+(including test projects) and `./mill init` is able to get it imported,
+compiling, and passing all tests in Mill:
+
+include::partial$example/migrating/javalib/3-maven-complete-large.adoc[]
 
 
 == Capabilities

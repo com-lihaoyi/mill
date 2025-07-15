@@ -1,13 +1,14 @@
 package build.libs.javalib
-import scala.util.Properties
-import scala.util.chaining._
+import com.github.lolgab.mill.mima.{Problem, ProblemFilter}
 
+import scala.util.Properties
+import scala.util.chaining.*
 import coursier.maven.MavenRepository
-import mill._
+import mill.*
 import mill.util.Tasks
-import mill.scalalib._
+import mill.scalalib.*
 import mill.javalib.api.JvmWorkerUtil
-import mill.scalalib.publish._
+import mill.scalalib.publish.*
 import mill.util.Jvm
 import mill.api.SelectMode
 import mill.contrib.buildinfo.BuildInfo
@@ -43,6 +44,13 @@ object `package` extends MillStableScalaModule {
     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
     super.testForkEnv() ++ Map("LC_ALL" -> locale)
   }
+
+  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] =
+    super.mimaBinaryIssueFilters() ++ Seq(
+      // This was `private[mill]`, package private doesn't have the JVM bytecode equivalent, so mima can't check it.
+      ProblemFilter.exclude[Problem]("mill.javalib.PublishModule.checkSonatypeCreds"),
+      ProblemFilter.exclude[Problem]("mill.javalib.publish.SonatypeHelpers.getArtifactMappings")
+    )
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
     def mvnDeps = Seq(Deps.sbtTestInterface)

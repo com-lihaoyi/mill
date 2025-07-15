@@ -118,6 +118,7 @@
         <orderEntry type="library" scope="RUNTIME" name="tika-core-3.1.0.jar" level="project"/>
         <orderEntry type="library" name="trees_2.13-4.13.4.jar" level="project"/>
         <orderEntry type="library" name="ujson_3-4.2.1.jar" level="project"/>
+        <orderEntry type="library" name="unroll-annotation_3-0.2.0.jar" level="project"/>
         <orderEntry type="library" name="upack_3-4.2.1.jar" level="project"/>
         <orderEntry type="library" name="upickle-core_3-4.2.1.jar" level="project"/>
         <orderEntry type="library" name="upickle-implicits-named-tuples_3-4.2.1.jar" level="project"/>

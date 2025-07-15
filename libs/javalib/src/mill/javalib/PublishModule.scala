@@ -2,16 +2,14 @@ package mill
 package javalib
 
 import coursier.core.{Configuration, DependencyManagement}
-import mill.api.{ExternalModule, Task, DefaultTaskModule}
+import mill.api.{DefaultTaskModule, ExternalModule, Task}
 import mill.api.PathRef
 import mill.api.Result
-import mill.util.JarManifest
-import mill.util.Tasks
-import mill.javalib.PublishModule.checkSonatypeCreds
-import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
+import mill.util.{JarManifest, Secret, Tasks, FileSetContents}
 import mill.javalib.publish.{Artifact, SonatypePublisher}
 import os.Path
 import mill.api.BuildCtx
+import mill.javalib.internal.PublishModule.{GpgArgs, checkSonatypeCreds}
 
 /**
  * Configuration necessary for publishing a Scala module to Maven Central or similar
@@ -296,17 +294,28 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
-  def defaultPublishInfos: T[Seq[PublishInfo]] = {
-    def defaultPublishJars: Task[Seq[(PathRef, PathRef => PublishInfo)]] = {
-      pomPackagingType match {
-        case PackagingType.Pom => Task.Anon(Seq())
-        case _ => Task.Anon(Seq(
-            (jar(), PublishInfo.jar)
-          ))
-      }
-    }
-    Task {
-      defaultPublishJars().map { case (jar, info) => info(jar) }
+  @deprecated("Use `defaultPublishInfos` that takes parameters instead.", "1.0.1")
+  def defaultPublishInfos: T[Seq[PublishInfo]] =
+    Task { defaultPublishInfos(sources = true, docs = true)() }
+
+  /** The [[PublishInfo]] of the [[defaultMainPublishInfos]] and optionally the [[sourcesJar]] and [[docJar]]. */
+  def defaultPublishInfos(sources: Boolean, docs: Boolean): Task[Seq[PublishInfo]] = {
+    val sourcesJarOpt =
+      if (sources) Task.Anon(Some(PublishInfo.sourcesJar(sourceJar())))
+      else Task.Anon(None)
+
+    val docJarOpt =
+      if (docs) Task.Anon(Some(PublishInfo.docJar(docJar())))
+      else Task.Anon(None)
+
+    Task.Anon(defaultMainPublishInfos() ++ sourcesJarOpt() ++ docJarOpt())
+  }
+
+  /** The [[PublishInfo]] of the main artifact, which can have multiple files. */
+  def defaultMainPublishInfos: Task[Seq[PublishInfo]] = {
+    pomPackagingType match {
+      case PackagingType.Pom => Task.Anon(Seq.empty)
+      case _ => Task.Anon(Seq(PublishInfo.jar(jar())))
     }
   }
 
@@ -368,7 +377,7 @@ trait PublishModule extends JavaModule { outer =>
       sources: Boolean,
       doc: Boolean,
       transitive: Boolean
-  ): Task[Seq[Path]] =
+  ): Task[Seq[Path]] = {
     if (transitive) {
       val publishTransitiveModuleDeps = (transitiveModuleDeps ++ transitiveRunModuleDeps).collect {
         case p: PublishModule => p
@@ -377,39 +386,58 @@ trait PublishModule extends JavaModule { outer =>
         publishMod.publishLocalTask(localIvyRepo, sources, doc, transitive = false)
       }.map(_.flatten)
     } else {
-      val sourcesJarOpt =
-        if (sources) Task.Anon(Some(PublishInfo.sourcesJar(sourceJar())))
-        else Task.Anon(None)
-      val docJarOpt =
-        if (doc) Task.Anon(Some(PublishInfo.docJar(docJar())))
-        else Task.Anon(None)
-
       Task.Anon {
+        val contents = publishLocalContentsTask(sources = sources, doc = doc)()
         val publisher = localIvyRepo() match {
           case None => LocalIvyPublisher
           case Some(path) => new LocalIvyPublisher(path)
         }
-        val publishInfos =
-          defaultPublishInfos() ++ sourcesJarOpt().toSeq ++ docJarOpt().toSeq ++ extraPublish()
-        publisher.publishLocal(
-          pom = pom().path,
-          ivy = Right(ivy().path),
-          artifact = artifactMetadata(),
-          publishInfos = publishInfos
-        )
+        publisher.publishLocal(contents.artifact, contents.contents)
       }
     }
+  }
+
+  /** Produce the contents for the ivy publishing. */
+  private def publishLocalContentsTask(
+      sources: Boolean,
+      doc: Boolean
+  ): Task[(artifact: Artifact, contents: Map[os.SubPath, FileSetContents.Writable])] = {
+    Task.Anon {
+      val publishInfos = defaultPublishInfos(sources = sources, docs = doc)() ++ extraPublish()
+      val artifact = artifactMetadata()
+      val contents = LocalIvyPublisher.createFileSetContents(
+        artifact = artifact,
+        pom = pom().path,
+        ivy = ivy().path,
+        publishInfos = publishInfos
+      )
+      (artifact, contents)
+    }
+  }
 
   /**
    * Publish artifacts to a local Maven repository.
+   *
    * @param m2RepoPath The path to the local repository  as string (default: `$HOME/.m2/repository`).
    *                   If not set, falls back to `maven.repo.local` system property or `~/.m2/repository`
    * @return [[PathRef]]s to published files.
    */
   def publishM2Local(m2RepoPath: String = null): Task.Command[Seq[PathRef]] = m2RepoPath match {
-    case null => Task.Command { publishM2LocalTask(Task.Anon { publishM2LocalRepoPath() })() }
+    case null => Task.Command {
+        publishM2LocalTask(
+          Task.Anon { publishM2LocalRepoPath() },
+          sources = true,
+          docs = true
+        )()
+      }
     case p =>
-      Task.Command { publishM2LocalTask(Task.Anon { os.Path(p, BuildCtx.workspaceRoot) })() }
+      Task.Command {
+        publishM2LocalTask(
+          Task.Anon { os.Path(p, BuildCtx.workspaceRoot) },
+          sources = true,
+          docs = true
+        )()
+      }
   }
 
   /**
@@ -417,7 +445,7 @@ trait PublishModule extends JavaModule { outer =>
    * @return [[PathRef]]s to published files.
    */
   def publishM2LocalCached: T[Seq[PathRef]] = Task {
-    publishM2LocalTask(publishM2LocalRepoPath)()
+    publishM2LocalTask(publishM2LocalRepoPath, sources = true, docs = true)()
   }
 
   /**
@@ -430,18 +458,28 @@ trait PublishModule extends JavaModule { outer =>
       .getOrElse(os.Path(os.home / ".m2", BuildCtx.workspaceRoot)) / "repository"
   }
 
-  private def publishM2LocalTask(m2RepoPath: Task[os.Path]): Task[Seq[PathRef]] = Task.Anon {
+  private def publishM2LocalTask(
+      m2RepoPath: Task[os.Path],
+      sources: Boolean,
+      docs: Boolean
+  ): Task[Seq[PathRef]] = Task.Anon {
     val path = m2RepoPath()
-    val publishInfos = defaultPublishInfos() ++
-      Seq(
-        PublishInfo.sourcesJar(sourceJar()),
-        PublishInfo.docJar(docJar())
-      ) ++
-      extraPublish()
+    val contents = publishM2LocalContentsTask(sources = sources, docs = docs)()
 
     new LocalM2Publisher(path)
-      .publish(pom().path, artifactMetadata(), publishInfos)
+      .publish(contents.artifact, contents.contents)
       .map(PathRef(_).withRevalidateOnce)
+  }
+
+  /** Produce the contents for the maven publishing. */
+  private def publishM2LocalContentsTask(sources: Boolean, docs: Boolean)
+      : Task[(artifact: Artifact, contents: Map[os.SubPath, os.Path])] = Task.Anon {
+    val publishInfos = defaultPublishInfos(sources = sources, docs = docs)() ++ extraPublish()
+    val artifact = artifactMetadata()
+    val contents =
+      LocalM2Publisher.createFileSetContents(pom = pom().path, artifact = artifact, publishInfos)
+
+    (artifact, contents)
   }
 
   /** @see [[PublishModule.sonatypeLegacyOssrhUri]] */
@@ -450,33 +488,58 @@ trait PublishModule extends JavaModule { outer =>
   /** @see [[PublishModule.sonatypeCentralSnapshotUri]] */
   def sonatypeCentralSnapshotUri: String = PublishModule.sonatypeCentralSnapshotUri
 
-  def publishArtifacts: T[PublishModule.PublishData] = {
-    val baseNameTask: Task[String] = Task.Anon { s"${artifactId()}-${publishVersion()}" }
-    val defaultPayloadTask: Task[Seq[(PathRef, String)]] = (pomPackagingType, this) match {
-      case (PackagingType.Pom, _) => Task.Anon {
-          val baseName = baseNameTask()
-          Seq(
-            pom() -> s"$baseName.pom"
+  def publishArtifacts: T[PublishModule.PublishData] = Task {
+    PublishModule.PublishData(artifactMetadata(), publishArtifactsPayload()())
+  }
+
+  /** [[publishArtifactsDefaultPayload]] with [[extraPublish]]. */
+  def publishArtifactsPayload(
+      sources: Boolean = true,
+      docs: Boolean = true
+  ): Task[Map[os.SubPath, PathRef]] = Task {
+    val defaultPayload = publishArtifactsDefaultPayload(sources = sources, docs = docs)()
+    val baseName = publishArtifactsBaseName()
+    val extraPayload =
+      extraPublish().iterator.map(p =>
+        os.SubPath(s"$baseName${p.classifierPart}.${p.ext}") -> p.file
+      ).toMap
+    defaultPayload ++ extraPayload
+  }
+
+  /** The base name for the published artifacts. */
+  def publishArtifactsBaseName: T[String] =
+    Task { s"${artifactId()}-${publishVersion()}" }
+
+  /**
+   * The default payload for the published artifacts.
+   *
+   * @param sources whether to include sources JAR when [[pomPackagingType]] is [[PackagingType.Jar]]
+   * @param docs whether to include javadoc JAR when [[pomPackagingType]] is [[PackagingType.Jar]]
+   */
+  def publishArtifactsDefaultPayload(
+      sources: Boolean = true,
+      docs: Boolean = true
+  ): Task[Map[os.SubPath, PathRef]] = {
+    pomPackagingType match {
+      case PackagingType.Pom => Task.Anon {
+          val baseName = publishArtifactsBaseName()
+          Map(
+            os.SubPath(s"$baseName.pom") -> pom()
           )
         }
-      case (PackagingType.Jar, _) | _ => Task.Anon {
-          val baseName = baseNameTask()
-          Seq(
-            jar() -> s"$baseName.jar",
-            sourceJar() -> s"$baseName-sources.jar",
-            docJar() -> s"$baseName-javadoc.jar",
-            pom() -> s"$baseName.pom"
+
+      case _ => Task.Anon {
+          val baseName = publishArtifactsBaseName()
+          val baseContent = Map(
+            os.SubPath(s"$baseName.pom") -> pom(),
+            os.SubPath(s"$baseName.jar") -> jar()
           )
+          val sourcesOpt =
+            if (sources) Map(os.SubPath(s"$baseName-sources.jar") -> sourceJar()) else Map.empty
+          val docsOpt =
+            if (docs) Map(os.SubPath(s"$baseName-javadoc.jar") -> docJar()) else Map.empty
+          baseContent ++ sourcesOpt ++ docsOpt
         }
-    }
-    Task {
-      val baseName = baseNameTask()
-      PublishModule.PublishData(
-        meta = artifactMetadata(),
-        payload = defaultPayloadTask() ++ extraPublish().map(p =>
-          (p.file, s"$baseName${p.classifierPart}.${p.ext}")
-        )
-      )
     }
   }
 
@@ -504,15 +567,17 @@ trait PublishModule extends JavaModule { outer =>
       awaitTimeout: Int = 30 * 60 * 1000,
       stagingRelease: Boolean = true
   ): Task.Command[Unit] = Task.Command {
-    val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
-    PublishModule.pgpImportSecretIfProvided(Task.env)
+    val (contents, artifact) = publishArtifacts().withConcretePath
+    val gpgArgs0 = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
+      Task.env,
+      GpgArgs.fromUserProvided(gpgArgs)
+    )
     new SonatypePublisher(
       uri = sonatypeLegacyOssrhUri,
       snapshotUri = sonatypeCentralSnapshotUri,
       checkSonatypeCreds(sonatypeCreds)(),
       signed,
-      if (gpgArgs.isEmpty) PublishModule.defaultGpgArgsForPassphrase(Task.env.get("PGP_PASSPHRASE"))
-      else gpgArgs.split(','),
+      gpgArgs0,
       readTimeout,
       connectTimeout,
       Task.log,
@@ -520,7 +585,7 @@ trait PublishModule extends JavaModule { outer =>
       Task.env,
       awaitTimeout,
       stagingRelease
-    ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo, release)
+    ).publish(contents, artifact, release)
   }
 
   override def manifest: T[JarManifest] = Task {
@@ -561,28 +626,16 @@ trait PublishModule extends JavaModule { outer =>
 
 object PublishModule extends ExternalModule with DefaultTaskModule {
   def defaultTask(): String = "publishAll"
-  val defaultGpgArgs: Seq[String] = defaultGpgArgsForPassphrase(None)
-  def pgpImportSecretIfProvided(env: Map[String, String]): Unit = {
-    for (secret <- env.get("MILL_PGP_SECRET_BASE64")) {
-      os.call(
-        ("gpg", "--import", "--no-tty", "--batch", "--yes"),
-        stdin = java.util.Base64.getDecoder.decode(secret)
-      )
-    }
-  }
 
-  def defaultGpgArgsForPassphrase(passphrase: Option[String]): Seq[String] = {
-    passphrase.map("--passphrase=" + _).toSeq ++
-      Seq(
-        "--no-tty",
-        "--pinentry-mode",
-        "loopback",
-        "--batch",
-        "--yes",
-        "-a",
-        "-b"
-      )
-  }
+  val defaultGpgArgs: Seq[String] = internal.PublishModule.defaultGpgArgs
+
+  @deprecated("This API should have been internal and is not guaranteed to stay.", "1.0.1")
+  def pgpImportSecretIfProvided(env: Map[String, String]): Unit =
+    internal.PublishModule.pgpImportSecretIfProvidedOrThrow(env)
+
+  @deprecated("This API should have been internal and is not guaranteed to stay.", "1.0.1")
+  def defaultGpgArgsForPassphrase(passphrase: Option[String]): Seq[String] =
+    internal.PublishModule.defaultGpgArgsForPassphrase(passphrase).map(Secret.unpack)
 
   /**
    * Uri for publishing to the old / legacy Sonatype OSSRH.
@@ -599,17 +652,37 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   def sonatypeCentralSnapshotUri: String =
     "https://central.sonatype.com/repository/maven-snapshots/"
 
-  case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)]) {
+  case class PublishData(
+      meta: Artifact,
+      // Unfortunately we can't change the signature of this to `Map[os.SubPath, PathRef]` because
+      // we need to keep the binary compatibility and case classes are notoriously difficult to change
+      // while preserving binary compatibility.
+      //
+      // So instead we convert back and forth.
+      payload: Seq[(PathRef, String)]
+  ) {
+    def payloadAsMap: Map[os.SubPath, PathRef] = PublishData.seqToMap(payload)
 
     /**
      * Maps the path reference to an actual path so that it can be used in publishAll signatures
      */
-    private[mill] def withConcretePath: (Seq[(Path, String)], Artifact) =
-      (payload.map { case (p, f) => (p.path, f) }, meta)
+    private[mill] def withConcretePath: (Map[os.SubPath, os.Path], Artifact) =
+      (payloadAsMap.view.mapValues(_.path).toMap, meta)
   }
   object PublishData {
-    import mill.javalib.publish.JsonFormatters.artifactFormat
-    implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
+    implicit def jsonify: upickle.default.ReadWriter[PublishData] = {
+      import mill.javalib.publish.JsonFormatters.artifactFormat
+      upickle.default.macroRW
+    }
+
+    def apply(meta: Artifact, payload: Map[os.SubPath, PathRef]): PublishData =
+      apply(meta, mapToSeq(payload))
+
+    private def seqToMap(payload: Seq[(PathRef, String)]): Map[os.SubPath, PathRef] =
+      payload.iterator.map { case (pathRef, name) => os.SubPath(name) -> pathRef }.toMap
+
+    private def mapToSeq(payload: Map[os.SubPath, PathRef]): Seq[(PathRef, String)] =
+      payload.iterator.map { case (name, pathRef) => pathRef -> name.toString }.toSeq
   }
 
   /**
@@ -625,7 +698,7 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
    *                      <i>Note: consider using environment variables over this argument due
    *                      to security reasons.</i>
    * @param signed
-   * @param gpgArgs       GPG arguments. Defaults to `--passphrase=$MILL_PGP_PASSPHRASE,--no-tty,--pienty-mode,loopback,--batch,--yes,-a,-b`.
+   * @param gpgArgs       GPG arguments. Defaults to [[defaultGpgArgsForPassphrase]].
    *                      Specifying this will override/remove the defaults.
    *                      Add the default args to your args to keep them.
    * @param release Whether to release the artifacts after staging them
@@ -644,8 +717,8 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       signed: Boolean = true,
       gpgArgs: String = "",
       release: Boolean = true,
-      sonatypeUri: String = sonatypeLegacyOssrhUri,
-      sonatypeSnapshotUri: String = sonatypeCentralSnapshotUri,
+      sonatypeUri: String = PublishModule.sonatypeLegacyOssrhUri,
+      sonatypeSnapshotUri: String = PublishModule.sonatypeCentralSnapshotUri,
       readTimeout: Int = 30 * 60 * 1000,
       connectTimeout: Int = 30 * 60 * 1000,
       awaitTimeout: Int = 30 * 60 * 1000,
@@ -653,15 +726,18 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   ): Task.Command[Unit] = Task.Command {
     val withConcretePaths = Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
 
-    pgpImportSecretIfProvided(Task.env)
+    val gpgArgs0 =
+      internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
+        Task.env,
+        GpgArgs.fromUserProvided(gpgArgs)
+      )
 
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
-      checkSonatypeCreds(sonatypeCreds)(),
+      internal.PublishModule.checkSonatypeCreds(sonatypeCreds)(),
       signed,
-      if (gpgArgs.isEmpty) defaultGpgArgsForPassphrase(Task.env.get("MILL_PGP_PASSPHRASE"))
-      else gpgArgs.split(','),
+      gpgArgs0,
       readTimeout,
       connectTimeout,
       Task.log,
@@ -674,37 +750,6 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       withConcretePaths*
     )
   }
-
-  private def getSonatypeCredsFromEnv: Task[(String, String)] = Task.Anon {
-    (for {
-      // Allow legacy environment variables as well
-      username <- Task.env.get(USERNAME_ENV_VARIABLE_NAME).orElse(Task.env.get("SONATYPE_USERNAME"))
-      password <- Task.env.get(PASSWORD_ENV_VARIABLE_NAME).orElse(Task.env.get("SONATYPE_PASSWORD"))
-    } yield {
-      (username, password)
-    }).getOrElse(
-      Task.fail(
-        s"Consider using ${USERNAME_ENV_VARIABLE_NAME}/${PASSWORD_ENV_VARIABLE_NAME} environment variables or passing `sonatypeCreds` argument"
-      )
-    )
-  }
-
-  private[mill] def checkSonatypeCreds(sonatypeCreds: String): Task[String] =
-    if (sonatypeCreds.isEmpty) {
-      for {
-        (username, password) <- getSonatypeCredsFromEnv
-      } yield s"$username:$password"
-    } else {
-      Task.Anon {
-        if (sonatypeCreds.split(":").length >= 2) {
-          sonatypeCreds
-        } else {
-          Task.fail(
-            "Sonatype credentials must be set in the following format - username:password. Incorrect format received."
-          )
-        }
-      }
-    }
 
   lazy val millDiscover: mill.api.Discover = mill.api.Discover[this.type]
 

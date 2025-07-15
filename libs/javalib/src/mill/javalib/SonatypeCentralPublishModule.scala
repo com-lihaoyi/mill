@@ -6,7 +6,7 @@ import javalib.*
 import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.api.DefaultTaskModule
-import mill.api.{Result, experimental}
+import mill.api.Result
 import mill.javalib.SonatypeCentralPublishModule.{
   defaultAwaitTimeout,
   defaultConnectTimeout,
@@ -18,10 +18,29 @@ import mill.javalib.SonatypeCentralPublishModule.{
 import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
+import mill.javalib.internal.PublishModule.GpgArgs
 
 trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport {
-  def sonatypeCentralGpgArgs: T[String] = Task {
-    PublishModule.defaultGpgArgsForPassphrase(Task.env.get("MILL_PGP_PASSPHRASE")).mkString(",")
+  @deprecated("Use `sonatypeCentralGpgArgsForKey` instead.", "1.0.1")
+  def sonatypeCentralGpgArgs: T[String] =
+    Task { SonatypeCentralPublishModule.sonatypeCentralGpgArgsSentinelValue }
+
+  /**
+   * @return (keyId => gpgArgs), where maybeKeyId is the PGP key that was imported and should be used for signing.
+   */
+  def sonatypeCentralGpgArgsForKey: Task[String => GpgArgs] = Task.Anon { (keyId: String) =>
+    val sentinel = SonatypeCentralPublishModule.sonatypeCentralGpgArgsSentinelValue
+    // noinspection ScalaDeprecation
+    sonatypeCentralGpgArgs() match {
+      case `sentinel` =>
+        internal.PublishModule.makeGpgArgs(
+          Task.env,
+          maybeKeyId = Some(keyId),
+          providedGpgArgs = GpgArgs.UserProvided(Seq.empty)
+        )
+      case other =>
+        GpgArgs.fromUserProvided(other)
+    }
   }
 
   def sonatypeCentralConnectTimeout: T[Int] = Task { defaultConnectTimeout }
@@ -64,12 +83,18 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
     def publishRelease(): Unit = {
       val publishData = publishArtifacts()
       val fileMapping = publishData.withConcretePath._1
-      val artifact = publishData.meta
-      val finalCredentials = getSonatypeCredentials(username, password)()
-      PublishModule.pgpImportSecretIfProvided(Task.env)
+
+      val maybeKeyId = internal.PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
+      val keyId = maybeKeyId.getOrElse(throw new IllegalArgumentException(
+        s"Publishing to Sonatype Central requires a PGP key. Please set the " +
+          s"'${internal.PublishModule.EnvVarPgpSecretBase64}' and '${internal.PublishModule.EnvVarPgpPassphrase}' " +
+          s"(if needed) environment variables."
+      ))
+
+      val gpgArgs = sonatypeCentralGpgArgsForKey()(keyId)
       val publisher = new SonatypeCentralPublisher(
         credentials = finalCredentials,
-        gpgArgs = sonatypeCentralGpgArgs().split(",").toIndexedSeq,
+        gpgArgs = gpgArgs,
         connectTimeout = sonatypeCentralConnectTimeout(),
         readTimeout = sonatypeCentralReadTimeout(),
         log = Task.log,
@@ -94,6 +119,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
  * External module to publish artifacts to `central.sonatype.org`
  */
 object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModule {
+  private final val sonatypeCentralGpgArgsSentinelValue = "<user did not override this method>"
 
   def self = this
   val defaultCredentials: String = ""
@@ -123,13 +149,13 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
     val finalCredentials = getSonatypeCredentials(username, password)()
-    PublishModule.pgpImportSecretIfProvided(Task.env)
+    val gpgArgs0 = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
+      Task.env,
+      GpgArgs.fromUserProvided(gpgArgs)
+    )
     val publisher = new SonatypeCentralPublisher(
       credentials = finalCredentials,
-      gpgArgs = gpgArgs match {
-        case "" => PublishModule.defaultGpgArgsForPassphrase(Task.env.get("MILL_PGP_PASSPHRASE"))
-        case gpgArgs => gpgArgs.split(",").toIndexedSeq
-      },
+      gpgArgs = gpgArgs0,
       connectTimeout = connectTimeout,
       readTimeout = readTimeout,
       log = Task.log,

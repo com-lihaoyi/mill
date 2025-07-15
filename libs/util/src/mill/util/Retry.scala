@@ -1,7 +1,6 @@
 package mill.util
 
 import mill.api.TaskCtx
-import mill.util.Retry
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.charset.StandardCharsets

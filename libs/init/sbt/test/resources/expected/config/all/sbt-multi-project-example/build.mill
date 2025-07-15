@@ -1,3 +1,4 @@
+//| mill-version: SNAPSHOT
 package build
 
 import _root_.build_.BaseModule
@@ -80,6 +81,7 @@ object `package` extends BaseModule {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 
@@ -130,6 +132,7 @@ object `package` extends BaseModule {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 
@@ -187,6 +190,7 @@ object `package` extends BaseModule {
 
       def testSandboxWorkingDir = false
       def testParallelism = false
+
     }
   }
 

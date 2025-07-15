@@ -4,7 +4,7 @@ import coursier.cache.FileCache
 import coursier.core.Resolution
 import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
-import coursier.{Dependency, Repository, Resolve, Type}
+import coursier.{Dependency, Repository, Resolve}
 import mill.api.Task
 import mill.api.{PathRef}
 import mill.api.{Result}

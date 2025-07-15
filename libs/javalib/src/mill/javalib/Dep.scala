@@ -116,7 +116,7 @@ object Dep {
         case Array("classifier", v) => as.withClassifier(coursier.Classifier(v))
         case Array("type", v) => as.withType(coursier.Type(v))
         case Array("exclude", s"${org}:${name}") => exclusions ++= Seq((org, name)); as
-        case Array(k, v) => throw new Exception(s"Unrecognized attribute: [$s]")
+        case Array(_, _) => throw new Exception(s"Unrecognized attribute: [$s]")
         case _ => throw new Exception(s"Unable to parse attribute specifier: [$s]")
       }
     }
@@ -165,7 +165,7 @@ object Dep {
       case CrossVersion.Binary(true) => Some(s"$org::$mod::$ver$attrs")
       case CrossVersion.Full(false) => Some(s"$org:::$mod:$ver$attrs")
       case CrossVersion.Full(true) => Some(s"$org:::$mod::$ver$attrs")
-      case CrossVersion.Constant(v, _) => None
+      case CrossVersion.Constant(_, _) => None
     }
 
     prospective.filter(parse(_) == dep)

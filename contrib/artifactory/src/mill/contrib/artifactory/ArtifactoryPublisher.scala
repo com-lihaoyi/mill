@@ -14,42 +14,44 @@ class ArtifactoryPublisher(
   private val api =
     new ArtifactoryHttpApi(credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)
 
-  def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact): Unit = {
+  def publish(fileMapping: Map[os.SubPath, os.Path], artifact: Artifact): Unit = {
     publishAll(fileMapping -> artifact)
   }
 
-  def publishAll(artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
+  def publishAll(artifacts: (Map[os.SubPath, os.Path], Artifact)*): Unit = {
     log.info("arts: " + artifacts)
     val mappings = for ((fileMapping0, artifact) <- artifacts) yield {
-      val publishPath = Seq(
+      val publishPath = os.SubPath(Seq(
         artifact.group.replace(".", "/"),
         artifact.id,
         artifact.version
-      ).mkString("/")
-      val fileMapping = fileMapping0.map { case (file, name) => (file, publishPath + "/" + name) }
-
-      artifact -> fileMapping.map {
-        case (file, name) => name -> os.read.bytes(file)
+      ).mkString("/"))
+      val fileMapping = fileMapping0.map { case (name, contents) =>
+        publishPath / name -> os.read.bytes(contents)
       }
+
+      artifact -> fileMapping
     }
 
     val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
 
-    if (snapshots.nonEmpty) publishToRepo(snapshotUri, snapshots.flatMap(_._2), snapshots.map(_._1))
-    if (releases.nonEmpty) publishToRepo(releaseUri, releases.flatMap(_._2), releases.map(_._1))
+    if (snapshots.nonEmpty)
+      publishToRepo(snapshotUri, snapshots.iterator.flatMap(_._2).toMap, snapshots.map(_._1))
+    if (releases.nonEmpty)
+      publishToRepo(releaseUri, releases.iterator.flatMap(_._2).toMap, releases.map(_._1))
   }
 
   private def publishToRepo(
       repoUri: String,
-      payloads: Seq[(String, Array[Byte])],
+      payloads: Map[os.SubPath, Array[Byte]],
       artifacts: Seq[Artifact]
   ): Unit = {
-    val publishResults = payloads.map {
+    val publishResults = payloads.iterator.map {
       case (fileName, data) =>
         log.info(s"Uploading $fileName")
         val resp = api.upload(s"$repoUri/$fileName", data)
         resp
-    }
+    }.toVector
     reportPublishResults(publishResults, artifacts)
   }
 

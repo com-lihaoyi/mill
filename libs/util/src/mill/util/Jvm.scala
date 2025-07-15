@@ -1,7 +1,7 @@
 package mill.util
 
 import coursier.cache.{ArchiveCache, CachePolicy, FileCache}
-import coursier.core.{BomDependency, Module, VariantSelector}
+import coursier.core.{BomDependency, VariantSelector}
 import coursier.error.FetchError.DownloadingArtifacts
 import coursier.error.ResolutionError.CantDownloadModule
 import coursier.jvm.{JavaHome, JvmCache, JvmChannel, JvmIndex}
@@ -13,7 +13,6 @@ import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Reso
 import mill.api.*
 
 import java.io.{BufferedOutputStream, File}
-import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{JarEntry, JarOutputStream}

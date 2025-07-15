@@ -3,7 +3,6 @@ package mill.exec
 import mill.api.ExecResult.{OuterStack, Success}
 
 import mill.api.*
-import mill.api.*
 import mill.internal.MultiLogger
 import mill.internal.FileLogger
 
