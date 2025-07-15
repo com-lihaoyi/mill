@@ -238,11 +238,19 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
             sd = sd.copy(mainMvnDeps = sd.mainMvnDeps + mvn)
           }
         case "provided" =>
+          // Provided dependencies are available at compile time in both
+          // `src/main/java` and `src/test/java`
           if (packages.isDefinedAt(id))
-            sd = sd.copy(mainCompileModuleDeps = sd.mainCompileModuleDeps + packages(id))
+            sd = sd.copy(
+              mainCompileModuleDeps = sd.mainCompileModuleDeps + packages(id),
+              testCompileModuleDeps = sd.testCompileModuleDeps + packages(id)
+            )
           else {
             val mvn = mvnDep(dep)
-            sd = sd.copy(mainCompileMvnDeps = sd.mainCompileMvnDeps + mvn)
+            sd = sd.copy(
+              mainCompileMvnDeps = sd.mainCompileMvnDeps + mvn,
+              testCompileMvnDeps = sd.testCompileMvnDeps + mvn
+            )
           }
         case "runtime" =>
           if (packages.isDefinedAt(id))

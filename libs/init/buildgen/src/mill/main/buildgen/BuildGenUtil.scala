@@ -186,7 +186,11 @@ object BuildGenUtil {
            |}""".stripMargin
     }.mkString(linebreak2)
 
-    s"""package $pkg
+    val millVersionPrefix =
+      if (node.dirs.nonEmpty) ""
+      else s"//| mill-version: ${mill.util.BuildInfo.millVersion}\n"
+
+    s"""${millVersionPrefix}package $pkg
        |
        |$importStatements
        |
