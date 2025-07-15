@@ -190,7 +190,6 @@ abstract class Server[T](
       }
     }
 
-    
     // We cannot use Socket#{isConnected, isClosed, isBound} because none of these
     // detect client-side connection closing, so instead we send a no-op heartbeat
     // message to see if the socket can receive data.
@@ -199,11 +198,10 @@ abstract class Server[T](
         ProxyStream.sendHeartbeat(currentOutErr)
         true
       } catch {
-        case _: Throwable =>
-          clientDisappeared = true
-          false
+        case _: Throwable => false
       }
     }
+
     try {
       val stdout = new PrintStream(new Output(currentOutErr, ProxyStream.OUT), true)
       val stderr = new PrintStream(new Output(currentOutErr, ProxyStream.ERR), true)

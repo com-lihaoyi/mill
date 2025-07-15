@@ -9,7 +9,6 @@ import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDotty
 import mill.javalib.api.{Versions, JvmWorkerApi, JvmWorkerUtil}
 import mill.javalib.CoursierModule.Resolver
 
-
 /**
  * A default implementation of [[JvmWorkerModule]]
  */

@@ -6,7 +6,6 @@ import mill.api.{Discover, Evaluator, ExternalModule, ModuleCtx}
 import mill.util.MainModule
 import mill.Task
 
-
 @internal
 private[mill] object BspMainModule extends ExternalModule {
 

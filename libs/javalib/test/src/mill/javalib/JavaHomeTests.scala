@@ -6,7 +6,6 @@ import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*
 import utest.*
 
-
 object JavaHomeTests extends TestSuite {
 
   object HelloJavaJavaHome11Override extends TestRootModule {
