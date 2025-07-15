@@ -53,10 +53,11 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
 
   def publishSonatypeCentral(
       username: String = defaultCredentials,
-      password: String = defaultCredentials
+      password: String = defaultCredentials,
+      force: Boolean = false
   ): Task.Command[Unit] = Task.Command {
     val artifact = artifactMetadata()
-    val finalCredentials = getSonatypeCredentials(username, password)()
+    val finalCredentials = getSonatypeCredentials(username, password, force)()
 
     def publishSnapshot(): Unit = {
       val uri = sonatypeCentralSnapshotUri
@@ -141,14 +142,15 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
       readTimeout: Int = defaultReadTimeout,
       connectTimeout: Int = defaultConnectTimeout,
       awaitTimeout: Int = defaultAwaitTimeout,
-      bundleName: String = ""
+      bundleName: String = "",
+      force: Boolean = false
   ): Command[Unit] = Task.Command {
 
     val artifacts =
       Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
-    val finalCredentials = getSonatypeCredentials(username, password)()
+    val finalCredentials = getSonatypeCredentials(username, password, force)()
     val gpgArgs0 = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
       GpgArgs.fromUserProvided(gpgArgs)
@@ -201,8 +203,17 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
 
   private def getSonatypeCredentials(
       usernameParameterValue: String,
-      passwordParameterValue: String
+      passwordParameterValue: String,
+      force: Boolean
   ): Task[SonatypeCredentials] = Task.Anon {
+    val isCI = Task.env.get("CI").nonEmpty
+    if (!force && isCI && (usernameParameterValue.nonEmpty || passwordParameterValue.nonEmpty))
+      sys.error(
+        "--username and --password options forbidden on CI. " +
+          "Their use might leak secrets. " +
+          s"Pass those values via environment variables instead ($USERNAME_ENV_VARIABLE_NAME and $PASSWORD_ENV_VARIABLE_NAME), or pass --force alongside them. " +
+          "You might want to check the output of this job for a leak of those secrets or parts of them."
+      )
     val username =
       getSonatypeCredential(usernameParameterValue, "username", USERNAME_ENV_VARIABLE_NAME)()
     val password =
