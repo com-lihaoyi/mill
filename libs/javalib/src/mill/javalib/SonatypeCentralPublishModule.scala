@@ -60,7 +60,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
       val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2Artifacts(
         pom().path,
         artifact,
-        defaultPublishInfos(sources = sources, docs = docs)
+        defaultPublishInfos(sources = sources, docs = docs)()
       )
 
       Task.log.info(
@@ -141,7 +141,7 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
       bundleName: String = ""
   ): Command[Unit] = Task.Command {
     val artifacts = Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
-    val (snapshotArtifacts, releaseArtifacts) = artifacts.partition(_.artifact.isSnapshot)
+    val (snapshotArtifacts, releaseArtifacts) = artifacts.partition(_._2.isSnapshot)
     val log = Task.log
 
     if (snapshotArtifacts.nonEmpty) {
