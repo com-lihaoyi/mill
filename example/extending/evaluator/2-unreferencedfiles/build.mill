@@ -22,7 +22,7 @@ object `package` extends ScalaModule {
     segmentResult.foreach { segment =>
       println(s"Planning segment: ${segment.render}")
     }
-    
+
     val resolveResult = evaluator.resolveTasks(sourceFiles, SelectMode.Multi).get
     val plan = evaluator.plan(resolveResult)
       .sortedGroups
@@ -30,9 +30,9 @@ object `package` extends ScalaModule {
       .map(_.toString)
       .toIndexedSeq
     plan.foreach(task => println(s"Planned task: $task"))
-    
+
     val executeResult = evaluator.evaluate(plan, SelectMode.Multi).get
-    
+
     val knownSources = executeResult.values match {
       case mill.api.Result.Success(resultVector) =>
         val allPaths = for {
@@ -43,15 +43,15 @@ object `package` extends ScalaModule {
             case _ => None
           }
         } yield pathRef
-        
+
         println(s"Extracted ${allPaths.size} known source paths")
         allPaths.toSet
-        
+
       case mill.api.Result.Failure(msg) =>
         println(s"Task execution failed: $msg")
         Set.empty[os.Path]
     }
-    
+
     // Find all source files on disk
     val projectRoot = os.pwd
     val sourceExtensions = Set(".scala")
@@ -60,7 +60,7 @@ object `package` extends ScalaModule {
       .filter(!_.segments.contains(".git"))
       .filter(!_.segments.contains("out"))
       .toSet
-    
+
     // Find unreferenced files
     val unreferenced = diskSources -- knownSources
     if (unreferenced.nonEmpty) {
