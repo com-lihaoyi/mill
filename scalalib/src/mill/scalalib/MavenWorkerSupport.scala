@@ -16,9 +16,9 @@ private[mill] trait MavenWorkerSupport extends CoursierModule {
     Jvm.createClassLoader(classPath = classPath.indexed, parent = getClass.getClassLoader)
   }
 
-  protected def mavenWorker: Worker[MavenWorkerSupport.Api] = Task.Worker {
+  protected def mavenWorker: Worker[internal.MavenWorkerSupport.Api] = Task.Worker {
     mavenWorkerClassloader().loadClass("mill.scalalib.maven.worker.impl.WorkerImpl")
-      .getConstructor().newInstance().asInstanceOf[MavenWorkerSupport.Api]
+      .getConstructor().newInstance().asInstanceOf[internal.MavenWorkerSupport.Api]
   }
 }
 object MavenWorkerSupport {

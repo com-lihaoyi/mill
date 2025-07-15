@@ -43,6 +43,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
       val publishData = publishArtifacts()
       val artifact = publishData.meta
       val finalCredentials = getSonatypeCredentials(username, password)()
+      val dryRun = Task.env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
 
       def publishSnapshot(): Unit = {
         val uri = sonatypeSnapshotUri
@@ -56,14 +57,24 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
           s"Detected a 'SNAPSHOT' version, publishing to Sonatype Central Snapshots at '$uri'"
         )
         val worker = mavenWorker()
-        val result = worker.publishToRemote(
-          uri = uri,
-          workspace = Task.dest / "maven",
-          username = finalCredentials.username,
-          password = finalCredentials.password,
-          artifacts
-        )
-        Task.log.info(s"Deployment to '$uri' finished with result: $result")
+        if (dryRun) {
+          val publishTo = Task.dest / "repository"
+          val result = worker.publishToLocal(
+            publishTo = publishTo,
+            workspace = Task.dest / "maven",
+            artifacts
+          )
+          Task.log.info(s"Dry-run publishing to '$publishTo' finished with result: $result")
+        } else {
+          val result = worker.publishToRemote(
+            uri = uri,
+            workspace = Task.dest / "maven",
+            username = finalCredentials.username,
+            password = finalCredentials.password,
+            artifacts
+          )
+          Task.log.info(s"Publishing to '$uri' finished with result: $result")
+        }
       }
 
       def publishRelease(): Unit = {
@@ -79,11 +90,23 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
           env = Task.env,
           awaitTimeout = sonatypeCentralAwaitTimeout()
         )
-        publisher.publish(
-          fileMapping,
-          artifact,
-          getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
-        )
+
+        if (dryRun) {
+          val publishTo = Task.dest / "repository"
+          publisher.publishAllToLocal(
+            publishTo,
+            singleBundleName = None,
+            (fileMapping, artifact)
+          )
+          Task.log.info(s"Dry-run publishing to '$publishTo' finished.")
+        } else {
+          publisher.publish(
+            fileMapping,
+            artifact,
+            getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
+          )
+          Task.log.info("Publishing finished.")
+        }
       }
 
       // The snapshot publishing does not use the same API as release publishing.

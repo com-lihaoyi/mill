@@ -41,7 +41,18 @@ object IntegrationTester {
    * A very simplified version of `os.CommandResult` meant for easily
    * performing assertions against.
    */
-  case class EvalResult(isSuccess: Boolean, out: String, err: String)
+  case class EvalResult(isSuccess: Boolean, out: String, err: String) {
+    def debugString: String = {
+      s"""Success: $isSuccess
+         |
+         |stdout:
+         |$out
+         |
+         |stderr:
+         |$err
+         |""".stripMargin
+    }
+  }
 
   trait Impl extends AutoCloseable with IntegrationTesterBase {
 
