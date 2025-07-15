@@ -60,6 +60,29 @@ object KeytoolTest extends TestSuite {
       val key = Keystore.getKey(loadedKs, "mykey", wrongPassword)
       assert(key.isEmpty)
     }
+    test("NOT load keystore created with AGP with wrong password") {
+      val filename = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "AndroidStudioKeystore.jks"
+      val wrongPassword = "wrongpassword"
+      assert(Try(Keystore.loadKeystore(filename.toString, wrongPassword)).isFailure)
+    }
+    test("load keystore created with AGP and verify key pair") {
+      val filename = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "AndroidStudioKeystore.jks"
+      val password = "password"
+      val alias = "mykey"
+      val keyPassword = "PASSWORD"
+      val loadedKs = Keystore.loadKeystore(filename.toString, password)
+      val key = Keystore.getKey(loadedKs, alias, keyPassword)
+      assert(key.isDefined)
+    }
+    test("load keystore created with AGP and NOT verify key pair with wrong password") {
+      val filename = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "AndroidStudioKeystore.jks"
+      val password = "password"
+      val alias = "mykey"
+      val wrongPassword = "wrongpassword"
+      val loadedKs = Keystore.loadKeystore(filename.toString, password)
+      val key = Keystore.getKey(loadedKs, alias, wrongPassword)
+      assert(key.isEmpty)
+    }
   }
 }
 
