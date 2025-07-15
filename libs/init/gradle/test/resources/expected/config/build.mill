@@ -54,5 +54,4 @@ object `package` extends mill.Module {
   }
 }
 
-trait BaseModule extends MavenModule {
-}
+trait BaseModule extends MavenModule {}

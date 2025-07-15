@@ -192,7 +192,7 @@ object BuildGenUtil {
 
     val jvmIdPrefix =
       if (node.dirs.nonEmpty) ""
-      else jvmId match{
+      else jvmId match {
         case None => ""
         case Some(j) => s"//| mill-jvm-version: ${j}\n"
       }
