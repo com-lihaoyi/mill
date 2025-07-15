@@ -32,8 +32,6 @@ object BuildGenUtil {
        |${renderPublishProperties(publishProperties)}
        |
        |${renderRepositories(repositories)}
-       |
-       |${renderJvmId(jvmId, None)}
        |}""".stripMargin
 
   }
@@ -139,8 +137,6 @@ object BuildGenUtil {
        |
        |${renderPublishProperties(publishProperties)}
        |
-       |${renderJvmId(jvmId, if (baseTrait != null) baseTrait.jvmId else None)}
-       |
        |$testModuleTypedef""".stripMargin
 
   }
@@ -174,7 +170,7 @@ object BuildGenUtil {
       .toSeq
       .toMap
 
-  def renderBuildSource(node: Node[BuildObject]): os.Source = {
+  def renderBuildSource(node: Node[BuildObject], jvmId: Option[String]): os.Source = {
     val pkg = buildModuleFqn(node.dirs)
     val BuildObject(imports, companions, supertypes, inner, outer) = node.value
     val importStatements = imports.iterator.map("import " + _).mkString(linebreak)
@@ -194,7 +190,14 @@ object BuildGenUtil {
       if (node.dirs.nonEmpty) ""
       else s"//| mill-version: ${mill.util.BuildInfo.millVersion}\n"
 
-    s"""${millVersionPrefix}package $pkg
+    val jvmIdPrefix =
+      if (node.dirs.nonEmpty) ""
+      else jvmId match{
+        case None => ""
+        case Some(j) => s"//| mill-jvm-version: ${j}\n"
+      }
+
+    s"""${millVersionPrefix}${jvmIdPrefix}package $pkg
        |
        |$importStatements
        |
@@ -354,14 +357,6 @@ object BuildGenUtil {
   def renderVersionControl(vc: IrVersionControl): String =
     s"VersionControl(${escapeOption(vc.url)}, ${escapeOption(vc.connection)}, ${escapeOption(vc.devConnection)}, ${escapeOption(vc.tag)})"
 
-  def renderJvmId(jvmId: Option[String], superJvmId: Option[String]): String = {
-    (jvmId, superJvmId) match {
-      case (Some(v), s) if !s.contains(v) => s"""def jvmId = "$v""""
-      case _ => ""
-    }
-
-  }
-
   // TODO consider renaming to `renderOptionalDef` or `renderIfArgsNonEmpty`?
   def optional(construct: String, args: IterableOnce[String]): String =
     optional(construct + "(", args, ",", ")")
@@ -514,7 +509,7 @@ object BuildGenUtil {
     "org.scalacheck" -> "TestModule.ScalaCheck"
   )
 
-  def writeBuildObject(tree: Tree[Node[BuildObject]]): Unit = {
+  def writeBuildObject(tree: Tree[Node[BuildObject]], jvmId: Option[String]): Unit = {
     val nodes = tree.nodes().toSeq
     println(s"generated ${nodes.length} Mill build file(s)")
 
@@ -524,7 +519,7 @@ object BuildGenUtil {
 
     nodes.foreach { node =>
       val file = buildFile(node.dirs)
-      val source = renderBuildSource(node)
+      val source = renderBuildSource(node, jvmId)
       println(s"writing Mill build file to $file")
       os.write(workspace / file, source)
     }
