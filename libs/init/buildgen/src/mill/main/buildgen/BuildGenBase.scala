@@ -13,7 +13,10 @@ trait BuildGenBase[M, D, I] {
   type C
   def convertWriteOut(cfg: C, shared: BuildGenUtil.BasicConfig, input: I): Unit = {
     val output = convert(input, cfg, shared)
-    writeBuildObject(if (shared.merge.value) compactBuildTree(output) else output)
+    writeBuildObject(
+      if (shared.merge.value) compactBuildTree(output) else output,
+      shared.jvmId
+    )
   }
 
   def getModuleTree(input: I): Tree[Node[Option[M]]]
