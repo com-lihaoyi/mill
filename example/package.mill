@@ -226,7 +226,6 @@ object `package` extends Module {
     def localRunClasspath = build.testkit.localRunClasspath()
 
     def forkEnv = Map("LANG" -> "C")
-    def forkArgs: T[Seq[String]] = Task(List.empty[String])
 
     /**
      * Parses a `build.mill` for specific comments and return the split-by-type content

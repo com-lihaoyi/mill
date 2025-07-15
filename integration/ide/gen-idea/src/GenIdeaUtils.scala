@@ -8,11 +8,6 @@ import utest.assert
 
 object GenIdeaUtils {
 
-  private lazy val coursierVersion = sys.props.getOrElse(
-    "mill.integration.coursier-version",
-    sys.error("Java property mill.integration.coursier-version not set")
-  )
-
   /**
    * Set this to true to update the gen-idea tests snapshot data
    */
@@ -80,7 +75,6 @@ object GenIdeaUtils {
       .replace("//$USER_HOME$/AppData/Local/Coursier/cache/", "//$USER_HOME$/COURSIER_CACHE/")
       .replace("//$USER_HOME$/.cache/coursier/", "//$USER_HOME$/COURSIER_CACHE/")
       .replace("//$USER_HOME$/Library/Caches/Coursier/", "//$USER_HOME$/COURSIER_CACHE/")
-      .replace(coursierVersion, "COURSIER_VERSION") // this might match too many sub-strings
   }
 
   val ignoreString = "<!-- IGNORE -->"
