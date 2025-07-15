@@ -16,6 +16,9 @@
         <orderEntry type="library" scope="RUNTIME" name="aircompressor-0.27.jar" level="project"/>
         <orderEntry type="library" name="asm-9.8.jar" level="project"/>
         <orderEntry type="library" name="asm-tree-9.8.jar" level="project"/>
+        <orderEntry type="library" name="bcpkix-jdk18on-1.81.jar" level="project"/>
+        <orderEntry type="library" name="bcprov-jdk18on-1.81.jar" level="project"/>
+        <orderEntry type="library" name="bcutil-jdk18on-1.81.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="cache-util-2.1.25-M13.jar" level="project"/>
         <orderEntry type="library" name="common_2.13-4.13.4.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-codec-1.17.0.jar" level="project"/>
