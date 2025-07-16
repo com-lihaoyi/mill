@@ -50,7 +50,29 @@ object `package` extends mill.Module {
 
     trait ModeModule extends MillBaseTestsModule {
       override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
-        testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
+        localOutFolder().withValue(()) { outFolder =>
+          val testModuleUtil = new mill.javalib.TestModuleUtil(
+            testUseArgsFile(),
+            forkArgs(),
+            Seq.empty[String],
+            jvmWorker().scalalibClasspath(),
+            resources(),
+            testFramework(),
+            runClasspath(),
+            testClasspath(),
+            args,
+            testForkGrouping(),
+            jvmWorker().testrunnerEntrypointClasspath(),
+            allForkEnv() ++ Option.when(mode == "local"){"MILL_OUTPUT_DIR" -> outFolder.toString},
+            testSandboxWorkingDir(),
+            forkWorkingDir(),
+            testReportXml(),
+            javaHome().map(_.path),
+            testParallelism(),
+            testLogLevel()
+          )
+          testModuleUtil.runTests()
+        }
       }
 
       def mode: String = moduleSegments.parts.last
