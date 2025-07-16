@@ -117,6 +117,7 @@ object `package` extends mill.Module {
   object invalidation extends Cross[IntegrationCrossModule](build.listCross)
   object ide extends Cross[IdeIntegrationCrossModule](build.listCross)
   object bootstrap extends Cross[IdeIntegrationCrossModule](build.listCross)
+  object migrate extends Cross[IdeIntegrationCrossModule](build.listCross)
   object migrating extends Cross[IdeIntegrationCrossModule](build.listCross)
   trait IntegrationCrossModule extends MillScalaModule with IntegrationTestModule {
     override def moduleDeps = super[IntegrationTestModule].moduleDeps

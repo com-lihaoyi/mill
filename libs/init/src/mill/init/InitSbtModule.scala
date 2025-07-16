@@ -1,15 +1,9 @@
 package mill.init
 
-import mill.T
 import mill.api.{Discover, ExternalModule}
-import mill.scalalib.Dep
+import mill.javalib.Dep
 
-object InitSbtModule extends ExternalModule with BuildGenModule {
+object InitSbtModule extends ExternalModule, InitMigrateModule:
   lazy val millDiscover = Discover[this.type]
-
-  override def buildGenDeps = super.buildGenDeps() ++ Seq(
-    Dep.millProjectModule("mill-libs-init-sbt")
-  )
-
-  def buildGenMainClass: T[String] = "mill.main.sbt.SbtBuildGenMain"
-}
+  def initDeps = Seq(Dep.millProjectModule("mill-libs-init-migrate-sbt"))
+  def initMainClass = "mill.init.migrate.sbt.SbtImportMain"
