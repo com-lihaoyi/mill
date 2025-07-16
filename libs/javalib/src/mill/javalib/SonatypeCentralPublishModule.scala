@@ -158,7 +158,7 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
           "Please extend `SonatypeCentralPublishModule` and use its `publishSonatypeCentral` task to publish " +
           "snapshots.\n" +
           "\n" +
-          s"Found the following SNAPSHOT artifacts: ${pprint(snapshotArtifacts)}"
+          s"Found the following SNAPSHOT artifacts: ${pprint.apply(snapshotArtifacts)}"
 
       if (releaseArtifacts.isEmpty) {
         // We can not do anything here because we need more metadata about the published files than `artifacts` provide.
