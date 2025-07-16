@@ -5,9 +5,9 @@ import coursier.core.{Configuration, DependencyManagement}
 import mill.api.{DefaultTaskModule, ExternalModule, Task}
 import mill.api.PathRef
 import mill.api.Result
-import mill.util.{JarManifest, Secret, Tasks, FileSetContents}
+import mill.util.{FileSetContents, JarManifest, Secret, Tasks}
 import mill.javalib.publish.{Artifact, SonatypePublisher}
-import os.Path
+import os.{Path, SubPath}
 import mill.api.BuildCtx
 import mill.javalib.internal.PublishModule.{GpgArgs, checkSonatypeCreds}
 
@@ -502,7 +502,7 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   /** [[publishArtifactsDefaultPayload]] with [[extraPublish]]. */
-  def publishArtifactsPayload(
+  final def publishArtifactsPayload(
       sources: Boolean = true,
       docs: Boolean = true
   ): Task[Map[os.SubPath, PathRef]] = Task {
