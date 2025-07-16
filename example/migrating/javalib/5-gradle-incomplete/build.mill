@@ -12,5 +12,5 @@ ignoring errorprone dependency (com.google.errorprone,error_prone_core,2.23.0)
 init completed, run "mill resolve _" to list available tasks
 
 > ./mill __.compile   # compilation error can be by fixed by using the Mill plugin for ErrorProne
-error: ...Unexpected javac output: error: plug-in not found: ErrorProne
+error: plug-in not found: ErrorProne
 */
