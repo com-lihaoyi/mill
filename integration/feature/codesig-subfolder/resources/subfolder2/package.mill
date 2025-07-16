@@ -1,3 +1,0 @@
-package subfolder2
-
-def subFolder2Task = Task { println("running subFolder2Task") }

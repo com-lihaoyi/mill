@@ -1,0 +1,5 @@
+package build
+
+import mill._
+
+def foo = Task { println("running foo"); build.subfolder.helperFoo }

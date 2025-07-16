@@ -1,5 +1,0 @@
-package subfolder
-
-val valueFoo = 0
-val valueFooUsedInBar = 0
-def helperFoo = { println("running helperFoo"); 1 + valueFoo }

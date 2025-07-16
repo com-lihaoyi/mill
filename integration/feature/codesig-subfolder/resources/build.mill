@@ -1,3 +1,0 @@
-
-
-def foo = Task { println("running foo"); build.subfolder.helperFoo }
