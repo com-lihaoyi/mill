@@ -1,28 +1,28 @@
 # Uncommment this to replace the rest of the file when you want to debug stuff in CI
 
 
-name: Run Debug
-
-on:
-  push:
-  pull_request:
-  workflow_dispatch:
-
-jobs:
-  debug:
-    runs-on: ubuntu-latest
-#    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-        with: { fetch-depth: 1 }
-
-      - run: "echo temurin:11 > .mill-jvm-version"
-
-      - uses: sbt/setup-sbt@v1
-
-
-      - run:  ./mill 'integration.migrating[init].local.daemon.testOnly' mill.integration.MillInitSbtGatlingTests
-
+#name: Run Debug
+#
+#on:
+#  push:
+#  pull_request:
+#  workflow_dispatch:
+#
+#jobs:
+#  debug:
+#    runs-on: ubuntu-latest
+##    runs-on: windows-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#        with: { fetch-depth: 1 }
+#
+#      - run: "echo temurin:11 > .mill-jvm-version"
+#
+#      - uses: sbt/setup-sbt@v1
+#
+#
+#      - run:  ./mill 'integration.migrating[init].local.daemon.testOnly' mill.integration.MillInitSbtGatlingTests
+#
 
 
 
@@ -32,332 +32,332 @@ jobs:
 # all tests on Linux, scattered between Java 11/17, except for one job run
 # on MacOS instead and a subset of jobs also run on windows
 
-#
-#name: Run Tests
-#
-#on:
-#  push:
-#    branches-ignore:
-#      - '**-patch-**'
-#  pull_request:
-#    types:
-#      - opened
-#      - reopened
-#      - synchronize
-#      - ready_for_review
-#  workflow_dispatch:
-#
-## cancel older runs of a pull request;
-## this will not cancel anything for normal git pushes
-#concurrency:
-#  # * For runs on other repos, always use the `ref_name` so each branch only can have one concurrent run
-#  # * For runs on `com-lihaoyi/mill`, use `head_ref` to allow one concurrent run per PR, but `run_id` to
-#  #   allow multiple concurrent runs in master
-#  group: cancel-old-pr-runs-${{ github.workflow }}-${{ (github.repository != 'com-lihaoyi/mill' && github.ref_name) || (github.head_ref || github.run_id) }}
-#  cancel-in-progress: true
-#
-#jobs:
-#  # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
-#  # in the list should be the one that's most worth looking into
-#  build-linux:
-#    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-#    uses: ./.github/workflows/pre-build.yml
-#    with:
-#      os: ubuntu-latest
-#      shell: bash
-#
-#  build-windows:
-#    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-#    uses: ./.github/workflows/pre-build.yml
-#    with:
-#      os: windows-latest
-#      shell: powershell
-#
-#  test-docs:
-#    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#        with: { fetch-depth: 1 }
-#
-#      - run: ./mill -i website.fastPages + website.checkBrokenLinks
-#
-#  cross-plat:
-#    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
-#    runs-on: ${{ matrix.os }}
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#          # Run these with Mill native launcher as a smoketest
-#        include:
-#          - os: ubuntu-24.04-arm
-#            millargs: "'example.thirdparty[fansi].native.daemon'"
-#            java-version: 17
-#
-#          - os: macos-latest
-#            millargs: "'example.thirdparty[acyclic].native.daemon'"
-#            java-version: 11
-#
-#          - os: macos-13
-#            millargs: "'example.thirdparty[jimfs].native.daemon'"
-#            java-version: 11
-#    steps:
-#      - uses: actions/checkout@v4
-#        with: { fetch-depth: 1 }
-#
-#      - uses: ./.github/actions/pre-build-setup
-#        with:
-#          os: ${{ matrix.os }}
-#          java-version: ${{ matrix.java-version }}
-#          shell: bash
-#
-#      - uses: ./.github/actions/post-build-setup
-#        with:
-#          java-version: ${{ matrix.java-version }}
-#          os: ${{ matrix.os }}
-#
-#      - uses: ./.github/actions/post-build-selective
-#        with:
-#          millargs: ${{ matrix.millargs }}
-#          coursierarchive: "/tmp"
-#          shell: bash
-#
-#  linux:
-#    needs: build-linux
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#
-#        include:
-#          # For most tests, run them arbitrarily on Java 11 or Java 17 on Linux, and
-#          # on the opposite version on Windows below, so we get decent coverage of
-#          # each test on each Java version and each operating system
-#          # We also try to group tests together to manually balance out the runtimes of each jobs
-#          - java-version: 24
-#            millargs: "'{core,testkit,runner,dist}.__.test'"
-#            install-android-sdk: false
-#            install-sbt: true
-#            install-xvfb: false
-#
-#          - java-version: 17
-#            millargs: "'libs.{util,javalib,androidlib,graphviz,init,tabcomplete}.__.test'"
-#            install-android-sdk: false
-#            install-sbt: true
-#            install-xvfb: false
-#
-#          - java-version: 11
-#            millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
-#            install-android-sdk: false
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: 17
-#            millargs: "contrib.__.test"
-#            install-android-sdk: false
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: 17
-#            millargs: "example.javalib.__.local.daemon"
-#            install-android-sdk: false
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: 17
-#            millargs: "example.kotlinlib.__.local.daemon"
-#            install-android-sdk: false
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          # Run this one using `.native` as a smoketest. Also make sure the java-version
-#          # is the same as that used in the `build-linux` job to avoid diverging code
-#          # hashes (https://github.com/com-lihaoyi/mill/pull/4410)
-#          - java-version: 11
-#            millargs: "example.scalalib.__.native.daemon"
-#            install-android-sdk: false
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: 17
-#            millargs: "'example.androidlib.__.local.daemon'"
-#            install-android-sdk: true
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: 17
-#            millargs: "'example.thirdparty[androidtodo].local.daemon'"
-#            install-android-sdk: true
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: 17
-#            millargs: "'example.thirdparty[android-endless-tunnel].local.daemon'"
-#            install-android-sdk: true
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: 17
-#            millargs: "'example.thirdparty[android-compose-samples].local.daemon'"
-#            install-android-sdk: true
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: 17
-#            millargs: "'example.migrating.__.local.daemon'"
-#            install-android-sdk: false
-#            install-sbt: true
-#            install-xvfb: true
-#
-#          - java-version: 17
-#            millargs: "'example.{pythonlib,javascriptlib}.__.local.daemon'"
-#            install-android-sdk: false
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: 24
-#            millargs: "'example.thirdparty[{mockito,commons-io}].local.daemon'"
-#            install-android-sdk: false
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: 17
-#            millargs: "'example.thirdparty[{netty,gatling}].local.daemon'"
-#            install-android-sdk: false
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: '17'
-#            millargs: "'example.thirdparty[arrow].local.daemon'"
-#            install-android-sdk: false
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: 11
-#            millargs: "'example.{cli,fundamentals,depth,extending,large}.__.local.daemon'"
-#            install-android-sdk: false
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: 11
-#            millargs: "'integration.{failure,feature,ide}.__.native.daemon'"
-#            install-android-sdk: false
-#            install-sbt: false
-#            install-xvfb: false
-#
-#            # run this specifically in `native` mode to make sure our non-JVM native image
-#            # launcher is able to bootstrap everything necessary without a JVM installed
-#          - java-version: 17
-#            millargs: "'integration.bootstrap[no-java-bootstrap].native.daemon'"
-#            install-android-sdk: false
-#            install-xvfb: false
-#
-#            # These invalidation tests need to be exercised in both execution modes
-#            # to make sure they work with and without -i/--no-server being passed
-#          - java-version: 17
-#            millargs: "'integration.invalidation.__.packaged.nodaemon'"
-#            install-android-sdk: false
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: 24
-#            millargs: "'integration.invalidation.__.packaged.daemon'"
-#            install-android-sdk: false
-#            install-sbt: false
-#            install-xvfb: false
-#
-#          - java-version: 17
-#            millargs: "'integration.migrating.__.local.daemon'"
-#            install-android-sdk: false
-#            install-sbt: true
-#            install-xvfb: true # used for the example `iluwatar/java-design-patterns` init tests
-#
-#    uses: ./.github/workflows/post-build-selective.yml
-#    with:
-#      install-android-sdk: ${{ matrix.install-android-sdk }}
-#      install-sbt: ${{ matrix.install-sbt || false }}
-#      install-xvfb: ${{ matrix.install-xvfb }}
-#      java-version: ${{ matrix.java-version }}
-#      millargs: ${{ matrix.millargs }}
-#      shell: bash
-#
-#  windows:
-#    needs: build-windows
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        include:
-#          # just run a subset of examples/ on Windows, because for some reason running
-#          # the whole suite can take hours on windows v.s. half an hour on linux
-#          #
-#          # * One job unit tests,
-#          # * One job each for local/packaged/native tests
-#          # * At least one job for each of fork/server tests, and example/integration tests
-#          - java-version: 11
-#            millargs: '"libs.{util,javalib}.__.test"'
-#            install-sbt: false
-#
-#          - java-version: 11
-#            millargs: '"example.scalalib.{basic,publishing}.__.local.nodaemon"'
-#            install-sbt: false
-#
-#          - java-version: 11
-#            millargs: '"example.migrating.javalib.__.local.nodaemon"'
-#            install-sbt: true
-#
-#          - java-version: 17
-#            millargs: "'integration.{feature,failure}.__.native.nodaemon'"
-#            install-sbt: false
-#
-#          - java-version: 24 # Run this with Mill native launcher as a smoketest
-#            millargs: "'integration.invalidation.__.native.daemon'"
-#            install-sbt: false
-#
-#          - java-version: 17
-#            millargs: "'integration.bootstrap[no-java-bootstrap].native.daemon'"
-#
-#    uses: ./.github/workflows/post-build-selective.yml
-#    with:
-#      os: windows-latest
-#      java-version: ${{ matrix.java-version }}
-#      millargs: ${{ matrix.millargs }}
-#      # Provide a shorter coursier archive folder to avoid hitting path-length bugs when
-#      # running the graal native image binary on windows
-#      coursierarchive: "C:/coursier-arc"
-#      shell: powershell
-#      install-sbt: ${{ matrix.install-sbt || false }}
-#
-#  itest:
-#    needs: build-linux
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        include:
-#          # bootstrap tests
-#          - java-version: 11 # Have one job on oldest JVM
-#            buildcmd: ci/test-dist-run.sh && ci/test-install-local.sh
-#          - java-version: 17 # Have one job on default JVM
-#            buildcmd: ci/test-mill-bootstrap.sh
-#
-#    uses: ./.github/workflows/post-build-raw.yml
-#    with:
-#      java-version: ${{ matrix.java-version }}
-#      buildcmd: ${{ matrix.buildcmd }}
-#
-#  # Scalafmt, Mima, and Scalafix job runs last because it's the least important:
-#  # usually just an automated or mechanical manual fix to do before merging
-#  lint-autofix:
-#    needs: build-linux
-#    uses: ./.github/workflows/post-build-raw.yml
-#    with:
-#      java-version: '17'
-#      buildcmd: |
-#        set -eux
-#        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
-#  mima:
-#    needs: build-linux
-#    uses: ./.github/workflows/post-build-raw.yml
-#    with:
-#      java-version: '17'
-#      buildcmd: |
-#        set -eux
-#        ./mill -i __.mimaReportBinaryIssues
+
+name: Run Tests
+
+on:
+  push:
+    branches-ignore:
+      - '**-patch-**'
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+  workflow_dispatch:
+
+# cancel older runs of a pull request;
+# this will not cancel anything for normal git pushes
+concurrency:
+  # * For runs on other repos, always use the `ref_name` so each branch only can have one concurrent run
+  # * For runs on `com-lihaoyi/mill`, use `head_ref` to allow one concurrent run per PR, but `run_id` to
+  #   allow multiple concurrent runs in master
+  group: cancel-old-pr-runs-${{ github.workflow }}-${{ (github.repository != 'com-lihaoyi/mill' && github.ref_name) || (github.head_ref || github.run_id) }}
+  cancel-in-progress: true
+
+jobs:
+  # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
+  # in the list should be the one that's most worth looking into
+  build-linux:
+    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
+    uses: ./.github/workflows/pre-build.yml
+    with:
+      os: ubuntu-latest
+      shell: bash
+
+  build-windows:
+    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
+    uses: ./.github/workflows/pre-build.yml
+    with:
+      os: windows-latest
+      shell: powershell
+
+  test-docs:
+    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+
+      - run: ./mill -i website.fastPages + website.checkBrokenLinks
+
+  cross-plat:
+    if: (github.event.action == 'ready_for_review') || (github.event.pull_request.draft == false)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+          # Run these with Mill native launcher as a smoketest
+        include:
+          - os: ubuntu-24.04-arm
+            millargs: "'example.thirdparty[fansi].native.daemon'"
+            java-version: 17
+
+          - os: macos-latest
+            millargs: "'example.thirdparty[acyclic].native.daemon'"
+            java-version: 11
+
+          - os: macos-13
+            millargs: "'example.thirdparty[jimfs].native.daemon'"
+            java-version: 11
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 1 }
+
+      - uses: ./.github/actions/pre-build-setup
+        with:
+          os: ${{ matrix.os }}
+          java-version: ${{ matrix.java-version }}
+          shell: bash
+
+      - uses: ./.github/actions/post-build-setup
+        with:
+          java-version: ${{ matrix.java-version }}
+          os: ${{ matrix.os }}
+
+      - uses: ./.github/actions/post-build-selective
+        with:
+          millargs: ${{ matrix.millargs }}
+          coursierarchive: "/tmp"
+          shell: bash
+
+  linux:
+    needs: build-linux
+    strategy:
+      fail-fast: false
+      matrix:
+
+        include:
+          # For most tests, run them arbitrarily on Java 11 or Java 17 on Linux, and
+          # on the opposite version on Windows below, so we get decent coverage of
+          # each test on each Java version and each operating system
+          # We also try to group tests together to manually balance out the runtimes of each jobs
+          - java-version: 24
+            millargs: "'{core,testkit,runner,dist}.__.test'"
+            install-android-sdk: false
+            install-sbt: true
+            install-xvfb: false
+
+          - java-version: 17
+            millargs: "'libs.{util,javalib,androidlib,graphviz,init,tabcomplete}.__.test'"
+            install-android-sdk: false
+            install-sbt: true
+            install-xvfb: false
+
+          - java-version: 11
+            millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 17
+            millargs: "contrib.__.test"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 17
+            millargs: "example.javalib.__.local.daemon"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 17
+            millargs: "example.kotlinlib.__.local.daemon"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+          # Run this one using `.native` as a smoketest. Also make sure the java-version
+          # is the same as that used in the `build-linux` job to avoid diverging code
+          # hashes (https://github.com/com-lihaoyi/mill/pull/4410)
+          - java-version: 11
+            millargs: "example.scalalib.__.native.daemon"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 17
+            millargs: "'example.androidlib.__.local.daemon'"
+            install-android-sdk: true
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 17
+            millargs: "'example.thirdparty[androidtodo].local.daemon'"
+            install-android-sdk: true
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 17
+            millargs: "'example.thirdparty[android-endless-tunnel].local.daemon'"
+            install-android-sdk: true
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 17
+            millargs: "'example.thirdparty[android-compose-samples].local.daemon'"
+            install-android-sdk: true
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 17
+            millargs: "'example.migrating.__.local.daemon'"
+            install-android-sdk: false
+            install-sbt: true
+            install-xvfb: true
+
+          - java-version: 17
+            millargs: "'example.{pythonlib,javascriptlib}.__.local.daemon'"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 24
+            millargs: "'example.thirdparty[{mockito,commons-io}].local.daemon'"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 17
+            millargs: "'example.thirdparty[{netty,gatling}].local.daemon'"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: '17'
+            millargs: "'example.thirdparty[arrow].local.daemon'"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 11
+            millargs: "'example.{cli,fundamentals,depth,extending,large}.__.local.daemon'"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 11
+            millargs: "'integration.{failure,feature,ide}.__.native.daemon'"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+            # run this specifically in `native` mode to make sure our non-JVM native image
+            # launcher is able to bootstrap everything necessary without a JVM installed
+          - java-version: 17
+            millargs: "'integration.bootstrap[no-java-bootstrap].native.daemon'"
+            install-android-sdk: false
+            install-xvfb: false
+
+            # These invalidation tests need to be exercised in both execution modes
+            # to make sure they work with and without -i/--no-server being passed
+          - java-version: 17
+            millargs: "'integration.invalidation.__.packaged.nodaemon'"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 24
+            millargs: "'integration.invalidation.__.packaged.daemon'"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 17
+            millargs: "'integration.migrating.__.local.daemon'"
+            install-android-sdk: false
+            install-sbt: true
+            install-xvfb: true # used for the example `iluwatar/java-design-patterns` init tests
+
+    uses: ./.github/workflows/post-build-selective.yml
+    with:
+      install-android-sdk: ${{ matrix.install-android-sdk }}
+      install-sbt: ${{ matrix.install-sbt || false }}
+      install-xvfb: ${{ matrix.install-xvfb }}
+      java-version: ${{ matrix.java-version }}
+      millargs: ${{ matrix.millargs }}
+      shell: bash
+
+  windows:
+    needs: build-windows
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # just run a subset of examples/ on Windows, because for some reason running
+          # the whole suite can take hours on windows v.s. half an hour on linux
+          #
+          # * One job unit tests,
+          # * One job each for local/packaged/native tests
+          # * At least one job for each of fork/server tests, and example/integration tests
+          - java-version: 11
+            millargs: '"libs.{util,javalib}.__.test"'
+            install-sbt: false
+
+          - java-version: 11
+            millargs: '"example.scalalib.{basic,publishing}.__.local.nodaemon"'
+            install-sbt: false
+
+          - java-version: 11
+            millargs: '"example.migrating.javalib.__.local.nodaemon"'
+            install-sbt: true
+
+          - java-version: 17
+            millargs: "'integration.{feature,failure}.__.native.nodaemon'"
+            install-sbt: false
+
+          - java-version: 24 # Run this with Mill native launcher as a smoketest
+            millargs: "'integration.invalidation.__.native.daemon'"
+            install-sbt: false
+
+          - java-version: 17
+            millargs: "'integration.bootstrap[no-java-bootstrap].native.daemon'"
+
+    uses: ./.github/workflows/post-build-selective.yml
+    with:
+      os: windows-latest
+      java-version: ${{ matrix.java-version }}
+      millargs: ${{ matrix.millargs }}
+      # Provide a shorter coursier archive folder to avoid hitting path-length bugs when
+      # running the graal native image binary on windows
+      coursierarchive: "C:/coursier-arc"
+      shell: powershell
+      install-sbt: ${{ matrix.install-sbt || false }}
+
+  itest:
+    needs: build-linux
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # bootstrap tests
+          - java-version: 11 # Have one job on oldest JVM
+            buildcmd: ci/test-dist-run.sh && ci/test-install-local.sh
+          - java-version: 17 # Have one job on default JVM
+            buildcmd: ci/test-mill-bootstrap.sh
+
+    uses: ./.github/workflows/post-build-raw.yml
+    with:
+      java-version: ${{ matrix.java-version }}
+      buildcmd: ${{ matrix.buildcmd }}
+
+  # Scalafmt, Mima, and Scalafix job runs last because it's the least important:
+  # usually just an automated or mechanical manual fix to do before merging
+  lint-autofix:
+    needs: build-linux
+    uses: ./.github/workflows/post-build-raw.yml
+    with:
+      java-version: '17'
+      buildcmd: |
+        set -eux
+        ./mill -i mill.scalalib.scalafmt.ScalafmtModule/scalafmt --check + __.fix --check + mill.javalib.palantirformat.PalantirFormatModule/ --check + mill.kotlinlib.ktlint.KtlintModule/checkFormatAll
+  mima:
+    needs: build-linux
+    uses: ./.github/workflows/post-build-raw.yml
+    with:
+      java-version: '17'
+      buildcmd: |
+        set -eux
+        ./mill -i __.mimaReportBinaryIssues
