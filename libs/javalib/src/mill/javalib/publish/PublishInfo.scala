@@ -21,7 +21,10 @@ case class PublishInfo(
   val classifierPart: String = classifier.map(c => s"-$c").getOrElse("")
 
   private[mill] def toIvyMetadata: PublishInfo.IvyMetadata = PublishInfo.IvyMetadata(
-    extension = ext, config = ivyConfig, `type` = ivyType, classifier = classifier
+    extension = ext,
+    config = ivyConfig,
+    `type` = ivyType,
+    classifier = classifier
   )
 }
 
@@ -40,17 +43,31 @@ object PublishInfo {
    * @param classifier see [[PublishInfo.classifier]]
    */
   private[mill] case class IvyMetadata(
-    extension: String, config: String, `type`: String, classifier: Option[String]
+      extension: String,
+      config: String,
+      `type`: String,
+      classifier: Option[String]
   ) {
     def toPublishInfo(file: PathRef): PublishInfo =
-      PublishInfo(file, classifier = classifier, ext = extension, ivyConfig = config, ivyType = `type`)
+      PublishInfo(
+        file,
+        classifier = classifier,
+        ext = extension,
+        ivyConfig = config,
+        ivyType = `type`
+      )
   }
   private[mill] object IvyMetadata {
-    val Pom: IvyMetadata = apply(extension = "pom", config = "pom", `type` = "pom", classifier = None)
-    val Jar: IvyMetadata = apply(extension = "jar", config = "compile", `type` = "jar", classifier = None)
-    val Aar: IvyMetadata = apply(extension = "aar", config = "compile", `type` = "aar", classifier = None)
-    val SourcesJar: IvyMetadata = apply(extension = "jar", config = "compile", `type` = "src", classifier = Some("sources"))
-    val DocJar: IvyMetadata = apply(extension = "jar", config = "compile", `type` = "doc", classifier = Some("javadoc"))
+    val Pom: IvyMetadata =
+      apply(extension = "pom", config = "pom", `type` = "pom", classifier = None)
+    val Jar: IvyMetadata =
+      apply(extension = "jar", config = "compile", `type` = "jar", classifier = None)
+    val Aar: IvyMetadata =
+      apply(extension = "aar", config = "compile", `type` = "aar", classifier = None)
+    val SourcesJar: IvyMetadata =
+      apply(extension = "jar", config = "compile", `type` = "src", classifier = Some("sources"))
+    val DocJar: IvyMetadata =
+      apply(extension = "jar", config = "compile", `type` = "doc", classifier = Some("javadoc"))
 
     val Known: IArray[IvyMetadata] = IArray(Pom, Jar, Aar, SourcesJar, DocJar)
 
@@ -59,11 +76,13 @@ object PublishInfo {
     }
   }
 
-  private[mill] def fromMetadata(file: PathRef, metadata: IvyMetadata): PublishInfo = metadata.toPublishInfo(file)
+  private[mill] def fromMetadata(file: PathRef, metadata: IvyMetadata): PublishInfo =
+    metadata.toPublishInfo(file)
   private[mill] def pom(pom: PathRef): PublishInfo = fromMetadata(pom, IvyMetadata.Pom)
   private[mill] def jar(jar: PathRef): PublishInfo = fromMetadata(jar, IvyMetadata.Jar)
   private[mill] def aar(aar: PathRef): PublishInfo = fromMetadata(aar, IvyMetadata.Aar)
-  private[mill] def sourcesJar(sourcesJar: PathRef): PublishInfo = fromMetadata(sourcesJar, IvyMetadata.SourcesJar)
+  private[mill] def sourcesJar(sourcesJar: PathRef): PublishInfo =
+    fromMetadata(sourcesJar, IvyMetadata.SourcesJar)
   private[mill] def docJar(docJar: PathRef): PublishInfo = fromMetadata(docJar, IvyMetadata.DocJar)
 
   /**
@@ -82,7 +101,10 @@ object PublishInfo {
    * @param artifactVersion version of the artifact, for example "1.0.0-RC3"
    */
   private[mill] def parseFromFile(
-    file: PathRef, fileName: String, artifactId: String, artifactVersion: String
+      file: PathRef,
+      fileName: String,
+      artifactId: String,
+      artifactVersion: String
   ): PublishInfo = {
     val withoutArtifactIdAndVersion = fileName.replaceFirst(s"^$artifactId-$artifactVersion-?", "")
     val extension = withoutArtifactIdAndVersion.split('.').lastOption.getOrElse("")
@@ -96,7 +118,13 @@ object PublishInfo {
       case None =>
         // If nothing specific matched, assume it's a generic jar.
         val jar = IvyMetadata.Jar
-        apply(file, classifier = classifier, ext = extension, ivyConfig = jar.config, ivyType = jar.`type`)
+        apply(
+          file,
+          classifier = classifier,
+          ext = extension,
+          ivyConfig = jar.config,
+          ivyType = jar.`type`
+        )
     }
   }
 }
