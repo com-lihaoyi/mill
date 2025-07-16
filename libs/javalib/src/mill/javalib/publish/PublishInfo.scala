@@ -10,7 +10,6 @@ import mill.PathRef
  * @param ext The extension that will be used publishing the file to the ivy repo
  * @param ivyConfig see [[PublishInfo.IvyMetadata.config]]
  * @param ivyType see [[PublishInfo.IvyMetadata.`type`]]
- * @note See https://ant.apache.org/ivy/history/latest-milestone/ivyfile/artifact.html for Ivy XML descriptions.
  */
 case class PublishInfo(
     file: PathRef,
@@ -30,7 +29,9 @@ object PublishInfo {
   implicit def jsonify: upickle.default.ReadWriter[PublishInfo] = upickle.default.macroRW
 
   /**
-   * @param extension see [[PublishInfo.ext]]
+   * See https://ant.apache.org/ivy/history/latest-milestone/ivyfile/artifact.html for Ivy XML descriptions.
+   *
+   * @param extension `ext` attribute on `artifact` tag in ivy.xml. See [[PublishInfo.ext]]
    * @param config `conf` attribute on `artifact` tag in ivy.xml. Comma separated list of public configurations in
    *               which this artifact is published. `*` wildcard can be used to designate all public configurations
    *               of this module.
