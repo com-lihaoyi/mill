@@ -7,7 +7,8 @@ object PublishSonatypeCentralTests extends UtestIntegrationTestSuite {
   private val PublishTaskName = "testProject.publishSonatypeCentral"
   private val PublishDirName = os.SubPath("testProject/publishSonatypeCentral.dest")
   private val PublishAllTaskName = "mill.javalib.SonatypeCentralPublishModule/publishAll"
-  private val PublishAllDirName = os.SubPath("mill/javalib/SonatypeCentralPublishModule/publishAll.dest")
+  private val PublishAllDirName =
+    os.SubPath("mill/javalib/SonatypeCentralPublishModule/publishAll.dest")
 
   private def dryRun(taskName: String, dirName: os.SubPath): Unit = integrationTest { tester =>
     import tester.*
@@ -27,7 +28,8 @@ object PublishSonatypeCentralTests extends UtestIntegrationTestSuite {
     val isSuccess = res.isSuccess
     assert(isSuccess)
 
-    val dir = workspacePath / "out" / dirName / "repository" / "io.github.lihaoyi.testProject_3-0.0.1"
+    val dir =
+      workspacePath / "out" / dirName / "repository" / "io.github.lihaoyi.testProject_3-0.0.1"
 
     val expectedFiles = Vector(
       dir / "io/github/lihaoyi/testProject_3/0.0.1/testProject_3-0.0.1-javadoc.jar",

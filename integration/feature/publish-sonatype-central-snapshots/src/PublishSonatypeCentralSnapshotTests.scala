@@ -8,7 +8,8 @@ object PublishSonatypeCentralSnapshotTests extends UtestIntegrationTestSuite {
   private val PublishTaskName = "testProject.publishSonatypeCentral"
   private val PublishDirName = os.SubPath("testProject/publishSonatypeCentral.dest")
   private val PublishAllTaskName = "mill.javalib.SonatypeCentralPublishModule/publishAll"
-  private val PublishAllDirName = os.SubPath("mill/javalib/SonatypeCentralPublishModule/publishAll.dest")
+  private val PublishAllDirName =
+    os.SubPath("mill/javalib/SonatypeCentralPublishModule/publishAll.dest")
 
   private def actual(taskName: String): Unit = integrationTest { tester =>
     import tester.*

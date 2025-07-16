@@ -57,7 +57,10 @@ object MavenWorkerSupport {
     ): List[M2Artifact.Default] =
       publishDatas.iterator.map { case (name, pathRef) =>
         val publishInfo = PublishInfo.parseFromFile(
-          pathRef, fileName = name.toString, artifactId = artifact.id, artifactVersion = artifact.version
+          pathRef,
+          fileName = name.toString,
+          artifactId = artifact.id,
+          artifactVersion = artifact.version
         )
         M2Artifact.Default(publishInfo, artifact): M2Artifact.Default
       }.toList
