@@ -169,11 +169,8 @@ jobs:
             install-sbt: false
             install-xvfb: false
 
-          # Run this one using `.native` as a smoketest. Also make sure the java-version
-          # is the same as that used in the `build-linux` job to avoid diverging code
-          # hashes (https://github.com/com-lihaoyi/mill/pull/4410)
           - java-version: 11
-            millargs: "example.scalalib.__.native.daemon"
+            millargs: "example.scalalib.__.local.daemon"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
