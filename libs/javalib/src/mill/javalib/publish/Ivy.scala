@@ -30,13 +30,13 @@ object Ivy {
   ): String = {
 
     val mainPublishInfo = {
-      val pomInfo = PublishInfo.IvyMetadata.pom
+      val pomInfo = PublishInfo.IvyMetadata.Pom
       if (hasJar)
         Seq(
           pomInfo,
-          PublishInfo.IvyMetadata.jar,
-          PublishInfo.IvyMetadata.sourcesJar,
-          PublishInfo.IvyMetadata.docJar
+          PublishInfo.IvyMetadata.Jar,
+          PublishInfo.IvyMetadata.SourcesJar,
+          PublishInfo.IvyMetadata.DocJar
         )
       else
         Seq(pomInfo)

@@ -8,14 +8,7 @@ import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.api.DefaultTaskModule
 import mill.api.Result
-import mill.javalib.SonatypeCentralPublishModule.{
-  defaultAwaitTimeout,
-  defaultConnectTimeout,
-  defaultCredentials,
-  defaultReadTimeout,
-  getPublishingTypeFromReleaseFlag,
-  getSonatypeCredentials
-}
+import mill.javalib.SonatypeCentralPublishModule.{defaultAwaitTimeout, defaultConnectTimeout, defaultCredentials, defaultReadTimeout, getPublishingTypeFromReleaseFlag, getSonatypeCredentials}
 import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
@@ -62,14 +55,11 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
   ): Task.Command[Unit] = Task.Command {
     val artifact = artifactMetadata()
     val finalCredentials = getSonatypeCredentials(username, password)()
+    val publishData = publishArtifactsPayload(sources = sources, docs = docs)()
 
     def publishSnapshot(): Unit = {
       val uri = sonatypeCentralSnapshotUri
-      val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2Artifacts(
-        pom().path,
-        artifact,
-        allPublishInfos(sources = sources, docs = docs)()
-      )
+      val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(artifact, publishData)
 
       Task.log.info(
         s"Detected a 'SNAPSHOT' version, publishing to Sonatype Central Snapshots at '$uri'"
@@ -86,7 +76,6 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
     }
 
     def publishRelease(): Unit = {
-      val publishData = publishArtifactsPayload(sources = sources, docs = docs)()
       val fileMapping = PublishData.withConcretePath(publishData)
 
       val maybeKeyId = internal.PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)

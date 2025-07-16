@@ -41,37 +41,52 @@ object PublishInfo {
    */
   private[mill] case class IvyMetadata(
     extension: String, config: String, `type`: String, classifier: Option[String]
-  )
+  ) {
+    def toPublishInfo(file: PathRef): PublishInfo =
+      PublishInfo(file, classifier = classifier, ext = extension, ivyConfig = config, ivyType = `type`)
+  }
   private[mill] object IvyMetadata {
-    def pom: IvyMetadata = apply(extension = "pom", config = "pom", `type` = "pom", classifier = None)
-    def jar: IvyMetadata = apply(extension = "jar", config = "compile", `type` = "jar", classifier = None)
-    def sourcesJar: IvyMetadata =
-      apply(extension = "jar", config = "compile", `type` = "src", classifier = Some("sources"))
-    def docJar: IvyMetadata =
-      apply(extension = "jar", config = "compile", `type` = "doc", classifier = Some("javadoc"))
+    val Pom: IvyMetadata = apply(extension = "pom", config = "pom", `type` = "pom", classifier = None)
+    val Jar: IvyMetadata = apply(extension = "jar", config = "compile", `type` = "jar", classifier = None)
+    val Aar: IvyMetadata = apply(extension = "aar", config = "compile", `type` = "aar", classifier = None)
+    val SourcesJar: IvyMetadata = apply(extension = "jar", config = "compile", `type` = "src", classifier = Some("sources"))
+    val DocJar: IvyMetadata = apply(extension = "jar", config = "compile", `type` = "doc", classifier = Some("javadoc"))
+
+    val Known: IArray[IvyMetadata] = IArray(Pom, Jar, Aar, SourcesJar, DocJar)
+
+    def tryToMatch(extension: String, classifier: Option[String]): Option[IvyMetadata] = {
+      Known.find(meta => meta.extension == extension && meta.classifier == classifier)
+    }
   }
 
-  private[mill] def jar(jar: PathRef): PublishInfo = {
-    PublishInfo(jar, ivyConfig = "compile")
+  private[mill] def fromMetadata(file: PathRef, metadata: IvyMetadata): PublishInfo = metadata.toPublishInfo(file)
+  private[mill] def pom(pom: PathRef): PublishInfo = fromMetadata(pom, IvyMetadata.Pom)
+  private[mill] def jar(jar: PathRef): PublishInfo = fromMetadata(jar, IvyMetadata.Jar)
+  private[mill] def aar(aar: PathRef): PublishInfo = fromMetadata(aar, IvyMetadata.Aar)
+  private[mill] def sourcesJar(sourcesJar: PathRef): PublishInfo = fromMetadata(sourcesJar, IvyMetadata.SourcesJar)
+  private[mill] def docJar(docJar: PathRef): PublishInfo = fromMetadata(docJar, IvyMetadata.DocJar)
+
+  /**
+   * @param file reference to the file.
+   * @param fileName name of the file to use. Can be different from the actual filename of the `file`.
+   * @param artifactId for example, "mill"
+   * @param artifactVersion version of the artifact, for example "1.0.0-RC3"
+   */
+  private[mill] def parseFromFile(
+    file: PathRef, fileName: String, artifactId: String, artifactVersion: String
+  ): PublishInfo = {
+    val withoutArtifactIdAndVersion = fileName.replaceFirst(s"^$artifactId-$artifactVersion-?", "")
+    val extension = withoutArtifactIdAndVersion.split('.').lastOption.getOrElse("")
+    val classifier = withoutArtifactIdAndVersion.replaceFirst(s"\\.$extension$$", "") match {
+      case "" => None
+      case other => Some(other)
+    }
+
+    IvyMetadata.tryToMatch(extension = extension, classifier = classifier) match {
+      case Some(meta) => meta.toPublishInfo(file)
+      case None =>
+        val jar = IvyMetadata.Jar
+        apply(file, classifier = classifier, ext = extension, ivyConfig = jar.config, ivyType = jar.`type`)
+    }
   }
-
-  private[mill] def aar(aar: PathRef): PublishInfo = {
-    PublishInfo(aar, ivyConfig = "compile", ext = "aar", ivyType = "aar")
-  }
-
-  private[mill] def sourcesJar(sourcesJar: PathRef): PublishInfo =
-    PublishInfo(
-      sourcesJar,
-      ivyType = "src",
-      classifier = Some("sources"),
-      ivyConfig = "compile"
-    )
-
-  private[mill] def docJar(docJar: PathRef): PublishInfo =
-    PublishInfo(
-      docJar,
-      ivyType = "doc",
-      classifier = Some("javadoc"),
-      ivyConfig = "compile"
-    )
 }
