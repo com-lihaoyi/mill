@@ -236,7 +236,13 @@ jobs:
             install-xvfb: false
 
           - java-version: 11
-            millargs: "'integration.{failure,feature,ide}.__.native.daemon'"
+            millargs: "'integration.{failure,feature}.__.local.daemon'"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 11
+            millargs: "'integration.ide.__.native.daemon'"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
@@ -263,7 +269,7 @@ jobs:
             install-xvfb: false
 
           - java-version: 17
-            millargs: "'integration.migrating.__.local.daemon'"
+            millargs: "'integration.migrating.__.packaged.daemon'"
             install-android-sdk: false
             install-sbt: true
             install-xvfb: true # used for the example `iluwatar/java-design-patterns` init tests
