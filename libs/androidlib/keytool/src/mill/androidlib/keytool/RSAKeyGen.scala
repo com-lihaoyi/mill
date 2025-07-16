@@ -1,7 +1,8 @@
 package mill.androidlib.keytool
 
-import java.security.{KeyPair, KeyPairGenerator}
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+
+import java.security.{KeyPair, KeyPairGenerator}
 
 object RSAKeyGen {
 

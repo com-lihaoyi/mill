@@ -1,16 +1,15 @@
 package mill.androidlib.keytool
 
+import org.bouncycastle.cert.X509v3CertificateBuilder
+import org.bouncycastle.cert.jcajce.{JcaX509CertificateConverter, JcaX509v3CertificateBuilder}
+import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
+
 import java.math.BigInteger
 import java.security.*
 import java.security.cert.X509Certificate
 import java.util.Date
 import javax.security.auth.x500.X500Principal
-
-import org.bouncycastle.cert.X509v3CertificateBuilder
-import org.bouncycastle.cert.jcajce.{JcaX509v3CertificateBuilder, JcaX509CertificateConverter}
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-
 import scala.concurrent.duration.*
 
 object CertUtil:

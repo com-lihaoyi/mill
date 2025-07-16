@@ -2,8 +2,8 @@ package mill.androidlib.keytool
 
 // Manages keystore operations
 
-import java.security.{KeyStore, KeyPair, Key}
-import java.io.{FileInputStream, FileOutputStream, File}
+import java.io.{File, FileInputStream, FileOutputStream}
+import java.security.{Key, KeyPair, KeyStore}
 import scala.collection.JavaConverters.enumerationAsScalaIteratorConverter
 import scala.concurrent.duration.*
 
