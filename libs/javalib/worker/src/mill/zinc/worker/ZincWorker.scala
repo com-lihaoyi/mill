@@ -1,16 +1,26 @@
 package mill.zinc.worker
 
 import mill.api.PathRef
-import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil, Versions}
-import mill.javalib.worker.{CompilersApi, ZincCompilerBridge}
+import mill.api.daemon.Result
+import mill.api.daemon.internal.CompileProblemReporter
+import mill.constants.CodeGenConstants
+import mill.javalib.api.{CompilationResult, JvmWorkerApi, JvmWorkerUtil, Versions}
+import mill.javalib.worker.{CompilersApi, JvmWorkerImpl, MockedLookup, RecordingReporter, ZincCompilerBridge}
 import mill.util.{CachedFactory, RefCountedClassLoaderCache}
-import mill.zinc.worker.ZincWorker.{JavaCompilerCacheKey, ScalaCompilerCacheKey, ScalaCompilerCached, getLocalOrCreateJavaTools, libraryJarNameGrep}
+import mill.zinc.worker.ZincWorker.{JavaCompilerCacheKey, ScalaCompilerCacheKey, ScalaCompilerCached, fileAnalysisStore, getLocalOrCreateJavaTools, libraryJarNameGrep}
 import sbt.internal.inc.classpath.ClasspathUtil
-import sbt.internal.inc.{ScalaInstance, ZincUtil, javac}
-import xsbti.compile.{ClasspathOptions, Compilers, IncrementalCompiler, JavaTools}
+import sbt.internal.inc.consistent.ConsistentFileAnalysisStore
+import sbt.internal.inc.{CompileFailed, FreshCompilerCache, ManagedLoggedReporter, MappedFileConverter, ScalaInstance, Stamps, ZincUtil, javac}
+import sbt.internal.util.{ConsoleAppender, ConsoleOut}
+import sbt.mill.SbtLoggerUtils
+import xsbti.compile.analysis.ReadWriteMappers
+import xsbti.{PathBasedFile, VirtualFile}
+import xsbti.compile.{AnalysisContents, AnalysisStore, AuxiliaryClassFileExtension, ClasspathOptions, CompileAnalysis, CompileOrder, CompileProgress, Compilers, IncOptions, IncrementalCompiler, JavaTools, MiniSetup, PreviousResult}
 
 import java.io.File
 import java.net.URLClassLoader
+import java.nio.charset.StandardCharsets
+import java.util.Optional
 import scala.collection.mutable
 import scala.util.Properties.isWin
 
@@ -18,12 +28,13 @@ import scala.util.Properties.isWin
 // TODO review: apply javaHome, javacRuntimeOptions
 class ZincWorker(
   compilerBridge: ZincCompilerBridge,
-  jobs: Int
-) extends CompilersApi {
-  // compilers.scalac().scalaInstance().version().startsWith("3.")
-
+  jobs: Int,
+  compileToJar: Boolean,
+  zincLogDebug: Boolean
+) extends AutoCloseable, CompilersApi {
   private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
   private val compilerBridgeLocks: mutable.Map[String, Object] = mutable.Map.empty[String, Object]
+  private val zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
 
   private val classloaderCache = new RefCountedClassLoaderCache(
     sharedLoader = getClass.getClassLoader,
@@ -146,14 +157,221 @@ class ZincWorker(
     override def maxCacheSize: Int = jobs
   }
 
+  override def close(): Unit = {
+    scalaCompilerCache.close()
+    javaOnlyCompilerCache.close()
+    classloaderCache.close()
+  }
 
+  private def compileInternal(
+    upstreamCompileOutput: Seq[CompilationResult],
+    sources: Seq[os.Path],
+    compileClasspath: Seq[os.Path],
+    javacOptions: Seq[String],
+    scalacOptions: Seq[String],
+    compilers: Compilers,
+    reporter: Option[CompileProblemReporter],
+    reportCachedProblems: Boolean,
+    incrementalCompilation: Boolean,
+    auxiliaryClassFileExtensions: Seq[String],
+    zincCache: os.SubPath = os.sub / "zinc"
+  )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
+    val requireReporter = ctx.env.get("MILL_JVM_WORKER_REQUIRE_REPORTER").contains("true")
+    if (requireReporter && reporter.isEmpty)
+      sys.error(
+        """A reporter is required, but none was passed. The following allows to get
+          |one from Mill tasks:
+          |
+          |    Task.reporter.apply(hashCode)
+          |
+          |`hashCode` should be the hashCode of the Mill module being compiled. Calling
+          |this in a task defined in a module should work.
+          |""".stripMargin
+      )
+
+    os.makeDir.all(ctx.dest)
+
+    val classesDir =
+      if (compileToJar) ctx.dest / "classes.jar"
+      else ctx.dest / "classes"
+
+    if (ctx.log.debugEnabled) {
+      ctx.log.debug(
+        s"""Compiling:
+           |  javacOptions: ${javacOptions.map("'" + _ + "'").mkString(" ")}
+           |  scalacOptions: ${scalacOptions.map("'" + _ + "'").mkString(" ")}
+           |  sources: ${sources.map("'" + _ + "'").mkString(" ")}
+           |  classpath: ${compileClasspath.map("'" + _ + "'").mkString(" ")}
+           |  output: $classesDir"""
+          .stripMargin
+      )
+    }
+
+    reporter.foreach(_.start())
+
+    val consoleAppender = ConsoleAppender(
+      "ZincLogAppender",
+      ConsoleOut.printStreamOut(ctx.log.streams.err),
+      ctx.log.prompt.colored,
+      ctx.log.prompt.colored,
+      _ => None
+    )
+    val loggerId = Thread.currentThread().getId.toString
+    val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
+
+    val maxErrors = reporter.map(_.maxErrors).getOrElse(CompileProblemReporter.defaultMaxErrors)
+
+    def mkNewReporter(mapper: (xsbti.Position => xsbti.Position) | Null) = reporter match {
+      case None =>
+        new ManagedLoggedReporter(maxErrors, logger) with RecordingReporter
+          with TransformingReporter(ctx.log.prompt.colored, mapper) {}
+      case Some(forwarder) =>
+        new ManagedLoggedReporter(maxErrors, logger)
+          with ForwardingReporter(forwarder)
+          with RecordingReporter
+          with TransformingReporter(ctx.log.prompt.colored, mapper) {}
+    }
+    val analysisMap0 = upstreamCompileOutput.map(c => c.classes.path -> c.analysisFile).toMap
+
+    def analysisMap(f: VirtualFile): Optional[CompileAnalysis] = {
+      val analysisFile = f match {
+        case pathBased: PathBasedFile => analysisMap0.get(os.Path(pathBased.toPath))
+        case _ => None
+      }
+      analysisFile match {
+        case Some(zincPath) => fileAnalysisStore(zincPath).get().map(_.getAnalysis)
+        case None => Optional.empty[CompileAnalysis]
+      }
+    }
+
+    val lookup = MockedLookup(analysisMap)
+
+    val store = fileAnalysisStore(ctx.dest / zincCache)
+
+    // Fix jdk classes marked as binary dependencies, see https://github.com/com-lihaoyi/mill/pull/1904
+    val converter = MappedFileConverter.empty
+    val classpath = (compileClasspath.iterator ++ Some(classesDir))
+      .map(path => converter.toVirtualFile(path.toNIO))
+      .toArray
+    val virtualSources = sources.iterator
+      .map(path => converter.toVirtualFile(path.toNIO))
+      .toArray
+
+    val incOptions = IncOptions.of().withAuxiliaryClassFiles(
+      auxiliaryClassFileExtensions.map(new AuxiliaryClassFileExtension(_)).toArray
+    )
+    val compileProgress = reporter.map { reporter =>
+      new CompileProgress {
+        override def advance(
+          current: Int,
+          total: Int,
+          prevPhase: String,
+          nextPhase: String
+        ): Boolean = {
+          val percentage = current * 100 / total
+          reporter.notifyProgress(percentage = percentage, total = total)
+          true
+        }
+      }
+    }
+
+    val finalScalacOptions = {
+      val addColorNever = !ctx.log.prompt.colored &&
+        compilers.scalac().scalaInstance().version().startsWith("3.") &&
+        !scalacOptions.exists(_.startsWith("-color:")) // might be too broad
+      if (addColorNever)
+        "-color:never" +: scalacOptions
+      else
+        scalacOptions
+    }
+
+    val (originalSourcesMap, posMapperOpt) = PositionMapper.create(virtualSources)
+    val newReporter = mkNewReporter(posMapperOpt.orNull)
+
+    val inputs = incrementalCompiler.inputs(
+      classpath = classpath,
+      sources = virtualSources,
+      classesDirectory = classesDir.toNIO,
+      earlyJarPath = None,
+      scalacOptions = finalScalacOptions.toArray,
+      javacOptions = javacOptions.toArray,
+      maxErrors = maxErrors,
+      sourcePositionMappers = Array(),
+      order = CompileOrder.Mixed,
+      compilers = compilers,
+      setup = incrementalCompiler.setup(
+        lookup = lookup,
+        skip = false,
+        cacheFile = zincCache.toNIO,
+        cache = new FreshCompilerCache,
+        incOptions = incOptions,
+        reporter = newReporter,
+        progress = compileProgress,
+        earlyAnalysisStore = None,
+        extra = Array()
+      ),
+      pr = if (incrementalCompilation) {
+        val prev = store.get()
+        PreviousResult.of(
+          prev.map(_.getAnalysis): Optional[CompileAnalysis],
+          prev.map(_.getMiniSetup): Optional[MiniSetup]
+        )
+      } else {
+        PreviousResult.of(
+          Optional.empty[CompileAnalysis],
+          Optional.empty[MiniSetup]
+        )
+      },
+      temporaryClassesDirectory = java.util.Optional.empty(),
+      converter = converter,
+      stampReader = Stamps.timeWrapBinaryStamps(converter)
+    )
+
+    val scalaColorProp = "scala.color"
+    val previousScalaColor = sys.props(scalaColorProp)
+    try {
+      sys.props(scalaColorProp) = if (ctx.log.prompt.colored) "true" else "false"
+      val newResult = incrementalCompiler.compile(
+        in = inputs,
+        logger = logger
+      )
+
+      if (reportCachedProblems) {
+        newReporter.logOldProblems(newResult.analysis())
+      }
+
+      store.set(
+        AnalysisContents.create(
+          newResult.analysis(),
+          newResult.setup()
+        )
+      )
+      Result.Success(CompilationResult(ctx.dest / zincCache, PathRef(classesDir)))
+    } catch {
+      case e: CompileFailed =>
+        Result.Failure(e.toString)
+    } finally {
+      for (rep <- reporter) {
+        for (f <- sources) {
+          rep.fileVisited(f.toNIO)
+          for (f0 <- originalSourcesMap.get(f))
+            rep.fileVisited(f0.toNIO)
+        }
+        rep.finish()
+      }
+      previousScalaColor match {
+        case null => sys.props.remove(scalaColorProp)
+        case _ => sys.props(scalaColorProp) = previousScalaColor
+      }
+    }
+  }
 
   /**
    * If needed, compile (for Scala 2) or download (for Dotty) the compiler bridge.
    *
    * @return a path to the directory containing the compiled classes, or to the downloaded jar file
    */
-  def compileBridgeIfNeeded(
+  private def compileBridgeIfNeeded(
     scalaVersion: String,
     scalaOrganization: String,
     compilerClasspath: Seq[PathRef]
@@ -167,7 +385,7 @@ class ZincWorker(
         lock.synchronized {
           if (os.exists(compiledDest / "DONE")) compiledDest
           else {
-            val provided = bridgeProvider(scalaVersion, scalaOrganization)
+            val provided = bridgeProvider(scalaVersion = scalaVersion, scalaOrganization = scalaOrganization)
             provided.classpath match {
               case None => provided.bridgeJar.path
               case Some(bridgeClasspath) =>
@@ -239,5 +457,12 @@ object ZincWorker {
   private def libraryJarNameGrep(compilerClasspath: Seq[PathRef], scalaVersion: String): PathRef =
     JvmWorkerUtil.grepJar(compilerClasspath, "scala-library", scalaVersion, sources = false)
 
-
+  private def fileAnalysisStore(path: os.Path): AnalysisStore =
+    ConsistentFileAnalysisStore.binary(
+      file = path.toIO,
+      mappers = ReadWriteMappers.getEmptyMappers,
+      reproducible = true,
+      // No need to utilize more than 8 cores to serialize a small file
+      parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
+    )
 }
