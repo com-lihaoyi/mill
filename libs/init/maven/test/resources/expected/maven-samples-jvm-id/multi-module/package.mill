@@ -28,6 +28,4 @@ object `package` extends PublishModule with MavenModule {
 
   def pomPackagingType = PackagingType.Pom
 
-  def jvmId = "11"
-
 }
