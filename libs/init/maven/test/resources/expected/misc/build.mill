@@ -1,3 +1,4 @@
+//| mill-version: SNAPSHOT
 package build
 
 import mill._
@@ -51,5 +52,7 @@ object `package` extends PublishModule with MavenModule {
 
     def testSandboxWorkingDir = false
     def testParallelism = false
+    def forkWorkingDir = moduleDir
+
   }
 }

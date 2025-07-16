@@ -41,7 +41,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         millTestSuiteEnv
       ) { (buildServer, initRes) =>
         val kotlinVersion = sys.props.getOrElse("TEST_KOTLIN_VERSION", ???)
-        val kotlinTransitiveSubstitutions = transitiveDependenciesSubstitutions(
+        transitiveDependenciesSubstitutions(
           coursierapi.Dependency.of(
             "org.jetbrains.kotlin",
             "kotlin-stdlib",

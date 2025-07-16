@@ -96,7 +96,9 @@ case class IrBuild(
     pomParentArtifact: IrArtifact | Null,
     resources: Seq[os.SubPath],
     testResources: Seq[os.SubPath],
-    publishProperties: Seq[(String, String)]
+    publishProperties: Seq[(String, String)],
+    jvmId: Option[String],
+    testForkDir: Option[String]
 )
 
 object IrBuild {
@@ -118,7 +120,9 @@ object IrBuild {
     null,
     Seq.empty,
     Seq.empty,
-    Seq.empty
+    Seq.empty,
+    None,
+    None
   )
 }
 

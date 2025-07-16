@@ -14,7 +14,7 @@ case class LocalSummary(items: Map[JCls, ClassInfo]) {
 
   def mapValues[T](f: ClassInfo => T): Map[JCls, T] = items.map { case (k, v) => (k, f(v)) }
 
-  def mapValuesOnly[T](f: ClassInfo => T): Seq[T] = items.map { case (k, v) => f(v) }.toSeq
+  def mapValuesOnly[T](f: ClassInfo => T): Seq[T] = items.map { case (_, v) => f(v) }.toSeq
 
   def contains(cls: JCls): Boolean = items.contains(cls)
 }

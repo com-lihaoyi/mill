@@ -28,7 +28,14 @@ For any questions or discussion about `1.0.0`, please use the following thread:
 - https://github.com/com-lihaoyi/mill/discussions/5497
 
 Any third-party Mill plugins you use will need to be re-published for Mill 1.0.0 if you would
-like to use them in your builds. Builtin functionality in `mill.*lib` packages or contrib
+like to use them in your builds. Plugins that are known to be ported include:
+
+- `com.github.lolgab::mill-mima::0.2.0`
+- `com.goyeau::mill-scalafix::0.6.0`
+
+If you maintain a plugin and update it to Mill 1.0.0, please send a PR to add it to this list!
+
+Builtin functionality in `mill.*lib` packages or contrib
 plugins in `mill.contrib` are available immediately.
 
 We expect it will take some work from projects on Mill 0.12.x or earlier to migrate to 1.0.0.

@@ -1,6 +1,6 @@
 package mill.api
 
-import mill.api.internal.{RootModule0, OverrideMapping}
+import mill.api.internal.OverrideMapping
 
 import scala.annotation.{compileTimeOnly, implicitNotFound}
 

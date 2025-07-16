@@ -23,7 +23,6 @@ import mill.javalib.testrunner.{
 }
 
 import java.nio.file.Path
-import java.nio.file.Path
 
 /**
  * A module containing JVM test suites. Requires you define a [[testFramework]] for your

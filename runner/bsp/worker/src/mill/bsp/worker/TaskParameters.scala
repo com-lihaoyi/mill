@@ -28,7 +28,7 @@ private case class CParams(compileParams: CompileParams) extends Parameters {
     try {
       Option(compileParams.getArguments.asScala.toSeq)
     } catch {
-      case e: Exception => Option.empty[Seq[String]]
+      case _: Exception => Option.empty[Seq[String]]
     }
   }
 
@@ -36,7 +36,7 @@ private case class CParams(compileParams: CompileParams) extends Parameters {
     try {
       Option(compileParams.getOriginId)
     } catch {
-      case e: Exception => Option.empty[String]
+      case _: Exception => Option.empty[String]
     }
   }
 
@@ -52,7 +52,7 @@ private case class RParams(runParams: RunParams) extends Parameters {
     try {
       Option(runParams.getArguments.asScala.toSeq)
     } catch {
-      case e: Exception => Option.empty[Seq[String]]
+      case _: Exception => Option.empty[Seq[String]]
     }
   }
 
@@ -60,7 +60,7 @@ private case class RParams(runParams: RunParams) extends Parameters {
     try {
       Option(runParams.getOriginId)
     } catch {
-      case e: Exception => Option.empty[String]
+      case _: Exception => Option.empty[String]
     }
   }
 
@@ -76,7 +76,7 @@ private case class TParams(testParams: TestParams) extends Parameters {
     try {
       Option(testParams.getArguments.asScala.toSeq)
     } catch {
-      case e: Exception => Option.empty[Seq[String]]
+      case _: Exception => Option.empty[Seq[String]]
     }
   }
 
@@ -84,7 +84,7 @@ private case class TParams(testParams: TestParams) extends Parameters {
     try {
       Option(testParams.getOriginId)
     } catch {
-      case e: Exception => Option.empty[String]
+      case _: Exception => Option.empty[String]
     }
   }
 }

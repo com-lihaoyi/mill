@@ -126,7 +126,11 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
       testResources =
         processResources(model.getBuild.getTestResources, getMillSourcePath(model))
           .filterNot(_ == mavenTestResourceDir),
-      publishProperties = getPublishProperties(model, cfg.shared)
+      publishProperties = getPublishProperties(model, cfg.shared),
+      jvmId = cfg.shared.basicConfig.jvmId,
+      // Maven subproject tests run in the subproject folder, unlike Gradle
+      // and SBT whose subproject tests run in the root project folder
+      testForkDir = Some("moduleDir")
     )
   }
 
@@ -238,11 +242,19 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
             sd = sd.copy(mainMvnDeps = sd.mainMvnDeps + mvn)
           }
         case "provided" =>
+          // Provided dependencies are available at compile time in both
+          // `src/main/java` and `src/test/java`
           if (packages.isDefinedAt(id))
-            sd = sd.copy(mainCompileModuleDeps = sd.mainCompileModuleDeps + packages(id))
+            sd = sd.copy(
+              mainCompileModuleDeps = sd.mainCompileModuleDeps + packages(id),
+              testCompileModuleDeps = sd.testCompileModuleDeps + packages(id)
+            )
           else {
             val mvn = mvnDep(dep)
-            sd = sd.copy(mainCompileMvnDeps = sd.mainCompileMvnDeps + mvn)
+            sd = sd.copy(
+              mainCompileMvnDeps = sd.mainCompileMvnDeps + mvn,
+              testCompileMvnDeps = sd.testCompileMvnDeps + mvn
+            )
           }
         case "runtime" =>
           if (packages.isDefinedAt(id))
