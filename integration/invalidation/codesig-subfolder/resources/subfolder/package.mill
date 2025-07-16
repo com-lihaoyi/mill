@@ -1,7 +1,0 @@
-package build.subfolder
-import mill._
-
-val valueFoo = 0
-val valueFooUsedInBar = 0
-def helperFoo = { println("running helperFoo"); 1 + valueFoo }
-def subFolderTask = Task { println("running subFolderTask") }
