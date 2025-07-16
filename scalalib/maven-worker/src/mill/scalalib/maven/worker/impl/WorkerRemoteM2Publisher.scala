@@ -1,7 +1,7 @@
 package mill.scalalib.maven.worker.impl
 
 import mill.scalalib.MavenWorkerSupport.RemoteM2Publisher
-import org.eclipse.aether.DefaultRepositorySystemSession
+import org.eclipse.aether.{DefaultRepositorySystemSession, RepositorySystem}
 import org.eclipse.aether.artifact.{DefaultArtifact, Artifact as M2Artifact}
 import org.eclipse.aether.deployment.{DeployRequest, DeployResult}
 import org.eclipse.aether.repository.{LocalRepository, RemoteRepository}
@@ -26,6 +26,41 @@ object WorkerRemoteM2Publisher {
       password: String,
       artifacts: IterableOnce[M2Artifact]
   ): DeployResult = {
+    setupPublishAndRun(workspace, artifacts) { (system, session, deployRequest) =>
+      val authentication =
+        new AuthenticationBuilder().addUsername(username).addPassword(password).build()
+      val remoteRepository = new RemoteRepository.Builder("central-snapshots", "default", uri)
+        .setAuthentication(authentication).build()
+      deployRequest.setRepository(remoteRepository)
+
+      system.deploy(session, deployRequest)
+    }
+  }
+
+  /**
+   * Publishes artifacts to a local directory.
+   */
+  def publishLocal(
+    publishTo: os.Path,
+    workspace: os.Path,
+    artifacts: IterableOnce[M2Artifact]
+  ): DeployResult = {
+    setupPublishAndRun(workspace, artifacts) { (system, session, deployRequest) =>
+      val remoteRepository =
+        new RemoteRepository.Builder("local", "default", s"file://$publishTo").build()
+      deployRequest.setRepository(remoteRepository)
+
+      system.deploy(session, deployRequest)
+    }
+  }
+
+  /**
+   * Sets up a session and a deploy request and runs the given function.
+   */
+  def setupPublishAndRun[A](
+    workspace: os.Path,
+    artifacts: IterableOnce[M2Artifact]
+  )(run: (RepositorySystem, DefaultRepositorySystemSession, DeployRequest) => A): A = {
     Using.Manager { use =>
       val system = use(new RepositorySystemSupplier().get())
       @nowarn(
@@ -35,15 +70,11 @@ object WorkerRemoteM2Publisher {
       val localRepository = new LocalRepository(workspace.toNIO)
       val localRepositoryManager = system.newLocalRepositoryManager(session, localRepository)
       session.setLocalRepositoryManager(localRepositoryManager)
-      val authentication =
-        new AuthenticationBuilder().addUsername(username).addPassword(password).build()
-      val remoteRepository = new RemoteRepository.Builder("central-snapshots", "default", uri)
-        .setAuthentication(authentication).build()
 
-      val deployRequest = new DeployRequest().setRepository(remoteRepository)
+      val deployRequest = new DeployRequest()
       artifacts.iterator.foreach(deployRequest.addArtifact)
 
-      system.deploy(session, deployRequest)
+      run(system, session, deployRequest)
     }.get
   }
 
