@@ -287,7 +287,7 @@ trait PublishModule extends JavaModule { outer =>
         }
         .sortBy(value => (value.organization, value.name, value.version))
     }
-    Ivy(artifactMetadata(), publishXmlDeps0, extraPublish(), overrides, hasJar = hasJar)
+    Ivy(artifactMetadata(), publishXmlDeps0, extras = extraPublish(), overrides, hasJar = hasJar)
   }
 
   def artifactMetadata: T[Artifact] = Task {
@@ -299,7 +299,7 @@ trait PublishModule extends JavaModule { outer =>
     Task { defaultPublishInfos(sources = true, docs = true)() }
 
   /** The [[PublishInfo]] of the [[defaultMainPublishInfos]] and optionally the [[sourcesJar]] and [[docJar]]. */
-  def defaultPublishInfos(sources: Boolean, docs: Boolean): Task[Seq[PublishInfo]] = {
+  final def defaultPublishInfos(sources: Boolean, docs: Boolean): Task[Seq[PublishInfo]] = {
     val sourcesJarOpt =
       if (sources) Task.Anon(Some(PublishInfo.sourcesJar(sourceJar())))
       else Task.Anon(None)
@@ -323,6 +323,11 @@ trait PublishModule extends JavaModule { outer =>
    * Extra artifacts to publish.
    */
   def extraPublish: T[Seq[PublishInfo]] = Task { Seq.empty[PublishInfo] }
+
+  /** [[defaultPublishInfos]] + [[extraPublish]] */
+  final def allPublishInfos(sources: Boolean, docs: Boolean): T[Seq[PublishInfo]] = Task {
+    defaultPublishInfos(sources = sources, docs = docs)() ++ extraPublish()
+  }
 
   /**
    * Properties to be published with the published pom/ivy XML.
@@ -403,7 +408,7 @@ trait PublishModule extends JavaModule { outer =>
       doc: Boolean
   ): Task[(artifact: Artifact, contents: Map[os.SubPath, FileSetContents.Writable])] = {
     Task.Anon {
-      val publishInfos = defaultPublishInfos(sources = sources, docs = doc)() ++ extraPublish()
+      val publishInfos = allPublishInfos(sources = sources, docs = doc)()
       val artifact = artifactMetadata()
       val contents = LocalIvyPublisher.createFileSetContents(
         artifact = artifact,
@@ -474,7 +479,7 @@ trait PublishModule extends JavaModule { outer =>
   /** Produce the contents for the maven publishing. */
   private def publishM2LocalContentsTask(sources: Boolean, docs: Boolean)
       : Task[(artifact: Artifact, contents: Map[os.SubPath, os.Path])] = Task.Anon {
-    val publishInfos = defaultPublishInfos(sources = sources, docs = docs)() ++ extraPublish()
+    val publishInfos = allPublishInfos(sources = sources, docs = docs)()
     val artifact = artifactMetadata()
     val contents =
       LocalM2Publisher.createFileSetContents(pom = pom().path, artifact = artifact, publishInfos)
@@ -503,11 +508,14 @@ trait PublishModule extends JavaModule { outer =>
   ): Task[Map[os.SubPath, PathRef]] = Task {
     val defaultPayload = publishArtifactsDefaultPayload(sources = sources, docs = docs)()
     val baseName = publishArtifactsBaseName()
-    val extraPayload =
-      extraPublish().iterator.map(p =>
-        os.SubPath(s"$baseName${p.classifierPart}.${p.ext}") -> p.file
-      ).toMap
+    val extraPayload = extraPublishPayload()(baseName)
     defaultPayload ++ extraPayload
+  }
+
+  private def extraPublishPayload = Task.Anon { (baseName: String) =>
+    extraPublish().iterator.map(p =>
+      os.SubPath(s"$baseName${p.classifierPart}.${p.ext}") -> p.file
+    ).toMap
   }
 
   /** The base name for the published artifacts. */

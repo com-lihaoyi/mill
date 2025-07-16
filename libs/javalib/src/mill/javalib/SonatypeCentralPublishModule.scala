@@ -68,7 +68,7 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
       val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2Artifacts(
         pom().path,
         artifact,
-        defaultPublishInfos(sources = sources, docs = docs)()
+        allPublishInfos(sources = sources, docs = docs)()
       )
 
       Task.log.info(
