@@ -34,8 +34,6 @@ object JavaHomeTests extends TestSuite {
     lazy val millDiscover = Discover[this.type]
   }
 
-  val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"
-
   def tests: Tests = Tests {
     test("compileApis") {
       val resourcePathCompile = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "java-scala-11"

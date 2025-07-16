@@ -48,6 +48,7 @@ import scala.collection.mutable
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Properties.isWin
 
+//noinspection ScalaUnusedSymbol - used dynamically by classloading via a FQCN
 @internal
 class JvmWorkerImpl(
     compilerBridge: Either[
@@ -62,7 +63,7 @@ class JvmWorkerImpl(
   val libraryJarNameGrep: (Seq[PathRef], String) => PathRef =
     JvmWorkerUtil.grepJar(_, "scala-library", _, sources = false)
 
-  case class CompileCacheKey(
+  case class ScalaCompileCacheKey(
       scalaVersion: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
@@ -75,11 +76,13 @@ class JvmWorkerImpl(
       combinedCompilerClasspath.hashCode() + scalaVersion.hashCode() +
         scalaOrganization.hashCode() + javacRuntimeOptions.hashCode()
   }
-  object scalaCompilerCache extends CachedFactory[CompileCacheKey, (URLClassLoader, Compilers)] {
 
-    override def maxCacheSize = jobs
+  case class CachedScalaCompiler(classLoader: URLClassLoader, compilers: Compilers)
+  object scalaCompilerCache extends CachedFactory[ScalaCompileCacheKey, CachedScalaCompiler] {
 
-    override def setup(key: CompileCacheKey): (URLClassLoader, Compilers) = {
+    override def maxCacheSize: Int = jobs
+
+    override def setup(key: ScalaCompileCacheKey): CachedScalaCompiler = {
       import key._
 
       val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
@@ -89,11 +92,11 @@ class JvmWorkerImpl(
         scalaOrganization,
         compilerClasspath
       )
-      val loader = classloaderCache.get(key.combinedCompilerClasspath)
+      val classLoader = classloaderCache.get(key.combinedCompilerClasspath)
       val scalaInstance = new ScalaInstance(
         version = key.scalaVersion,
-        loader = loader,
-        loaderCompilerOnly = loader,
+        loader = classLoader,
+        loaderCompilerOnly = classLoader,
         loaderLibraryOnly = ClasspathUtil.rootLoader,
         libraryJars = Array(libraryJarNameGrep(
           compilerClasspath,
@@ -105,14 +108,14 @@ class JvmWorkerImpl(
         allJars = combinedCompilerJars,
         explicitActual = None
       )
-      val compilers = ic.compilers(
+      val compilers = incrementalCompiler.compilers(
         javaTools = getLocalOrCreateJavaTools(javaHome, javacRuntimeOptions),
         scalac = ZincUtil.scalaCompiler(scalaInstance, compiledCompilerBridge.toIO)
       )
-      (loader, compilers)
+      CachedScalaCompiler(classLoader, compilers)
     }
 
-    override def teardown(key: CompileCacheKey, value: (URLClassLoader, Compilers)): Unit = {
+    override def teardown(key: ScalaCompileCacheKey, value: CachedScalaCompiler): Unit = {
       classloaderCache.release(key.combinedCompilerClasspath)
     }
   }
@@ -121,8 +124,7 @@ class JvmWorkerImpl(
     sharedLoader = getClass.getClassLoader,
     sharedPrefixes = Seq("xsbti")
   ) {
-    override def extraRelease(cl: ClassLoader) = {
-
+    override def extraRelease(cl: ClassLoader): Unit = {
       for {
         cls <- {
           try Some(cl.loadClass("scala.tools.nsc.classpath.FileBasedCache$"))
@@ -157,9 +159,10 @@ class JvmWorkerImpl(
 
   }
 
-  object javaOnlyCompilerCache extends CachedFactory[(Option[os.Path], Seq[String]), Compilers] {
+  case class JavaOnlyCompileCacheKey(javaHome: Option[os.Path], javacRuntimeOptions: Seq[String])
+  object javaOnlyCompilerCache extends CachedFactory[JavaOnlyCompileCacheKey, Compilers] {
 
-    override def setup(key: (Option[os.Path], Seq[String])): Compilers = {
+    override def setup(key: JavaOnlyCompileCacheKey): Compilers = {
       // Only options relevant for the compiler runtime influence the cached instance
       // Keep the classpath as written by the user
       val classpathOptions = ClasspathOptions.of(
@@ -188,20 +191,19 @@ class JvmWorkerImpl(
         classpathOptions // this is used for javac too
       )
 
-      val javaTools = getLocalOrCreateJavaTools(key._1, key._2)
+      val javaTools = getLocalOrCreateJavaTools(key.javaHome, key.javacRuntimeOptions)
 
-      val compilers = ic.compilers(javaTools, scalac)
+      val compilers = incrementalCompiler.compilers(javaTools, scalac)
       compilers
-
     }
 
-    override def teardown(key: (Option[os.Path], Seq[String]), value: Compilers): Unit = ()
+    override def teardown(key: JavaOnlyCompileCacheKey, value: Compilers): Unit = ()
 
     override def maxCacheSize: Int = jobs
   }
 
   private def zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
-  private val ic = new sbt.internal.inc.IncrementalCompilerImpl()
+  private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
 
   private def filterJavacRuntimeOptions(opt: String): Boolean = opt.startsWith("-J")
 
@@ -216,16 +218,15 @@ class JvmWorkerImpl(
       // can handle them.
       if (javacRuntimeOptions.exists(filterJavacRuntimeOptions) || javaHome.isDefined) {
         (javac.JavaCompiler.fork(javaHome), javac.Javadoc.fork(javaHome))
-
       } else {
-        val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork(None))
+        val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork())
         val docs = javac.Javadoc.local.getOrElse(javac.Javadoc.fork())
         (compiler, docs)
       }
     javac.JavaTools(javaCompiler, javaDoc)
   }
 
-  val compilerBridgeLocks: mutable.Map[String, Object] =
+  private val compilerBridgeLocks: mutable.Map[String, Object] =
     collection.mutable.Map.empty[String, Object]
 
   def docJar(
@@ -254,7 +255,7 @@ class JvmWorkerImpl(
           val dottydocMethod = dottydocClass.getMethod("process", classOf[Array[String]])
           val reporter =
             dottydocMethod.invoke(dottydocClass.getConstructor().newInstance(), args.toArray)
-          val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
+          val hasErrorsMethod = reporter.getClass.getMethod("hasErrors")
           !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
         } else if (JvmWorkerUtil.isScala3(scalaVersion)) {
           // DottyDoc makes use of `com.fasterxml.jackson.databind.Module` which
@@ -267,7 +268,7 @@ class JvmWorkerImpl(
             val scaladocMethod = scaladocClass.getMethod("run", classOf[Array[String]])
             val reporter =
               scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
-            val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
+            val hasErrorsMethod = reporter.getClass.getMethod("hasErrors")
             !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
           }
         } else {
@@ -284,7 +285,7 @@ class JvmWorkerImpl(
   }
 
   /** Compile the `sbt`/Zinc compiler bridge in the `compileDest` directory */
-  def compileZincBridge(
+  private def compileZincBridge(
       ctx0: JvmWorkerApi.Ctx,
       workingDir: os.Path,
       compileDest: os.Path,
@@ -308,8 +309,8 @@ class JvmWorkerImpl(
 
     val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
     val classloader = mill.util.Jvm.createClassLoader(
-      compilerClasspath.map(_.path).toSeq,
-      null
+      compilerClasspath.map(_.path),
+      parent = null
     )
 
     try {
@@ -363,7 +364,7 @@ class JvmWorkerImpl(
    * If needed, compile (for Scala 2) or download (for Dotty) the compiler bridge.
    * @return a path to the directory containing the compiled classes, or to the downloaded jar file
    */
-  def compileBridgeIfNeeded(
+  private def compileBridgeIfNeeded(
       scalaVersion: String,
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef]
@@ -410,7 +411,7 @@ class JvmWorkerImpl(
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
   )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
-    javaOnlyCompilerCache.withValue((javaHome, javacOptions.filter(filterJavacRuntimeOptions))) {
+    javaOnlyCompilerCache.withValue(JavaOnlyCompileCacheKey(javaHome, javacOptions.filter(filterJavacRuntimeOptions))) {
       compilers =>
         compileInternal(
           upstreamCompileOutput = upstreamCompileOutput,
@@ -480,23 +481,23 @@ class JvmWorkerImpl(
     val javacRuntimeOptions = javacOptions.filter(filterJavacRuntimeOptions)
 
     scalaCompilerCache.withValue(
-      CompileCacheKey(
+      ScalaCompileCacheKey(
         scalaVersion,
-        compilerClasspath.toSeq,
-        scalacPluginClasspath.toSeq,
+        compilerClasspath,
+        scalacPluginClasspath,
         scalaOrganization,
         javaHome,
         javacRuntimeOptions
       )
-    ) { case (_, compilers) =>
-      f(compilers)
+    ) { cached =>
+      f(cached.compilers)
     }
   }
 
   private def fileAnalysisStore(path: os.Path): AnalysisStore =
     ConsistentFileAnalysisStore.binary(
       file = path.toIO,
-      mappers = ReadWriteMappers.getEmptyMappers(),
+      mappers = ReadWriteMappers.getEmptyMappers,
       reproducible = true,
       // No need to utilize more than 8 cores to serialize a small file
       parallelism = math.min(Runtime.getRuntime.availableProcessors(), 8)
@@ -544,7 +545,7 @@ class JvmWorkerImpl(
            |  scalacOptions: ${scalacOptions.map("'" + _ + "'").mkString(" ")}
            |  sources: ${sources.map("'" + _ + "'").mkString(" ")}
            |  classpath: ${compileClasspath.map("'" + _ + "'").mkString(" ")}
-           |  output: ${classesDir}"""
+           |  output: $classesDir"""
           .stripMargin
       )
     }
@@ -630,7 +631,7 @@ class JvmWorkerImpl(
     val (originalSourcesMap, posMapperOpt) = PositionMapper.create(virtualSources)
     val newReporter = mkNewReporter(posMapperOpt.orNull)
 
-    val inputs = ic.inputs(
+    val inputs = incrementalCompiler.inputs(
       classpath = classpath,
       sources = virtualSources,
       classesDirectory = classesDir.toNIO,
@@ -641,7 +642,7 @@ class JvmWorkerImpl(
       sourcePositionMappers = Array(),
       order = CompileOrder.Mixed,
       compilers = compilers,
-      setup = ic.setup(
+      setup = incrementalCompiler.setup(
         lookup = lookup,
         skip = false,
         cacheFile = zincCache.toNIO,
@@ -673,7 +674,7 @@ class JvmWorkerImpl(
     val previousScalaColor = sys.props(scalaColorProp)
     try {
       sys.props(scalaColorProp) = if (ctx.log.prompt.colored) "true" else "false"
-      val newResult = ic.compile(
+      val newResult = incrementalCompiler.compile(
         in = inputs,
         logger = logger
       )
@@ -688,7 +689,7 @@ class JvmWorkerImpl(
           newResult.setup()
         )
       )
-      Result.Success(CompilationResult((ctx.dest / zincCache), PathRef(classesDir)))
+      Result.Success(CompilationResult(ctx.dest / zincCache, PathRef(classesDir)))
     } catch {
       case e: CompileFailed =>
         Result.Failure(e.toString)
@@ -716,7 +717,6 @@ class JvmWorkerImpl(
     classloaderCache.close()
   }
 }
-
 object JvmWorkerImpl {
   private def intValue(oi: java.util.Optional[Integer], default: Int): Int = {
     if oi.isPresent then oi.get().intValue()
