@@ -60,174 +60,8 @@ class JvmWorkerImpl(
     zincLogDebug: Boolean,
     close0: () => Unit
 ) extends JvmWorkerApi with AutoCloseable {
-  private val libraryJarNameGrep: (Seq[PathRef], String) => PathRef =
-    JvmWorkerUtil.grepJar(_, "scala-library", _, sources = false)
-
-  case class ScalaCompileCacheKey(
-      scalaVersion: String,
-      compilerClasspath: Seq[PathRef],
-      scalacPluginClasspath: Seq[PathRef],
-      scalaOrganization: String,
-      javaHome: Option[os.Path],
-      javacRuntimeOptions: Seq[String]
-  ) {
-    val combinedCompilerClasspath: Seq[PathRef] = compilerClasspath ++ scalacPluginClasspath
-    val compilersSig: Int =
-      combinedCompilerClasspath.hashCode() + scalaVersion.hashCode() +
-        scalaOrganization.hashCode() + javacRuntimeOptions.hashCode()
-  }
-
-  case class CachedScalaCompiler(classLoader: URLClassLoader, compilers: Compilers)
-  object scalaCompilerCache extends CachedFactory[ScalaCompileCacheKey, CachedScalaCompiler] {
-
-    override def maxCacheSize: Int = jobs
-
-    override def setup(key: ScalaCompileCacheKey): CachedScalaCompiler = {
-      import key._
-
-      val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
-
-      val compiledCompilerBridge = compileBridgeIfNeeded(
-        scalaVersion,
-        scalaOrganization,
-        compilerClasspath
-      )
-      val classLoader = classloaderCache.get(key.combinedCompilerClasspath)
-      val scalaInstance = new ScalaInstance(
-        version = key.scalaVersion,
-        loader = classLoader,
-        loaderCompilerOnly = classLoader,
-        loaderLibraryOnly = ClasspathUtil.rootLoader,
-        libraryJars = Array(libraryJarNameGrep(
-          compilerClasspath,
-          // we don't support too outdated dotty versions
-          // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable
-          if (JvmWorkerUtil.isDottyOrScala3(key.scalaVersion)) "2.13." else key.scalaVersion
-        ).path.toIO),
-        compilerJars = combinedCompilerJars,
-        allJars = combinedCompilerJars,
-        explicitActual = None
-      )
-      val compilers = incrementalCompiler.compilers(
-        javaTools = getLocalOrCreateJavaTools(javaHome, javacRuntimeOptions),
-        scalac = ZincUtil.scalaCompiler(scalaInstance, compiledCompilerBridge.toIO)
-      )
-      CachedScalaCompiler(classLoader, compilers)
-    }
-
-    override def teardown(key: ScalaCompileCacheKey, value: CachedScalaCompiler): Unit = {
-      classloaderCache.release(key.combinedCompilerClasspath)
-    }
-  }
-
-  private val classloaderCache = new RefCountedClassLoaderCache(
-    sharedLoader = getClass.getClassLoader,
-    sharedPrefixes = Seq("xsbti")
-  ) {
-    override def extraRelease(cl: ClassLoader): Unit = {
-      for {
-        cls <- {
-          try Some(cl.loadClass("scala.tools.nsc.classpath.FileBasedCache$"))
-          catch {
-            case _: ClassNotFoundException => None
-          }
-        }
-        moduleField <- {
-          try Some(cls.getField("MODULE$"))
-          catch {
-            case _: NoSuchFieldException => None
-          }
-        }
-        module = moduleField.get(null)
-        timerField <- {
-          try Some(cls.getDeclaredField("scala$tools$nsc$classpath$FileBasedCache$$timer"))
-          catch {
-            case _: NoSuchFieldException => None
-          }
-        }
-        _ = timerField.setAccessible(true)
-        timerOpt0 = timerField.get(module)
-        getOrElseMethod <- timerOpt0.getClass.getMethods.find(_.getName == "getOrElse")
-        timer <-
-          Option(getOrElseMethod.invoke(timerOpt0, null).asInstanceOf[java.util.Timer])
-      } {
-
-        timer.cancel()
-      }
-
-    }
-
-  }
-
-  case class JavaOnlyCompileCacheKey(javaHome: Option[os.Path], javacRuntimeOptions: Seq[String])
-  object javaOnlyCompilerCache extends CachedFactory[JavaOnlyCompileCacheKey, Compilers] {
-
-    override def setup(key: JavaOnlyCompileCacheKey): Compilers = {
-      // Only options relevant for the compiler runtime influence the cached instance
-      // Keep the classpath as written by the user
-      val classpathOptions = ClasspathOptions.of(
-        /*bootLibrary*/ false,
-        /*compiler*/ false,
-        /*extra*/ false,
-        /*autoBoot*/ false,
-        /*filterLibrary*/ false
-      )
-
-      val dummyFile = new java.io.File("")
-      // Zinc does not have an entry point for Java-only compilation, so we need
-      // to make up a dummy ScalaCompiler instance.
-      val scalac = ZincUtil.scalaCompiler(
-        new ScalaInstance(
-          version = "",
-          loader = null,
-          loaderCompilerOnly = null,
-          loaderLibraryOnly = null,
-          libraryJars = Array(dummyFile),
-          compilerJars = Array(dummyFile),
-          allJars = new Array(0),
-          explicitActual = Some("")
-        ),
-        dummyFile,
-        classpathOptions // this is used for javac too
-      )
-
-      val javaTools = getLocalOrCreateJavaTools(key.javaHome, key.javacRuntimeOptions)
-
-      val compilers = incrementalCompiler.compilers(javaTools, scalac)
-      compilers
-    }
-
-    override def teardown(key: JavaOnlyCompileCacheKey, value: Compilers): Unit = ()
-
-    override def maxCacheSize: Int = jobs
-  }
 
   private def zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
-  private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
-
-  private def filterJavacRuntimeOptions(opt: String): Boolean = opt.startsWith("-J")
-
-  private def getLocalOrCreateJavaTools(
-      javaHome0: Option[os.Path],
-      javacRuntimeOptions: Seq[String]
-  ): JavaTools = {
-    val javaHome = javaHome0.map(_.toNIO)
-    val (javaCompiler, javaDoc) =
-      // Local java compilers don't accept -J flags so when we put this together if we detect
-      // any javacOptions starting with -J we ensure we have a non-local Java compiler which
-      // can handle them.
-      if (javacRuntimeOptions.exists(filterJavacRuntimeOptions) || javaHome.isDefined) {
-        (javac.JavaCompiler.fork(javaHome), javac.Javadoc.fork(javaHome))
-      } else {
-        val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork())
-        val docs = javac.Javadoc.local.getOrElse(javac.Javadoc.fork())
-        (compiler, docs)
-      }
-    javac.JavaTools(javaCompiler, javaDoc)
-  }
-
-  private val compilerBridgeLocks: mutable.Map[String, Object] =
-    collection.mutable.Map.empty[String, Object]
 
   def docJar(
       scalaVersion: String,
@@ -244,7 +78,7 @@ class JvmWorkerImpl(
       scalacPluginClasspath,
       javaHome,
       Seq()
-    ) { (compilers: Compilers) =>
+    ) { compilers =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
       // https://github.com/com-lihaoyi/mill/issues/4556
       mill.util.Retry(count = 2) {
@@ -284,123 +118,6 @@ class JvmWorkerImpl(
     }
   }
 
-  /** Compile the `sbt`/Zinc compiler bridge in the `compileDest` directory */
-  private def compileZincBridge(
-      ctx0: JvmWorkerApi.Ctx,
-      workingDir: os.Path,
-      compileDest: os.Path,
-      scalaVersion: String,
-      compilerClasspath: Seq[PathRef],
-      compilerBridgeClasspath: Seq[PathRef],
-      compilerBridgeSourcesJar: os.Path
-  ): Unit = {
-    if (scalaVersion == "2.12.0") {
-      // The Scala 2.10.0 compiler fails on compiling the compiler bridge
-      throw new IllegalArgumentException(
-        "The current version of Zinc is incompatible with Scala 2.12.0.\n" +
-          "Use Scala 2.12.1 or greater (2.12.12 is recommended)."
-      )
-    }
-
-    ctx0.log.info("Compiling compiler interface...")
-
-    os.makeDir.all(workingDir)
-    os.makeDir.all(compileDest)
-
-    val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
-    val classloader = mill.util.Jvm.createClassLoader(
-      compilerClasspath.map(_.path),
-      parent = null
-    )
-
-    try {
-      val (sources, resources) =
-        os.walk(sourceFolder).filter(os.isFile)
-          .partition(a => a.ext == "scala" || a.ext == "java")
-
-      resources.foreach { res =>
-        val dest = compileDest / res.relativeTo(sourceFolder)
-        os.move(res, dest, replaceExisting = true, createFolders = true)
-      }
-
-      val argsArray = Array[String](
-        "-d",
-        compileDest.toString,
-        "-classpath",
-        (compilerClasspath.iterator ++ compilerBridgeClasspath).map(_.path).mkString(
-          File.pathSeparator
-        )
-      ) ++ sources.map(_.toString)
-
-      val allScala = sources.forall(_.ext == "scala")
-      val allJava = sources.forall(_.ext == "java")
-      if (allJava) {
-        val javacExe: String =
-          sys.props
-            .get("java.home")
-            .map(h =>
-              if (isWin) new File(h, "bin\\javac.exe")
-              else new File(h, "bin/javac")
-            )
-            .filter(f => f.exists())
-            .fold("javac")(_.getAbsolutePath())
-        import scala.sys.process._
-        (Seq(javacExe) ++ argsArray).!
-      } else if (allScala) {
-        val compilerMain = classloader.loadClass(
-          if (JvmWorkerUtil.isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
-          else "scala.tools.nsc.Main"
-        )
-        compilerMain
-          .getMethod("process", classOf[Array[String]])
-          .invoke(null, argsArray ++ Array("-nowarn"))
-      } else {
-        throw new IllegalArgumentException("Currently not implemented case.")
-      }
-    } finally classloader.close()
-  }
-
-  /**
-   * If needed, compile (for Scala 2) or download (for Dotty) the compiler bridge.
-   * @return a path to the directory containing the compiled classes, or to the downloaded jar file
-   */
-  private def compileBridgeIfNeeded(
-      scalaVersion: String,
-      scalaOrganization: String,
-      compilerClasspath: Seq[PathRef]
-  ): os.Path = {
-    compilerBridge match {
-      case Right(compiled) => compiled(scalaVersion).path
-      case Left((ctx0, bridgeProvider)) =>
-        val workingDir = ctx0.dest / s"zinc-${Versions.zinc}" / scalaVersion
-        val lock = synchronized(compilerBridgeLocks.getOrElseUpdate(scalaVersion, new Object()))
-        val compiledDest = workingDir / "compiled"
-        lock.synchronized {
-          if (os.exists(compiledDest / "DONE")) compiledDest
-          else {
-            val (cp, bridgeJar) = bridgeProvider(scalaVersion, scalaOrganization)
-            cp match {
-              case None => bridgeJar.path
-              case Some(bridgeClasspath) =>
-                compileZincBridge(
-                  ctx0,
-                  workingDir,
-                  compiledDest,
-                  scalaVersion,
-                  compilerClasspath,
-                  bridgeClasspath,
-                  bridgeJar.path
-                )
-                os.write(compiledDest / "DONE", "")
-                compiledDest
-            }
-          }
-
-        }
-    }
-
-  }
-
   override def compileJava(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
@@ -411,7 +128,7 @@ class JvmWorkerImpl(
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
   )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
-    val cacheKey = JavaOnlyCompileCacheKey(javaHome, javacOptions.filter(filterJavacRuntimeOptions))
+    val cacheKey = JavaCompilerCacheKey(javaHome, javacOptions.filter(filterJavacRuntimeOptions))
     javaOnlyCompilerCache.withValue(cacheKey) { compilers =>
       compileInternal(
         upstreamCompileOutput = upstreamCompileOutput,
@@ -505,7 +222,7 @@ class JvmWorkerImpl(
       compileClasspath: Seq[os.Path],
       javacOptions: Seq[String],
       scalacOptions: Seq[String],
-      compilers: Compilers,
+      compilers: CompilersApi,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
@@ -615,7 +332,7 @@ class JvmWorkerImpl(
 
     val finalScalacOptions = {
       val addColorNever = !ctx.log.prompt.colored &&
-        compilers.scalac().scalaInstance().version().startsWith("3.") &&
+        compilers.isScala3 &&
         !scalacOptions.exists(_.startsWith("-color:")) // might be too broad
       if (addColorNever)
         "-color:never" +: scalacOptions
