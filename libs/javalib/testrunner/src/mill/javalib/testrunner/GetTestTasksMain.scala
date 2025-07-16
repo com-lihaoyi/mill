@@ -25,7 +25,7 @@ import mill.api.daemon.internal.internal
     val globFilter = TestRunnerUtils.globFilter(selectors)
     mill.util.Jvm.withClassLoader(
       classPath = runCp,
-      sharedPrefixes = Seq("sbt.testing.")
+      sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.")
     ) { classLoader =>
       TestRunnerUtils
         .getTestTasks0(

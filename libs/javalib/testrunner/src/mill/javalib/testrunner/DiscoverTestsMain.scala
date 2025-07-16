@@ -12,7 +12,7 @@ import mill.api.daemon.internal.internal
   def main0(runCp: Seq[os.Path], testCp: Seq[os.Path], framework: String): Seq[String] = {
     mill.util.Jvm.withClassLoader(
       classPath = runCp,
-      sharedPrefixes = Seq("sbt.testing.")
+      sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.")
     ) { classLoader =>
       TestRunnerUtils
         .discoverTests(classLoader, Framework.framework(framework)(classLoader), testCp)

@@ -16,7 +16,7 @@ import mill.util.Jvm
   )(implicit ctx: TaskCtx.Log): (String, Seq[TestResult]) = {
     Jvm.withClassLoader(
       classPath = entireClasspath.toVector,
-      sharedPrefixes = Seq("sbt.testing.")
+      sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.")
     ) { classLoader =>
       TestRunnerUtils.runTestFramework0(
         frameworkInstances,
