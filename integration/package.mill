@@ -32,6 +32,22 @@ object `package` extends mill.Module {
     def localRunClasspath: T[Seq[PathRef]]
     def forkEnv: T[Map[String, String]]
     def testExclusive = false
+    def localOutFolder = Task.Worker{
+      val counter = new java.util.concurrent.atomic.AtomicInteger(0)
+      new mill.util.CachedFactory[Unit, os.Path]{
+        def setup(key: Unit): os.Path = {
+          Task.dest / s"out-${counter.getAndIncrement()}"
+        }
+
+        def teardown(key: Unit, value: os.Path): Unit = {
+          os.remove.all(value)
+        }
+
+        def maxCacheSize: Int = Task.ctx().jobs
+
+      }
+    }
+
     trait ModeModule extends MillBaseTestsModule {
       override def testForked(args: String*) = Task.Command(exclusive = testExclusive) {
         testTask(Task.Anon { args }, Task.Anon { Seq.empty[String] })()
