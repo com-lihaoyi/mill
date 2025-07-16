@@ -1,0 +1,94 @@
+import mill.*
+import mill.scalalib.*
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.16"
+
+  def sources = Task {
+    println("Foo generating sources...")
+    os.write(
+      Task.dest / "Foo.scala",
+      """package foo
+        |object Foo {
+        |  final val fooMsg = "Hello World"
+        |  def x: Seq[String] = Nil // make sure the compiled code changes between Scala 2.12/2.13
+        |  def main(args: Array[String]): Unit = {
+        |    println("Foo " + fooMsg)
+        |  }
+        |}""".stripMargin
+    )
+    Seq(PathRef(Task.dest))
+  }
+
+  def compile = Task {
+    println("Foo compiling...")
+    super.compile()
+  }
+
+  def run(args: Task[Args] = Task.Anon(Args())) = Task.Command {
+    println("Foo running..." + args().value.mkString(" "))
+    super.run(args)()
+  }
+
+  def assembly = Task {
+    println("Foo assembly...")
+    super.assembly()
+  }
+}
+
+object bar extends ScalaModule {
+  def moduleDeps = Seq(foo)
+  def scalaVersion = "2.13.16"
+
+  def sources = Task {
+    println("Bar generating sources...")
+    os.write(
+      Task.dest / "Bar.scala",
+      """package bar
+        |object Bar {
+        |  def main(args: Array[String]): Unit = {
+        |    println("Bar " + foo.Foo.fooMsg)
+        |  }
+        |}""".stripMargin
+    )
+    Seq(PathRef(Task.dest))
+  }
+
+  def compile = Task {
+    println("Bar compiling...")
+    super.compile()
+  }
+
+  def assembly = Task {
+    println("Bar assembly...")
+    super.assembly()
+  }
+}
+
+object qux extends ScalaModule {
+  def scalaVersion = "2.13.16"
+
+  def sources = Task {
+    println("Qux generating sources...")
+    os.write(
+      Task.dest / "Qux.scala",
+      """package qux
+        |object Qux {
+        |  def main(args: Array[String]): Unit = {
+        |    println("Qux Hello World")
+        |  }
+        |}""".stripMargin
+    )
+    Seq(PathRef(Task.dest))
+  }
+
+  def compile = Task {
+    println("Qux compiling...")
+    super.compile()
+  }
+
+  def assembly = Task {
+    println("Qux assembly...")
+    super.assembly()
+  }
+}

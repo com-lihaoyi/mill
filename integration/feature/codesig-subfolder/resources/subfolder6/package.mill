@@ -1,0 +1,3 @@
+package subfolder6
+
+def subFolder2Task = Task { println("running subFolder3Task") }
