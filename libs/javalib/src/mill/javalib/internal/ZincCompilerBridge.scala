@@ -1,25 +1,29 @@
-package mill.javalib.worker
+package mill.javalib.internal
 
 import mill.api.PathRef
+import mill.api.daemon.internal.internal
 import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil, Versions}
-import mill.zinc.worker.ZincWorker
 
 import java.io.File
 import scala.util.Properties.isWin
 
+@internal
 enum ZincCompilerBridge {
   /** The compiler bridge is already compiled, we just need to run it.
-   * 
+   *
    * @param forScalaVersion returns the path to the compiler bridge jar for the given Scala version
    * */
   case Compiled(forScalaVersion: String => PathRef)
-  
+
   /** The compiler bridge needs to be compiled. */
   case Provider(context: JvmWorkerApi.Ctx, compile: ZincCompilerBridge.Compile)
 }
+@internal
 object ZincCompilerBridge {
   trait Compile {
-    def apply(scalaVersion: String, scalaOrganization: String): (classpath: Option[Seq[PathRef]], bridgeJar: PathRef)
+    def apply(
+      scalaVersion: String, scalaOrganization: String
+    ): (classpath: Option[Seq[PathRef]], bridgeJar: PathRef)
   }
 
   /** Compile the `sbt`/Zinc compiler bridge in the `compileDest` directory */
@@ -82,7 +86,7 @@ object ZincCompilerBridge {
             )
             .filter(f => f.exists())
             .fold("javac")(_.getAbsolutePath())
-        import scala.sys.process._
+        import scala.sys.process.*
         (Seq(javacExe) ++ argsArray).!
       } else if (allScala) {
         val compilerMain = classloader.loadClass(

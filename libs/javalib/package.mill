@@ -118,7 +118,7 @@ object `package` extends MillStableScalaModule {
   }
 
   object worker extends MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(api, build.libs.util)
+    def moduleDeps = Seq(api, build.libs.javalib)
     def mvnDeps = Seq(Deps.zinc, Deps.log4j2Core)
     def buildInfoPackageName = "mill.javalib.worker"
     def buildInfoObjectName = "Versions"

@@ -5,7 +5,7 @@ import mill.api.daemon.Result
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.constants.CodeGenConstants
 import mill.javalib.api.{CompilationResult, JvmWorkerApi, JvmWorkerUtil, Versions}
-import mill.javalib.worker.{CompilersApi, JvmWorkerImpl, MockedLookup, RecordingReporter, ZincCompilerBridge}
+import mill.javalib.worker.{JavaCompilerOptions, JvmWorkerImpl, MockedLookup, RecordingReporter, ZincWorkerApi}
 import mill.util.{CachedFactory, RefCountedClassLoaderCache}
 import mill.zinc.worker.ZincWorker.{JavaCompilerCacheKey, ScalaCompilerCacheKey, ScalaCompilerCached, fileAnalysisStore, getLocalOrCreateJavaTools, libraryJarNameGrep}
 import sbt.internal.inc.classpath.ClasspathUtil
@@ -31,7 +31,7 @@ class ZincWorker(
   jobs: Int,
   compileToJar: Boolean,
   zincLogDebug: Boolean
-) extends AutoCloseable, CompilersApi {
+) extends AutoCloseable, ZincWorkerApi {
   private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
   private val compilerBridgeLocks: mutable.Map[String, Object] = mutable.Map.empty[String, Object]
   private val zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
@@ -407,26 +407,6 @@ class ZincWorker(
   }
 }
 object ZincWorker {
-  /** Java compiler options, without the `-J` options (the Java runtime options). */
-  case class JavaCompilerOptions private (options: Seq[String]) {
-    {
-      val runtimeOptions = options.filter(_.startsWith("-J"))
-      if (runtimeOptions.nonEmpty) throw new IllegalArgumentException(
-        s"Providing Java runtime options to javac is not supported."
-      )
-    }
-  }
-  object JavaCompilerOptions {
-    def apply(options: Seq[String]): (runtime: JavaRuntimeOptions, compiler: JavaCompilerOptions) = {
-      val prefix = "-J"
-      val (runtimeOptions0, compilerOptions) = options.partition(_.startsWith(prefix))
-      val runtimeOptions = JavaRuntimeOptions(runtimeOptions0.map(_.drop(prefix.length)))
-      (runtimeOptions, new JavaCompilerOptions(compilerOptions))
-    }
-  }
-
-  /** Options that are passed to the Java runtime. */
-  case class JavaRuntimeOptions(options: Seq[String])
 
   case class ScalaCompilerCacheKey(
     scalaVersion: String,

@@ -1,13 +1,14 @@
 package mill.javalib
 
 import mainargs.Flag
-import mill._
+import mill.*
 import mill.api.Result
-import mill.api.{TaskCtx, PathRef}
+import mill.api.{PathRef, TaskCtx}
 import mill.api.{Discover, ExternalModule, Task}
 import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.javalib.api.{Versions, JvmWorkerApi, JvmWorkerUtil}
+import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil, Versions}
 import mill.javalib.CoursierModule.Resolver
+import mill.javalib.internal.{JvmWorkerArgs, JvmWorkerFactoryApi, ZincCompilerBridge}
 
 /**
  * A default implementation of [[JvmWorkerModule]]
@@ -55,31 +56,19 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       getClass.getClassLoader
     )
 
-    val cls = cl.loadClass("mill.javalib.worker.JvmWorkerImpl")
-    val instance = cls.getConstructor(
-      classOf[
-        Either[
-          (JvmWorkerApi.Ctx, (String, String) => (Option[Seq[PathRef]], PathRef)),
-          String => PathRef
-        ]
-      ], // compilerBridge
-      classOf[Int], // jobs
-      classOf[Boolean], // compileToJar
-      classOf[Boolean], // zincLogDebug
-      classOf[() => Unit]
+    val factory = cl.loadClass("mill.javalib.worker.JvmWorkerFactory").getConstructor().newInstance()
+      .asInstanceOf[JvmWorkerFactoryApi]
+
+    val args = JvmWorkerArgs(
+      ZincCompilerBridge.Provider(Task.ctx(), (scalaVersion, scalaOrganization) => scalaCompilerBridgeJar(
+        scalaVersion = scalaVersion, scalaOrganization = scalaOrganization, defaultResolver()
+      )),
+      jobs = jobs,
+      compileToJar = false,
+      zincLogDebug = zincLogDebug(),
+      close0 = () => cl.close()
     )
-      .newInstance(
-        Left((
-          Task.ctx(),
-          (x: String, y: String) =>
-            scalaCompilerBridgeJar(x, y, defaultResolver())
-        )),
-        jobs,
-        java.lang.Boolean.FALSE,
-        java.lang.Boolean.valueOf(zincLogDebug()),
-        () => cl.close()
-      )
-    instance.asInstanceOf[JvmWorkerApi]
+    factory.make(args)
   }
 
   def scalaCompilerBridgeJar(
