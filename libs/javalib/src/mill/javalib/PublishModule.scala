@@ -665,7 +665,8 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
       payload.iterator.map { case (name, pathRef) => pathRef -> name.toString }.toSeq
 
     /** Maps the path reference to an actual path. */
-    private[mill] def withConcretePath(payload: Map[os.SubPath, PathRef]): Map[os.SubPath, os.Path] =
+    private[mill] def withConcretePath(payload: Map[os.SubPath, PathRef])
+        : Map[os.SubPath, os.Path] =
       payload.view.mapValues(_.path).toMap
   }
 
