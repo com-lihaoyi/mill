@@ -9,7 +9,7 @@
 > ./mill init --jvm-id 21 # Repo needs Java >=21 to build and test
 
 > ./mill resolve __.compile | wc -l # This repo has over 300 subprojects!
-...363
+...366
 
 > ./mill __.compile
 compiling 6 Java sources to ...service-to-worker...
