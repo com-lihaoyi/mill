@@ -60,7 +60,7 @@ class JvmWorkerImpl(
     zincLogDebug: Boolean,
     close0: () => Unit
 ) extends JvmWorkerApi with AutoCloseable {
-  val libraryJarNameGrep: (Seq[PathRef], String) => PathRef =
+  private val libraryJarNameGrep: (Seq[PathRef], String) => PathRef =
     JvmWorkerUtil.grepJar(_, "scala-library", _, sources = false)
 
   case class ScalaCompileCacheKey(
@@ -237,7 +237,7 @@ class JvmWorkerImpl(
       javaHome: Option[os.Path],
       args: Seq[String]
   )(using ctx: JvmWorkerApi.Ctx): Boolean = {
-    withCompilers(
+    withScalaCompilers(
       scalaVersion,
       scalaOrganization,
       compilerClasspath,
@@ -411,21 +411,20 @@ class JvmWorkerImpl(
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
   )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
-    javaOnlyCompilerCache.withValue(JavaOnlyCompileCacheKey(javaHome, javacOptions.filter(filterJavacRuntimeOptions))) {
-      compilers =>
-        compileInternal(
-          upstreamCompileOutput = upstreamCompileOutput,
-          sources = sources,
-          compileClasspath = compileClasspath,
-          javaHome: Option[os.Path],
-          javacOptions = javacOptions,
-          scalacOptions = Nil,
-          compilers = compilers,
-          reporter = reporter,
-          reportCachedProblems = reportCachedProblems,
-          incrementalCompilation = incrementalCompilation,
-          auxiliaryClassFileExtensions = Seq.empty[String]
-        )
+    val cacheKey = JavaOnlyCompileCacheKey(javaHome, javacOptions.filter(filterJavacRuntimeOptions))
+    javaOnlyCompilerCache.withValue(cacheKey) { compilers =>
+      compileInternal(
+        upstreamCompileOutput = upstreamCompileOutput,
+        sources = sources,
+        compileClasspath = compileClasspath,
+        javacOptions = javacOptions,
+        scalacOptions = Nil,
+        compilers = compilers,
+        reporter = reporter,
+        reportCachedProblems = reportCachedProblems,
+        incrementalCompilation = incrementalCompilation,
+        auxiliaryClassFileExtensions = Seq.empty[String]
+      )
     }
   }
 
@@ -445,19 +444,18 @@ class JvmWorkerImpl(
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String]
   )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
-    withCompilers(
+    withScalaCompilers(
       scalaVersion = scalaVersion,
       scalaOrganization = scalaOrganization,
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
       javaHome = javaHome,
       javacOptions = javacOptions
-    ) { (compilers: Compilers) =>
+    ) { compilers =>
       compileInternal(
         upstreamCompileOutput = upstreamCompileOutput,
         sources = sources,
         compileClasspath = compileClasspath,
-        javaHome = javaHome,
         javacOptions = javacOptions,
         scalacOptions = scalacOptions,
         compilers = compilers,
@@ -469,7 +467,7 @@ class JvmWorkerImpl(
     }
   }
 
-  private def withCompilers[T](
+  private def withScalaCompilers[T](
       scalaVersion: String,
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
@@ -477,19 +475,17 @@ class JvmWorkerImpl(
       javaHome: Option[os.Path],
       javacOptions: Seq[String]
   )(f: Compilers => T) = {
-
     val javacRuntimeOptions = javacOptions.filter(filterJavacRuntimeOptions)
 
-    scalaCompilerCache.withValue(
-      ScalaCompileCacheKey(
-        scalaVersion,
-        compilerClasspath,
-        scalacPluginClasspath,
-        scalaOrganization,
-        javaHome,
-        javacRuntimeOptions
-      )
-    ) { cached =>
+    val cacheKey = ScalaCompileCacheKey(
+      scalaVersion,
+      compilerClasspath,
+      scalacPluginClasspath,
+      scalaOrganization,
+      javaHome,
+      javacRuntimeOptions
+    )
+    scalaCompilerCache.withValue(cacheKey) { cached =>
       f(cached.compilers)
     }
   }
@@ -507,7 +503,6 @@ class JvmWorkerImpl(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
       compileClasspath: Seq[os.Path],
-      javaHome: Option[os.Path],
       javacOptions: Seq[String],
       scalacOptions: Seq[String],
       compilers: Compilers,
