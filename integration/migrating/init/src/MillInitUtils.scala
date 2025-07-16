@@ -188,7 +188,7 @@ object MillInitUtils {
     commonAssertEvalSuccess(evalResult, Predef.assert(_, message))
 
   def assertEvalSuccess(evalResult: EvalResult) =
-    commonAssertEvalSuccess(evalResult, assert(_))
+    commonAssertEvalSuccess(evalResult, Predef.assert(_, evalResult.debugString))
 
   def outSeq(evalResult: EvalResult) =
     evalResult.out.linesIterator.toSeq.sorted
