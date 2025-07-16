@@ -13,10 +13,8 @@ import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
 import mill.api.daemon.Logger
-import mill.javalib.PublishModule.{PublishData, sonatypeCentralSnapshotUri}
+import mill.javalib.PublishModule.PublishData
 import mill.javalib.internal.PublishModule.GpgArgs
-
-import scala.util.Try
 
 trait SonatypeCentralPublishModule extends PublishModule {
   @deprecated("Use `sonatypeCentralGpgArgsForKey` instead.", "1.0.1")

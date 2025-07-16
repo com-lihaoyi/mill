@@ -7,7 +7,7 @@ import mill.api.PathRef
 import mill.api.Result
 import mill.util.{FileSetContents, JarManifest, Secret, Tasks}
 import mill.javalib.publish.{Artifact, SonatypePublisher}
-import os.{Path, SubPath}
+import os.Path
 import mill.api.BuildCtx
 import mill.javalib.internal.PublishModule.{GpgArgs, checkSonatypeCreds}
 
