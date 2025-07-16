@@ -256,7 +256,7 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
             "gatling-test-framework.allSourceFiles" -> 5,
             "gatling-recorder.test.allSourceFiles" -> 10,
             "gatling-benchmarks.allSourceFiles" -> 3,
-            "gatling-jms.test.allSourceFiles" -> 16,
+            "gatling-jms.test.allSourceFiles" -> 15,
             "gatling-core-java.test.allSourceFiles" -> 2,
             "gatling-jsonpath.test.allSourceFiles" -> 3,
             "gatling-jsonpath.allSourceFiles" -> 8,
