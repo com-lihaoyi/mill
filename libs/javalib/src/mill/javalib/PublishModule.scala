@@ -325,7 +325,7 @@ trait PublishModule extends JavaModule { outer =>
   def extraPublish: T[Seq[PublishInfo]] = Task { Seq.empty[PublishInfo] }
 
   /** [[defaultPublishInfos]] + [[extraPublish]] */
-  final def allPublishInfos(sources: Boolean, docs: Boolean): T[Seq[PublishInfo]] = Task {
+  final def allPublishInfos(sources: Boolean, docs: Boolean): Task[Seq[PublishInfo]] = Task.Anon {
     defaultPublishInfos(sources = sources, docs = docs)() ++ extraPublish()
   }
 

@@ -67,6 +67,15 @@ object PublishInfo {
   private[mill] def docJar(docJar: PathRef): PublishInfo = fromMetadata(docJar, IvyMetadata.DocJar)
 
   /**
+   * Tries to parse the data from a filename.
+   *
+   * Take note that this is not perfect. After smushing the data into a string there's no way to tell what is the
+   * classifier and what is the extension, as both of them can contain dots ('.'). The heuristic that we take is that
+   * extensions are without the dot, so things like ".tar.gz" aren't supported, but they do not seem to be used in Maven
+   * ecosystem, so that works out for most of the cases.
+   *
+   * This should eventually be rehauled, see https://github.com/com-lihaoyi/mill/issues/5538 for more information.
+   *
    * @param file reference to the file.
    * @param fileName name of the file to use. Can be different from the actual filename of the `file`.
    * @param artifactId for example, "mill"
@@ -85,6 +94,7 @@ object PublishInfo {
     IvyMetadata.tryToMatch(extension = extension, classifier = classifier) match {
       case Some(meta) => meta.toPublishInfo(file)
       case None =>
+        // If nothing specific matched, assume it's a generic jar.
         val jar = IvyMetadata.Jar
         apply(file, classifier = classifier, ext = extension, ivyConfig = jar.config, ivyType = jar.`type`)
     }

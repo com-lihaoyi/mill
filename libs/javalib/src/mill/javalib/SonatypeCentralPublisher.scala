@@ -1,12 +1,9 @@
 package mill.javalib
 
-import com.lumidion.sonatype.central.client.core.{
-  DeploymentName,
-  PublishingType,
-  SonatypeCredentials
-}
+import com.lumidion.sonatype.central.client.core.{DeploymentName, PublishingType, SonatypeCredentials}
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
+import mill.javalib.PublishModule.PublishData
 import mill.javalib.internal.PublishModule.GpgArgs
 import mill.javalib.internal.PublishModule.GpgArgs.UserProvided
 import mill.javalib.publish.Artifact
