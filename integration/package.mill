@@ -67,7 +67,7 @@ object `package` extends mill.Module {
             args,
             testForkGrouping(),
             jvmWorker().testrunnerEntrypointClasspath(),
-            allForkEnv() ++ Option.when(useSharedOut){"MILL_TEST_SHARED_OUTPUT_DIR" -> "1"},
+            allForkEnv() ++ Option.when(useSharedOut) { "MILL_TEST_SHARED_OUTPUT_DIR" -> "1" },
             testSandboxWorkingDir = false,
             if (useSharedOut) sharedOutFolder else forkWorkingDir(),
             testReportXml(),

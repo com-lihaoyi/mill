@@ -226,9 +226,9 @@ class ExampleTester(
       }
     } finally {
       if (daemonMode) {
-        if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")){
+        if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) {
           processCommand(Vector(), "./mill shutdown", check = false)
-        }else {
+        } else {
           processCommand(Vector(), "./mill clean", check = false)
         }
       }

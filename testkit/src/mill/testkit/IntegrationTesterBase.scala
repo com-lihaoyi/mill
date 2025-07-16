@@ -40,14 +40,15 @@ trait IntegrationTesterBase {
   def initWorkspace(): Unit = {
     println(s"Copying integration test sources from $workspaceSourcePath to $workspacePath")
     os.makeDir.all(workspacePath)
-    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) Retry(logger = Retry.printStreamLogger(System.err)) {
-      val tmp = os.temp.dir()
-      val outDir = os.Path(out, workspacePath)
-      if (os.exists(outDir)) os.move.into(outDir, tmp)
-      os.remove.all(tmp)
-    }
+    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR"))
+      Retry(logger = Retry.printStreamLogger(System.err)) {
+        val tmp = os.temp.dir()
+        val outDir = os.Path(out, workspacePath)
+        if (os.exists(outDir)) os.move.into(outDir, tmp)
+        os.remove.all(tmp)
+      }
 
-    os.list(workspacePath).foreach{p =>
+    os.list(workspacePath).foreach { p =>
       if (p.last != "out") os.remove.all(p)
     }
     val outRelPathOpt = os.FilePath(out) match {
@@ -72,7 +73,7 @@ trait IntegrationTesterBase {
    * Remove any ID files to try and force them to exit
    */
   def removeProcessIdFile(): Unit = {
-    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")){
+    if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) {
       val outDir = os.Path(out, workspacePath)
       if (os.exists(outDir)) {
         if (daemonMode) {
