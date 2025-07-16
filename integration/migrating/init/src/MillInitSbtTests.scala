@@ -267,7 +267,7 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
           modifyConvertedBuild = () => {
             // For some reason this one suite only fails in github actions and not locally
             val skipped = "gatling-jms/src/test/scala/io/gatling/jms/action/JmsTrackerSpec.scala"
-            os.remove(tester.workspacePath / skipped)
+            os.remove(tester.workspacePath / os.SubPath(skipped))
           },
           expectedCompileTaskResults = Some(SplitTaskResults(
             successful = SortedSet("compile")
