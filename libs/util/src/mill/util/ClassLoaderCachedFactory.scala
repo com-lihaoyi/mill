@@ -12,7 +12,7 @@ abstract class ClassLoaderCachedFactory[T](jobs: Int)(implicit e: sourcecode.Enc
     extends CachedFactory[Seq[mill.PathRef], T] {
   private val classloaderCache = RefCountedClassLoaderCache(
     parent = getClass.getClassLoader,
-    sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.")
+    sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
   )
 
   def getValue(cl: ClassLoader): T

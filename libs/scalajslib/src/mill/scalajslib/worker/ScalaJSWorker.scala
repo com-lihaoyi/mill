@@ -20,7 +20,7 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
     val cl = mill.util.Jvm.createClassLoader(
       key.map(_.path).toVector,
       getClass.getClassLoader,
-      sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.")
+      sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
     )
     val bridge = cl
       .loadClass("mill.scalajslib.worker.ScalaJSWorkerImpl")
