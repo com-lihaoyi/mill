@@ -298,7 +298,7 @@ jobs:
             install-sbt: false
 
           - java-version: 11
-            millargs: '"example.migrating.javalib.__.local.nodaemon"'
+            millargs: '"example.migrating.javalib.__.packaged.nodaemon"'
             install-sbt: true
 
           - java-version: 17
