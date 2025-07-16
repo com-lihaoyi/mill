@@ -16,7 +16,7 @@ import mill.api.daemon.Logger
 import mill.javalib.PublishModule.PublishData
 import mill.javalib.internal.PublishModule.GpgArgs
 
-trait SonatypeCentralPublishModule extends PublishModule {
+trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport {
   @deprecated("Use `sonatypeCentralGpgArgsForKey` instead.", "1.0.1")
   def sonatypeCentralGpgArgs: T[String] =
     Task { SonatypeCentralPublishModule.sonatypeCentralGpgArgsSentinelValue }
@@ -78,7 +78,7 @@ trait SonatypeCentralPublishModule extends PublishModule {
       readTimeout = sonatypeCentralReadTimeout(),
       sonatypeCentralSnapshotUri = sonatypeCentralSnapshotUri,
       taskDest = Task.dest, log = Task.log, env = Task.env,
-      worker = SonatypeCentralPublishModule.mavenWorker()
+      worker = mavenWorker()
     )
   }
 }
