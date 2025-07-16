@@ -225,8 +225,12 @@ class ExampleTester(
           ex.printStackTrace(System.err)
       }
     } finally {
-      if (daemonMode && !sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")) {
-        processCommand(Vector(), "./mill shutdown", check = false)
+      if (daemonMode) {
+        if (!sys.env.contains("MILL_TEST_SHARED_OUTPUT_DIR")){
+          processCommand(Vector(), "./mill shutdown", check = false)
+        }else {
+          processCommand(Vector(), "./mill clean", check = false)
+        }
       }
 
       removeProcessIdFile()
