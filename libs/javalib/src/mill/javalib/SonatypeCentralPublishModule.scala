@@ -3,7 +3,6 @@ package mill.javalib
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import mill.*
 import javalib.*
-import mainargs.Flag
 import mill.api.{ExternalModule, Task}
 import mill.util.Tasks
 import mill.api.DefaultTaskModule
