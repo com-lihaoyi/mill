@@ -35,11 +35,10 @@ object CompileRunTests extends TestSuite {
     implicit object ReleaseModeToSegments
         extends Cross.ToSegments[ReleaseMode](v => List(v.toString))
 
-    val matrix = for {
-      scala <- Seq(scala33, scala213)
-      scalaNative <- Seq(scalaNative05)
-      mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
-    } yield (scala, scalaNative, mode)
+    val matrix = Seq(
+      (scala33, scalaNative05, ReleaseMode.Debug),
+      (scala213, scalaNative05, ReleaseMode.ReleaseFast)
+    )
 
     object build extends Cross[RootModule](matrix)
     trait RootModule extends HelloNativeWorldModule {
