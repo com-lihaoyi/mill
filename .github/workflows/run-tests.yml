@@ -151,7 +151,7 @@ jobs:
             install-xvfb: false
 
           - java-version: 17
-            millargs: "example.kotlinlib.__.packaged.daemon" # .packaged because somehow .local is flaky
+            millargs: "example.kotlinlib.__.local.daemon"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
