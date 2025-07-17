@@ -21,9 +21,10 @@ enum ZincCompilerBridge {
 @internal
 object ZincCompilerBridge {
   trait Compile {
-    def apply(
-      scalaVersion: String, scalaOrganization: String
-    ): (classpath: Option[Seq[PathRef]], bridgeJar: PathRef)
+    def apply(scalaVersion: String, scalaOrganization: String): CompileResult
+  }
+  case class CompileResult(classpath: Option[Seq[PathRef]], bridgeJar: PathRef) {
+    def fullClasspath: Vector[PathRef] = (Iterator(bridgeJar) ++ classpath.iterator.flatten).toVector
   }
 
   /** Compile the `sbt`/Zinc compiler bridge in the `compileDest` directory */

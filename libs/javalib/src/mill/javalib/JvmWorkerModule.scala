@@ -75,7 +75,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: TaskCtx): (Option[Seq[PathRef]], PathRef) = {
+  )(implicit ctx: TaskCtx): ZincCompilerBridge.CompileResult = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, JvmWorkerUtil.scalaBinaryVersion(scalaVersion))
     }
@@ -117,7 +117,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       compilerInterfaceClasspath(scalaVersion, scalaOrganization, resolver)
     }
 
-    (classpathOpt, bridgeJar)
+    ZincCompilerBridge.CompileResult(classpathOpt, bridgeJar)
   }
 
   def compilerInterfaceClasspath(
@@ -149,6 +149,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     ).distinct
   }
 
+  //noinspection ScalaUnusedSymbol - Task.Command
   def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] =
     Task.Command {
       classpath()
