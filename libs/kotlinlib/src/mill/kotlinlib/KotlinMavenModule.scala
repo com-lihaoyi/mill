@@ -1,6 +1,5 @@
 package mill.kotlinlib
 
-import java.nio.file.Path
 
 import mill.Task
 import mill.javalib.MavenModule
