@@ -5,9 +5,7 @@ import mill.androidlib.AndroidSdkModule
 import mill.api.{Discover, ExternalModule, PathRef, Task}
 import mill.javalib.{Dep, JvmWorkerModule}
 import mill.{T, Task}
-import scala.concurrent.duration.*
 import mainargs.{ParserForMethods, arg, main}
-
 
 @mill.api.experimental
 trait KeytoolModule extends ExternalModule, JvmWorkerModule {
@@ -24,13 +22,13 @@ trait KeytoolModule extends ExternalModule, JvmWorkerModule {
   }
 
   def createKeystoreWithCertificate(
-      args: Task[Seq[String]]) = Task.Anon {
+      args: Task[Seq[String]]
+  ) = Task.Anon {
     val mainClass = "mill.androidlib.keytool.Keytool"
-    Task.log.info(s"Running Keytool with args: ${args()}")
     val res = mill.util.Jvm.callProcess(
       mainClass = mainClass,
       classPath = classpath().map(_.path),
-      mainArgs = args(),
+      mainArgs = args()
     )
     Task.log.info(s"Keytool result: $res")
   }
@@ -38,5 +36,4 @@ trait KeytoolModule extends ExternalModule, JvmWorkerModule {
   override lazy val millDiscover: Discover = Discover[this.type]
 }
 
-/** Provide the actual module instance for Mill */
 object KeytoolModule extends KeytoolModule

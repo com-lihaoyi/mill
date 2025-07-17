@@ -17,9 +17,6 @@ import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
 
-import scala.concurrent.duration.*
-
-
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
  * with corresponding flags and file extensions. Includes utility methods
@@ -705,26 +702,19 @@ trait AndroidAppModule extends AndroidModule { outer =>
   purpose of a global keystore is to avoid the user having to uninstall the
   app everytime the task directory is deleted (as the app signatures will not match).
    */
+  def globalDebugFileLocation: Path = os.home / ".mill-android"
+
+  def debugFileName = "mill-debug.jks"
+
+  def debugKeystoreFile: Path = globalDebugFileLocation / debugFileName
+
   private def androidDebugKeystore: Task[PathRef] = Task(persistent = true) {
-    val debugFileName = "mill-debug.jks"
-    val globalDebugFileLocation = os.home / ".mill-android"
-
-    if (!os.exists(globalDebugFileLocation)) {
-      os.makeDir(globalDebugFileLocation)
-    }
-
-    val debugKeystoreFile = globalDebugFileLocation / debugFileName
-
     if (!os.exists(debugKeystoreFile)) {
       // TODO test on windows and mac and/or change implementation with java APIs
-      Task.log.info(
-        s"Creating debug keystore at ${debugKeystoreFile.toString()}"
-      )
-      val res = ModuleRef(KeytoolModule)().createKeystoreWithCertificate(
+      ModuleRef(KeytoolModule)().createKeystoreWithCertificate(
         Task.Anon(Seq(
           "--keystore",
-//          debugKeystoreFile.toString(),
-          "/home/styl/.mill-android/mill-debug.jks",
+          debugKeystoreFile.toString,
           "--storepass",
           debugKeyStorePass,
           "--alias",
@@ -734,11 +724,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
           "--dname",
           s"CN=$debugKeyAlias, OU=$debugKeyAlias, O=$debugKeyAlias, L=$debugKeyAlias, S=$debugKeyAlias, C=$debugKeyAlias",
           "--validity-days",
-          "10000" // 10000 days
-          )
-        )
+          "10000"
+        ))
       )()
-      Task.log.info(s"Keystore created with result: $res")
     }
 
     PathRef(debugKeystoreFile)
