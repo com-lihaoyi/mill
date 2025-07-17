@@ -169,7 +169,7 @@ jobs:
             install-xvfb: false
 
           - java-version: 17
-            millargs: "'example.thirdparty[{androidtodo,android-endless-tunnel,android-compose-samples}].local.daemon'"
+            millargs: "'example.thirdparty[{androidtodo,android-endless-tunnel,android-compose-samples}].packaged.daemon'"
             install-android-sdk: true
             install-sbt: false
             install-xvfb: false
@@ -244,7 +244,7 @@ jobs:
             millargs: '"libs.{util,javalib,androidlib,graphviz,tabcomplete}.__.test"'
 
           - java-version: 17
-            millargs: '"example.javalib.__.local.daemon"'
+            millargs: '"example.javalib.__.packaged.daemon"'
 
           - java-version: 11
             millargs: '"example.migrating.javalib.__.packaged.daemon"'
