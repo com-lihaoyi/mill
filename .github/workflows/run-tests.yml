@@ -262,7 +262,7 @@ jobs:
 
           - java-version: 11
             millargs: '"example.migrating.javalib.__.local.daemon"'
-            install-sbt: true
+            install-sbt: false
 
           - java-version: 17
             millargs: "'integration.failure.__.packaged.nodaemon'"
