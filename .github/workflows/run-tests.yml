@@ -139,7 +139,7 @@ jobs:
             install-xvfb: false
 
           - java-version: 17
-            millargs: "'libs.scalalib.__.test'"
+            millargs: "'libs.{scalalib,init}.__.test'"
             install-android-sdk: false
             install-sbt: true
             install-xvfb: false
@@ -253,15 +253,15 @@ jobs:
       matrix:
         include:
           - java-version: 11
-            millargs: '"libs.{util,javalib,androidlib,graphviz,init,tabcomplete}.__.test"'
+            millargs: '"libs.{util,javalib,androidlib,graphviz,tabcomplete}.__.test"'
+            install-sbt: false
+
+          - java-version: 17
+            millargs: '"example.javalib.__.local.daemon"'
             install-sbt: false
 
           - java-version: 11
-            millargs: '"example.javalib.__.local.nodaemon"'
-            install-sbt: false
-
-          - java-version: 11
-            millargs: '"example.migrating.javalib.__.packaged.nodaemon"'
+            millargs: '"example.migrating.javalib.__.local.daemon"'
             install-sbt: true
 
           - java-version: 17
