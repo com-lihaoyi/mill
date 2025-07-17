@@ -118,7 +118,7 @@ object CompileRunTests extends TestSuite {
           eval(HelloNativeWorld.build(
             scala213,
             scalaNative05,
-            ReleaseMode.Debug
+            ReleaseMode.ReleaseFast
           ).jar): @unchecked
         val jar = result.value.path
         val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)

@@ -162,6 +162,12 @@ jobs:
             install-sbt: false
             install-xvfb: false
 
+          - java-version: 11
+            millargs: "example.javalib.__.local.daemon"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
           - java-version: 17
             millargs: "'example.androidlib.__.local.daemon'"
             install-android-sdk: true
@@ -244,7 +250,7 @@ jobs:
             millargs: '"libs.{util,javalib,androidlib,graphviz,tabcomplete}.__.test"'
 
           - java-version: 17
-            millargs: '"example.javalib.__.packaged.daemon"'
+            millargs: '"example.javalib.{basic,publishing}.__.packaged.daemon"'
 
           - java-version: 11
             millargs: '"example.migrating.javalib.__.packaged.daemon"'
