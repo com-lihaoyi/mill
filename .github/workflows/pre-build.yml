@@ -2,7 +2,7 @@ on:
   workflow_call:
     inputs:
       compileargs:
-        default: '__.compile'
+        default: 'dist.installLocal + core.api.test.compile'
         type: string
       java-version:
         default: '11'
