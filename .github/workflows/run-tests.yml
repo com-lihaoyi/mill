@@ -100,7 +100,7 @@ jobs:
 
           - os: macos-13
             millargs: "'example.thirdparty[jimfs].native.daemon'"
-            java-version: 11
+            java-version: 24
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
@@ -139,91 +139,85 @@ jobs:
             install-sbt: true
             install-xvfb: false
 
-          - java-version: 17
+          - java-version: 24
             millargs: "'libs.{util,javalib,androidlib,graphviz,init,tabcomplete}.__.test'"
             install-android-sdk: false
             install-sbt: true
             install-xvfb: false
 
-          - java-version: 11
+          - java-version: 24
             millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 17
+          - java-version: 24
             millargs: "contrib.__.test"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 17
+          - java-version: 24
             millargs: "example.javalib.__.local.daemon"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 17
+          - java-version: 24
             millargs: "example.kotlinlib.__.local.daemon"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 11
+          - java-version: 24
             millargs: "example.scalalib.__.local.daemon"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 17
+          - java-version: 24
             millargs: "'example.androidlib.__.local.daemon'"
             install-android-sdk: true
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 17
+          - java-version: 24
             millargs: "'example.thirdparty[androidtodo].local.daemon'"
             install-android-sdk: true
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 17
+          - java-version: 24
             millargs: "'example.thirdparty[android-endless-tunnel].local.daemon'"
             install-android-sdk: true
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 17
+          - java-version: 24
             millargs: "'example.thirdparty[android-compose-samples].local.daemon'"
             install-android-sdk: true
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 17
+          - java-version: 24
             millargs: "'example.migrating.__.local.daemon'"
             install-android-sdk: false
             install-sbt: true
             install-xvfb: true
 
-          - java-version: 17
+          - java-version: 24
             millargs: "'example.{pythonlib,javascriptlib}.__.local.daemon'"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
 
           - java-version: 24
-            millargs: "'example.thirdparty[{mockito,commons-io}].local.daemon'"
+            millargs: "'example.thirdparty[{netty,gatling,mockito,commons-io}].local.daemon'"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 17
-            millargs: "'example.thirdparty[{netty,gatling}].local.daemon'"
-            install-android-sdk: false
-            install-sbt: false
-            install-xvfb: false
-
-          - java-version: '17'
+          - java-version: 24
             millargs: "'example.thirdparty[arrow].local.daemon'"
             install-android-sdk: false
             install-sbt: false
@@ -289,7 +283,7 @@ jobs:
           # * One job unit tests,
           # * One job each for local/packaged/native tests
           # * At least one job for each of fork/server tests, and example/integration tests
-          - java-version: 11
+          - java-version: 24
             millargs: '"libs.{util,javalib}.__.test"'
             install-sbt: false
 
