@@ -91,11 +91,11 @@ jobs:
           # Run these with Mill native launcher as a smoketest
         include:
           - os: ubuntu-24.04-arm
-            millargs: "'example.thirdparty[{fansi,netty}].native.daemon'"
+            millargs: "'example.thirdparty[{mockito,netty}].native.daemon'"
             java-version: 17
 
           - os: macos-latest
-            millargs: "'example.thirdparty[{acyclic,mockito}].native.daemon'"
+            millargs: "'example.thirdparty[{acyclic,fansi}].native.daemon'"
             java-version: 11
 
           - os: macos-13
@@ -139,7 +139,7 @@ jobs:
             install-sbt: true
             install-xvfb: false
 
-          - java-version: 24
+          - java-version: 17
             millargs: "'libs.{util,javalib,androidlib,graphviz,init,tabcomplete}.__.test'"
             install-android-sdk: false
             install-sbt: true
@@ -151,43 +151,43 @@ jobs:
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 24
+          - java-version: 17
             millargs: "contrib.__.test"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 24
+          - java-version: 17
             millargs: "example.javalib.__.local.daemon"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 24
+          - java-version: 17
             millargs: "example.kotlinlib.__.local.daemon"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 24
+          - java-version: 11
             millargs: "example.scalalib.__.local.daemon"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 24
+          - java-version: 17
             millargs: "'example.androidlib.__.local.daemon'"
             install-android-sdk: true
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 24
+          - java-version: 17
             millargs: "'example.thirdparty[androidtodo].local.daemon'"
             install-android-sdk: true
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 24
+          - java-version: 17
             millargs: "'example.thirdparty[android-endless-tunnel].local.daemon'"
             install-android-sdk: true
             install-sbt: false
@@ -283,7 +283,7 @@ jobs:
             millargs: '"example.migrating.javalib.__.packaged.nodaemon"'
             install-sbt: true
 
-          - java-version: 24
+          - java-version: 17
             millargs: "'integration.{feature,failure}.__.packaged.nodaemon'"
             install-sbt: false
 
