@@ -169,11 +169,8 @@ jobs:
             install-sbt: false
             install-xvfb: false
 
-          # Run this one using `.native` as a smoketest. Also make sure the java-version
-          # is the same as that used in the `build-linux` job to avoid diverging code
-          # hashes (https://github.com/com-lihaoyi/mill/pull/4410)
           - java-version: 11
-            millargs: "example.scalalib.__.native.daemon"
+            millargs: "example.scalalib.__.local.daemon"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
@@ -266,7 +263,7 @@ jobs:
             install-xvfb: false
 
           - java-version: 17
-            millargs: "'integration.migrating.__.local.daemon'"
+            millargs: "'integration.migrating.__.packaged.daemon'"
             install-android-sdk: false
             install-sbt: true
             install-xvfb: true # used for the example `iluwatar/java-design-patterns` init tests
@@ -301,11 +298,11 @@ jobs:
             install-sbt: false
 
           - java-version: 11
-            millargs: '"example.migrating.javalib.__.local.nodaemon"'
+            millargs: '"example.migrating.javalib.__.packaged.nodaemon"'
             install-sbt: true
 
           - java-version: 17
-            millargs: "'integration.{feature,failure}.__.native.nodaemon'"
+            millargs: "'integration.{feature,failure}.__.packaged.nodaemon'"
             install-sbt: false
 
           - java-version: 24 # Run this with Mill native launcher as a smoketest
