@@ -2,6 +2,7 @@ package mill.androidlib
 
 import coursier.params.ResolutionParams
 import mill.*
+import mill.androidlib.keytool.KeytoolModule
 import mill.api.Logger
 import mill.api.internal.*
 import mill.api.daemon.internal.internal
@@ -9,13 +10,15 @@ import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import os.{Path, RelPath, zip}
 import upickle.default.*
+
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
-
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
-import mill.androidlib.keytool.*
+
+import scala.concurrent.duration.*
+
 
 /**
  * Enumeration for Android Lint report formats, providing predefined formats
@@ -714,20 +717,28 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     if (!os.exists(debugKeystoreFile)) {
       // TODO test on windows and mac and/or change implementation with java APIs
-      val keyPair = RSAKeyGen.generateKeyPair(2048)
-      val keystore = Keystore.createKeystore()
-      Keystore.addKeyPair(
-        ks = keystore,
-        alias = debugKeyAlias,
-        keyPair = keyPair,
-        dname = "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=MILL",
-        password = debugKeyStorePass
+      Task.log.info(
+        s"Creating debug keystore at ${debugKeystoreFile.toString()}"
       )
-      Keystore.saveKeystore(
-        ks = keystore,
-        filePath = debugKeystoreFile.toString,
-        password = debugKeyPass
-      )
+      val res = ModuleRef(KeytoolModule)().createKeystoreWithCertificate(
+        Task.Anon(Seq(
+          "--keystore",
+//          debugKeystoreFile.toString(),
+          "/home/styl/.mill-android/mill-debug.jks",
+          "--storepass",
+          debugKeyStorePass,
+          "--alias",
+          debugKeyAlias,
+          "--keypass",
+          debugKeyPass,
+          "--dname",
+          s"CN=$debugKeyAlias, OU=$debugKeyAlias, O=$debugKeyAlias, L=$debugKeyAlias, S=$debugKeyAlias, C=$debugKeyAlias",
+          "--validity-days",
+          "10000" // 10000 days
+          )
+        )
+      )()
+      Task.log.info(s"Keystore created with result: $res")
     }
 
     PathRef(debugKeystoreFile)

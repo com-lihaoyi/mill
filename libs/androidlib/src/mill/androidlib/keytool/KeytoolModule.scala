@@ -5,7 +5,8 @@ import mill.androidlib.AndroidSdkModule
 import mill.api.{Discover, ExternalModule, PathRef, Task}
 import mill.javalib.{Dep, JvmWorkerModule}
 import mill.{T, Task}
-import scala.concurrent.duration.FiniteDuration
+import scala.concurrent.duration.*
+import mainargs.{ParserForMethods, arg, main}
 
 
 @mill.api.experimental
@@ -14,7 +15,7 @@ trait KeytoolModule extends ExternalModule, JvmWorkerModule {
     super.repositoriesTask() :+ AndroidSdkModule.mavenGoogle
   }
 
-  def toolsClasspath: T[Seq[PathRef]] = Task {
+  def classpath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(
       Seq(
         Dep.millProjectModule("mill-libs-androidlib-keytool")
@@ -23,31 +24,15 @@ trait KeytoolModule extends ExternalModule, JvmWorkerModule {
   }
 
   def createKeystoreWithCertificate(
-      keystorePath: os.Path,
-      keystorePass: String,
-      alias: String,
-      keyPass: String,
-      dname: String,
-      validity: FiniteDuration = FiniteDuration(365, "DAYS")) = Task.Anon {
+      args: Task[Seq[String]]) = Task.Anon {
     val mainClass = "mill.androidlib.keytool.Keytool"
-    mill.util.Jvm.callProcess(
+    Task.log.info(s"Running Keytool with args: ${args()}")
+    val res = mill.util.Jvm.callProcess(
       mainClass = mainClass,
-      classPath = toolsClasspath().map(_.path),
-      mainArgs = Seq(
-        "--keystore",
-        keystorePath.toString,
-        "--alias",
-        alias,
-        "--keypass",
-        keyPass,
-        "--storepass",
-        keystorePass,
-        "--dname",
-        dname,
-        "--validity-days",
-        validity.toDays.toString
-      )
+      classPath = classpath().map(_.path),
+      mainArgs = args(),
     )
+    Task.log.info(s"Keytool result: $res")
   }
 
   override lazy val millDiscover: Discover = Discover[this.type]

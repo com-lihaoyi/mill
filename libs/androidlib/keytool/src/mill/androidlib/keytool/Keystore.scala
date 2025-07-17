@@ -4,7 +4,8 @@ package mill.androidlib.keytool
 
 import java.io.{File, FileInputStream, FileOutputStream}
 import java.security.{Key, KeyPair, KeyStore}
-import scala.collection.JavaConverters.enumerationAsScalaIteratorConverter
+//import scala.collection.JavaConverters.enumerationAsScalaIteratorConverter
+import scala.jdk.CollectionConverters.*
 import scala.concurrent.duration.*
 
 object Keystore:
@@ -46,9 +47,10 @@ object Keystore:
       keyPair: KeyPair,
       dname: String,
       password: String,
-      validity: FiniteDuration = FiniteDuration(365, DAYS)
+//      validity: FiniteDuration = FiniteDuration(365, DAYS)
+      validityDays: Int = 365
   ): Unit =
-    val cert = CertUtil.createSelfSignedCertificate(dname, keyPair, validity)
+    val cert = CertUtil.createSelfSignedCertificate(dname, keyPair, validityDays)
     ks.setKeyEntry(alias, keyPair.getPrivate, password.toCharArray, Array(cert))
 
   def listAliases(ks: KeyStore): List[String] =

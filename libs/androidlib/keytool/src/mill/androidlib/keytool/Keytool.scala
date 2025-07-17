@@ -18,6 +18,29 @@ object Keytool {
     println(s"Store Password: $storePassword")
     println(s"DName: $dname")
     println(s"Validity Days: $validityDays")
+    val keystore = Keystore.createKeystore()
+    val keyPair = RSAKeyGen.generateKeyPair()
+    Keystore.addKeyPair(ks = keystore,
+                        alias = alias,
+                        keyPair = keyPair,
+                        password = keyPassword,
+                        dname = dname,
+                        validityDays = validityDays)
+    Keystore.saveKeystore(ks = keystore,
+                          filePath = keystorePath,
+                          password = storePassword)
+//    os.call((
+//      "keytool",
+//      "-genkeypair",
+//      "-keystore", keystorePath,
+//      "-alias", alias,
+//      "-keypass", keyPassword,
+//      "-storepass", storePassword,
+//      "-dname", dname,
+//      "-validity", validityDays.toString,
+//      "-keyalg", "RSA",
+//      "-keysize", "2048",
+//    ))
   }
   def main(args: Array[String]): Unit = ParserForMethods(this).runOrExit(args)
 }
