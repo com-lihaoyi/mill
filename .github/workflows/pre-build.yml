@@ -5,7 +5,7 @@ on:
         # Just build the core application and the shared test helpers, but leave actually
         # building the tests to the individual workers who need each test suite since
         # there won't be much overlap and the various workers can work in parallel
-        default: 'dist.installLocal + core.api.test.compile + testkit.compile'
+        default: 'dist.executable + core.api.test.compile + testkit.compile'
         type: string
       java-version:
         default: '11'
