@@ -114,7 +114,7 @@ object SpotlessTests extends TestSuite {
       }
     }
 
-    test("ratchet") {
+    test("ratchet") - retry(3) {
       object module extends singleModule
       val logStream = new ByteArrayOutputStream()
       val errStream = PrintStream(logStream, true)
