@@ -250,7 +250,7 @@ jobs:
             millargs: '"libs.{util,javalib,androidlib,graphviz,tabcomplete}.__.test"'
 
           - java-version: 17
-            millargs: '"example.javalib.{basic,publishing}.__.packaged.daemon"'
+            millargs: '"example.scalalib.{basic,publishing}.__.packaged.daemon"'
 
           - java-version: 11
             millargs: '"example.migrating.javalib.__.packaged.daemon"'
