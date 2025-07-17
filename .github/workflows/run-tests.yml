@@ -48,12 +48,12 @@ on:
 
 # cancel older runs of a pull request;
 # this will not cancel anything for normal git pushes
-concurrency:
+#concurrency:
   # * For runs on other repos, always use the `ref_name` so each branch only can have one concurrent run
   # * For runs on `com-lihaoyi/mill`, use `head_ref` to allow one concurrent run per PR, but `run_id` to
   #   allow multiple concurrent runs in master
-  group: cancel-old-pr-runs-${{ github.workflow }}-${{ (github.repository != 'com-lihaoyi/mill' && github.ref_name) || (github.head_ref || github.run_id) }}
-  cancel-in-progress: true
+#  group: cancel-old-pr-runs-${{ github.workflow }}-${{ (github.repository != 'com-lihaoyi/mill' && github.ref_name) || (github.head_ref || github.run_id) }}
+#  cancel-in-progress: true
 
 jobs:
   # Jobs are listed in rough order of priority: if multiple jobs fail, the first job
