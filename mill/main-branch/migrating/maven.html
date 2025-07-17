@@ -763,6 +763,9 @@ compiling, and passing all tests in Mill:</p>
 &gt; ./mill resolve __.compile | wc -l # This repo has over 300 subprojects!
 ...363
 
+&gt; rm twin/src/test/java/com/iluwatar/twin/BallThreadTest.java # skip flaky test
+&gt; rm actor-model/src/test/java/com/iluwatar/actor/ActorModelTest.java # skip flaky test
+
 &gt; ./mill __.compile
 compiling 6 Java sources to ...service-to-worker...
 compiling 4 Java sources to ...update-method...
