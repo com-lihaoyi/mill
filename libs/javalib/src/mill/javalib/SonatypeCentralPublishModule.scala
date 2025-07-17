@@ -53,10 +53,11 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
 
   def publishSonatypeCentral(
       username: String = defaultCredentials,
-      password: String = defaultCredentials
+      password: String = defaultCredentials,
+      force: Boolean = false
   ): Task.Command[Unit] = Task.Command {
     val artifact = artifactMetadata()
-    val finalCredentials = getSonatypeCredentials(username, password)()
+    val finalCredentials = getSonatypeCredentials(username, password, force)()
     val dryRun = Task.env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
 
     def publishSnapshot(): Unit = {
@@ -137,6 +138,17 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
     if (artifact.version.endsWith("SNAPSHOT")) publishSnapshot()
     else publishRelease()
   }
+
+  // bin-compat shim
+  def publishSonatypeCentral(
+      username: String,
+      password: String
+  ): Task.Command[Unit] =
+    publishSonatypeCentral(
+      username,
+      password,
+      force = false
+    )
 }
 
 /**
@@ -165,14 +177,15 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
       readTimeout: Int = defaultReadTimeout,
       connectTimeout: Int = defaultConnectTimeout,
       awaitTimeout: Int = defaultAwaitTimeout,
-      bundleName: String = ""
+      bundleName: String = "",
+      force: Boolean = false
   ): Command[Unit] = Task.Command {
 
     val artifacts =
       Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
-    val finalCredentials = getSonatypeCredentials(username, password)()
+    val finalCredentials = getSonatypeCredentials(username, password, force)()
     val gpgArgs0 = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
       GpgArgs.fromUserProvided(gpgArgs)
@@ -194,6 +207,31 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
       artifacts*
     )
   }
+
+  // bin-compat shim
+  def publishAll(
+      publishArtifacts: mill.util.Tasks[PublishModule.PublishData],
+      username: String,
+      password: String,
+      shouldRelease: Boolean,
+      gpgArgs: String,
+      readTimeout: Int,
+      connectTimeout: Int,
+      awaitTimeout: Int,
+      bundleName: String
+  ): Command[Unit] =
+    publishAll(
+      publishArtifacts,
+      username,
+      password,
+      shouldRelease,
+      gpgArgs,
+      readTimeout,
+      connectTimeout,
+      awaitTimeout,
+      bundleName,
+      force = false
+    )
 
   private def getPublishingTypeFromReleaseFlag(shouldRelease: Boolean): PublishingType = {
     if (shouldRelease) {
@@ -225,8 +263,17 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
 
   private def getSonatypeCredentials(
       usernameParameterValue: String,
-      passwordParameterValue: String
+      passwordParameterValue: String,
+      force: Boolean
   ): Task[SonatypeCredentials] = Task.Anon {
+    val isCI = Task.env.get("CI").nonEmpty
+    if (!force && isCI && (usernameParameterValue.nonEmpty || passwordParameterValue.nonEmpty))
+      sys.error(
+        "--username and --password options forbidden on CI. " +
+          "Their use might leak secrets. " +
+          s"Pass those values via environment variables instead ($USERNAME_ENV_VARIABLE_NAME and $PASSWORD_ENV_VARIABLE_NAME), or pass --force alongside them. " +
+          "You might want to check the output of this job for a leak of those secrets or parts of them."
+      )
     val username =
       getSonatypeCredential(usernameParameterValue, "username", USERNAME_ENV_VARIABLE_NAME)()
     val password =
