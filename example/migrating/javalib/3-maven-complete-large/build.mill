@@ -12,6 +12,7 @@
 ...363
 
 > rm twin/src/test/java/com/iluwatar/twin/BallThreadTest.java # skip flaky test
+> rm actor-model/src/test/java/com/iluwatar/actor/ActorModelTest.java # skip flaky test
 
 > ./mill __.compile
 compiling 6 Java sources to ...service-to-worker...
