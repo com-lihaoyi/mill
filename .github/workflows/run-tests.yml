@@ -180,8 +180,8 @@ jobs:
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 24
-            millargs: "'example.migrating.scalalib.__.local.daemon'"
+          - java-version: 11
+            millargs: "'example.migrating.javalib.__.local.daemon'"
             install-android-sdk: false
             install-sbt: true
             install-xvfb: true
@@ -252,8 +252,8 @@ jobs:
           - java-version: 17
             millargs: '"example.scalalib.{basic,publishing}.__.packaged.daemon"'
 
-          - java-version: 11
-            millargs: '"example.migrating.javalib.__.packaged.daemon"'
+          - java-version: 24
+            millargs: '"example.migrating.scalalib.__.packaged.daemon"'
 
           - java-version: 17
             millargs: "'integration.failure.__.packaged.nodaemon'"
