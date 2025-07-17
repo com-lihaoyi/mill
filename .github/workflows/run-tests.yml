@@ -250,12 +250,6 @@ jobs:
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 24
-            millargs: "'integration.invalidation.__.packaged.daemon'"
-            install-android-sdk: false
-            install-sbt: false
-            install-xvfb: false
-
           - java-version: 17
             millargs: "'integration.migrating.__.packaged.daemon'"
             install-android-sdk: false
