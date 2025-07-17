@@ -15,7 +15,7 @@ object `package` extends MillPublishScalaModule {
 //    // TODO: somewhere sourcecode is included transitively,
 //    // but we need the latest version to bring the macro improvements.
 //    Deps.sourcecode,
-//    Deps.osLib,
+    Deps.osLib,
 //    Deps.mainargs,
     Deps.upickle,
     Deps.pprint,

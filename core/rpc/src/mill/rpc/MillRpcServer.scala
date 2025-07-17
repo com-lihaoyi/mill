@@ -5,23 +5,6 @@ import upickle.default.{Reader, Writer}
 
 import scala.util.control.NonFatal
 
-trait MillRpcMessage {
-  type Response
-
-  given responseWriter: Writer[Response] = compiletime.deferred
-}
-object MillRpcMessage {
-  /** Messages that do not have a meaningful response. */
-  trait NoResponse extends MillRpcMessage {
-    override type Response = Unit
-  }
-}
-
-/** One way channel for sending RPC messages. */
-trait MillRpcChannel[Input <: MillRpcMessage] {
-  def apply(input: Input): input.Response
-}
-
 trait MillRpcServer[
     Initialize,
     ClientToServer <: MillRpcMessage,
@@ -44,7 +27,7 @@ trait MillRpcServerImpl[
     Initialize: Reader,
     ClientToServer <: MillRpcMessage: Reader,
     ServerToClient <: MillRpcMessage: Writer
-] extends MillRpcServer[Initialize, ClientToServer, ServerToClient] {
+](wireTransport: MillRpcWireTransport) extends MillRpcServer[Initialize, ClientToServer, ServerToClient] {
   private var requestNumber = 0L
 
   def main(args: Array[String]): Unit = {
@@ -71,9 +54,9 @@ trait MillRpcServerImpl[
 
   private def readAndTryToParse[A: Reader]() = {
     requestNumber += 1
-    Option(Console.in.readLine()) match {
+    wireTransport.read() match {
       case None =>
-        logLocal("stdin broken, exiting process")
+        logLocal("Transport wire broken, exiting process.")
         sys.exit(0)
 
       case Some(line) =>
@@ -88,7 +71,7 @@ trait MillRpcServerImpl[
     logLocal(s"Serializing message to be sent: ${pprint.apply(message)}")
     val serialized = upickle.default.write(message)
     logLocal(s"Sending: $serialized")
-    println(serialized)
+    wireTransport.write(serialized)
   }
 
   /** Logs a message locally in the RPC server. */

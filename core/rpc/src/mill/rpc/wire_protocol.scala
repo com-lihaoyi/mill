@@ -35,3 +35,22 @@ object MillRpcServerToClient {
   given reader[Data: Reader]: Reader[MillRpcServerToClient[Data]] = Reader.derived
   given writer[Data: Writer]: Writer[MillRpcServerToClient[Data]] = Writer.derived
 }
+
+trait MillRpcWireTransport {
+  /** Reads one raw message from the wire. */
+  def read(): Option[String]
+  
+  /** Writes one raw message to the wire. */
+  def write(message: String): Unit
+}
+object MillRpcWireTransport {
+  object ViaStdinAndStdout extends MillRpcWireTransport {
+    def read(): Option[String] = Option(Console.in.readLine())
+    def write(message: String): Unit = println(message)
+  }
+  
+  case class ViaStdinAndStdoutOfSubprocess(subprocess: os.SubProcess) extends MillRpcWireTransport {
+    def read(): Option[String] = Option(subprocess.stdout.readLine())
+    def write(message: String): Unit = subprocess.stdin.writeLine(message)
+  }
+}

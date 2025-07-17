@@ -4,9 +4,9 @@ import mill.api.JsonFormatters.*
 import mill.api.daemon.Logger
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.CompilationResult
-import mill.javalib.internal.ZincCompilerBridge
+import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBridge}
 import mill.javalib.worker.JavaCompilerOptions
-import mill.rpc.{MillRpcChannel, MillRpcMessage, MillRpcServerImpl}
+import mill.rpc.{MillRpcChannel, MillRpcMessage, MillRpcServerImpl, MillRpcWireTransport}
 import upickle.default.ReadWriter
 
 object ZincWorkerMain
@@ -14,7 +14,7 @@ object ZincWorkerMain
       ZincWorkerMain.Initialize,
       ZincWorkerMain.ClientToServer,
       ZincWorkerMain.ServerToClient
-    ] {
+    ](MillRpcWireTransport.ViaStdinAndStdout) {
 
   /**
    * @param taskDest the task's destination folder.
@@ -53,6 +53,10 @@ object ZincWorkerMain
     case class InvokeZincCompilerBridgeCompile(scalaVersion: String, scalaOrganization: String)
         extends ServerToClient {
       override type Response = ZincCompilerBridge.CompileResult[os.Path]
+    }
+
+    case class ReportCompilationProblem(problem: RpcCompileProblemReporterMessage) extends ServerToClient {
+      override type Response = problem.Response
     }
   }
 
