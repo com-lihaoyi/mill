@@ -91,15 +91,15 @@ jobs:
           # Run these with Mill native launcher as a smoketest
         include:
           - os: ubuntu-24.04-arm
-            millargs: "'example.thirdparty[fansi].native.daemon'"
+            millargs: "'example.thirdparty[{fansi,netty}].native.daemon'"
             java-version: 17
 
           - os: macos-latest
-            millargs: "'example.thirdparty[acyclic].native.daemon'"
+            millargs: "'example.thirdparty[{acyclic,mockito}].native.daemon'"
             java-version: 11
 
           - os: macos-13
-            millargs: "'example.thirdparty[jimfs].native.daemon'"
+            millargs: "'example.thirdparty[{jimfs,commons-io}].native.daemon'"
             java-version: 24
     steps:
       - uses: actions/checkout@v4
@@ -212,13 +212,7 @@ jobs:
             install-xvfb: false
 
           - java-version: 24
-            millargs: "'example.thirdparty[{netty,gatling,mockito,commons-io}].local.daemon'"
-            install-android-sdk: false
-            install-sbt: false
-            install-xvfb: false
-
-          - java-version: 24
-            millargs: "'example.thirdparty[arrow].local.daemon'"
+            millargs: "'example.thirdparty[{arrow,gatling}].local.daemon'"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
