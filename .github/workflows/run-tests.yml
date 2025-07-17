@@ -287,10 +287,8 @@ jobs:
       matrix:
         include:
           # bootstrap tests
-          - java-version: 11 # Have one job on oldest JVM
-            buildcmd: ci/test-dist-run.sh && ci/test-install-local.sh
-          - java-version: 17 # Have one job on default JVM
-            buildcmd: ci/test-mill-bootstrap.sh
+          - java-version: 11
+            buildcmd: ci/test-dist-run.sh && ci/test-install-local.sh && ci/test-mill-bootstrap.sh
 
     uses: ./.github/workflows/post-build-raw.yml
     with:
