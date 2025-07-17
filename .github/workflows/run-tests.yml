@@ -169,7 +169,7 @@ jobs:
             install-xvfb: false
 
           - java-version: 17
-            millargs: "'example.thirdparty[{androidtodo,android-endless-tunnel,android-compose-samples}].packaged.daemon'"
+            millargs: "'example.thirdparty[android-compose-samples].packaged.daemon'"
             install-android-sdk: true
             install-sbt: false
             install-xvfb: false
