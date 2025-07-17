@@ -200,7 +200,7 @@ jobs:
             install-xvfb: false
 
           - java-version: 24
-            millargs: "'example.migrating.__.local.daemon'"
+            millargs: "'example.migrating.scalalib.__.local.daemon'"
             install-android-sdk: false
             install-sbt: true
             install-xvfb: true
