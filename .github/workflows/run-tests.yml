@@ -162,7 +162,7 @@ jobs:
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 11
+          - java-version: 17
             millargs: "example.javalib.__.local.daemon"
             install-android-sdk: false
             install-sbt: false
