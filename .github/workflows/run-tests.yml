@@ -254,23 +254,18 @@ jobs:
         include:
           - java-version: 11
             millargs: '"libs.{util,javalib,androidlib,graphviz,tabcomplete}.__.test"'
-            install-sbt: false
 
           - java-version: 17
             millargs: '"example.javalib.__.local.daemon"'
-            install-sbt: false
 
           - java-version: 11
             millargs: '"example.migrating.javalib.__.local.daemon"'
-            install-sbt: false
 
           - java-version: 17
             millargs: "'integration.failure.__.packaged.nodaemon'"
-            install-sbt: false
 
           - java-version: 24 # Run this with Mill native launcher as a smoketest
             millargs: "'integration.invalidation.__.native.daemon'"
-            install-sbt: false
 
           - java-version: 17
             millargs: "'integration.bootstrap[no-java-bootstrap].native.daemon'"
@@ -284,7 +279,6 @@ jobs:
       # running the graal native image binary on windows
       coursierarchive: "C:/coursier-arc"
       shell: powershell
-      install-sbt: ${{ matrix.install-sbt || false }}
 
   itest:
     needs: build-linux
