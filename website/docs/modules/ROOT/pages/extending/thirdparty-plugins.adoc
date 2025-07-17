@@ -781,6 +781,35 @@ For more configuration options, building binaries inside Docker, a sample projec
 and more, check the project readme.
 
 
+
+== OpenApi4s
+
+Mill plugin for OpenApi4s generators.
+
+Project home: https://github.com/sake92/mill-openapi4s
+
+[source,scala,subs="attributes,verbatim"]
+----
+//| mvnDeps: ["ba.sake::mill-openapi4s::0.7.0"]
+
+import mill.*
+import mill.scalalib._
+import ba.sake.mill.openapi4s.OpenApiGeneratorModule
+
+object app extends ScalaModule, OpenApiGeneratorModule {
+  def openApi4sPackage = "com.example.api"
+  def openApi4sVersion = "0.6.1"
+  // def openApi4sGenerator = "sharaf" // or "http4s"
+----
+
+.Generate source files
+[source,console]
+----
+$ ./mill app.openApi4sGenerate
+----
+
+
+
 == OSGi
 
 Produce OSGi Bundles with mill.
