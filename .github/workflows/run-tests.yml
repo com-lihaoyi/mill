@@ -143,7 +143,7 @@ jobs:
 #            millargs: "'libs.{scalajslib,scalanativelib,kotlinlib,pythonlib,javascriptlib}.__.test'"
 
           - java-version: 17
-            millargs: "-j1 example.kotlinlib.__.local.daemon"
+            millargs: "example.kotlinlib.__.local.daemon"
 
 #          - java-version: 11
 #            millargs: "example.scalalib.__.local.daemon"
