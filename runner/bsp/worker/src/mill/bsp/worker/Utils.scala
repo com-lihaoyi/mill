@@ -32,7 +32,7 @@ private[mill] object Utils {
       client: BuildClient
   ): Int => Option[BspCompileProblemReporter] = { (moduleHashCode: Int) =>
     bspIdsByModule.find(_._1.hashCode == moduleHashCode).map {
-      case (module: JavaModuleApi, targetId) =>
+      case (module, targetId) =>
         val buildTarget = module.bspBuildTarget
         val taskId = new TaskId(module.hashCode.toString)
         new BspCompileProblemReporter(

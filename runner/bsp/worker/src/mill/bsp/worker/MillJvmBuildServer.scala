@@ -101,26 +101,19 @@ private trait MillJvmBuildServer extends JvmBuildServer { this: MillBuildServer 
             _,
             _,
             id,
-            _: RunModuleApi,
-            (
-              runClasspath,
-              forkArgs,
-              forkWorkingDir,
-              forkEnv,
-              mainClass,
-              localMainClasses
-            )
+            _,
+            res
           ) =>
-        val classpath = runClasspath.map(sanitizeUri)
+        val classpath = res.runClasspath.map(sanitizeUri)
         val item = new JvmEnvironmentItem(
           id,
           classpath.asJava,
-          forkArgs.asJava,
-          forkWorkingDir.toString(),
-          forkEnv.asJava
+          res.forkArgs.asJava,
+          res.forkWorkingDir.toString(),
+          res.forkEnv.asJava
         )
 
-        val classes = mainClass.toList ++ localMainClasses
+        val classes = res.mainClass.toList ++ res.localMainClasses
         item.setMainClasses(classes.map(new JvmMainClass(_, Nil.asJava)).asJava)
         item
     } {
