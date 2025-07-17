@@ -259,7 +259,7 @@ jobs:
             millargs: "'integration.failure.__.packaged.nodaemon'"
 
           - java-version: 24 # Run this with Mill native launcher as a smoketest
-            millargs: "'integration.invalidation.__.native.daemon'"
+            millargs: "'integration.invalidation.__.packaged.daemon'"
 
           - java-version: 17
             millargs: "'integration.bootstrap[no-java-bootstrap].native.daemon'"
