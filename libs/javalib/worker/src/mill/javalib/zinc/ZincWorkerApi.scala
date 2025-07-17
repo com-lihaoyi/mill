@@ -1,8 +1,9 @@
-package mill.javalib.worker
+package mill.javalib.zinc
 
 import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.{CompilationResult, JvmWorkerApi}
+import mill.javalib.worker.JavaCompilerOptions
 
 trait ZincWorkerApi {
   /** Compile a Java-only project */

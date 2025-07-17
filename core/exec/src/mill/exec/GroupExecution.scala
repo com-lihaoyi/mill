@@ -24,7 +24,12 @@ private trait GroupExecution {
   def rootModule: BaseModuleApi
   def classLoaderSigHash: Int
   def classLoaderIdentityHash: Int
+
+  /**
+   * `String` is the worker name, `Int` is the worker hash, `Val` is the result of the worker invocation.
+   **/
   def workerCache: mutable.Map[String, (Int, Val)]
+
   def env: Map[String, String]
   def failFast: Boolean
   def ec: Option[ThreadPoolExecutor]

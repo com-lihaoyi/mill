@@ -1,4 +1,4 @@
-package mill.zinc.worker
+package mill.javalib.zinc
 
 private trait TransformingReporter(
   color: Boolean,
@@ -19,8 +19,9 @@ private trait TransformingReporter(
 
 private object TransformingReporter {
 
-  import scala.jdk.CollectionConverters.given
   import sbt.util.InterfaceUtil
+
+  import scala.jdk.CollectionConverters.given
 
   /** implements a transformation that returns the same object if the mapper has no effect. */
   private def transformProblem(

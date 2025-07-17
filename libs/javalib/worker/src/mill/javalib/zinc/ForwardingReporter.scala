@@ -1,7 +1,6 @@
-package mill.zinc.worker
+package mill.javalib.zinc
 
 import mill.api.daemon.internal.CompileProblemReporter
-import mill.javalib.worker.ZincProblem
 import sbt.internal.inc.ManagedLoggedReporter
 
 

@@ -1,8 +1,8 @@
-package mill.javalib.worker
+package mill.javalib.zinc
 
-import mill.api.daemon.internal.{Problem, ProblemPosition, Severity, internal}
-import mill.api.daemon.internal.DiagnosticCode
-import scala.jdk.OptionConverters._
+import mill.api.daemon.internal.*
+
+import scala.jdk.OptionConverters.*
 
 @internal
 class ZincProblem(base: xsbti.Problem) extends Problem {

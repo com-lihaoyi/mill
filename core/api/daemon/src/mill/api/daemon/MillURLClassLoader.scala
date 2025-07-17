@@ -19,9 +19,10 @@ class MillURLClassLoader(
   import MillURLClassLoader.*
   addOpenClassloader(label)
 
-  override def findClass(name: String): Class[?] =
+  override def findClass(name: String): Class[?] = {
     if (sharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
     else super.findClass(name)
+  }
 
   override def close() = {
     removeOpenClassloader(label)

@@ -9,8 +9,9 @@ case class JavaCompilerOptions private(options: Seq[String]) {
     )
   }
 }
-
 object JavaCompilerOptions {
+  def empty: JavaCompilerOptions = new JavaCompilerOptions(Seq.empty)
+
   def apply(options: Seq[String]): (runtime: JavaRuntimeOptions, compiler: JavaCompilerOptions) = {
     val prefix = "-J"
     val (runtimeOptions0, compilerOptions) = options.partition(_.startsWith(prefix))

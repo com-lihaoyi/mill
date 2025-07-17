@@ -1,4 +1,4 @@
-package mill.zinc.worker
+package mill.javalib.zinc
 
 import mill.constants.CodeGenConstants
 import xsbti.VirtualFile
