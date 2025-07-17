@@ -12,7 +12,6 @@ import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTar
 import mill.api.daemon.internal.{ScalaModuleApi, ScalaPlatform, internal}
 import mill.javalib.dependency.versions.{ValidVersion, Version}
 import mill.javalib.SemanticDbJavaModule
-import mill.javalib.internal.ZincCompilerBridge
 
 // this import requires scala-reflect library to be on the classpath
 // it was duplicated to scala3-compiler, but is that too powerful to add as a dependency?

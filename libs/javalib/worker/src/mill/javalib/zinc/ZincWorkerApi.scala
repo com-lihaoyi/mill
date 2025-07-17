@@ -15,7 +15,7 @@ trait ZincWorkerApi {
     reporter: Option[CompileProblemReporter],
     reportCachedProblems: Boolean,
     incrementalCompilation: Boolean
-  )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult]
+  ): mill.api.Result[CompilationResult]
 
   /** Compile a mixed Scala/Java or Scala-only project */
   def compileMixed(
@@ -32,7 +32,7 @@ trait ZincWorkerApi {
     reportCachedProblems: Boolean,
     incrementalCompilation: Boolean,
     auxiliaryClassFileExtensions: Seq[String]
-  )(using ctx: JvmWorkerApi.Ctx): mill.api.Result[CompilationResult]
+  ): mill.api.Result[CompilationResult]
 
   def docJar(
     scalaVersion: String,
@@ -40,5 +40,5 @@ trait ZincWorkerApi {
     compilerClasspath: Seq[PathRef],
     scalacPluginClasspath: Seq[PathRef],
     args: Seq[String]
-  )(using ctx: JvmWorkerApi.Ctx): Boolean
+  ): Boolean
 }

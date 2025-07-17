@@ -1,8 +1,7 @@
 package mill.javalib.internal
 
-import mill.api.PathRef
 import mill.api.daemon.internal.internal
-import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil, Versions}
+import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil}
 
 import java.io.File
 import scala.util.Properties.isWin
@@ -13,28 +12,38 @@ enum ZincCompilerBridge {
    *
    * @param forScalaVersion returns the path to the compiler bridge jar for the given Scala version
    * */
-  case Compiled(forScalaVersion: String => PathRef)
+  case Compiled(forScalaVersion: String => os.Path)
 
-  /** The compiler bridge needs to be compiled. */
-  case Provider(context: JvmWorkerApi.Ctx, compile: ZincCompilerBridge.Compile)
+  /** The compiler bridge needs to be compiled.
+   *
+   * @param taskDest The task's destination folder.
+   * @param logInfo logs a message at INFO level.
+   * */
+  case Provider(taskDest: os.Path, logInfo: String => Unit, compile: ZincCompilerBridge.Compile)
 }
 @internal
 object ZincCompilerBridge {
   trait Compile {
-    def apply(scalaVersion: String, scalaOrganization: String): CompileResult
+    def apply(scalaVersion: String, scalaOrganization: String): CompileResult[os.Path]
   }
-  case class CompileResult(classpath: Option[Seq[PathRef]], bridgeJar: PathRef) {
-    def fullClasspath: Vector[PathRef] = (Iterator(bridgeJar) ++ classpath.iterator.flatten).toVector
+  case class CompileResult[Path](classpath: Option[Seq[Path]], bridgeJar: Path) {
+    def map[B](f: Path => B): CompileResult[B] =
+      copy(classpath = classpath.map(_.map(f)), bridgeJar = f(bridgeJar))
+
+    def fullClasspath: Vector[Path] = (Iterator(bridgeJar) ++ classpath.iterator.flatten).toVector
+  }
+  object CompileResult {
+    given rw[Path:upickle.default.ReadWriter]: upickle.default.ReadWriter[CompileResult[Path]] = upickle.default.macroRW
   }
 
   /** Compile the `sbt`/Zinc compiler bridge in the `compileDest` directory */
   def compile(
-    ctx0: JvmWorkerApi.Ctx,
+    logInfo: String => Unit,
     workingDir: os.Path,
     compileDest: os.Path,
     scalaVersion: String,
-    compilerClasspath: Seq[PathRef],
-    compilerBridgeClasspath: Seq[PathRef],
+    compilerClasspath: Seq[os.Path],
+    compilerBridgeClasspath: Seq[os.Path],
     compilerBridgeSourcesJar: os.Path
   ): Unit = {
     if (scalaVersion == "2.12.0") {
@@ -45,14 +54,14 @@ object ZincCompilerBridge {
       )
     }
 
-    ctx0.log.info("Compiling compiler interface...")
+    logInfo("Compiling compiler interface...")
 
     os.makeDir.all(workingDir)
     os.makeDir.all(compileDest)
 
     val sourceFolder = os.unzip(compilerBridgeSourcesJar, workingDir / "unpacked")
     val classloader = mill.util.Jvm.createClassLoader(
-      compilerClasspath.map(_.path),
+      compilerClasspath,
       parent = null
     )
 
@@ -70,9 +79,7 @@ object ZincCompilerBridge {
         "-d",
         compileDest.toString,
         "-classpath",
-        (compilerClasspath.iterator ++ compilerBridgeClasspath).map(_.path).mkString(
-          File.pathSeparator
-        )
+        (compilerClasspath.iterator ++ compilerBridgeClasspath).mkString(File.pathSeparator)
       ) ++ sources.map(_.toString)
 
       val allScala = sources.forall(_.ext == "scala")

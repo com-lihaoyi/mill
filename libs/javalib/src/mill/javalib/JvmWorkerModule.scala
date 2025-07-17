@@ -59,10 +59,16 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     val factory = cl.loadClass("mill.javalib.worker.JvmWorkerFactory").getConstructor().newInstance()
       .asInstanceOf[JvmWorkerFactoryApi]
 
-    val args = JvmWorkerArgs(
-      ZincCompilerBridge.Provider(Task.ctx(), (scalaVersion, scalaOrganization) => scalaCompilerBridgeJar(
+    val ctx = Task.ctx()
+    val zincCompilerBridge = ZincCompilerBridge.Provider(
+      taskDest = ctx.dest,
+      logInfo = ctx.log.info,
+      compile = (scalaVersion, scalaOrganization) => scalaCompilerBridgeJar(
         scalaVersion = scalaVersion, scalaOrganization = scalaOrganization, defaultResolver()
-      )),
+      ).map(_.path)
+    )
+    val args = JvmWorkerArgs(
+      zincCompilerBridge,
       jobs = jobs,
       compileToJar = false,
       zincLogDebug = zincLogDebug(),
@@ -75,7 +81,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: TaskCtx): ZincCompilerBridge.CompileResult = {
+  )(implicit ctx: TaskCtx): ZincCompilerBridge.CompileResult[PathRef] = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, JvmWorkerUtil.scalaBinaryVersion(scalaVersion))
     }

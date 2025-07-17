@@ -1,5 +1,6 @@
 package mill.api
 
+import mill.api.daemon.internal.Severity
 import os.Path
 import upickle.default.ReadWriter as RW
 
@@ -31,6 +32,10 @@ trait JsonFormatters {
 
   implicit def subPathRW: RW[os.SubPath] = JsonFormatters.Default.subPathRW
 
+  implicit def fileRW: RW[java.io.File] = JsonFormatters.Default.fileRW
+
+  implicit def severityRW: RW[Severity] = JsonFormatters.Default.severityRW
+
   implicit val nioPathRW: RW[java.nio.file.Path] = upickle.default.readwriter[String]
     .bimap[java.nio.file.Path](
       _.toUri().toString(),
@@ -57,7 +62,7 @@ trait JsonFormatters {
         ujson.Obj(
           "declaringClass" -> ujson.Str(ste.getClassName),
           "methodName" -> ujson.Str(ste.getMethodName),
-          "fileName" -> ujson.Arr(Option(ste.getFileName()).map(ujson.Str(_)).toSeq*),
+          "fileName" -> ujson.Arr(Option(ste.getFileName).map(ujson.Str(_)).toSeq*),
           "lineNumber" -> ujson.Num(ste.getLineNumber)
         ),
       json =>
@@ -87,5 +92,21 @@ object JsonFormatters extends JsonFormatters {
   object Default {
     val subPathRW: RW[os.SubPath] =
       upickle.default.readwriter[String].bimap[os.SubPath](_.toString, os.SubPath(_))
+
+    val fileRW: RW[java.io.File] =
+      upickle.default.readwriter[String].bimap[java.io.File](_.toString, java.io.File(_))
+
+    val severityRW: RW[Severity] = upickle.default.readwriter[String].bimap[Severity](
+      {
+        case mill.api.daemon.internal.Error => "error"
+        case mill.api.daemon.internal.Warn => "warn"
+        case mill.api.daemon.internal.Info => "info"
+      },
+      {
+        case "error" => mill.api.daemon.internal.Error
+        case "warn" => mill.api.daemon.internal.Warn
+        case "info" => mill.api.daemon.internal.Info
+      }
+    )
   }
 }

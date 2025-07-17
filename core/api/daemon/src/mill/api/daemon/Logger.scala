@@ -9,7 +9,7 @@ import java.io.PrintStream
  * but when `show` is used both are forwarded to stderr and stdout is only
  * used to display the final `show` output for easy piping.
  */
-trait Logger {
+trait Logger extends Logger.Actions {
 
   /**
    * This Logger's versions of stdin, stdout, and stderr. Typically enabled
@@ -24,40 +24,6 @@ trait Logger {
    * can be more finely customized per logger.
    */
   private[mill] def unprefixedStreams: SystemStreams = streams
-
-  /**
-   * Prints miscellaneous logging output which isn't part of the main output
-   * a user is looking for, but useful to provide context on what Mill is doing
-   */
-  def info(s: String): Unit
-
-  /**
-   * Prints internal debug messages normally not shown to the user;
-   * mostly useful when debugging issues
-   */
-  def debug(s: String): Unit
-
-  /**
-   * Prints logging output which represents warnings the user should care
-   * about
-   */
-  def warn(s: String): Unit
-
-  /**
-   * Prints logging output which represents problems the user should care
-   * about
-   */
-  def error(s: String): Unit
-
-  /**
-   * Prints short-lived logging output where consecutive lines over-write
-   * each other; this shows up in the logger's prompt line in the multi-line
-   * prompt when [[withPromptLine]] is running.
-   *
-   * Useful for information which is transient and disposable, e.g. progress
-   * indicators.
-   */
-  def ticker(s: String): Unit
 
   /**
    * Global APIs that let the logger access the command line configuration and
@@ -112,6 +78,42 @@ trait Logger {
 }
 
 object Logger {
+  trait Actions {
+    /**
+     * Prints miscellaneous logging output which isn't part of the main output
+     * a user is looking for, but useful to provide context on what Mill is doing
+     */
+    def info(s: String): Unit
+
+    /**
+     * Prints internal debug messages normally not shown to the user;
+     * mostly useful when debugging issues
+     */
+    def debug(s: String): Unit
+
+    /**
+     * Prints logging output which represents warnings the user should care
+     * about
+     */
+    def warn(s: String): Unit
+
+    /**
+     * Prints logging output which represents problems the user should care
+     * about
+     */
+    def error(s: String): Unit
+
+    /**
+     * Prints short-lived logging output where consecutive lines over-write
+     * each other; this shows up in the logger's prompt line in the multi-line
+     * prompt when [[Logger.withPromptLine]] is running.
+     *
+     * Useful for information which is transient and disposable, e.g. progress
+     * indicators.
+     */
+    def ticker(s: String): Unit
+  }
+
 
   /**
    * APIs that allow a logger to interact with the global prompt: setting and unsetting
