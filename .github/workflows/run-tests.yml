@@ -183,7 +183,7 @@ jobs:
 
             # These invalidation tests need to be exercised in both execution modes
             # to make sure they work with and without -i/--no-server being passed
-          - java-version: 17
+          - java-version: 24
             millargs: "'integration.invalidation.__.packaged.nodaemon'"
 
           - java-version: 17
