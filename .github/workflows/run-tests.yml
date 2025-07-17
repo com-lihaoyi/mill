@@ -29,8 +29,7 @@
 # We run full CI on push builds to main and on all pull requests
 #
 # To maximize bug-catching changes while keeping CI times reasonable, we run
-# all tests on Linux, scattered between Java 11/17, except for one job run
-# on MacOS instead and a subset of jobs also run on windows
+# tests scattered between Java 11/17/24, across linux/mac/windows, intel/arm
 
 
 name: Run Tests
@@ -91,16 +90,16 @@ jobs:
           # Run these with Mill native launcher as a smoketest
         include:
           - os: ubuntu-24.04-arm
-            millargs: "'example.thirdparty[fansi].native.daemon'"
+            millargs: "'example.thirdparty[{mockito,netty}].native.daemon'"
             java-version: 17
 
           - os: macos-latest
-            millargs: "'example.thirdparty[acyclic].native.daemon'"
+            millargs: "'example.thirdparty[{acyclic,fansi}].native.daemon'"
             java-version: 11
 
           - os: macos-13
-            millargs: "'example.thirdparty[jimfs].native.daemon'"
-            java-version: 11
+            millargs: "'example.thirdparty[{jimfs,commons-io}].native.daemon'"
+            java-version: 24
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 1 }
@@ -133,14 +132,14 @@ jobs:
           # on the opposite version on Windows below, so we get decent coverage of
           # each test on each Java version and each operating system
           # We also try to group tests together to manually balance out the runtimes of each jobs
-          - java-version: 24
-            millargs: "'{core,testkit,runner,dist}.__.test'"
+          - java-version: 17
+            millargs: "'{contrib,core,testkit,runner,dist}.__.test'"
             install-android-sdk: false
-            install-sbt: true
+            install-sbt: false
             install-xvfb: false
 
           - java-version: 17
-            millargs: "'libs.{util,javalib,androidlib,graphviz,init,tabcomplete}.__.test'"
+            millargs: "'libs.{scalalib,init}.__.test'"
             install-android-sdk: false
             install-sbt: true
             install-xvfb: false
@@ -152,19 +151,7 @@ jobs:
             install-xvfb: false
 
           - java-version: 17
-            millargs: "contrib.__.test"
-            install-android-sdk: false
-            install-sbt: false
-            install-xvfb: false
-
-          - java-version: 17
-            millargs: "example.javalib.__.local.daemon"
-            install-android-sdk: false
-            install-sbt: false
-            install-xvfb: false
-
-          - java-version: 17
-            millargs: "example.kotlinlib.__.local.daemon"
+            millargs: "example.kotlinlib.__.packaged.daemon" # .packaged because somehow .local is flaky
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
@@ -176,55 +163,37 @@ jobs:
             install-xvfb: false
 
           - java-version: 17
+            millargs: "example.javalib.__.local.daemon"
+            install-android-sdk: false
+            install-sbt: false
+            install-xvfb: false
+
+          - java-version: 17
             millargs: "'example.androidlib.__.local.daemon'"
             install-android-sdk: true
             install-sbt: false
             install-xvfb: false
 
           - java-version: 17
-            millargs: "'example.thirdparty[androidtodo].local.daemon'"
+            millargs: "'example.thirdparty[android-compose-samples].packaged.daemon'"
             install-android-sdk: true
             install-sbt: false
             install-xvfb: false
 
-          - java-version: 17
-            millargs: "'example.thirdparty[android-endless-tunnel].local.daemon'"
-            install-android-sdk: true
-            install-sbt: false
-            install-xvfb: false
-
-          - java-version: 17
-            millargs: "'example.thirdparty[android-compose-samples].local.daemon'"
-            install-android-sdk: true
-            install-sbt: false
-            install-xvfb: false
-
-          - java-version: 17
-            millargs: "'example.migrating.__.local.daemon'"
+          - java-version: 11
+            millargs: "'example.migrating.javalib.__.local.daemon'"
             install-android-sdk: false
             install-sbt: true
             install-xvfb: true
 
-          - java-version: 17
+          - java-version: 24
             millargs: "'example.{pythonlib,javascriptlib}.__.local.daemon'"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
 
           - java-version: 24
-            millargs: "'example.thirdparty[{mockito,commons-io}].local.daemon'"
-            install-android-sdk: false
-            install-sbt: false
-            install-xvfb: false
-
-          - java-version: 17
-            millargs: "'example.thirdparty[{netty,gatling}].local.daemon'"
-            install-android-sdk: false
-            install-sbt: false
-            install-xvfb: false
-
-          - java-version: '17'
-            millargs: "'example.thirdparty[arrow].local.daemon'"
+            millargs: "'example.thirdparty[{arrow,gatling}].local.daemon'"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
@@ -236,7 +205,7 @@ jobs:
             install-xvfb: false
 
           - java-version: 11
-            millargs: "'integration.{failure,feature,ide}.__.native.daemon'"
+            millargs: "'integration.{feature,ide}.__.native.daemon'"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
@@ -252,12 +221,6 @@ jobs:
             # to make sure they work with and without -i/--no-server being passed
           - java-version: 17
             millargs: "'integration.invalidation.__.packaged.nodaemon'"
-            install-android-sdk: false
-            install-sbt: false
-            install-xvfb: false
-
-          - java-version: 24
-            millargs: "'integration.invalidation.__.packaged.daemon'"
             install-android-sdk: false
             install-sbt: false
             install-xvfb: false
@@ -283,31 +246,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # just run a subset of examples/ on Windows, because for some reason running
-          # the whole suite can take hours on windows v.s. half an hour on linux
-          #
-          # * One job unit tests,
-          # * One job each for local/packaged/native tests
-          # * At least one job for each of fork/server tests, and example/integration tests
           - java-version: 11
-            millargs: '"libs.{util,javalib}.__.test"'
-            install-sbt: false
-
-          - java-version: 11
-            millargs: '"example.scalalib.{basic,publishing}.__.local.nodaemon"'
-            install-sbt: false
-
-          - java-version: 11
-            millargs: '"example.migrating.javalib.__.packaged.nodaemon"'
-            install-sbt: true
+            millargs: '"libs.{util,javalib,androidlib,graphviz,tabcomplete}.__.test"'
 
           - java-version: 17
-            millargs: "'integration.{feature,failure}.__.packaged.nodaemon'"
-            install-sbt: false
+            millargs: '"example.scalalib.{basic,publishing}.__.packaged.daemon"'
+
+          - java-version: 24
+            millargs: '"example.migrating.scalalib.__.packaged.daemon"'
+
+          - java-version: 17
+            millargs: "'integration.failure.__.packaged.nodaemon'"
 
           - java-version: 24 # Run this with Mill native launcher as a smoketest
-            millargs: "'integration.invalidation.__.native.daemon'"
-            install-sbt: false
+            millargs: "'integration.invalidation.__.packaged.daemon'"
 
           - java-version: 17
             millargs: "'integration.bootstrap[no-java-bootstrap].native.daemon'"
@@ -321,7 +273,6 @@ jobs:
       # running the graal native image binary on windows
       coursierarchive: "C:/coursier-arc"
       shell: powershell
-      install-sbt: ${{ matrix.install-sbt || false }}
 
   itest:
     needs: build-linux
@@ -330,10 +281,8 @@ jobs:
       matrix:
         include:
           # bootstrap tests
-          - java-version: 11 # Have one job on oldest JVM
-            buildcmd: ci/test-dist-run.sh && ci/test-install-local.sh
-          - java-version: 17 # Have one job on default JVM
-            buildcmd: ci/test-mill-bootstrap.sh
+          - java-version: 11
+            buildcmd: ci/test-dist-run.sh && ci/test-install-local.sh && ci/test-mill-bootstrap.sh
 
     uses: ./.github/workflows/post-build-raw.yml
     with:
