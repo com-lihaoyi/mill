@@ -303,7 +303,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     else allSources()
   }
 
-  override def docJar: T[PathRef] = Task {
+  override def generatedScaladoc: T[PathRef] = Task {
     val compileCp = Seq(
       "-classpath",
       compileClasspath()
@@ -313,9 +313,9 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         .mkString(java.io.File.pathSeparator)
     )
 
-    def packageWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
+    def generateWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
       if (files.isEmpty) {
-        Result.Success(PathRef(createJar(Task.dest / "out.jar", Seq(javadocDir))))
+        Result.Success(PathRef(javadocDir))
       } else {
         jvmWorker()
           .worker()
@@ -328,7 +328,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             options ++ compileCp ++ scalaDocOptions() ++
               files.map(_.toString())
           ) match {
-          case true => Result.Success(PathRef(createJar(Task.dest / "out.jar", Seq(javadocDir))))
+          case true => Result.Success(PathRef(javadocDir))
           case false => Result.Failure("docJar generation failed")
         }
       }
@@ -352,7 +352,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           createFolders = true
         )
       }
-      packageWithZinc(
+      generateWithZinc(
         Seq("-siteroot", javadocDir.toNIO.toString),
         Lib.findSourceFiles(docSources(), Seq("java", "scala")),
         javadocDir / "_site"
@@ -384,7 +384,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         )
       }
 
-      packageWithZinc(
+      generateWithZinc(
         Seq(
           "-d",
           javadocDir.toNIO.toString,
@@ -398,13 +398,17 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       val javadocDir = Task.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
-      packageWithZinc(
+      generateWithZinc(
         Seq("-d", javadocDir.toNIO.toString),
         Lib.findSourceFiles(docSources(), Seq("java", "scala")),
         javadocDir
       )
     }
 
+  }
+
+  override def docJar: T[PathRef] = Task {
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(generatedScaladoc().path)))
   }
 
   /**
