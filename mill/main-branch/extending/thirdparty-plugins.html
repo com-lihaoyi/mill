@@ -1645,6 +1645,37 @@ and more, check the project readme.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_openapi4s"><a class="anchor" href="#_openapi4s"></a>OpenApi4s</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill plugin for OpenApi4s generators.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/sake92/mill-openapi4s" class="bare">https://github.com/sake92/mill-openapi4s</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;ba.sake::mill-openapi4s::0.7.0&quot;]
+
+import mill.*
+import mill.scalalib._
+import ba.sake.mill.openapi4s.OpenApiGeneratorModule
+
+object app extends ScalaModule, OpenApiGeneratorModule {
+  def openApi4sPackage = &quot;com.example.api&quot;
+  def openApi4sVersion = &quot;0.6.1&quot;
+  // def openApi4sGenerator = &quot;sharaf&quot; // or &quot;http4s&quot;</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Generate source files</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill app.openApi4sGenerate</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_osgi"><a class="anchor" href="#_osgi"></a>OSGi</h2>
 <div class="sectionbody">
 <div class="paragraph">
