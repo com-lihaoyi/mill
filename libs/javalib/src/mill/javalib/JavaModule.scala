@@ -17,7 +17,7 @@ import mill.javalib.api.CompilationResult
 import mill.javalib.bsp.{BspJavaModule, BspModule}
 import mill.javalib.internal.ModuleUtils
 import mill.javalib.publish.Artifact
-import mill.util.{JarManifest, Jvm, Jvm as Seq}
+import mill.util.{JarManifest, Jvm}
 import os.Path
 
 import scala.util.chaining.scalaUtilChainingOps
@@ -1131,9 +1131,8 @@ trait JavaModule
         stdin = os.Inherit,
         stdout = os.Inherit
       )
-
-      PathRef(javadocDir)
     }
+    PathRef(javadocDir)
   }
 
   /**
