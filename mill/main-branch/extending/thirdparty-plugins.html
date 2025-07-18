@@ -1970,32 +1970,27 @@ $ mill app.springBootAssembly</code></pre>
 <p>Source code generator for <a href="https://github.com/sake92/squery/">Squery</a> SQL library boilerplate.</p>
 </div>
 <div class="paragraph">
-<p>Project home: <a href="https://github.com/sake92/squery" class="bare">https://github.com/sake92/squery</a></p>
+<p>Project home: <a href="https://github.com/sake92/mill-squery" class="bare">https://github.com/sake92/mill-squery</a></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;ba.sake::mill-squery-generator_mill0.11:0.6.2&quot;]
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;ba.sake::mill-squery-generator::0.10.0&quot;]
 
 import mill.*
 import mill.scalalib._
-import ba.sake.squery.generator._
-import ba.sake.squery.generator.mill.SqueryGeneratorModule
+import ba.sake.mill.squery.generator.SqueryGeneratorModule
 
 object app extends ScalaModule, SqueryGeneratorModule {
   // use Task.Input(Task.ctx.env(&quot;MY_ENV_VAR&quot;)) to set sensitive variables like password etc
-  def squeryJdbcUrl = &quot;jdbc:...&quot;
-  def squeryUsername = &quot;..&quot;
-  def squeryPassword = &quot;..&quot;
-  def squerySchemas = Seq(&quot;myschema&quot; -&gt; &quot;com.mypackage.myschema&quot;)
-
-  // override to tweak codegen settings
-  def squeryGeneratorConfig: T[SqueryGeneratorConfig] = ...</code></pre>
+  def squeryJdbcUrl = jdbcUrl()
+  def squerySchemaMappings = Seq(&quot;PUBLIC&quot; -&gt; &quot;com.mypackage.myschema&quot;)
+  def squeryJdbcDeps = Seq(mvn&quot;com.h2database:h2:..&quot;)</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Generate source files</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill root.squeryGenerate</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill app.squeryGenerate</code></pre>
 </div>
 </div>
 </div>
