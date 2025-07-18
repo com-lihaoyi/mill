@@ -25,7 +25,6 @@ trait KeytoolModule extends ExternalModule, JvmWorkerModule {
       args: Task[Seq[String]]
   ) = Task.Anon {
     val mainClass = "mill.androidlib.keytool.Keytool"
-    Task.log.info("Running keytool")
     val res = mill.util.Jvm.callProcess(
       mainClass = mainClass,
       classPath = classpath().map(_.path),

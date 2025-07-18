@@ -724,8 +724,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
           debugKeyPass,
           "--dname",
           s"CN=$debugKeyAlias, OU=$debugKeyAlias, O=$debugKeyAlias, L=$debugKeyAlias, S=$debugKeyAlias, C=$debugKeyAlias",
-//          "--validity",
-//          10000.days.toString
+          "--validity",
+          10000.days.toString
         ))
       )()
     }
