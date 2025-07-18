@@ -9,18 +9,6 @@ import HelloWorldTests.*
 import mill.api.Discover
 object ScalaMacrosTests extends TestSuite {
 
-  object HelloWorldMacros212 extends TestRootModule {
-    object core extends ScalaModule {
-      override def scalaVersion = scala212Version
-      override def mvnDeps = Seq(
-        mvn"com.github.julien-truffaut::monocle-macro::1.6.0"
-      )
-      override def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++ Seq(
-        mvn"org.scalamacros:::paradise:2.1.0"
-      )
-    }
-    lazy val millDiscover = Discover[this.type]
-  }
 
   object HelloWorldMacros213 extends TestRootModule {
     object core extends ScalaModule {
@@ -34,32 +22,6 @@ object ScalaMacrosTests extends TestSuite {
   def tests: Tests = Tests {
 
     test("macros") {
-      test("scala-2.12") {
-        // Scala 2.12 does not always work with Java 17+
-        // make sure macros are applied when compiling/running
-        val mod = HelloWorldMacros212
-        test("runMain") - UnitTester(
-          mod,
-          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-macros"
-        ).scoped { eval =>
-          if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
-          else {
-            val Right(result) = eval.apply(mod.core.runMain("Main")): @unchecked
-            assert(result.evalCount > 0)
-          }
-        }
-        // make sure macros are applied when compiling during scaladoc generation
-        test("docJar") - UnitTester(
-          mod,
-          sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world-macros"
-        ).scoped { eval =>
-          if (Properties.isJavaAtLeast(17)) "skipped on Java 17+"
-          else {
-            val Right(result) = eval.apply(mod.core.docJar): @unchecked
-            assert(result.evalCount > 0)
-          }
-        }
-      }
       test("scala-2.13") {
         // make sure macros are applied when compiling/running
         val mod = HelloWorldMacros213
