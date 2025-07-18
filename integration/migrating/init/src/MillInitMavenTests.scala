@@ -316,7 +316,7 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "transport-sctp.test.compile"
             )
           )),
-          expectedTestTaskResults = None/*Some(SplitTaskResults(
+          expectedTestTaskResults = Some(SplitTaskResults(
             successful = SortedSet(
               "buffer.test",
               "resolver.test",
@@ -325,33 +325,33 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "common.test"
             ),
             failed = SortedSet(
-              "codec-dns.test",
-              "codec-haproxy.test",
-              "codec-http.test",
-              "codec-http2.test",
-              "codec-memcache.test",
-              "codec-mqtt.test",
-              "codec-redis.test",
-              "codec-smtp.test",
-              "codec-socks.test",
-              "codec-stomp.test",
-              "codec-xml.test",
-              "codec.test",
-              "handler-proxy.test",
-              "handler-ssl-ocsp.test",
-              "handler.test",
-              "resolver-dns-native-macos.test",
-              "resolver-dns.test",
-              "testsuite-native.test",
-              "testsuite-osgi.test",
-              "testsuite-shading.test",
-              "transport-blockhound-tests.test",
-              "transport-native-epoll.test",
-              "transport-native-kqueue.test",
-              "transport-sctp.test",
-              "transport.test"
+//              "codec-dns.test",
+//              "codec-haproxy.test",
+//              "codec-http.test",
+//              "codec-http2.test",
+//              "codec-memcache.test",
+//              "codec-mqtt.test",
+//              "codec-redis.test",
+//              "codec-smtp.test",
+//              "codec-socks.test",
+//              "codec-stomp.test",
+//              "codec-xml.test",
+//              "codec.test",
+//              "handler-proxy.test",
+//              "handler-ssl-ocsp.test",
+//              "handler.test",
+//              "resolver-dns-native-macos.test",
+//              "resolver-dns.test",
+//              "testsuite-native.test",
+//              "testsuite-osgi.test",
+//              "testsuite-shading.test",
+//              "transport-blockhound-tests.test",
+//              "transport-native-epoll.test",
+//              "transport-native-kqueue.test",
+//              "transport-sctp.test",
+//              "transport.test"
             )
-          ))*/
+          ))
         )
       }
     }
