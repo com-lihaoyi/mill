@@ -325,7 +325,7 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "common.test"
             ),
             failed = SortedSet(
-              "codec-dns.test",
+              "codec-dns.test"
               // Skip the rest for CI performance reasons
               //
               // "codec-haproxy.test",
