@@ -1040,32 +1040,27 @@ $ mill app.springBootAssembly
 
 Source code generator for https://github.com/sake92/squery/[Squery] SQL library boilerplate.
 
-Project home: https://github.com/sake92/squery
+Project home: https://github.com/sake92/mill-squery
 
 [source,scala,subs="attributes,verbatim"]
 ----
-//| mvnDeps: ["ba.sake::mill-squery-generator_mill0.11:0.6.2"]
+//| mvnDeps: ["ba.sake::mill-squery-generator::0.10.0"]
 
 import mill.*
 import mill.scalalib._
-import ba.sake.squery.generator._
-import ba.sake.squery.generator.mill.SqueryGeneratorModule
+import ba.sake.mill.squery.generator.SqueryGeneratorModule
 
 object app extends ScalaModule, SqueryGeneratorModule {
   // use Task.Input(Task.ctx.env("MY_ENV_VAR")) to set sensitive variables like password etc
-  def squeryJdbcUrl = "jdbc:..."
-  def squeryUsername = ".."
-  def squeryPassword = ".."
-  def squerySchemas = Seq("myschema" -> "com.mypackage.myschema")
-
-  // override to tweak codegen settings
-  def squeryGeneratorConfig: T[SqueryGeneratorConfig] = ...
+  def squeryJdbcUrl = jdbcUrl()
+  def squerySchemaMappings = Seq("PUBLIC" -> "com.mypackage.myschema")
+  def squeryJdbcDeps = Seq(mvn"com.h2database:h2:..")
 ----
 
 .Generate source files
 [source,console]
 ----
-$ ./mill root.squeryGenerate
+$ ./mill app.squeryGenerate
 ----
 
 
