@@ -4,11 +4,9 @@ import mill.*
 import mill.testkit.{TestRootModule, UnitTester}
 import utest.*
 
-import scala.util.Properties
 import HelloWorldTests.*
 import mill.api.Discover
 object ScalaMacrosTests extends TestSuite {
-
 
   object HelloWorldMacros213 extends TestRootModule {
     object core extends ScalaModule {

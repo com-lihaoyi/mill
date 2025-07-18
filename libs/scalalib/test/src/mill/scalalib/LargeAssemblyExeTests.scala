@@ -1,8 +1,7 @@
 package mill.scalalib
 
-
 import mill.api.Task.Simple as T
-import mill.api.{Discover, ExecResult, Module, Task}
+import mill.api.{Discover, ExecResult, Task}
 
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.Jvm
@@ -15,7 +14,6 @@ import mill.*
 // - https://github.com/com-lihaoyi/mill/issues/2650
 
 object LargeAssemblyExeTests extends TestSuite {
-
 
   object TestCase extends TestRootModule {
 
@@ -43,7 +41,6 @@ object LargeAssemblyExeTests extends TestSuite {
   }
 
   val sources = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "assembly"
-
 
   def tests: Tests = Tests {
     test("exe") {
