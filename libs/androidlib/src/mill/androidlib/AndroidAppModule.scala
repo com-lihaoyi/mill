@@ -709,6 +709,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
     PathRef(androidMillHomeDir().path / "mill-debug.jks")
   }
 
+  private def keytoolModuleRef: ModuleRef[KeytoolModule] = ModuleRef(KeytoolModule)
+
   /*
     The debug keystore is stored in `$HOME/.mill-android`. The practical
   purpose of a global keystore is to avoid the user having to uninstall the
@@ -716,26 +718,24 @@ trait AndroidAppModule extends AndroidModule { outer =>
    */
   private def androidDebugKeystore: Task[PathRef] = Task.Anon {
     val debugKeystoreFilePath = debugKeystoreFile().path
-    if (!os.exists(debugKeystoreFilePath)) {
-      // TODO test on windows and mac and/or change implementation with java APIs
-      os.makeDir.all(androidMillHomeDir().path)
-      ModuleRef(KeytoolModule)().createKeystoreWithCertificate(
-        Task.Anon(Seq(
-          "--keystore",
-          outer.debugKeystoreFile().path.toString,
-          "--storepass",
-          debugKeyStorePass,
-          "--alias",
-          debugKeyAlias,
-          "--keypass",
-          debugKeyPass,
-          "--dname",
-          s"CN=$debugKeyAlias, OU=$debugKeyAlias, O=$debugKeyAlias, L=$debugKeyAlias, S=$debugKeyAlias, C=$debugKeyAlias",
-          "--validity",
-          10000.days.toString
-        ))
-      )()
-    }
+    os.makeDir.all(androidMillHomeDir().path)
+    keytoolModuleRef().createKeystoreWithCertificate(
+      Task.Anon(Seq(
+        "--keystore",
+        outer.debugKeystoreFile().path.toString,
+        "--storepass",
+        debugKeyStorePass,
+        "--alias",
+        debugKeyAlias,
+        "--keypass",
+        debugKeyPass,
+        "--dname",
+        s"CN=$debugKeyAlias, OU=$debugKeyAlias, O=$debugKeyAlias, L=$debugKeyAlias, S=$debugKeyAlias, C=$debugKeyAlias",
+        "--validity",
+        10000.days.toString,
+        "--skip-if-exists"
+      ))
+    )()
     PathRef(debugKeystoreFilePath)
   }
 

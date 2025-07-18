@@ -1,5 +1,5 @@
 package mill.androidlib.keytool
-import mainargs.{ParserForMethods, arg, main, TokensReader}
+import mainargs.{ParserForMethods, arg, main, TokensReader, Flag}
 import scala.concurrent.duration.*
 
 @mill.api.experimental
@@ -28,8 +28,11 @@ object Keytool {
       @arg(name = "keypass") keyPassword: String,
       @arg(name = "storepass") storePassword: String,
       @arg(name = "dname") dname: String,
-      @arg(name = "validity") validity: FiniteDuration = Duration(10000, DAYS)
+      @arg(name = "validity") validity: FiniteDuration = Duration(10000, DAYS),
+      @arg(name = "skip-if-exists") skipIfExists: Flag
   ): Unit = {
+    if (skipIfExists.value && os.exists(os.Path(keystorePath)))
+      return
     val keystore = Keystore.createKeystore()
     val keyPair = RSAKeyGen.generateKeyPair()
     Keystore.addKeyPair(
