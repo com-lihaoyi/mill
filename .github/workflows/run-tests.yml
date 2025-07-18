@@ -173,7 +173,7 @@ jobs:
             millargs: "'example.{cli,fundamentals,depth,extending,large}.__.local.daemon'"
 
           - java-version: 11
-            millargs: "'integration.{feature,ide}.__.native.daemon'"
+            millargs: "'integration.{feature,ide}.__.packaged.daemon'"
 
             # run this specifically in `native` mode to make sure our non-JVM native image
             # launcher is able to bootstrap everything necessary without a JVM installed
