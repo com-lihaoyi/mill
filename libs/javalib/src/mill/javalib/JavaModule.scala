@@ -9,7 +9,13 @@ import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
 import mill.api.{MillException, Result}
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.daemon.internal.bsp.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, JvmBuildTarget}
+import mill.api.daemon.internal.bsp.{
+  BspBuildTarget,
+  BspJavaModuleApi,
+  BspModuleApi,
+  BspUri,
+  JvmBuildTarget
+}
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
 import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
