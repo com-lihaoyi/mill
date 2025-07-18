@@ -5,7 +5,6 @@ import mill.util.JarManifest
 import mill.api.{BuildCtx, DummyInputStream, ModuleRef, PathRef, Result, Task}
 import mill.util.BuildInfo
 import mill.util.Jvm
-import mill.util.Jvm.createJar
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
@@ -303,7 +302,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     else allSources()
   }
 
-  override def generatedScaladoc: T[PathRef] = Task {
+  def generatedScaladoc: T[PathRef] = Task {
     val compileCp = Seq(
       "-classpath",
       compileClasspath()
@@ -313,9 +312,13 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         .mkString(java.io.File.pathSeparator)
     )
 
-    def generateWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
+    def generateWithZinc(
+        options: Seq[String],
+        files: Seq[os.Path],
+        javadocDir: os.Path
+    ): PathRef = {
       if (files.isEmpty) {
-        Result.Success(PathRef(javadocDir))
+        PathRef(javadocDir)
       } else {
         jvmWorker()
           .worker()
@@ -328,8 +331,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             options ++ compileCp ++ scalaDocOptions() ++
               files.map(_.toString())
           ) match {
-          case true => Result.Success(PathRef(javadocDir))
-          case false => Result.Failure("docJar generation failed")
+          case true => PathRef(javadocDir)
+          case false => Task.fail("scaladoc generation failed")
         }
       }
     }
