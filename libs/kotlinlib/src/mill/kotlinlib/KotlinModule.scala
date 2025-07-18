@@ -10,7 +10,7 @@ import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.api.Result
 import mill.api.ModuleRef
-import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
+import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.javalib.api.{CompilationResult, JvmWorkerApi}
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.javalib.{JavaModule, JvmWorkerModule, Lib}

@@ -246,7 +246,7 @@ object CodeGen {
             ()
         }
         objectData.finalStat match {
-          case Some((leading, finalStat)) =>
+          case Some((_, finalStat)) =>
             val statLines = finalStat.text.linesWithSeparators.toSeq
             val fenced = Seq(
               "",

@@ -1,3 +1,4 @@
+//| mill-version: SNAPSHOT
 package build
 
 import mill._

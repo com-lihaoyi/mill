@@ -1,6 +1,5 @@
 package mill.eval
 
-import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, ExecutionResultsApi, TestReporter}
 import mill.constants.OutFiles
 import mill.constants.OutFiles.*
@@ -180,9 +179,9 @@ final class EvaluatorImpl private[mill] (
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.transitiveResults.iterator ++ selectiveResults)
           .collect {
-            case (t: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
+            case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
               ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
-            case (t: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
+            case (_: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
               Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
             case (t: Task.Input[_], result) =>
 

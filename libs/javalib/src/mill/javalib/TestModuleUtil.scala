@@ -2,7 +2,6 @@ package mill.javalib
 
 import mill.api.{PathRef, TaskCtx}
 import mill.api.Result
-import mill.constants.EnvVars
 import mill.api.daemon.internal.TestReporter
 import mill.util.Jvm
 import mill.api.internal.Util
@@ -23,7 +22,8 @@ import mill.javalib.testrunner.{GetTestTasksMain, TestArgs, TestResult, TestRunn
 /**
  * Implementation code used by [[TestModule]] to actually run tests.
  */
-private final class TestModuleUtil(
+@mill.api.daemon.experimental
+final class TestModuleUtil(
     useArgsFile: Boolean,
     forkArgs: Seq[String],
     selectors: Seq[String],

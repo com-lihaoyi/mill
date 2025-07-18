@@ -5,7 +5,6 @@ import ch.epfl.scala.{bsp4j => bsp}
 import mill.api.daemon.internal.{CompileProblemReporter, Problem}
 
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 
 /**

@@ -23,7 +23,6 @@ import mill.javalib.testrunner.{
 }
 
 import java.nio.file.Path
-import java.nio.file.Path
 
 /**
  * A module containing JVM test suites. Requires you define a [[testFramework]] for your
@@ -301,7 +300,7 @@ trait TestModule
     val (frameworkName, classFingerprint) =
       mill.util.Jvm.withClassLoader(
         classPath = runClasspath().map(_.path),
-        sharedPrefixes = Seq("sbt.testing.")
+        sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
       ) { classLoader =>
         val framework = Framework.framework(testFramework())(classLoader)
         framework.name() -> TestRunnerUtils
@@ -408,7 +407,7 @@ object TestModule {
     override def discoveredTestClasses: T[Seq[String]] = Task {
       Jvm.withClassLoader(
         classPath = runClasspath().map(_.path).toVector,
-        sharedPrefixes = Seq("sbt.testing.")
+        sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
       ) { classLoader =>
         val builderClass: Class[?] =
           classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")

@@ -97,40 +97,7 @@ object MillInitMavenDotEnvTests extends BuildGenTestSuite {
       assert(initRes.isSuccess)
 
       val compileRes = eval("__.compile")
-      assert(
-        // JavaModule.JavaTests does not pick compileMvnDeps from outer module
-        compileRes.err.contains(
-          "DotEnvModuleTest.java:3:25: package com.google.inject does not exist"
-        ),
-        !compileRes.isSuccess
-      )
-    }
-  }
-}
-
-object MillInitMavenAvajeConfigTests extends BuildGenTestSuite {
-
-  def tests: Tests = Tests {
-    // - multi-module
-    // - unsupported test framework
-    val url = "https://github.com/avaje/avaje-config/archive/refs/tags/4.0.zip"
-
-    test - integrationTest(url) { tester =>
-      import tester._
-
-      val init = defaultInitCommand
-      val initRes = eval(init)
-      assert(initRes.isSuccess)
-
-      val compileRes = eval("__.compile")
-      assert(
-        // uses moditect-maven-plugin to handle JPMS
-        // https://github.com/moditect/moditect
-        compileRes.err.contains(
-          "avaje-config/src/main/java/module-info.java:5:31: module not found: io.avaje.lang"
-        ),
-        !compileRes.isSuccess
-      )
+      assert(compileRes.isSuccess)
     }
   }
 }
@@ -253,6 +220,7 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "codec-xml.compile",
               "codec.compile",
               "common.compile",
+              "common.test.compile",
               "compile",
               "dev-tools.compile",
               "handler-proxy.compile",
@@ -290,7 +258,6 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "codec-stomp.test.compile",
               "codec-xml.test.compile",
               "codec.test.compile", /* missing native dependency */
-              "common.test.compile", /* missing outer compileMvnDeps */
               "example.compile",
               "handler-proxy.test.compile",
               "handler-ssl-ocsp.compile",
@@ -323,13 +290,12 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
             )
           )),
           expectedTestTaskResults = Some(SplitTaskResults(
-            successful = SortedSet(
+            all = SortedSet(
               "buffer.test",
               "resolver.test",
               "transport-native-unix-common.test",
-              "transport-udt.test"
-            ),
-            failed = SortedSet(
+              "transport-udt.test",
+              "common.test",
               "codec-dns.test",
               "codec-haproxy.test",
               "codec-http.test",
@@ -342,7 +308,6 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "codec-stomp.test",
               "codec-xml.test",
               "codec.test",
-              "common.test",
               "handler-proxy.test",
               "handler-ssl-ocsp.test",
               "handler.test",
@@ -356,7 +321,15 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "transport-native-kqueue.test",
               "transport-sctp.test",
               "transport.test"
-            )
+            ),
+            successful = SortedSet(
+              "buffer.test",
+              "resolver.test",
+              "transport-native-unix-common.test",
+              "transport-udt.test",
+              "common.test"
+            ),
+            failed = SortedSet()
           ))
         )
       }

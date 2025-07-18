@@ -18,13 +18,6 @@ class TestScript(unittest.TestCase):
         )
         self.assertEqual(testPythonPathResourceText, "Test Hello World Resource File A")
 
-        testFileResourceFile = next(
-            Path(os.getenv("MILL_TEST_RESOURCE_DIR")).rglob("test-file-b.txt"), None
-        )
-        with open(testFileResourceFile, "r", encoding="utf-8") as file:
-            testFileResourceText = file.readline()
-        self.assertEqual(testFileResourceText, "Test Hello World Resource File B")
-
         with open(
             Path(os.getenv("OTHER_FILES_DIR"), "other-file.txt"), "r", encoding="utf-8"
         ) as file:

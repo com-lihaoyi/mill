@@ -1,7 +1,6 @@
 package mill.javalib
 
-import mill.api.{Args, Discover, ModuleRef, Task}
-import mill.api.ExecResult
+import mill.api.{Discover, Task}
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*
 import utest.*

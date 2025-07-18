@@ -6,8 +6,7 @@ import mill.api.daemon.internal.{
   EvaluatorApi,
   MillScalaParser,
   PathRefApi,
-  RootModuleApi,
-  internal
+  RootModuleApi
 }
 import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
@@ -285,8 +284,8 @@ class MillBuildBootstrap(
         // `moduleWatched` needs us to re-create the classloader, we have to
         // look at the `moduleWatched` of one frame up (`prevOuterFrameOpt`),
         // and not the `moduleWatched` from the current frame (`prevFrameOpt`)
-        val moduleWatchChanged =
-          prevOuterFrameOpt.exists(_.moduleWatched.exists(w => !Watching.haveNotChanged(w)))
+        val moduleWatchChanged = prevOuterFrameOpt
+          .exists(_.moduleWatched.exists(w => !Watching.haveNotChanged(w)))
 
         val classLoader = if (runClasspathChanged || moduleWatchChanged) {
           // Make sure we close the old classloader every time we create a new
@@ -296,7 +295,7 @@ class MillBuildBootstrap(
             runClasspath.map(p => os.Path(p.javaPath)),
             null,
             sharedLoader = classOf[MillBuildBootstrap].getClassLoader,
-            sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api.daemon")
+            sharedPrefixes = Seq("java.", "javax.", "scala.", "mill.api.daemon", "sbt.testing.")
           )
           cl
         } else {
