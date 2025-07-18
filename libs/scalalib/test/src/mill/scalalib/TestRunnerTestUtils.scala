@@ -84,11 +84,17 @@ object TestRunnerTestUtils {
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "testrunner"
 
-  class TestOnlyTester(m: TestRunnerTestModule => TestModule) {
+  class TestOnlyTester(m: TestRunnerTestModule => TestModule) extends AutoCloseable {
+    val testers =
+      for (mod <- Seq(testrunner, testrunnerGrouping, testrunnerWorkStealing))
+        yield (UnitTester(mod, resourcePath), mod)
+
+    def close() = {
+      testers.foreach(_._1.closeWithoutCheckingLeaks())
+      testers.foreach(_._1.checkLeaks())
+    }
     def testOnly0(f: (UnitTester, TestRunnerTestModule) => Unit) = {
-      for (mod <- Seq(testrunner, testrunnerGrouping, testrunnerWorkStealing)) {
-        UnitTester(mod, resourcePath).scoped { eval => f(eval, mod) }
-      }
+      testers.foreach((eval, mod) => f(eval, mod))
     }
     def testOnly(
         args: Seq[String],
