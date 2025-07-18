@@ -14,7 +14,7 @@ import mill.*
 // - https://github.com/com-lihaoyi/mill/issues/528
 // - https://github.com/com-lihaoyi/mill/issues/2650
 
-object AssemblyExeTests extends TestSuite {
+object LargeAssemblyExeTests extends TestSuite {
 
 
   object TestCase extends TestRootModule {
