@@ -349,7 +349,7 @@ object `gatling-test-framework` extends GatlingModule {
 
 > sed -i.bak 's/is.toString(charset)/is.toString()/g' gatling-benchmarks/src/main/scala/io/gatling/Utils.scala
 
-> rm src/test/scala/io/gatling/core/action/PaceSpec.scala
+> rm gatling-core/src/test/scala/io/gatling/core/action/PaceSpec.scala
 
 > ./mill __.test
 ConsoleTemplateSpec:
