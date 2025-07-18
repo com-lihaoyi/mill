@@ -147,19 +147,19 @@ object MultiLevelBuildTestsValidEdits extends MultiLevelBuildTests {
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
+          buildPaths2(tester)
         )
         // First run all classloaders are new, except level 0 running user code
         // which doesn't need generate a classloader which never changes
         checkChangedClassloaders(tester, null, true, true)
 
-        modifyFile(workspacePath / "foo/src/Example.scala", _.replace("!", "?"))
+        modifyFile(workspacePath / "foo/src/Example.java", _.replace("!", "?"))
         runAssertSuccess(tester, "<h1>hello</h1><p>world</p><p>0.13.1</p>?")
         checkWatchedFiles(
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
+          buildPaths2(tester)
         )
         // Second run with no build changes, all classloaders are unchanged
         checkChangedClassloaders(tester, null, false, false)
@@ -170,15 +170,15 @@ object MultiLevelBuildTestsValidEdits extends MultiLevelBuildTests {
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
+          buildPaths2(tester)
         )
         checkChangedClassloaders(tester, null, true, false)
 
         modifyFile(
           workspacePath / "mill-build/build.mill",
           _.replace(
-          """def scalatagsVersion = "$scalatagsVersion"""",
-          """def scalatagsVersion = "changed-" + "$scalatagsVersion""""
+            """def scalatagsVersion = "$scalatagsVersion"""",
+            """def scalatagsVersion = "changed-" + "$scalatagsVersion""""
           )
         )
         runAssertSuccess(tester, "<h1>HELLO</h1><p>world</p><p>changed-0.13.1</p>?")
@@ -186,7 +186,7 @@ object MultiLevelBuildTestsValidEdits extends MultiLevelBuildTests {
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
+          buildPaths2(tester)
         )
         checkChangedClassloaders(tester, null, true, true)
 
@@ -202,8 +202,7 @@ object MultiLevelBuildTestsValidEdits extends MultiLevelBuildTests {
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
-
+          buildPaths2(tester)
         )
         checkChangedClassloaders(tester, null, true, true)
 
@@ -213,19 +212,17 @@ object MultiLevelBuildTestsValidEdits extends MultiLevelBuildTests {
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
-
+          buildPaths2(tester)
         )
         checkChangedClassloaders(tester, null, true, false)
 
-        modifyFile(workspacePath / "foo/src/Example.scala", _.replace("?", "!"))
+        modifyFile(workspacePath / "foo/src/Example.java", _.replace("?", "!"))
         runAssertSuccess(tester, "<h1>hello</h1><p>world</p><p>0.13.1</p>!")
         checkWatchedFiles(
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
-
+          buildPaths2(tester)
         )
         checkChangedClassloaders(tester, null, false, false)
       }
@@ -250,8 +247,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
-
+          buildPaths2(tester)
         )
         checkChangedClassloaders(tester, null, true, true)
 
@@ -293,8 +289,7 @@ object MultiLevelBuildTestsParseErrorEdits extends MultiLevelBuildTests {
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
-
+          buildPaths2(tester)
         )
         if (tester.daemonMode) checkChangedClassloaders(tester, null, true, false)
         else checkChangedClassloaders(tester, null, false, false)
@@ -320,8 +315,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
-
+          buildPaths2(tester)
         )
         checkChangedClassloaders(tester, null, true, true)
 
@@ -363,8 +357,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
-
+          buildPaths2(tester)
         )
         checkChangedClassloaders(tester, null, true, false)
       }
@@ -396,8 +389,7 @@ object MultiLevelBuildTestsRuntimeErrorEdits extends MultiLevelBuildTests {
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
-
+          buildPaths2(tester)
         )
         checkChangedClassloaders(tester, null, true, true)
 
@@ -407,8 +399,7 @@ object MultiLevelBuildTestsRuntimeErrorEdits extends MultiLevelBuildTests {
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
-
+          buildPaths2(tester)
         )
         checkChangedClassloaders(tester, null, true, false)
 
@@ -433,8 +424,7 @@ object MultiLevelBuildTestsRuntimeErrorEdits extends MultiLevelBuildTests {
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
-
+          buildPaths2(tester)
         )
         checkChangedClassloaders(tester, null, true, true)
 
@@ -444,8 +434,7 @@ object MultiLevelBuildTestsRuntimeErrorEdits extends MultiLevelBuildTests {
           tester,
           fooPaths(tester),
           buildPaths(tester),
-          buildPaths2(tester),
-
+          buildPaths2(tester)
         )
         checkChangedClassloaders(tester, null, true, false)
 
