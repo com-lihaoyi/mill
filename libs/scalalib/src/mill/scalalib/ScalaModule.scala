@@ -302,7 +302,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     else allSources()
   }
 
-  def generatedScaladoc: T[PathRef] = Task {
+  def scalaDocGenerated: T[PathRef] = Task {
     val compileCp = Seq(
       "-classpath",
       compileClasspath()
@@ -411,7 +411,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   }
 
   override def docJar: T[PathRef] = Task {
-    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(generatedScaladoc().path)))
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(scalaDocGenerated().path)))
   }
 
   /**

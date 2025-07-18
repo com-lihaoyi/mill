@@ -1086,7 +1086,7 @@ trait JavaModule
    */
   def docJarUseArgsFile: T[Boolean] = Task { scala.util.Properties.isWin }
 
-  def generatedJavadoc: T[PathRef] = Task[PathRef] {
+  def javadocGenerated: T[PathRef] = Task[PathRef] {
     val outDir = Task.dest
 
     val javadocDir = outDir / "javadoc"
@@ -1146,7 +1146,7 @@ trait JavaModule
    * publishing to Maven Central
    */
   def docJar: T[PathRef] = Task[PathRef] {
-    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(generatedJavadoc().path)))
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(javadocGenerated().path)))
   }
 
   /**
