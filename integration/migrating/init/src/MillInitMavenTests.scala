@@ -317,6 +317,38 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
             )
           )),
           expectedTestTaskResults = Some(SplitTaskResults(
+            all = SortedSet(
+              "buffer.test",
+              "resolver.test",
+              "transport-native-unix-common.test",
+              "transport-udt.test",
+              "common.test",
+              "codec-dns.test",
+              "codec-haproxy.test",
+              "codec-http.test",
+              "codec-http2.test",
+              "codec-memcache.test",
+              "codec-mqtt.test",
+              "codec-redis.test",
+              "codec-smtp.test",
+              "codec-socks.test",
+              "codec-stomp.test",
+              "codec-xml.test",
+              "codec.test",
+              "handler-proxy.test",
+              "handler-ssl-ocsp.test",
+              "handler.test",
+              "resolver-dns-native-macos.test",
+              "resolver-dns.test",
+              "testsuite-native.test",
+              "testsuite-osgi.test",
+              "testsuite-shading.test",
+              "transport-blockhound-tests.test",
+              "transport-native-epoll.test",
+              "transport-native-kqueue.test",
+              "transport-sctp.test",
+              "transport.test"
+            ),
             successful = SortedSet(
               "buffer.test",
               "resolver.test",
@@ -324,35 +356,7 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "transport-udt.test",
               "common.test"
             ),
-            failed = SortedSet(
-              "codec-dns.test"
-              // Skip the rest for CI performance reasons
-              //
-              // "codec-haproxy.test",
-              // "codec-http.test",
-              // "codec-http2.test",
-              // "codec-memcache.test",
-              // "codec-mqtt.test",
-              // "codec-redis.test",
-              // "codec-smtp.test",
-              // "codec-socks.test",
-              // "codec-stomp.test",
-              // "codec-xml.test",
-              // "codec.test",
-              // "handler-proxy.test",
-              // "handler-ssl-ocsp.test",
-              // "handler.test",
-              // "resolver-dns-native-macos.test",
-              // "resolver-dns.test",
-              // "testsuite-native.test",
-              // "testsuite-osgi.test",
-              // "testsuite-shading.test",
-              // "transport-blockhound-tests.test",
-              // "transport-native-epoll.test",
-              // "transport-native-kqueue.test",
-              // "transport-sctp.test",
-              // "transport.test"
-            )
+            failed = SortedSet()
           ))
         )
       }
