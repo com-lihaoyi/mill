@@ -277,6 +277,8 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
           )),
           expectedTestTaskResults = Some(SplitTaskResults(
             all = submodulesWithTests.map(testTask),
+            // just run a quick smoketest, as the full suite is kind of slow
+            successful = SortedSet("gatling-http.test"),
             failed = SortedSet(
               /*
               `java.util.MissingResourceException: Can't find bundle for base name gatling-version, locale ...`

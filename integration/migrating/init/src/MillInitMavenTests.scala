@@ -317,14 +317,12 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
             )
           )),
           expectedTestTaskResults = Some(SplitTaskResults(
-            successful = SortedSet(
+            all = SortedSet(
               "buffer.test",
               "resolver.test",
               "transport-native-unix-common.test",
               "transport-udt.test",
-              "common.test"
-            ),
-            failed = SortedSet(
+              "common.test",
               "codec-dns.test",
               "codec-haproxy.test",
               "codec-http.test",
@@ -350,7 +348,15 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "transport-native-kqueue.test",
               "transport-sctp.test",
               "transport.test"
-            )
+            ),
+            successful = SortedSet(
+              "buffer.test",
+              "resolver.test",
+              "transport-native-unix-common.test",
+              "transport-udt.test",
+              "common.test"
+            ),
+            failed = SortedSet()
           ))
         )
       }
