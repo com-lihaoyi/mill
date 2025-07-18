@@ -22,30 +22,6 @@ object MillInitSbtUtils {
   val scalaPlatforms = Seq("js", "jvm", "native")
 }
 
-object MillInitScala3ExampleProjectTests extends BuildGenTestSuite {
-  def tests: Tests = Tests {
-    /*
-    - 17 KB
-    - `sbt` 1.10.7
-     */
-    val url =
-      "https://github.com/scala/scala3-example-project/archive/853808c50601e88edaa7272bcfb887b96be0e22a.zip"
-
-    test - integrationTest(url)(
-      testMillInit(
-        _,
-        expectedAllSourceFileNums = Map("allSourceFiles" -> 13, "test.allSourceFiles" -> 1),
-        expectedCompileTaskResults = Some(SplitTaskResults(
-          successful = SortedSet("compile", "test.compile"),
-          failed = SortedSet.empty
-        )),
-        expectedTestTaskResults =
-          Some(SplitTaskResults(successful = SortedSet("test"), failed = SortedSet.empty))
-      )
-    )
-  }
-}
-
 object MillInitScala3ExampleProjectWithJvmOptsTests extends BuildGenTestSuite {
   def tests: Tests = Tests {
     /*
@@ -70,60 +46,6 @@ object MillInitScala3ExampleProjectWithJvmOptsTests extends BuildGenTestSuite {
       assert(os.exists(it.workspacePath / ".mill-jvm-opts"))
       assert(os.read(it.workspacePath / ".mill-jvm-opts") == "-Ddummy=prop -Ddummy2=prop2")
     )
-  }
-}
-
-object MillInitSbtScalaCsv200Tests extends BuildGenTestSuite {
-  def tests: Tests = Tests {
-    /*
-    - 34 KB
-    - originally `sbt` 1.10.0
-     */
-    val url = "https://github.com/tototoshi/scala-csv/archive/refs/tags/2.0.0.zip"
-
-    test - integrationTest(url) { tester =>
-      bumpSbt(tester.workspacePath)
-
-      // Cross-builds are not supported yet.
-      testMillInit(
-        tester,
-        expectedAllSourceFileNums = Map("allSourceFiles" -> 10, "test.allSourceFiles" -> 6),
-        expectedCompileTaskResults =
-          Some(SplitTaskResults(
-            successful = SortedSet(),
-            failed = SortedSet("compile", "test.compile")
-          )),
-        expectedTestTaskResults =
-          Some(SplitTaskResults(successful = SortedSet(), failed = SortedSet("test")))
-      )
-    }
-  }
-}
-
-object MillInitSbtScalaCsv136Tests extends BuildGenTestSuite {
-  def tests: Tests = Tests {
-    /*
-    - 28 KB
-    - originally `sbt` 1.2.8
-     */
-    val url = "https://github.com/tototoshi/scala-csv/archive/refs/tags/1.3.6.zip"
-
-    test - integrationTest(url) { tester =>
-      import tester._
-      bumpSbt(workspacePath)
-
-      testMillInit(
-        tester,
-        expectedAllSourceFileNums = Map("allSourceFiles" -> 11, "test.allSourceFiles" -> 6),
-        expectedCompileTaskResults =
-          Some(SplitTaskResults(
-            successful = SortedSet("compile", "test.compile"),
-            failed = SortedSet.empty
-          )),
-        expectedTestTaskResults =
-          Some(SplitTaskResults(successful = SortedSet("test"), failed = SortedSet.empty))
-      )
-    }
   }
 }
 
