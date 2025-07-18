@@ -1,8 +1,26 @@
 package mill.androidlib.keytool
-import mainargs.{ParserForMethods, arg, main}
+import mainargs.{ParserForMethods, arg, main, TokensReader}
+import scala.concurrent.duration.*
 
 @mill.api.experimental
 object Keytool {
+
+  implicit object FiniteDurationReader extends TokensReader.Simple[FiniteDuration] {
+    def shortName: String = "validity"
+    def read(tokens: Seq[String]): Either[String, FiniteDuration] = {
+      if (tokens.isEmpty)
+        throw new IllegalArgumentException("Duration cannot be empty")
+      val durationString = tokens.mkString(" ")
+      val duration = Duration(durationString)
+      if (duration < Duration.Zero)
+        throw new IllegalArgumentException(s"Duration cannot be negative: $durationString")
+      duration match {
+        case d: FiniteDuration => Right(d)
+        case _ => throw new IllegalArgumentException(s"Duration must be finite: $durationString")
+      }
+    }
+  }
+
   @main
   def main(
       @arg(name = "keystore") keystorePath: String,
@@ -10,7 +28,7 @@ object Keytool {
       @arg(name = "keypass") keyPassword: String,
       @arg(name = "storepass") storePassword: String,
       @arg(name = "dname") dname: String,
-      @arg(name = "validity-days") validityDays: Int = 365
+      @arg(name = "validity") validity: FiniteDuration = Duration(10000, DAYS)
   ): Unit = {
     val keystore = Keystore.createKeystore()
     val keyPair = RSAKeyGen.generateKeyPair()
@@ -20,7 +38,7 @@ object Keytool {
       keyPair = keyPair,
       password = keyPassword,
       dname = dname,
-      validityDays = validityDays
+      validity = validity
     )
     Keystore.saveKeystore(ks = keystore, filePath = keystorePath, password = storePassword)
   }

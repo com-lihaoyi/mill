@@ -74,7 +74,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     )
   }
 
-  object keytool extends MillAndroidModule {
+  object keytool extends MillPublishScalaModule {
     override def moduleDeps = Seq(build.libs.androidlib)
 
     override def mvnDeps = Seq(

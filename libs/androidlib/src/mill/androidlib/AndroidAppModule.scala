@@ -10,6 +10,7 @@ import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import os.{Path, RelPath, zip}
 import upickle.default.*
+import scala.concurrent.duration.*
 
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
@@ -723,8 +724,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
           debugKeyPass,
           "--dname",
           s"CN=$debugKeyAlias, OU=$debugKeyAlias, O=$debugKeyAlias, L=$debugKeyAlias, S=$debugKeyAlias, C=$debugKeyAlias",
-          "--validity-days",
-          "10000"
+//          "--validity",
+//          10000.days.toString
         ))
       )()
     }

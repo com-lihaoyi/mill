@@ -44,9 +44,9 @@ object Keystore:
       keyPair: KeyPair,
       dname: String,
       password: String,
-      validityDays: Int = 365
+      validity: FiniteDuration = Duration(10000, DAYS)
   ): Unit =
-    val cert = CertUtil.createSelfSignedCertificate(dname, keyPair, validityDays.days)
+    val cert = CertUtil.createSelfSignedCertificate(dname, keyPair, validity)
     ks.setKeyEntry(alias, keyPair.getPrivate, password.toCharArray, Array(cert))
 
   def listAliases(ks: KeyStore): List[String] =

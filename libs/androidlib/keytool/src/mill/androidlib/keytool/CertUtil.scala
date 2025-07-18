@@ -16,7 +16,7 @@ object CertUtil:
   def createSelfSignedCertificate(
       dname: String,
       keyPair: KeyPair,
-      validity: FiniteDuration = FiniteDuration(365, DAYS)
+      validity: FiniteDuration = FiniteDuration(10000, DAYS)
   ): X509Certificate = {
     val now = new Date()
     val notAfter = new Date(now.getTime + validity.toMillis)
