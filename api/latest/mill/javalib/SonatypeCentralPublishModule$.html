@@ -54,6 +54,8 @@ node10 [id=node10, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../api
 node11 [id=node11, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../api/daemon/internal/ModuleApi.html\" t=\"n\">ModuleApi</a></span>", class="trait vertex"];
 node12 [id=node12, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../api/daemon/internal/BaseModuleApi.html\" t=\"n\">BaseModuleApi</a></span>", class="trait vertex"];
 node13 [id=node13, label="<span style=\"color: #FFFFFF;\">trait <a href=\"../api/DefaultTaskModule.html\" t=\"n\">DefaultTaskModule</a></span>", class="trait vertex"];
+node14 [id=node14, label="<span style=\"color: #FFFFFF;\">trait <a href=\"CoursierModule.html\" t=\"n\">CoursierModule</a></span>", class="trait vertex"];
+node15 [id=node15, label="<span style=\"color: #FFFFFF;\">trait <a href=\"OfflineSupportModule.html\" t=\"n\">OfflineSupportModule</a></span>", class="trait vertex"];
 
 
  node0 -> node1;
@@ -79,6 +81,13 @@ node12 -> node11;
 node0 -> node13;
 node13 -> node3;
 node13 -> node9;
+node0 -> node3;
+node0 -> node14;
+node14 -> node3;
+node14 -> node9;
+node0 -> node15;
+node15 -> node3;
+node15 -> node9;
 
 }
 </script>
@@ -89,6 +98,12 @@ node13 -> node9;
    </dt>
    <dd class="body-medium">
     <div class="mono-small-block supertypes">
+     <div>
+      trait <a href="OfflineSupportModule.html" t="n">OfflineSupportModule</a>
+     </div>
+     <div>
+      trait <a href="CoursierModule.html" t="n">CoursierModule</a>
+     </div>
      <div>
       trait <a href="../api/DefaultTaskModule.html" t="n">DefaultTaskModule</a>
      </div>
@@ -273,12 +288,12 @@ node13 -> node9;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="publishAll-49b">
+        <div class="documentableElement" id="publishAll-fffff740">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule$.html#publishAll-49b" t="n" class="documentableName ">publishAll</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">publishArtifacts</span>: <a href="../util/Tasks.html" t="t">Tasks</a>[<a href="PublishModule$$PublishData.html" t="t">PublishData</a>], <span t="k"></span><span data-unresolved-link="" t="n">username</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">password</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">shouldRelease</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">gpgArgs</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">readTimeout</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">connectTimeout</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">awaitTimeout</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">bundleName</span>: <span data-unresolved-link="" t="t">String</span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule$.html#publishAll-fffff740" t="n" class="documentableName ">publishAll</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">publishArtifacts</span>: <a href="../util/Tasks.html" t="t">Tasks</a>[<a href="PublishModule$$PublishData.html" t="t">PublishData</a>], <span t="k"></span><span data-unresolved-link="" t="n">username</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">password</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">shouldRelease</span>: <span data-unresolved-link="" t="t">Boolean</span>, <span t="k"></span><span data-unresolved-link="" t="n">gpgArgs</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">readTimeout</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">connectTimeout</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">awaitTimeout</span>: <span data-unresolved-link="" t="t">Int</span>, <span t="k"></span><span data-unresolved-link="" t="n">bundleName</span>: <span data-unresolved-link="" t="t">String</span>, <span t="k"></span><span data-unresolved-link="" t="n">snapshotUri</span>: <span data-unresolved-link="" t="t">String</span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Unit</span>]
            </div>
           </div>
          </div>
@@ -340,6 +355,325 @@ node13 -> node9;
         <div class="documentableList-expander">
          <button class="icon-button show-content expand"></button>
          <h4 class="groupHeader h200">Inherited methods</h4>
+        </div>
+        <div class="documentableElement" id="allRepositories-0" data-f-inherited="CoursierModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule$.html#allRepositories-0" t="n" class="documentableName ">allRepositories</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Repository</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The repositories used to resolve dependencies</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The repositories used to resolve dependencies</p>
+              <p>Unlike <a href="CoursierModule.html#repositoriesTask-0">repositoriesTask</a>, this includes the Mill internal repositories, which allow to resolve Mill internal modules (usually brought in via <code>JavaModule#coursierDependency</code>).</p>
+              <p>Beware that this needs to evaluate <code>JavaModule#coursierProject</code> of all module dependencies of the current module, which itself evaluates <code>JavaModule#mvnDeps</code> and related tasks. You shouldn't depend on this task from implementations of <code>mvnDeps</code>, which would introduce cycles between Mill tasks.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="CoursierModule.html#allRepositories-0">CoursierModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="bindDependency-0" data-f-inherited="CoursierModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule$.html#bindDependency-0" t="n" class="documentableName ">bindDependency</a>: <a href="../api/Task.html" t="t">Task</a>[<a href="Dep.html" t="t">Dep</a><span t="k"> =&gt; </span><a href="BoundDep.html" t="t">BoundDep</a>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Bind a dependency (<a href="Dep.html">Dep</a>) to the actual module context (e.g. the scala version and the platform suffix)</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Bind a dependency (<a href="Dep.html">Dep</a>) to the actual module context (e.g. the scala version and the platform suffix)</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p>The <a href="BoundDep.html">BoundDep</a></p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="CoursierModule.html#bindDependency-0">CoursierModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="checkGradleModules-0" data-f-inherited="CoursierModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule$.html#checkGradleModules-0" t="n" class="documentableName ">checkGradleModules</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Boolean</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Whether to enable Gradle Module support when fetching dependencies</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Whether to enable Gradle Module support when fetching dependencies</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="CoursierModule.html#checkGradleModules-0">CoursierModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="coursierCacheCustomizer-0" data-f-inherited="CoursierModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule$.html#coursierCacheCustomizer-0" t="n" class="documentableName ">coursierCacheCustomizer</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">FileCache</span>[<span data-unresolved-link="" t="t">Task</span>]<span t="k"> =&gt; </span><span data-unresolved-link="" t="t">FileCache</span>[<span data-unresolved-link="" t="t">Task</span>]]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Customize the coursier file cache.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Customize the coursier file cache.</p>
+              <p>This is rarely needed to be changed, but sometimes e.g. you want to load a coursier plugin. Doing so requires adding to coursier's classpath. To do this you could use the following:</p>
+              <div class="snippet mono-small-block">
+               <pre><code class="language-"><span line-number="1" class=""><span class="tooltip-container"></span><span class="hideable"> </span>override def coursierCacheCustomizer = Task.Anon {
+</span><span line-number="2" class=""><span class="tooltip-container"></span><span class="hideable"> </span>   Some( (fc: coursier.cache.FileCache[Task]) =&gt;
+</span><span line-number="3" class=""><span class="tooltip-container"></span><span class="hideable"> </span>     fc.withClassLoaders(Seq(classOf[coursier.cache.protocol.S3Handler].getClassLoader))
+</span><span line-number="4" class=""><span class="tooltip-container"></span><span class="hideable"> </span>   )
+</span><span line-number="5" class=""><span class="tooltip-container"></span><span class="hideable"> </span>}
+</span></code></pre>
+               <div class="buttons"></div>
+              </div>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="CoursierModule.html#coursierCacheCustomizer-0">CoursierModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="defaultResolver-0" data-f-inherited="CoursierModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule$.html#defaultResolver-0" t="n" class="documentableName ">defaultResolver</a>: <a href="../api/Task.html" t="t">Task</a>[<a href="CoursierModule$$Resolver.html" t="t">Resolver</a>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>A <code>CoursierModule.Resolver</code> to resolve dependencies.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>A <code>CoursierModule.Resolver</code> to resolve dependencies.</p>
+              <p>Can be used to resolve external dependencies, if you need to download an external tool from Maven or Ivy repositories, by calling <code>CoursierModule.Resolver#classpath</code>.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p><code>CoursierModule.Resolver</code> instance</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="CoursierModule.html#defaultResolver-0">CoursierModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="mapDependencies-0" data-f-inherited="CoursierModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule$.html#mapDependencies-0" t="n" class="documentableName ">mapDependencies</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Dependency</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Dependency</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Map dependencies before resolving them. Override this to customize the set of dependencies.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Map dependencies before resolving them. Override this to customize the set of dependencies.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="CoursierModule.html#mapDependencies-0">CoursierModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="millResolver-0" data-f-inherited="CoursierModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule$.html#millResolver-0" t="n" class="documentableName ">millResolver</a>: <a href="../api/Task.html" t="t">Task</a>[<a href="CoursierModule$$Resolver.html" t="t">Resolver</a>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>A <a href="CoursierModule$$Resolver.html">CoursierModule.Resolver</a> to resolve dependencies.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>A <a href="CoursierModule$$Resolver.html">CoursierModule.Resolver</a> to resolve dependencies.</p>
+              <p>Unlike <a href="CoursierModule.html#defaultResolver-0">defaultResolver</a>, this resolver can resolve Mill modules too (obtained via <a href="JavaModule.html#coursierDependency-0">JavaModule.coursierDependency</a>).</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Returns
+              </dt>
+              <dd class="body-medium">
+               <p><code>CoursierModule.Resolver</code> instance</p>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="CoursierModule.html#millResolver-0">CoursierModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
         </div>
         <div class="documentableElement" id="moduleCtx-0" data-f-inherited="RootModule0">
          <div class="documentableElement-expander">
@@ -486,6 +820,264 @@ node13 -> node9;
               </dt>
               <dd class="body-medium">
                <a href="https://github.com/com-lihaoyi/mill/blob/main/core/api/src/mill/api/ExternalModule.scala" target="_blank">ExternalModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="prepareOffline-e9a" data-f-keywords="override" data-f-inherited="MavenWorkerSupport">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule$.html#prepareOffline-e9a" t="n" class="documentableName ">prepareOffline</a>(<span t="k"></span><span t="k"></span><span data-unresolved-link="" t="n">all</span>: <span data-unresolved-link="" t="t">Flag</span>): <a href="../api/Task$$Command.html" t="t">Command</a>[<span data-unresolved-link="" t="t">Seq</span>[<a href="../../mill.html#PathRef-0" t="t">PathRef</a>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Prepare the module for working offline. This should typically fetch (missing) resources like Maven dependencies.</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Prepare the module for working offline. This should typically fetch (missing) resources like Maven dependencies.</p>
+             </div>
+             <h2 class="h200">Value parameters</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               all
+              </dt>
+              <dd class="body-medium">
+               <p>If <code>true</code>, it also fetches resources not always needed.</p>
+              </dd>
+             </dl>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <span data-unresolved-link="">MavenWorkerSupport</span> -&gt; <a href="OfflineSupportModule.html">OfflineSupportModule</a>
+               </div>
+              </dd>
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <span data-unresolved-link="">MavenWorkerSupport (hidden)</span>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/MavenWorkerSupport.scala" target="_blank">MavenWorkerSupport.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="repositories-0" data-f-inherited="CoursierModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule$.html#repositories-0" t="n" class="documentableName ">repositories</a>: <a href="../api/Task$$Simple.html" t="t">Simple</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">String</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>The repositories used to resolve dependencies with <span data-unresolved-link="" title="Problem linking classpath(): Couldn't resolve a member for the given link query">classpath()</span>. This takes Coursier repository strings as input which are defined here:</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>The repositories used to resolve dependencies with <span data-unresolved-link="" title="Problem linking classpath(): Couldn't resolve a member for the given link query">classpath()</span>. This takes Coursier repository strings as input which are defined here:</p>
+              <ul>
+               <li><a href="https://github.com/coursier/coursier/blob/main/docs/pages/reference-repositories.md">https://github.com/coursier/coursier/blob/main/docs/pages/reference-repositories.md</a></li>
+              </ul>
+              <p>For example:</p>
+              <ul>
+               <li>
+                <p><a href="https://repo1.maven.org/maven2">https://repo1.maven.org/maven2</a> Maven Central which is the most commonly used Maven repository</p></li>
+               <li>
+                <p><a href="file:///Users/alex/test-repo">file:///Users/alex/test-repo</a> A local repository cache on disk</p></li>
+               <li>
+                <p><a href="file://${ivy.home-${user.home}/.ivy2}/local/">file://${ivy.home-${user.home}/.ivy2}/local/</a>[defaultPattern] The local Ivy2 repository where Mill, Scala CLI, or sbt publish to when asked to publish locally</p></li>
+               <li>
+                <p><a href="file://${user.home}/.m2/repository">file://${user.home}/.m2/repository</a> the local Maven repository. Use of this is not recommended for reasons explained in the link above</p></li>
+               <li>
+                <p><a href="https://maven.google.com">https://maven.google.com</a> Google-managed repository that distributes some Android artifacts in particular</p></li>
+              </ul>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="CoursierModule.html#repositories-0">CoursierModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="repositoriesTask-0" data-f-inherited="CoursierModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule$.html#repositoriesTask-0" t="n" class="documentableName ">repositoriesTask</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Repository</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>A more flexible version of <a href="CoursierModule.html#repositories-0">repositories</a>, that allows custom repositories that are not definable by Coursier repository strings. This is a relatively advanced feature, and for most situations overriding <a href="CoursierModule.html#repositories-0">repositories</a> should be sufficient</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>A more flexible version of <a href="CoursierModule.html#repositories-0">repositories</a>, that allows custom repositories that are not definable by Coursier repository strings. This is a relatively advanced feature, and for most situations overriding <a href="CoursierModule.html#repositories-0">repositories</a> should be sufficient</p>
+              <p>See <a href="CoursierModule.html#allRepositories-0">allRepositories</a> if you need to resolve Mill internal modules.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="CoursierModule.html#repositoriesTask-0">CoursierModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="resolutionCustomizer-0" data-f-inherited="CoursierModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule$.html#resolutionCustomizer-0" t="n" class="documentableName ">resolutionCustomizer</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Option</span>[<span data-unresolved-link="" t="t">Resolution</span><span t="k"> =&gt; </span><span data-unresolved-link="" t="t">Resolution</span>]]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Customize the coursier resolution process. This is rarely needed to changed, as the default try to provide a highly reproducible resolution process. But sometime, you need more control, e.g. you want to add some OS or JDK specific resolution properties which are sometimes used by Maven and therefore found in dependency artifact metadata. For example, the JavaFX artifacts are known to use OS specific properties. To fix resolution for JavaFX, you could override this task like the following:</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Customize the coursier resolution process. This is rarely needed to changed, as the default try to provide a highly reproducible resolution process. But sometime, you need more control, e.g. you want to add some OS or JDK specific resolution properties which are sometimes used by Maven and therefore found in dependency artifact metadata. For example, the JavaFX artifacts are known to use OS specific properties. To fix resolution for JavaFX, you could override this task like the following:</p>
+              <div class="snippet mono-small-block">
+               <pre><code class="language-"><span line-number="1" class=""><span class="tooltip-container"></span><span class="hideable">   </span>override def resolutionCustomizer = Task.Anon {
+</span><span line-number="2" class=""><span class="tooltip-container"></span><span class="hideable">   </span>  Some( (r: coursier.core.Resolution) =&gt;
+</span><span line-number="3" class=""><span class="tooltip-container"></span><span class="hideable">   </span>    r.withOsInfo(coursier.core.Activation.Os.fromProperties(sys.props.toMap))
+</span><span line-number="4" class=""><span class="tooltip-container"></span><span class="hideable">   </span>  )
+</span><span line-number="5" class=""><span class="tooltip-container"></span><span class="hideable">   </span>}
+</span></code></pre>
+               <div class="buttons"></div>
+              </div>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="CoursierModule.html#resolutionCustomizer-0">CoursierModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+              </dd>
+             </dl>
+            </div>
+           </div>
+          </div>
+         </div>
+        </div>
+        <div class="documentableElement" id="resolutionParams-0" data-f-inherited="CoursierModule">
+         <div class="documentableElement-expander">
+          <button class="icon-button ar show-content"></button>
+          <div class="header monospace mono-medium">
+           <div class="signature">
+            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="SonatypeCentralPublishModule$.html#resolutionParams-0" t="n" class="documentableName ">resolutionParams</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">ResolutionParams</span>]
+           </div>
+          </div>
+         </div>
+         <div class="docs">
+          <span class="modifiers"></span>
+          <div>
+           <div class="originInfo"></div>
+           <div class="memberDocumentation">
+            <div class="documentableBrief doc">
+             <p>Resolution parameters, allowing to customize resolution internals</p>
+            </div>
+            <div class="cover">
+             <div class="doc">
+              <p>Resolution parameters, allowing to customize resolution internals</p>
+              <p>This rarely needs to be changed. This allows to disable the new way coursier handles BOMs since coursier 2.1.17 (used in Mill since 0.12.3) for example, with:</p>
+              <div class="snippet mono-small-block">
+               <pre><code class="language-"><span line-number="1" class=""><span class="tooltip-container"></span><span class="hideable"> </span>def resolutionParams = super.resolutionParams()
+</span><span line-number="2" class=""><span class="tooltip-container"></span><span class="hideable"> </span>  .withEnableDependencyOverrides(Some(false))
+</span></code></pre>
+               <div class="buttons"></div>
+              </div>
+              <p>Note that versions forced with <code>Dep#forceVersion()</code> take over forced versions manually set in <code>resolutionParams</code>. The former should be favored to force versions in dependency resolution.</p>
+              <p>The Scala version set via <code>ScalaModule#scalaVersion</code> also takes over any Scala version provided via <code>ResolutionParams#scalaVersionOpt</code>.</p>
+              <p>The default configuration set in <code>ResolutionParams#defaultConfiguration</code> is ignored when Mill fetches dependencies to be passed to the compiler (equivalent to Maven "compile scope"). In that case, it forces the default configuration to be "compile". On the other hand, when fetching dependencies for runtime (equivalent to Maven "runtime scope"), the value in <code>ResolutionParams#defaultConfiguration</code> is used.</p>
+             </div>
+             <h2 class="h200">Attributes</h2>
+             <dl class="attributes attributes-small">
+              <dt class="body-small">
+               Inherited from:
+              </dt>
+              <dd class="body-medium">
+               <a href="CoursierModule.html#resolutionParams-0">CoursierModule</a>
+              </dd>
+              <dt class="body-small">
+               Source
+              </dt>
+              <dd class="body-medium">
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
               </dd>
              </dl>
             </div>
