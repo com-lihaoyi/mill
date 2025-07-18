@@ -24,3 +24,11 @@ def getEnvJvmOpts() = Task.Command {
 def getNonJvmOpts() = Task.Command {
   Task.ctx().jobs
 }
+
+def maxMemory = Task { Runtime.getRuntime().maxMemory }
+
+def testProperty = Task { sys.props.get("test.property").get.toInt }
+
+def printSysProp(propName: String) = Task.Command {
+  println(sys.props(propName))
+}

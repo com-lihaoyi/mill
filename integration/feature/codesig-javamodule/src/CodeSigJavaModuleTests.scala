@@ -4,7 +4,7 @@ import mill.testkit.UtestIntegrationTestSuite
 
 import utest._
 
-object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
+object CodeSigJavaModuleTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     def filterLines(out: String) = {
       out.linesIterator.filter(!_.contains("[info]")).toSet
@@ -88,7 +88,13 @@ object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
           )
       )
 
-      modifyFile(workspacePath / "build.mill", _.replace("2.13.16", "2.12.18"))
+      modifyFile(
+        workspacePath / "build.mill",
+        _.replace(
+          "\"-source\", \"11\", \"-target\", \"11\"",
+          "\"-source\", \"9\", \"-target\", \"9\""
+        )
+      )
       val mangledFoo5 = eval("foo.run")
 
       assert(
@@ -106,7 +112,7 @@ object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
         workspacePath / "build.mill",
         s =>
           "\n\n\n" +
-            s.replace("\n  def scalaVersion", "\n\n  def scalaVersion")
+            s.replace("\n  def javacOptions", "\n\n  def javacOptions")
               .replace("\n  def sources = T{\n", "\n\n  def sources = T{\n\n")
               .replace("\n  def compile = Task {\n", "\n\n  def compile = Task {\n\n")
               .replace(
@@ -127,7 +133,7 @@ object CodeSigScalaModuleTests extends UtestIntegrationTestSuite {
   }
 }
 
-object CodeSigScalaModuleMultipleTests extends UtestIntegrationTestSuite {
+object CodeSigJavaModuleMultipleTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     def filterLines(out: String) = {
       out.linesIterator.filter(!_.contains("[info]")).toSet
