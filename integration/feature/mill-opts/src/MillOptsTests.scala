@@ -62,7 +62,6 @@ object MillOptsTests extends UtestIntegrationTestSuite {
       assert(maxMemory.isSuccess)
       assert(maxMemory.out.trim.toLong == n * 1024 * 1024 * 1024)
 
-
       val propValue = 123
       val testProperty =
         eval(("show", "testProperty"), Map("JAVA_OPTS" -> s"-Dtest.property=$propValue"))
