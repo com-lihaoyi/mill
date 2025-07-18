@@ -239,7 +239,7 @@ trait KotlinModule extends JavaModule { outer =>
    * and option by using [[dokkaOptions]].
    */
   override def docJar: T[PathRef] = Task[PathRef] {
-    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(dokkaGenerated())))
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(dokkaGenerated().path)))
   }
 
   /**
