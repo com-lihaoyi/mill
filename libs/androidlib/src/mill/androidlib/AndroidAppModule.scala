@@ -698,24 +698,31 @@ trait AndroidAppModule extends AndroidModule { outer =>
     Task.Sources(subPaths*)
   }
 
+  private def androidMillHomeDir: Task[PathRef] = Task.Anon {
+    val globalDebugFileLocation = os.home / ".mill-android"
+    if (!os.exists(globalDebugFileLocation))
+      os.makeDir(globalDebugFileLocation)
+    PathRef(globalDebugFileLocation)
+  }
+
+  private def debugKeystoreFile: Task[PathRef] = Task.Anon {
+    PathRef(androidMillHomeDir().path / "mill-debug.jks")
+  }
+
   /*
     The debug keystore is stored in `$HOME/.mill-android`. The practical
   purpose of a global keystore is to avoid the user having to uninstall the
   app everytime the task directory is deleted (as the app signatures will not match).
    */
-  def globalDebugFileLocation: Path = os.home / ".mill-android"
-
-  def debugFileName = "mill-debug.jks"
-
-  def debugKeystoreFile: Path = globalDebugFileLocation / debugFileName
-
-  private def androidDebugKeystore: Task[PathRef] = Task(persistent = true) {
-    if (!os.exists(debugKeystoreFile)) {
+  private def androidDebugKeystore: Task[PathRef] = Task.Anon {
+    val debugKeystoreFilePath = debugKeystoreFile().path
+    if (!os.exists(debugKeystoreFilePath)) {
       // TODO test on windows and mac and/or change implementation with java APIs
+      os.makeDir.all(androidMillHomeDir().path)
       ModuleRef(KeytoolModule)().createKeystoreWithCertificate(
         Task.Anon(Seq(
           "--keystore",
-          debugKeystoreFile.toString,
+          outer.debugKeystoreFile().path.toString,
           "--storepass",
           debugKeyStorePass,
           "--alias",
@@ -729,8 +736,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
         ))
       )()
     }
-
-    PathRef(debugKeystoreFile)
+    PathRef(debugKeystoreFilePath)
   }
 
   protected def androidKeystore: T[PathRef] = Task {

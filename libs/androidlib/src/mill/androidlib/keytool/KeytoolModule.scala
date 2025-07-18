@@ -5,7 +5,7 @@ import mill.androidlib.AndroidSdkModule
 import mill.api.{Discover, ExternalModule, PathRef, Task}
 import mill.javalib.{Dep, JvmWorkerModule}
 import mill.{T, Task}
-import mainargs.{ParserForMethods, arg, main}
+import os.CommandResult
 
 @mill.api.experimental
 trait KeytoolModule extends ExternalModule, JvmWorkerModule {
@@ -23,14 +23,13 @@ trait KeytoolModule extends ExternalModule, JvmWorkerModule {
 
   def createKeystoreWithCertificate(
       args: Task[Seq[String]]
-  ) = Task.Anon {
+  ): Task[CommandResult] = Task.Anon {
     val mainClass = "mill.androidlib.keytool.Keytool"
-    val res = mill.util.Jvm.callProcess(
+    mill.util.Jvm.callProcess(
       mainClass = mainClass,
       classPath = classpath().map(_.path),
       mainArgs = args()
     )
-    Task.log.info(s"Keytool result: $res")
   }
 
   override lazy val millDiscover: Discover = Discover[this.type]

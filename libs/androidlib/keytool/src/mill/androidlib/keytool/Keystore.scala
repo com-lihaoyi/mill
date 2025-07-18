@@ -16,6 +16,9 @@ object Keystore:
     saveKeystore(ks, new File(filePath), password.toCharArray)
 
   def saveKeystore(ks: KeyStore, file: File, password: Array[Char]): Unit =
+    // Ensure the parent directory exists
+    if (!file.getParentFile.exists())
+      throw new IllegalArgumentException(s"Parent directory does not exist: ${file.getParentFile}")
     val fos = new FileOutputStream(file)
     try ks.store(fos, password)
     finally fos.close()
