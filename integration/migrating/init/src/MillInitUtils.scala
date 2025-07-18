@@ -111,7 +111,8 @@ object MillInitUtils {
             if (combineSuccessful) {
               val tasks = expected.successful
               if (tasks.nonEmpty)
-                assertEvalSuccess(eval(if (tasks.size == 1) tasks.head else tasks.mkString("{", ",", "}")))
+                assertEvalSuccess(eval(if (tasks.size == 1) tasks.head
+                else tasks.mkString("{", ",", "}")))
             } else {
               val missingSuccesses = expected.successful.filter(task => !eval(task).isSuccess)
               Predef.assert(
