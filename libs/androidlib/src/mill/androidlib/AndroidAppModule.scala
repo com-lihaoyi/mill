@@ -2,6 +2,7 @@ package mill.androidlib
 
 import coursier.params.ResolutionParams
 import mill.*
+import mill.androidlib.keytool.KeytoolModule
 import mill.api.Logger
 import mill.api.internal.*
 import mill.api.daemon.internal.internal
@@ -9,9 +10,10 @@ import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import os.{Path, RelPath, zip}
 import upickle.default.*
+import scala.concurrent.duration.*
+
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
-
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
@@ -696,46 +698,45 @@ trait AndroidAppModule extends AndroidModule { outer =>
     Task.Sources(subPaths*)
   }
 
+  private def androidMillHomeDir: Task[PathRef] = Task.Anon {
+    val globalDebugFileLocation = os.home / ".mill-android"
+    if (!os.exists(globalDebugFileLocation))
+      os.makeDir(globalDebugFileLocation)
+    PathRef(globalDebugFileLocation)
+  }
+
+  private def debugKeystoreFile: Task[PathRef] = Task.Anon {
+    PathRef(androidMillHomeDir().path / "mill-debug.jks")
+  }
+
+  private def keytoolModuleRef: ModuleRef[KeytoolModule] = ModuleRef(KeytoolModule)
+
   /*
     The debug keystore is stored in `$HOME/.mill-android`. The practical
   purpose of a global keystore is to avoid the user having to uninstall the
   app everytime the task directory is deleted (as the app signatures will not match).
    */
-  private def androidDebugKeystore: Task[PathRef] = Task(persistent = true) {
-    val debugFileName = "mill-debug.jks"
-    val globalDebugFileLocation = os.home / ".mill-android"
-
-    if (!os.exists(globalDebugFileLocation)) {
-      os.makeDir(globalDebugFileLocation)
-    }
-
-    val debugKeystoreFile = globalDebugFileLocation / debugFileName
-
-    if (!os.exists(debugKeystoreFile)) {
-      // TODO test on windows and mac and/or change implementation with java APIs
-      os.call((
-        "keytool",
-        "-genkeypair",
-        "-keystore",
-        debugKeystoreFile,
-        "-alias",
-        debugKeyAlias,
-        "-dname",
-        "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=MILL",
-        "-validity",
-        "10000",
-        "-keyalg",
-        "RSA",
-        "-keysize",
-        "2048",
-        "-storepass",
+  private def androidDebugKeystore: Task[PathRef] = Task.Anon {
+    val debugKeystoreFilePath = debugKeystoreFile().path
+    os.makeDir.all(androidMillHomeDir().path)
+    keytoolModuleRef().createKeystoreWithCertificate(
+      Task.Anon(Seq(
+        "--keystore",
+        outer.debugKeystoreFile().path.toString,
+        "--storepass",
         debugKeyStorePass,
-        "-keypass",
-        debugKeyPass
+        "--alias",
+        debugKeyAlias,
+        "--keypass",
+        debugKeyPass,
+        "--dname",
+        s"CN=$debugKeyAlias, OU=$debugKeyAlias, O=$debugKeyAlias, L=$debugKeyAlias, S=$debugKeyAlias, C=$debugKeyAlias",
+        "--validity",
+        10000.days.toString,
+        "--skip-if-exists"
       ))
-    }
-
-    PathRef(debugKeystoreFile)
+    )()
+    PathRef(debugKeystoreFilePath)
   }
 
   protected def androidKeystore: T[PathRef] = Task {
