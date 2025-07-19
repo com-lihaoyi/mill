@@ -41,35 +41,38 @@ object ScalaDoc3Tests extends TestSuite {
   def tests: Tests = Tests {
     test("static") - UnitTester(StaticDocsModule, resourcePath).scoped { eval =>
       val Right(_) = eval.apply(StaticDocsModule.static.docJar): @unchecked
-      val dest = eval.outPath / "static/docJar.dest"
+      val docjar = eval.outPath / "static/docJar.dest"
+      val scaladoc = eval.outPath / "static/scalaDocGenerated.dest"
       assert(
-        os.exists(dest / "out.jar"), // final jar should exist
+        os.exists(docjar / "out.jar"), // final jar should exist
         // check if extra markdown files have been included and translated to html
-        os.exists(dest / "javadoc/index.html"),
-        os.exists(dest / "javadoc/nested/extra.html"),
+        os.exists(scaladoc / "javadoc/index.html"),
+        os.exists(scaladoc / "javadoc/nested/extra.html"),
         // also check that API docs have been generated
-        os.exists(dest / "javadoc/api/pkg/SomeClass.html")
+        os.exists(scaladoc / "javadoc/api/pkg/SomeClass.html")
       )
     }
     test("empty") - UnitTester(EmptyDocsModule, resourcePath).scoped { eval =>
       val Right(_) = eval.apply(EmptyDocsModule.empty.docJar): @unchecked
-      val dest = eval.outPath / "empty/docJar.dest"
+      val scaladoc = eval.outPath / "empty/scalaDocGenerated.dest"
+      val docJar = eval.outPath / "empty/docJar.dest"
       assert(
-        os.exists(dest / "out.jar"),
-        os.exists(dest / "javadoc/api/pkg/SomeClass.html")
+        os.exists(docJar / "out.jar"),
+        os.exists(scaladoc / "javadoc/api/pkg/SomeClass.html")
       )
     }
     test("multiple") - UnitTester(MultiDocsModule, resourcePath).scoped { eval =>
       val Right(_) = eval.apply(MultiDocsModule.multidocs.docJar): @unchecked
-      val dest = eval.outPath / "multidocs/docJar.dest"
+      val docJar = eval.outPath / "multidocs/docJar.dest"
+      val scaladoc = eval.outPath / "multidocs/scalaDocGenerated.dest"
       assert(
-        os.exists(dest / "out.jar"), // final jar should exist
-        os.exists(dest / "javadoc/api/pkg/SomeClass.html"),
-        os.exists(dest / "javadoc/index.html"),
-        os.exists(dest / "javadoc/docs/nested/original.html"),
-        os.exists(dest / "javadoc/docs/nested/extra.html"),
+        os.exists(docJar / "out.jar"), // final jar should exist
+        os.exists(scaladoc / "javadoc/api/pkg/SomeClass.html"),
+        os.exists(scaladoc / "javadoc/index.html"),
+        os.exists(scaladoc / "javadoc/docs/nested/original.html"),
+        os.exists(scaladoc / "javadoc/docs/nested/extra.html"),
         // check that later doc sources overwrite earlier ones
-        os.read(dest / "javadoc/index.html").contains("overwritten")
+        os.read(scaladoc / "javadoc/index.html").contains("overwritten")
       )
     }
   }
