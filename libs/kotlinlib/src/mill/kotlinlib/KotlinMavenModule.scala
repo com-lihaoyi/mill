@@ -1,7 +1,5 @@
 package mill.kotlinlib
 
-import java.nio.file.Path
-
 import mill.Task
 import mill.javalib.MavenModule
 
@@ -14,8 +12,6 @@ trait KotlinMavenModule extends KotlinModule with MavenModule {
   override def sources = super.sources() ++ sources0()
 
   trait KotlinMavenTests extends KotlinTests with MavenTests {
-    private[mill] override def intellijModulePathJava: Path = (moduleDir / "src/test").toNIO
-
     private def sources0 = Task.Sources("src/test/kotlin")
     override def sources = super.sources() ++ sources0()
   }

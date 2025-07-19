@@ -12,7 +12,7 @@ trait GenIdeaModule extends Module with GenIdeaModuleApi {
   /**
    * The path denoting the module directory in generated IntelliJ projects. Defaults to [[moduleDir]].
    */
-  private[mill] override def intellijModulePathJava: java.nio.file.Path = moduleDir.toNIO
+  override def intellijModulePathJava: java.nio.file.Path = moduleDir.toNIO
 
   /**
    * Skip Idea project file generation.
