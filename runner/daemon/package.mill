@@ -12,9 +12,8 @@ import millbuild.*
  */
 object `package` extends MillPublishScalaModule {
 
-  def transitiveLocalTestOverrides = Map(
-    Task.traverse(build.dist.allPublishModules)(_.localTestOverride)()*
-  )
+  def localTestExtraModules =
+    build.dist.allPublishModules
 
   def mvnDeps = Seq(
     Deps.sourcecode,
