@@ -45,7 +45,7 @@ object MillInitMavenJansiTests extends BuildGenTestSuite {
       val ivy2Repo = tester.baseWorkspacePath / "ivy2Local"
       val publishLocalRes = eval(("publishLocal", "--localIvyRepo", ivy2Repo.toString))
       assert(
-        publishLocalRes.err.contains("Publishing Artifact(org.fusesource.jansi,jansi,2.4.1)"),
+        publishLocalRes.err.contains("Publishing org.fusesource.jansi:jansi:2.4.1"),
         publishLocalRes.isSuccess
       )
     }
