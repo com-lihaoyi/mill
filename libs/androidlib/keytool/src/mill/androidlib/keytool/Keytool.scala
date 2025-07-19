@@ -20,10 +20,14 @@ object Keytool {
       }
     }
   }
+  implicit object PathRead extends TokensReader.Simple[os.Path] {
+    def shortName = "path"
+    def read(strs: Seq[String]) = Right(os.Path(strs.head, os.pwd))
+  }
 
   @main
   def main(
-      @arg(name = "keystore") keystorePath: String,
+      @arg(name = "keystore") keystorePath: os.Path,
       @arg(name = "alias") alias: String,
       @arg(name = "keypass") keyPassword: String,
       @arg(name = "storepass") storePassword: String,
@@ -31,7 +35,7 @@ object Keytool {
       @arg(name = "validity") validity: FiniteDuration = Duration(10000, DAYS),
       @arg(name = "skip-if-exists") skipIfExists: Flag
   ): Unit = {
-    if (skipIfExists.value && os.exists(os.Path(keystorePath)))
+    if (skipIfExists.value && os.exists(keystorePath))
       return
     val keystore = Keystore.createKeystore()
     val keyPair = RSAKeyGen.generateKeyPair()

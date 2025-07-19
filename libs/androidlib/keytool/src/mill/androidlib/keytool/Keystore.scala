@@ -13,9 +13,12 @@ object Keystore:
     ks
 
   def saveKeystore(ks: KeyStore, filePath: String, password: String): Unit =
-    saveKeystore(ks, new File(filePath), password.toCharArray)
+    saveKeystore(ks, new File(os.Path(filePath, os.pwd).toString), password.toCharArray)
 
-  def saveKeystore(ks: KeyStore, file: File, password: Array[Char]): Unit =
+  def saveKeystore(ks: KeyStore, filePath: os.Path, password: String): Unit =
+    saveKeystore(ks, new File(filePath.toString), password.toCharArray)
+
+  private def saveKeystore(ks: KeyStore, file: File, password: Array[Char]): Unit =
     // Ensure the parent directory exists
     if (!file.getParentFile.exists())
       throw new IllegalArgumentException(s"Parent directory does not exist: ${file.getParentFile}")
