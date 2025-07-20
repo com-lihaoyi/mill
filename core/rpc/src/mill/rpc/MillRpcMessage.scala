@@ -1,11 +1,11 @@
 package mill.rpc
 
-import upickle.default.Writer
+import upickle.default.ReadWriter
 
 trait MillRpcMessage {
   type Response
 
-  given responseWriter: Writer[Response] = compiletime.deferred
+  given responseRw: ReadWriter[Response] = compiletime.deferred
 }
 object MillRpcMessage {
   /** Messages that do not have a meaningful response. */

@@ -257,7 +257,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
           sources = sources,
           compileClasspath = compileClasspath,
           javacOptions = javacOptions,
-          reporter = toReportingMode(reporter, reportCachedProblems),
+          reporterMode = toReportingMode(reporter, reportCachedProblems),
           incrementalCompilation = incrementalCompilation,
           ctx = ctx
         )

@@ -14,10 +14,10 @@ object RpcLogger {
   }
 
   def create(send: Message => Unit): Logger.Actions = new {
-    def info(s: String): Unit = send(Message.Info(s))
-    def debug(s: String): Unit = send(Message.Debug(s))
-    def warn(s: String): Unit = send(Message.Warn(s))
-    def error(s: String): Unit = send(Message.Error(s))
-    def ticker(s: String): Unit = send(Message.Ticker(s))
+    override def info(s: String): Unit = send(Message.Info(s))
+    override def debug(s: String): Unit = send(Message.Debug(s))
+    override def warn(s: String): Unit = send(Message.Warn(s))
+    override def error(s: String): Unit = send(Message.Error(s))
+    override def ticker(s: String): Unit = send(Message.Ticker(s))
   }
 }

@@ -343,11 +343,11 @@ class ZincWorker(
     reporter.foreach(_.start())
 
     val consoleAppender = ConsoleAppender(
-      "ZincLogAppender",
-      ConsoleOut.printStreamOut(deps.errorStream),
-      ctx.logPromptColored,
-      ctx.logPromptColored,
-      _ => None
+      name = "ZincLogAppender",
+      deps.consoleOut,
+      ansiCodesSupported = ctx.logPromptColored,
+      useFormat = ctx.logPromptColored,
+      supressedMessage = _ => None
     )
     val loggerId = Thread.currentThread().getId.toString
     val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
@@ -548,7 +548,7 @@ object ZincWorker {
    * */
   case class InvocationDependencies(
     log: Logger.Actions,
-    errorStream: PrintStream
+    consoleOut: ConsoleOut
   )
 
   /** The invocation context, always comes from the Mill's process. */
