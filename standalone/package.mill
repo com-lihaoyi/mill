@@ -1,0 +1,34 @@
+package build.standalone
+
+import mill.scalalib.TestModule
+import mill.{Cross, Module}
+import millbuild._
+
+object `package` extends Module {
+
+  trait StandaloneTestModule extends Cross.Module[String] with MillBaseTestsModule
+      with TestModule.Utest {
+    def moduleDir = super.moduleDir / crossValue
+    def moduleDeps = Seq(build.core.eval, testkit)
+    def mvnDeps = Seq(Deps.TestDeps.utest)
+
+    def forkArgs = super.forkArgs() ++ build.dist.forkArgs()
+    def forkEnv = super.forkEnv() ++
+      Map(
+        "MILL_STANDALONE_EXECUTABLE" -> build.dist.launcher().path.toString(),
+        "MILL_STANDALONE_DAEMON_MODE" -> "false"
+      ) ++
+      build.dist.localTestOverridesEnv()
+  }
+
+  object migrating extends Cross[StandaloneCrossTestModule](build.listCross)
+  trait StandaloneCrossTestModule extends MillScalaModule with StandaloneTestModule {
+    override def moduleDeps = super[StandaloneTestModule].moduleDeps
+    def scalaVersion = Deps.scalaVersion
+  }
+
+  object testkit extends MillScalaModule {
+    def moduleDeps = Seq(build.core.eval)
+    def mvnDeps = Seq(Deps.TestDeps.utest)
+  }
+}
