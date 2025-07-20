@@ -40,6 +40,21 @@ case class MillRpcRequestId private (parts: Vector[MillRpcRequestId.Part]) {
   }
 }
 object MillRpcRequestId {
+  def fromString(str: String): Either[String, MillRpcRequestId] = {
+    val parts = str.split(":").iterator.map(Part.unapply).toVector
+    if (parts.contains(None)) Left(s"invalid request id: \"$str\"")
+    else if (parts.isEmpty) Left(s"empty request id: \"$str\"")
+    else Right(MillRpcRequestId(parts.flatten))
+  }
+
+  given rw: upickle.default.ReadWriter[MillRpcRequestId] =
+    upickle.default.readwriter[String].bimap(_.toString, fromString(_) match {
+      case Left(err) => throw new IllegalArgumentException(err)
+      case Right(id) => id
+    })
+
+  def initialForClient: MillRpcRequestId = apply(Vector(Part(Kind.Client, -1)))
+
   enum Kind {
     case Client, Server
 
@@ -48,9 +63,23 @@ object MillRpcRequestId {
       case Server => 's'
     }
   }
+  object Kind {
+    def unapply(s: String): Option[Kind] = s match {
+      case "c" => Some(Kind.Client)
+      case "s" => Some(Kind.Server)
+      case _ => None
+    }
+  }
+
   case class Part(kind: Kind, id: Long) {
     override def toString: String = s"${kind.asChar}$id"
   }
+  object Part {
+    private val numberRegex = "(\\d+)".r
 
-  def initialForClient: MillRpcRequestId = apply(Vector(Part(Kind.Client, -1)))
+    def unapply(str: String): Option[Part] = str match {
+      case s"${Kind(kind)}${numberRegex(id)}" => Some(Part(kind, id.toLong))
+      case _ => None
+    }
+  }
 }

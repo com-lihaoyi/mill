@@ -1,32 +1,34 @@
 package mill.rpc
 
 import mill.api.daemon.Logger
-import os.SubProcess
 import upickle.default.{Reader, Writer}
 
 import scala.util.Try
 
 /** Connects and communicates with [[MillRpcServer]]. */
-trait MillRpcClient[ClientToServer <: MillRpcMessage] extends MillRpcChannel[ClientToServer],
-      AutoCloseable
+trait MillRpcClient[ClientToServer <: MillRpcMessage] extends AutoCloseable {
+  def apply(input: ClientToServer): input.Response
+}
 object MillRpcClient {
   def create[
       Initialize: Writer,
       ClientToServer <: MillRpcMessage: Writer,
-      ServerToClient <: MillRpcMessage: Reader
+      ServerToClient <: MillRpcMessage
   ](
       initialize: Initialize,
       wireTransport: MillRpcWireTransport,
       log: Logger.Actions
   )(serverMessageHandler: MillRpcChannel[ServerToClient]): MillRpcClient[ClientToServer] = {
-    def logWarn(msg: String): Unit = log.warn(s"[RPC] $msg")
-    def logDebug(msg: String): Unit = log.debug(s"[RPC] $msg")
+    var currentRequestId = MillRpcRequestId.initialForClient
 
     def withRequestId[A](id: MillRpcRequestId)(f: MillRpcRequestId => A): A = {
       currentRequestId = id
       try f(id)
       finally currentRequestId = currentRequestId.requestFinished
     }
+
+    def logWarn(msg: String): Unit = log.warn(s"[RPC] $msg")
+    def logDebug(msg: String): Unit = log.debug(s"[RPC] $msg")
 
     def handleServerLog(msg: RpcLogger.Message): Unit = msg match {
       case RpcLogger.Message.Error(msg) => log.error(s"[RPC-SERVER] $msg")
@@ -80,7 +82,6 @@ object MillRpcClient {
 
     wireTransport.writeSerialized(initialize, logDebug)
 
-    var currentRequestId = MillRpcRequestId.initialForClient
     new {
       override def apply(msg: ClientToServer): msg.Response = {
         withRequestId(currentRequestId.requestStartedFromClient) { requestId =>

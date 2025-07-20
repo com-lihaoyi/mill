@@ -2,46 +2,8 @@ package mill.rpc
 
 import upickle.default.{Reader, Writer}
 
-/** Protocol messages that are sent from client to the server. */
-enum MillRpcClientToServer[+Data] {
-
-  /**
-   * Client is asking the server to do something. Server will immediately respond with
-   * [[MillRpcServerToClient.AskReceived]] to this.
-   *
-   * @param id the request id client has assigned to this message.
-   */
-  case Ask(id: MillRpcRequestId, data: Data)
-
-  /** Response to server's [[MillRpcServerToClient.Ask]] which either succeeded or failed. */
-  case Response(id: MillRpcRequestId, data: Either[RpcThrowable, Data])
-}
-object MillRpcClientToServer {
-  given reader[Data: Reader]: Reader[MillRpcClientToServer[Data]] = Reader.derived
-  given writer[Data: Writer]: Writer[MillRpcClientToServer[Data]] = Writer.derived
-}
-
-/** Protocol messages that are sent from server to the client. */
-enum MillRpcServerToClient[+Data] {
-  /** Response to a [[MillRpcClientToServer.Ask]] which either succeeded or failed. */
-  case Response(id: MillRpcRequestId, data: Either[RpcThrowable, Data])
-
-  /**
-   * Server is asking the client to do something. Client should respond with [[MillRpcClientToServer.Response]].
-   *
-   * @param id the request id server has assigned to this message.
-   */
-  case Ask(id: MillRpcRequestId, data: Data)
-
-  /** We want to send a message to be logged in the client. */
-  case Log(message: RpcLogger.Message)
-}
-object MillRpcServerToClient {
-  given reader[Data: Reader]: Reader[MillRpcServerToClient[Data]] = Reader.derived
-  given writer[Data: Writer]: Writer[MillRpcServerToClient[Data]] = Writer.derived
-}
-
 trait MillRpcWireTransport extends AutoCloseable {
+
   /** Human-readable name of the wire. */
   def name: String
 
@@ -53,12 +15,13 @@ trait MillRpcWireTransport extends AutoCloseable {
     read() match {
       case None =>
         log("Transport wire broken.")
+        None
 
       case Some(line) =>
         log(s"Received: $line")
         val parsed = upickle.default.read(line)
         log(s"Parsed: ${pprint.apply(parsed)}")
-        parsed
+        Some(parsed)
     }
   }
 
@@ -73,6 +36,7 @@ trait MillRpcWireTransport extends AutoCloseable {
     write(serialized)
   }
 }
+
 object MillRpcWireTransport {
   object ViaStdinAndStdout extends MillRpcWireTransport {
     def name: String = "stdin/out"
@@ -90,7 +54,7 @@ object MillRpcWireTransport {
 
     def read(): Option[String] = Option(subprocess.stdout.readLine())
     def write(message: String): Unit = subprocess.stdin.writeLine(message)
-    
+
     override def close(): Unit = {
       subprocess.close()
     }

@@ -1,5 +1,7 @@
 package mill.rpc
 
+import scala.util.control.NoStackTrace
+
 /** Serialized [[Throwable]]. */
 case class RpcThrowable(
     message: String,
@@ -7,10 +9,7 @@ case class RpcThrowable(
     cause: Option[RpcThrowable]
 ) derives upickle.default.ReadWriter {
   def toThrowable: Throwable = {
-    val t = new Throwable(
-      message,
-      cause.map(_.toThrowable), /* enableSuppression */ false, /* writableStackTrace */ true
-    )
+    val t = new Throwable(message, cause.map(_.toThrowable).orNull) with NoStackTrace
     t.setStackTrace(stacktrace.iterator.map(_.toStackTraceElement).toArray)
     t
   }

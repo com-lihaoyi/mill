@@ -5,7 +5,6 @@ import upickle.default.{Reader, Writer}
 
 import scala.annotation.unused
 import scala.util.Try
-import scala.util.control.NonFatal
 
 trait MillRpcServer[
     Initialize,
@@ -31,7 +30,6 @@ trait MillRpcServerImpl[
     ServerToClient <: MillRpcMessage: Writer
 ](wireTransport: MillRpcWireTransport)
     extends MillRpcServer[Initialize, ClientToServer, ServerToClient] {
-  @volatile private var currentRequestId = Option.empty[MillRpcRequestId]
   @volatile private var initializedOnClientMessage = Option.empty[MillRpcChannel[ClientToServer]]
 
   private val clientLogger = RpcLogger.create(message => sendToClient(MillRpcServerToClient.Log(message)))
@@ -64,10 +62,8 @@ trait MillRpcServerImpl[
   }
 
   private def onAsk[Response : Writer](requestId: MillRpcRequestId)(run: MillRpcRequestId => Response): Unit = {
-    withRequestId(requestId) { requestId =>
-      val result = Try(run(requestId)).toEither.left.map(RpcThrowable(_))
-      sendToClient(MillRpcServerToClient.Response(requestId, result))
-    }
+    val result = Try(run(requestId)).toEither.left.map(RpcThrowable(_))
+    sendToClient(MillRpcServerToClient.Response(requestId, result))
   }
 
   private def waitForResponse[R:Reader](
@@ -104,13 +100,6 @@ trait MillRpcServerImpl[
     responseReceived.getOrElse(throw new IllegalStateException("This should never happen."))
   }
 
-  private def withRequestId[A](requestId: MillRpcRequestId)(f: MillRpcRequestId => A): A = {
-    val previousRequestId = currentRequestId
-    currentRequestId = Some(requestId)
-    try f(requestId)
-    finally currentRequestId = previousRequestId
-  }
-
   private def readAndTryToParse[A: Reader](): A = {
     wireTransport.readAndTryToParse(logLocal) match {
       case None => sys.exit(0)
@@ -127,20 +116,14 @@ trait MillRpcServerImpl[
   }
 
   private def createServerToClientChannel(): MillRpcChannel[ServerToClient] = {
-    (msg: ServerToClient) => {
+    (clientRequestId: MillRpcRequestId, msg: ServerToClient) => {
       val clientToServer = initializedOnClientMessage.getOrElse(throw new IllegalStateException(
         "Client to server channel should have been initialized, this is a bug in the RPC implementation."
       ))
 
-      val requestId = currentRequestId.getOrElse(throw new IllegalStateException(
-        "The current protocol implementation does not support server sending messages to the client " +
-          "without receiving a request from the client first."
-      ))
-
-      withRequestId(requestId.requestStartedFromServer) { requestId =>
-        sendToClient(MillRpcServerToClient.Ask(requestId, msg))
-        waitForResponse[msg.Response](clientToServer, requestId)
-      }
+      val requestId = clientRequestId.requestStartedFromServer
+      sendToClient(MillRpcServerToClient.Ask(requestId, msg))
+      waitForResponse[msg.Response](clientToServer, requestId)
     }
   }
 }
