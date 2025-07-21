@@ -28,7 +28,7 @@ trait MillJavaModule extends JavaModule {
   def localTestExtraModules: Seq[MillJavaModule] = Nil
   def localTestRepositories: T[Seq[PathRef]] = {
 
-    def depthFirstSearch[T](start: T, deps: T => Seq[T]): Seq[T] = {
+    def depthFirstSearch[T](start: T)(deps: T => Seq[T]): Seq[T] = {
 
       val seen = collection.mutable.Set.empty[T]
       val acc = collection.mutable.Buffer.empty[T]
@@ -45,16 +45,9 @@ trait MillJavaModule extends JavaModule {
       acc.toSeq.reverse
     }
 
-    val allModules = depthFirstSearch[MillJavaModule](
-      this,
-      m => {
-        val localTestExtraModules0 = m match {
-          case m0: MillJavaModule => m0.localTestExtraModules
-          case _ => Nil
-        }
-        (m.moduleDeps ++ m.runModuleDeps ++ localTestExtraModules0).collect {
-          case m0: MillJavaModule => m0
-        }
+    val allModules = depthFirstSearch[MillJavaModule](this)(
+      m => (m.moduleDeps ++ m.runModuleDeps ++ m.localTestExtraModules).collect{
+        case m0: MillJavaModule => m0
       }
     )
     Task {
@@ -72,9 +65,7 @@ trait MillJavaModule extends JavaModule {
     else Seq(this, build.core.api.test)
 
   def localTestOverridesEnv = Task {
-    val localRepos = localTestRepositories()
-      .map(_.path.toString)
-      .mkString(File.pathSeparator)
+    val localRepos = localTestRepositories().map(_.path.toString).mkString(File.pathSeparator)
     Seq("MILL_LOCAL_TEST_REPO" -> localRepos)
   }
 
