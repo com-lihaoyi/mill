@@ -28,7 +28,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
   def javacOptions = Seq("-source", "11", "-target", "11", "-encoding", "UTF-8")
 
   // Just remove this method when re-bootstrapping, Mill itself should provide it then
-  def stagePublish: Task[PathRef] = Task {
+  def publishLocalTestRepo: Task[PathRef] = Task {
     val publisher = new LocalM2Publisher(Task.dest)
     val publishInfos = defaultPublishInfos() ++
       Seq(

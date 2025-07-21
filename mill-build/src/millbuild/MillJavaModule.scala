@@ -15,10 +15,6 @@ import scala.util.Properties
 
 trait MillJavaModule extends JavaModule {
 
-  // Test setup
-  def localTestOverride =
-    Task { (s"com.lihaoyi-${artifactId()}", localTestOverridePaths().map(_.path).mkString("\n")) }
-
   def testArgs: T[Seq[String]] = Task {
     // Workaround for Zinc/JNA bug
     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
@@ -28,41 +24,28 @@ trait MillJavaModule extends JavaModule {
       else Nil
     jnaArgs ++ userLang
   }
-  def localTestOverridePaths =
-    Task { upstreamAssemblyClasspath() ++ Seq(compile().classes) ++ resources() }
 
   def localTestExtraModules: Seq[MillJavaModule] = Nil
   def localTestRepositories: T[Seq[PathRef]] = {
 
-    def recursive[T](start: T, deps: T => Seq[T]): Seq[T] = {
+    def depthFirstSearch[T](start: T, deps: T => Seq[T]): Seq[T] = {
 
-      @annotation.tailrec
-      def rec(
-          seenModules: Set[T],
-          acc: List[T],
-          toAnalyze: List[T]
-      ): List[T] =
-        toAnalyze match {
-          case Nil => acc
-          case cand :: remaining =>
-            if (seenModules.contains(cand))
-              rec(
-                seenModules,
-                acc,
-                toAnalyze = remaining
-              )
-            else
-              rec(
-                seenModules + cand,
-                cand :: acc,
-                deps(cand).toList ::: remaining
-              )
+      val seen = collection.mutable.Set.empty[T]
+      val acc = collection.mutable.Buffer.empty[T]
+      val stack = collection.mutable.ArrayDeque(start)
+      while(stack.nonEmpty){
+        val cand = stack.removeLast()
+        if (!seen.contains(cand)) {
+          seen.add(cand)
+          acc.append(cand)
+          stack.appendAll(deps(cand))
         }
+      }
 
-      rec(Set(), Nil, start :: Nil).reverse
+      acc.toSeq.reverse
     }
 
-    val allModules = recursive[MillJavaModule](
+    val allModules = depthFirstSearch[MillJavaModule](
       this,
       m => {
         val localTestExtraModules0 = m match {
@@ -76,7 +59,7 @@ trait MillJavaModule extends JavaModule {
     )
     Task {
       Task.traverse(allModules) {
-        case m: MillPublishJavaModule => m.stagePublish.map(Seq(_))
+        case m: MillPublishJavaModule => m.publishLocalTestRepo.map(Seq(_))
         case _ => Task.Anon(Nil)
       }().flatten
     }

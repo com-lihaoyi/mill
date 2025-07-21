@@ -610,7 +610,7 @@ trait PublishModule extends JavaModule { outer =>
    * artifact resolution, or be merged together and then used as repository,
    * for example.
    */
-  def stagePublish: Task[PathRef] = Task {
+  def publishLocalTestRepo: Task[PathRef] = Task {
     val publisher = new LocalM2Publisher(Task.dest)
     val publishInfos = defaultPublishInfos() ++
       Seq(PublishInfo.sourcesJar(sourceJar())) ++

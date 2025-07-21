@@ -131,7 +131,6 @@ object `package` extends mill.Module {
 
     // Worker for Scoverage 2.0
     object worker2 extends MillPublishScalaModule {
-      def localTestOverridePaths = Task { Seq(compile().classes) }
       def compileModuleDeps = Seq(
         build.core.api.daemon,
         scoverage.api
