@@ -116,14 +116,22 @@ trait MillRpcServerImpl[
   }
 
   private def createServerToClientChannel(): MillRpcChannel[ServerToClient] = {
+    @volatile var lastClientRequestId = Option.empty[MillRpcRequestId]
+
     (clientRequestId: MillRpcRequestId, msg: ServerToClient) => {
       val clientToServer = initializedOnClientMessage.getOrElse(throw new IllegalStateException(
         "Client to server channel should have been initialized, this is a bug in the RPC implementation."
       ))
 
-      val requestId = clientRequestId.requestStartedFromServer
-      sendToClient(MillRpcServerToClient.Ask(requestId, msg))
-      waitForResponse[msg.Response](clientToServer, requestId)
+      val requestId = lastClientRequestId.getOrElse(clientRequestId).requestStartedFromServer
+      lastClientRequestId = Some(requestId)
+      try {
+        sendToClient(MillRpcServerToClient.Ask(requestId, msg))
+        waitForResponse[msg.Response](clientToServer, requestId)
+      }
+      finally {
+        lastClientRequestId = Some(requestId.requestFinished)
+      }
     }
   }
 }

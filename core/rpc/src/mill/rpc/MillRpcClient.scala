@@ -29,7 +29,7 @@ object MillRpcClient {
     }
 
     def logWarn(msg: String): Unit = log.warn(s"[RPC] $msg")
-    def logDebug(msg: String): Unit = log.info(s"[RPC] $msg")
+    def logDebug(msg: String): Unit = log.debug(s"[RPC] $msg")
 
     def handleServerLog(msg: RpcLogger.Message): Unit = msg match {
       case RpcLogger.Message.Error(msg) => log.error(s"[RPC-SERVER] $msg")
@@ -39,7 +39,7 @@ object MillRpcClient {
       case RpcLogger.Message.Ticker(msg) => log.ticker(s"[RPC-SERVER] $msg")
     }
 
-    def awaitForResponse[A](requestId: MillRpcRequestId)(using reader: Reader[A], typeName: TPrint[A]): A = {
+    def awaitForResponse[A: Reader](requestId: MillRpcRequestId): A = {
       // When we send a request, server can send another request back at us, to get more data which is needed to
       // fulfill our request.
       var responseReceived = Option.empty[A]
@@ -59,8 +59,8 @@ object MillRpcClient {
               case Left(err) =>
                 throw err.toThrowable
               case Right(responseJson) =>
-                ???
-//                responseReceived = Some(response)
+                val response = upickle.default.read[A](responseJson)
+                responseReceived = Some(response)
             }
           case Some(MillRpcServerToClient.Response(reqId, either)) =>
             logWarn(
@@ -89,7 +89,7 @@ object MillRpcClient {
       override def apply(msg: ClientToServer): msg.Response = {
         withRequestId(currentRequestId.requestStartedFromClient) { requestId =>
           wireTransport.writeSerialized(MillRpcClientToServer.Ask(requestId, msg), logDebug)
-          awaitForResponse[msg.Response](requestId)(using msg.responseRw, msg.responseTypeName)
+          awaitForResponse[msg.Response](requestId)(using msg.responseRw)
         }
       }
 

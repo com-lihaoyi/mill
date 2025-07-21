@@ -1,6 +1,7 @@
 package mill.javalib.zinc
 
 import mill.api.JsonFormatters.*
+import mill.api.PathRef
 import mill.api.daemon.Logger
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.CompilationResult
@@ -83,7 +84,8 @@ class ZincWorkerRpcServer extends MillRpcServerImpl[
     new MillRpcChannel[ClientToServer] {
       override def apply(requestId: MillRpcRequestId, input: ClientToServer): input.Response = {
         input match {
-          case msg: ClientToServer.CompileJava => compileJava(requestId, msg).asInstanceOf
+          case msg: ClientToServer.CompileJava => compileJava(requestId, msg).asInstanceOf[input.Response]
+          case msg: ClientToServer.CompileMixed => compileMixed(requestId, msg).asInstanceOf[input.Response]
         }
       }
 
@@ -100,6 +102,29 @@ class ZincWorkerRpcServer extends MillRpcServerImpl[
           reporter = reporterAsOption(clientRequestId, msg.reporterMode),
           reportCachedProblems = msg.reporterMode.reportCachedProblems,
           incrementalCompilation = msg.incrementalCompilation
+        )(using msg.ctx, deps).toEither
+      }
+      
+      private def compileMixed(
+        clientRequestId: MillRpcRequestId,
+        msg: ClientToServer.CompileMixed
+      ): msg.Response = {
+        val deps = makeDeps(clientRequestId)
+        worker.compileMixed(
+          upstreamCompileOutput = msg.upstreamCompileOutput,
+          sources = msg.sources,
+          compileClasspath = msg.compileClasspath,
+          javacOptions = msg.javacOptions,
+          scalaVersion = msg.scalaVersion,
+          scalaOrganization = msg.scalaOrganization,
+          scalacOptions = msg.scalacOptions,
+          compilerClasspath = msg.compilerClasspath,
+          scalacPluginClasspath = msg.scalacPluginClasspath,
+          reporter = reporterAsOption(clientRequestId, msg.reporterMode),
+          reportCachedProblems = msg.reporterMode.reportCachedProblems,
+          incrementalCompilation = msg.incrementalCompilation,
+          auxiliaryClassFileExtensions = msg.auxiliaryClassFileExtensions,
+          compilerBridgeData = clientRequestId,
         )(using msg.ctx, deps).toEither
       }
     }
@@ -133,6 +158,24 @@ object ZincWorkerRpcServer {
         reporterMode: ReporterMode,
         incrementalCompilation: Boolean,
         ctx: ZincWorker.InvocationContext
+    ) extends ClientToServer {
+      override type Response = Either[String, CompilationResult]
+    }
+
+    case class CompileMixed(
+      upstreamCompileOutput: Seq[CompilationResult],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
+      javacOptions: JavaCompilerOptions,
+      scalaVersion: String,
+      scalaOrganization: String,
+      scalacOptions: Seq[String],
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
+      reporterMode: ReporterMode,
+      incrementalCompilation: Boolean,
+      auxiliaryClassFileExtensions: Seq[String],
+      ctx: ZincWorker.InvocationContext
     ) extends ClientToServer {
       override type Response = Either[String, CompilationResult]
     }

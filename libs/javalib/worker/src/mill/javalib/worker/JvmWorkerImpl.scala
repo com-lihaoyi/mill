@@ -251,16 +251,14 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         : MillRpcChannel[ZincWorkerRpcServer.ServerToClient] = new {
       override def apply(
           requestId: MillRpcRequestId,
-          msg: ZincWorkerRpcServer.ServerToClient
-      ): msg.Response = msg match {
+          input: ZincWorkerRpcServer.ServerToClient
+      ): input.Response = input match {
         case msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge =>
-          acquireZincCompilerBridge(msg).asInstanceOf
+          acquireZincCompilerBridge(msg).asInstanceOf[input.Response]
         case msg: ZincWorkerRpcServer.ServerToClient.ReportCompilationProblem =>
-          reportCompilationProblem(msg).asInstanceOf
+          reportCompilationProblem(msg).asInstanceOf[input.Response]
         case msg: ZincWorkerRpcServer.ServerToClient.Console =>
-          val r = console(msg)
-          println(s"console r: $r")
-          r.asInstanceOf
+          console(msg).asInstanceOf[input.Response]
       }
 
       private def acquireZincCompilerBridge(
@@ -314,6 +312,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
           incrementalCompilation: Boolean
       ): Result[CompilationResult] = {
         val rpcClient = makeRpcClient(serverRpcToClientHandler(reporter))
+
         val msg = ZincWorkerRpcServer.ClientToServer.CompileJava(
           upstreamCompileOutput = upstreamCompileOutput,
           sources = sources,
@@ -323,8 +322,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
           incrementalCompilation = incrementalCompilation,
           ctx = ctx
         )
-        val either = rpcClient(msg)
-        Result.fromEither(either)
+        Result.fromEither(rpcClient(msg))
       }
 
       override def compileMixed(
@@ -342,22 +340,24 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
           incrementalCompilation: Boolean,
           auxiliaryClassFileExtensions: Seq[String]
       ): Result[CompilationResult] = {
-//        zincLocalWorker.compileMixed(
-//          upstreamCompileOutput = upstreamCompileOutput,
-//          sources = sources,
-//          compileClasspath = compileClasspath,
-//          javacOptions = javacOptions,
-//          scalaVersion = scalaVersion,
-//          scalaOrganization = scalaOrganization,
-//          scalacOptions = scalacOptions,
-//          compilerClasspath = compilerClasspath,
-//          scalacPluginClasspath = scalacPluginClasspath,
-//          reporter = reporter,
-//          reportCachedProblems = reportCachedProblems,
-//          incrementalCompilation = incrementalCompilation,
-//          auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
-//        )(using zincCtx, zincDeps)
-        ???
+        val rpcClient = makeRpcClient(serverRpcToClientHandler(reporter))
+
+        val msg = ZincWorkerRpcServer.ClientToServer.CompileMixed(
+          upstreamCompileOutput = upstreamCompileOutput,
+          sources = sources,
+          compileClasspath = compileClasspath,
+          javacOptions = javacOptions,
+          scalaVersion = scalaVersion,
+          scalaOrganization = scalaOrganization,
+          scalacOptions = scalacOptions,
+          compilerClasspath = compilerClasspath,
+          scalacPluginClasspath = scalacPluginClasspath,
+          reporterMode = toReportingMode(reporter, reportCachedProblems),
+          incrementalCompilation = incrementalCompilation,
+          auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
+          ctx = ctx
+        )
+        Result.fromEither(rpcClient(msg))
       }
 
       override def docJar(
