@@ -260,6 +260,14 @@
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
 </ul>
   </li>
 
@@ -609,7 +617,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.0</span>
+    <span class="version">1.0.1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -619,10 +627,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.0</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.0.0-13-69124b/index.html">dev-1.0.0-13-69124b</a>
+          <a href="../index.html">1.0.1</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -670,7 +675,7 @@
 <h2 id="_defining_unit_test_suites"><a class="anchor" href="#_defining_unit_test_suites"></a>Defining Unit Test Suites</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-pythonlib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/testing/1-test-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1/mill-dist-1.0.1-example-pythonlib-testing-1-test-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/pythonlib/testing/1-test-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -684,7 +689,7 @@ object foo extends PythonModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/src/foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/testing/1-test-suite/foo/src/foo.py">browse</a>)</div>
+<div class="title">foo/src/foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/pythonlib/testing/1-test-suite/foo/src/foo.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">class Foo:
     def main(self):
@@ -696,7 +701,7 @@ if __name__ == "__main__":
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/test/src/test_foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/testing/1-test-suite/foo/test/src/test_foo.py">browse</a>)</div>
+<div class="title">foo/test/src/test_foo.py (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/pythonlib/testing/1-test-suite/foo/test/src/test_foo.py">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import unittest
 from unittest.mock import MagicMock
@@ -894,7 +899,7 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 and test modules can use their <code>moduleDeps</code> to also depend on each other</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-pythonlib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/testing/2-test-deps">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1/mill-dist-1.0.1-example-pythonlib-testing-2-test-deps.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/pythonlib/testing/2-test-deps">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -1028,7 +1033,7 @@ the build below defines a test suite with the name <code>itest</code>, in additi
 to that named <code>test</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-pythonlib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/testing/3-integration-suite">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1/mill-dist-1.0.1-example-pythonlib-testing-3-integration-suite.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/pythonlib/testing/3-integration-suite">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*

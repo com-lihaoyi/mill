@@ -260,6 +260,14 @@
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
 </ul>
   </li>
 
@@ -609,7 +617,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.0</span>
+    <span class="version">1.0.1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -619,10 +627,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.0</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.0.0-13-69124b/index.html">dev-1.0.0-13-69124b</a>
+          <a href="../index.html">1.0.1</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -735,7 +740,37 @@ error: ...fastexcel-writer/src/main/java/module-info.java:2:14: module not found
 <div class="paragraph">
 <p>Nevertheless, even for larger builds <code>mill init</code> automates most of the tedious
 busy-work of writing <code>build.mill</code>/<code>package.mill</code> files, and makes it much quicker
-to get a working Mill build for any existing Maven project.</p>
+to get a working Mill build for any existing Maven project. For example,
+the <code>iluwatar/java-design-patterns</code> repo has 363 subprojects
+(including test projects) and <code>./mill init</code> is able to get it imported,
+compiling, and passing all tests in Mill:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; rm build.mill # remove any existing build file
+
+&gt; git init .
+&gt; git remote add -f origin https://github.com/iluwatar/java-design-patterns
+&gt; git checkout ede37bd05568b1b8b814d8e9a1d2bbd71d9d615d
+
+&gt; ./mill init --jvm-id 21 # Repo needs Java &gt;=21 to build and test
+
+&gt; rm twin/src/test/java/com/iluwatar/twin/BallThreadTest.java # skip flaky test
+&gt; rm actor-model/src/test/java/com/iluwatar/actor/ActorModelTest.java # skip flaky test
+
+&gt; ./mill __.compile # Compile all 300+ subprojects!
+compiling 6 Java sources to ...service-to-worker...
+compiling 4 Java sources to ...update-method...
+
+&gt; ./mill acyclic-visitor.test # run a subproject's tests
+...
+Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForDos() started
+Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForDos() finished, took ...
+Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForUnix() started
+Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForUnix() finished, took ...
+Test com.iluwatar.acyclicvisitor.ZoomTest finished, took ...
+...</code></pre>
+</div>
 </div>
 </div>
 </div>

@@ -260,6 +260,14 @@
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
 </ul>
   </li>
 
@@ -609,7 +617,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.0</span>
+    <span class="version">1.0.1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -619,10 +627,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.0</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.0.0-13-69124b/index.html">dev-1.0.0-13-69124b</a>
+          <a href="../index.html">1.0.1</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -679,7 +684,7 @@ it is modified without re-compiling all the others.</p>
 </div>
 <div class="paragraph">
 <p>You have a smaller <code>build.mill</code> with the config for each sub-folder broken
-out into that folder&#8217;s respective `package.mill</p>
+out into that folder&#8217;s respective <code>package.mill</code></p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -694,12 +699,18 @@ bar/
 build.mill</pre>
 </div>
 </div>
+<div class="paragraph">
+<p>This is useful in larger projects, as it co-locates the build definition
+for each module in the same sub-folder as the relevant code. This can
+make things easier to find compared to having every module&#8217;s build configuration
+in a single large <code>build.mill</code> that may grow to thousands of lines long.</p>
+</div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_example_project"><a class="anchor" href="#_example_project"></a>Example Project</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-large-multifile-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/large/multifile/10-multi-file-builds">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1/mill-dist-1.0.1-example-large-multifile-10-multi-file-builds.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/large/multifile/10-multi-file-builds">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -711,7 +722,7 @@ trait MyModule extends ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/large/multifile/10-multi-file-builds/foo/package.mill">browse</a>)</div>
+<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/large/multifile/10-multi-file-builds/foo/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
 import mill.*, scalalib.*
@@ -723,13 +734,13 @@ object `package` extends build.MyModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/large/multifile/10-multi-file-builds/bar/package.mill">browse</a>)</div>
+<div class="title">bar/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/large/multifile/10-multi-file-builds/bar/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.bar</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">bar/qux/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/large/multifile/10-multi-file-builds/bar/qux/package.mill">browse</a>)</div>
+<div class="title">bar/qux/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/large/multifile/10-multi-file-builds/bar/qux/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.bar.qux
 import mill.*, scalalib.*
@@ -789,7 +800,7 @@ also allows you to have helper code in any <code>*.mill</code> file in the same 
 as your <code>build.mill</code> or a <code>package.mill</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-large-multifile-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/large/multifile/11-helper-files">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1/mill-dist-1.0.1-example-large-multifile-11-helper-files.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/large/multifile/11-helper-files">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -803,7 +814,7 @@ object `package` extends MyModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">util.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/large/multifile/11-helper-files/util.mill">browse</a>)</div>
+<div class="title">util.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/large/multifile/11-helper-files/util.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -816,7 +827,7 @@ trait MyModule extends ScalaModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/large/multifile/11-helper-files/foo/package.mill">browse</a>)</div>
+<div class="title">foo/package.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/large/multifile/11-helper-files/foo/package.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
 import mill.*, scalalib.*
@@ -829,7 +840,7 @@ object `package` extends build.MyModule {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">foo/versions.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/large/multifile/11-helper-files/foo/versions.mill">browse</a>)</div>
+<div class="title">foo/versions.mill (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/large/multifile/11-helper-files/foo/versions.mill">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build.foo
 

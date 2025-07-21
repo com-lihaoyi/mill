@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Building Python with Mill :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/pythonlib/intro.html">
-    <link rel="prev" href="../android/android-linting.html">
+    <link rel="prev" href="../android/hilt-sample.html">
     <link rel="next" href="module-config.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../_/css/site.css">
@@ -259,6 +259,14 @@
 
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
   </li>
 </ul>
   </li>
@@ -609,7 +617,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.0</span>
+    <span class="version">1.0.1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -619,10 +627,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.0</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.0.0-13-69124b/index.html">dev-1.0.0-13-69124b</a>
+          <a href="../index.html">1.0.1</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -722,7 +727,7 @@ Please try it out and let us know on Github if you hit any issues!
 <h2 id="_simple_python_module"><a class="anchor" href="#_simple_python_module"></a>Simple Python Module</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-pythonlib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/basic/1-simple">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1/mill-dist-1.0.1-example-pythonlib-basic-1-simple.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/pythonlib/basic/1-simple">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -860,7 +865,7 @@ logic. In this example, we override the <code>resources</code> of our <code>Pyth
 line count of all the source files in that module</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-pythonlib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/basic/2-custom-build-logic">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1/mill-dist-1.0.1-example-pythonlib-basic-2-custom-build-logic.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/pythonlib/basic/2-custom-build-logic">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -1031,7 +1036,7 @@ build logic remains performant and maintainable even as the complexity of your p
 <h2 id="_multi_module_project"><a class="anchor" href="#_multi_module_project"></a>Multi-Module Project</h2>
 <div class="sectionbody">
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-example-pythonlib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.0/example/pythonlib/basic/3-multi-module">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1/mill-dist-1.0.1-example-pythonlib-basic-3-multi-module.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/pythonlib/basic/3-multi-module">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, pythonlib.*
@@ -1189,7 +1194,7 @@ preceding it with a backslash (<code>\</code>).</p>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../android/android-linting.html">Linting Android Projects</a></span>
+  <span class="prev"><a href="../android/hilt-sample.html">Android Hilt Sample</a></span>
   <span class="next"><a href="module-config.html">Python Module Configuration</a></span>
 </nav>
 </article>

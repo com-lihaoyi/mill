@@ -260,6 +260,14 @@
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
 </ul>
   </li>
 
@@ -609,7 +617,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.0</span>
+    <span class="version">1.0.1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -619,10 +627,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.0</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.0.0-13-69124b/index.html">dev-1.0.0-13-69124b</a>
+          <a href="../index.html">1.0.1</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -707,6 +712,9 @@ example/
 <p>scalaPBVersion (mandatory) - The ScalaPB version <code>String</code> e.g. <code>"0.7.4"</code></p>
 </li>
 <li>
+<p>scalaPBSources - paths to search for <code>.proto</code> files and generate scala case classes for. Defaults to <code>moduleDir / "protobuf"</code></p>
+</li>
+<li>
 <p>scalaPBFlatPackage - A <code>Boolean</code> option which determines whether the <code>.proto</code> file name should be appended as the final segment of the package name in the generated sources.</p>
 </li>
 <li>
@@ -766,6 +774,31 @@ object example extends ScalaPBModule {
   def scalaPBVersion = "0.7.4"
   override def scalaPBAdditionalArgs =
     Seq(s"--zio_out=${Task.dest.toIO.getCanonicalPath}")
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you rely on any <code>.proto</code> files from your dependencies that requires case classes to be generated, override the <code>scalaPBSources</code> as follows:</p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.mill</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION"]
+package build
+
+import contrib.scalapblib._
+
+object example extends ScalaPBModule {
+  def scalaVersion = "2.12.6"
+  def scalaPBVersion = "0.7.4"
+  override def scalaPBSources = {
+    defaultResolver().classpath(
+      Seq(ivy"..."),
+      sources = true
+    ).foreach(jar =&gt; os.unzip(jar.path, Task.dest))
+
+    super.scalaPBSources() ++ Seq(PathRef(Task.dest))
+  }
 }</code></pre>
 </div>
 </div>

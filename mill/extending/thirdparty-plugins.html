@@ -260,6 +260,14 @@
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
 </ul>
   </li>
 
@@ -609,7 +617,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.0</span>
+    <span class="version">1.0.1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -619,10 +627,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.0</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.0.0-13-69124b/index.html">dev-1.0.0-13-69124b</a>
+          <a href="../index.html">1.0.1</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -1635,6 +1640,37 @@ and more, check the project readme.</p>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_openapi4s"><a class="anchor" href="#_openapi4s"></a>OpenApi4s</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill plugin for OpenApi4s generators.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/sake92/mill-openapi4s" class="bare">https://github.com/sake92/mill-openapi4s</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["ba.sake::mill-openapi4s::0.7.0"]
+
+import mill.*
+import mill.scalalib._
+import ba.sake.mill.openapi4s.OpenApiGeneratorModule
+
+object app extends ScalaModule, OpenApiGeneratorModule {
+  def openApi4sPackage = "com.example.api"
+  def openApi4sVersion = "0.6.1"
+  // def openApi4sGenerator = "sharaf" // or "http4s"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Generate source files</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill app.openApi4sGenerate</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_osgi"><a class="anchor" href="#_osgi"></a>OSGi</h2>
 <div class="sectionbody">
 <div class="paragraph">
@@ -1929,32 +1965,27 @@ $ mill app.springBootAssembly</code></pre>
 <p>Source code generator for <a href="https://github.com/sake92/squery/">Squery</a> SQL library boilerplate.</p>
 </div>
 <div class="paragraph">
-<p>Project home: <a href="https://github.com/sake92/squery" class="bare">https://github.com/sake92/squery</a></p>
+<p>Project home: <a href="https://github.com/sake92/mill-squery" class="bare">https://github.com/sake92/mill-squery</a></p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["ba.sake::mill-squery-generator_mill0.11:0.6.2"]
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: ["ba.sake::mill-squery-generator::0.10.0"]
 
 import mill.*
 import mill.scalalib._
-import ba.sake.squery.generator._
-import ba.sake.squery.generator.mill.SqueryGeneratorModule
+import ba.sake.mill.squery.generator.SqueryGeneratorModule
 
 object app extends ScalaModule, SqueryGeneratorModule {
   // use Task.Input(Task.ctx.env("MY_ENV_VAR")) to set sensitive variables like password etc
-  def squeryJdbcUrl = "jdbc:..."
-  def squeryUsername = ".."
-  def squeryPassword = ".."
-  def squerySchemas = Seq("myschema" -&gt; "com.mypackage.myschema")
-
-  // override to tweak codegen settings
-  def squeryGeneratorConfig: T[SqueryGeneratorConfig] = ...</code></pre>
+  def squeryJdbcUrl = jdbcUrl()
+  def squerySchemaMappings = Seq("PUBLIC" -&gt; "com.mypackage.myschema")
+  def squeryJdbcDeps = Seq(mvn"com.h2database:h2:..")</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Generate source files</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill root.squeryGenerate</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill app.squeryGenerate</code></pre>
 </div>
 </div>
 </div>

@@ -260,6 +260,14 @@
   <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
   </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
 </ul>
   </li>
 
@@ -609,7 +617,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.0</span>
+    <span class="version">1.0.1</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -619,10 +627,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.0</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.0.0-13-69124b/index.html">dev-1.0.0-13-69124b</a>
+          <a href="../index.html">1.0.1</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -685,7 +690,8 @@ body of the <code>build.mill</code> file has been compiled and loaded.</p>
 //| mvnDeps:
 //| - com.goyeau::mill-scalafix::0.5.1-14-4d3f5ea-SNAPSHOT
 
-...rest of the build.mill file...</code></pre>
+package build
+...</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -746,7 +752,8 @@ can be done by adding your build header:</p>
 <div class="paragraph">
 <p>The file name <code>.mill-opts</code> can be overridden via the <code>MILL_OPTS_PATH</code> environment variable.
 You can also pass in flags like <code>--jobs=10</code> explicitly to override the value passed in
-<code>.mill-opts</code>.</p>
+<code>.mill-opts</code>. See <a href="flags.html" class="xref page">Mill Command-Line Flags</a> for documentation on what
+flags the Mill executable can take.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -755,9 +762,9 @@ You can also pass in flags like <code>--jobs=10</code> explicitly to override th
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<code>.mill-jvm-opts</code> is for passing JVM options to the JVM running Mill,
-and <code>.mill-opts</code> is for passing options to Mill itself.If you want to pass JVM options
-to the project that Mill is building and running, see the section on
+<code>.mill-opts</code> is for passing options to Mill itself, and <code>.mill-jvm-opts</code> is for passing
+JVM options to the JVM running Mill. If you want to pass JVM options to the project that Mill
+is building and running, see the section on
 <a href="../javalib/module-config.html#_compilation_execution_flags" class="xref page">Compilation and Execution Flags</a>.
 </td>
 </tr>
@@ -787,6 +794,10 @@ behaves identically regardless of what the developer may have installed on their
 or dev environment. If <code>mill-jvm-version</code> is not provided, Mill uses the globally-installed
 <code>java</code> installation if there is one present on your <code>PATH</code>, and otherwise will download and
 cache a default version of Java for usage.</p>
+</div>
+<div class="paragraph">
+<p>For configuring different JVM versions for individual modules within your build, see
+<a href="../fundamentals/configuring-jvm-versions.html" class="xref page">Configuring JVM Versions</a>.</p>
 </div>
 </div>
 </div>
