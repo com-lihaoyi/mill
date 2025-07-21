@@ -33,7 +33,7 @@ trait MillJavaModule extends JavaModule {
       val seen = collection.mutable.Set.empty[T]
       val acc = collection.mutable.Buffer.empty[T]
       val stack = collection.mutable.ArrayDeque(start)
-      while(stack.nonEmpty){
+      while (stack.nonEmpty) {
         val cand = stack.removeLast()
         if (!seen.contains(cand)) {
           seen.add(cand)
@@ -45,8 +45,8 @@ trait MillJavaModule extends JavaModule {
       acc.toSeq.reverse
     }
 
-    val allModules = depthFirstSearch[MillJavaModule](this)(
-      m => (m.moduleDeps ++ m.runModuleDeps ++ m.localTestExtraModules).collect{
+    val allModules = depthFirstSearch[MillJavaModule](this)(m =>
+      (m.moduleDeps ++ m.runModuleDeps ++ m.localTestExtraModules).collect {
         case m0: MillJavaModule => m0
       }
     )
