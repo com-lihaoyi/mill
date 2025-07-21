@@ -99,7 +99,10 @@ trait CoursierModule extends mill.api.Module {
    *
    * See [[allRepositories]] if you need to resolve Mill internal modules.
    */
-  def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+  def repositoriesTask: Task[Seq[Repository]] = repositoriesTask
+
+  // Bincompat stub
+  private[mill] def repositoriesTask0 = Task.Anon {
     val resolve = Resolve()
     val repos = Await.result(
       resolve.finalRepositories.future()(using resolve.cache.ec),

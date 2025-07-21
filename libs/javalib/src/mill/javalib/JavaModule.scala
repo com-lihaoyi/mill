@@ -1456,7 +1456,7 @@ trait JavaModule
    */
   override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
     val transitive = Task.traverse(recursiveModuleDeps)(_.repositoriesTask)()
-    val sup = super.repositoriesTask()
+    val sup = repositoriesTask0()
     (sup ++ transitive.flatten).distinct
   }
 }
