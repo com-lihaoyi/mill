@@ -261,7 +261,7 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
   }
 
   // The semanticdb-javac plugin has issues with the -sourceroot setting, so we correct this on the fly
-  def copySemanticdbFiles(
+  private[mill] def copySemanticdbFiles(
       classesDir: os.Path,
       sourceroot: os.Path,
       targetDir: os.Path,
