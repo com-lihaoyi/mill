@@ -8,8 +8,18 @@ import mill.main.Tasks
 import mill.define.TaskModule
 import mill.api.{Logger, Result, WorkspaceRoot, experimental}
 import mill.scalalib.PublishModule.PublishData
-import mill.scalalib.SonatypeCentralPublishModule.{defaultAwaitTimeout, defaultConnectTimeout, defaultCredentials, defaultReadTimeout, getPublishingTypeFromReleaseFlag, getSonatypeCredentials}
-import mill.scalalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
+import mill.scalalib.SonatypeCentralPublishModule.{
+  defaultAwaitTimeout,
+  defaultConnectTimeout,
+  defaultCredentials,
+  defaultReadTimeout,
+  getPublishingTypeFromReleaseFlag,
+  getSonatypeCredentials
+}
+import mill.scalalib.publish.SonatypeHelpers.{
+  PASSWORD_ENV_VARIABLE_NAME,
+  USERNAME_ENV_VARIABLE_NAME
+}
 
 @experimental
 trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport {
@@ -33,7 +43,6 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
       val publishData = publishArtifacts()
       val credentials = getSonatypeCredentials(username, password)()
       val publishingType = getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
-
 
       def makeGpgArgs() = {
         PublishModule.pgpImportSecretIfProvided(Task.env)
@@ -112,19 +121,19 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule with 
   }
 
   private def publishAll(
-    publishArtifacts: Seq[PublishData],
-    bundleName: Option[String],
-    credentials: SonatypeCredentials,
-    publishingType: PublishingType,
-    makeGpgArgs: () => Seq[String],
-    readTimeout: Int,
-    connectTimeout: Int,
-    awaitTimeout: Int,
-    sonatypeCentralSnapshotUri: String,
-    taskDest: os.Path,
-    log: Logger,
-    env: Map[String, String],
-    worker: internal.MavenWorkerSupport.Api
+      publishArtifacts: Seq[PublishData],
+      bundleName: Option[String],
+      credentials: SonatypeCredentials,
+      publishingType: PublishingType,
+      makeGpgArgs: () => Seq[String],
+      readTimeout: Int,
+      connectTimeout: Int,
+      awaitTimeout: Int,
+      sonatypeCentralSnapshotUri: String,
+      taskDest: os.Path,
+      log: Logger,
+      env: Map[String, String],
+      worker: internal.MavenWorkerSupport.Api
   ): Unit = {
     val dryRun = env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
 
@@ -180,15 +189,15 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule with 
         log.info(
           s"Dry-run publishing all release artifacts to '$publishTo': ${pprint.apply(artifacts)}"
         )
-        publisher.publishAllToLocal(publishTo, singleBundleName = bundleName, artifactDatas*)
+        publisher.publishAllToLocal(publishTo, singleBundleName = bundleName, artifactDatas *)
         log.info(s"Dry-run publishing to '$publishTo' finished.")
       } else {
         log.info(
           s"Publishing all release artifacts to Sonatype Central (publishing type = $publishingType): ${
-            pprint.apply(artifacts)
-          }"
+              pprint.apply(artifacts)
+            }"
         )
-        publisher.publishAll(publishingType, singleBundleName = bundleName, artifactDatas*)
+        publisher.publishAll(publishingType, singleBundleName = bundleName, artifactDatas *)
         log.info(s"Published all release artifacts to Sonatype Central.")
       }
     }

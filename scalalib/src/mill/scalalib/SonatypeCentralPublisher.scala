@@ -1,6 +1,10 @@
 package mill.scalalib
 
-import com.lumidion.sonatype.central.client.core.{DeploymentName, PublishingType, SonatypeCredentials}
+import com.lumidion.sonatype.central.client.core.{
+  DeploymentName,
+  PublishingType,
+  SonatypeCredentials
+}
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
 import mill.javalib.publish.Artifact
@@ -37,7 +41,7 @@ class SonatypeCentralPublisher(
       singleBundleName: Option[String],
       artifacts: (Seq[(os.Path, String)], Artifact)*
   ): Unit = {
-    val prepared = prepareToPublishAll(singleBundleName, artifacts*)
+    val prepared = prepareToPublishAll(singleBundleName, artifacts *)
     log.info(prepared.mappingsString)
 
     prepared.deployments.foreach { case (zipFile, deploymentName) =>
@@ -46,11 +50,11 @@ class SonatypeCentralPublisher(
   }
 
   private[mill] def publishAllToLocal(
-    publishTo: os.Path,
-    singleBundleName: Option[String],
-    artifacts: (Seq[(os.Path, String)], Artifact)*
+      publishTo: os.Path,
+      singleBundleName: Option[String],
+      artifacts: (Seq[(os.Path, String)], Artifact)*
   ): Unit = {
-    val prepared = prepareToPublishAll(singleBundleName, artifacts*)
+    val prepared = prepareToPublishAll(singleBundleName, artifacts *)
     log.info(prepared.mappingsString)
 
     prepared.deployments.foreach { case (zipFile, deploymentName) =>
@@ -62,20 +66,20 @@ class SonatypeCentralPublisher(
   }
 
   private case class PreparedArtifacts(
-    mappings: Seq[(Artifact, Seq[(String, Array[Byte])])],
-    deployments: Vector[(File, DeploymentName)]
+      mappings: Seq[(Artifact, Seq[(String, Array[Byte])])],
+      deployments: Vector[(File, DeploymentName)]
   ) {
     def mappingsString: String = s"mappings ${pprint.apply(
-      mappings.iterator.map { case (a, fileSetContents) =>
-        (a, fileSetContents.iterator.map(_._1).toVector.sorted)
-      }.toVector
-    )}"
+        mappings.iterator.map { case (a, fileSetContents) =>
+          (a, fileSetContents.iterator.map(_._1).toVector.sorted)
+        }.toVector
+      )}"
   }
 
   /** Prepare artifacts for publishing. */
   private def prepareToPublishAll(
-    singleBundleName: Option[String],
-    artifacts: (Seq[(os.Path, String)], Artifact)*
+      singleBundleName: Option[String],
+      artifacts: (Seq[(os.Path, String)], Artifact)*
   ): PreparedArtifacts = {
     val releases = getArtifactMappings(isSigned = true, gpgArgs, workspace, env, artifacts)
 

@@ -47,8 +47,8 @@ object MavenWorkerSupport {
       ) +: publishInfos.iterator.map(M2Artifact.Default(_, artifact)).toList
 
     private[mill] def asM2ArtifactsFromPublishDatas(
-      artifact: Artifact,
-      publishDatas: Seq[(PathRef, String)]
+        artifact: Artifact,
+        publishDatas: Seq[(PathRef, String)]
     ): List[M2Artifact.Default] =
       publishDatas.iterator.map { case (pathRef, name) =>
         val publishInfo = PublishInfo.parseFromFile(

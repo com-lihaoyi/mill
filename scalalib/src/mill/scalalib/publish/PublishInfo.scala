@@ -43,10 +43,10 @@ object PublishInfo {
    * @param classifier see [[PublishInfo.classifier]]
    */
   private[mill] case class IvyMetadata(
-    extension: String,
-    config: String,
-    `type`: String,
-    classifier: Option[String]
+      extension: String,
+      config: String,
+      `type`: String,
+      classifier: Option[String]
   ) {
     def toPublishInfo(file: PathRef): PublishInfo =
       PublishInfo(
@@ -101,10 +101,10 @@ object PublishInfo {
    * @param artifactVersion version of the artifact, for example "1.0.0-RC3"
    */
   private[mill] def parseFromFile(
-    file: PathRef,
-    fileName: String,
-    artifactId: String,
-    artifactVersion: String
+      file: PathRef,
+      fileName: String,
+      artifactId: String,
+      artifactVersion: String
   ): PublishInfo = {
     val withoutArtifactIdAndVersion = fileName.replaceFirst(s"^$artifactId-$artifactVersion-?", "")
     val extension = withoutArtifactIdAndVersion.split('.').lastOption.getOrElse("")
