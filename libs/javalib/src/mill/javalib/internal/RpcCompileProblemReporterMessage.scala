@@ -1,10 +1,8 @@
 package mill.javalib.internal
 
 import mill.api.JsonFormatters.*
-import mill.rpc.MillRpcMessage
 
-sealed trait RpcCompileProblemReporterMessage extends MillRpcMessage, MillRpcMessage.NoResponse
-    derives upickle.default.ReadWriter
+sealed trait RpcCompileProblemReporterMessage derives upickle.default.ReadWriter
 object RpcCompileProblemReporterMessage {
   case object Start extends RpcCompileProblemReporterMessage
   case class LogError(problem: RpcProblem) extends RpcCompileProblemReporterMessage

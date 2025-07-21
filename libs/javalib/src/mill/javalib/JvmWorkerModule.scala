@@ -60,15 +60,16 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       .asInstanceOf[JvmWorkerFactoryApi]
 
     val ctx = Task.ctx()
-    val zincCompilerBridge = ZincCompilerBridge.Provider(
+    val zincCompilerBridge = ZincCompilerBridge[Unit](
       taskDest = ctx.dest,
       logInfo = ctx.log.info,
-      compile = (scalaVersion, scalaOrganization) => scalaCompilerBridgeJar(
+      acquire = (scalaVersion, scalaOrganization, _) => scalaCompilerBridgeJar(
         scalaVersion = scalaVersion, scalaOrganization = scalaOrganization, defaultResolver()
       ).map(_.path)
     )
     val args = JvmWorkerArgs(
       zincCompilerBridge,
+      classPath = classpath().map(_.path),
       jobs = jobs,
       compileToJar = false,
       zincLogDebug = zincLogDebug(),
@@ -81,7 +82,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: TaskCtx): ZincCompilerBridge.CompileResult[PathRef] = {
+  )(implicit ctx: TaskCtx): ZincCompilerBridge.AcquireResult[PathRef] = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, JvmWorkerUtil.scalaBinaryVersion(scalaVersion))
     }
@@ -119,11 +120,12 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     )
 
     val bridgeJar = JvmWorkerUtil.grepJar(deps, bridgeName, bridgeVersion, useSources)
-    val classpathOpt = Option.when(useSources) {
-      compilerInterfaceClasspath(scalaVersion, scalaOrganization, resolver)
-    }
 
-    ZincCompilerBridge.CompileResult(classpathOpt, bridgeJar)
+    if (useSources) {
+      val classpath = compilerInterfaceClasspath(scalaVersion, scalaOrganization, resolver)
+      ZincCompilerBridge.AcquireResult.NotCompiled(classpath, bridgeJar)
+    }
+    else ZincCompilerBridge.AcquireResult.Compiled(bridgeJar)
   }
 
   def compilerInterfaceClasspath(

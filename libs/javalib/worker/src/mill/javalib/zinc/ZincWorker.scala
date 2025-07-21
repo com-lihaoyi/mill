@@ -1,13 +1,15 @@
 package mill.javalib.zinc
 
+import mill.api.JsonFormatters.*
 import mill.api.PathRef
-import mill.api.daemon.{Logger, Result}
 import mill.api.daemon.internal.CompileProblemReporter
-import mill.javalib.api.{CompilationResult, JvmWorkerApi, JvmWorkerUtil, Versions}
+import mill.api.daemon.{Logger, Result}
+import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.javalib.internal.ZincCompilerBridge
+import mill.javalib.internal.ZincCompilerBridge.AcquireResult
 import mill.javalib.worker.*
 import mill.javalib.zinc.ZincWorker.*
-import mill.util.{CachedFactory, RefCountedClassLoaderCache}
+import mill.util.{CachedFactory, CachedFactoryWithInitData, RefCountedClassLoaderCache}
 import sbt.internal.inc
 import sbt.internal.inc.*
 import sbt.internal.inc.classpath.ClasspathUtil
@@ -17,16 +19,15 @@ import sbt.mill.SbtLoggerUtils
 import xsbti.compile.*
 import xsbti.compile.analysis.ReadWriteMappers
 import xsbti.{PathBasedFile, VirtualFile}
-import mill.api.JsonFormatters.*
 
-import java.io.{File, PrintStream}
+import java.io.File
 import java.net.URLClassLoader
 import java.util.Optional
 import scala.collection.mutable
 
 // TODO review: apply javaHome, javacRuntimeOptions
-class ZincWorker(
-    compilerBridge: ZincCompilerBridge,
+class ZincWorker[CompilerBridgeData](
+    compilerBridge: ZincCompilerBridge[CompilerBridgeData],
     jobs: Int,
     compileToJar: Boolean,
     zincLogDebug: Boolean
@@ -73,10 +74,10 @@ class ZincWorker(
     }
   }
 
-  private val scalaCompilerCache = new CachedFactory[ScalaCompilerCacheKey, ScalaCompilerCached] {
+  private val scalaCompilerCache = new CachedFactoryWithInitData[ScalaCompilerCacheKey, CompilerBridgeData, ScalaCompilerCached] {
     override def maxCacheSize: Int = jobs
 
-    override def setup(key: ScalaCompilerCacheKey): ScalaCompilerCached = {
+    override def setup(key: ScalaCompilerCacheKey, compilerBridgeData: CompilerBridgeData): ScalaCompilerCached = {
       import key.*
 
       val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
@@ -84,7 +85,8 @@ class ZincWorker(
       val compiledCompilerBridge = compileBridgeIfNeeded(
         scalaVersion,
         scalaOrganization,
-        compilerClasspath.map(_.path)
+        compilerClasspath.map(_.path),
+        compilerBridgeData
       )
       val classLoader = classloaderCache.get(key.combinedCompilerClasspath)
       val scalaInstance = new inc.ScalaInstance(
@@ -194,14 +196,16 @@ class ZincWorker(
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean,
-      auxiliaryClassFileExtensions: Seq[String]
+      auxiliaryClassFileExtensions: Seq[String],
+      compilerBridgeData: CompilerBridgeData
   )(using ctx: ZincWorker.InvocationContext, deps: ZincWorker.InvocationDependencies): Result[CompilationResult] = {
     withScalaCompilers(
       scalaVersion = scalaVersion,
       scalaOrganization = scalaOrganization,
       compilerClasspath = compilerClasspath,
       scalacPluginClasspath = scalacPluginClasspath,
-      javacOptions = javacOptions
+      javacOptions = javacOptions,
+      compilerBridgeData
     ) { compilers =>
       compileInternal(
         upstreamCompileOutput = upstreamCompileOutput,
@@ -223,14 +227,16 @@ class ZincWorker(
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
-      args: Seq[String]
-  )(using ctx: ZincWorker.InvocationContext): Boolean = {
+      args: Seq[String],
+      compilerBridgeData: CompilerBridgeData
+  ): Boolean = {
     withScalaCompilers(
       scalaVersion,
       scalaOrganization,
       compilerClasspath,
       scalacPluginClasspath,
-      JavaCompilerOptions.empty
+      JavaCompilerOptions.empty,
+      compilerBridgeData
     ) { compilers =>
       // Not sure why dotty scaladoc is flaky, but add retries to workaround it
       // https://github.com/com-lihaoyi/mill/issues/4556
@@ -282,7 +288,8 @@ class ZincWorker(
       scalaOrganization: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
-      javacOptions: JavaCompilerOptions
+      javacOptions: JavaCompilerOptions,
+      compilerBridgeData: CompilerBridgeData
   )(f: Compilers => T) = {
     val cacheKey = ScalaCompilerCacheKey(
       scalaVersion,
@@ -291,7 +298,7 @@ class ZincWorker(
       scalaOrganization,
       javacOptions
     )
-    scalaCompilerCache.withValue(cacheKey) { cached =>
+    scalaCompilerCache.withValue(cacheKey, compilerBridgeData) { cached =>
       f(cached.compilers)
     }
   }
@@ -347,7 +354,7 @@ class ZincWorker(
       deps.consoleOut,
       ansiCodesSupported = ctx.logPromptColored,
       useFormat = ctx.logPromptColored,
-      supressedMessage = _ => None
+      suppressedMessage = _ => None
     )
     val loggerId = Thread.currentThread().getId.toString
     val logger = SbtLoggerUtils.createLogger(loggerId, consoleAppender, zincLogLevel)
@@ -507,36 +514,34 @@ class ZincWorker(
   private def compileBridgeIfNeeded(
       scalaVersion: String,
       scalaOrganization: String,
-      compilerClasspath: Seq[os.Path]
+      compilerClasspath: Seq[os.Path],
+      acquireData: CompilerBridgeData
   ): os.Path = {
-    compilerBridge match {
-      case ZincCompilerBridge.Compiled(forScalaVersion) => forScalaVersion(scalaVersion)
-      case provider: ZincCompilerBridge.Provider =>
-        val workingDir = provider.taskDest / s"zinc-${Versions.zinc}" / scalaVersion
-        val lock = synchronized(compilerBridgeLocks.getOrElseUpdate(scalaVersion, new Object()))
-        val compiledDest = workingDir / "compiled"
-        lock.synchronized {
-          if (os.exists(compiledDest / "DONE")) compiledDest
-          else {
-            val provided =
-              provider.compile(scalaVersion = scalaVersion, scalaOrganization = scalaOrganization)
-            provided.classpath match {
-              case None => provided.bridgeJar
-              case Some(bridgeClasspath) =>
-                ZincCompilerBridge.compile(
-                  provider.logInfo,
-                  workingDir,
-                  compiledDest,
-                  scalaVersion,
-                  compilerClasspath,
-                  bridgeClasspath,
-                  provided.bridgeJar
-                )
-                os.write(compiledDest / "DONE", "")
-                compiledDest
-            }
-          }
+    val workingDir = compilerBridge.taskDest / s"zinc-${Versions.zinc}" / scalaVersion
+    val lock = synchronized(compilerBridgeLocks.getOrElseUpdate(scalaVersion, new Object()))
+    val compiledDest = workingDir / "compiled"
+    lock.synchronized {
+      if (os.exists(compiledDest / "DONE")) compiledDest
+      else {
+        val acquired =
+          compilerBridge.acquire(scalaVersion = scalaVersion, scalaOrganization = scalaOrganization, acquireData)
+
+        acquired match {
+          case AcquireResult.Compiled(bridgeJar) => bridgeJar
+          case AcquireResult.NotCompiled(bridgeClasspath, bridgeSourcesJar) =>
+            ZincCompilerBridge.compile(
+              compilerBridge.logInfo,
+              workingDir,
+              compiledDest,
+              scalaVersion,
+              compilerClasspath,
+              bridgeClasspath,
+              bridgeSourcesJar
+            )
+            os.write(compiledDest / "DONE", "")
+            compiledDest
         }
+      }
     }
   }
 }

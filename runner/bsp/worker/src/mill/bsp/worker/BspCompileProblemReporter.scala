@@ -28,7 +28,7 @@ private class BspCompileProblemReporter(
     targetDisplayName: String,
     taskId: TaskId,
     compilationOriginId: Option[String]
-) extends CompileProblemReporter[Problem] {
+) extends CompileProblemReporter {
   private var errors = 0
   private var warnings = 0
 

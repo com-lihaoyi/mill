@@ -1,9 +1,9 @@
 package mill.rpc
 
 import mill.api.daemon.Logger
+import pprint.TPrint
 import upickle.default.{Reader, Writer}
 
-import scala.annotation.unused
 import scala.util.Try
 
 trait MillRpcServer[
@@ -34,7 +34,7 @@ trait MillRpcServerImpl[
 
   private val clientLogger = RpcLogger.create(message => sendToClient(MillRpcServerToClient.Log(message)))
 
-  def main(@unused args: Array[String]): Unit = {
+  def run(): Unit = {
     logLocal("Initializing Mill RPC server... Waiting for the `initialize` message.")
     val onClientMessage = {
       val initializeMessage = readAndTryToParse[Initialize]()
@@ -100,7 +100,7 @@ trait MillRpcServerImpl[
     responseReceived.getOrElse(throw new IllegalStateException("This should never happen."))
   }
 
-  private def readAndTryToParse[A: Reader](): A = {
+  private def readAndTryToParse[A: Reader]()(using typeName: TPrint[A]): A = {
     wireTransport.readAndTryToParse(logLocal) match {
       case None => sys.exit(0)
       case Some(parsed) => parsed

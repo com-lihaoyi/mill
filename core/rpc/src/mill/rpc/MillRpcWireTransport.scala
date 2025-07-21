@@ -1,5 +1,6 @@
 package mill.rpc
 
+import pprint.{TPrint, TPrintColors}
 import upickle.default.{Reader, Writer}
 
 trait MillRpcWireTransport extends AutoCloseable {
@@ -11,14 +12,18 @@ trait MillRpcWireTransport extends AutoCloseable {
   def read(): Option[String]
 
   /** Helper that reads a message from the wire and tries to parse it, logging along the way. */
-  def readAndTryToParse[A: Reader](log: String => Unit): Option[A] = {
+  def readAndTryToParse[A: Reader](log: String => Unit)(using typeName: TPrint[A]): Option[A] =
+    readAndTryToParse[A](typeName.render(using TPrintColors.Colors).render, log)
+
+  /** Helper that reads a message from the wire and tries to parse it, logging along the way. */
+  def readAndTryToParse[A: Reader](typeName: String, log: String => Unit): Option[A] = {
     read() match {
       case None =>
         log("Transport wire broken.")
         None
 
       case Some(line) =>
-        log(s"Received: $line")
+        log(s"Received, will try to parse as $typeName: $line")
         val parsed = upickle.default.read(line)
         log(s"Parsed: ${pprint.apply(parsed)}")
         Some(parsed)
@@ -42,7 +47,12 @@ object MillRpcWireTransport {
     def name: String = "stdin/out"
 
     def read(): Option[String] = Option(Console.in.readLine())
-    def write(message: String): Unit = println(message)
+
+    def write(message: String): Unit = {
+      val out = Console.out
+      out.println(message)
+      out.flush()
+    }
 
     override def close(): Unit = {
       // Do nothing
@@ -53,7 +63,11 @@ object MillRpcWireTransport {
     def name: String = s"stdin/out of subprocess (PID ${subprocess.wrapped.pid()})"
 
     def read(): Option[String] = Option(subprocess.stdout.readLine())
-    def write(message: String): Unit = subprocess.stdin.writeLine(message)
+
+    def write(message: String): Unit = {
+      subprocess.stdin.writeLine(message)
+      subprocess.stdin.flush()
+    }
 
     override def close(): Unit = {
       subprocess.close()

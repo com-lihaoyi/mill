@@ -2,9 +2,10 @@ package mill.javalib.zinc
 
 import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
-import mill.javalib.api.{CompilationResult, JvmWorkerApi}
+import mill.javalib.api.CompilationResult
 import mill.javalib.worker.JavaCompilerOptions
 
+/** Gives you API for the Zinc worker. */
 trait ZincWorkerApi {
   /** Compile a Java-only project */
   def compileJava(

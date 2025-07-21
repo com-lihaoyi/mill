@@ -42,7 +42,7 @@ case class MillRpcRequestId private (parts: Vector[MillRpcRequestId.Part]) {
 object MillRpcRequestId {
   def fromString(str: String): Either[String, MillRpcRequestId] = {
     val parts = str.split(":").iterator.map(Part.unapply).toVector
-    if (parts.contains(None)) Left(s"invalid request id: \"$str\"")
+    if (parts.contains(None)) Left(s"invalid request id: \"$str\" ($parts)")
     else if (parts.isEmpty) Left(s"empty request id: \"$str\"")
     else Right(MillRpcRequestId(parts.flatten))
   }
@@ -55,6 +55,9 @@ object MillRpcRequestId {
 
   def initialForClient: MillRpcRequestId = apply(Vector(Part(Kind.Client, -1)))
 
+  /** Creates an instance, throws if the vector is empty. */
+  def unsafe(parts: Vector[MillRpcRequestId.Part]) = apply(parts)
+
   enum Kind {
     case Client, Server
 
@@ -64,9 +67,9 @@ object MillRpcRequestId {
     }
   }
   object Kind {
-    def unapply(s: String): Option[Kind] = s match {
-      case "c" => Some(Kind.Client)
-      case "s" => Some(Kind.Server)
+    def unapply(c: Char): Option[Kind] = c match {
+      case 'c' => Some(Kind.Client)
+      case 's' => Some(Kind.Server)
       case _ => None
     }
   }
@@ -75,11 +78,12 @@ object MillRpcRequestId {
     override def toString: String = s"${kind.asChar}$id"
   }
   object Part {
-    private val numberRegex = "(\\d+)".r
-
-    def unapply(str: String): Option[Part] = str match {
-      case s"${Kind(kind)}${numberRegex(id)}" => Some(Part(kind, id.toLong))
-      case _ => None
+    def unapply(str: String): Option[Part] = {
+      if (str.length < 2) None
+      else for {
+        kind <- str.headOption.flatMap(Kind.unapply)
+        id <- str.tail.toLongOption
+      } yield apply(kind, id)
     }
   }
 }

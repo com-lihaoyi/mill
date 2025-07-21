@@ -4,6 +4,9 @@ import upickle.default.{Reader, Writer}
 
 /** Protocol messages that are sent from server to the client. */
 enum MillRpcServerToClient[+Data] {
+  /** Confirmation that the server has been initialized. */
+//  case Initialized
+
   /** Response to a [[MillRpcClientToServer.Ask]] which either succeeded or failed. */
   case Response(id: MillRpcRequestId, data: Either[RpcThrowable, Data])
 

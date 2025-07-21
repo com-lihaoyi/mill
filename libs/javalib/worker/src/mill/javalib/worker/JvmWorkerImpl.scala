@@ -3,15 +3,17 @@ package mill.javalib.worker
 import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.javalib.api.{CompilationResult, JvmWorkerApi}
-import mill.javalib.internal.{JvmWorkerArgs, ZincCompilerBridge}
-import mill.javalib.zinc.ZincWorkerMain.ReporterMode
-import mill.javalib.zinc.{ZincWorker, ZincWorkerApi, ZincWorkerMain}
-import mill.rpc.MillRpcChannel
+import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
+import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
+import mill.javalib.zinc.{ZincWorker, ZincWorkerApi, ZincWorkerRpcServer}
+import mill.rpc.RpcConsole.Message
+import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcRequestId, MillRpcWireTransport}
 import mill.util.Jvm
 import os.Path
+import sbt.internal.util.ConsoleOut
 
 @internal
-class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable {
+class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoCloseable {
   import args.*
 
   /** The local Zinc instance which is used when we do not want to override Java home or runtime options. */
@@ -113,16 +115,20 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
       ctx: JvmWorkerApi.Ctx
   ): A = {
     val jOpts = JavaCompilerOptions(javacOptions)
+    val log = ctx.log
     val zincCtx = ZincWorker.InvocationContext(
       env = ctx.env,
       dest = ctx.dest,
-      logDebugEnabled = ctx.log.debugEnabled,
-      logPromptColored = ctx.log.prompt.colored
+      logDebugEnabled = log.debugEnabled,
+      logPromptColored = log.prompt.colored
     )
 
     if (jOpts.runtime.options.isEmpty && javaHome.isEmpty) {
       val zincDeps =
-        ZincWorker.InvocationDependencies(log = ctx.log, errorStream = ctx.log.streams.err)
+        ZincWorker.InvocationDependencies(
+          log = log,
+          consoleOut = ConsoleOut.printStreamOut(log.streams.err)
+        )
 
       val api = new ZincWorkerApi {
         override def compileJava(
@@ -170,7 +176,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
           reporter = reporter,
           reportCachedProblems = reportCachedProblems,
           incrementalCompilation = incrementalCompilation,
-          auxiliaryClassFileExtensions = auxiliaryClassFileExtensions
+          auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
+          compilerBridgeData = ()
         )(using zincCtx, zincDeps)
 
         override def docJar(
@@ -184,12 +191,13 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
           scalaOrganization = scalaOrganization,
           compilerClasspath = compilerClasspath,
           scalacPluginClasspath = scalacPluginClasspath,
-          args = args
-        )(using zincCtx)
+          args = args,
+          compilerBridgeData = ()
+        )
       }
 
       f(api, jOpts.compiler)
-    } else runWithSpawned(javaHome, jOpts.runtime, zincCtx) { worker =>
+    } else runWithSpawned(javaHome, jOpts.runtime, zincCtx, log) { worker =>
       f(worker, jOpts.compiler)
     }
   }
@@ -198,16 +206,33 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
   private def runWithSpawned[A](
       javaHome: Option[os.Path],
       runtimeOptions: JavaRuntimeOptions,
-      ctx: ZincWorker.InvocationContext
+      ctx: ZincWorker.InvocationContext,
+      log: Logger
   )(f: ZincWorkerApi => A): A = {
-    trait ZincServerToClientHandler {
-      def handle(msg: ZincWorkerMain.ServerToClient): msg.Response
-    }
+    def debugStr = s"javaHome=$javaHome, runtimeOptions=$runtimeOptions"
 
-    def getChannel(handler: ZincServerToClientHandler): MillRpcChannel[ZincWorkerMain.ClientToServer] = {
-      val process = Jvm.spawnProcess("mill.javalib.zinc.ZincWorkerMain", javaHome = javaHome, jvmArgs = runtimeOptions.options)
-      process.stdin
-      ???
+    def makeRpcClient(handler: MillRpcChannel[ZincWorkerRpcServer.ServerToClient])
+        : MillRpcClient[ZincWorkerRpcServer.ClientToServer] = {
+      log.info(s"Spawning ZincWorkerMain with $debugStr")
+      val process = Jvm.spawnProcess(
+        mainClass = "mill.javalib.zinc.ZincWorkerMain",
+        javaHome = javaHome,
+        jvmArgs = runtimeOptions.options,
+        classPath = classPath
+      )
+      log.info(s"ZincWorkerMain JVM process spawned with PID ${process.wrapped.pid}.")
+      val wireTransport = MillRpcWireTransport.ViaStdinAndStdoutOfSubprocess(process)
+      val initialize = ZincWorkerRpcServer.Initialize(
+        taskDest = ctx.dest,
+        jobs = jobs,
+        compileToJar = compileToJar,
+        zincLogDebug = zincLogDebug
+      )
+      MillRpcClient.create[
+        ZincWorkerRpcServer.Initialize,
+        ZincWorkerRpcServer.ClientToServer,
+        ZincWorkerRpcServer.ServerToClient
+      ](initialize, wireTransport, log)(handler)
     }
 
     def toReportingMode(
@@ -215,32 +240,68 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
         reportCachedProblems: Boolean
     ): ReporterMode = reporter match {
       case None => ReporterMode.NoReporter
-      // TODO review: forward data sent from the RPC to the reporter
-      case Some(_) => ReporterMode.Reporter(reportCachedProblems = reportCachedProblems)
+      case Some(reporter) =>
+        ReporterMode.Reporter(
+          reportCachedProblems = reportCachedProblems,
+          maxErrors = reporter.maxErrors
+        )
     }
 
-    val serverRpcToClientHandler: ZincServerToClientHandler = new {
-      override def handle(msg: ZincWorkerMain.ServerToClient): msg.Response = msg match {
-        case msg: ZincWorkerMain.ServerToClient.InvokeZincCompilerBridgeCompile =>
-          invokeZincCompilerBridgeCompile(msg).asInstanceOf
-        case msg: ZincWorkerMain.ServerToClient.ReportCompilationProblem =>
+    def serverRpcToClientHandler(reporter: Option[CompileProblemReporter])
+        : MillRpcChannel[ZincWorkerRpcServer.ServerToClient] = new {
+      override def apply(
+          requestId: MillRpcRequestId,
+          msg: ZincWorkerRpcServer.ServerToClient
+      ): msg.Response = msg match {
+        case msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge =>
+          acquireZincCompilerBridge(msg).asInstanceOf
+        case msg: ZincWorkerRpcServer.ServerToClient.ReportCompilationProblem =>
           reportCompilationProblem(msg).asInstanceOf
+        case msg: ZincWorkerRpcServer.ServerToClient.Console =>
+          val r = console(msg)
+          println(s"console r: $r")
+          r.asInstanceOf
       }
 
-      private def invokeZincCompilerBridgeCompile(
-          msg: ZincWorkerMain.ServerToClient.InvokeZincCompilerBridgeCompile
+      private def acquireZincCompilerBridge(
+          msg: ZincWorkerRpcServer.ServerToClient.AcquireZincCompilerBridge
       ): msg.Response =
-        compilerBridge match {
-          case ZincCompilerBridge.Compiled(forScalaVersion) => ??? // TODO review
-          case provider: ZincCompilerBridge.Provider =>
-            provider.compile(msg.scalaVersion, msg.scalaOrganization)
+        compilerBridge.acquire(msg.scalaVersion, msg.scalaOrganization, data = ())
+
+      private def reportCompilationProblem(
+          msg: ZincWorkerRpcServer.ServerToClient.ReportCompilationProblem
+      ): msg.Response =
+        reporter match {
+          case Some(reporter) => msg.problem match {
+              case RpcCompileProblemReporterMessage.Start => reporter.start()
+              case RpcCompileProblemReporterMessage.LogError(problem) => reporter.logError(problem)
+              case RpcCompileProblemReporterMessage.LogWarning(problem) =>
+                reporter.logWarning(problem)
+              case RpcCompileProblemReporterMessage.LogInfo(problem) => reporter.logInfo(problem)
+              case RpcCompileProblemReporterMessage.FileVisited(file) =>
+                reporter.fileVisited(file.toNIO)
+              case RpcCompileProblemReporterMessage.PrintSummary => reporter.printSummary()
+              case RpcCompileProblemReporterMessage.Finish => reporter.finish()
+              case RpcCompileProblemReporterMessage.NotifyProgress(percentage, total) =>
+                reporter.notifyProgress(percentage = percentage, total = total)
+            }
+
+          case None =>
+            log.warn(
+              s"Received compilation problem from JVM worker ($debugStr), but no reporter was provided, " +
+                s"this is a bug in Mill. Ignoring the compilation problem for now.\n\n" +
+                s"Problem: ${pprint.apply(msg)}"
+            )
         }
 
-      private def reportCompilationProblem(msg: ZincWorkerMain.ServerToClient.ReportCompilationProblem): msg.Response =
-        ???
+      private def console(msg: ZincWorkerRpcServer.ServerToClient.Console): msg.Response = {
+        val out = if (msg.stderr) Console.err else Console.out
+        msg.msg match {
+          case Message.Print(s) => out.print(s"[RPC-SERVER] $s")
+          case Message.Flush => out.flush()
+        }
+      }
     }
-
-    val channel = getChannel(serverRpcToClientHandler)
 
     val api = new ZincWorkerApi {
       override def compileJava(
@@ -252,7 +313,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
           reportCachedProblems: Boolean,
           incrementalCompilation: Boolean
       ): Result[CompilationResult] = {
-        val msg = ZincWorkerMain.ClientToServer.CompileJava(
+        val rpcClient = makeRpcClient(serverRpcToClientHandler(reporter))
+        val msg = ZincWorkerRpcServer.ClientToServer.CompileJava(
           upstreamCompileOutput = upstreamCompileOutput,
           sources = sources,
           compileClasspath = compileClasspath,
@@ -261,7 +323,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs) extends JvmWorkerApi with AutoCloseable
           incrementalCompilation = incrementalCompilation,
           ctx = ctx
         )
-        val either = channel(msg)
+        val either = rpcClient(msg)
         Result.fromEither(either)
       }
 

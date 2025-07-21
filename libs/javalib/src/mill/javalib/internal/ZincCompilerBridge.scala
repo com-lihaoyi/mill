@@ -1,50 +1,81 @@
 package mill.javalib.internal
 
 import mill.api.daemon.internal.internal
-import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil}
+import mill.javalib.api.JvmWorkerUtil
+import upickle.default.ReadWriter
 
 import java.io.File
 import scala.util.Properties.isWin
 
+/**
+ * Allows you to retrieve or compile the Scala compiler bridge.
+ *
+ * @param taskDest The task's destination folder.
+ * @param logInfo  logs a message at INFO level.
+ */
 @internal
-enum ZincCompilerBridge {
-  /** The compiler bridge is already compiled, we just need to run it.
-   *
-   * @param forScalaVersion returns the path to the compiler bridge jar for the given Scala version
-   * */
-  case Compiled(forScalaVersion: String => os.Path)
-
-  /** The compiler bridge needs to be compiled.
-   *
-   * @param taskDest The task's destination folder.
-   * @param logInfo logs a message at INFO level.
-   * */
-  case Provider(taskDest: os.Path, logInfo: String => Unit, compile: ZincCompilerBridge.Compile)
-}
+case class ZincCompilerBridge[AcquireData](
+    taskDest: os.Path,
+    logInfo: String => Unit,
+    acquire: ZincCompilerBridge.Acquire[AcquireData]
+)
 @internal
 object ZincCompilerBridge {
-  trait Compile {
-    def apply(scalaVersion: String, scalaOrganization: String): CompileResult[os.Path]
-  }
-  case class CompileResult[Path](classpath: Option[Seq[Path]], bridgeJar: Path) {
-    def map[B](f: Path => B): CompileResult[B] =
-      copy(classpath = classpath.map(_.map(f)), bridgeJar = f(bridgeJar))
 
-    def fullClasspath: Vector[Path] = (Iterator(bridgeJar) ++ classpath.iterator.flatten).toVector
+  /**
+   * Provides the compiler bridge.
+   *
+   * @tparam Data extra data to pass to the acquire function.
+   */
+  trait Acquire[Data] {
+    def apply(scalaVersion: String, scalaOrganization: String, data: Data): AcquireResult[os.Path]
   }
-  object CompileResult {
-    given rw[Path:upickle.default.ReadWriter]: upickle.default.ReadWriter[CompileResult[Path]] = upickle.default.macroRW
+
+  sealed trait AcquireResult[Path] {
+    def map[B](f: Path => B): AcquireResult[B]
+
+    def fullClasspath: Vector[Path]
+  }
+  object AcquireResult {
+
+    /**
+     * The compiler bridge is already compiled and can be ran.
+     *
+     * @param bridgeJar The path to the compiled compiler bridge jar.
+     */
+    case class Compiled[Path](bridgeJar: Path) extends AcquireResult[Path] {
+      override def map[B](f: Path => B): AcquireResult[B] = Compiled(f(bridgeJar))
+
+      override def fullClasspath: Vector[Path] = Vector(bridgeJar)
+    }
+
+    /**
+     * The compiler bridge is not compiled yet and needs to be compiled.
+     *
+     * @param classpath The classpath to use to compile the compiler bridge.
+     * @param bridgeSourcesJar The path to the compiler bridge sources jar.
+     */
+    case class NotCompiled[Path](classpath: Seq[Path], bridgeSourcesJar: Path)
+        extends AcquireResult[Path] {
+      override def map[B](f: Path => B): AcquireResult[B] =
+        NotCompiled(classpath = classpath.map(f), bridgeSourcesJar = f(bridgeSourcesJar))
+
+      def fullClasspath: Vector[Path] =
+        (Iterator(bridgeSourcesJar) ++ classpath.iterator).toVector
+    }
+
+    given rw[Path: ReadWriter]: ReadWriter[AcquireResult[Path]] = ReadWriter.derived
   }
 
   /** Compile the `sbt`/Zinc compiler bridge in the `compileDest` directory */
   def compile(
-    logInfo: String => Unit,
-    workingDir: os.Path,
-    compileDest: os.Path,
-    scalaVersion: String,
-    compilerClasspath: Seq[os.Path],
-    compilerBridgeClasspath: Seq[os.Path],
-    compilerBridgeSourcesJar: os.Path
+      logInfo: String => Unit,
+      workingDir: os.Path,
+      compileDest: os.Path,
+      scalaVersion: String,
+      compilerClasspath: Seq[os.Path],
+      compilerBridgeClasspath: Seq[os.Path],
+      compilerBridgeSourcesJar: os.Path
   ): Unit = {
     if (scalaVersion == "2.12.0") {
       // The Scala 2.10.0 compiler fails on compiling the compiler bridge

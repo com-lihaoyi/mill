@@ -1,6 +1,7 @@
 package mill.rpc
 
 import mill.api.daemon.Logger
+import pprint.TPrint
 import upickle.default.{Reader, Writer}
 
 import scala.util.Try
@@ -13,7 +14,7 @@ object MillRpcClient {
   def create[
       Initialize: Writer,
       ClientToServer <: MillRpcMessage: Writer,
-      ServerToClient <: MillRpcMessage
+      ServerToClient <: MillRpcMessage: Reader
   ](
       initialize: Initialize,
       wireTransport: MillRpcWireTransport,
@@ -28,7 +29,7 @@ object MillRpcClient {
     }
 
     def logWarn(msg: String): Unit = log.warn(s"[RPC] $msg")
-    def logDebug(msg: String): Unit = log.debug(s"[RPC] $msg")
+    def logDebug(msg: String): Unit = log.info(s"[RPC] $msg")
 
     def handleServerLog(msg: RpcLogger.Message): Unit = msg match {
       case RpcLogger.Message.Error(msg) => log.error(s"[RPC-SERVER] $msg")
@@ -38,26 +39,28 @@ object MillRpcClient {
       case RpcLogger.Message.Ticker(msg) => log.ticker(s"[RPC-SERVER] $msg")
     }
 
-    def awaitForResponse[R: Reader](requestId: MillRpcRequestId): R = {
+    def awaitForResponse[A](requestId: MillRpcRequestId)(using reader: Reader[A], typeName: TPrint[A]): A = {
       // When we send a request, server can send another request back at us, to get more data which is needed to
       // fulfill our request.
-      var responseReceived = Option.empty[R]
+      var responseReceived = Option.empty[A]
       while (responseReceived.isEmpty) {
-        wireTransport.readAndTryToParse[MillRpcServerToClient[R]](logDebug) match {
+        wireTransport.readAndTryToParse[MillRpcServerToClient[ujson.Value]](logDebug) match {
           case None =>
             throw new IllegalStateException(
               s"RPC wire has broken (${wireTransport.name}). The server probably crashed."
             )
           case Some(MillRpcServerToClient.Log(msg)) =>
             handleServerLog(msg)
-          case Some(MillRpcServerToClient.Ask(id, data)) =>
-            handleServerMessage(id, data.asInstanceOf[ServerToClient])
+          case Some(MillRpcServerToClient.Ask(id, dataJson)) =>
+            val data = upickle.default.read[ServerToClient](dataJson)
+            handleServerMessage(id, data)
           case Some(MillRpcServerToClient.Response(`requestId`, either)) =>
             either match {
               case Left(err) =>
                 throw err.toThrowable
-              case Right(response) =>
-                responseReceived = Some(response)
+              case Right(responseJson) =>
+                ???
+//                responseReceived = Some(response)
             }
           case Some(MillRpcServerToClient.Response(reqId, either)) =>
             logWarn(
@@ -86,7 +89,7 @@ object MillRpcClient {
       override def apply(msg: ClientToServer): msg.Response = {
         withRequestId(currentRequestId.requestStartedFromClient) { requestId =>
           wireTransport.writeSerialized(MillRpcClientToServer.Ask(requestId, msg), logDebug)
-          awaitForResponse[msg.Response](requestId)(using msg.responseRw)
+          awaitForResponse[msg.Response](requestId)(using msg.responseRw, msg.responseTypeName)
         }
       }
 
