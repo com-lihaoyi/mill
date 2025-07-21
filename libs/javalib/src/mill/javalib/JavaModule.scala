@@ -1451,14 +1451,20 @@ trait JavaModule
   }
 
   /**
-   * Repositories are transitively aggregated from upstream modules, following
-   * the behavior of Maven, Gradle, and SBT
+   * Stable version of [[repositoriesTask]] so it doesn't keep getting
+   * recomputed over and over during the recursive traversal
    */
-  override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+  private lazy val repositoriesTaskStable = Task.Anon {
     val transitive = Task.traverse(recursiveModuleDeps)(_.repositoriesTask)()
     val sup = repositoriesTask0()
     (sup ++ transitive.flatten).distinct
   }
+
+  /**
+   * Repositories are transitively aggregated from upstream modules, following
+   * the behavior of Maven, Gradle, and SBT
+   */
+  override def repositoriesTask: Task[Seq[Repository]] = repositoriesTaskStable
 }
 
 object JavaModule {
