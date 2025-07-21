@@ -36,7 +36,7 @@
         <orderEntry type="library" scope="RUNTIME" name="graphviz-java-0.18.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="graphviz-java-min-deps-0.18.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="is-terminal-0.1.2.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="jansi.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="jansi<!-- IGNORE -->.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="javax.inject-1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jcl-over-slf4j-1.7.30.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jgrapht-core-1.4.0.jar" level="project"/>
