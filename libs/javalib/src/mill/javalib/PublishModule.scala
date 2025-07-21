@@ -612,6 +612,28 @@ trait PublishModule extends JavaModule { outer =>
       "Licenses" -> pom.licenses.map(l => s"${l.name} (${l.id})").mkString(",")
     )
   }
+
+  /**
+   * Creates a Maven repository directory with main and source artifacts for this module
+   *
+   * This results in a directory which contains things like
+   * `my/organization/my-module/VERSION/my-module-VERSION.{pom,jar}`.
+   * Such directories can later be used as Maven repositories during
+   * artifact resolution, or be merged together and then used as repository,
+   * for example.
+   */
+  def publishLocalTestRepo: Task[PathRef] = Task {
+    val publisher = new LocalM2Publisher(Task.dest)
+    val publishInfos = defaultPublishInfos() ++
+      Seq(PublishInfo.sourcesJar(sourceJar())) ++
+      extraPublish()
+    publisher.publish(
+      pom = pom().path,
+      artifact = artifactMetadata(),
+      publishInfos = publishInfos
+    )
+    PathRef(Task.dest)
+  }
 }
 
 object PublishModule extends ExternalModule with DefaultTaskModule {
