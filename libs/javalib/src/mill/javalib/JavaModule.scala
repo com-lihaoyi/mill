@@ -1450,6 +1450,15 @@ trait JavaModule
     else Task.Anon { compile().classes.path.toNIO }
   }
 
+  /**
+   * Repositories are transitively aggregated from upstream modules, following
+   * the behavior of Maven, Gradle, and SBT
+   */
+  override def repositoriesTask: Task[Seq[Repository]] = Task.Anon {
+    val transitive = Task.traverse(recursiveModuleDeps)(_.repositoriesTask)()
+    val sup = super.repositoriesTask()
+    (sup ++ transitive.flatten).distinct
+  }
 }
 
 object JavaModule {
