@@ -1,12 +1,9 @@
 package mill.util
 
 import java.util.concurrent.LinkedBlockingQueue
-import coursier.LocalRepositories
 import coursier.core.Repository
-import coursier.maven.MavenRepository
 import mill.api.{PathRef, Discover, Evaluator, ExternalModule, MultiBiMap, SelectMode}
 import mill.*
-import mill.util.MillModuleUtil.millProjectModule
 import mill.api.{Result}
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 import guru.nidi.graphviz.attribute.Rank.RankDir
@@ -14,11 +11,8 @@ import guru.nidi.graphviz.attribute.{Rank, Shape, Style}
 import mill.api.BuildCtx
 
 object VisualizeModule extends ExternalModule {
-  def repositories: Seq[Repository] = Seq(
-    LocalRepositories.ivy2Local,
-    MavenRepository("https://repo1.maven.org/maven2"),
-    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-  )
+  def repositories: Seq[Repository] =
+    coursier.Resolve.defaultRepositories
 
   lazy val millDiscover = Discover[this.type]
 
@@ -72,7 +66,19 @@ object VisualizeModule extends ExternalModule {
   def classpath = toolsClasspath
 
   def toolsClasspath: T[Seq[PathRef]] = Task {
-    millProjectModule("mill-libs-graphviz", repositories)
+    mill.util.Jvm.resolveDependencies(
+      repositories = repositories,
+      deps = Seq(
+        coursier.Dependency(
+          coursier.Module(
+            coursier.Organization("com.lihaoyi"),
+            coursier.ModuleName("mill-libs-graphviz_3")
+          ),
+          coursier.VersionConstraint(BuildInfo.millVersion)
+        )
+      ),
+      force = Nil
+    ).map(_.map(_.withRevalidateOnce))
   }
 
   /**
