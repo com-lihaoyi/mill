@@ -16,9 +16,9 @@ private[mill] trait MavenWorkerSupport extends CoursierModule {
     Jvm.createClassLoader(classPath = classPath.indexed, parent = getClass.getClassLoader)
   }
 
-  protected def mavenWorker: Worker[MavenWorkerSupport.Api] = Task.Worker {
+  private[mill] def mavenWorker: Worker[internal.MavenWorkerSupport.Api] = Task.Worker {
     mavenWorkerClassloader().loadClass("mill.scalalib.maven.worker.impl.WorkerImpl")
-      .getConstructor().newInstance().asInstanceOf[MavenWorkerSupport.Api]
+      .getConstructor().newInstance().asInstanceOf[internal.MavenWorkerSupport.Api]
   }
 }
 object MavenWorkerSupport {
@@ -35,6 +35,7 @@ object MavenWorkerSupport {
   }
 
   object RemoteM2Publisher {
+    @deprecated("This should have been an internal API.", "0.12.15")
     def asM2Artifacts(
         pom: os.Path,
         artifact: Artifact,
@@ -44,6 +45,20 @@ object MavenWorkerSupport {
         pom,
         artifact
       ) +: publishInfos.iterator.map(M2Artifact.Default(_, artifact)).toList
+
+    private[mill] def asM2ArtifactsFromPublishDatas(
+      artifact: Artifact,
+      publishDatas: Seq[(PathRef, String)]
+    ): List[M2Artifact.Default] =
+      publishDatas.iterator.map { case (pathRef, name) =>
+        val publishInfo = PublishInfo.parseFromFile(
+          pathRef,
+          fileName = name,
+          artifactId = artifact.id,
+          artifactVersion = artifact.version
+        )
+        M2Artifact.Default(publishInfo, artifact): M2Artifact.Default
+      }.toList
 
     sealed trait M2Artifact
     object M2Artifact {
