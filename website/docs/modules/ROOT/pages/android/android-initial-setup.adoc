@@ -1,0 +1,79 @@
+= Android Initial Setup
+:page-aliases: android_initial_setup.adoc
+
+This page provides an overview of the initial setup required for building Android applications using Mill.
+
+== 1. Install Mill
+Don't have Mill installed yet?
+You can follow the steps as described in xref:cli/installation-ide.adoc[]
+
+== 2. Install `cmdline-tools` (including `sdkmanager`)
+
+To interact with the Android SDK in a headless or build-tool-friendly way, you need access to `cmdline-tools`, which include the `sdkmanager` utility.
+
+There are two ways to obtain them:
+
+=== Via Android Studio:
+If you already have Android Studio installed, `cmdline-tools` may already be installed in `~/Android/Sdk/cmdline-tools/`.
+They can also be installed from the GUI through the SDK Manager:
+
+  1. Open Android Studio.
+  2. Go to `Settings`.
+  3. Navigate to `Languages & Framework` > `Android SDK`.
+  4. Switch to the `SDK Tools` tab.
+  5. Check the box for `Android SDK Command-line Tools (latest)` and click `OK`.
+
+=== Standalone download:
+Alternatively, download https://developer.android.com/studio#command-line-tools-only[cmdline-tools].
+Extract the downloaded archive to your Android SDK directory, typically `~/Android/Sdk/cmdline-tools/`.
+The structure should look like this:
+`$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager`.
+
+If using a custom path, be sure to export the `ANDROID_HOME` environment variable accordingly:
+
+[source,bash]
+----
+export ANDROID_HOME=/path/to/android/sdk
+export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
+----
+
+Make sure to also accept the licenses in order for mill to install the required SDK components:
+[source,bash]
+----
+yes | sdkmanager --licenses
+----
+
+
+== 3. Create a new Mill project
+// The structure of a Mill project can be found in the next android pages like:
+The structure of a Mill project and the relative Android commands can be found in the following pages:
+
+- xref:android/java.adoc[]
+- xref:android/kotlin.adoc[]
+- xref:android/compose-samples.adoc[]
+- xref:android/hilt-sample.adoc[]
+
+If you want to start with an example project, you can use the `init` command as shown xref:cli/builtin-commands.adoc[here].
+
+== 4. Use Android Studio
+You can use Android Studio to open and work with your Mill project.
+
+image::basic/AndroidStudio.png[AndroidStudio.png]
+
+== 5. Release the project
+By default, mill projects are considered in debug mode, so if your project is ready for release, you should add the following to your app object in the `build.mill` file:
+[source,scala]
+----
+override def androidIsDebug = Task { false }
+def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+----
+Make sure to replace the values with your actual keystore information.
+If you don't have a keystore yet, you can create one using the `keytool` command:
+[source,bash]
+----
+keytool -genkey -v -keystore releaseKey.jks -storepass <PASS> -keyalg RSA -keysize 2048 -validity 10000 -alias releaseKey -keypass <PASS>
+----
+
