@@ -36,13 +36,14 @@ object CoursierClient {
         )))
         .withRepositories(testOverridesRepos ++ repositories)
 
-      resolve.either() match {
-        case Left(err) => sys.error(err.toString)
-        case Right(v) =>
-          Artifacts(coursierCache0)
-            .withResolution(v)
-            .eitherResult()
-            .right.get
+      val result = resolve.either().flatMap { v =>
+        Artifacts(coursierCache0)
+          .withResolution(v)
+          .eitherResult()
+      }
+      result match {
+        case Left(e) => sys.error(e.toString())
+        case Right(v) => v
       }
     }
 

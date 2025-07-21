@@ -63,7 +63,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
       if (daemonMode) {
-        mill.constants.DebugLog("\nstart")
         checkClassloaders(tester)(
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.javalib.JvmWorkerModule#worker cl" -> 1,

@@ -22,7 +22,8 @@ import mill.javalib.testrunner.{GetTestTasksMain, TestArgs, TestResult, TestRunn
 /**
  * Implementation code used by [[TestModule]] to actually run tests.
  */
-private final class TestModuleUtil(
+@mill.api.daemon.experimental
+final class TestModuleUtil(
     useArgsFile: Boolean,
     forkArgs: Seq[String],
     selectors: Seq[String],
