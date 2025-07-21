@@ -176,7 +176,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 }
 
 object SemanticDbJavaModule extends ExternalModule with CoursierModule {
-  private def workerClasspath: T[Seq[PathRef]] = Task {
+  private[mill] def workerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
       Dep.millProjectModule("mill-libs-javalib-scalameta-worker")
     ))
