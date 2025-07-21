@@ -10,6 +10,7 @@ case class Artifact(group: String, id: String, version: String) derives RW {
       !version.contains("/"),
     "Artifact coordinates must not contain `/`s"
   )
+
   def isSnapshot: Boolean = version.endsWith("-SNAPSHOT")
 }
 

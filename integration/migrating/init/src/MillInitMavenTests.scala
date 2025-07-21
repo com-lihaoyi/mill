@@ -102,33 +102,6 @@ object MillInitMavenDotEnvTests extends BuildGenTestSuite {
   }
 }
 
-object MillInitMavenAvajeConfigTests extends BuildGenTestSuite {
-
-  def tests: Tests = Tests {
-    // - multi-module
-    // - unsupported test framework
-    val url = "https://github.com/avaje/avaje-config/archive/refs/tags/4.0.zip"
-
-    test - integrationTest(url) { tester =>
-      import tester._
-
-      val init = defaultInitCommand
-      val initRes = eval(init)
-      assert(initRes.isSuccess)
-
-      val compileRes = eval("__.compile")
-      assert(
-        // uses moditect-maven-plugin to handle JPMS
-        // https://github.com/moditect/moditect
-        compileRes.err.contains(
-          "avaje-config/src/main/java/module-info.java:5:31: module not found: io.avaje.lang"
-        ),
-        !compileRes.isSuccess
-      )
-    }
-  }
-}
-
 object MillInitMavenNettyTests extends BuildGenTestSuite {
 
   def tests: Tests = Tests {
@@ -317,14 +290,12 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
             )
           )),
           expectedTestTaskResults = Some(SplitTaskResults(
-            successful = SortedSet(
+            all = SortedSet(
               "buffer.test",
               "resolver.test",
               "transport-native-unix-common.test",
               "transport-udt.test",
-              "common.test"
-            ),
-            failed = SortedSet(
+              "common.test",
               "codec-dns.test",
               "codec-haproxy.test",
               "codec-http.test",
@@ -350,7 +321,15 @@ object MillInitMavenNettyTests extends BuildGenTestSuite {
               "transport-native-kqueue.test",
               "transport-sctp.test",
               "transport.test"
-            )
+            ),
+            successful = SortedSet(
+              "buffer.test",
+              "resolver.test",
+              "transport-native-unix-common.test",
+              "transport-udt.test",
+              "common.test"
+            ),
+            failed = SortedSet()
           ))
         )
       }

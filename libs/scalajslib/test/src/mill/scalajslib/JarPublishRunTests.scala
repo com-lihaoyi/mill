@@ -36,15 +36,15 @@ object JarPublishRunTests extends TestSuite {
         }
       test("artifactId_10") {
         testArtifactId(
-          HelloJSWorld.scalaVersions.head,
-          "1.0.1",
+          HelloJSWorld.matrix.head._1,
+          "1.19.0",
           "hello-js-world_sjs1_2.13"
         )
       }
       test("artifactId_1") {
         testArtifactId(
-          HelloJSWorld.scalaVersions.head,
-          HelloJSWorld.scalaJSVersions.head,
+          HelloJSWorld.matrix.head._1,
+          HelloJSWorld.matrix.head._2,
           "hello-js-world_sjs1_2.13"
         )
       }
