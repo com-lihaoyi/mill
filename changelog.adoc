@@ -12,6 +12,26 @@ endif::[]
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
+[#1-0-1]
+=== 1.0.1
+_2025-07-21_
+
+
+:version: 1.0.1
+:milestone-name: 1.0.1
+:milestone: 121
+:prev-version: 1.0.0
+
+* Fix snapshot publishing in `SonatypeCentralPublishModule/publishAll` ({link-pr}/5539[#5539])
+* Improvements to Maven proejct importer ({link-pr}/5530[#5530])
+* Fix gpg hanging waiting for input when more than one key is present in keychain" ({link-pr}/5503[#5503])
+* Fix version sources in CrossSbtTests ({link-pr}/5519[#5519])
+* Fix `./mill init` example download paths ({link-pr}/5516[#5516])
+* Silence noisy warning about encoded package names ({link-pr}/5511[#5511])
+* Fix spurious version mismatch error when using `-jvm` launcher ({link-pr}/5510[#5510])
+* Properly offset line numbers in runtime stack traces ({link-pr}/5504[#5504])
+
+
 [#1-0-0]
 === 1.0.0
 _2025-07-10_
