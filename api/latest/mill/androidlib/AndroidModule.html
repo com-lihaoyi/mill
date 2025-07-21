@@ -2052,12 +2052,11 @@ node41 -> node42;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>A more flexible version of <a href="AndroidModule.html#repositories-0">repositories</a>, that allows custom repositories that are not definable by Coursier repository strings. This is a relatively advanced feature, and for most situations overriding <a href="AndroidModule.html#repositories-0">repositories</a> should be sufficient</p>
+             <p>Repositories are transitively aggregated from upstream modules, following the behavior of Maven, Gradle, and SBT</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>A more flexible version of <a href="AndroidModule.html#repositories-0">repositories</a>, that allows custom repositories that are not definable by Coursier repository strings. This is a relatively advanced feature, and for most situations overriding <a href="AndroidModule.html#repositories-0">repositories</a> should be sufficient</p>
-              <p>See <a href="AndroidModule.html#allRepositories-0">allRepositories</a> if you need to resolve Mill internal modules.</p>
+              <p>Repositories are transitively aggregated from upstream modules, following the behavior of Maven, Gradle, and SBT</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
@@ -2066,7 +2065,7 @@ node41 -> node42;
               </dt>
               <dd class="body-medium">
                <div>
-                <a href="../javalib/CoursierModule.html">CoursierModule</a>
+                <a href="../javalib/JavaModule.html">JavaModule</a> -&gt; <a href="../javalib/CoursierModule.html">CoursierModule</a>
                </div>
               </dd>
               <dt class="body-small">

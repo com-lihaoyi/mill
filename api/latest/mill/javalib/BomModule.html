@@ -3995,12 +3995,12 @@ node27 -> node22;
           </div>
          </div>
         </div>
-        <div class="documentableElement" id="repositoriesTask-0" data-f-inherited="CoursierModule">
+        <div class="documentableElement" id="repositoriesTask-0" data-f-keywords="override" data-f-inherited="JavaModule">
          <div class="documentableElement-expander">
           <button class="icon-button ar show-content"></button>
           <div class="header monospace mono-medium">
            <div class="signature">
-            <span class="modifiers"></span><span class="kind"><span t="k">def </span></span><a href="BomModule.html#repositoriesTask-0" t="n" class="documentableName ">repositoriesTask</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Repository</span>]]
+            <span class="modifiers"><span t="k">override </span></span><span class="kind"><span t="k">def </span></span><a href="BomModule.html#repositoriesTask-0" t="n" class="documentableName ">repositoriesTask</a>: <a href="../api/Task.html" t="t">Task</a>[<span data-unresolved-link="" t="t">Seq</span>[<span data-unresolved-link="" t="t">Repository</span>]]
            </div>
           </div>
          </div>
@@ -4010,26 +4010,33 @@ node27 -> node22;
            <div class="originInfo"></div>
            <div class="memberDocumentation">
             <div class="documentableBrief doc">
-             <p>A more flexible version of <a href="CoursierModule.html#repositories-0">repositories</a>, that allows custom repositories that are not definable by Coursier repository strings. This is a relatively advanced feature, and for most situations overriding <a href="CoursierModule.html#repositories-0">repositories</a> should be sufficient</p>
+             <p>Repositories are transitively aggregated from upstream modules, following the behavior of Maven, Gradle, and SBT</p>
             </div>
             <div class="cover">
              <div class="doc">
-              <p>A more flexible version of <a href="CoursierModule.html#repositories-0">repositories</a>, that allows custom repositories that are not definable by Coursier repository strings. This is a relatively advanced feature, and for most situations overriding <a href="CoursierModule.html#repositories-0">repositories</a> should be sufficient</p>
-              <p>See <a href="CoursierModule.html#allRepositories-0">allRepositories</a> if you need to resolve Mill internal modules.</p>
+              <p>Repositories are transitively aggregated from upstream modules, following the behavior of Maven, Gradle, and SBT</p>
              </div>
              <h2 class="h200">Attributes</h2>
              <dl class="attributes attributes-small">
               <dt class="body-small">
+               Definition Classes
+              </dt>
+              <dd class="body-medium">
+               <div>
+                <a href="JavaModule.html#repositoriesTask-0">JavaModule</a> -&gt; <a href="CoursierModule.html">CoursierModule</a>
+               </div>
+              </dd>
+              <dt class="body-small">
                Inherited from:
               </dt>
               <dd class="body-medium">
-               <a href="CoursierModule.html#repositoriesTask-0">CoursierModule</a>
+               <a href="JavaModule.html#repositoriesTask-0">JavaModule</a>
               </dd>
               <dt class="body-small">
                Source
               </dt>
               <dd class="body-medium">
-               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/CoursierModule.scala" target="_blank">CoursierModule.scala</a>
+               <a href="https://github.com/com-lihaoyi/mill/blob/main/libs/javalib/src/mill/javalib/JavaModule.scala" target="_blank">JavaModule.scala</a>
               </dd>
              </dl>
             </div>
