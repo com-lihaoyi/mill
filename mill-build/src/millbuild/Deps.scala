@@ -321,5 +321,10 @@ object Deps {
     )
 
   }
+  val keytoolDeps = Seq(
+    mvn"org.bouncycastle:bcpkix-jdk18on:1.81",
+    mvn"org.bouncycastle:bcprov-jdk18on:1.81",
+    mvn"org.bouncycastle:bcutil-jdk18on:1.81"
+  )
 
 }
