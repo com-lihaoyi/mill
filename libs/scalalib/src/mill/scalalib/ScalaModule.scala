@@ -669,7 +669,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           SemanticDbJavaModule.copySemanticdbFiles(
             compileRes.classes.path,
             BuildCtx.workspaceRoot,
-            Task.dest / "data"
+            Task.dest / "data",
+            SemanticDbJavaModule.workerClasspath().map(_.path)
           )
         }
       }
