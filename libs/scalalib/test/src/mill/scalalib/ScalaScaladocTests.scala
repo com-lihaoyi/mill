@@ -67,7 +67,7 @@ object ScalaScaladocTests extends TestSuite {
         val Right(result) = eval.apply(HelloWorldDocTitle.core.docJar): @unchecked
         assert(
           result.evalCount > 0,
-          os.read(eval.outPath / "core/docJar.dest/javadoc/index.html").contains(
+          os.read(eval.outPath / "core/scalaDocGenerated.dest/javadoc/index.html").contains(
             "<span id=\"doc-title\">Hello World"
           )
         )

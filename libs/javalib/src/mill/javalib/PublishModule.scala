@@ -5,7 +5,7 @@ import coursier.core.{Configuration, DependencyManagement}
 import mill.api.{DefaultTaskModule, ExternalModule, Task}
 import mill.api.PathRef
 import mill.api.Result
-import mill.util.{JarManifest, Secret, Tasks, FileSetContents}
+import mill.util.{FileSetContents, JarManifest, Secret, Tasks}
 import mill.javalib.publish.{Artifact, SonatypePublisher}
 import os.Path
 import mill.api.BuildCtx
@@ -287,7 +287,7 @@ trait PublishModule extends JavaModule { outer =>
         }
         .sortBy(value => (value.organization, value.name, value.version))
     }
-    Ivy(artifactMetadata(), publishXmlDeps0, extraPublish(), overrides, hasJar = hasJar)
+    Ivy(artifactMetadata(), publishXmlDeps0, extras = extraPublish(), overrides, hasJar = hasJar)
   }
 
   def artifactMetadata: T[Artifact] = Task {
@@ -299,7 +299,7 @@ trait PublishModule extends JavaModule { outer =>
     Task { defaultPublishInfos(sources = true, docs = true)() }
 
   /** The [[PublishInfo]] of the [[defaultMainPublishInfos]] and optionally the [[sourcesJar]] and [[docJar]]. */
-  def defaultPublishInfos(sources: Boolean, docs: Boolean): Task[Seq[PublishInfo]] = {
+  final def defaultPublishInfos(sources: Boolean, docs: Boolean): Task[Seq[PublishInfo]] = {
     val sourcesJarOpt =
       if (sources) Task.Anon(Some(PublishInfo.sourcesJar(sourceJar())))
       else Task.Anon(None)
@@ -323,6 +323,11 @@ trait PublishModule extends JavaModule { outer =>
    * Extra artifacts to publish.
    */
   def extraPublish: T[Seq[PublishInfo]] = Task { Seq.empty[PublishInfo] }
+
+  /** [[defaultPublishInfos]] + [[extraPublish]] */
+  final def allPublishInfos(sources: Boolean, docs: Boolean): Task[Seq[PublishInfo]] = Task.Anon {
+    defaultPublishInfos(sources = sources, docs = docs)() ++ extraPublish()
+  }
 
   /**
    * Properties to be published with the published pom/ivy XML.
@@ -403,7 +408,7 @@ trait PublishModule extends JavaModule { outer =>
       doc: Boolean
   ): Task[(artifact: Artifact, contents: Map[os.SubPath, FileSetContents.Writable])] = {
     Task.Anon {
-      val publishInfos = defaultPublishInfos(sources = sources, docs = doc)() ++ extraPublish()
+      val publishInfos = allPublishInfos(sources = sources, docs = doc)()
       val artifact = artifactMetadata()
       val contents = LocalIvyPublisher.createFileSetContents(
         artifact = artifact,
@@ -474,7 +479,7 @@ trait PublishModule extends JavaModule { outer =>
   /** Produce the contents for the maven publishing. */
   private def publishM2LocalContentsTask(sources: Boolean, docs: Boolean)
       : Task[(artifact: Artifact, contents: Map[os.SubPath, os.Path])] = Task.Anon {
-    val publishInfos = defaultPublishInfos(sources = sources, docs = docs)() ++ extraPublish()
+    val publishInfos = allPublishInfos(sources = sources, docs = docs)()
     val artifact = artifactMetadata()
     val contents =
       LocalM2Publisher.createFileSetContents(pom = pom().path, artifact = artifact, publishInfos)
@@ -488,22 +493,29 @@ trait PublishModule extends JavaModule { outer =>
   /** @see [[PublishModule.sonatypeCentralSnapshotUri]] */
   def sonatypeCentralSnapshotUri: String = PublishModule.sonatypeCentralSnapshotUri
 
+  @deprecated(
+    "Do not override this task, override `artifactMetadata`, `publishArtifactsDefaultPayload` or `extraPublish` instead.",
+    "1.0.1"
+  )
   def publishArtifacts: T[PublishModule.PublishData] = Task {
     PublishModule.PublishData(artifactMetadata(), publishArtifactsPayload()())
   }
 
   /** [[publishArtifactsDefaultPayload]] with [[extraPublish]]. */
-  def publishArtifactsPayload(
+  final def publishArtifactsPayload(
       sources: Boolean = true,
       docs: Boolean = true
   ): Task[Map[os.SubPath, PathRef]] = Task {
     val defaultPayload = publishArtifactsDefaultPayload(sources = sources, docs = docs)()
     val baseName = publishArtifactsBaseName()
-    val extraPayload =
-      extraPublish().iterator.map(p =>
-        os.SubPath(s"$baseName${p.classifierPart}.${p.ext}") -> p.file
-      ).toMap
+    val extraPayload = extraPublishPayload()(baseName)
     defaultPayload ++ extraPayload
+  }
+
+  private def extraPublishPayload = Task.Anon { (baseName: String) =>
+    extraPublish().iterator.map(p =>
+      os.SubPath(s"$baseName${p.classifierPart}.${p.ext}") -> p.file
+    ).toMap
   }
 
   /** The base name for the published artifacts. */
@@ -663,11 +675,9 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
   ) {
     def payloadAsMap: Map[os.SubPath, PathRef] = PublishData.seqToMap(payload)
 
-    /**
-     * Maps the path reference to an actual path so that it can be used in publishAll signatures
-     */
+    /** Maps the path reference to an actual path. */
     private[mill] def withConcretePath: (Map[os.SubPath, os.Path], Artifact) =
-      (payloadAsMap.view.mapValues(_.path).toMap, meta)
+      (PublishData.withConcretePath(payloadAsMap), meta)
   }
   object PublishData {
     implicit def jsonify: upickle.default.ReadWriter[PublishData] = {
@@ -683,6 +693,11 @@ object PublishModule extends ExternalModule with DefaultTaskModule {
 
     private def mapToSeq(payload: Map[os.SubPath, PathRef]): Seq[(PathRef, String)] =
       payload.iterator.map { case (name, pathRef) => pathRef -> name.toString }.toSeq
+
+    /** Maps the path reference to an actual path. */
+    private[mill] def withConcretePath(payload: Map[os.SubPath, PathRef])
+        : Map[os.SubPath, os.Path] =
+      payload.view.mapValues(_.path).toMap
   }
 
   /**

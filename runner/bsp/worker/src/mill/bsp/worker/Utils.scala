@@ -11,7 +11,7 @@ import ch.epfl.scala.bsp4j.{
   TaskId
 }
 import mill.api.ExecResult.{Skipped, Success}
-import mill.api.daemon.internal.{ExecutionResultsApi, JavaModuleApi, TaskApi}
+import mill.api.daemon.internal.{ExecutionResultsApi, TaskApi}
 
 import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
@@ -32,7 +32,7 @@ private[mill] object Utils {
       client: BuildClient
   ): Int => Option[BspCompileProblemReporter] = { (moduleHashCode: Int) =>
     bspIdsByModule.find(_._1.hashCode == moduleHashCode).map {
-      case (module: JavaModuleApi, targetId) =>
+      case (module, targetId) =>
         val buildTarget = module.bspBuildTarget
         val taskId = new TaskId(module.hashCode.toString)
         new BspCompileProblemReporter(
