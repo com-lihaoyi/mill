@@ -38,7 +38,8 @@ object `package` extends MillStableScalaModule {
       worker,
       `classgraph-worker`,
       `jarjarabrams-worker`,
-      `spotless-worker`
+      `spotless-worker`,
+      `scalameta-worker`
     )
   def testForkEnv = {
     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
