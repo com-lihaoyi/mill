@@ -1,16 +1,12 @@
 package mill.javalib
 
-import mill.api.{Result, experimental}
-import mill.api.PathRef
+import mill.api.{BuildCtx, Discover, ExternalModule, ModuleRef, PathRef, Result, experimental}
 import mill.api.daemon.internal.SemanticDbJavaModuleApi
 import mill.constants.CodeGenConstants
-import mill.api.ModuleRef
 import mill.util.BuildInfo
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil}
-import mill.javalib.internal.SemanticdbProcessor
 import mill.util.Version
 import mill.{T, Task}
-import mill.api.BuildCtx
 
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
@@ -133,7 +129,8 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
           SemanticDbJavaModule.copySemanticdbFiles(
             r.classes.path,
             BuildCtx.workspaceRoot,
-            Task.dest / "data"
+            Task.dest / "data",
+            SemanticDbJavaModule.workerClasspath().map(_.path)
           )
         }
       }
@@ -178,7 +175,12 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
   }
 }
 
-object SemanticDbJavaModule {
+object SemanticDbJavaModule extends ExternalModule with CoursierModule {
+  private def workerClasspath: T[Seq[PathRef]] = Task {
+    defaultResolver().classpath(Seq(
+      Dep.millProjectModule("mill-libs-javalib-scalameta-worker")
+    ))
+  }
 
   def javacOptionsTask(javacOptions: Seq[String], semanticDbJavaVersion: String)(implicit
       ctx: mill.api.TaskCtx
@@ -213,7 +215,8 @@ object SemanticDbJavaModule {
   private def postProcessed(
       generatedSourceSemdb: os.Path,
       sourceroot: os.Path,
-      semdbRoot: os.Path
+      semdbRoot: os.Path,
+      workerClasspath: Seq[os.Path]
   ): Option[(Array[Byte], os.SubPath)] = {
     val baseName = generatedSourceSemdb.last.stripSuffix(".semanticdb")
     val isGenerated = CodeGenConstants.buildFileExtensions.asScala
@@ -233,12 +236,22 @@ object SemanticDbJavaModule {
 
       val firstLineIdx = generatedSourceLines.indexWhere(_.startsWith(userCodeStartMarker)) + 1
 
-      val res = SemanticdbProcessor.postProcess(
-        os.read(source),
-        source.relativeTo(sourceroot),
-        adjust = lineIdx => Some(lineIdx - firstLineIdx).filter(_ >= 0),
-        generatedSourceSemdb
-      )
+      val res = mill.util.Jvm.withClassLoader(
+        workerClasspath,
+        parent = getClass.getClassLoader
+      ) { cl =>
+        val cls = cl.loadClass("mill.javalib.scalameta.worker.SemanticdbProcessor")
+        cls.getMethods.find(_.getName == "postProcess")
+          .get
+          .invoke(
+            null,
+            os.read(source),
+            source.relativeTo(sourceroot),
+            (lineIdx: Int) => Some(lineIdx - firstLineIdx).filter(_ >= 0),
+            generatedSourceSemdb
+          ).asInstanceOf[Array[Byte]]
+      }
+
       val sourceSemdbSubPath = {
         val sourceSubPath = source.relativeTo(sourceroot).asSubPath
         sourceSubPath / os.up / s"${sourceSubPath.last}.semanticdb"
@@ -251,7 +264,8 @@ object SemanticDbJavaModule {
   def copySemanticdbFiles(
       classesDir: os.Path,
       sourceroot: os.Path,
-      targetDir: os.Path
+      targetDir: os.Path,
+      workerClasspath: Seq[os.Path]
   ): PathRef = {
     assert(classesDir != targetDir)
     os.remove.all(targetDir)
@@ -274,10 +288,20 @@ object SemanticDbJavaModule {
               targetDir / p.relativeTo(classesDir)
             }
           os.copy(p, target, createFolders = true)
-          for ((data, dest) <- postProcessed(p, sourceroot, classesDir / semanticPath))
+          for (
+            (data, dest) <- postProcessed(p, sourceroot, classesDir / semanticPath, workerClasspath)
+          )
             os.write.over(targetDir / semanticPath / dest, data, createFolders = true)
         }
       }
     PathRef(targetDir)
   }
+
+  def copySemanticdbFiles(
+      classesDir: os.Path,
+      sourceroot: os.Path,
+      targetDir: os.Path
+  ): PathRef = ??? // bincompat stub
+
+  lazy val millDiscover = Discover[this.type]
 }
