@@ -337,31 +337,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       }
     }
 
-    if (JvmWorkerUtil.isDotty(scalaVersion()) || JvmWorkerUtil.isScala3Milestone(scalaVersion())) { // dottydoc
-      val javadocDir = Task.dest / "javadoc"
-      os.makeDir.all(javadocDir)
-
-      for {
-        ref <- docResources()
-        docResource = ref.path
-        if os.exists(docResource) && os.isDir(docResource)
-        children = os.walk(docResource)
-        child <- children
-        if os.isFile(child) && !child.last.startsWith(".")
-      } {
-        os.copy.over(
-          child,
-          javadocDir / (child.subRelativeTo(docResource)),
-          createFolders = true
-        )
-      }
-      generateWithZinc(
-        Seq("-siteroot", javadocDir.toNIO.toString),
-        Lib.findSourceFiles(docSources(), Seq("java", "scala")),
-        javadocDir / "_site"
-      )
-
-    } else if (JvmWorkerUtil.isScala3(scalaVersion())) { // scaladoc 3
+    if (JvmWorkerUtil.isScala3(scalaVersion())) { // scaladoc 3
       val javadocDir = Task.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
@@ -411,7 +387,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   }
 
   override def docJar: T[PathRef] = Task {
-    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(scalaDocGenerated().path)))
+    os.copy(scalaDocGenerated().path, Task.dest / "docs")
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(Task.dest / "docs")))
   }
 
   /**
