@@ -4,13 +4,12 @@ import mill.api.daemon.Logger
 
 /** Logs messages by sending them from the server to the client via an RPC. */
 object RpcLogger {
-  sealed trait Message derives upickle.default.ReadWriter
-  object Message {
-    case class Info(s: String) extends Message
-    case class Debug(s: String) extends Message
-    case class Warn(s: String) extends Message
-    case class Error(s: String) extends Message
-    case class Ticker(s: String) extends Message
+  enum Message derives upickle.default.ReadWriter {
+    case Info(s: String)
+    case Debug(s: String)
+    case Warn(s: String)
+    case Error(s: String)
+    case Ticker(s: String)
   }
 
   def create(send: Message => Unit): Logger.Actions = new {

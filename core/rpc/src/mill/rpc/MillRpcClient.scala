@@ -11,7 +11,7 @@ trait MillRpcClient[ClientToServer <: MillRpcMessage] extends AutoCloseable {
   def apply(input: ClientToServer): input.Response
 }
 object MillRpcClient {
-  // TODO: test
+  // TODO review: test
   def create[
       Initialize: Writer,
       ClientToServer <: MillRpcMessage: Writer,
@@ -19,7 +19,9 @@ object MillRpcClient {
   ](
       initialize: Initialize,
       wireTransport: MillRpcWireTransport,
-      log: Logger.Actions
+      log: Logger.Actions,
+      stdout: RpcConsole.Message => Unit = RpcConsole.stdoutHandler,
+      stderr: RpcConsole.Message => Unit = RpcConsole.stderrHandler
   )(serverMessageHandler: MillRpcChannel[ServerToClient]): MillRpcClient[ClientToServer] = {
     var currentRequestId = MillRpcRequestId.initialForClient
 
@@ -67,6 +69,8 @@ object MillRpcClient {
             logWarn(
               s"Received response with the unknown wrong request id ($reqId), ignoring: ${pprint.apply(either)}"
             )
+          case Some(MillRpcServerToClient.Stdout(msg)) => stdout(msg)
+          case Some(MillRpcServerToClient.Stderr(msg)) => stderr(msg)
         }
       }
 

@@ -24,6 +24,8 @@ class ZincWorkerRpcServer extends MillRpcServerImpl[
   override def initialize(
     initialize: Initialize,
     log: Logger.Actions,
+    clientStdout: RpcConsole,
+    clientStderr: RpcConsole,
     serverToClient: MillRpcChannel[ServerToClient]
   ): MillRpcChannel[ClientToServer] = {
     val zincCompilerBridge = ZincCompilerBridge[MillRpcRequestId](
@@ -45,19 +47,16 @@ class ZincWorkerRpcServer extends MillRpcServerImpl[
       zincLogDebug = initialize.zincLogDebug
     )
 
-    def makeDeps(clientRequestId: MillRpcRequestId) = {
+    val deps = {
       // This is an ugly hack. `ConsoleOut` is sealed but we need to provide a way to send these logs to the Mill server
       // over RPC, so we hijack `PrintStream` by overriding the methods that `ConsoleOut` uses.
       //
       // This is obviously extra fragile, but I couldn't find a better way to do it.
       val consoleOut = ConsoleOut.printStreamOut(new PrintStream(NullOutputStream.getInstance()) {
-        def send(msg: RpcConsole.Message): Unit =
-          serverToClient(clientRequestId, ServerToClient.Console(msg, stderr = true))
-
-        override def print(s: String): Unit = send(RpcConsole.Message.Print(s))
+        override def print(s: String): Unit = clientStderr.print(s)
         override def println(s: String): Unit = print(s + "\n")
         override def println(): Unit = print("\n")
-        override def flush(): Unit = send(RpcConsole.Message.Flush)
+        override def flush(): Unit = clientStderr.flush()
       })
 
       ZincWorker.InvocationDependencies(log, consoleOut)
@@ -93,7 +92,6 @@ class ZincWorkerRpcServer extends MillRpcServerImpl[
         clientRequestId: MillRpcRequestId,
         msg: ClientToServer.CompileJava
       ): msg.Response = {
-        val deps = makeDeps(clientRequestId)
         worker.compileJava(
           upstreamCompileOutput = msg.upstreamCompileOutput,
           sources = msg.sources,
@@ -109,7 +107,6 @@ class ZincWorkerRpcServer extends MillRpcServerImpl[
         clientRequestId: MillRpcRequestId,
         msg: ClientToServer.CompileMixed
       ): msg.Response = {
-        val deps = makeDeps(clientRequestId)
         worker.compileMixed(
           upstreamCompileOutput = msg.upstreamCompileOutput,
           sources = msg.sources,
@@ -187,11 +184,6 @@ object ZincWorkerRpcServer {
         extends ServerToClient {
       override type Response = ZincCompilerBridge.AcquireResult[os.Path]
     }
-
-    /**
-     * @param stderr true if we should write to stderr, false if stdout
-     */
-    case class Console(msg: RpcConsole.Message, stderr: Boolean) extends ServerToClient, MillRpcMessage.NoResponse
 
     /**
      * @param compilationRequestId request id for the message requesting the compilation.

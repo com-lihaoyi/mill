@@ -76,13 +76,21 @@ object MillRpcWireTransport {
     }
   }
 
-  case class ViaBlockingQueue(queue: BlockingQueue[String]) extends MillRpcWireTransport {
+  class ViaBlockingQueues(inQueue: BlockingQueue[String], outQueue: BlockingQueue[String]) extends MillRpcWireTransport {
+    @volatile private var closed = false
+
     override def name: String = "in-process blocking queue"
 
-    override def read(): Option[String] = Some(queue.take())
+    override def read(): Option[String] = {
+      try if (closed) None else Some(inQueue.take())
+      catch { case _: InterruptedException => None }
+    }
 
-    override def write(message: String): Unit = queue.put(message)
+    override def write(message: String): Unit = outQueue.put(message)
 
-    override def close(): Unit = queue.clear()
+    override def close(): Unit = {
+      outQueue.clear()
+      closed = true
+    }
   }
 }

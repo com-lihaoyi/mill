@@ -28,7 +28,7 @@ case class MillRpcRequestId private (parts: Vector[MillRpcRequestId.Part]) {
   override def toString: String = parts.mkString(":")
 
   def requestFinished: MillRpcRequestId =
-    if (parts.sizeIs == 1) requestStartedFrom(parts.head.kind)
+    if (parts.sizeIs == 1) this
     else copy(parts.init)
 
   def requestStartedFrom(kind: MillRpcRequestId.Kind): MillRpcRequestId = {

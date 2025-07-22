@@ -47,6 +47,25 @@ object MillRpcRequestIdTests extends TestSuite {
           assert(actual.contains(MillRpcRequestId.unsafe(Vector(Part(Kind.Client, 0), Part(Kind.Server, 0)))))
         }
       }
+
+      test("sequencing") {
+        extension (id: MillRpcRequestId) def is(s: String): MillRpcRequestId = {
+          assert(id.toString == s)
+          id
+        }
+
+        MillRpcRequestId.initialForClient.is("c-1")
+          .requestStartedFromClient.is("c0")
+          .requestFinished.is("c0")
+          .requestStartedFromClient.is("c1")
+          .requestFinished.is("c1")
+          .requestStartedFromServer.is("c1:s0")
+          .requestStartedFromServer.is("c1:s1")
+          .requestStartedFromClient.is("c1:s1:c0")
+          .requestStartedFromClient.is("c1:s1:c1")
+          .requestFinished.is("c1:s1")
+          .requestFinished.is("c1")
+      }
     }
   }
 }

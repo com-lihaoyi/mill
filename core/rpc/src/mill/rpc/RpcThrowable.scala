@@ -4,19 +4,27 @@ import scala.util.control.NoStackTrace
 
 /** Serialized [[Throwable]]. */
 case class RpcThrowable(
-    message: String,
+    className: String,
+    message: Option[String],
     stacktrace: Vector[RpcStackTraceElement],
     cause: Option[RpcThrowable]
-) derives upickle.default.ReadWriter {
-  def toThrowable: Throwable = {
-    val t = new Throwable(message, cause.map(_.toThrowable).orNull) with NoStackTrace
-    t.setStackTrace(stacktrace.iterator.map(_.toStackTraceElement).toArray)
-    t
+) extends RuntimeException(message.orNull, cause.orNull) with NoStackTrace derives upickle.default.ReadWriter {
+  setStackTrace(stacktrace.iterator.map(_.toStackTraceElement).toArray)
+
+  def toThrowable: Throwable = this
+
+  override def toString: String = {
+    val self = getClass.getCanonicalName
+    message match {
+      case Some(message) => s"$self($className: $message)"
+      case None => s"$self($className)"
+    }
   }
 }
 object RpcThrowable {
   def apply(t: Throwable): RpcThrowable = apply(
-    t.getMessage,
+    t.getClass.getCanonicalName,
+    Option(t.getMessage),
     t.getStackTrace.iterator.map(RpcStackTraceElement.apply).toVector,
     Option(t.getCause).map(apply)
   )
