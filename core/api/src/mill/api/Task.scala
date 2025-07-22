@@ -255,6 +255,12 @@ object Task {
   ): Simple[T] =
     ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
+  inline def apply[T](inline t: T)(implicit
+      inline rw: ReadWriter[T],
+      inline ctx: mill.api.ModuleCtx
+  ): Simple[T] =
+    ${ Macros.taskResultImpl[T]('{Result.Success(t)})('rw, 'ctx, '{ false }) }
+
   /**
    * Persistent tasks are defined using
    * the `Task(persistent = true){...}` syntax. The main difference is that while
@@ -369,6 +375,13 @@ object Task {
         inline ctx: ModuleCtx
     ): Simple[T] =
       ${ Macros.taskResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
+
+    implicit inline def createSeq[V](using dummy: DummyImplicit)[T](inline t: Seq[T])(implicit
+        inline rw: ReadWriter[Seq[V]],
+        inline ctx: ModuleCtx,
+        conv: T => V
+    ): Simple[Seq[V]] =
+      ${ Macros.taskResultImpl[Seq[V]]('{ Result.Success(t.map(conv)) })('rw, 'ctx, '{ false }) }
 
     implicit inline def create[T](inline t: Result[T])(implicit
         inline rw: ReadWriter[T],

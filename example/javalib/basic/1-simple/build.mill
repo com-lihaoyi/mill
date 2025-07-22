@@ -1,16 +1,19 @@
 //// SNIPPET:BUILD
 package build
 import mill.*, javalib.*
-
+import mill.javalib.Dep.given
 object foo extends JavaModule {
   def mvnDeps = Seq(
-    mvn"net.sourceforge.argparse4j:argparse4j:0.9.0",
-    mvn"org.thymeleaf:thymeleaf:3.1.1.RELEASE"
+    "net.sourceforge.argparse4j:argparse4j:0.9.0",
+    "org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
+
+
+
   object test extends JavaTests, TestModule.Junit4 {
-    def mvnDeps = Seq(
-      mvn"com.google.guava:guava:33.3.0-jre"
+    def mvnDeps = Seq[Dep](
+      "com.google.guava:guava:33.3.0-jre"
     )
   }
 }
