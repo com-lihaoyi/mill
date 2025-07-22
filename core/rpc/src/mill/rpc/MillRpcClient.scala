@@ -7,8 +7,12 @@ import upickle.default.{Reader, Writer}
 import scala.util.Try
 
 /** Connects and communicates with [[MillRpcServer]]. */
-trait MillRpcClient[ClientToServer <: MillRpcMessage] extends AutoCloseable {
+trait MillRpcClient[ClientToServer <: MillRpcMessage, ServerToClient <: MillRpcMessage]
+    extends AutoCloseable {
   def apply(input: ClientToServer): input.Response
+
+  /** Exchanges the [[ServerToClient]] message handler. */
+  def withServerToClientHandler(handler: MillRpcChannel[ServerToClient]): Unit
 }
 object MillRpcClient {
   // TODO review: test
@@ -22,8 +26,9 @@ object MillRpcClient {
       log: Logger.Actions,
       stdout: RpcConsole.Message => Unit = RpcConsole.stdoutHandler,
       stderr: RpcConsole.Message => Unit = RpcConsole.stderrHandler
-  )(serverMessageHandler: MillRpcChannel[ServerToClient]): MillRpcClient[ClientToServer] = {
+  )(serverMessageHandler: MillRpcChannel[ServerToClient]): MillRpcClient[ClientToServer, ServerToClient] = {
     var currentRequestId = MillRpcRequestId.initialForClient
+    @volatile var currentServerMessageHandler = serverMessageHandler
 
     def withRequestId[A](id: MillRpcRequestId)(f: MillRpcRequestId => A): A = {
       currentRequestId = id
@@ -83,7 +88,7 @@ object MillRpcClient {
     def handleServerMessage(requestId: MillRpcRequestId, msg: ServerToClient): Unit = {
       withRequestId(requestId) { requestId =>
         val response =
-          Try(serverMessageHandler(requestId, msg)).toEither.left.map(RpcThrowable.apply)
+          Try(currentServerMessageHandler(requestId, msg)).toEither.left.map(RpcThrowable.apply)
         wireTransport.writeSerialized(MillRpcClientToServer.Response(requestId, response), logDebug)
       }
     }
@@ -96,6 +101,10 @@ object MillRpcClient {
           wireTransport.writeSerialized(MillRpcClientToServer.Ask(requestId, msg), logDebug)
           awaitForResponse[msg.Response](requestId)(using msg.responseRw)
         }
+      }
+
+      override def withServerToClientHandler(handler: MillRpcChannel[ServerToClient]): Unit = {
+        currentServerMessageHandler = handler
       }
 
       override def close(): Unit = {
