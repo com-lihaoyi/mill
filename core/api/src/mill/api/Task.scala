@@ -9,6 +9,7 @@ import mill.api.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
 import upickle.default.ReadWriter
 import upickle.default.Writer
 
+import scala.annotation.targetName
 import scala.language.implicitConversions
 import scala.quoted.*
 
@@ -255,6 +256,15 @@ object Task {
   ): Simple[T] =
     ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
+  // Overload of [[apply]] to improve type inference for `Task{ Nil }` and `Task { Seq() }`
+  @targetName("applySeq")
+  inline def apply[T](inline t: Result[Seq[T]])(implicit
+      inline rw: ReadWriter[Seq[T]],
+      inline ctx: mill.api.ModuleCtx
+  ): Simple[Seq[T]] = ${
+    Macros.taskResultImpl[Seq[T]]('t)('rw, 'ctx, '{ false })
+  }
+
   /**
    * Persistent tasks are defined using
    * the `Task(persistent = true){...}` syntax. The main difference is that while
@@ -369,6 +379,14 @@ object Task {
         inline ctx: ModuleCtx
     ): Simple[T] =
       ${ Macros.taskResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
+
+    // Overload of [[create]] specialized to working on `Seq`s, to improve the type
+    // inference for `Task{ Nil }` or `Task{ Seq() }`
+    implicit inline def createSeq[T](inline t: Seq[T])(implicit
+        inline rw: ReadWriter[Seq[T]],
+        inline ctx: ModuleCtx
+    ): Simple[Seq[T]] =
+      ${ Macros.taskResultImpl[Seq[T]]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
     implicit inline def create[T](inline t: Result[T])(implicit
         inline rw: ReadWriter[T],

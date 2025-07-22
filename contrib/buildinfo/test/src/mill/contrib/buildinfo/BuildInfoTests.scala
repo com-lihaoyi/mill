@@ -20,7 +20,7 @@ object BuildInfoTests extends TestSuite {
   object EmptyBuildInfo extends TestRootModule with BuildInfo with ScalaModule {
     def scalaVersion = scalaVersionString
     def buildInfoPackageName = "foo"
-    def buildInfoMembers = Seq.empty[BuildInfo.Value]
+    def buildInfoMembers = Seq()
 
     lazy val millDiscover = Discover[this.type]
   }

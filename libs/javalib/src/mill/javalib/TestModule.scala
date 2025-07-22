@@ -616,13 +616,13 @@ object TestModule {
     TestModuleUtil.handleResults(doneMsg, results, ctx, testReportXml, props)
 
   trait JavaModuleBase extends BspModule {
-    def mvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
-    def mandatoryMvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
+    def mvnDeps: T[Seq[Dep]] = Seq()
+    def mandatoryMvnDeps: T[Seq[Dep]] = Seq()
     def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
   }
 
   trait ScalaModuleBase extends mill.Module {
-    def scalacOptions: T[Seq[String]] = Seq.empty[String]
+    def scalacOptions: T[Seq[String]] = Seq()
   }
 
 }
