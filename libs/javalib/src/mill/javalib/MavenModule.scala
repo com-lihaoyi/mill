@@ -17,7 +17,13 @@ trait MavenModule extends JavaModule { outer =>
 
   trait MavenTests extends JavaTests {
     override def moduleDir = outer.moduleDir
+
+    /**
+     * The name of this module's folder within `src/`: e.g. `src/test/`, `src/integration/`,
+     * etc. Defaults to the name of the module object, but can be overridden by users
+     */
     def testModuleName = moduleCtx.segments.last.value
+
     private[mill] override def intellijModulePathJava: Path =
       (outer.moduleDir / "src" / testModuleName).toNIO
 
