@@ -24,25 +24,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       zincLogDebug = zincLogDebug
     )
 
-  def docJar(
-      scalaVersion: String,
-      scalaOrganization: String,
-      compilerClasspath: Seq[PathRef],
-      scalacPluginClasspath: Seq[PathRef],
-      javaHome: Option[os.Path],
-      args: Seq[String]
-  )(using ctx: JvmWorkerApi.Ctx): Boolean = {
-    runWith(javaHome, javacOptions = Seq.empty) { (zinc, _) =>
-      zinc.docJar(
-        scalaVersion = scalaVersion,
-        scalaOrganization = scalaOrganization,
-        compilerClasspath = compilerClasspath,
-        scalacPluginClasspath = scalacPluginClasspath,
-        args = args
-      )
-    }
-  }
-
   override def compileJava(
       upstreamCompileOutput: Seq[CompilationResult],
       sources: Seq[os.Path],
@@ -101,12 +82,35 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     }
   }
 
+  def docJar(
+      scalaVersion: String,
+      scalaOrganization: String,
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
+      javaHome: Option[os.Path],
+      args: Seq[String]
+  )(using ctx: JvmWorkerApi.Ctx): Boolean = {
+    runWith(javaHome, javacOptions = Seq.empty) { (zinc, _) =>
+      zinc.docJar(
+        scalaVersion = scalaVersion,
+        scalaOrganization = scalaOrganization,
+        compilerClasspath = compilerClasspath,
+        scalacPluginClasspath = scalacPluginClasspath,
+        args = args
+      )
+    }
+  }
+
   override def close(): Unit = {
     close0()
     zincLocalWorker.close()
     subprocessCache.close()
   }
 
+  /**
+   * Runs the given function using either the local Zinc instance or the remote Zinc instance depending on the java
+   * home and javac options.
+   */
   private def runWith[A](
       javaHome: Option[os.Path],
       javacOptions: Seq[String]
@@ -122,7 +126,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       logPromptColored = log.prompt.colored
     )
 
-    if (jOpts.runtime.options.isEmpty && javaHome.isEmpty) {
+    def runWithLocalZinc() = {
       val zincDeps =
         ZincWorker.InvocationDependencies(
           log = log,
@@ -196,12 +200,18 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       }
 
       f(api, jOpts.compiler)
-    } else runWithSpawned(javaHome, jOpts.runtime, zincCtx, log) { worker =>
+    }
+
+    if (jOpts.runtime.options.isEmpty && javaHome.isEmpty) runWithLocalZinc()
+    else runWithSpawned(javaHome, jOpts.runtime, zincCtx, log) { worker =>
       f(worker, jOpts.compiler)
     }
   }
 
-  private case class SubprocessCacheKey(javaHome: Option[os.Path], runtimeOptions: JavaRuntimeOptions) {
+  private case class SubprocessCacheKey(
+      javaHome: Option[os.Path],
+      runtimeOptions: JavaRuntimeOptions
+  ) {
     def debugStr = s"javaHome=$javaHome, runtimeOptions=$runtimeOptions"
   }
   private case class SubprocessCacheInitialize(
@@ -246,7 +256,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     }
   }
 
-  /** Spawns a [[ZincWorkerApi]] subprocess with the specified java version and runtime options. */
+  /** Spawns a [[ZincWorkerApi]] subprocess with the specified java version and runtime options and runs the given
+   * function with it. */
   private def runWithSpawned[A](
       javaHome: Option[os.Path],
       runtimeOptions: JavaRuntimeOptions,
@@ -298,7 +309,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
             sources = sources,
             compileClasspath = compileClasspath,
             javacOptions = javacOptions,
-            reporterMode = toReportingMode(reporter, reportCachedProblems),
+            reporterMode = toReporterMode(reporter, reportCachedProblems),
             incrementalCompilation = incrementalCompilation,
             ctx = ctx
           )
@@ -332,7 +343,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
             scalacOptions = scalacOptions,
             compilerClasspath = compilerClasspath,
             scalacPluginClasspath = scalacPluginClasspath,
-            reporterMode = toReportingMode(reporter, reportCachedProblems),
+            reporterMode = toReporterMode(reporter, reportCachedProblems),
             incrementalCompilation = incrementalCompilation,
             auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
             ctx = ctx
@@ -412,7 +423,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     }
   }
 
-  private def toReportingMode(
+  private def toReporterMode(
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
   ): ReporterMode = reporter match {
