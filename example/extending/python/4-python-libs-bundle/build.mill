@@ -74,9 +74,7 @@ trait PythonModule extends Module {
         "-c",
         sources().path / mainFileName(),
         "-o",
-        pexFile,
-        "--scie",
-        "eager"
+        pexFile
       ),
       env = Map("PYTHONPATH" -> Task.dest.toString),
       stdout = os.Inherit

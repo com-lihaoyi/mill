@@ -12,24 +12,23 @@
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-SDK-3.7.1" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="aircompressor-0.27.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="cache-util-<!-- IGNORE -->.jar" level="project"/>
-        <orderEntry type="library" name="common_2.13-4.13.4.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="cache-util-2.1.25-M16.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-codec-1.17.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-compress-1.26.2.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="commons-io-<!-- IGNORE -->.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="commons-io-2.19.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="commons-lang3-3.14.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="concurrent-reference-hash-map-1.1.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="config_3-1.8.3.jar" level="project"/>
-        <orderEntry type="library" name="coursier-archive-cache_2.13-<!-- IGNORE -->.jar" level="project"/>
-        <orderEntry type="library" name="coursier-cache_2.13-<!-- IGNORE -->.jar" level="project"/>
-        <orderEntry type="library" name="coursier-core_2.13-<!-- IGNORE -->.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="coursier-env_2.13-<!-- IGNORE -->.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="coursier-exec-<!-- IGNORE -->.jar" level="project"/>
-        <orderEntry type="library" name="coursier-jvm_2.13-<!-- IGNORE -->.jar" level="project"/>
-        <orderEntry type="library" name="coursier-paths-<!-- IGNORE -->.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="coursier-proxy-setup-<!-- IGNORE -->.jar" level="project"/>
-        <orderEntry type="library" name="coursier-util_2.13-<!-- IGNORE -->.jar" level="project"/>
-        <orderEntry type="library" name="coursier_2.13-<!-- IGNORE -->.jar" level="project"/>
+        <orderEntry type="library" name="coursier-archive-cache_2.13-2.1.25-M16.jar" level="project"/>
+        <orderEntry type="library" name="coursier-cache_2.13-2.1.25-M16.jar" level="project"/>
+        <orderEntry type="library" name="coursier-core_2.13-2.1.25-M16.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="coursier-env_2.13-2.1.25-M16.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="coursier-exec-2.1.25-M16.jar" level="project"/>
+        <orderEntry type="library" name="coursier-jvm_2.13-2.1.25-M16.jar" level="project"/>
+        <orderEntry type="library" name="coursier-paths-2.1.25-M16.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="coursier-proxy-setup-2.1.25-M16.jar" level="project"/>
+        <orderEntry type="library" name="coursier-util_2.13-2.1.25-M16.jar" level="project"/>
+        <orderEntry type="library" name="coursier_2.13-2.1.25-M16.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="dependency_2.13-0.3.2.jar" level="project"/>
         <orderEntry type="library" name="fansi_3-0.5.0.jar" level="project"/>
         <orderEntry type="library" name="fastparse_3-3.1.1.jar" level="project"/>
@@ -37,31 +36,26 @@
         <orderEntry type="library" scope="RUNTIME" name="graphviz-java-0.18.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="graphviz-java-min-deps-0.18.1.jar" level="project"/>
         <orderEntry type="library" name="hamcrest-core-1.3.jar" level="project"/>
-        <orderEntry type="library" name="io_2.13-4.13.4.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="is-terminal-0.1.2.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jansi<!-- IGNORE -->.jar" level="project"/>
-        <orderEntry type="library" name="java-diff-utils-4.12.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="javax.inject-1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jcl-over-slf4j-1.7.30.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jgrapht-core-1.4.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jheaps-0.11.jar" level="project"/>
         <orderEntry type="library" name="jline-3.28.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jline-native-3.29.0.jar" level="project"/>
-        <orderEntry type="library" name="jna-5.13.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jna-5.17.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jsoniter-scala-core_2.13-2.13.5.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jsr305-3.0.2.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jul-to-slf4j-1.7.30.jar" level="project"/>
         <orderEntry type="library" name="junit-4.13.2.jar" level="project"/>
         <orderEntry type="library" name="junit-interface-0.7.29.jar" level="project"/>
-        <orderEntry type="library" name="lenses_2.13-0.11.15.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="logback-classic-1.5.17.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="logback-core-1.5.17.jar" level="project"/>
         <orderEntry type="library" name="mainargs_3-0.7.6.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api-daemon_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-api_3.jar" level="project"/>
         <orderEntry type="library" name="mill-core-constants.jar" level="project"/>
-        <orderEntry type="library" name="mill-core-coursierutil_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-eval_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-exec_3.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="mill-core-internal_3.jar" level="project"/>
@@ -89,19 +83,15 @@
         <orderEntry type="library" scope="RUNTIME" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
         <orderEntry type="library" name="os-lib_3-0.11.5-M10.jar" level="project"/>
         <orderEntry type="library" name="os-zip-0.11.5-M10.jar" level="project"/>
-        <orderEntry type="library" name="parsers_2.13-4.13.4.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-archiver-4.10.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-classworlds-2.6.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-container-default-2.1.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-io-3.5.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-utils-4.0.1.jar" level="project"/>
         <orderEntry type="library" name="pprint_3-0.9.0.jar" level="project"/>
-        <orderEntry type="library" name="protobuf-java-3.19.6.jar" level="project"/>
         <orderEntry type="library" name="requests_3-0.9.0.jar" level="project"/>
-        <orderEntry type="library" name="scala-collection-compat_2.13-2.11.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="scala-collection-compat_2.13-2.13.0.jar" level="project"/>
         <orderEntry type="library" name="scala-collection-compat_3-2.12.0.jar" level="project"/>
-        <orderEntry type="library" name="scala-compiler-2.13.13.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala-library-2.13.12.jar" level="project"/>
         <orderEntry type="library" name="scala-library-2.13.16.jar" level="project"/>
         <orderEntry type="library" name="scala-reflect-2.13.15.jar" level="project"/>
@@ -109,21 +99,15 @@
         <orderEntry type="library" name="scala-xml_3-2.4.0.jar" level="project"/>
         <orderEntry type="library" scope="PROVIDED" name="scala3-library_3-3.3.3.jar" level="project"/>
         <orderEntry type="library" name="scala3-library_3-3.7.1.jar" level="project"/>
-        <orderEntry type="library" name="scalameta_2.13-4.13.4.jar" level="project"/>
-        <orderEntry type="library" name="scalap-2.13.13.jar" level="project"/>
-        <orderEntry type="library" name="scalapb-runtime_2.13-0.11.15.jar" level="project"/>
-        <orderEntry type="library" name="semanticdb-shared_2.13-4.13.4.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="slf4j-api-2.0.17.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="snakeyaml-engine-2.9.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-core_3-0.5.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-requests_3-0.5.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="sonatype-central-client-upickle_3-0.5.0.jar" level="project"/>
-        <orderEntry type="library" name="sourcecode_2.13-0.4.2.jar" level="project"/>
         <orderEntry type="library" name="sourcecode_3-0.4.3-M5.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="specification-level_3-1.8.3.jar" level="project"/>
         <orderEntry type="library" name="test-interface-1.0.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="tika-core-<!-- IGNORE -->.jar" level="project"/>
-        <orderEntry type="library" name="trees_2.13-4.13.4.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="tika-core-3.2.1.jar" level="project"/>
         <orderEntry type="library" name="ujson_3-4.2.1.jar" level="project"/>
         <orderEntry type="library" name="unroll-annotation_3-0.2.0.jar" level="project"/>
         <orderEntry type="library" name="upack_3-4.2.1.jar" level="project"/>

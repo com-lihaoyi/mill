@@ -18,13 +18,14 @@ import mill.api.daemon.internal.bsp.{
 }
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
-import mill.api.{ModuleRef, PathRef, Segment, Task, TaskCtx, DefaultTaskModule}
+import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
 import mill.javalib.bsp.{BspJavaModule, BspModule}
 import mill.javalib.internal.ModuleUtils
 import mill.javalib.publish.Artifact
 import mill.util.{JarManifest, Jvm}
 import os.Path
+
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
 
@@ -1085,11 +1086,7 @@ trait JavaModule
    */
   def docJarUseArgsFile: T[Boolean] = Task { scala.util.Properties.isWin }
 
-  /**
-   * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
-   * publishing to Maven Central
-   */
-  def docJar: T[PathRef] = Task[PathRef] {
+  def javadocGenerated: T[PathRef] = Task[PathRef] {
     val outDir = Task.dest
 
     val javadocDir = outDir / "javadoc"
@@ -1141,8 +1138,15 @@ trait JavaModule
         stdout = os.Inherit
       )
     }
+    PathRef(javadocDir)
+  }
 
-    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(javadocDir)))
+  /**
+   * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
+   * publishing to Maven Central
+   */
+  def docJar: T[PathRef] = Task[PathRef] {
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(javadocGenerated().path)))
   }
 
   /**
@@ -1446,6 +1450,21 @@ trait JavaModule
     else Task.Anon { compile().classes.path.toNIO }
   }
 
+  /**
+   * Stable version of [[repositoriesTask]] so it doesn't keep getting
+   * recomputed over and over during the recursive traversal
+   */
+  private lazy val repositoriesTaskStable = Task.Anon {
+    val transitive = Task.traverse(recursiveModuleDeps)(_.repositoriesTask)()
+    val sup = repositoriesTask0()
+    (sup ++ transitive.flatten).distinct
+  }
+
+  /**
+   * Repositories are transitively aggregated from upstream modules, following
+   * the behavior of Maven, Gradle, and SBT
+   */
+  override def repositoriesTask: Task[Seq[Repository]] = repositoriesTaskStable
 }
 
 object JavaModule {
