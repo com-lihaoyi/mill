@@ -7,8 +7,8 @@ import com.lumidion.sonatype.central.client.core.{
 }
 import com.lumidion.sonatype.central.client.requests.SyncSonatypeClient
 import mill.api.Logger
-import mill.scalalib.publish.Artifact
-import mill.scalalib.publish.SonatypeHelpers.getArtifactMappings
+import mill.javalib.publish.Artifact
+import mill.javalib.publish.SonatypeHelpers.getArtifactMappings
 
 import java.io.File
 import java.nio.file.Files
@@ -41,7 +41,7 @@ class SonatypeCentralPublisher(
       singleBundleName: Option[String],
       artifacts: (Seq[(os.Path, String)], Artifact)*
   ): Unit = {
-    val prepared = prepareToPublishAll(singleBundleName, artifacts *)
+    val prepared = prepareToPublishAll(singleBundleName, artifacts: _*)
     log.info(prepared.mappingsString)
 
     prepared.deployments.foreach { case (zipFile, deploymentName) =>
@@ -54,7 +54,7 @@ class SonatypeCentralPublisher(
       singleBundleName: Option[String],
       artifacts: (Seq[(os.Path, String)], Artifact)*
   ): Unit = {
-    val prepared = prepareToPublishAll(singleBundleName, artifacts *)
+    val prepared = prepareToPublishAll(singleBundleName, artifacts: _*)
     log.info(prepared.mappingsString)
 
     prepared.deployments.foreach { case (zipFile, deploymentName) =>
@@ -70,9 +70,9 @@ class SonatypeCentralPublisher(
       deployments: Vector[(File, DeploymentName)]
   ) {
     def mappingsString: String = s"mappings ${pprint.apply(
-        mappings.map { case (a, fileSetContents) =>
-          (a, fileSetContents.sortBy(_._1).map(_._1))
-        }
+        mappings.iterator.map { case (a, fileSetContents) =>
+          (a, fileSetContents.iterator.map(_._1).toVector.sorted)
+        }.toVector
       )}"
   }
 
@@ -90,11 +90,11 @@ class SonatypeCentralPublisher(
     singleBundleName match {
       case None =>
         val deployments = releaseGroups.valuesIterator.flatMap { groupReleases =>
-          groupReleases.map { case (artifact, data) =>
+          groupReleases.iterator.map { case (artifact, data) =>
             val fileNameWithoutExtension = s"${artifact.group}-${artifact.id}-${artifact.version}"
             val zipFile = streamToFile(fileNameWithoutExtension, wd) { outputStream =>
               log.info(
-                s"bundle $fileNameWithoutExtension with ${pprint.apply(data.map(_._1).sorted)}"
+                s"bundle $fileNameWithoutExtension with ${pprint.apply(data.iterator.map(_._1).toVector.sorted)}"
               )
               zipFilesToJar(data, outputStream)
             }
