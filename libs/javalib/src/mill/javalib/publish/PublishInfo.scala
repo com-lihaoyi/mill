@@ -2,6 +2,8 @@ package mill.javalib.publish
 
 import mill.PathRef
 
+import java.util.regex.Pattern
+
 /**
  * An extra resource artifact to publish.
  *
@@ -74,6 +76,39 @@ object PublishInfo {
     def tryToMatch(extension: String, classifier: Option[String]): Option[IvyMetadata] = {
       Known.find(meta => meta.extension == extension && meta.classifier == classifier)
     }
+
+    /**
+     * Tries to parse the data from a filename.
+     *
+     * Take note that this is not perfect. After smushing the data into a string there's no way to tell what is the
+     * classifier and what is the extension, as both of them can contain dots ('.'). The heuristic that we take is that
+     * extensions are without the dot, so things like ".tar.gz" aren't supported, but they do not seem to be used in Maven
+     * ecosystem, so that works out for most of the cases.
+     *
+     * This should eventually be rehauled, see https://github.com/com-lihaoyi/mill/issues/5538 for more information.
+     *
+     * @param fileName        name of the file to use. Can be different from the actual filename of the `file`.
+     * @param artifactId      for example, "mill"
+     * @param artifactVersion version of the artifact, for example "1.0.0-RC3"
+     */
+    def parseFromFile(
+        fileName: String,
+        artifactId: String,
+        artifactVersion: String
+    ): IvyMetadata = {
+      val regex = s"^${Pattern.quote(artifactId)}-${Pattern.quote(artifactVersion)}-?"
+      val withoutArtifactIdAndVersion = fileName.replaceFirst(regex, "")
+      val extension = withoutArtifactIdAndVersion.split('.').lastOption.getOrElse("")
+      val classifier = withoutArtifactIdAndVersion.replaceFirst(s"\\.$extension$$", "") match {
+        case "" => None
+        case other => Some(other)
+      }
+
+      tryToMatch(extension = extension, classifier = classifier).getOrElse {
+        // If nothing specific matched, assume it's a generic jar.
+        Jar.copy(extension = extension, classifier = classifier)
+      }
+    }
   }
 
   private[mill] def fromMetadata(file: PathRef, metadata: IvyMetadata): PublishInfo =
@@ -84,47 +119,4 @@ object PublishInfo {
   private[mill] def sourcesJar(sourcesJar: PathRef): PublishInfo =
     fromMetadata(sourcesJar, IvyMetadata.SourcesJar)
   private[mill] def docJar(docJar: PathRef): PublishInfo = fromMetadata(docJar, IvyMetadata.DocJar)
-
-  /**
-   * Tries to parse the data from a filename.
-   *
-   * Take note that this is not perfect. After smushing the data into a string there's no way to tell what is the
-   * classifier and what is the extension, as both of them can contain dots ('.'). The heuristic that we take is that
-   * extensions are without the dot, so things like ".tar.gz" aren't supported, but they do not seem to be used in Maven
-   * ecosystem, so that works out for most of the cases.
-   *
-   * This should eventually be rehauled, see https://github.com/com-lihaoyi/mill/issues/5538 for more information.
-   *
-   * @param file reference to the file.
-   * @param fileName name of the file to use. Can be different from the actual filename of the `file`.
-   * @param artifactId for example, "mill"
-   * @param artifactVersion version of the artifact, for example "1.0.0-RC3"
-   */
-  private[mill] def parseFromFile(
-      file: PathRef,
-      fileName: String,
-      artifactId: String,
-      artifactVersion: String
-  ): PublishInfo = {
-    val withoutArtifactIdAndVersion = fileName.replaceFirst(s"^$artifactId-$artifactVersion-?", "")
-    val extension = withoutArtifactIdAndVersion.split('.').lastOption.getOrElse("")
-    val classifier = withoutArtifactIdAndVersion.replaceFirst(s"\\.$extension$$", "") match {
-      case "" => None
-      case other => Some(other)
-    }
-
-    IvyMetadata.tryToMatch(extension = extension, classifier = classifier) match {
-      case Some(meta) => meta.toPublishInfo(file)
-      case None =>
-        // If nothing specific matched, assume it's a generic jar.
-        val jar = IvyMetadata.Jar
-        apply(
-          file,
-          classifier = classifier,
-          ext = extension,
-          ivyConfig = jar.config,
-          ivyType = jar.`type`
-        )
-    }
-  }
 }
