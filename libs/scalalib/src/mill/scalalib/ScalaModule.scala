@@ -5,7 +5,6 @@ import mill.util.JarManifest
 import mill.api.{BuildCtx, DummyInputStream, ModuleRef, PathRef, Result, Task}
 import mill.util.BuildInfo
 import mill.util.Jvm
-import mill.util.Jvm.createJar
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi, ScalaBuildTarget}
@@ -303,7 +302,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     else allSources()
   }
 
-  override def docJar: T[PathRef] = Task {
+  def scalaDocGenerated: T[PathRef] = Task {
     val compileCp = Seq(
       "-classpath",
       compileClasspath()
@@ -313,9 +312,13 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         .mkString(java.io.File.pathSeparator)
     )
 
-    def packageWithZinc(options: Seq[String], files: Seq[os.Path], javadocDir: os.Path) = {
+    def generateWithZinc(
+        options: Seq[String],
+        files: Seq[os.Path],
+        javadocDir: os.Path
+    ): PathRef = {
       if (files.isEmpty) {
-        Result.Success(PathRef(createJar(Task.dest / "out.jar", Seq(javadocDir))))
+        PathRef(javadocDir)
       } else {
         jvmWorker()
           .worker()
@@ -328,37 +331,13 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             options ++ compileCp ++ scalaDocOptions() ++
               files.map(_.toString())
           ) match {
-          case true => Result.Success(PathRef(createJar(Task.dest / "out.jar", Seq(javadocDir))))
-          case false => Result.Failure("docJar generation failed")
+          case true => PathRef(javadocDir)
+          case false => Task.fail("scaladoc generation failed")
         }
       }
     }
 
-    if (JvmWorkerUtil.isDotty(scalaVersion()) || JvmWorkerUtil.isScala3Milestone(scalaVersion())) { // dottydoc
-      val javadocDir = Task.dest / "javadoc"
-      os.makeDir.all(javadocDir)
-
-      for {
-        ref <- docResources()
-        docResource = ref.path
-        if os.exists(docResource) && os.isDir(docResource)
-        children = os.walk(docResource)
-        child <- children
-        if os.isFile(child) && !child.last.startsWith(".")
-      } {
-        os.copy.over(
-          child,
-          javadocDir / (child.subRelativeTo(docResource)),
-          createFolders = true
-        )
-      }
-      packageWithZinc(
-        Seq("-siteroot", javadocDir.toNIO.toString),
-        Lib.findSourceFiles(docSources(), Seq("java", "scala")),
-        javadocDir / "_site"
-      )
-
-    } else if (JvmWorkerUtil.isScala3(scalaVersion())) { // scaladoc 3
+    if (JvmWorkerUtil.isScala3(scalaVersion())) { // scaladoc 3
       val javadocDir = Task.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
@@ -384,7 +363,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         )
       }
 
-      packageWithZinc(
+      generateWithZinc(
         Seq(
           "-d",
           javadocDir.toNIO.toString,
@@ -398,13 +377,18 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
       val javadocDir = Task.dest / "javadoc"
       os.makeDir.all(javadocDir)
 
-      packageWithZinc(
+      generateWithZinc(
         Seq("-d", javadocDir.toNIO.toString),
         Lib.findSourceFiles(docSources(), Seq("java", "scala")),
         javadocDir
       )
     }
 
+  }
+
+  override def docJar: T[PathRef] = Task {
+    os.copy(scalaDocGenerated().path, Task.dest / "docs")
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(Task.dest / "docs")))
   }
 
   /**
@@ -660,7 +644,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
           SemanticDbJavaModule.copySemanticdbFiles(
             compileRes.classes.path,
             BuildCtx.workspaceRoot,
-            Task.dest / "data"
+            Task.dest / "data",
+            SemanticDbJavaModule.workerClasspath().map(_.path)
           )
         }
       }

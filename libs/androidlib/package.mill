@@ -11,10 +11,7 @@ import millbuild.*
 object `package` extends MillPublishScalaModule with BuildInfo {
 
   def moduleDeps = Seq(build.libs.javalib, build.libs.kotlinlib)
-  def transitiveLocalTestOverrides =
-    super.transitiveLocalTestOverrides() ++ Seq(
-      build.libs.kotlinlib.worker.localTestOverride()
-    )
+  def localTestExtraModules = super.localTestExtraModules ++ Seq(build.libs.kotlinlib.worker)
 
   def buildInfoPackageName = "mill.androidlib"
   def buildInfoObjectName = "Versions"
@@ -60,16 +57,6 @@ object `package` extends MillPublishScalaModule with BuildInfo {
     }
   }
 
-  object api extends MillAndroidModule {
-    def moduleDeps = Seq(build.libs.javalib.testrunner)
-
-    override def compileMvnDeps: T[Seq[Dep]] = Task {
-      super.compileMvnDeps() ++ Seq(
-        Deps.androidTools
-      )
-    }
-  }
-
   object hilt extends MillAndroidModule {
     override def moduleDeps = Seq(build.libs.androidlib)
 
@@ -77,6 +64,14 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       Deps.hiltGradlePlugin,
       Deps.androidTools
     )
+  }
+
+  object keytool extends MillPublishScalaModule {
+    override def moduleDeps = Seq(build.libs.androidlib)
+
+    override def mvnDeps = Seq(
+      Deps.mainargs
+    ) ++ Deps.keytoolDeps
   }
 
 }

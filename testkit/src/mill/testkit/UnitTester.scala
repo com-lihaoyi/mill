@@ -229,12 +229,18 @@ class UnitTester(
     } finally close()
   }
 
-  def close(): Unit = {
+  def closeWithoutCheckingLeaks(): Unit = {
     for (case (_, Val(obsolete: AutoCloseable)) <- evaluator.workerCache.values) {
       obsolete.close()
     }
     evaluator.close()
+  }
 
+  def close(): Unit = {
+    closeWithoutCheckingLeaks()
+    checkLeaks()
+  }
+  def checkLeaks() = {
     assert(
       mill.api.MillURLClassLoader.openClassloaders.isEmpty,
       s"Unit tester detected leaked classloaders on close: \n${mill.api.MillURLClassLoader.openClassloaders.mkString("\n")}"

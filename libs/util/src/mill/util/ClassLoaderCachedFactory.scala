@@ -10,7 +10,10 @@ import mill.util.RefCountedClassLoaderCache
  */
 abstract class ClassLoaderCachedFactory[T](jobs: Int)(implicit e: sourcecode.Enclosing)
     extends CachedFactory[Seq[mill.PathRef], T] {
-  private val classloaderCache = RefCountedClassLoaderCache(parent = getClass.getClassLoader)
+  private val classloaderCache = RefCountedClassLoaderCache(
+    parent = getClass.getClassLoader,
+    sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
+  )
 
   def getValue(cl: ClassLoader): T
   override def setup(key: Seq[PathRef]) = {

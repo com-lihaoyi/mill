@@ -181,14 +181,12 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   /**
-   * The documentation jar, containing all the Dokka HTML files, for
+   * The generated documentation, containing all the Dokka HTML files, for
    * publishing to Maven Central. You can control Dokka version by using [[dokkaVersion]]
    * and option by using [[dokkaOptions]].
    */
-  override def docJar: T[PathRef] = Task[PathRef] {
-    val outDir = Task.dest
-
-    val dokkaDir = outDir / "dokka"
+  def dokkaGenerated: T[PathRef] = Task[PathRef] {
+    val dokkaDir = Task.dest / "dokka"
     os.makeDir.all(dokkaDir)
 
     val files = Lib.findSourceFiles(docSources(), Seq("java", "kt"))
@@ -232,7 +230,16 @@ trait KotlinModule extends JavaModule { outer =>
       )
     }
 
-    PathRef(Jvm.createJar(outDir / "out.jar", Seq(dokkaDir)))
+    PathRef(dokkaDir)
+  }
+
+  /**
+   * The documentation jar, containing all the Dokka HTML files, for
+   * publishing to Maven Central. You can control Dokka version by using [[dokkaVersion]]
+   * and option by using [[dokkaOptions]].
+   */
+  override def docJar: T[PathRef] = Task[PathRef] {
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(dokkaGenerated().path)))
   }
 
   /**

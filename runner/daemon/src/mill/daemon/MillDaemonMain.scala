@@ -10,6 +10,8 @@ import scala.util.{Properties, Try}
 
 object MillDaemonMain {
   def main(args0: Array[String]): Unit = {
+    mill.constants.DebugLog.println("MillDaemonMain.main")
+
     // Set by an integration test
     if (System.getenv("MILL_DAEMON_CRASH") == "true")
       sys.error("Mill daemon early crash requested")
