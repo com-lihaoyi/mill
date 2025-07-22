@@ -624,7 +624,7 @@ trait PublishModule extends JavaModule { outer =>
    */
   def publishLocalTestRepo: Task[PathRef] = Task {
     val publisher = new LocalM2Publisher(Task.dest)
-    val publishInfos = defaultPublishInfos() ++
+    val publishInfos = defaultPublishInfos(sources = false, docs = false)() ++
       Seq(PublishInfo.sourcesJar(sourceJar())) ++
       extraPublish()
     publisher.publish(
