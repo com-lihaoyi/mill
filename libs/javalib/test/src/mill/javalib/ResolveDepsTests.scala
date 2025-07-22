@@ -78,6 +78,13 @@ object ResolveDepsTests extends TestSuite {
       object dependsOnOptional extends JavaModule {
         def moduleDeps = Seq(optional)
       }
+
+      // Just make sure this compiles
+      object empty extends JavaModule {
+        def mvnDeps = Seq()
+
+        def compileMvnDeps = Nil
+      }
     }
 
     lazy val millDiscover = Discover[this.type]

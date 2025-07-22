@@ -370,6 +370,14 @@ object Task {
     ): Simple[T] =
       ${ Macros.taskResultImpl[T]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
 
+    // Version of [[create]] specialized to working on `Seq`s, to improve the type
+    // inference for `Task{ Nil }` or `Task{ Seq() }`
+    implicit inline def createSeq[T](inline t: Seq[T])(implicit
+        inline rw: ReadWriter[Seq[T]],
+        inline ctx: ModuleCtx
+    ): Simple[Seq[T]] =
+      ${ Macros.taskResultImpl[Seq[T]]('{ Result.Success(t) })('rw, 'ctx, '{ false }) }
+
     implicit inline def create[T](inline t: Result[T])(implicit
         inline rw: ReadWriter[T],
         inline ctx: ModuleCtx
