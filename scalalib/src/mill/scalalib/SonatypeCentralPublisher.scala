@@ -41,7 +41,7 @@ class SonatypeCentralPublisher(
       singleBundleName: Option[String],
       artifacts: (Seq[(os.Path, String)], Artifact)*
   ): Unit = {
-    val prepared = prepareToPublishAll(singleBundleName, artifacts *)
+    val prepared = prepareToPublishAll(singleBundleName, artifacts: _*)
     log.info(prepared.mappingsString)
 
     prepared.deployments.foreach { case (zipFile, deploymentName) =>
@@ -54,7 +54,7 @@ class SonatypeCentralPublisher(
       singleBundleName: Option[String],
       artifacts: (Seq[(os.Path, String)], Artifact)*
   ): Unit = {
-    val prepared = prepareToPublishAll(singleBundleName, artifacts *)
+    val prepared = prepareToPublishAll(singleBundleName, artifacts: _*)
     log.info(prepared.mappingsString)
 
     prepared.deployments.foreach { case (zipFile, deploymentName) =>
