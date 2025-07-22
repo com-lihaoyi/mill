@@ -288,19 +288,19 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycle.
    *  @see [[moduleDepsChecked]]
    */
-  def moduleDeps: Seq[JavaModule] = Seq.empty
+  def moduleDeps: Seq[JavaModule] = Seq()
 
   /**
    *  The compile-only direct dependencies of this module. These are *not*
    *  transitive, and only take effect in the module that they are declared in.
    */
-  def compileModuleDeps: Seq[JavaModule] = Seq.empty
+  def compileModuleDeps: Seq[JavaModule] = Seq()
 
   /**
    * The runtime-only direct dependencies of this module. These *are* transitive,
    * and so get propagated to downstream modules automatically
    */
-  def runModuleDeps: Seq[JavaModule] = Seq.empty
+  def runModuleDeps: Seq[JavaModule] = Seq()
 
   /**
    *  Bill of Material (BOM) dependencies of this module.
@@ -309,7 +309,7 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycles.
    *  @see [[bomModuleDepsChecked]]
    */
-  def bomModuleDeps: Seq[BomModule] = Seq.empty
+  def bomModuleDeps: Seq[BomModule] = Seq()
 
   /**
    * Same as [[moduleDeps]] but checked to not contain cycles.

@@ -57,7 +57,7 @@ trait NativeImageModule extends WithJvmWorkerModule {
   /**
    * Additional options for the `native-image` Tool.
    */
-  def nativeImageOptions: T[Seq[String]] = Seq.empty[String]
+  def nativeImageOptions: T[Seq[String]] = Seq()
 
   /**
    * Path to the [[https://www.graalvm.org/latest/reference-manual/native-image/ `native-image` Tool]].

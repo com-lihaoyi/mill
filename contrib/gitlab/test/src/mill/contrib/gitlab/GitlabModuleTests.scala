@@ -11,7 +11,7 @@ import mill.util.TokenReaders._
 object GitlabModuleTests extends TestSuite {
 
   val emptyLookup = new GitlabTokenLookup {
-    override def tokenSearchOrder = Seq.empty
+    override def tokenSearchOrder = Seq()
   }
 
   object GitlabModule extends TestRootModule with GitlabPublishModule {
