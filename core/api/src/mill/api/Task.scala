@@ -255,11 +255,6 @@ object Task {
   ): Simple[T] =
     ${ Macros.taskResultImpl[T]('t)('rw, 'ctx, '{ false }) }
 
-  inline def apply[T](inline t: T)(implicit
-      inline rw: ReadWriter[T],
-      inline ctx: mill.api.ModuleCtx
-  ): Simple[T] =
-    ${ Macros.taskResultImpl[T]('{Result.Success(t)})('rw, 'ctx, '{ false }) }
 
   /**
    * Persistent tasks are defined using

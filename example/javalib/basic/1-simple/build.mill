@@ -8,9 +8,6 @@ object foo extends JavaModule {
     "org.thymeleaf:thymeleaf:3.1.1.RELEASE"
   )
 
-
-
-
   object test extends JavaTests, TestModule.Junit4 {
     def mvnDeps = Seq(
       "com.google.guava:guava:33.3.0-jre"
