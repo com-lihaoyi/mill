@@ -2001,6 +2001,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/javalib/Lib$.html#scalaRuntimeMvnDeps-ffffff75","e":false,"i":"","n":"scalaRuntimeMvnDeps","t":"scalaRuntimeMvnDeps(scalaOrganization: String, scalaVersion: String): Seq[Dep]","d":"mill.javalib.Lib","k":"def","x":""},
 {"l":"mill/javalib/MavenModule.html#","e":false,"i":"","n":"MavenModule","t":"MavenModule extends JavaModule","d":"mill.javalib","k":"trait","x":""},
 {"l":"mill/javalib/MavenModule$MavenTests.html#","e":false,"i":"","n":"MavenTests","t":"MavenTests extends JavaTests","d":"mill.javalib.MavenModule","k":"trait","x":""},
+{"l":"mill/javalib/MavenModule$MavenTests.html#testModuleName-0","e":false,"i":"","n":"testModuleName","t":"testModuleName: String","d":"mill.javalib.MavenModule.MavenTests","k":"def","x":""},
 {"l":"mill/javalib/MavenWorkerSupport$.html#","e":false,"i":"","n":"MavenWorkerSupport","t":"MavenWorkerSupport","d":"mill.javalib","k":"object","x":""},
 {"l":"mill/javalib/MavenWorkerSupport$$Api.html#","e":false,"i":"","n":"Api","t":"Api","d":"mill.javalib.MavenWorkerSupport","k":"trait","x":""},
 {"l":"mill/javalib/MavenWorkerSupport$$Api.html#publishToRemote-fffffa39","e":false,"i":"","n":"publishToRemote","t":"publishToRemote(uri: String, workspace: Path, username: String, password: String, artifacts: IterableOnce[M2Artifact]): DeployResult","d":"mill.javalib.MavenWorkerSupport.Api","k":"def","x":""},
