@@ -37,7 +37,7 @@ export ANDROID_HOME=/path/to/android/sdk
 export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
 ----
 
-Make sure to also accept the licenses in order for mill to install the required SDK components:
+Make sure to also accept the licenses in order for mill to install the required SDK components. The following command accepts all licenses automatically:
 [source,bash]
 ----
 yes | sdkmanager --licenses
@@ -53,7 +53,7 @@ The structure of a Mill project and the relative Android commands can be found i
 - xref:android/compose-samples.adoc[]
 - xref:android/hilt-sample.adoc[]
 
-If you want to start with an example project, you can use the `init` command as shown xref:cli/builtin-commands.adoc[here].
+If you want to start with an example project, you can use the `init` command as shown in xref:cli/builtin-commands.adoc[this] page.
 
 == 4. Use Android Studio
 You can use Android Studio to open and work with your Mill project.
@@ -74,6 +74,9 @@ Make sure to replace the values with your actual keystore information.
 If you don't have a keystore yet, you can create one using the `keytool` command:
 [source,bash]
 ----
-keytool -genkey -v -keystore releaseKey.jks -storepass <PASS> -keyalg RSA -keysize 2048 -validity 10000 -alias releaseKey -keypass <PASS>
+keytool -genkey -v -keystore releaseKey.jks \
+        -storepass <PASS> -keyalg RSA \
+        -keysize 2048 -validity 10000 \
+        -alias releaseKey -keypass <PASS>
 ----
 
