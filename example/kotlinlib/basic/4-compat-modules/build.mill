@@ -13,9 +13,10 @@ object foo extends KotlinModule, KotlinMavenModule {
   def kotlinVersion = "1.9.24"
 
   object test extends KotlinMavenTests, TestModule.Junit5 {
-    def mvnDeps = super.mvnDeps() ++ Seq(
-      mvn"io.kotest:kotest-runner-junit5:5.9.1"
-    )
+    def mvnDeps = Seq(mvn"io.kotest:kotest-runner-junit5:5.9.1")
+  }
+  object integration extends KotlinMavenTests, TestModule.Junit5 {
+    def mvnDeps = Seq(mvn"io.kotest:kotest-runner-junit5:5.9.1")
   }
 }
 
@@ -26,6 +27,8 @@ object foo extends KotlinModule, KotlinMavenModule {
 // - `foo/src/main/kotlin`
 // - `foo/src/test/java`
 // - `foo/src/test/kotlin`
+// - `foo/src/integration/java`
+// - `foo/src/integration/kotlin`
 //
 // Rather than Mill's
 //
@@ -49,6 +52,9 @@ Compiling 1 Kotlin source...
 
 > ./mill foo.test
 ...foo.FooTests hello ...
+
+> ./mill foo.integration
+...foo.FooIntegrationTests hello ...
 
 */
 

@@ -59,7 +59,7 @@ trait ScalaAssemblyTestUtils {
   object HelloWorldAkkaHttpNoRules extends TestRootModule {
     object core extends HelloWorldModuleWithMain {
       override def mvnDeps = akkaHttpDeps
-      override def assemblyRules = Seq.empty
+      override def assemblyRules = Seq()
     }
 
     lazy val millDiscover = Discover[this.type]
@@ -118,7 +118,7 @@ trait ScalaAssemblyTestUtils {
   object HelloWorldMultiNoRules extends TestRootModule {
     object core extends HelloWorldModuleWithMain {
       override def moduleDeps = Seq(model)
-      override def assemblyRules = Seq.empty
+      override def assemblyRules = Seq()
     }
     object model extends HelloWorldModule
 
