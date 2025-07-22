@@ -26,27 +26,6 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
   )
   def pomSettings = MillPublishJavaModule.commonPomSettings(artifactName())
   def javacOptions = Seq("-source", "11", "-target", "11", "-encoding", "UTF-8")
-
-  // Just remove this method when re-bootstrapping, Mill itself should provide it then
-  def publishLocalTestRepo: Task[PathRef] = Task {
-    val publisher = new LocalM2Publisher(Task.dest)
-    val publishInfos = defaultPublishInfos() ++
-      Seq(
-        PublishInfo(
-          sourceJar(),
-          ivyType = "src",
-          classifier = Some("sources"),
-          ivyConfig = "compile"
-        )
-      ) ++
-      extraPublish()
-    publisher.publish(
-      pom = pom().path,
-      artifact = artifactMetadata(),
-      publishInfos = publishInfos
-    )
-    PathRef(Task.dest)
-  }
 }
 
 object MillPublishJavaModule {
