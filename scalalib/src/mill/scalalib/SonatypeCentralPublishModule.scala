@@ -189,7 +189,7 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule with 
         log.info(
           s"Dry-run publishing all release artifacts to '$publishTo': ${pprint.apply(artifacts)}"
         )
-        publisher.publishAllToLocal(publishTo, singleBundleName = bundleName, artifactDatas *)
+        publisher.publishAllToLocal(publishTo, singleBundleName = bundleName, artifactDatas: _*)
         log.info(s"Dry-run publishing to '$publishTo' finished.")
       } else {
         log.info(
@@ -197,7 +197,7 @@ object SonatypeCentralPublishModule extends ExternalModule with TaskModule with 
               pprint.apply(artifacts)
             }"
         )
-        publisher.publishAll(publishingType, singleBundleName = bundleName, artifactDatas *)
+        publisher.publishAll(publishingType, singleBundleName = bundleName, artifactDatas: _*)
         log.info(s"Published all release artifacts to Sonatype Central.")
       }
     }
