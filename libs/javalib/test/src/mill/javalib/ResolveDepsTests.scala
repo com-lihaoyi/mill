@@ -79,7 +79,8 @@ object ResolveDepsTests extends TestSuite {
         def moduleDeps = Seq(optional)
       }
 
-      // Just make sure this compiles
+      // Just make sure this compiles with empty `Seq()` or `Nil`
+      // as the RHS of these task methods
       object empty extends JavaModule {
         def mvnDeps = Seq()
 
