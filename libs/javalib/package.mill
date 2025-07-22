@@ -50,7 +50,8 @@ object `package` extends MillStableScalaModule {
     super.mimaBinaryIssueFilters() ++ Seq(
       // This was `private[mill]`, package private doesn't have the JVM bytecode equivalent, so mima can't check it.
       ProblemFilter.exclude[Problem]("mill.javalib.PublishModule.checkSonatypeCreds"),
-      ProblemFilter.exclude[Problem]("mill.javalib.publish.SonatypeHelpers.getArtifactMappings")
+      ProblemFilter.exclude[Problem]("mill.javalib.publish.SonatypeHelpers.getArtifactMappings"),
+      ProblemFilter.exclude[Problem]("mill.javalib.publish.PublishInfo.parseFromFile")
     )
 
   object backgroundwrapper extends MillPublishJavaModule with MillJavaModule {
