@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Android Java Projects :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/android/java.html" />
-    <link rel="prev" href="../kotlinlib/web-examples.html" />
+    <link rel="prev" href="android-initial-setup.html" />
     <link rel="next" href="kotlin.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
@@ -250,6 +250,10 @@
     <span class="nav-text">Building Android Apps</span>
 <ul class="nav-list">
 
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
   <li class="nav-item is-current-page" data-depth="3">
     <a class="nav-link" href="java.html">Android Java Projects</a>
   </li>
@@ -258,7 +262,7 @@
     <a class="nav-link" href="kotlin.html">Android Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="3">
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="android-linting.html">Linting Android Projects</a>
   </li>
 
@@ -711,7 +715,7 @@ resource generation, APK building, DEX conversion, and APK signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1-8-3f52cf/mill-dist-1.0.1-8-3f52cf-example-androidlib-java-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/androidlib/java/1-hello-world">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1-9-c43609/mill-dist-1.0.1-9-c43609-example-androidlib-java-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/androidlib/java/1-hello-world">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -949,7 +953,7 @@ Android Bundle zip generation, Bundle Creation and Bundle signing.
 Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1-8-3f52cf/mill-dist-1.0.1-8-3f52cf-example-androidlib-java-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/androidlib/java/2-app-bundle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1-9-c43609/mill-dist-1.0.1-9-c43609-example-androidlib-java-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/androidlib/java/2-app-bundle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1084,7 +1088,7 @@ More informations about the R8 in general and about the Proguard rules files can
 <p><a href="https://www.guardsquare.com/manual/configuration/usage" class="bare">https://www.guardsquare.com/manual/configuration/usage</a></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1-8-3f52cf/mill-dist-1.0.1-8-3f52cf-example-androidlib-java-5-R8.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/androidlib/java/5-R8">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1-9-c43609/mill-dist-1.0.1-9-c43609-example-androidlib-java-5-R8.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/androidlib/java/5-R8">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1227,7 +1231,7 @@ There is a list of the core C/C++ libraries that can be used in the android here
 <a href="https://developer.android.com/ndk/reference" class="bare">https://developer.android.com/ndk/reference</a></p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1-8-3f52cf/mill-dist-1.0.1-8-3f52cf-example-androidlib-java-6-native-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/androidlib/java/6-native-libs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1-9-c43609/mill-dist-1.0.1-9-c43609-example-androidlib-java-6-native-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/androidlib/java/6-native-libs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1330,7 +1334,7 @@ object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a></span>
+  <span class="prev"><a href="android-initial-setup.html">Android Initial Setup</a></span>
   <span class="next"><a href="kotlin.html">Android Kotlin Projects</a></span>
 </nav>
 </article>
