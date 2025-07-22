@@ -30,7 +30,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
   // Just remove this method when re-bootstrapping, Mill itself should provide it then
   def publishLocalTestRepo: Task[PathRef] = Task {
     val publisher = new LocalM2Publisher(Task.dest)
-    val publishInfos = defaultPublishInfos() ++
+    val publishInfos = defaultPublishInfos(sources = false, docs = false)() ++
       Seq(
         PublishInfo(
           sourceJar(),
@@ -40,6 +40,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
         )
       ) ++
       extraPublish()
+
     publisher.publish(
       pom = pom().path,
       artifact = artifactMetadata(),

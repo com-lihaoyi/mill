@@ -12,7 +12,7 @@ object foo extends JavaModule {
 
 
   object test extends JavaTests, TestModule.Junit4 {
-    def mvnDeps = Seq[Dep](
+    def mvnDeps = Seq(
       "com.google.guava:guava:33.3.0-jre"
     )
   }

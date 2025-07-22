@@ -107,7 +107,6 @@ object Dep {
 
   val DefaultConfiguration: Configuration = coursier.core.Configuration("default(compile)")
 
-  implicit def parseSeq(sigs: Seq[String]): Seq[Dep] = sigs.map(parse(_))
   implicit def parse(signature: String): Dep = {
     val parts = signature.split(';')
     val module = parts.head
