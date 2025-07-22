@@ -19,6 +19,7 @@ object GenIdeaExtendedTests extends UtestIntegrationTestSuite {
 
       for (resource <- resources) {
         GenIdeaUtils.assertIdeaXmlResourceMatchesFile(
+          tester.workspaceSourcePath,
           workspacePath,
           resource
         )
