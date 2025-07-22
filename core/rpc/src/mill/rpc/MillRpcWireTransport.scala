@@ -3,6 +3,8 @@ package mill.rpc
 import pprint.{TPrint, TPrintColors}
 import upickle.default.{Reader, Writer}
 
+import java.util.concurrent.BlockingQueue
+
 trait MillRpcWireTransport extends AutoCloseable {
 
   /** Human-readable name of the wire. */
@@ -43,7 +45,7 @@ trait MillRpcWireTransport extends AutoCloseable {
 }
 
 object MillRpcWireTransport {
-  object ViaStdinAndStdout extends MillRpcWireTransport {
+  case object ViaStdinAndStdout extends MillRpcWireTransport {
     def name: String = "stdin/out"
 
     def read(): Option[String] = Option(Console.in.readLine())
@@ -72,5 +74,15 @@ object MillRpcWireTransport {
     override def close(): Unit = {
       subprocess.close()
     }
+  }
+
+  case class ViaBlockingQueue(queue: BlockingQueue[String]) extends MillRpcWireTransport {
+    override def name: String = "in-process blocking queue"
+
+    override def read(): Option[String] = Some(queue.take())
+
+    override def write(message: String): Unit = queue.put(message)
+
+    override def close(): Unit = queue.clear()
   }
 }

@@ -367,6 +367,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
           scalacPluginClasspath: Seq[PathRef],
           args: Seq[String]
       ): Boolean = {
+        // TODO review: how to test this?
 //        zincLocalWorker.docJar(
 //          scalaVersion = scalaVersion,
 //          scalaOrganization = scalaOrganization,

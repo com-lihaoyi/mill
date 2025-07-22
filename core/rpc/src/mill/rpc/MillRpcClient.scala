@@ -11,6 +11,7 @@ trait MillRpcClient[ClientToServer <: MillRpcMessage] extends AutoCloseable {
   def apply(input: ClientToServer): input.Response
 }
 object MillRpcClient {
+  // TODO: test
   def create[
       Initialize: Writer,
       ClientToServer <: MillRpcMessage: Writer,
