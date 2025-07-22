@@ -132,7 +132,7 @@ object ErrorTests extends TestSuite {
       // See issue: https://github.com/com-lihaoyi/mill/issues/3715
       trait CommonModule extends Module {
         def foo = Task { "foo" }
-        def moduleDeps: Seq[CommonModule] = Seq.empty
+        def moduleDeps: Seq[CommonModule] = Seq()
         def a = myA
         def b = myB
       }

@@ -90,7 +90,7 @@ trait RevapiModule extends PublishModule {
   }
 
   /** List of configuration files */
-  def revapiConfigFiles: T[Seq[PathRef]] = Seq.empty[PathRef]
+  def revapiConfigFiles: T[Seq[PathRef]] = Seq()
 
   /** Location of local cache of extensions to use to locate artifacts */
   def revapiCacheDir: T[PathRef] = Task { PathRef(Task.dest) }
@@ -112,7 +112,7 @@ trait RevapiModule extends PublishModule {
   def revapiCliVersion: T[String] = Task { Versions.revApiVersion }
 
   /** JVM arguments for the Revapi [[revapiCliVersion CLI]] */
-  def revapiJvmArgs: T[Seq[String]] = Seq.empty[String]
+  def revapiJvmArgs: T[Seq[String]] = Seq()
 
   /** Artifact types to resolve archives and supplement files (dependencies) */
   def revapiArtifactTypes: T[Set[coursier.Type]] = Set(coursier.Type.jar)

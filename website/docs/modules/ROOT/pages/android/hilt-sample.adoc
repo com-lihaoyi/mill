@@ -1,0 +1,13 @@
+= Android Hilt Sample
+:page-aliases: android_hilt_sample.adoc
+
+This page provides an example of using Mill to build an Android application
+that utilizes Hilt for dependency injection, based on the official
+https://github.com/android/architecture-samples[TODO app].
+
+== Android Mill Setup for building the TODO App
+
+include::partial$example/thirdparty/androidtodo.adoc[]
+
+This example demonstrates how to build an Android app that uses Hilt for dependency injection,
+translating the original Gradle configuration to Mill.

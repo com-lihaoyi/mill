@@ -85,12 +85,16 @@ object Deps {
   val bloopConfig = mvn"ch.epfl.scala::bloop-config:1.5.5".withDottyCompat(scalaVersion)
 
   val classgraph = mvn"io.github.classgraph:classgraph:4.8.180"
-  val coursierVersion = "2.1.25-M13"
+  val coursierVersion = "2.1.25-M16"
   val coursier = mvn"io.get-coursier::coursier:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierArchiveCache =
+    mvn"io.get-coursier::coursier-archive-cache:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierCore =
     mvn"io.get-coursier::coursier-core:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierCache =
     mvn"io.get-coursier::coursier-cache:$coursierVersion".withDottyCompat(scalaVersion)
+  val coursierPaths =
+    mvn"io.get-coursier:coursier-paths:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierUtil =
     mvn"io.get-coursier::coursier-util:$coursierVersion".withDottyCompat(scalaVersion)
   val coursierVersions = mvn"io.get-coursier::versions:0.5.1".withDottyCompat(scalaVersion)
@@ -163,7 +167,7 @@ object Deps {
     mvn"org.scoverage::scalac-scoverage-serializer:${scoverage2Version}"
   val scalaparse = mvn"com.lihaoyi::scalaparse:${fastparse.version}"
   val scalatags = mvn"com.lihaoyi::scalatags:0.13.1".withDottyCompat(scalaVersion)
-  val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.3.0"
+  val scalaXml = mvn"org.scala-lang.modules::scala-xml:2.4.0"
   // keep in sync with doc/antora/antory.yml
   val semanticDBscala = mvn"org.scalameta:::semanticdb-scalac:4.13.4"
   val semanticDbJava = mvn"com.sourcegraph:semanticdb-java:0.10.3"
@@ -317,5 +321,10 @@ object Deps {
     )
 
   }
+  val keytoolDeps = Seq(
+    mvn"org.bouncycastle:bcpkix-jdk18on:1.81",
+    mvn"org.bouncycastle:bcprov-jdk18on:1.81",
+    mvn"org.bouncycastle:bcutil-jdk18on:1.81"
+  )
 
 }

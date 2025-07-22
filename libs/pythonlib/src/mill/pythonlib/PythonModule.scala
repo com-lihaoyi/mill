@@ -120,7 +120,7 @@ trait PythonModule extends PipModule with DefaultTaskModule with JavaHomeModule 
   /**
    * Command-line options to pass as bundle configuration defined by the user.
    */
-  def bundleOptions: T[Seq[String]] = Task { Seq("--scie", "eager") }
+  def bundleOptions: T[Seq[String]] = Task { Seq.empty[String] }
 
   // TODO: right now, any task that calls this helper will have its own python
   // cache. This is slow. Look into sharing the cache between tasks.

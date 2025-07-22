@@ -6,13 +6,21 @@ import mill.client.lock.{DoubleLock, Lock, Locks}
 import mill.constants.OutFiles
 import sun.misc.{Signal, SignalHandler}
 import mill.api.BuildCtx
-import scala.util.Try
+import scala.util.{Properties, Try}
 
 object MillDaemonMain {
   def main(args0: Array[String]): Unit = {
+    mill.constants.DebugLog.println("MillDaemonMain.main")
+
     // Set by an integration test
     if (System.getenv("MILL_DAEMON_CRASH") == "true")
       sys.error("Mill daemon early crash requested")
+
+    if (Properties.isWin)
+      // temporarily disabling FFM use by coursier, which has issues with the way
+      // Mill manages class loaders, throwing things like
+      // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
+      sys.props("coursier.windows.disable-ffm") = "true"
 
     mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
       // Disable SIGINT interrupt signal in the Mill server.

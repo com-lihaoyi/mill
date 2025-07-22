@@ -20,7 +20,7 @@ object `package` extends MillStableScalaModule {
 
   def moduleDeps = Seq(build.libs.util, build.libs.javalib.api, build.libs.javalib.testrunner)
   def mvnDeps =
-    Seq(Deps.scalaXml, Deps.semanticDbShared) ++
+    Seq(Deps.scalaXml) ++
       // despite compiling with Scala 3, we need to include scala-reflect
       // for the scala.reflect.internal.util.ScalaClassLoader
       // used in ScalaModule.scalacHelp,
@@ -33,12 +33,13 @@ object `package` extends MillStableScalaModule {
   def runMvnDeps = Seq(Deps.sonatypeCentralClient)
 
   def testMvnDeps = super.testMvnDeps() ++ Seq(Deps.TestDeps.scalaCheck)
-  def transitiveLocalTestOverrides =
-    super.transitiveLocalTestOverrides() ++ Seq(
-      worker.localTestOverride(),
-      `classgraph-worker`.localTestOverride(),
-      `jarjarabrams-worker`.localTestOverride(),
-      `spotless-worker`.localTestOverride()
+  def localTestExtraModules =
+    super.localTestExtraModules ++ Seq(
+      worker,
+      `classgraph-worker`,
+      `jarjarabrams-worker`,
+      `spotless-worker`,
+      `scalameta-worker`
     )
   def testForkEnv = {
     val locale = if (Properties.isMac) "en_US.UTF-8" else "C.utf8"
@@ -177,5 +178,10 @@ object `package` extends MillStableScalaModule {
 
       super.mvnDeps() ++ mavenPublishingDeps
     }
+  }
+
+  object `scalameta-worker` extends MillPublishScalaModule {
+    def moduleDeps = Seq(build.libs.javalib)
+    def mvnDeps = Seq(Deps.semanticDbShared)
   }
 }

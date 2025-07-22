@@ -17,7 +17,7 @@ import millbuild.*
 object `package` extends MillStableScalaModule {
   def moduleDeps = Seq(build.libs.javalib)
   def mvnDeps =
-    Seq(Deps.scalaXml, Deps.semanticDbShared) ++
+    Seq(Deps.scalaXml) ++
       // despite compiling with Scala 3, we need to include scala-reflect
       // for the scala.reflect.internal.util.ScalaClassLoader
       // used in ScalaModule.scalacHelp,
