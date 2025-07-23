@@ -277,29 +277,27 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     os.remove.all(targetDir)
     os.makeDir.all(targetDir)
 
-    val ups = sourceroot.segments.size
     val semanticPath = os.rel / "META-INF/semanticdb"
     val toClean = classesDir / semanticPath / sourceroot.segments.toSeq
 
     // copy over all found semanticdb-files into the target directory
     // but with corrected directory layout
-    if (os.exists(classesDir)) os.walk(classesDir, preOrder = true)
-      .filter(os.isFile)
-      .foreach { p =>
-        if (p.ext == "semanticdb") {
-          val target =
-            if (ups > 0 && p.startsWith(toClean)) {
-              targetDir / semanticPath / p.relativeTo(toClean)
-            } else {
-              targetDir / p.relativeTo(classesDir)
-            }
-          os.copy(p, target, createFolders = true)
-          for (
-            (data, dest) <- postProcessed(p, sourceroot, classesDir / semanticPath, workerClasspath)
-          )
-            os.write.over(targetDir / semanticPath / dest, data, createFolders = true)
+    if (os.exists(classesDir)) {
+      for (p <- os.walk(classesDir, preOrder = true) if os.isFile(p)) {
+        val target =
+          if (p.startsWith(toClean)) targetDir / semanticPath / p.relativeTo(toClean)
+          else targetDir / p.relativeTo(classesDir)
+
+        os.copy(p, target, createFolders = true)
+
+        for (
+          (data, dest) <- postProcessed(p, sourceroot, classesDir / semanticPath, workerClasspath)
+        ) {
+          os.write.over(targetDir / semanticPath / dest, data, createFolders = true)
         }
       }
+    }
+
     PathRef(targetDir)
   }
 
