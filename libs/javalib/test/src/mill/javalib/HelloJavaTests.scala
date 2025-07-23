@@ -146,7 +146,6 @@ object HelloJavaTests extends TestSuite {
               expectedFile1,
               expectedFile3,
               os.rel / "hello/Core.class",
-              os.rel / "hello/Second.class", // not sure why this isn't deleted???
               os.rel / "hello/Third.class"
             ),
             result2.evalCount > 0
