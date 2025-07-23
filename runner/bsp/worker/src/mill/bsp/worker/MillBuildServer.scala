@@ -1011,9 +1011,9 @@ private class MillBuildServer(
       case Some(error) =>
         logger.error(error)
         logger.info("Failed")
-        client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, error))
+        client.onBuildLogMessage(new LogMessageParams(MessageType.WARNING, error))
         client.onBuildShowMessage(new ShowMessageParams(
-          MessageType.ERROR,
+          MessageType.WARNING,
           s"$requestDescription failed, see Mill logs for more details"
         ))
     }
