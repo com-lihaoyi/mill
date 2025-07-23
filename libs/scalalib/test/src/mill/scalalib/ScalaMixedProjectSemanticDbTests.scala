@@ -20,7 +20,10 @@ object ScalaMixedProjectSemanticDbTests extends TestSuite {
     test("semanticDbData") {
       def semanticDbFiles: Set[os.SubPath] = Set(
         os.sub / "META-INF/semanticdb/core/src/Foo.scala.semanticdb",
-        os.sub / "META-INF/semanticdb/core/src/JFoo.java.semanticdb"
+        os.sub / "META-INF/semanticdb/core/src/JFoo.java.semanticdb",
+        os.sub / "foo/JFoo.class",
+        os.sub / "foo/Foo.class",
+        os.sub / "foo/Foo$.class"
       )
 
       test("fromScratch") - UnitTester(SemanticWorld, sourceRoot = resourcePath).scoped { eval =>
