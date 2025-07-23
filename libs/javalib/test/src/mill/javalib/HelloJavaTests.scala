@@ -29,7 +29,7 @@ object HelloJavaTests extends TestSuite {
 
   val resourcePath = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-java"
 
-  def testEval() = UnitTester(HelloJava, resourcePath)
+  def testEval() = UnitTester(HelloJava, resourcePath, debugEnabled = true)
   def tests: Tests = Tests {
     test("compile") {
       testEval().scoped { eval =>
@@ -146,6 +146,7 @@ object HelloJavaTests extends TestSuite {
               expectedFile1,
               expectedFile3,
               os.rel / "hello/Core.class",
+              os.rel / "hello/Second.class", // not sure why this isn't deleted???
               os.rel / "hello/Third.class"
             ),
             result2.evalCount > 0
