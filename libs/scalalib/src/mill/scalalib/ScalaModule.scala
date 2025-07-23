@@ -613,6 +613,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     Task.log.debug(s"effective scalac options: ${scalacOptions}")
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
+    // Disable incremental compilation because semanticDb plugin doesn't work well incrementally
+    os.remove.all(Task.dest / "classes")
     jvmWorker().worker()
       .compileMixed(
         upstreamCompileOutput = upstreamCompileOutput(),
