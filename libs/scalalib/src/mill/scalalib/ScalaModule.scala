@@ -595,10 +595,6 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   override def semanticDbData: T[PathRef] = Task(persistent = true) {
     val sv = scalaVersion()
 
-    val hasScala = allSourceFiles().exists(_.path.ext == "scala")
-    val hasJava = allSourceFiles().exists(_.path.ext == "java")
-    val isMixedProject = hasScala && hasJava
-
     val additionalScalacOptions = if (JvmWorkerUtil.isScala3(sv)) {
       Seq("-Xsemanticdb", s"-sourceroot:${BuildCtx.workspaceRoot}")
     } else {
