@@ -7,7 +7,7 @@
 [bsp-init-build.mill-*] [info] done compiling
 [bsp-init] SNAPSHOT
 [2-workspaceBuildTargets] Entered workspaceBuildTargets
-[2-workspaceBuildTargets] Evaluating * tasks
+[2-workspaceBuildTargets] Evaluating 13 tasks
 [2-workspaceBuildTargets] Done
 [2-workspaceBuildTargets] Evaluating 1 task
 [2-workspaceBuildTargets] Done
@@ -23,30 +23,16 @@
 [3-loggingTest] loggingTest took * msec
 [4-compile] Entered buildTargetCompile
 [4-compile] Evaluating 1 task
-[4-compile-*] errored.exception.compile failed
-[4-compile] * tasks failed
-[4-compile] errored.exception.compile java.lang.RuntimeException: nope
-[4-compile]     scala.sys.package$.error(package.scala:*)
-[4-compile]     build_.package_.build_*(build.mill:*)
-[4-compile]     mill.api.Task$Named.evaluate(Task.scala:*)
-[4-compile]     mill.api.Task$Named.evaluate$(Task.scala:*)
-[4-compile]     mill.api.Task$Computed.evaluate(Task.scala:*)
-[4-compile] Failed
+[4-compile] Done
 [4-compile] buildTargetCompile took * msec
 [5-compile] Entered buildTargetCompile
 [5-compile] Evaluating 1 task
-[5-compile-*] [info] compiling 1 Scala source to * ...
-[5-compile-*] [error] */errored/compilation-error/src/Thing.scala:2:3: not found: value nope
-[5-compile-*] [error]   nope
-[5-compile-*] [error]   ^
-[5-compile-*] [error] one error found
-[5-compile-*] errored.compilation-error.compile failed
-[5-compile-*] [info] compiling 1 Scala source to * ...
-[5-compile-*] [error] */errored/compilation-error/src/Thing.scala:2:3: not found: value nope
-[5-compile-*] [error]   nope
-[5-compile-*] [error]   ^
-[5-compile-*] [error] one error found
-[5-compile-*] errored.compilation-error.semanticDbData failed
+[5-compile-57] [info] compiling 1 Scala source to */errored/compilation-error/semanticDbData.dest/classes ...
+[5-compile-57] [error] */errored/compilation-error/src/Thing.scala:2:3: not found: value nope
+[5-compile-57] [error]   nope
+[5-compile-57] [error]   ^
+[5-compile-57] [error] one error found
+[5-compile-57] errored.compilation-error.semanticDbData failed
 [5-compile] Done
 [5-compile] buildTargetCompile took * msec
 [6-compile] Entered buildTargetCompile
