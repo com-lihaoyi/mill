@@ -298,13 +298,18 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
         import os./
         dest match {
           case folder / s"$prefix.semanticdb"
-            if !existingSources.contains((folder / prefix).subRelativeTo(targetDir / semanticPath)) =>
+              if !existingSources.contains(
+                (folder / prefix).subRelativeTo(targetDir / semanticPath)
+              ) =>
             os.remove(dest)
           case _ =>
         }
 
         for (
-          (data, dest) <- postProcessed(source, sourceroot, classesDir / semanticPath, workerClasspath)
+          (
+            data,
+            dest
+          ) <- postProcessed(source, sourceroot, classesDir / semanticPath, workerClasspath)
         ) {
           os.write.over(targetDir / semanticPath / dest, data, createFolders = true)
         }
