@@ -305,14 +305,10 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
           case _ =>
         }
 
-        for (
-          (
-            data,
-            dest
-          ) <- postProcessed(source, sourceroot, classesDir / semanticPath, workerClasspath)
-        ) {
-          os.write.over(targetDir / semanticPath / dest, data, createFolders = true)
-        }
+        postProcessed(source, sourceroot, classesDir / semanticPath, workerClasspath)
+          .foreach { case (data, dest) =>
+            os.write.over(targetDir / semanticPath / dest, data, createFolders = true)
+          }
       }
     }
 
