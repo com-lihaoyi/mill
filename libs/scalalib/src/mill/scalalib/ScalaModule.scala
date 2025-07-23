@@ -602,10 +602,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     val additionalScalacOptions = if (JvmWorkerUtil.isScala3(sv)) {
       Seq("-Xsemanticdb", s"-sourceroot:${BuildCtx.workspaceRoot}")
     } else {
-      Seq(
-        "-Yrangepos",
-        s"-P:semanticdb:sourceroot:${BuildCtx.workspaceRoot}"
-      ) ++ stopAfterSemanticDbOpts
+      Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${BuildCtx.workspaceRoot}")
     }
 
     val scalacOptions = (

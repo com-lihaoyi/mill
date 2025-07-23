@@ -145,9 +145,9 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
    * Keep in sync with bspCompiledClassesAndSemanticDbFiles
    */
   def compiledClassesAndSemanticDbFiles: T[PathRef] = Task(persistent = true) {
-    os.list(Task.dest).foreach(os.remove.all(_))
     val dest = Task.dest
     val sems = semanticDbData().path
+    os.list(dest).foreach(os.remove.all(_))
     if (os.exists(sems)) os.copy(sems, dest, mergeFolders = true)
     PathRef(dest)
   }
