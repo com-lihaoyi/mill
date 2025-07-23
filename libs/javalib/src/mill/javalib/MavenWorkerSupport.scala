@@ -56,12 +56,11 @@ object MavenWorkerSupport {
         publishDatas: Map[os.SubPath, PathRef]
     ): List[M2Artifact.Default] =
       publishDatas.iterator.map { case (name, pathRef) =>
-        val publishInfo = PublishInfo.parseFromFile(
-          pathRef,
+        val publishInfo = PublishInfo.IvyMetadata.parseFromFile(
           fileName = name.toString,
           artifactId = artifact.id,
           artifactVersion = artifact.version
-        )
+        ).toPublishInfo(pathRef)
         M2Artifact.Default(publishInfo, artifact): M2Artifact.Default
       }.toList
 
