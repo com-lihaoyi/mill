@@ -107,10 +107,6 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
       semanticDbJavaVersion()
     )
 
-    // we currently assume, we don't do incremental java compilation
-    os.remove.all(Task.dest / "classes")
-    os.remove.all(Task.dest / "zinc")
-
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
     jvmWorker().worker()
@@ -131,7 +127,8 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
             r.classes.path,
             BuildCtx.workspaceRoot,
             Task.dest / "data",
-            SemanticDbJavaModule.workerClasspath().map(_.path)
+            SemanticDbJavaModule.workerClasspath().map(_.path),
+            allSourceFiles().map(_.path)
           )
         }
       }
@@ -272,7 +269,8 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
       classesDir: os.Path,
       sourceroot: os.Path,
       targetDir: os.Path,
-      workerClasspath: Seq[os.Path]
+      workerClasspath: Seq[os.Path],
+      sources: Seq[os.Path]
   ): PathRef = {
     assert(classesDir != targetDir)
     os.remove.all(targetDir)
@@ -281,21 +279,36 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
     val semanticPath = os.rel / "META-INF/semanticdb"
     val toClean = classesDir / semanticPath / sourceroot.segments.toSeq
 
+    val existingSources = sources.map(_.subRelativeTo(sourceroot)).toSet
+
     // copy over all found semanticdb-files into the target directory
     // but with corrected directory layout
     if (os.exists(classesDir)) {
-      for (p <- os.walk(classesDir, preOrder = true) if os.isFile(p)) {
-        val target =
-          if (p.startsWith(toClean)) targetDir / semanticPath / p.relativeTo(toClean)
-          else targetDir / p.relativeTo(classesDir)
+      for (source <- os.walk(classesDir, preOrder = true) if os.isFile(source)) {
+        val dest =
+          if (source.startsWith(toClean)) targetDir / semanticPath / source.relativeTo(toClean)
+          else targetDir / source.relativeTo(classesDir)
 
-        os.copy(p, target, createFolders = true)
+        os.copy(source, dest, createFolders = true)
 
-        for (
-          (data, dest) <- postProcessed(p, sourceroot, classesDir / semanticPath, workerClasspath)
-        ) {
-          os.write.over(targetDir / semanticPath / dest, data, createFolders = true)
+        // SemanticDB plugin doesn't delete old `.semanticdb` files during incremental compilation.
+        // So we need to do it ourselves, using the fact that the `.semanticdb` files have the same
+        // name and path as the `.java` or `.scala` files they are created from, just with `.semanticdb`
+        // appended on the end
+        import os./
+        dest match {
+          case folder / s"$prefix.semanticdb"
+              if !existingSources.contains(
+                (folder / prefix).subRelativeTo(targetDir / semanticPath)
+              ) =>
+            os.remove(dest)
+          case _ =>
         }
+
+        postProcessed(source, sourceroot, classesDir / semanticPath, workerClasspath)
+          .foreach { case (data, dest) =>
+            os.write.over(targetDir / semanticPath / dest, data, createFolders = true)
+          }
       }
     }
 
