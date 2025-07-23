@@ -68,7 +68,7 @@ object HelloJavaTests extends TestSuite {
           assert(
             result.value.path == dataPath,
             outputFiles.nonEmpty,
-            outputFiles == Seq(expectedFile1, expectedFile2),
+            outputFiles.toSet == Set(expectedFile1, expectedFile2),
             result.evalCount > 0
           )
 
@@ -142,7 +142,12 @@ object HelloJavaTests extends TestSuite {
           val files2 =
             os.walk(result2.value.path).filter(os.isFile).map(_.relativeTo(result2.value.path))
           assert(
-            files2.toSet == Set(expectedFile3, os.rel / "hello/Third.class"),
+            files2.toSet == Set(
+              expectedFile1,
+              expectedFile3,
+              os.rel / "hello/Core.class",
+              os.rel / "hello/Third.class"
+            ),
             result2.evalCount > 0
           )
         }

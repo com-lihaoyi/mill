@@ -109,6 +109,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
     // we currently assume, we don't do incremental java compilation
     os.remove.all(Task.dest / "classes")
+    os.remove.all(Task.dest / "zinc")
 
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
