@@ -51,12 +51,11 @@ object MavenWorkerSupport {
         publishDatas: Seq[(PathRef, String)]
     ): List[M2Artifact.Default] =
       publishDatas.iterator.map { case (pathRef, name) =>
-        val publishInfo = PublishInfo.parseFromFile(
-          pathRef,
+        val publishInfo = PublishInfo.IvyMetadata.parseFromFile(
           fileName = name,
           artifactId = artifact.id,
           artifactVersion = artifact.version
-        )
+        ).toPublishInfo(pathRef)
         M2Artifact.Default(publishInfo, artifact): M2Artifact.Default
       }.toList
 
