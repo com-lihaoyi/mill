@@ -12,10 +12,14 @@ private[mill] object CodeSigUtils {
     def resolveTransitiveParents(c: Class[?]): Set[Class[?]] = {
       val seen = collection.mutable.Set.empty[Class[?]]
       val queue = collection.mutable.Queue(c)
-      while(queue.nonEmpty){
+      while (queue.nonEmpty) {
         val current = queue.dequeue()
-        val nextList = Seq(current.getSuperclass) ++ current.getInterfaces
-        for(next <- nextList if !seen.contains(next)) {
+        for (next <- Option(current.getSuperclass) if !seen.contains(next)) {
+          seen.add(next)
+          queue.enqueue(next)
+        }
+
+        for (next <- current.getInterfaces if !seen.contains(next)) {
           seen.add(next)
           queue.enqueue(next)
         }
