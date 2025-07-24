@@ -9,12 +9,15 @@ import java.lang.reflect.Method
 private[mill] object CodeSigUtils {
   def precomputeMethodNamesPerClass(transitiveNamed: Seq[Task.Named[?]])
       : (Map[Class[?], IndexedSeq[Class[?]]], Map[Class[?], Map[String, Method]]) = {
+
     def resolveTransitiveParents(c: Class[?]): Iterable[Class[?]] = {
-      val seen = collection.mutable.Set(c)
+      val seen = collection.mutable.LinkedHashSet(c) // Maintain first-seen ordering
       val queue = collection.mutable.Queue(c)
       while (queue.nonEmpty) {
         val current = queue.dequeue()
-        for (next <- Option(current.getSuperclass) ++ current.getInterfaces if !seen.contains(next)) {
+        for (
+          next <- Option(current.getSuperclass) ++ current.getInterfaces if !seen.contains(next)
+        ) {
           seen.add(next)
           queue.enqueue(next)
         }
