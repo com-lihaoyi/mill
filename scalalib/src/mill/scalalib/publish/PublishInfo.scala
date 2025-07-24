@@ -77,7 +77,6 @@ object PublishInfo {
       Known.find(meta => meta.extension == extension && meta.classifier == classifier)
     }
 
-
     /**
      * Tries to parse the data from a filename.
      *
@@ -93,9 +92,9 @@ object PublishInfo {
      * @param artifactVersion version of the artifact, for example "1.0.0-RC3"
      */
     def parseFromFile(
-      fileName: String,
-      artifactId: String,
-      artifactVersion: String
+        fileName: String,
+        artifactId: String,
+        artifactVersion: String
     ): IvyMetadata = {
       val regex = s"^${Pattern.quote(artifactId)}-${Pattern.quote(artifactVersion)}-?"
       val withoutArtifactIdAndVersion = fileName.replaceFirst(regex, "")
