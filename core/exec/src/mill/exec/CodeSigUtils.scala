@@ -9,15 +9,24 @@ import java.lang.reflect.Method
 private[mill] object CodeSigUtils {
   def precomputeMethodNamesPerClass(transitiveNamed: Seq[Task.Named[?]])
       : (Map[Class[?], IndexedSeq[Class[?]]], Map[Class[?], Map[String, Method]]) = {
-    def resolveTransitiveParents(c: Class[?]): Iterator[Class[?]] = {
-      Iterator(c) ++
-        Option(c.getSuperclass).iterator.flatMap(resolveTransitiveParents) ++
-        c.getInterfaces.iterator.flatMap(resolveTransitiveParents)
+    def resolveTransitiveParents(c: Class[?]): Set[Class[?]] = {
+      val seen = collection.mutable.Set.empty[Class[?]]
+      val queue = collection.mutable.Queue(c)
+      while(queue.nonEmpty){
+        val current = queue.dequeue()
+        val nextList = Seq(current.getSuperclass) ++ current.getInterfaces
+        for(next <- nextList if !seen.contains(next)) {
+          seen.add(next)
+          queue.enqueue(next)
+        }
+      }
+
+      seen.toSet
     }
 
     val classToTransitiveClasses: Map[Class[?], IndexedSeq[Class[?]]] = transitiveNamed
-      .iterator
       .map { case namedTask: Task.Named[?] => namedTask.ctx.enclosingCls }
+      .distinct
       .map(cls => cls -> resolveTransitiveParents(cls).toVector)
       .toMap
 
