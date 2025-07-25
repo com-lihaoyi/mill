@@ -22,7 +22,8 @@ object PromptLoggerTests extends TestSuite {
       titleText = "TITLE",
       terminfoPath = terminfoPath,
       currentTimeMillis = now,
-      autoUpdate = false
+      autoUpdate = false,
+      chromeProfileLogger = new JsonArrayLogger.ChromeProfile(os.temp())
     ) {
       // For testing purposes, wait till the system is quiescent before re-printing
       // the prompt, to try and keep the test executions deterministic

@@ -4,9 +4,10 @@ import mill.api.daemon.internal.{CompileProblemReporter, ExecutionResultsApi, Te
 import mill.constants.OutFiles
 import mill.constants.OutFiles.*
 import mill.api.{PathRef, *}
-import mill.api.internal.{RootModule0, ResolveChecker}
+import mill.api.internal.{ResolveChecker, RootModule0}
 import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
+import mill.internal.PrefixLogger
 import mill.resolve.Resolve
 
 /**
@@ -245,19 +246,25 @@ final class EvaluatorImpl private[mill] (
       reporter: Int => Option[CompileProblemReporter] = _ => None,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val resolved = os.checker.withValue(ResolveChecker(workspace)) {
-      Evaluator.withCurrentEvaluator(this) {
-        Resolve.Tasks.resolve(
-          rootModule,
-          scriptArgs,
-          selectMode,
-          allowPositionalCommandArgs
-        )
+    val promptLineLogger = new PrefixLogger(
+      logger0 = baseLogger,
+      key0 = Seq("resolve"),
+      message = "resolve " + scriptArgs.mkString(" ")
+    )
+    val resolved = promptLineLogger.withPromptLine {
+      os.checker.withValue(ResolveChecker(workspace)) {
+        Evaluator.withCurrentEvaluator(this) {
+          Resolve.Tasks.resolve(
+            rootModule,
+            scriptArgs,
+            selectMode,
+            allowPositionalCommandArgs
+          )
+        }
       }
     }
-
-    for (task <- resolved)
-      yield execute(Seq.from(task), reporter = reporter, selectiveExecution = selectiveExecution)
+    for (tasks <- resolved)
+      yield execute(Seq.from(tasks), reporter = reporter, selectiveExecution = selectiveExecution)
   }
 
   def close(): Unit = execution.close()

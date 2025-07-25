@@ -1,4 +1,4 @@
-package mill.exec
+package mill.internal
 
 /**
  * Small class to take named threads and assign them stable integer IDs

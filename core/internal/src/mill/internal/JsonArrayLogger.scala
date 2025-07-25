@@ -1,7 +1,8 @@
-package mill.exec
+package mill.internal
 
-import java.io.PrintStream
+import java.io.{BufferedOutputStream, PrintStream}
 import java.nio.file.{Files, StandardOpenOption}
+import java.util.concurrent.ArrayBlockingQueue
 
 private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, indent: Int) {
   private var used = false
@@ -13,25 +14,51 @@ private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path,
       Seq(StandardOpenOption.TRUNCATE_EXISTING)
     ).flatten
     os.makeDir.all(outPath / os.up)
-    new PrintStream(Files.newOutputStream(outPath.toNIO, options*))
+    new PrintStream(new BufferedOutputStream(Files.newOutputStream(outPath.toNIO, options*)))
   }
 
-  def log(t: T): Unit = synchronized {
-    if (used) traceStream.println(",")
-    else traceStream.println("[")
-    used = true
-    val indented = upickle.default.write(t, indent = indent)
-      .linesIterator
-      .map(indentStr + _)
-      .mkString("\n")
+  // Log the JSON entries asynchronously on a separate thread to try and avoid blocking
+  // the main execution, but keep the size bounded so if the logging falls behind the
+  // main thread will get blocked until logging can catch up
+  val buffer = new ArrayBlockingQueue[T](100)
+  val writeThread = new Thread(
+    () =>
+      while ({
+        val value =
+          try Some(buffer.take())
+          catch { case _: InterruptedException => None }
 
-    traceStream.print(indented)
+        value match {
+          case Some(v) =>
+            if (used) traceStream.println(",")
+            else traceStream.println("[")
+            used = true
+            val indented = upickle.default.write(v, indent = indent)
+              .linesIterator
+              .map(indentStr + _)
+              .mkString("\n")
+
+            traceStream.print(indented)
+            true
+          case None => false
+        }
+      }) (),
+    "JsonArrayLogger " + outPath.last
+  )
+  writeThread.start()
+
+  def log(t: T): Unit = {
+    buffer.offer(t)
   }
 
   def close(): Unit = synchronized {
+    // wait for background thread to clear out any buffered entries before shutting down
+    while (buffer.size() > 0) Thread.sleep(1)
+    traceStream.flush()
     traceStream.println()
     traceStream.println("]")
     traceStream.close()
+    writeThread.interrupt()
   }
 }
 
@@ -81,24 +108,32 @@ private[mill] object JsonArrayLogger {
   private[mill] class ChromeProfile(outPath: os.Path)
       extends JsonArrayLogger[ChromeProfile.TraceEvent](outPath, indent = -1) {
 
-    def log(
+    def logBegin(
         terminal: String,
         cat: String,
         startTime: Long,
-        duration: Long,
-        threadId: Int,
-        cached: Boolean
+        threadId: Int
     ): Unit = {
 
-      val event = ChromeProfile.TraceEvent(
+      val event = ChromeProfile.TraceEvent.Begin(
         name = terminal,
         cat = cat,
-        ph = "X",
         ts = startTime,
-        dur = duration,
         pid = 1,
-        tid = threadId,
-        args = if (cached) Seq("cached") else Seq()
+        tid = threadId
+      )
+
+      log(event)
+    }
+    def logEnd(
+        endTime: Long,
+        threadId: Int
+    ): Unit = {
+
+      val event = ChromeProfile.TraceEvent.End(
+        ts = endTime,
+        pid = 1,
+        tid = threadId
       )
       log(event)
     }
@@ -110,19 +145,22 @@ private[mill] object JsonArrayLogger {
      * Trace Event Format, that can be loaded with Google Chrome via chrome://tracing
      * See https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/
      */
-    case class TraceEvent(
-        name: String,
-        cat: String,
-        ph: String,
-        ts: Long,
-        dur: Long,
-        pid: Int,
-        tid: Int,
-        args: Seq[String]
-    )
+    @upickle.implicits.key("ph")
+    enum TraceEvent derives upickle.default.ReadWriter {
+      @upickle.implicits.key("B") case Begin(
+          name: String,
+          cat: String,
+          ts: Long,
+          pid: Int,
+          tid: Int
+      )
 
-    object TraceEvent {
-      implicit val readWrite: upickle.default.ReadWriter[TraceEvent] = upickle.default.macroRW
+      @upickle.implicits.key("E") case End(
+          ts: Long,
+          pid: Int,
+          tid: Int
+      )
     }
+
   }
 }
