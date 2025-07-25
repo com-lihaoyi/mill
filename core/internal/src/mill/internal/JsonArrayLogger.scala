@@ -23,26 +23,32 @@ private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path,
   val buffer = new ArrayBlockingQueue[T](100)
   val writeThread = new Thread(
     () =>
-      while ({
-        val value =
-          try Some(buffer.take())
-          catch { case _: InterruptedException => None }
+      // Make sure all writes to `traceStream` are synchronized, as we
+      // have two threads writing to it (one while active, one on close()
+      traceStream.synchronized {
+        while ({
+          val value =
+            try Some(buffer.take())
+            catch {
+              case _: InterruptedException => None
+            }
 
-        value match {
-          case Some(v) =>
-            if (used) traceStream.println(",")
-            else traceStream.println("[")
-            used = true
-            val indented = upickle.default.write(v, indent = indent)
-              .linesIterator
-              .map(indentStr + _)
-              .mkString("\n")
+          value match {
+            case Some(v) =>
+              if (used) traceStream.println(",")
+              else traceStream.println("[")
+              used = true
+              val indented = upickle.default.write(v, indent = indent)
+                .linesIterator
+                .map(indentStr + _)
+                .mkString("\n")
 
-            traceStream.print(indented)
-            true
-          case None => false
-        }
-      }) (),
+              traceStream.print(indented)
+              true
+            case None => false
+          }
+        }) ()
+      },
     "JsonArrayLogger " + outPath.last
   )
   writeThread.start()
@@ -54,11 +60,13 @@ private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path,
   def close(): Unit = synchronized {
     // wait for background thread to clear out any buffered entries before shutting down
     while (buffer.size() > 0) Thread.sleep(1)
-    traceStream.flush()
-    traceStream.println()
-    traceStream.println("]")
-    traceStream.close()
     writeThread.interrupt()
+    traceStream.synchronized {
+      traceStream.flush()
+      traceStream.println()
+      traceStream.println("]")
+      traceStream.close()
+    }
   }
 }
 
