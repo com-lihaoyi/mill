@@ -163,89 +163,82 @@ private[mill] case class Execution(
           futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
             try {
               val countMsg = mill.api.internal.Util.leftPad(
-                count.getAndIncrement().toString,
-                terminals.length.toString.length,
+                count.getAndIncrement().toString, terminals.length.toString.length,
                 '0'
               )
 
               val keySuffix = s"/${terminals0.size}"
-              logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
-              if (failed.get()) None
-              else {
-                val upstreamResults = upstreamValues
-                  .iterator
-                  .flatMap(_.iterator.flatMap(_.newResults))
-                  .toMap
 
-                val upstreamPathRefs = upstreamValues
-                  .iterator
-                  .flatMap(_.iterator.flatMap(_.serializedPaths))
-                  .toSeq
+              val contextLogger = new PrefixLogger(
+                logger0 = logger,
+                key0 = if (!logger.prompt.enableTicker) Nil else Seq(countMsg),
+                keySuffix = keySuffix,
+                message = if (logger.prompt.enableTicker) terminal.toString else "",
+                noPrefix = exclusive
+              )
 
-                val startTime = System.nanoTime() / 1000
-
-                // should we log progress?
-                val inputResults = for {
-                  task <- group.toIndexedSeq.filterNot(upstreamResults.contains)
-                  item <- task.inputs.filterNot(group.contains)
-                } yield upstreamResults(item).map(_._1)
-                val logRun = inputResults.forall(_.isInstanceOf[ExecResult.Success[?]])
-
-                val tickerPrefix =
-                  if (logRun && logger.prompt.enableTicker) terminal.toString else ""
-
-                val contextLogger = new PrefixLogger(
-                  logger0 = logger,
-                  key0 = if (!logger.prompt.enableTicker) Nil else Seq(countMsg),
-                  keySuffix = keySuffix,
-                  message = tickerPrefix,
-                  noPrefix = exclusive
-                )
-
-                val res = executeGroupCached(
-                  terminal = terminal,
-                  group = plan.sortedGroups.lookupKey(terminal).toSeq,
-                  results = upstreamResults,
-                  countMsg = countMsg,
-                  zincProblemReporter = reporter,
-                  testReporter = testReporter,
-                  logger = contextLogger,
-                  deps = deps,
-                  classToTransitiveClasses,
-                  allTransitiveClassMethods,
-                  forkExecutionContext,
-                  exclusive,
-                  upstreamPathRefs
-                )
-
-                // Count new failures - if there are upstream failures, tasks should be skipped, not failed
-                val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
-
-                rootFailedCount.addAndGet(newFailures)
-
-                // Always show failed count in header if there are failures
+              contextLogger.withPromptLine {
                 logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
 
-                if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
-                  failed.set(true)
+                if (failed.get()) None
+                else {
+                  val upstreamResults = upstreamValues
+                    .iterator
+                    .flatMap(_.iterator.flatMap(_.newResults))
+                    .toMap
 
-                val endTime = System.nanoTime() / 1000
-                val duration = endTime - startTime
+                  val upstreamPathRefs = upstreamValues
+                    .iterator
+                    .flatMap(_.iterator.flatMap(_.serializedPaths))
+                    .toSeq
 
-                if (!res.cached) uncached.put(terminal, ())
-                if (res.valueHashChanged) changedValueHash.put(terminal, ())
+                  val startTime = System.nanoTime() / 1000
 
-                profileLogger.log(
-                  terminal.toString,
-                  duration,
-                  res.cached,
-                  res.valueHashChanged,
-                  deps.map(_.toString),
-                  res.inputsHash,
-                  res.previousInputsHash
-                )
+                  val res = executeGroupCached(
+                    terminal = terminal,
+                    group = plan.sortedGroups.lookupKey(terminal).toSeq,
+                    results = upstreamResults,
+                    countMsg = countMsg,
+                    zincProblemReporter = reporter,
+                    testReporter = testReporter,
+                    logger = contextLogger,
+                    deps = deps,
+                    classToTransitiveClasses,
+                    allTransitiveClassMethods,
+                    forkExecutionContext,
+                    exclusive,
+                    upstreamPathRefs
+                  )
 
-                Some(res)
+                  // Count new failures - if there are upstream failures, tasks should be skipped, not failed
+                  val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
+
+                  rootFailedCount.addAndGet(newFailures)
+
+                  // Always show failed count in header if there are failures
+                  logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
+
+                  if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
+                    failed.set(true)
+
+                  val endTime = System.nanoTime() / 1000
+                  val duration = endTime - startTime
+
+                  if (!res.cached) uncached.put(terminal, ())
+                  if (res.valueHashChanged) changedValueHash.put(terminal, ())
+
+                  profileLogger.log(
+                    terminal.toString,
+                    duration,
+                    res.cached,
+                    res.valueHashChanged,
+                    deps.map(_.toString),
+                    res.inputsHash,
+                    res.previousInputsHash
+                  )
+
+                  Some(res)
+                }
               }
             } catch {
               case e: Throwable if !scala.util.control.NonFatal(e) =>

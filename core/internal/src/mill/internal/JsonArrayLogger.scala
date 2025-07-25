@@ -81,46 +81,65 @@ private[mill] object JsonArrayLogger {
   private[mill] class ChromeProfile(outPath: os.Path)
       extends JsonArrayLogger[ChromeProfile.TraceEvent](outPath, indent = -1) {
 
-    def log(
+    def logBegin(
         terminal: String,
         cat: String,
         ph: String,
         startTime: Long,
         threadId: Int,
-        cached: Boolean
     ): Unit = {
 
-      val event = ChromeProfile.TraceEvent(
+      val event = ChromeProfile.TraceEvent.Begin(
         name = terminal,
         cat = cat,
         ph = ph,
         ts = startTime,
         pid = 1,
         tid = threadId,
-        args = if (cached) Seq("cached") else Seq()
+      )
+      log(event)
+    }
+    def logEnd(
+        ph: String,
+        endTime: Long,
+        threadId: Int,
+    ): Unit = {
+
+      val event = ChromeProfile.TraceEvent.End(
+        ph = ph,
+        ts = endTime,
+        pid = 1,
+        tid = threadId,
       )
       log(event)
     }
   }
 
   private object ChromeProfile {
-
     /**
      * Trace Event Format, that can be loaded with Google Chrome via chrome://tracing
      * See https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/
      */
-    case class TraceEvent(
-        name: String,
-        cat: String,
-        ph: String,
-        ts: Long,
-        pid: Int,
-        tid: Int,
-        args: Seq[String]
-    )
+    enum TraceEvent derives upickle.default.ReadWriter {
+      case Begin(
+                       name: String,
+                       cat: String,
+                       ph: String,
+                       ts: Long,
+                       pid: Int,
+                       tid: Int,
+                     )
 
-    object TraceEvent {
-      implicit val readWrite: upickle.default.ReadWriter[TraceEvent] = upickle.default.macroRW
+      case End(
+                            ph: String,
+                            ts: Long,
+                            pid: Int,
+                            tid: Int,
+                          )
     }
+
+
+
+
   }
 }

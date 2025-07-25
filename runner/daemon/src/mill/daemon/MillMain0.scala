@@ -252,7 +252,6 @@ object MillMain0 {
                             !config.noFilesystemChecker.value
                           ) {
                             tailManager.withOutErr(logger.streams.out, logger.streams.err) {
-
                               new MillBuildBootstrap(
                                 projectRoot = BuildCtx.workspaceRoot,
                                 output = out,
