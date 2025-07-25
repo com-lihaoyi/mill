@@ -103,13 +103,12 @@ private[mill] case class Execution(
       serialCommandExec: Boolean
   ): Execution.Results = {
     os.makeDir.all(outPath)
-
-    val plan = PlanImpl.plan(goals)
-    val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
-    val terminals0 = plan.sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
     val rootFailedCount = new AtomicInteger(0) // Track only root failures
+
+    val plan = PlanImpl.plan(goals)
+    val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
     val indexToTerminal = plan.sortedGroups.keys().toArray
 
     ExecutionLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
@@ -168,7 +167,7 @@ private[mill] case class Execution(
                 '0'
               )
 
-              val keySuffix = s"/${terminals0.size}"
+              val keySuffix = s"/${indexToTerminal.size}"
 
               val contextLogger = new PrefixLogger(
                 logger0 = logger,
@@ -254,13 +253,13 @@ private[mill] case class Execution(
       terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
     }
 
-    val tasks0 = terminals0.filter {
+    val tasks0 = indexToTerminal.filter {
       case _: Task.Command[_] => false
       case _ => true
     }
 
     val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(tasks0)).toSet
-    val (tasks, leafExclusiveCommands) = terminals0.partition {
+    val (tasks, leafExclusiveCommands) = indexToTerminal.partition {
       case t: Task.Named[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
       case _ => !serialCommandExec
     }
@@ -283,7 +282,7 @@ private[mill] case class Execution(
       changedValueHash
     )
 
-    val results0: Vector[(Task[?], ExecResult[(Val, Int)])] = terminals0
+    val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal
       .map { t =>
         finishedOptsMap(t) match {
           case None => (t, ExecResult.Skipped)
@@ -325,17 +324,19 @@ private[mill] object Execution {
 
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
       : Map[Task[?], Seq[Task[?]]] = {
-    sortedGroups
-      .items()
-      .map { case (terminal, group) =>
-        terminal -> Seq.from(group)
+    val out = Map.newBuilder[Task[?], Seq[Task[?]]]
+    for((terminal, group) <- sortedGroups){
+      out.addOne(
+        terminal -> group
+          .toArray
           .flatMap(_.inputs)
           .filterNot(group.contains)
           .distinct
           .map(sortedGroups.lookupValue)
           .distinct
-      }
-      .toMap
+      )
+    }
+    out.result()
   }
   private[Execution] case class Results(
       results: Seq[ExecResult[Val]],

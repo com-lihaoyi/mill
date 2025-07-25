@@ -6,7 +6,7 @@ import mill.constants.OutFiles.*
 import mill.api.{PathRef, *}
 import mill.api.internal.{ResolveChecker, RootModule0}
 import mill.api.daemon.Watchable
-import mill.exec.{Execution, PlanImpl}
+import mill.exec.{Execution, ExecutionLogs, PlanImpl}
 import mill.internal.PrefixLogger
 import mill.resolve.Resolve
 
