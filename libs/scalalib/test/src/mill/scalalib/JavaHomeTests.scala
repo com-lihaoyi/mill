@@ -2,6 +2,7 @@ package mill.javalib
 
 import mill.api.daemon.ExecResult
 import mill.api.{Discover, Task}
+import mill.scalalib.ScalaModule
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.util.TokenReaders.*
 import utest.*
@@ -15,7 +16,7 @@ object JavaHomeTests extends TestSuite {
     object javamodule extends JavaModule {
       def jvmId = "temurin:11.0.25"
     }
-    object scalamodule extends JavaModule {
+    object scalamodule extends ScalaModule {
       def jvmId = "temurin:11.0.25"
       def scalaVersion = "2.13.14"
     }
@@ -26,7 +27,7 @@ object JavaHomeTests extends TestSuite {
     object javamodule extends JavaModule {
       def jvmId = "temurin:17.0.13"
     }
-    object scalamodule extends JavaModule {
+    object scalamodule extends ScalaModule {
       def jvmId = "temurin:17.0.13"
 
       def scalaVersion = "2.13.14"
@@ -58,22 +59,21 @@ object JavaHomeTests extends TestSuite {
       }
 
       test("jdk17java") {
-        UnitTester(JavaJdk17Compiles, resourcePathCompile).scoped { eval =>
-          val Right(_) = eval.apply(JavaJdk17Compiles.javamodule.compile): @unchecked
+        captureOutput(JavaJdk17Compiles, JavaJdk17Compiles.javamodule.compile) { (result, _) =>
+          val Right(_) = result: @unchecked
         }
       }
 
       test("jdk11scala") {
         captureOutput(JavaJdk11DoesntCompile, JavaJdk11DoesntCompile.scalamodule.compile) { (result, stderr) =>
           val Left(_) = result: @unchecked
-          assert(stderr.contains("cannot find symbol"))
-          assert(stderr.contains("method indent"))
+          assert(stderr.contains("value indent is not a member of String"))
         }
       }
 
       test("jdk17scala") {
-        UnitTester(JavaJdk17Compiles, resourcePathCompile).scoped { eval =>
-          val Right(_) = eval.apply(JavaJdk17Compiles.scalamodule.compile): @unchecked
+        captureOutput(JavaJdk17Compiles, JavaJdk17Compiles.scalamodule.compile) { (result, _) =>
+          val Right(_) = result: @unchecked
         }
       }
     }
