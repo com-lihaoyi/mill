@@ -342,7 +342,7 @@ private[mill] object Execution {
       out.addOne(
         terminal -> groupSet
           .flatMap(
-            _.inputs.collect{case f if !groupSet.contains(f) => sortedGroups.lookupValue(f)}
+            _.inputs.collect { case f if !groupSet.contains(f) => sortedGroups.lookupValue(f) }
           )
           .toArray
       )

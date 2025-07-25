@@ -4,7 +4,6 @@ import mill.api.{Plan, Task}
 import mill.api.MultiBiMap
 import mill.api.TopoSorted
 
-import scala.collection.mutable
 
 private[mill] object PlanImpl {
   def plan(goals: Seq[Task[?]]): Plan = {
