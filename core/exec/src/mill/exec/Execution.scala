@@ -3,10 +3,10 @@ package mill.exec
 import mill.api.daemon.internal.*
 import mill.constants.OutFiles.{millChromeProfile, millProfile}
 import mill.api.*
-import mill.internal.PrefixLogger
+import mill.internal.{JsonArrayLogger, PrefixLogger}
+
 import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-
 import scala.collection.mutable
 import scala.concurrent.*
 
@@ -15,7 +15,6 @@ import scala.concurrent.*
  */
 private[mill] case class Execution(
     baseLogger: Logger,
-    chromeProfileLogger: JsonArrayLogger.ChromeProfile,
     profileLogger: JsonArrayLogger.Profile,
     workspace: os.Path,
     outPath: os.Path,
@@ -56,7 +55,6 @@ private[mill] case class Execution(
       headerData: String
   ) = this(
     baseLogger,
-    new JsonArrayLogger.ChromeProfile(os.Path(outPath) / millChromeProfile),
     new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
     os.Path(workspace),
     os.Path(outPath),
@@ -106,7 +104,6 @@ private[mill] case class Execution(
   ): Execution.Results = {
     os.makeDir.all(outPath)
 
-    val threadNumberer = new ThreadNumberer()
     val plan = PlanImpl.plan(goals)
     val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
     val terminals0 = plan.sortedGroups.keys().toVector
@@ -235,16 +232,6 @@ private[mill] case class Execution(
                 val endTime = System.nanoTime() / 1000
                 val duration = endTime - startTime
 
-                val threadId = threadNumberer.getThreadId(Thread.currentThread())
-                chromeProfileLogger.log(
-                  terminal.toString,
-                  "job",
-                  startTime,
-                  duration,
-                  threadId,
-                  res.cached
-                )
-
                 if (!res.cached) uncached.put(terminal, ())
                 if (res.valueHashChanged) changedValueHash.put(terminal, ())
 
@@ -328,7 +315,6 @@ private[mill] case class Execution(
   }
 
   def close(): Unit = {
-    chromeProfileLogger.close()
     profileLogger.close()
   }
 }

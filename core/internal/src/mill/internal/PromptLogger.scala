@@ -27,7 +27,8 @@ private[mill] class PromptLogger(
     titleText: String,
     terminfoPath: os.Path,
     currentTimeMillis: () => Long,
-    autoUpdate: Boolean = true
+    autoUpdate: Boolean = true,
+    chromeProfileLogger: JsonArrayLogger.ChromeProfile
 ) extends Logger with AutoCloseable {
   override def toString: String = s"PromptLogger(${literalize(titleText)})"
   import PromptLogger.*
@@ -104,6 +105,7 @@ private[mill] class PromptLogger(
   def error(s: String): Unit = streams.err.println(s)
 
   object prompt extends Logger.Prompt {
+    val threadNumberer = new ThreadNumberer()
     override def setPromptHeaderPrefix(s: String): Unit = PromptLogger.this.synchronized {
       promptLineState.setHeaderPrefix(s)
     }
@@ -113,6 +115,8 @@ private[mill] class PromptLogger(
     }
 
     override def removePromptLine(key: Seq[String]): Unit = PromptLogger.this.synchronized {
+      val threadId = threadNumberer.getThreadId(Thread.currentThread())
+      chromeProfileLogger.log(key.mkString("-"), "job", "E", System.nanoTime() / 1000, threadId, false)
       promptLineState.setCurrent(key, None)
     }
 
@@ -141,7 +145,10 @@ private[mill] class PromptLogger(
 
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
       PromptLogger.this.synchronized {
-        promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${spaceNonEmpty(message)}"))
+        val threadId = threadNumberer.getThreadId(Thread.currentThread())
+        val keyPrefix = key.mkString("-")
+        chromeProfileLogger.log(keyPrefix, "job", "B", System.nanoTime() / 1000, threadId, false)
+        promptLineState.setCurrent(key, Some(s"[$keyPrefix]${spaceNonEmpty(message)}"))
         seenIdentifiers(key) = (keySuffix, message)
       }
 
@@ -183,6 +190,7 @@ private[mill] class PromptLogger(
     // Needs to be outside the lock so we don't deadlock with `promptUpdaterThread`
     // trying to take the lock one last time to check running/paused status before exiting
     promptUpdaterThread.join()
+    chromeProfileLogger.close()
   }
 
   def streams = streamManager.proxySystemStreams

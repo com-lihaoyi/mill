@@ -1,4 +1,4 @@
-package mill.exec
+package mill.internal
 
 import java.io.PrintStream
 import java.nio.file.{Files, StandardOpenOption}
@@ -84,8 +84,8 @@ private[mill] object JsonArrayLogger {
     def log(
         terminal: String,
         cat: String,
+        ph: String,
         startTime: Long,
-        duration: Long,
         threadId: Int,
         cached: Boolean
     ): Unit = {
@@ -93,9 +93,8 @@ private[mill] object JsonArrayLogger {
       val event = ChromeProfile.TraceEvent(
         name = terminal,
         cat = cat,
-        ph = "X",
+        ph = ph,
         ts = startTime,
-        dur = duration,
         pid = 1,
         tid = threadId,
         args = if (cached) Seq("cached") else Seq()
@@ -115,7 +114,6 @@ private[mill] object JsonArrayLogger {
         cat: String,
         ph: String,
         ts: Long,
-        dur: Long,
         pid: Int,
         tid: Int,
         args: Seq[String]
