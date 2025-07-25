@@ -645,7 +645,7 @@ trait JavaModule
    *
    * Doesn't include the coursier project of the current module, see [[coursierProject]] for that.
    */
-  def transitiveCoursierProjects: T[Seq[cs.Project]] = {
+  def transitiveCoursierProjects: Task[Seq[cs.Project]] = {
     val allModuleDeps =
       (compileModuleDepsChecked ++ moduleDepsChecked ++ runModuleDepsChecked ++ bomModuleDepsChecked).distinct
     Task {
