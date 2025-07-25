@@ -124,13 +124,13 @@ object MavenPublishModule extends ExternalModule with DefaultTaskModule
     val dryRun = env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
 
     def publishSnapshot(publishData: PublishData, isSnapshot: Boolean): Unit = {
-      val uri = if(isSnapshot) releaseUri else snapshotUri
+      val uri = if (isSnapshot) releaseUri else snapshotUri
       val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
         publishData.meta,
         publishData.payloadAsMap
       )
 
-      if(isSnapshot) {
+      if (isSnapshot) {
         log.info(
           s"Detected a 'SNAPSHOT' version for ${publishData.meta}, publishing to Maven Repository at '$uri'"
         )
@@ -168,7 +168,7 @@ object MavenPublishModule extends ExternalModule with DefaultTaskModule
       )
     }
 
-    releases.foreach { publishData => publishSnapshot(publishData, false)}
+    releases.foreach { publishData => publishSnapshot(publishData, false) }
     snapshots.foreach(data => publishSnapshot(data, true))
   }
 
