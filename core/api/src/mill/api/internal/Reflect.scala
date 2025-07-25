@@ -22,13 +22,18 @@ private[mill] object Reflect {
     true
   }
 
-  def getMethods(cls: Class[?], noParams: Boolean, inner: Class[?], decode: String => String): Array[(Method, String)] =
+  def getMethods(
+      cls: Class[?],
+      noParams: Boolean,
+      inner: Class[?],
+      decode: String => String
+  ): Array[(Method, String)] =
     for {
       m <- cls.getMethods
       n = decode(m.getName)
       if isLegalIdentifier(n) && (m.getModifiers & Modifier.STATIC) == 0
-      && (!noParams || m.getParameterCount == 0) &&
-                  inner.isAssignableFrom(m.getReturnType)
+        && (!noParams || m.getParameterCount == 0) &&
+        inner.isAssignableFrom(m.getReturnType)
     } yield (m, n)
 
   private val classSeqOrdering =
@@ -44,7 +49,7 @@ private[mill] object Reflect {
       getMethods: (Class[?], Boolean, Class[?]) => Array[(java.lang.reflect.Method, String)]
   ): Array[java.lang.reflect.Method] = {
     val arr: Array[java.lang.reflect.Method] = getMethods(outer, noParams, inner)
-      .collect { case (m, n) if filter(n) => m}
+      .collect { case (m, n) if filter(n) => m }
 
     // There can be multiple methods of the same name on a class if a sub-class
     // overrides a super-class method and narrows the return type.

@@ -77,7 +77,10 @@ private object ResolveCore {
       val instantiatedModules: collection.mutable.Map[Segments, mill.api.Result[Module]] =
         collection.mutable.Map(),
       decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map(),
-      methods: collection.mutable.Map[(Class[?], Boolean, Class[?]), Array[(java.lang.reflect.Method, String)]] =
+      methods: collection.mutable.Map[(Class[?], Boolean, Class[?]), Array[(
+          java.lang.reflect.Method,
+          String
+      )]] =
         collection.mutable.Map()
   ) {
     def decode(s: String): String = {
@@ -85,7 +88,10 @@ private object ResolveCore {
     }
 
     def getMethods(cls: Class[?], noParams: Boolean, inner: Class[?]): Array[(Method, String)] = {
-      methods.getOrElseUpdate((cls, noParams, inner), Reflect.getMethods(cls, noParams, inner, decode))
+      methods.getOrElseUpdate(
+        (cls, noParams, inner),
+        Reflect.getMethods(cls, noParams, inner, decode)
+      )
 
     }
   }
