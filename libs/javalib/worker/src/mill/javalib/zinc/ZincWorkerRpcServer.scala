@@ -2,7 +2,7 @@ package mill.javalib.zinc
 
 import mill.api.JsonFormatters.*
 import mill.api.PathRef
-import mill.api.daemon.Logger
+import mill.api.daemon.{Logger, Result}
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.CompilationResult
 import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBridge}
@@ -85,6 +85,7 @@ class ZincWorkerRpcServer extends MillRpcServerImpl[
         input match {
           case msg: ClientToServer.CompileJava => compileJava(requestId, msg).asInstanceOf[input.Response]
           case msg: ClientToServer.CompileMixed => compileMixed(requestId, msg).asInstanceOf[input.Response]
+          case msg: ClientToServer.DocJar => docJar(requestId, msg).asInstanceOf[input.Response]
         }
       }
 
@@ -100,7 +101,7 @@ class ZincWorkerRpcServer extends MillRpcServerImpl[
           reporter = reporterAsOption(clientRequestId, msg.reporterMode),
           reportCachedProblems = msg.reporterMode.reportCachedProblems,
           incrementalCompilation = msg.incrementalCompilation
-        )(using msg.ctx, deps).toEither
+        )(using msg.ctx, deps)
       }
       
       private def compileMixed(
@@ -122,8 +123,21 @@ class ZincWorkerRpcServer extends MillRpcServerImpl[
           incrementalCompilation = msg.incrementalCompilation,
           auxiliaryClassFileExtensions = msg.auxiliaryClassFileExtensions,
           compilerBridgeData = clientRequestId,
-        )(using msg.ctx, deps).toEither
+        )(using msg.ctx, deps)
       }
+
+      private def docJar(
+        clientRequestId: MillRpcRequestId,
+        msg: ClientToServer.DocJar
+      ): msg.Response =
+        worker.docJar(
+          scalaVersion = msg.scalaVersion,
+          scalaOrganization = msg.scalaOrganization,
+          compilerClasspath = msg.compilerClasspath,
+          scalacPluginClasspath = msg.scalacPluginClasspath,
+          args = msg.args,
+          compilerBridgeData = clientRequestId
+        )
     }
   }
 }
@@ -156,7 +170,7 @@ object ZincWorkerRpcServer {
         incrementalCompilation: Boolean,
         ctx: ZincWorker.InvocationContext
     ) extends ClientToServer {
-      override type Response = Either[String, CompilationResult]
+      override type Response = Result[CompilationResult]
     }
 
     case class CompileMixed(
@@ -174,7 +188,17 @@ object ZincWorkerRpcServer {
       auxiliaryClassFileExtensions: Seq[String],
       ctx: ZincWorker.InvocationContext
     ) extends ClientToServer {
-      override type Response = Either[String, CompilationResult]
+      override type Response = Result[CompilationResult]
+    }
+
+    case class DocJar(
+      scalaVersion: String,
+      scalaOrganization: String,
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
+      args: Seq[String]
+    ) extends ClientToServer {
+      override type Response = Boolean
     }
   }
 

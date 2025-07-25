@@ -2,7 +2,7 @@ package mill.api
 
 import mill.api.daemon.internal.Severity
 import os.Path
-import upickle.default.ReadWriter as RW
+import upickle.default.{ReadWriter as RW, Reader, Writer}
 
 import scala.reflect.ClassTag
 import scala.util.matching.Regex
@@ -35,6 +35,8 @@ trait JsonFormatters {
   implicit def fileRW: RW[java.io.File] = JsonFormatters.Default.fileRW
 
   implicit def severityRW: RW[Severity] = JsonFormatters.Default.severityRW
+
+  implicit def resultRW[A: {Reader, Writer}]: RW[Result[A]] = JsonFormatters.Default.resultRW
 
   implicit val nioPathRW: RW[java.nio.file.Path] = upickle.default.readwriter[String]
     .bimap[java.nio.file.Path](
@@ -108,5 +110,7 @@ object JsonFormatters extends JsonFormatters {
         case "info" => mill.api.daemon.internal.Info
       }
     )
+
+    given resultRW[A:{Reader,Writer}]: RW[Result[A]] = RW.derived
   }
 }

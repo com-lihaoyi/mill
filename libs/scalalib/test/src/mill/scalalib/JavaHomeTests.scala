@@ -50,33 +50,49 @@ object JavaHomeTests extends TestSuite {
         }
       }
 
-      test("jdk11java") {
-        captureOutput(JavaJdk11DoesntCompile, JavaJdk11DoesntCompile.javamodule.compile) { (result, stderr) =>
-          val Left(_) = result: @unchecked
-          assert(stderr.contains("cannot find symbol"))
-          assert(stderr.contains("method indent"))
-        }
-      }
-
-      test("jdk17java") {
-        captureOutput(JavaJdk17Compiles, JavaJdk17Compiles.javamodule.compile) { (result, _) =>
+      def testSuccess(module: TestRootModule, task: Task[?]): Unit = {
+        captureOutput(module, task) { (result, _) =>
           val Right(_) = result: @unchecked
         }
       }
 
-      test("jdk11scala") {
-        captureOutput(JavaJdk11DoesntCompile, JavaJdk11DoesntCompile.scalamodule.compile) { (result, stderr) =>
+      def testFailure(module: TestRootModule, task: Task[?], errors: String*): Unit = {
+        captureOutput(module, task) { (result, stderr) =>
           val Left(_) = result: @unchecked
-          assert(stderr.contains("value indent is not a member of String"))
+          errors.foreach(error => assert(stderr.contains(error)))
         }
       }
 
-      test("jdk17scala") {
-        captureOutput(JavaJdk17Compiles, JavaJdk17Compiles.scalamodule.compile) { (result, _) =>
-          val Right(_) = result: @unchecked
+      test("jdk11") {
+        test("java") {
+          def doTest[A](task: Task[A]): Unit =
+            testFailure(JavaJdk11DoesntCompile, task, "package java.lang.runtime does not exist")
+
+          test("compile") - doTest(JavaJdk11DoesntCompile.javamodule.compile)
+          test("docJar") - doTest(JavaJdk11DoesntCompile.javamodule.docJar)
+        }
+
+
+        test("scala") {
+          def doTest[A](task: Task[A]): Unit =
+            testFailure(JavaJdk11DoesntCompile, task, "value indent is not a member of String")
+
+          test("compile") - doTest(JavaJdk11DoesntCompile.scalamodule.compile)
+          test("docJar") - doTest(JavaJdk11DoesntCompile.scalamodule.docJar)
+        }
+      }
+
+      test("jdk17") {
+        test("java") {
+          test("compile") - testSuccess(JavaJdk17Compiles, JavaJdk17Compiles.javamodule.compile)
+          test("docJar") - testSuccess(JavaJdk17Compiles, JavaJdk17Compiles.javamodule.docJar)
+        }
+
+        test("scala") {
+          test("compile") - testSuccess(JavaJdk17Compiles, JavaJdk17Compiles.scalamodule.compile)
+          test("docJar") - testSuccess(JavaJdk17Compiles, JavaJdk17Compiles.scalamodule.docJar)
         }
       }
     }
-
   }
 }

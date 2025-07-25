@@ -224,7 +224,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     SubprocessCacheInitialize,
     MillRpcClient[ZincWorkerRpcServer.ClientToServer, ZincWorkerRpcServer.ServerToClient]
   ] {
-    override def maxCacheSize: Int = jobs // TODO review: what value should we use here?
+    override def maxCacheSize: Int = jobs
 
     override def setup(
         key: SubprocessCacheKey,
@@ -313,7 +313,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
             incrementalCompilation = incrementalCompilation,
             ctx = ctx
           )
-          Result.fromEither(rpcClient(msg))
+          rpcClient(msg)
         }
       }
 
@@ -348,7 +348,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
             auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
             ctx = ctx
           )
-          Result.fromEither(rpcClient(msg))
+          rpcClient(msg)
         }
       }
 
@@ -359,15 +359,16 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
           scalacPluginClasspath: Seq[PathRef],
           args: Seq[String]
       ): Boolean = {
-        // TODO review: how to test this?
-//        zincLocalWorker.docJar(
-//          scalaVersion = scalaVersion,
-//          scalaOrganization = scalaOrganization,
-//          compilerClasspath = compilerClasspath,
-//          scalacPluginClasspath = scalacPluginClasspath,
-//          args = args
-//        )(using zincCtx)
-        ???
+        withRpcClient(serverRpcToClientHandler(reporter = None, log, cacheKey)) { rpcClient =>
+          val msg = ZincWorkerRpcServer.ClientToServer.DocJar(
+            scalaVersion = scalaVersion,
+            scalaOrganization = scalaOrganization,
+            compilerClasspath = compilerClasspath,
+            scalacPluginClasspath = scalacPluginClasspath,
+            args = args,
+          )
+          rpcClient(msg)
+        }
       }
     }
 

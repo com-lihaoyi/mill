@@ -25,7 +25,6 @@ import java.net.URLClassLoader
 import java.util.Optional
 import scala.collection.mutable
 
-// TODO review: apply javaHome, javacRuntimeOptions
 class ZincWorker[CompilerBridgeData](
     compilerBridge: ZincCompilerBridge[CompilerBridgeData],
     jobs: Int,
@@ -572,11 +571,6 @@ object ZincWorker {
       javacOptions: JavaCompilerOptions
   ) {
     val combinedCompilerClasspath: Seq[PathRef] = compilerClasspath ++ scalacPluginClasspath
-
-    val compilersSig: Int =
-      scalaVersion.hashCode + combinedCompilerClasspath.hashCode + scalaOrganization.hashCode +
-        javacOptions.hashCode
-      // TODO review: `+ scalacPluginClasspath.hashCode`?
   }
 
   case class ScalaCompilerCached(classLoader: URLClassLoader, compilers: Compilers)
