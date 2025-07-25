@@ -542,7 +542,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             scalaDocPluginMvnDeps()
           ) ++
           (
-            jvmWorker().scalaCompilerBridgeJar(
+            jvmWorker().scalaCompilerBridgeJarV2(
               scalaVersion(),
               scalaOrganization(),
               defaultResolver()

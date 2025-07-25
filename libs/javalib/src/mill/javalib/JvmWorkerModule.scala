@@ -65,7 +65,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       taskDest = ctx.dest,
       logInfo = ctx.log.info,
       acquire = (scalaVersion, scalaOrganization, _) =>
-        scalaCompilerBridgeJar(
+        scalaCompilerBridgeJarV2(
           scalaVersion = scalaVersion,
           scalaOrganization = scalaOrganization,
           defaultResolver()
@@ -82,7 +82,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     factory.make(args)
   }
 
-  def scalaCompilerBridgeJar(
+  private[mill] def scalaCompilerBridgeJarV2(
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
@@ -131,6 +131,22 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     } else ZincCompilerBridge.AcquireResult.Compiled(bridgeJar)
   }
 
+  @deprecated("This is an internal API that has been accidentally exposed.", "1.0.2")
+  def scalaCompilerBridgeJar(
+      scalaVersion: String,
+      scalaOrganization: String,
+      resolver: Resolver
+  )(implicit ctx: TaskCtx): (Option[Seq[PathRef]], PathRef) =
+    scalaCompilerBridgeJarV2(
+      scalaVersion = scalaVersion,
+      scalaOrganization = scalaOrganization,
+      resolver
+    ) match {
+      case ZincCompilerBridge.AcquireResult.Compiled(bridgeJar) => (None, bridgeJar)
+      case ZincCompilerBridge.AcquireResult.NotCompiled(classpath, bridgeSourcesJar) =>
+        (Some(classpath), bridgeSourcesJar)
+    }
+
   def compilerInterfaceClasspath(
       scalaVersion: String,
       scalaOrganization: String,
@@ -164,7 +180,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
   def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] =
     Task.Command {
       classpath()
-      scalaCompilerBridgeJar(scalaVersion, scalaOrganization, defaultResolver())
+      scalaCompilerBridgeJarV2(scalaVersion, scalaOrganization, defaultResolver())
       ()
     }
 
