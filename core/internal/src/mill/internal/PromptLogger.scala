@@ -108,11 +108,21 @@ private[mill] class PromptLogger(
   object prompt extends Logger.Prompt {
 
     private[mill] def beginChromeProfileEntry(text: String): Unit = {
-      chromeProfileLogger.logBegin(text, "job", "B", System.nanoTime() / 1000, 0)
+      chromeProfileLogger.logBegin(
+        text,
+        "job",
+        "B",
+        System.nanoTime() / 1000,
+        threadNumberer.getThreadId(Thread.currentThread())
+      )
     }
 
     private[mill] def endChromeProfileEntry(): Unit = {
-      chromeProfileLogger.logEnd("E", System.nanoTime() / 1000, 0)
+      chromeProfileLogger.logEnd(
+        "E",
+        System.nanoTime() / 1000,
+        threadNumberer.getThreadId(Thread.currentThread())
+      )
     }
 
     val threadNumberer = new ThreadNumberer()

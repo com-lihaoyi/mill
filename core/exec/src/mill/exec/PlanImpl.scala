@@ -34,8 +34,8 @@ private[mill] object PlanImpl {
 
     val output = new MultiBiMap.Mutable[T, Task[?]]()
     val topoSortedIndices = topoSortedTasks.values.zipWithIndex.toMap
-    for(task <- topoSortedTasks.values){
-      for(t <- important.lift(task)){
+    for (task <- topoSortedTasks.values) {
+      for (t <- important.lift(task)) {
 
         val transitiveTasks = collection.mutable.LinkedHashSet[Task[?]]()
 

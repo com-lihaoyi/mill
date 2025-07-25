@@ -21,26 +21,28 @@ private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path,
   // the main execution, but keep the size bounded so if the logging falls behind the
   // main thread will get blocked until logging can catch up
   val buffer = new ArrayBlockingQueue[T](100)
-  val writeThread = new Thread(() =>
-    while( {
-      val value = try Some(buffer.take())
-      catch{case e: InterruptedException => None}
+  val writeThread = new Thread(
+    () =>
+      while ({
+        val value =
+          try Some(buffer.take())
+          catch { case e: InterruptedException => None }
 
-      value match{
-        case Some(v) =>
-          if (used) traceStream.println(",")
-          else traceStream.println("[")
-          used = true
-          val indented = upickle.default.write(v, indent = indent)
-          .linesIterator
-          .map(indentStr + _)
-          .mkString("\n")
+        value match {
+          case Some(v) =>
+            if (used) traceStream.println(",")
+            else traceStream.println("[")
+            used = true
+            val indented = upickle.default.write(v, indent = indent)
+              .linesIterator
+              .map(indentStr + _)
+              .mkString("\n")
 
-          traceStream.print(indented)
-          true
-        case None => false
-      }
-    })(),
+            traceStream.print(indented)
+            true
+          case None => false
+        }
+      }) (),
     "JsonArrayLogger " + outPath.last
   )
   writeThread.start()
@@ -50,6 +52,8 @@ private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path,
   }
 
   def close(): Unit = synchronized {
+    // wait for background thread to clear out any buffered entries before shutting down
+    while (buffer.size() > 0) Thread.sleep(1)
     traceStream.println()
     traceStream.println("]")
     traceStream.close()
