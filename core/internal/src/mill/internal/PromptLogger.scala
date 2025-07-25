@@ -111,7 +111,6 @@ private[mill] class PromptLogger(
       chromeProfileLogger.logBegin(
         text,
         "job",
-        "B",
         System.nanoTime() / 1000,
         threadNumberer.getThreadId(Thread.currentThread())
       )
@@ -119,7 +118,6 @@ private[mill] class PromptLogger(
 
     private[mill] def endChromeProfileEntry(): Unit = {
       chromeProfileLogger.logEnd(
-        "E",
         System.nanoTime() / 1000,
         threadNumberer.getThreadId(Thread.currentThread())
       )
@@ -135,9 +133,8 @@ private[mill] class PromptLogger(
     }
 
     override def removePromptLine(key: Seq[String]): Unit = PromptLogger.this.synchronized {
-      val threadId = threadNumberer.getThreadId(Thread.currentThread())
       promptLineState.setCurrent(key, None)
-      chromeProfileLogger.logEnd("E", System.nanoTime() / 1000, threadId)
+      endChromeProfileEntry()
     }
 
     override def setPromptDetail(key: Seq[String], s: String): Unit =
@@ -165,8 +162,7 @@ private[mill] class PromptLogger(
 
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
       PromptLogger.this.synchronized {
-        val threadId = threadNumberer.getThreadId(Thread.currentThread())
-        chromeProfileLogger.logBegin(message, "job", "B", System.nanoTime() / 1000, threadId)
+        beginChromeProfileEntry(message)
         promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${spaceNonEmpty(message)}"))
         seenIdentifiers(key) = (keySuffix, message)
       }

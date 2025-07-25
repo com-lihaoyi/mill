@@ -78,9 +78,7 @@ private[mill] object Reflect {
     arr.distinctBy(_.getName)
   }
 
-  // For some reason, this fails to pick up concrete `object`s nested directly within
-  // another top-level concrete `object`. This is fine for now, since Mill's Ammonite
-  // script/REPL runner always wraps user code in a wrapper object/trait
+
   def reflectNestedObjects0[T: ClassTag](
       outerCls: Class[?],
       filter: String => Boolean = Function.const(true),
@@ -97,7 +95,10 @@ private[mill] object Reflect {
       .map(m => (m.getName, m))
 
     val companionClassOpt = outerCls.getName match {
-      case s"$prefix$$" =>
+      // This case only happens when the modules are nested within a top-level static `object`,
+      // which itself only happens for `ExternalModule`s. So only check in that
+      // case to minimize the performance overhead since `Class.forName` is pretty slow
+      case s"$prefix$$" if outerCls.getSuperclass == classOf[mill.api.ExternalModule] =>
         try Some(Class.forName(prefix))
         catch { case _: Throwable => None }
       case _ => None

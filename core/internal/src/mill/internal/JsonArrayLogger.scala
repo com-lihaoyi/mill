@@ -54,6 +54,7 @@ private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path,
   def close(): Unit = synchronized {
     // wait for background thread to clear out any buffered entries before shutting down
     while (buffer.size() > 0) Thread.sleep(1)
+    traceStream.flush()
     traceStream.println()
     traceStream.println("]")
     traceStream.close()
@@ -110,7 +111,6 @@ private[mill] object JsonArrayLogger {
     def logBegin(
         terminal: String,
         cat: String,
-        ph: String,
         startTime: Long,
         threadId: Int
     ): Unit = {
@@ -118,7 +118,6 @@ private[mill] object JsonArrayLogger {
       val event = ChromeProfile.TraceEvent.Begin(
         name = terminal,
         cat = cat,
-        ph = ph,
         ts = startTime,
         pid = 1,
         tid = threadId
@@ -126,13 +125,11 @@ private[mill] object JsonArrayLogger {
       log(event)
     }
     def logEnd(
-        ph: String,
         endTime: Long,
         threadId: Int
     ): Unit = {
 
       val event = ChromeProfile.TraceEvent.End(
-        ph = ph,
         ts = endTime,
         pid = 1,
         tid = threadId
@@ -147,18 +144,19 @@ private[mill] object JsonArrayLogger {
      * Trace Event Format, that can be loaded with Google Chrome via chrome://tracing
      * See https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/
      */
+    @upickle.implicits.key("ph")
     enum TraceEvent derives upickle.default.ReadWriter {
+      @upickle.implicits.key("B")
       case Begin(
           name: String,
           cat: String,
-          ph: String,
           ts: Long,
           pid: Int,
           tid: Int
       )
 
+      @upickle.implicits.key("E")
       case End(
-          ph: String,
           ts: Long,
           pid: Int,
           tid: Int
