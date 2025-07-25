@@ -322,7 +322,7 @@ trait AndroidSdkModule extends Module {
     // Accept Licenses
     // TODO: Prompt the user to accept licenses interactively
     if (isCI)
-      os.proc("echo", "y").pipeTo(os.proc(sdkManagerExe.toString, "--licenses")).call()
+      os.proc("echo", "y\n" * 10).pipeTo(os.proc(sdkManagerExe.toString, "--licenses")).call()
     sdkManagerExe
   }
 
