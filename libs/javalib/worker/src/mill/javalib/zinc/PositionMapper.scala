@@ -14,7 +14,7 @@ object PositionMapper {
 
   /** Transforms positions of problems if coming from a build file. */
   private def lookup(buildSources: Map[String, xsbti.Position => xsbti.Position])(
-    oldPos: xsbti.Position
+      oldPos: xsbti.Position
   ): xsbti.Position = {
     val src = oldPos.sourcePath()
     if src.isPresent then {
@@ -28,7 +28,7 @@ object PositionMapper {
   }
 
   def create(sources: Array[VirtualFile])
-  : (Map[os.Path, os.Path], Option[xsbti.Position => xsbti.Position]) = {
+      : (Map[os.Path, os.Path], Option[xsbti.Position => xsbti.Position]) = {
     val buildSources0 = {
       def isBuild(vf: VirtualFile) =
         CodeGenConstants.buildFileExtensions.asScala.exists(ex =>
@@ -61,8 +61,8 @@ object PositionMapper {
   }
 
   private def remap(
-    lines: Vector[String],
-    adjustedFile: String
+      lines: Vector[String],
+      adjustedFile: String
   ): xsbti.Position => xsbti.Position = {
     val markerLine = lines.indexWhere(_.startsWith(userCodeStartMarker))
 

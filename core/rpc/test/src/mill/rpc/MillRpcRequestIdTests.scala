@@ -44,15 +44,19 @@ object MillRpcRequestIdTests extends TestSuite {
 
         test("c0:s0") {
           val actual = MillRpcRequestId.fromString("c0:s0")
-          assert(actual.contains(MillRpcRequestId.unsafe(Vector(Part(Kind.Client, 0), Part(Kind.Server, 0)))))
+          assert(actual.contains(MillRpcRequestId.unsafe(Vector(
+            Part(Kind.Client, 0),
+            Part(Kind.Server, 0)
+          ))))
         }
       }
 
       test("sequencing") {
-        extension (id: MillRpcRequestId) def is(s: String): MillRpcRequestId = {
-          assert(id.toString == s)
-          id
-        }
+        extension (id: MillRpcRequestId)
+          def is(s: String): MillRpcRequestId = {
+            assert(id.toString == s)
+            id
+          }
 
         MillRpcRequestId.initialForClient.is("c-1")
           .requestStartedFromClient.is("c0")

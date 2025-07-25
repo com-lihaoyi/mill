@@ -4,8 +4,8 @@ import mill.api.daemon.internal.DiagnosticCode
 
 /** A [[DiagnosticCode]] that is sent over RPC. */
 case class RpcDiagnosticCode(
-  code: String,
-  explanation: Option[String],
+    code: String,
+    explanation: Option[String]
 ) extends DiagnosticCode derives upickle.default.ReadWriter
 object RpcDiagnosticCode {
   def apply(d: DiagnosticCode): RpcDiagnosticCode = apply(

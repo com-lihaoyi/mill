@@ -25,7 +25,8 @@ object MillRpcClient {
       log: Logger.Actions,
       stdout: RpcConsole.Message => Unit = RpcConsole.stdoutHandler,
       stderr: RpcConsole.Message => Unit = RpcConsole.stderrHandler
-  )(serverMessageHandler: MillRpcChannel[ServerToClient]): MillRpcClient[ClientToServer, ServerToClient] = {
+  )(serverMessageHandler: MillRpcChannel[ServerToClient])
+      : MillRpcClient[ClientToServer, ServerToClient] = {
     var currentRequestId = MillRpcRequestId.initialForClient
     @volatile var currentServerMessageHandler = serverMessageHandler
 

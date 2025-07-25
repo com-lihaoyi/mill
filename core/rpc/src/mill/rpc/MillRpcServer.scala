@@ -4,7 +4,6 @@ import mill.api.daemon.Logger
 import pprint.TPrint
 import upickle.default.{Reader, Writer}
 
-import scala.util.Try
 import scala.util.control.NonFatal
 
 trait MillRpcServer[
@@ -66,8 +65,10 @@ trait MillRpcServerImpl[
   private val clientLogger =
     RpcLogger.create(message => sendToClient(MillRpcServerToClient.Log(message)))
 
-  private val clientStdout = RpcConsole.create(msg => sendToClient(MillRpcServerToClient.Stdout(msg)))
-  private val clientStderr = RpcConsole.create(msg => sendToClient(MillRpcServerToClient.Stderr(msg)))
+  private val clientStdout =
+    RpcConsole.create(msg => sendToClient(MillRpcServerToClient.Stdout(msg)))
+  private val clientStderr =
+    RpcConsole.create(msg => sendToClient(MillRpcServerToClient.Stderr(msg)))
 
   def run(): Unit = {
     logLocal("Initializing Mill RPC server... Waiting for the `initialize` message.")
@@ -77,7 +78,13 @@ trait MillRpcServerImpl[
         case None => return
       }
       val serverToClient = createServerToClientChannel()
-      initialize(initializeMessage, clientLogger, clientStdout = clientStdout, clientStderr = clientStderr, serverToClient)
+      initialize(
+        initializeMessage,
+        clientLogger,
+        clientStdout = clientStdout,
+        clientStderr = clientStderr,
+        serverToClient
+      )
     }
     initializedOnClientMessage = Some(onClientMessage)
     logLocal("Initialized, waiting for messages.")
@@ -120,7 +127,9 @@ trait MillRpcServerImpl[
 
     while (responseReceived.isEmpty) {
       val clientToServerMsg = readAndTryToParse[MillRpcClientToServer[R]]().getOrElse(
-        throw new InterruptedException(s"Transport wire broken while waiting for response to request $awaitingResponseTo.")
+        throw new InterruptedException(
+          s"Transport wire broken while waiting for response to request $awaitingResponseTo."
+        )
       )
 
       clientToServerMsg match {

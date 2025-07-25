@@ -1,7 +1,7 @@
 package mill.javalib.worker
 
 /** Java compiler options, without the `-J` options (the Java runtime options). */
-case class JavaCompilerOptions private(options: Seq[String]) {
+case class JavaCompilerOptions private (options: Seq[String]) {
   {
     val runtimeOptions = options.filter(_.startsWith("-J"))
     if (runtimeOptions.nonEmpty) throw new IllegalArgumentException(
@@ -10,7 +10,7 @@ case class JavaCompilerOptions private(options: Seq[String]) {
   }
 }
 object JavaCompilerOptions {
-  given rw: upickle.default.ReadWriter[JavaCompilerOptions] = 
+  given rw: upickle.default.ReadWriter[JavaCompilerOptions] =
     summon[upickle.default.ReadWriter[Seq[String]]]
       .bimap(_.options, new JavaCompilerOptions(_))
 

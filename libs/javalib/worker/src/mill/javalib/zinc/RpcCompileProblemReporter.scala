@@ -8,7 +8,7 @@ import java.nio.file.Path
 /** A [[CompileProblemReporter]] that sends problems to the Mill server over RPC. */
 class RpcCompileProblemReporter(
     override val maxErrors: Int,
-    send: RpcCompileProblemReporterMessage => Unit,
+    send: RpcCompileProblemReporterMessage => Unit
 ) extends CompileProblemReporter {
   override def start(): Unit = send(RpcCompileProblemReporterMessage.Start)
 

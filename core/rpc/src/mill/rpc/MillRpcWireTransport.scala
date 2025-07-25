@@ -76,7 +76,8 @@ object MillRpcWireTransport {
     }
   }
 
-  class ViaBlockingQueues(inQueue: BlockingQueue[String], outQueue: BlockingQueue[String]) extends MillRpcWireTransport {
+  class ViaBlockingQueues(inQueue: BlockingQueue[String], outQueue: BlockingQueue[String])
+      extends MillRpcWireTransport {
     @volatile private var closed = false
 
     override def name: String = "in-process blocking queue"

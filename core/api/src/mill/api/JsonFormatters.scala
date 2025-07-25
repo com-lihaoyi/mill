@@ -36,7 +36,7 @@ trait JsonFormatters {
 
   implicit def severityRW: RW[Severity] = JsonFormatters.Default.severityRW
 
-  implicit def resultRW[A: {Reader, Writer}]: RW[Result[A]] = JsonFormatters.Default.resultRW
+  implicit def resultRW[A: { Reader, Writer }]: RW[Result[A]] = JsonFormatters.Default.resultRW
 
   implicit val nioPathRW: RW[java.nio.file.Path] = upickle.default.readwriter[String]
     .bimap[java.nio.file.Path](
@@ -111,6 +111,6 @@ object JsonFormatters extends JsonFormatters {
       }
     )
 
-    given resultRW[A:{Reader,Writer}]: RW[Result[A]] = RW.derived
+    given resultRW[A: { Reader, Writer }]: RW[Result[A]] = RW.derived
   }
 }

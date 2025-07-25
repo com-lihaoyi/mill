@@ -89,6 +89,7 @@ trait Logger extends Logger.Actions {
 
 object Logger {
   trait Actions {
+
     /**
      * Prints miscellaneous logging output which isn't part of the main output
      * a user is looking for, but useful to provide context on what Mill is doing
@@ -123,7 +124,6 @@ object Logger {
      */
     def ticker(s: String): Unit
   }
-
 
   /**
    * APIs that allow a logger to interact with the global prompt: setting and unsetting

@@ -3,7 +3,6 @@ package mill.javalib.zinc
 import mill.api.daemon.internal.CompileProblemReporter
 import sbt.internal.inc.ManagedLoggedReporter
 
-
 private trait ForwardingReporter(forwarder: CompileProblemReporter) extends ManagedLoggedReporter {
   override def logError(problem: xsbti.Problem): Unit = {
     forwarder.logError(new ZincProblem(problem))

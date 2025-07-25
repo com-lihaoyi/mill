@@ -7,39 +7,40 @@ import mill.javalib.worker.JavaCompilerOptions
 
 /** Gives you API for the Zinc worker. */
 trait ZincWorkerApi {
+
   /** Compile a Java-only project */
   def compileJava(
-    upstreamCompileOutput: Seq[CompilationResult],
-    sources: Seq[os.Path],
-    compileClasspath: Seq[os.Path],
-    javacOptions: JavaCompilerOptions,
-    reporter: Option[CompileProblemReporter],
-    reportCachedProblems: Boolean,
-    incrementalCompilation: Boolean
+      upstreamCompileOutput: Seq[CompilationResult],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
+      javacOptions: JavaCompilerOptions,
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean,
+      incrementalCompilation: Boolean
   ): mill.api.Result[CompilationResult]
 
   /** Compile a mixed Scala/Java or Scala-only project */
   def compileMixed(
-    upstreamCompileOutput: Seq[CompilationResult],
-    sources: Seq[os.Path],
-    compileClasspath: Seq[os.Path],
-    javacOptions: JavaCompilerOptions,
-    scalaVersion: String,
-    scalaOrganization: String,
-    scalacOptions: Seq[String],
-    compilerClasspath: Seq[PathRef],
-    scalacPluginClasspath: Seq[PathRef],
-    reporter: Option[CompileProblemReporter],
-    reportCachedProblems: Boolean,
-    incrementalCompilation: Boolean,
-    auxiliaryClassFileExtensions: Seq[String]
+      upstreamCompileOutput: Seq[CompilationResult],
+      sources: Seq[os.Path],
+      compileClasspath: Seq[os.Path],
+      javacOptions: JavaCompilerOptions,
+      scalaVersion: String,
+      scalaOrganization: String,
+      scalacOptions: Seq[String],
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean,
+      incrementalCompilation: Boolean,
+      auxiliaryClassFileExtensions: Seq[String]
   ): mill.api.Result[CompilationResult]
 
   def docJar(
-    scalaVersion: String,
-    scalaOrganization: String,
-    compilerClasspath: Seq[PathRef],
-    scalacPluginClasspath: Seq[PathRef],
-    args: Seq[String]
+      scalaVersion: String,
+      scalaOrganization: String,
+      compilerClasspath: Seq[PathRef],
+      scalacPluginClasspath: Seq[PathRef],
+      args: Seq[String]
   ): Boolean
 }

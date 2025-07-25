@@ -73,47 +73,51 @@ class ZincWorker[CompilerBridgeData](
     }
   }
 
-  private val scalaCompilerCache = new CachedFactoryWithInitData[ScalaCompilerCacheKey, CompilerBridgeData, ScalaCompilerCached] {
-    override def maxCacheSize: Int = jobs
+  private val scalaCompilerCache =
+    new CachedFactoryWithInitData[ScalaCompilerCacheKey, CompilerBridgeData, ScalaCompilerCached] {
+      override def maxCacheSize: Int = jobs
 
-    override def setup(key: ScalaCompilerCacheKey, compilerBridgeData: CompilerBridgeData): ScalaCompilerCached = {
-      import key.*
+      override def setup(
+          key: ScalaCompilerCacheKey,
+          compilerBridgeData: CompilerBridgeData
+      ): ScalaCompilerCached = {
+        import key.*
 
-      val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
+        val combinedCompilerJars = combinedCompilerClasspath.iterator.map(_.path.toIO).toArray
 
-      val compiledCompilerBridge = compileBridgeIfNeeded(
-        scalaVersion,
-        scalaOrganization,
-        compilerClasspath.map(_.path),
-        compilerBridgeData
-      )
-      val classLoader = classloaderCache.get(key.combinedCompilerClasspath)
-      val scalaInstance = new inc.ScalaInstance(
-        version = key.scalaVersion,
-        loader = classLoader,
-        loaderCompilerOnly = classLoader,
-        loaderLibraryOnly = ClasspathUtil.rootLoader,
-        libraryJars = Array(libraryJarNameGrep(
-          compilerClasspath,
-          // we don't support too outdated dotty versions
-          // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable
-          if (JvmWorkerUtil.isDottyOrScala3(key.scalaVersion)) "2.13." else key.scalaVersion
-        ).path.toIO),
-        compilerJars = combinedCompilerJars,
-        allJars = combinedCompilerJars,
-        explicitActual = None
-      )
-      val compilers = incrementalCompiler.compilers(
-        javaTools = getLocalOrCreateJavaTools(),
-        scalac = ZincUtil.scalaCompiler(scalaInstance, compiledCompilerBridge.toIO)
-      )
-      ScalaCompilerCached(classLoader, compilers)
+        val compiledCompilerBridge = compileBridgeIfNeeded(
+          scalaVersion,
+          scalaOrganization,
+          compilerClasspath.map(_.path),
+          compilerBridgeData
+        )
+        val classLoader = classloaderCache.get(key.combinedCompilerClasspath)
+        val scalaInstance = new inc.ScalaInstance(
+          version = key.scalaVersion,
+          loader = classLoader,
+          loaderCompilerOnly = classLoader,
+          loaderLibraryOnly = ClasspathUtil.rootLoader,
+          libraryJars = Array(libraryJarNameGrep(
+            compilerClasspath,
+            // we don't support too outdated dotty versions
+            // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable
+            if (JvmWorkerUtil.isDottyOrScala3(key.scalaVersion)) "2.13." else key.scalaVersion
+          ).path.toIO),
+          compilerJars = combinedCompilerJars,
+          allJars = combinedCompilerJars,
+          explicitActual = None
+        )
+        val compilers = incrementalCompiler.compilers(
+          javaTools = getLocalOrCreateJavaTools(),
+          scalac = ZincUtil.scalaCompiler(scalaInstance, compiledCompilerBridge.toIO)
+        )
+        ScalaCompilerCached(classLoader, compilers)
+      }
+
+      override def teardown(key: ScalaCompilerCacheKey, value: ScalaCompilerCached): Unit = {
+        classloaderCache.release(key.combinedCompilerClasspath)
+      }
     }
-
-    override def teardown(key: ScalaCompilerCacheKey, value: ScalaCompilerCached): Unit = {
-      classloaderCache.release(key.combinedCompilerClasspath)
-    }
-  }
 
   private val javaOnlyCompilerCache = new CachedFactory[JavaCompilerCacheKey, Compilers] {
 
@@ -164,7 +168,10 @@ class ZincWorker[CompilerBridgeData](
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
       incrementalCompilation: Boolean
-  )(using ctx: ZincWorker.InvocationContext, deps: ZincWorker.InvocationDependencies): Result[CompilationResult] = {
+  )(using
+      ctx: ZincWorker.InvocationContext,
+      deps: ZincWorker.InvocationDependencies
+  ): Result[CompilationResult] = {
     val cacheKey = JavaCompilerCacheKey(javacOptions)
     javaOnlyCompilerCache.withValue(cacheKey) { compilers =>
       compileInternal(
@@ -197,7 +204,10 @@ class ZincWorker[CompilerBridgeData](
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
       compilerBridgeData: CompilerBridgeData
-  )(using ctx: ZincWorker.InvocationContext, deps: ZincWorker.InvocationDependencies): Result[CompilationResult] = {
+  )(using
+      ctx: ZincWorker.InvocationContext,
+      deps: ZincWorker.InvocationDependencies
+  ): Result[CompilationResult] = {
     withScalaCompilers(
       scalaVersion = scalaVersion,
       scalaOrganization = scalaOrganization,
@@ -314,7 +324,10 @@ class ZincWorker[CompilerBridgeData](
       incrementalCompilation: Boolean,
       auxiliaryClassFileExtensions: Seq[String],
       zincCache: os.SubPath = os.sub / "zinc"
-  )(using ctx: ZincWorker.InvocationContext, deps: ZincWorker.InvocationDependencies): Result[CompilationResult] = {
+  )(using
+      ctx: ZincWorker.InvocationContext,
+      deps: ZincWorker.InvocationDependencies
+  ): Result[CompilationResult] = {
     val requireReporter = ctx.env.get("MILL_JVM_WORKER_REQUIRE_REPORTER").contains("true")
     if (requireReporter && reporter.isEmpty)
       sys.error(
@@ -523,7 +536,11 @@ class ZincWorker[CompilerBridgeData](
       if (os.exists(compiledDest / "DONE")) compiledDest
       else {
         val acquired =
-          compilerBridge.acquire(scalaVersion = scalaVersion, scalaOrganization = scalaOrganization, acquireData)
+          compilerBridge.acquire(
+            scalaVersion = scalaVersion,
+            scalaOrganization = scalaOrganization,
+            acquireData
+          )
 
         acquired match {
           case AcquireResult.Compiled(bridgeJar) => bridgeJar
@@ -545,14 +562,16 @@ class ZincWorker[CompilerBridgeData](
   }
 }
 object ZincWorker {
-  /** Dependencies of the invocation.
+
+  /**
+   * Dependencies of the invocation.
    *
    * Can come either from the local [[ZincWorker]] running in [[JvmWorkerImpl]] or from a zinc worker running
    * in a different process.
-   * */
+   */
   case class InvocationDependencies(
-    log: Logger.Actions,
-    consoleOut: ConsoleOut
+      log: Logger.Actions,
+      consoleOut: ConsoleOut
   )
 
   /** The invocation context, always comes from the Mill's process. */
@@ -560,7 +579,7 @@ object ZincWorker {
       env: Map[String, String],
       dest: os.Path,
       logDebugEnabled: Boolean,
-      logPromptColored: Boolean,
+      logPromptColored: Boolean
   ) derives upickle.default.ReadWriter
 
   case class ScalaCompilerCacheKey(

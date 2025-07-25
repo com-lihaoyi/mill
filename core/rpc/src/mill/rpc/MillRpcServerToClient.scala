@@ -4,6 +4,7 @@ import upickle.default.{Reader, Writer}
 
 /** Protocol messages that are sent from server to the client. */
 enum MillRpcServerToClient[+Data] {
+
   /** Response to a [[MillRpcClientToServer.Ask]] which either succeeded or failed. */
   case Response(id: MillRpcRequestId, data: Either[RpcThrowable, Data])
 
@@ -19,7 +20,7 @@ enum MillRpcServerToClient[+Data] {
 
   /** We want to send a message to the client's stdout. */
   case Stdout(msg: RpcConsole.Message)
-  
+
   /** We want to send a message to the client's stderr. */
   case Stderr(msg: RpcConsole.Message)
 }

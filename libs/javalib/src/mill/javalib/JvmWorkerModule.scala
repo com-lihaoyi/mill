@@ -56,16 +56,20 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       getClass.getClassLoader
     )
 
-    val factory = cl.loadClass("mill.javalib.worker.JvmWorkerFactory").getConstructor().newInstance()
-      .asInstanceOf[JvmWorkerFactoryApi]
+    val factory =
+      cl.loadClass("mill.javalib.worker.JvmWorkerFactory").getConstructor().newInstance()
+        .asInstanceOf[JvmWorkerFactoryApi]
 
     val ctx = Task.ctx()
     val zincCompilerBridge = ZincCompilerBridge[Unit](
       taskDest = ctx.dest,
       logInfo = ctx.log.info,
-      acquire = (scalaVersion, scalaOrganization, _) => scalaCompilerBridgeJar(
-        scalaVersion = scalaVersion, scalaOrganization = scalaOrganization, defaultResolver()
-      ).map(_.path)
+      acquire = (scalaVersion, scalaOrganization, _) =>
+        scalaCompilerBridgeJar(
+          scalaVersion = scalaVersion,
+          scalaOrganization = scalaOrganization,
+          defaultResolver()
+        ).map(_.path)
     )
     val args = JvmWorkerArgs(
       zincCompilerBridge,
@@ -124,8 +128,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     if (useSources) {
       val classpath = compilerInterfaceClasspath(scalaVersion, scalaOrganization, resolver)
       ZincCompilerBridge.AcquireResult.NotCompiled(classpath, bridgeJar)
-    }
-    else ZincCompilerBridge.AcquireResult.Compiled(bridgeJar)
+    } else ZincCompilerBridge.AcquireResult.Compiled(bridgeJar)
   }
 
   def compilerInterfaceClasspath(
@@ -157,7 +160,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
     ).distinct
   }
 
-  //noinspection ScalaUnusedSymbol - Task.Command
+  // noinspection ScalaUnusedSymbol - Task.Command
   def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] =
     Task.Command {
       classpath()

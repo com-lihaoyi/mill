@@ -39,14 +39,16 @@ object JavaHomeTests extends TestSuite {
     test("compileApis") {
       val resourcePathCompile = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "java-scala-11"
 
-      def captureOutput[A, R](module: TestRootModule, task: Task[A])(f:
-        (Either[ExecResult.Failing[A], UnitTester.Result[A]], String) => R
-      ): R = {
+      def captureOutput[A, R](
+          module: TestRootModule,
+          task: Task[A]
+      )(f: (Either[ExecResult.Failing[A], UnitTester.Result[A]], String) => R): R = {
         val errStream = new ByteArrayOutputStream()
-        UnitTester(module, resourcePathCompile, errStream = new PrintStream(errStream)).scoped { eval =>
-          val result = eval.apply(task)
-          val stderr = errStream.toString()
-          f(result, stderr)
+        UnitTester(module, resourcePathCompile, errStream = new PrintStream(errStream)).scoped {
+          eval =>
+            val result = eval.apply(task)
+            val stderr = errStream.toString()
+            f(result, stderr)
         }
       }
 
@@ -71,7 +73,6 @@ object JavaHomeTests extends TestSuite {
           test("compile") - doTest(JavaJdk11DoesntCompile.javamodule.compile)
           test("docJar") - doTest(JavaJdk11DoesntCompile.javamodule.docJar)
         }
-
 
         test("scala") {
           def doTest[A](task: Task[A]): Unit =

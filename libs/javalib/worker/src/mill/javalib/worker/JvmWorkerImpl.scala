@@ -256,8 +256,10 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     }
   }
 
-  /** Spawns a [[ZincWorkerApi]] subprocess with the specified java version and runtime options and runs the given
-   * function with it. */
+  /**
+   * Spawns a [[ZincWorkerApi]] subprocess with the specified java version and runtime options and runs the given
+   * function with it.
+   */
   private def runWithSpawned[A](
       javaHome: Option[os.Path],
       runtimeOptions: JavaRuntimeOptions,
@@ -365,7 +367,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
             scalaOrganization = scalaOrganization,
             compilerClasspath = compilerClasspath,
             scalacPluginClasspath = scalacPluginClasspath,
-            args = args,
+            args = args
           )
           rpcClient(msg)
         }

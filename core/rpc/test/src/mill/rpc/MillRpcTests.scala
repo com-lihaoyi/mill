@@ -220,7 +220,10 @@ object MillRpcTests extends TestSuite {
 
         {
           val ex = intercept[RpcThrowable](client(ClientToServer.ThrowAnException))
-          assert(serverMessagesRef.value.contains(ReceivedServerMessage(id("c5"), ClientToServer.ThrowAnException)))
+          assert(serverMessagesRef.value.contains(ReceivedServerMessage(
+            id("c5"),
+            ClientToServer.ThrowAnException
+          )))
           assert(ex.className == classOf[TestException].getCanonicalName)
         }
 

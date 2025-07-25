@@ -27,7 +27,7 @@ private trait GroupExecution {
 
   /**
    * `String` is the worker name, `Int` is the worker hash, `Val` is the result of the worker invocation.
-   **/
+   */
   def workerCache: mutable.Map[String, (Int, Val)]
 
   def env: Map[String, String]

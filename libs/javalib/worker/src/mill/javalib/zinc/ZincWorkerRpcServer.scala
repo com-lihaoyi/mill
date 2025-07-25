@@ -14,19 +14,20 @@ import upickle.default.ReadWriter
 
 import java.io.PrintStream
 
-class ZincWorkerRpcServer extends MillRpcServerImpl[
-  ZincWorkerRpcServer.Initialize,
-  ZincWorkerRpcServer.ClientToServer,
-  ZincWorkerRpcServer.ServerToClient
-](MillRpcWireTransport.ViaStdinAndStdout) {
+class ZincWorkerRpcServer
+    extends MillRpcServerImpl[
+      ZincWorkerRpcServer.Initialize,
+      ZincWorkerRpcServer.ClientToServer,
+      ZincWorkerRpcServer.ServerToClient
+    ](MillRpcWireTransport.ViaStdinAndStdout) {
   import ZincWorkerRpcServer.*
 
   override def initialize(
-    initialize: Initialize,
-    log: Logger.Actions,
-    clientStdout: RpcConsole,
-    clientStderr: RpcConsole,
-    serverToClient: MillRpcChannel[ServerToClient]
+      initialize: Initialize,
+      log: Logger.Actions,
+      clientStdout: RpcConsole,
+      clientStderr: RpcConsole,
+      serverToClient: MillRpcChannel[ServerToClient]
   ): MillRpcChannel[ClientToServer] = {
     val zincCompilerBridge = ZincCompilerBridge[MillRpcRequestId](
       taskDest = initialize.taskDest,
@@ -72,8 +73,8 @@ class ZincWorkerRpcServer extends MillRpcServerImpl[
     )
 
     def reporterAsOption(
-      clientRequestId: MillRpcRequestId,
-      mode: ReporterMode
+        clientRequestId: MillRpcRequestId,
+        mode: ReporterMode
     ): Option[CompileProblemReporter] = mode match {
       case ReporterMode.NoReporter => None
       case r: ReporterMode.Reporter =>
@@ -83,15 +84,17 @@ class ZincWorkerRpcServer extends MillRpcServerImpl[
     new MillRpcChannel[ClientToServer] {
       override def apply(requestId: MillRpcRequestId, input: ClientToServer): input.Response = {
         input match {
-          case msg: ClientToServer.CompileJava => compileJava(requestId, msg).asInstanceOf[input.Response]
-          case msg: ClientToServer.CompileMixed => compileMixed(requestId, msg).asInstanceOf[input.Response]
+          case msg: ClientToServer.CompileJava =>
+            compileJava(requestId, msg).asInstanceOf[input.Response]
+          case msg: ClientToServer.CompileMixed =>
+            compileMixed(requestId, msg).asInstanceOf[input.Response]
           case msg: ClientToServer.DocJar => docJar(requestId, msg).asInstanceOf[input.Response]
         }
       }
 
       private def compileJava(
-        clientRequestId: MillRpcRequestId,
-        msg: ClientToServer.CompileJava
+          clientRequestId: MillRpcRequestId,
+          msg: ClientToServer.CompileJava
       ): msg.Response = {
         worker.compileJava(
           upstreamCompileOutput = msg.upstreamCompileOutput,
@@ -103,10 +106,10 @@ class ZincWorkerRpcServer extends MillRpcServerImpl[
           incrementalCompilation = msg.incrementalCompilation
         )(using msg.ctx, deps)
       }
-      
+
       private def compileMixed(
-        clientRequestId: MillRpcRequestId,
-        msg: ClientToServer.CompileMixed
+          clientRequestId: MillRpcRequestId,
+          msg: ClientToServer.CompileMixed
       ): msg.Response = {
         worker.compileMixed(
           upstreamCompileOutput = msg.upstreamCompileOutput,
@@ -122,13 +125,13 @@ class ZincWorkerRpcServer extends MillRpcServerImpl[
           reportCachedProblems = msg.reporterMode.reportCachedProblems,
           incrementalCompilation = msg.incrementalCompilation,
           auxiliaryClassFileExtensions = msg.auxiliaryClassFileExtensions,
-          compilerBridgeData = clientRequestId,
+          compilerBridgeData = clientRequestId
         )(using msg.ctx, deps)
       }
 
       private def docJar(
-        clientRequestId: MillRpcRequestId,
-        msg: ClientToServer.DocJar
+          clientRequestId: MillRpcRequestId,
+          msg: ClientToServer.DocJar
       ): msg.Response =
         worker.docJar(
           scalaVersion = msg.scalaVersion,
@@ -146,7 +149,8 @@ object ZincWorkerRpcServer {
   /**
    * @param taskDest the task's destination folder.
    */
-  case class Initialize(taskDest: os.Path, jobs: Int, compileToJar: Boolean, zincLogDebug: Boolean) derives ReadWriter
+  case class Initialize(taskDest: os.Path, jobs: Int, compileToJar: Boolean, zincLogDebug: Boolean)
+      derives ReadWriter
 
   sealed trait ReporterMode derives ReadWriter {
     def reportCachedProblems: Boolean
@@ -174,29 +178,29 @@ object ZincWorkerRpcServer {
     }
 
     case class CompileMixed(
-      upstreamCompileOutput: Seq[CompilationResult],
-      sources: Seq[os.Path],
-      compileClasspath: Seq[os.Path],
-      javacOptions: JavaCompilerOptions,
-      scalaVersion: String,
-      scalaOrganization: String,
-      scalacOptions: Seq[String],
-      compilerClasspath: Seq[PathRef],
-      scalacPluginClasspath: Seq[PathRef],
-      reporterMode: ReporterMode,
-      incrementalCompilation: Boolean,
-      auxiliaryClassFileExtensions: Seq[String],
-      ctx: ZincWorker.InvocationContext
+        upstreamCompileOutput: Seq[CompilationResult],
+        sources: Seq[os.Path],
+        compileClasspath: Seq[os.Path],
+        javacOptions: JavaCompilerOptions,
+        scalaVersion: String,
+        scalaOrganization: String,
+        scalacOptions: Seq[String],
+        compilerClasspath: Seq[PathRef],
+        scalacPluginClasspath: Seq[PathRef],
+        reporterMode: ReporterMode,
+        incrementalCompilation: Boolean,
+        auxiliaryClassFileExtensions: Seq[String],
+        ctx: ZincWorker.InvocationContext
     ) extends ClientToServer {
       override type Response = Result[CompilationResult]
     }
 
     case class DocJar(
-      scalaVersion: String,
-      scalaOrganization: String,
-      compilerClasspath: Seq[PathRef],
-      scalacPluginClasspath: Seq[PathRef],
-      args: Seq[String]
+        scalaVersion: String,
+        scalaOrganization: String,
+        compilerClasspath: Seq[PathRef],
+        scalacPluginClasspath: Seq[PathRef],
+        args: Seq[String]
     ) extends ClientToServer {
       override type Response = Boolean
     }

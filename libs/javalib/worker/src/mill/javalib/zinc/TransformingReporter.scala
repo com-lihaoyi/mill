@@ -1,8 +1,8 @@
 package mill.javalib.zinc
 
 private trait TransformingReporter(
-  color: Boolean,
-  optPositionMapper: (xsbti.Position => xsbti.Position) | Null
+    color: Boolean,
+    optPositionMapper: (xsbti.Position => xsbti.Position) | Null
 ) extends xsbti.Reporter {
 
   // Overriding this is necessary because for some reason the LoggedReporter doesn't transform positions
@@ -25,9 +25,9 @@ private object TransformingReporter {
 
   /** implements a transformation that returns the same object if the mapper has no effect. */
   private def transformProblem(
-    color: Boolean,
-    problem0: xsbti.Problem,
-    mapper: xsbti.Position => xsbti.Position
+      color: Boolean,
+      problem0: xsbti.Problem,
+      mapper: xsbti.Position => xsbti.Position
   ): xsbti.Problem = {
     val pos0 = problem0.position()
     val related0 = problem0.diagnosticRelatedInformation()
@@ -65,9 +65,9 @@ private object TransformingReporter {
 
   /** Render the message in the style of dotty */
   private def dottyStyleMessage(
-    color: Boolean,
-    problem0: xsbti.Problem,
-    pos: xsbti.Position
+      color: Boolean,
+      problem0: xsbti.Problem,
+      pos: xsbti.Position
   ): String = {
     val base = problem0.message()
     val severity = problem0.severity()
@@ -145,14 +145,14 @@ private object TransformingReporter {
 
   /** Implements a transformation that returns the same list if the mapper has no effect */
   private def transformActions(
-    actions0: java.util.List[xsbti.Action],
-    mapper: xsbti.Position => xsbti.Position
+      actions0: java.util.List[xsbti.Action],
+      mapper: xsbti.Position => xsbti.Position
   ): JOrSList[xsbti.Action] = {
     if actions0.iterator().asScala.exists(a =>
-      a.edit().changes().iterator().asScala.exists(e =>
-        mapper(e.position()) ne e.position()
+        a.edit().changes().iterator().asScala.exists(e =>
+          mapper(e.position()) ne e.position()
+        )
       )
-    )
     then {
       actions0.iterator().asScala.map(transformAction(_, mapper)).toList
     } else {
@@ -162,8 +162,8 @@ private object TransformingReporter {
 
   /** Implements a transformation that returns the same list if the mapper has no effect */
   private def transformRelateds(
-    related0: java.util.List[xsbti.DiagnosticRelatedInformation],
-    mapper: xsbti.Position => xsbti.Position
+      related0: java.util.List[xsbti.DiagnosticRelatedInformation],
+      mapper: xsbti.Position => xsbti.Position
   ): JOrSList[xsbti.DiagnosticRelatedInformation] = {
 
     if related0.iterator().asScala.exists(r => mapper(r.position()) ne r.position()) then
@@ -173,15 +173,15 @@ private object TransformingReporter {
   }
 
   private def transformRelated(
-    related0: xsbti.DiagnosticRelatedInformation,
-    mapper: xsbti.Position => xsbti.Position
+      related0: xsbti.DiagnosticRelatedInformation,
+      mapper: xsbti.Position => xsbti.Position
   ): xsbti.DiagnosticRelatedInformation = {
     InterfaceUtil.diagnosticRelatedInformation(mapper(related0.position()), related0.message())
   }
 
   private def transformAction(
-    action0: xsbti.Action,
-    mapper: xsbti.Position => xsbti.Position
+      action0: xsbti.Action,
+      mapper: xsbti.Position => xsbti.Position
   ): xsbti.Action = {
     InterfaceUtil.action(
       title = action0.title(),
@@ -191,8 +191,8 @@ private object TransformingReporter {
   }
 
   private def transformEdit(
-    edit0: xsbti.WorkspaceEdit,
-    mapper: xsbti.Position => xsbti.Position
+      edit0: xsbti.WorkspaceEdit,
+      mapper: xsbti.Position => xsbti.Position
   ): xsbti.WorkspaceEdit = {
     InterfaceUtil.workspaceEdit(
       edit0.changes().iterator().asScala.map(transformTEdit(_, mapper)).toList
@@ -200,8 +200,8 @@ private object TransformingReporter {
   }
 
   private def transformTEdit(
-    edit0: xsbti.TextEdit,
-    mapper: xsbti.Position => xsbti.Position
+      edit0: xsbti.TextEdit,
+      mapper: xsbti.Position => xsbti.Position
   ): xsbti.TextEdit = {
     InterfaceUtil.textEdit(
       position = mapper(edit0.position()),
