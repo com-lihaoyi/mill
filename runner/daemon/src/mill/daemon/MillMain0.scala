@@ -8,7 +8,14 @@ import mill.bsp.BSP
 import mill.client.lock.Lock
 import mill.constants.{DaemonFiles, OutFiles}
 import mill.api.BuildCtx
-import mill.internal.{Colors, JsonArrayLogger, MultiStream, PrefixLogger, PromptLogger, SimpleLogger}
+import mill.internal.{
+  Colors,
+  JsonArrayLogger,
+  MultiStream,
+  PrefixLogger,
+  PromptLogger,
+  SimpleLogger
+}
 import mill.server.Server
 import mill.util.BuildInfo
 import mill.api

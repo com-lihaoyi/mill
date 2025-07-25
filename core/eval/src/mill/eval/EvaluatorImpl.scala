@@ -249,8 +249,7 @@ final class EvaluatorImpl private[mill] (
     val promptLineLogger = new PrefixLogger(
       logger0 = baseLogger,
       key0 = Seq("resolve"),
-      keySuffix = "",
-      noPrefix = false
+      message = scriptArgs.mkString(" ")
     )
     val resolved = promptLineLogger.withPromptLine {
       os.checker.withValue(ResolveChecker(workspace)) {

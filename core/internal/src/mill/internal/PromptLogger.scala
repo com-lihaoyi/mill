@@ -34,7 +34,6 @@ private[mill] class PromptLogger(
   override def toString: String = s"PromptLogger(${literalize(titleText)})"
   import PromptLogger.*
 
-
   private var termDimensions: (Option[Int], Option[Int]) = (None, None)
 
   readTerminalDims(terminfoPath).foreach(termDimensions = _)

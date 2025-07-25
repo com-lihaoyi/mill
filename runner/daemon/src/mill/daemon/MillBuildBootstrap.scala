@@ -120,7 +120,12 @@ class MillBuildBootstrap(
           }
         } else {
           val parsedScriptFiles = FileImportGraph
-            .parseBuildFiles(projectRoot, currentRoot / os.up, output, MillScalaParser.current.value)
+            .parseBuildFiles(
+              projectRoot,
+              currentRoot / os.up,
+              output,
+              MillScalaParser.current.value
+            )
 
           val state =
             if (os.exists(currentRoot)) evaluateRec(depth + 1)

@@ -100,7 +100,7 @@ class UnitTester(
         titleText = "",
         terminfoPath = os.temp(),
         currentTimeMillis = () => System.currentTimeMillis(),
-        chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
+        chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile)
       ) {
     val prefix: String = {
       val idx = fullName.value.lastIndexOf(".")
