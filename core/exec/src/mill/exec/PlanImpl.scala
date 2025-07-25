@@ -39,19 +39,21 @@ private[mill] object PlanImpl {
     for (task <- topoSortedTasks.values) {
       for (t <- important.lift(task)) {
 
-        val transitiveTasks = collection.mutable.LinkedHashSet[Task[?]]()
+        val transitiveTasks = collection.mutable.Map[Task[?], Int]()
 
         def rec(t: Task[?]): Unit = {
           if (transitiveTasks.contains(t)) () // do nothing
           else if (important.isDefinedAt(t) && t != task) () // do nothing
           else {
-            transitiveTasks.add(t)
+            transitiveTasks.put(t, topoSortedIndices(t))
             t.inputs.foreach(rec)
           }
         }
 
         rec(task)
-        output.addAll(t, transitiveTasks.toArray.sortBy(topoSortedIndices))
+        val out = transitiveTasks.toArray
+        out.sortInPlaceBy(_._2)
+        output.addAll(t, out.map(_._1))
       }
     }
 
