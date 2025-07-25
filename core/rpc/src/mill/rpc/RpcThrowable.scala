@@ -11,8 +11,6 @@ case class RpcThrowable(
 ) extends RuntimeException(message.orNull, cause.orNull) with NoStackTrace derives upickle.default.ReadWriter {
   setStackTrace(stacktrace.iterator.map(_.toStackTraceElement).toArray)
 
-  def toThrowable: Throwable = this
-
   override def toString: String = {
     val self = getClass.getCanonicalName
     message match {

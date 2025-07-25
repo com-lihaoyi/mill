@@ -133,7 +133,7 @@ trait MillRpcServerImpl[
         case MillRpcClientToServer.Response(requestId, data) =>
           if (requestId == awaitingResponseTo) {
             data match {
-              case Left(err) => throw err.toThrowable
+              case Left(err) => throw err
               case Right(response) => responseReceived = Some(response)
             }
           } else {

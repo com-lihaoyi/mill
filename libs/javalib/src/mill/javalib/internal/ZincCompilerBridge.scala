@@ -15,7 +15,7 @@ import scala.util.Properties.isWin
  */
 @internal
 case class ZincCompilerBridge[AcquireData](
-    taskDest: os.Path,
+    taskDest: os.Path, // TODO review: this should be just a workplace directory, not necessarily a Task.dest
     logInfo: String => Unit,
     acquire: ZincCompilerBridge.Acquire[AcquireData]
 )

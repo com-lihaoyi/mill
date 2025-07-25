@@ -15,7 +15,6 @@ trait MillRpcClient[ClientToServer <: MillRpcMessage, ServerToClient <: MillRpcM
   def withServerToClientHandler(handler: MillRpcChannel[ServerToClient]): Unit
 }
 object MillRpcClient {
-  // TODO review: test
   def create[
       Initialize: Writer,
       ClientToServer <: MillRpcMessage: Writer,
@@ -57,15 +56,13 @@ object MillRpcClient {
             throw new IllegalStateException(
               s"RPC wire has broken (${wireTransport.name}). The server probably crashed."
             )
-          case Some(MillRpcServerToClient.Log(msg)) =>
-            handleServerLog(msg)
           case Some(MillRpcServerToClient.Ask(id, dataJson)) =>
             val data = upickle.default.read[ServerToClient](dataJson)
             handleServerMessage(id, data)
           case Some(MillRpcServerToClient.Response(`requestId`, either)) =>
             either match {
               case Left(err) =>
-                throw err.toThrowable
+                throw err
               case Right(responseJson) =>
                 val response = upickle.default.read[A](responseJson)
                 responseReceived = Some(response)
@@ -74,6 +71,7 @@ object MillRpcClient {
             logWarn(
               s"Received response with the unknown wrong request id ($reqId), ignoring: ${pprint.apply(either)}"
             )
+          case Some(MillRpcServerToClient.Log(msg)) => handleServerLog(msg)
           case Some(MillRpcServerToClient.Stdout(msg)) => stdout(msg)
           case Some(MillRpcServerToClient.Stderr(msg)) => stderr(msg)
         }

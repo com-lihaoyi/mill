@@ -56,7 +56,7 @@ object MillRpcRequestId {
   def initialForClient: MillRpcRequestId = apply(Vector(Part(Kind.Client, -1)))
 
   /** Creates an instance, throws if the vector is empty. */
-  def unsafe(parts: Vector[MillRpcRequestId.Part]) = apply(parts)
+  def unsafe(parts: Vector[MillRpcRequestId.Part]): MillRpcRequestId = apply(parts)
 
   enum Kind {
     case Client, Server

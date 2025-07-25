@@ -5,12 +5,7 @@ import upickle.default.{Reader, Writer}
 /** Protocol messages that are sent from client to the server. */
 enum MillRpcClientToServer[+Data] {
 
-  /**
-   * Client is asking the server to do something. Server will immediately respond with
-   * [[MillRpcServerToClient.AskReceived]] to this.
-   *
-   * @param id the request id client has assigned to this message.
-   */
+  /** Client is asking the server to do something. */
   case Ask(id: MillRpcRequestId, data: Data)
 
   /** Response to server's [[MillRpcServerToClient.Ask]] which either succeeded or failed. */
