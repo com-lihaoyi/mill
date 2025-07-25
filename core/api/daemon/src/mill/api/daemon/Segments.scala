@@ -48,7 +48,7 @@ final case class Segments private (value: Seq[Segment]) {
 
 object Segments {
   implicit def ordering: Ordering[Segments] = Ordering.by(_.value)
-  def apply(): Segments = new Segments(Nil)
-  def apply(items: Seq[Segment]): Segments = new Segments(items)
-  def labels(values: String*): Segments = Segments(values.map(Segment.Label(_)))
+  def apply(): Segments = new Segments(Vector())
+  def apply(items: Seq[Segment]): Segments = new Segments(items.toVector)
+  def labels(values: String*): Segments = Segments(values.map(Segment.Label(_)).toVector)
 }
