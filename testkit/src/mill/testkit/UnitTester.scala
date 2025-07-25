@@ -5,7 +5,9 @@ import mill.api.{BuildCtx, DummyInputStream, Evaluator, ExecResult, Result, Sele
 import mill.api.ExecResult.OuterStack
 import mill.constants.OutFiles.millChromeProfile
 import mill.constants.OutFiles.millProfile
-import mill.exec.JsonArrayLogger
+import mill.api.Evaluator
+import mill.api.SelectMode
+import mill.internal.JsonArrayLogger
 import mill.resolve.Resolve
 
 import java.io.InputStream
@@ -93,7 +95,8 @@ class UnitTester(
         debugEnabled = debugEnabled,
         titleText = "",
         terminfoPath = os.temp(),
-        currentTimeMillis = () => System.currentTimeMillis()
+        currentTimeMillis = () => System.currentTimeMillis(),
+        chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile)
       ) {
     val prefix: String = {
       val idx = fullName.value.lastIndexOf(".")
@@ -115,8 +118,7 @@ class UnitTester(
 
   val execution = new mill.exec.Execution(
     baseLogger = logger,
-    chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
-    profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
+    profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
     workspace = module.moduleDir,
     outPath = outPath,
     externalOutPath = outPath,

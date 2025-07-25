@@ -97,13 +97,13 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       assert(millProfile.exists(_.obj("label").str == "compileClasspath"))
       assert(millProfile.exists(_.obj("label").str == "mvnDeps"))
       assert(millProfile.exists(_.obj("label").str == "javacOptions"))
-      assert(millChromeProfile.exists(_.obj("name").str == "compile"))
-      assert(millChromeProfile.exists(_.obj("name").str == "compileClasspath"))
-      assert(millChromeProfile.exists(_.obj("name").str == "mvnDeps"))
-      assert(millChromeProfile.exists(_.obj("name").str == "javacOptions"))
+      assert(millChromeProfile.exists(_.obj.get("name") == Some(ujson.Str("compile"))))
+      assert(millChromeProfile.exists(_.obj.get("name") == Some(ujson.Str("compileClasspath"))))
+      assert(millChromeProfile.exists(_.obj.get("name") == Some(ujson.Str("mvnDeps"))))
+      assert(millChromeProfile.exists(_.obj.get("name") == Some(ujson.Str("javacOptions"))))
       // Profile logs for show itself
       assert(millProfile.exists(_.obj("label").str == "show"))
-      assert(millChromeProfile.exists(_.obj("name").str == "show"))
+      assert(millChromeProfile.exists(_.obj.get("name") == Some(ujson.Str("show"))))
     }
   }
 }

@@ -593,20 +593,10 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
   override def semanticDbData: T[PathRef] = Task(persistent = true) {
     val sv = scalaVersion()
 
-    val hasScala = allSourceFiles().exists(_.path.ext == "scala")
-    val hasJava = allSourceFiles().exists(_.path.ext == "java")
-    val isMixedProject = hasScala && hasJava
-    // See https://github.com/com-lihaoyi/mill/issues/2981
-    val stopAfterSemanticDbOpts =
-      if (isMixedProject) Seq.empty else Seq("-Ystop-after:semanticdb-typer")
-
     val additionalScalacOptions = if (JvmWorkerUtil.isScala3(sv)) {
       Seq("-Xsemanticdb", s"-sourceroot:${BuildCtx.workspaceRoot}")
     } else {
-      Seq(
-        "-Yrangepos",
-        s"-P:semanticdb:sourceroot:${BuildCtx.workspaceRoot}"
-      ) ++ stopAfterSemanticDbOpts
+      Seq("-Yrangepos", s"-P:semanticdb:sourceroot:${BuildCtx.workspaceRoot}")
     }
 
     val scalacOptions = (
@@ -645,7 +635,8 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             compileRes.classes.path,
             BuildCtx.workspaceRoot,
             Task.dest / "data",
-            SemanticDbJavaModule.workerClasspath().map(_.path)
+            SemanticDbJavaModule.workerClasspath().map(_.path),
+            allSourceFiles().map(_.path)
           )
         }
       }

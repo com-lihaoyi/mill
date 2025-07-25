@@ -2,6 +2,7 @@
 :page-aliases: Kotlin_Module_Config.adoc
 :language: Kotlin
 :language-small: kotlin
+:language-doc: dokka
 
 This page goes into more detail about the various configuration options
 for `KotlinModule`.
