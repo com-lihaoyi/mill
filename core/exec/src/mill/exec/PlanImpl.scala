@@ -1,6 +1,6 @@
 package mill.exec
 
-import mill.api.{Task, Plan}
+import mill.api.{Plan, Task}
 import mill.api.MultiBiMap
 import mill.api.TopoSorted
 
@@ -37,19 +37,21 @@ private[mill] object PlanImpl {
     for (task <- topoSortedTasks.values) {
       for (t <- important.lift(task)) {
 
-        val transitiveTasks = collection.mutable.LinkedHashSet[Task[?]]()
+        val transitiveTasks = collection.mutable.Map[Task[?], Int]()
 
         def rec(t: Task[?]): Unit = {
           if (transitiveTasks.contains(t)) () // do nothing
           else if (important.isDefinedAt(t) && t != task) () // do nothing
           else {
-            transitiveTasks.add(t)
+            transitiveTasks.put(t, topoSortedIndices(t))
             t.inputs.foreach(rec)
           }
         }
 
         rec(task)
-        output.addAll(t, transitiveTasks.toArray.sortBy(topoSortedIndices))
+        val out = transitiveTasks.toArray
+        out.sortInPlaceBy(_._2)
+        output.addAll(t, out.map(_._1))
       }
     }
 
@@ -98,6 +100,6 @@ private[mill] object PlanImpl {
 
     val sortedClusters = mill.internal.Tarjans(numberedEdges)
     assert(sortedClusters.count(_.length > 1) == 0, sortedClusters.filter(_.length > 1))
-    new TopoSorted(sortedClusters.flatten.map(indexed))
+    new TopoSorted(sortedClusters.map(_(0)).map(indexed))
   }
 }

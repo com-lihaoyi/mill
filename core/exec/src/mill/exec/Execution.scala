@@ -338,14 +338,13 @@ private[mill] object Execution {
       : Map[Task[?], Seq[Task[?]]] = {
     val out = Map.newBuilder[Task[?], Seq[Task[?]]]
     for ((terminal, group) <- sortedGroups) {
+      val groupSet = group.toSet
       out.addOne(
-        terminal -> group
+        terminal -> groupSet
+          .flatMap(
+            _.inputs.collect { case f if !groupSet.contains(f) => sortedGroups.lookupValue(f) }
+          )
           .toArray
-          .flatMap(_.inputs)
-          .filterNot(group.contains)
-          .distinct
-          .map(sortedGroups.lookupValue)
-          .distinct
       )
     }
     out.result()
