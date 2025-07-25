@@ -118,6 +118,20 @@ private[mill] case class Execution(
       classToTransitiveClasses,
       allTransitiveClassMethods
     ) = planningLogger.withPromptLine {
+      if (goals.size > 2){
+        pprint.log(goals)
+        while(true){
+          val plan = PlanImpl.plan(goals)
+          val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
+          val indexToTerminal = plan.sortedGroups.keys().toArray
+          ExecutionLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
+          // Prepare a lookup tables up front of all the method names that each class owns,
+          // and the class hierarchy, so during evaluation it is cheap to look up what class
+          // each task belongs to determine of the enclosing class code signature changed.
+          val (classToTransitiveClasses, allTransitiveClassMethods) =
+            CodeSigUtils.precomputeMethodNamesPerClass(PlanImpl.transitiveNamed(goals))
+        }
+      }
       val plan = PlanImpl.plan(goals)
       val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
       val indexToTerminal = plan.sortedGroups.keys().toArray
@@ -338,14 +352,13 @@ private[mill] object Execution {
       : Map[Task[?], Seq[Task[?]]] = {
     val out = Map.newBuilder[Task[?], Seq[Task[?]]]
     for ((terminal, group) <- sortedGroups) {
+      val groupSet = group.toSet
       out.addOne(
-        terminal -> group
+        terminal -> groupSet
+          .flatMap(
+            _.inputs.collect{case f if !groupSet.contains(f) => sortedGroups.lookupValue(f)}
+          )
           .toArray
-          .flatMap(_.inputs)
-          .filterNot(group.contains)
-          .distinct
-          .map(sortedGroups.lookupValue)
-          .distinct
       )
     }
     out.result()

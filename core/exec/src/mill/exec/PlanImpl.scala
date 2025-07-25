@@ -1,8 +1,10 @@
 package mill.exec
 
-import mill.api.{Task, Plan}
+import mill.api.{Plan, Task}
 import mill.api.MultiBiMap
 import mill.api.TopoSorted
+
+import scala.collection.mutable
 
 private[mill] object PlanImpl {
   def plan(goals: Seq[Task[?]]): Plan = {
@@ -98,6 +100,6 @@ private[mill] object PlanImpl {
 
     val sortedClusters = mill.internal.Tarjans(numberedEdges)
     assert(sortedClusters.count(_.length > 1) == 0, sortedClusters.filter(_.length > 1))
-    new TopoSorted(sortedClusters.flatten.map(indexed))
+    new TopoSorted(sortedClusters.map(_(0)).map(indexed))
   }
 }
