@@ -16,6 +16,9 @@ object JavaCompilerOptions {
 
   def empty: JavaCompilerOptions = new JavaCompilerOptions(Seq.empty)
 
+  /** Constructs without filtering. */
+  def unsafe(options: Seq[String]): JavaCompilerOptions = new JavaCompilerOptions(options)
+
   def apply(options: Seq[String]): (runtime: JavaRuntimeOptions, compiler: JavaCompilerOptions) = {
     val prefix = "-J"
     val (runtimeOptions0, compilerOptions) = options.partition(_.startsWith(prefix))
