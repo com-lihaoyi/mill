@@ -77,15 +77,16 @@ private object ResolveCore {
       val instantiatedModules: collection.mutable.Map[Segments, mill.api.Result[Module]] =
         collection.mutable.Map(),
       decodedNames: collection.mutable.Map[String, String] = collection.mutable.Map(),
-      methods: collection.mutable.Map[Class[?], Array[(java.lang.reflect.Method, String)]] =
+      methods: collection.mutable.Map[(Class[?], Boolean, Class[?]), Array[(java.lang.reflect.Method, String)]] =
         collection.mutable.Map()
   ) {
     def decode(s: String): String = {
       decodedNames.getOrElseUpdate(s, scala.reflect.NameTransformer.decode(s))
     }
 
-    def getMethods(cls: Class[?]): Array[(Method, String)] = {
-      methods.getOrElseUpdate(cls, Reflect.getMethods(cls, decode))
+    def getMethods(cls: Class[?], noParams: Boolean, inner: Class[?]): Array[(Method, String)] = {
+      methods.getOrElseUpdate((cls, noParams, inner), Reflect.getMethods(cls, noParams, inner, decode))
+
     }
   }
 
@@ -141,7 +142,10 @@ private object ResolveCore {
                 )
               }
             }
-            .partitionMap { case s: Success => Right(s.value); case f: Failed => Left(f) }
+            .partitionMap {
+              case s: Success => Right(s.value)
+              case f: Failed => Left(f)
+            }
 
           val (errors, notFounds) = failures.partitionMap {
             case s: NotFound => Right(s)
