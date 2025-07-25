@@ -257,10 +257,6 @@ class JvmWorkerImpl(
           val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
           !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
         } else if (JvmWorkerUtil.isScala3(scalaVersion)) {
-          // DottyDoc makes use of `com.fasterxml.jackson.databind.Module` which
-          // requires the ContextClassLoader to be set appropriately
-          mill.api.ClassLoader.withContextClassLoader(getClass.getClassLoader) {
-
             val scaladocClass =
               compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
 
@@ -269,7 +265,6 @@ class JvmWorkerImpl(
               scaladocMethod.invoke(scaladocClass.getConstructor().newInstance(), args.toArray)
             val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
             !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
-          }
         } else {
           val scaladocClass =
             compilers.scalac().scalaInstance().loader().loadClass("scala.tools.nsc.ScalaDoc")
