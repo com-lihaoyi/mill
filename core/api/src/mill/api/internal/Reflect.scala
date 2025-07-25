@@ -78,7 +78,6 @@ private[mill] object Reflect {
     arr.distinctBy(_.getName)
   }
 
-
   def reflectNestedObjects0[T: ClassTag](
       outerCls: Class[?],
       filter: String => Boolean = Function.const(true),

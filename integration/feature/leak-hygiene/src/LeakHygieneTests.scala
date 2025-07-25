@@ -70,6 +70,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         )
         checkThreads(tester)(
           "HandleRunThread",
+          "JsonArrayLogger mill-chrome-profile.json",
+          "JsonArrayLogger mill-profile.json",
           "MillServerActionRunner",
           "MillServerTimeoutThread",
           "Process ID Checker Thread",
@@ -92,6 +94,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             "HandleRunThread",
+            "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
@@ -116,6 +120,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             "HandleRunThread",
+            "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
@@ -138,6 +144,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         )
         checkThreads(tester)(
           "HandleRunThread",
+          "JsonArrayLogger mill-chrome-profile.json",
+          "JsonArrayLogger mill-profile.json",
           "MillServerActionRunner",
           "MillServerTimeoutThread",
           "Process ID Checker Thread",
@@ -160,6 +168,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             "HandleRunThread",
+            "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
@@ -185,6 +195,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             "HandleRunThread",
+            "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
@@ -212,6 +224,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             "HandleRunThread",
+            "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
@@ -236,6 +250,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         )
         checkThreads(tester)(
           "HandleRunThread",
+          "JsonArrayLogger mill-chrome-profile.json",
+          "JsonArrayLogger mill-profile.json",
           "MillServerActionRunner",
           "MillServerTimeoutThread",
           "Process ID Checker Thread",

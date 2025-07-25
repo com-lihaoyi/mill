@@ -122,6 +122,7 @@ private[mill] object JsonArrayLogger {
         pid = 1,
         tid = threadId
       )
+
       log(event)
     }
     def logEnd(
@@ -146,8 +147,7 @@ private[mill] object JsonArrayLogger {
      */
     @upickle.implicits.key("ph")
     enum TraceEvent derives upickle.default.ReadWriter {
-      @upickle.implicits.key("B")
-      case Begin(
+      @upickle.implicits.key("B") case Begin(
           name: String,
           cat: String,
           ts: Long,
@@ -155,8 +155,7 @@ private[mill] object JsonArrayLogger {
           tid: Int
       )
 
-      @upickle.implicits.key("E")
-      case End(
+      @upickle.implicits.key("E") case End(
           ts: Long,
           pid: Int,
           tid: Int

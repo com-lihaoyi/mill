@@ -182,9 +182,9 @@ private[mill] case class Execution(
 
                 val contextLogger = new PrefixLogger(
                   logger0 = logger,
-                  key0 = if (!logger.prompt.enableTicker) Nil else Seq(countMsg),
+                  key0 = Seq(countMsg),
                   keySuffix = keySuffix,
-                  message = if (logger.prompt.enableTicker) terminal.toString else "",
+                  message = terminal.toString,
                   noPrefix = exclusive
                 )
 
