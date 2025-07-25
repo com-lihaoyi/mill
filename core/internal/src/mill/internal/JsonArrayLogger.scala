@@ -26,7 +26,7 @@ private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path,
       while ({
         val value =
           try Some(buffer.take())
-          catch { case e: InterruptedException => None }
+          catch { case _: InterruptedException => None }
 
         value match {
           case Some(v) =>
