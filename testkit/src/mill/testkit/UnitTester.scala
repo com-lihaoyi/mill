@@ -1,14 +1,7 @@
 package mill.testkit
 
 import mill.Task
-import mill.api.{
-  BuildCtx,
-  DummyInputStream,
-  ExecResult,
-  Result,
-  SystemStreams,
-  Val
-}
+import mill.api.{BuildCtx, DummyInputStream, ExecResult, Result, SystemStreams, Val}
 import mill.api.ExecResult.OuterStack
 import mill.constants.OutFiles.millChromeProfile
 import mill.constants.OutFiles.millProfile
