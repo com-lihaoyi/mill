@@ -11,6 +11,7 @@ import mill.constants.OutFiles.millChromeProfile
 import mill.constants.OutFiles.millProfile
 import mill.api.Evaluator
 import mill.api.SelectMode
+import mill.exec.ExecutionContexts
 import mill.internal.JsonArrayLogger
 import mill.resolve.Resolve
 
@@ -149,7 +150,8 @@ class UnitTester(
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
     Evaluator.withCurrentEvaluator(evaluator) {
-      Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated)
+      Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated,
+        ec = ExecutionContexts.RunNow)
     } match {
       case Result.Failure(err) => Left(ExecResult.Failure(err))
       case Result.Success(resolved) => apply(resolved)

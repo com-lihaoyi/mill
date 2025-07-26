@@ -6,7 +6,7 @@ import mill.constants.OutFiles.*
 import mill.api.{PathRef, *}
 import mill.api.internal.{ResolveChecker, RootModule0}
 import mill.api.daemon.Watchable
-import mill.exec.{Execution, PlanImpl}
+import mill.exec.{Execution, ExecutionContexts, PlanImpl}
 import mill.internal.PrefixLogger
 import mill.resolve.Resolve
 
@@ -59,7 +59,8 @@ final class EvaluatorImpl private[mill] (
         scriptArgs,
         selectMode,
         allowPositionalCommandArgs,
-        resolveToModuleTasks
+        resolveToModuleTasks,
+        (execution.ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_)))
       )
     }
   }
@@ -81,7 +82,8 @@ final class EvaluatorImpl private[mill] (
           scriptArgs,
           selectMode,
           allowPositionalCommandArgs,
-          resolveToModuleTasks
+          resolveToModuleTasks,
+          (execution.ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_)))
         )
       }
     }
@@ -99,7 +101,8 @@ final class EvaluatorImpl private[mill] (
           scriptArgs,
           selectMode,
           allowPositionalCommandArgs,
-          resolveToModuleTasks
+          resolveToModuleTasks,
+          (execution.ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_)))
         )
       }
     }
@@ -259,7 +262,8 @@ final class EvaluatorImpl private[mill] (
             rootModule,
             scriptArgs,
             selectMode,
-            allowPositionalCommandArgs
+            allowPositionalCommandArgs,
+            ec = (execution.ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_)))
           )
         }
       }

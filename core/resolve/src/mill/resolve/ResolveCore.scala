@@ -1,10 +1,15 @@
 package mill.resolve
 
 import mill.api.*
-import mill.api.internal.{RootModule0, Reflect}
+import mill.api.TaskCtx.Fork
+import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
+import mill.api.internal.{Reflect, RootModule0}
+import mill.internal.DummyLogger
+import os.Path
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * Takes a single list of segments, without braces but including wildcards, and
@@ -87,13 +92,13 @@ private object ResolveCore {
       decodedNames.getOrElseUpdate(s, scala.reflect.NameTransformer.decode(s))
     }
 
-    def getMethods(cls: Class[?], noParams: Boolean, inner: Class[?]): Array[(Method, String)] = {
-      methods.getOrElseUpdate(
-        (cls, noParams, inner),
-        Reflect.getMethods(cls, noParams, inner, decode)
-      )
-
-    }
+    def getMethods(cls: Class[?], noParams: Boolean, inner: Class[?]): Array[(Method, String)] =
+      synchronized{
+        methods.getOrElseUpdate(
+          (cls, noParams, inner),
+          Reflect.getMethods(cls, noParams, inner, decode)
+        )
+      }
   }
 
   def catchWrapException[T](t: => T): mill.api.Result[T] = {
@@ -119,50 +124,58 @@ private object ResolveCore {
       current: Resolved,
       querySoFar: Segments,
       seenModules: Set[Class[?]],
-      cache: Cache
-  ): Result = {
-
+      cache: Cache,
+  )(implicit ec: ExecutionContext): Future[Result] = {
     def moduleClasses(resolved: Iterable[Resolved]): Set[Class[?]] = {
       resolved.collect { case Resolved.Module(_, cls) => cls }.toSet
     }
 
     remainingQuery match {
-      case Nil => Success(Seq(current))
+      case Nil => Future.successful(Success(Seq(current)))
       case head :: tail =>
-        def recurse(searchModules: Seq[Resolved]): Result = {
-          val (failures, successesLists) = searchModules
-            .map { r =>
-              val rClasses = moduleClasses(Set(r))
-              if (seenModules.intersect(rClasses).nonEmpty) {
-                Error(cyclicModuleErrorMsg(r.segments))
-              } else {
-                resolve(
-                  rootModule,
-                  tail,
-                  r,
-                  querySoFar ++ Seq(head),
-                  // `foo.__` wildcards can refer to `foo` as well, so make sure we don't
-                  // mark it as seen to avoid spurious cyclic module reference errors
-                  seenModules ++ moduleClasses(Option.when(r != current)(current)),
-                  cache
-                )
+        def recurse(searchModules: Seq[Resolved]): Future[Result] = {
+          val sequenced =
+            searchModules
+              .map { r =>
+                val rClasses = moduleClasses(Set(r))
+                Future{
+                  if (seenModules.intersect(rClasses).nonEmpty) {
+                    Future.successful(Error(cyclicModuleErrorMsg(r.segments)))
+                  } else {
+                    resolve(
+                      rootModule,
+                      tail,
+                      r,
+                      querySoFar ++ Seq(head),
+                      // `foo.__` wildcards can refer to `foo` as well, so make sure we don't
+                      // mark it as seen to avoid spurious cyclic module reference errors
+                      seenModules ++ moduleClasses(Option.when(r != current)(current)),
+                      cache
+                    )
+                  }
+                }
               }
-            }
-            .partitionMap {
+
+
+
+          Future.sequence(sequenced.map(_.flatten))
+            .map(
+            _.partitionMap {
               case s: Success => Right(s.value)
               case f: Failed => Left(f)
             }
+          ).map{(failures, successesLists) =>
+            val (errors, notFounds) = failures.partitionMap {
+              case s: NotFound => Right(s)
+              case s: Error => Left(s.msg)
+            }
 
-          val (errors, notFounds) = failures.partitionMap {
-            case s: NotFound => Right(s)
-            case s: Error => Left(s.msg)
-          }
-
-          if (errors.nonEmpty) Error(errors.mkString("\n"))
-          else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
-          else notFounds.size match {
-            case 1 => notFounds.head
-            case _ => notFoundResult(rootModule, querySoFar, current, head, cache)
+            if (errors.nonEmpty) Error(errors.mkString("\n"))
+            else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
+            else notFounds.size match {
+              case 1 => notFounds.head
+              case _ => notFoundResult(rootModule, querySoFar, current, head, cache)
+            }
           }
 
         }
@@ -240,7 +253,7 @@ private object ResolveCore {
             }
 
             resOrErr match {
-              case mill.api.Result.Failure(err) => Error(err)
+              case mill.api.Result.Failure(err) => Future.successful(Error(err))
               case mill.api.Result.Success(res) => recurse(res.distinct)
             }
 
@@ -265,7 +278,7 @@ private object ResolveCore {
                     }
                   )
               } match {
-                case mill.api.Result.Failure(err) => Error(err)
+                case mill.api.Result.Failure(err) => Future.successful(Error(err))
                 case mill.api.Result.Success(searchModules) =>
                   recurse(
                     searchModules
@@ -273,9 +286,9 @@ private object ResolveCore {
                   )
               }
 
-            } else notFoundResult(rootModule, querySoFar, current, head, cache)
+            } else Future.successful(notFoundResult(rootModule, querySoFar, current, head, cache))
 
-          case _ => notFoundResult(rootModule, querySoFar, current, head, cache)
+          case _ =>Future.successful( notFoundResult(rootModule, querySoFar, current, head, cache))
         }
     }
   }
