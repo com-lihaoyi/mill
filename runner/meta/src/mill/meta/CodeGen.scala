@@ -69,7 +69,9 @@ object CodeGen {
           // resolve logic to traverse, cannot actually be evaluated and used
           val lhs = backtickWrap(c)
           val rhs = s"${pkgSelector2(Some(c))}.package_"
-          s"final lazy val $lhs: $rhs.type = $rhs // subfolder module reference"
+          // Leave a space between `lhs` and `:` in case `lhs` ends with a `_`, since
+          // without the space they would be parsed as one token and fail compilation
+          s"final lazy val $lhs : $rhs.type = $rhs // subfolder module reference"
         }
         .mkString("\n")
 
