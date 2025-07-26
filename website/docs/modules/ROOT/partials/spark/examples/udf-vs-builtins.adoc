@@ -1,0 +1,37 @@
+=== UDF vs. built-ins
+
+Goal: show a simple UDF and the built-in alternative.
+
+[source,scala]
+----
+import org.apache.spark.sql.{SparkSession, functions => F}
+object Main extends App {
+  val spark = SparkSession.builder().appName("UDFs").master("local[*]").getOrCreate()
+  import spark.implicits._
+  val df = Seq(("a"),("bb"),("ccc")).toDF("s")
+  // UDF
+  val len = F.udf((x:String) => x.length)
+  val withUdf = df.withColumn("len_udf", len(F.col("s")))
+  // Built-in
+  val withBuiltin = withUdf.withColumn("len_builtin", F.length(F.col("s")))
+  withBuiltin.show(false)
+  spark.stop()
+}
+----
+
+.Expected output (example)
+[%collapsible]
+====
+[source,text]
+----
++---+--------+-----------+
+|s  |len_udf |len_builtin|
++---+--------+-----------+
+|a  |1       |1          |
+|bb |2       |2          |
+|ccc|3       |3          |
++---+--------+-----------+
+----
+====
+
+Pitfalls: Built-ins are faster and pushdown-friendly; prefer them unless you must use UDFs.
