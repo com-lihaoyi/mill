@@ -1,0 +1,40 @@
+=== WordCount (batch)
+
+Goal: read a small text, tokenise, count top words.
+
+[source,scala]
+----
+import org.apache.spark.sql.SparkSession
+object Main extends App {
+  val spark = SparkSession.builder().appName("WordCount").master("local[*]").getOrCreate()
+  import spark.implicits._
+  val lines = Seq("hello mill spark", "hello spark").toDS
+  val counts = lines.flatMap(_.split("\\s+")).groupByKey(identity).count().orderBy('value.asc)
+  counts.show(false)
+  spark.stop()
+}
+----
+
+Run:
+
+[source,bash]
+----
+mill sparkdemo.run
+----
+
+.Expected output (example)
+[%collapsible]
+====
+[source,text]
+----
++-----------+-----+
+|value      |count|
++-----------+-----+
+|hello      |2    |
+|mill       |1    |
+|spark      |2    |
++-----------+-----+
+----
+====
+
+Pitfalls: Ensure local mode (`master("local[*]")`) for quick runs; large inputs need `.repartition`.
