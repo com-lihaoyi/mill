@@ -1,0 +1,4 @@
+= Ollama JS
+// Minimal page; renders the snippets via partial include.
+
+include::partial$example/thirdparty/ollama-js.adoc[]
