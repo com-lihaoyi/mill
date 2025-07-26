@@ -542,13 +542,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
             scalaDocPluginMvnDeps()
           ) ++
           (
-            jvmWorker().scalaCompilerBridgeJar(
+            jvmWorker().scalaCompilerBridgeJarV2(
               scalaVersion(),
               scalaOrganization(),
               defaultResolver()
-            ) match {
-              case (opt, single) => opt.toSeq.flatten ++ Seq(single)
-            }
+            ).fullClasspath
           ) ++
           Task.sequence(tasks)().flatten
       ).distinct

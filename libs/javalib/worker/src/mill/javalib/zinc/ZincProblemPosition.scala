@@ -1,10 +1,9 @@
-package mill.javalib.worker
+package mill.javalib.zinc
+
+import mill.api.daemon.internal.{ProblemPosition, internal}
 
 import java.io.File
 import java.util.Optional
-import mill.api.daemon.internal.ProblemPosition
-import mill.api.daemon.internal.internal
-
 import scala.jdk.OptionConverters.RichOptional
 
 @internal
@@ -30,7 +29,7 @@ class ZincProblemPosition(base: xsbti.Position) extends ProblemPosition {
 object ZincProblemPosition {
 
   private implicit class ToIntOption(val opt: Optional[Integer]) extends AnyVal {
-    def toIntOption: Option[Int] = if (opt.isPresent()) Option(opt.get().intValue()) else None
+    def toIntOption: Option[Int] = if (opt.isPresent) Option(opt.get().intValue()) else None
   }
 
 }

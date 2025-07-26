@@ -1095,6 +1095,8 @@ trait JavaModule
     val files = Lib.findSourceFiles(docSources(), Seq("java"))
 
     if (files.nonEmpty) {
+      val javaHome = this.javaHome().map(_.path)
+
       val classPath = compileClasspath().iterator.map(_.path).filter(_.ext != "pom").toSeq
       val cpOptions =
         if (classPath.isEmpty) Seq()
@@ -1128,10 +1130,12 @@ trait JavaModule
           options
         }
 
+      Task.log.info(s"java home: ${javaHome.fold("default")(_.toString)}")
       Task.log.info("options: " + cmdArgs)
 
+      val cmd = Seq(Jvm.jdkTool("javadoc", javaHome)) ++ cmdArgs
       os.call(
-        cmd = Seq(Jvm.jdkTool("javadoc")) ++ cmdArgs,
+        cmd = cmd,
         env = Map(),
         cwd = Task.dest,
         stdin = os.Inherit,
