@@ -50,10 +50,7 @@ object MillRpcRequestId {
   given rw: upickle.default.ReadWriter[MillRpcRequestId] =
     upickle.default.readwriter[String].bimap(
       _.toString,
-      fromString(_) match {
-        case Left(err) => throw new IllegalArgumentException(err)
-        case Right(id) => id
-      }
+      fromString(_).fold(err => throw IllegalArgumentException(err), identity)
     )
 
   def initialForClient: MillRpcRequestId = apply(Vector(Part(Kind.Client, -1)))

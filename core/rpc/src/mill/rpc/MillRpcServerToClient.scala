@@ -3,7 +3,7 @@ package mill.rpc
 import upickle.default.{Reader, Writer}
 
 /** Protocol messages that are sent from server to the client. */
-enum MillRpcServerToClient[+Data] {
+enum MillRpcServerToClient[+Data] derives Reader, Writer {
 
   /** Response to a [[MillRpcClientToServer.Ask]] which either succeeded or failed. */
   case Response(id: MillRpcRequestId, data: Either[RpcThrowable, Data])
@@ -23,8 +23,4 @@ enum MillRpcServerToClient[+Data] {
 
   /** We want to send a message to the client's stderr. */
   case Stderr(msg: RpcConsole.Message)
-}
-object MillRpcServerToClient {
-  given reader[Data: Reader]: Reader[MillRpcServerToClient[Data]] = Reader.derived
-  given writer[Data: Writer]: Writer[MillRpcServerToClient[Data]] = Writer.derived
 }
