@@ -17,6 +17,14 @@ object Main extends App {
 }
 ----
 
+After starting the streaming app, prepare a folder and emit a sample row:
+
+[source,bash]
+----
+mkdir -p inbox
+echo "foo,1" > inbox/1.csv
+----
+
 .Expected output (example)
 [%collapsible]
 ====

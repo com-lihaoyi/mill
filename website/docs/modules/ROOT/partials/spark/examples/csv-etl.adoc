@@ -15,6 +15,13 @@ object Main extends App {
 }
 ----
 
+Before running, create a small sample CSV file:
+
+[source,bash]
+----
+printf "name,price\nitemA,10\nitemB,25\n" > example.csv
+----
+
 Run:
 
 [source,bash]
