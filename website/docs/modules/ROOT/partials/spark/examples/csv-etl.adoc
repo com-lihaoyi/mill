@@ -1,0 +1,39 @@
+=== CSV → Parquet ETL
+
+Goal: read CSV, select/transform, write Parquet.
+
+[source,scala]
+----
+import org.apache.spark.sql.{SparkSession, functions => F}
+object Main extends App {
+  val spark = SparkSession.builder().appName("CSV-ETL").master("local[*]").getOrCreate()
+  val df = spark.read.option("header","true").csv("example.csv")
+  val out = df.select(F.col("name"), F.col("price").cast("double")).withColumn("price_with_tax", F.col("price") * 1.21)
+  out.write.mode("overwrite").parquet("out/parquet")
+  out.show(5, truncate=false)
+  spark.stop()
+}
+----
+
+Run:
+
+[source,bash]
+----
+mill sparkdemo.run
+----
+
+.Expected output (example)
+[%collapsible]
+====
+[source,text]
+----
++-----+-----+---------------+
+|name |price|price_with_tax |
++-----+-----+---------------+
+|itemA|10.0 |12.1           |
+|itemB|25.0 |30.25          |
++-----+-----+---------------+
+----
+====
+
+Pitfalls: `header=true` for CSV; cast numeric columns before arithmetic.
