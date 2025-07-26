@@ -1,4 +1,4 @@
-= Spark examples with Mill — a practical guide
+\= Spark examples with Mill — a practical guide
 :page-nav-title: Spark examples
 :toc:
 
@@ -11,9 +11,9 @@ This guide shows runnable Spark examples using Mill. Each section provides a min
 import mill._, mill.scalalib._
 
 object sparkdemo extends ScalaModule {
-  def scalaVersion = "3.3.1"
+  def scalaVersion = "2.13.12"
   def ivyDeps = Agg(
-    ivy"org.apache.spark::spark-sql:3.5.1"  // use a recent Spark 3.5.x
+    ivy"org.apache.spark::spark-sql:3.5.1"
   )
 }
 ----
