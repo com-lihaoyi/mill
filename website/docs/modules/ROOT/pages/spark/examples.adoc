@@ -1,0 +1,39 @@
+= Spark examples with Mill — a practical guide
+:page-nav-title: Spark examples
+:toc:
+
+This guide shows runnable Spark examples using Mill. Each section provides a minimal build, a run command, real output, and pitfalls.
+
+== Setup (minimal Mill build)
+
+[source,scala]
+----
+import mill._, mill.scalalib._
+
+object sparkdemo extends ScalaModule {
+  def scalaVersion = "3.3.1"
+  def ivyDeps = Agg(
+    ivy"org.apache.spark::spark-sql:3.5.1"  // use a recent Spark 3.5.x
+  )
+}
+----
+
+From project root:
+
+[source,bash]
+----
+mill sparkdemo.run
+----
+
+== Examples
+
+include::partial$spark/examples/wordcount.adoc[]
+include::partial$spark/examples/csv-etl.adoc[]
+include::partial$spark/examples/joins-windows.adoc[]
+include::partial$spark/examples/udf-vs-builtins.adoc[]
+include::partial$spark/examples/streaming-file.adoc[]
+
+== See also
+
+Spark SQL, DataFrames and Datasets (official docs)  
+Mill documentation (module definition & running tasks)
