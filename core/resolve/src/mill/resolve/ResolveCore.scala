@@ -1,11 +1,7 @@
 package mill.resolve
 
 import mill.api.*
-import mill.api.TaskCtx.Fork
-import mill.api.daemon.internal.{CompileProblemReporter, TestReporter}
 import mill.api.internal.{Reflect, RootModule0}
-import mill.internal.DummyLogger
-import os.Path
 
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -93,7 +89,7 @@ private object ResolveCore {
     }
 
     def getMethods(cls: Class[?], noParams: Boolean, inner: Class[?]): Array[(Method, String)] =
-      synchronized{
+      synchronized {
         methods.getOrElseUpdate(
           (cls, noParams, inner),
           Reflect.getMethods(cls, noParams, inner, decode)
@@ -124,7 +120,7 @@ private object ResolveCore {
       current: Resolved,
       querySoFar: Segments,
       seenModules: Set[Class[?]],
-      cache: Cache,
+      cache: Cache
   )(implicit ec: ExecutionContext): Future[Result] = {
     def moduleClasses(resolved: Iterable[Resolved]): Set[Class[?]] = {
       resolved.collect { case Resolved.Module(_, cls) => cls }.toSet
@@ -138,7 +134,7 @@ private object ResolveCore {
             searchModules
               .map { r =>
                 val rClasses = moduleClasses(Set(r))
-                Future{
+                Future {
                   if (seenModules.intersect(rClasses).nonEmpty) {
                     Future.successful(Error(cyclicModuleErrorMsg(r.segments)))
                   } else {
@@ -156,27 +152,25 @@ private object ResolveCore {
                 }
               }
 
-
-
           Future.sequence(sequenced.map(_.flatten))
             .map(
-            _.partitionMap {
-              case s: Success => Right(s.value)
-              case f: Failed => Left(f)
-            }
-          ).map{(failures, successesLists) =>
-            val (errors, notFounds) = failures.partitionMap {
-              case s: NotFound => Right(s)
-              case s: Error => Left(s.msg)
-            }
+              _.partitionMap {
+                case s: Success => Right(s.value)
+                case f: Failed => Left(f)
+              }
+            ).map { (failures, successesLists) =>
+              val (errors, notFounds) = failures.partitionMap {
+                case s: NotFound => Right(s)
+                case s: Error => Left(s.msg)
+              }
 
-            if (errors.nonEmpty) Error(errors.mkString("\n"))
-            else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
-            else notFounds.size match {
-              case 1 => notFounds.head
-              case _ => notFoundResult(rootModule, querySoFar, current, head, cache)
+              if (errors.nonEmpty) Error(errors.mkString("\n"))
+              else if (successesLists.flatten.nonEmpty) Success(successesLists.flatten)
+              else notFounds.size match {
+                case 1 => notFounds.head
+                case _ => notFoundResult(rootModule, querySoFar, current, head, cache)
+              }
             }
-          }
 
         }
 
@@ -288,7 +282,7 @@ private object ResolveCore {
 
             } else Future.successful(notFoundResult(rootModule, querySoFar, current, head, cache))
 
-          case _ =>Future.successful( notFoundResult(rootModule, querySoFar, current, head, cache))
+          case _ => Future.successful(notFoundResult(rootModule, querySoFar, current, head, cache))
         }
     }
   }

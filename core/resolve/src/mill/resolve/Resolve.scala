@@ -2,11 +2,18 @@ package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
 import mill.api.internal.{Reflect, RootModule0}
-import mill.api.{DefaultTaskModule, Discover, Module, Segments, SelectMode, SimpleTaskTokenReader, Task}
+import mill.api.{
+  DefaultTaskModule,
+  Discover,
+  Module,
+  Segments,
+  SelectMode,
+  SimpleTaskTokenReader,
+  Task
+}
 import mill.api.Result
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 
-import scala.concurrent.ExecutionContext
 
 private[mill] object Resolve {
   object Segments extends Resolve[Segments] {
@@ -285,7 +292,14 @@ private[mill] trait Resolve[T] {
       resolveToModuleTasks: Boolean = false,
       ec: concurrent.ExecutionContext
   ): Result[List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks, ec)
+    resolve0(
+      rootModule,
+      scriptArgs,
+      selectMode,
+      allowPositionalCommandArgs,
+      resolveToModuleTasks,
+      ec
+    )
   }
 
   private[mill] def resolve0(
@@ -334,14 +348,17 @@ private[mill] trait Resolve[T] {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val cache = new ResolveCore.Cache()
     val resolved =
-      scala.concurrent.Await.result(ResolveCore.resolve(
-        rootModule = rootModule,
-        remainingQuery = sel.value.toList,
-        current = rootResolved,
-        querySoFar = Segments(),
-        seenModules = Set.empty,
-        cache = cache
-      )(ec),scala.concurrent.duration.Duration.Inf) match {
+      scala.concurrent.Await.result(
+        ResolveCore.resolve(
+          rootModule = rootModule,
+          remainingQuery = sel.value.toList,
+          current = rootResolved,
+          querySoFar = Segments(),
+          seenModules = Set.empty,
+          cache = cache
+        )(ec),
+        scala.concurrent.duration.Duration.Inf
+      ) match {
         case ResolveCore.Success(value) => Result.Success(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
           val allPossibleNames = rootModule

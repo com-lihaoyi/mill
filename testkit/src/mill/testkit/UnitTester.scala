@@ -150,8 +150,12 @@ class UnitTester(
 
   def apply(args: String*): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
     Evaluator.withCurrentEvaluator(evaluator) {
-      Resolve.Tasks.resolve(evaluator.rootModule, args, SelectMode.Separated,
-        ec = ExecutionContexts.RunNow)
+      Resolve.Tasks.resolve(
+        evaluator.rootModule,
+        args,
+        SelectMode.Separated,
+        ec = ExecutionContexts.RunNow
+      )
     } match {
       case Result.Failure(err) => Left(ExecResult.Failure(err))
       case Result.Success(resolved) => apply(resolved)
