@@ -1,0 +1,36 @@
+=== Structured Streaming (file source)
+
+Goal: tail a folder and print rows as they arrive.
+
+[source,scala]
+----
+import org.apache.spark.sql.{SparkSession, functions => F}
+object Main extends App {
+  val spark = SparkSession.builder().appName("StreamingFile").master("local[*]").getOrCreate()
+  import spark.implicits._
+  val schema = new org.apache.spark.sql.types.StructType().add("name","string").add("value","int")
+  val stream = spark.readStream.schema(schema).csv("inbox")
+  val q = stream.writeStream.format("console").outputMode("append").start()
+  // In another shell: echo "foo,1" > inbox/1.csv
+  q.awaitTermination(5*1000)
+  spark.stop()
+}
+----
+
+.Expected output (example)
+[%collapsible]
+====
+[source,text]
+----
+-------------------------------------------
+Batch: 0
+-------------------------------------------
++----+-----+
+|name|value|
++----+-----+
+|foo |1    |
++----+-----+
+----
+====
+
+Pitfalls: Streaming needs a stable schema; set `outputMode("append")` for append-only sources.
