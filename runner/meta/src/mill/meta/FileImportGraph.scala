@@ -91,7 +91,6 @@ object FileImportGraph {
       } catch {
         case ex: Throwable =>
           seenScripts(s) = ""
-          pprint.log(ex.getStackTrace.mkString("\n"))
           errors.append(ex.getClass.getName + " " + ex.getMessage)
       }
 

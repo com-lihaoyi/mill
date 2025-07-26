@@ -84,11 +84,10 @@ object ScalaSemanticDbTests extends TestSuite {
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
           val expectedSemFiles = semanticDbFiles.filter(_.ext != "class") ++ extraFiles.map(_._2)
-          pprint.log(outputFiles.toSet.filter(_.ext != "class"))
-          pprint.log(expectedSemFiles)
+          val filteredOutputFiles = outputFiles.toSet.filter(_.ext != "class")
           assert(
             result.value.path == dataPath,
-            outputFiles.toSet.filter(_.ext != "class") == expectedSemFiles,
+            filteredOutputFiles == expectedSemFiles,
             result.evalCount > 0
           )
         }
