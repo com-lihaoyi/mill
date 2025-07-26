@@ -3,6 +3,7 @@ package mill.resolve
 import mill.api.Result
 import mill.api.internal.RootModule0
 import mill.api.{SelectMode, Task}
+import mill.exec.ExecutionContexts
 import utest.*
 
 class Checker[T <: RootModule0](module: T) {
@@ -52,7 +53,8 @@ class Checker[T <: RootModule0](module: T) {
       selectorStrings,
       SelectMode.Separated,
       false,
-      false
+      false,
+      ec = ExecutionContexts.RunNow
     )
   }
 
@@ -62,7 +64,8 @@ class Checker[T <: RootModule0](module: T) {
       selectorStrings,
       SelectMode.Separated,
       false,
-      false
+      false,
+      ec = ExecutionContexts.RunNow
     ).map(_.map(_.render))
   }
 }

@@ -1,15 +1,15 @@
 package mill.resolve
 
 import mainargs.{MainData, TokenGrouping}
-import mill.api.internal.{RootModule0, Reflect}
+import mill.api.internal.{Reflect, RootModule0}
 import mill.api.{
+  DefaultTaskModule,
   Discover,
   Module,
-  Task,
   Segments,
   SelectMode,
-  DefaultTaskModule,
-  SimpleTaskTokenReader
+  SimpleTaskTokenReader,
+  Task
 }
 import mill.api.Result
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
@@ -288,9 +288,17 @@ private[mill] trait Resolve[T] {
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
-      resolveToModuleTasks: Boolean = false
+      resolveToModuleTasks: Boolean = false,
+      ec: concurrent.ExecutionContext
   ): Result[List[T]] = {
-    resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks)
+    resolve0(
+      rootModule,
+      scriptArgs,
+      selectMode,
+      allowPositionalCommandArgs,
+      resolveToModuleTasks,
+      ec
+    )
   }
 
   private[mill] def resolve0(
@@ -298,7 +306,8 @@ private[mill] trait Resolve[T] {
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean,
-      resolveToModuleTasks: Boolean
+      resolveToModuleTasks: Boolean,
+      ec: concurrent.ExecutionContext
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
@@ -311,7 +320,8 @@ private[mill] trait Resolve[T] {
               sel.getOrElse(Segments()),
               nullCommandDefaults,
               allowPositionalCommandArgs,
-              resolveToModuleTasks
+              resolveToModuleTasks,
+              ec
             )
           }
         }
@@ -331,18 +341,22 @@ private[mill] trait Resolve[T] {
       sel: Segments,
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean,
-      resolveToModuleTasks: Boolean
+      resolveToModuleTasks: Boolean,
+      ec: concurrent.ExecutionContext
   ): Result[Seq[T]] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val cache = new ResolveCore.Cache()
     val resolved =
-      ResolveCore.resolve(
-        rootModule = rootModule,
-        remainingQuery = sel.value.toList,
-        current = rootResolved,
-        querySoFar = Segments(),
-        seenModules = Set.empty,
-        cache = cache
+      scala.concurrent.Await.result(
+        ResolveCore.resolve(
+          rootModule = rootModule,
+          remainingQuery = sel.value.toList,
+          current = rootResolved,
+          querySoFar = Segments(),
+          seenModules = Set.empty,
+          cache = cache
+        )(ec),
+        scala.concurrent.duration.Duration.Inf
       ) match {
         case ResolveCore.Success(value) => Result.Success(value)
         case ResolveCore.NotFound(segments, found, next, possibleNexts) =>
