@@ -110,6 +110,7 @@ object `package` extends Module {
     object jvmcode extends Cross[ExampleCrossModule](build.listCross)
     object python extends Cross[ExampleCrossModule](build.listCross)
     object typescript extends Cross[ExampleCrossModule](build.listCross)
+    object evaluator extends Cross[ExampleCrossModule](build.listCross)
   }
 
   trait ExampleCrossModuleKotlin extends ExampleCrossModuleJava {
