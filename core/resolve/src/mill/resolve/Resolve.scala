@@ -283,7 +283,7 @@ private[mill] trait Resolve[T] {
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false,
-      ec: mill.api.TaskCtx.Fork.Impl
+      ec: concurrent.ExecutionContext
   ): Result[List[T]] = {
     resolve0(rootModule, scriptArgs, selectMode, allowPositionalCommandArgs, resolveToModuleTasks, ec)
   }
@@ -294,7 +294,7 @@ private[mill] trait Resolve[T] {
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean,
       resolveToModuleTasks: Boolean,
-      ec: mill.api.TaskCtx.Fork.Impl
+      ec: concurrent.ExecutionContext
   ): Result[List[T]] = {
     val nullCommandDefaults = selectMode == SelectMode.Multi
     val resolvedGroups = ParseArgs(scriptArgs, selectMode).flatMap { groups =>
@@ -329,7 +329,7 @@ private[mill] trait Resolve[T] {
       nullCommandDefaults: Boolean,
       allowPositionalCommandArgs: Boolean,
       resolveToModuleTasks: Boolean,
-      ec: mill.api.TaskCtx.Fork.Impl
+      ec: concurrent.ExecutionContext
   ): Result[Seq[T]] = {
     val rootResolved = ResolveCore.Resolved.Module(Segments(), rootModule.getClass)
     val cache = new ResolveCore.Cache()

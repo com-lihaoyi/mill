@@ -263,7 +263,7 @@ final class EvaluatorImpl private[mill] (
             scriptArgs,
             selectMode,
             allowPositionalCommandArgs,
-            ec = (execution.ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_)))
+            ec = scala.concurrent.ExecutionContext.global
           )
         }
       }
