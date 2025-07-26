@@ -233,7 +233,7 @@ There are two kinds of sandboxing that monorepo build tools like Bazel do:
    (e.g. https://en.wikipedia.org/wiki/Cgroups[CGroups] on Linux,
    https://www.chromium.org/developers/design-documents/sandbox/osx-sandboxing-design/[Seatbelt Sandboxes] on Mac-OSX).
 
-1. *Resource sandboxing*: Bazel also has the ability to limit CPU/Memory usage
+2. *Resource sandboxing*: Bazel also has the ability to limit CPU/Memory usage
   (https://github.com/bazelbuild/bazel/pull/21322), which eliminates the noisy neighbour
    problem and ensures a build step or test gets the same compute footprint whether run alone
    during development or 96x parallel on a CI worker.
