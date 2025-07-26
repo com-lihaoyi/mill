@@ -162,5 +162,5 @@ Pitfalls:
 
 == See also
 
-* xref:extending/evaluator.adoc[Evaluator (experimental)]
-* xref:reference/evaluation-model.adoc[Evaluation model overview]
+* Evaluator (experimental)
+* Evaluation model overview
