@@ -1,0 +1,37 @@
+=== Joins & Window aggregate
+
+Goal: join tiny DataFrames and compute per-customer spend.
+
+[source,scala]
+----
+import org.apache.spark.sql.{SparkSession, functions => F}
+import org.apache.spark.sql.expressions.Window
+object Main extends App {
+  val spark = SparkSession.builder().appName("JoinsWindows").master("local[*]").getOrCreate()
+  import spark.implicits._
+  val customers = Seq((1,"A"), (2,"B")).toDF("id","name")
+  val orders = Seq((1,100.0),(1,50.0),(2,25.0)).toDF("cid","amount")
+  val joined = customers.join(orders, customers("id") === orders("cid"))
+  val w = Window.partitionBy("id")
+  val out = joined.withColumn("total", F.sum("amount").over(w)).select("id","name","amount","total").orderBy("id","amount")
+  out.show(false)
+  spark.stop()
+}
+----
+
+.Expected output (example)
+[%collapsible]
+====
+[source,text]
+----
++---+----+------+-----+
+|id |name|amount|total|
++---+----+------+-----+
+|1  |A   |50.0  |150.0|
+|1  |A   |100.0 |150.0|
+|2  |B   |25.0  |25.0 |
++---+----+------+-----+
+----
+====
+
+Pitfalls: Avoid ambiguous column names after joins (`customers("id") === orders("cid")`).
