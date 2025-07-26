@@ -84,6 +84,8 @@
 // breaking out on its own
 * Extending Mill
 ** xref:extending/import-mvn-plugins.adoc[]
+** xref:extending/evaluator-examples.adoc[Evaluator commands]
+
 ** xref:extending/contrib-plugins.adoc[]
 // See also the list in Contrib_Plugins.adoc
 *** xref:contrib/artifactory.adoc[]

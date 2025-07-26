@@ -1,0 +1,121 @@
+= Evaluator API examples
+:toc: macro
+
+This page provides runnable examples for Mill’s Evaluator commands introduced in Mill 0.13. Use these when building custom integrations or tooling.
+
+== resolveSegments
+
+When to use: translate user‑facing task strings into internal segments.
+
+[source,scala]
+----
+val eval = new mill.api.Evaluator(os.pwd / "demo-build")
+val segments = eval.resolveSegments("foo.compile")
+println(segments)
+----
+
+Expected output:
+
+[source]
+----
+List(Segment.Label("foo"), Segment.Label("compile"))
+----
+
+Pitfalls:
+
+* The selector string must refer to existing modules or tasks; invalid names will throw an exception.
+* For multiple tasks separated by commas, `resolveSegments` returns one entry per selector.
+
+== resolveTasks
+
+When to use: convert segments into `Task` objects.
+
+[source,scala]
+----
+val segments = eval.resolveSegments("foo.compile")
+val tasks = eval.resolveTasks(segments)
+tasks.foreach(t => println(t.target.readableString))
+----
+
+Expected output:
+
+[source]
+----
+foo.compile
+----
+
+Pitfalls:
+
+* If any segment does not correspond to a task, an exception is thrown.
+* A single segment can resolve to multiple tasks (e.g., commands vs. targets).
+
+== plan
+
+When to use: build the evaluation plan and inspect which targets will run before executing.
+
+[source,scala]
+----
+val segments = eval.resolveSegments("foo.compile")
+val tasks = eval.resolveTasks(segments)
+val plan = eval.plan(tasks)
+// Print the ordered list of tasks to be evaluated
+plan.evaluationOrder.foreach(t => println(t.readableString))
+----
+
+Expected output:
+
+[source]
+----
+foo.compile
+// followed by dependent tasks such as foo.sources, mill.scalalib.ZincWorkerModule.worker, etc.
+----
+
+Pitfalls:
+
+* The plan only computes the graph; it does not run anything.
+* Large builds may generate large plans; avoid printing huge lists in production.
+
+== execute
+
+When to use: actually run the tasks computed by `plan`.
+
+[source,scala]
+----
+val plan = eval.plan(eval.resolveTasks(eval.resolveSegments("foo.compile")))
+val results = eval.execute(plan)
+println(results.failing.size)  // number of failing tasks (0 on success)
+----
+
+Expected output:
+
+[source]
+----
+0
+----
+
+Pitfalls:
+
+* Execution is incremental; the evaluator reuses cached results if nothing has changed.
+* Use appropriate reporters/interceptors if you need custom logging or progress.
+
+== evaluate
+
+When to use: convenience method to resolve, plan and execute in one call (similar to CLI).
+
+[source,scala]
+----
+val results = eval.evaluate("foo.compile")
+println(results.failing.size)
+----
+
+Expected output:
+
+[source]
+----
+0
+----
+
+Pitfalls:
+
+* Accepts multiple comma‑separated selectors; results are aggregated.
+* Exceptions from resolution or execution are propagated directly.
