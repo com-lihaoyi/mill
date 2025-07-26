@@ -1,7 +1,35 @@
 = Evaluator API examples
-:toc: macro
+:page-nav-title: Evaluator API examples
+:toc:
 
-This page provides runnable examples for Mill’s Evaluator commands introduced in Mill 0.13. Use these when building custom integrations or tooling.
+This page provides runnable examples for Mill’s Evaluator APIs introduced in Mill 0.13. Use these when building custom integrations or tooling.
+
+== Setup
+
+Requires Mill **0.13+**.
+
+Create a minimal `build.mill`:
+
+[source,scala]
+----
+import mill._, mill.scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "3.3.1"
+}
+----
+
+From the project root, compile once so tasks exist:
+
+[source,bash]
+----
+mill foo.compile
+----
+
+[NOTE]
+====
+The snippets below use the public `mill.eval` API. Depending on your integration you may reference `mill.eval.Evaluator` or an implementation such as `EvaluatorImpl`. Import statements are shown inline so you can copy‑paste.
+====
 
 == resolveSegments
 
@@ -9,22 +37,25 @@ When to use: translate user‑facing task strings into internal segments.
 
 [source,scala]
 ----
-val eval = new mill.api.Evaluator(os.pwd / "demo-build")
+import mill.eval._
+val eval = /* obtain Evaluator bound to your workspace */
 val segments = eval.resolveSegments("foo.compile")
 println(segments)
 ----
 
-Expected output:
-
-[source]
+.Expected output (example)
+[%collapsible]
+====
+[source,scala]
 ----
 List(Segment.Label("foo"), Segment.Label("compile"))
 ----
+====
 
 Pitfalls:
 
-* The selector string must refer to existing modules or tasks; invalid names will throw an exception.
-* For multiple tasks separated by commas, `resolveSegments` returns one entry per selector.
+* The selector string must refer to existing modules or tasks; invalid names throw.
+* For multiple selectors separated by commas, `resolveSegments` yields one entry per selector.
 
 == resolveTasks
 
@@ -32,22 +63,24 @@ When to use: convert segments into `Task` objects.
 
 [source,scala]
 ----
-val segments = eval.resolveSegments("foo.compile")
+import mill.eval._
 val tasks = eval.resolveTasks(segments)
 tasks.foreach(t => println(t.target.readableString))
 ----
 
-Expected output:
-
-[source]
+.Expected output (example)
+[%collapsible]
+====
+[source,scala]
 ----
 foo.compile
 ----
+====
 
 Pitfalls:
 
-* If any segment does not correspond to a task, an exception is thrown.
-* A single segment can resolve to multiple tasks (e.g., commands vs. targets).
+* If any segment does not correspond to a task, resolution fails.
+* One segment can expand into multiple tasks.
 
 == plan
 
@@ -55,25 +88,27 @@ When to use: build the evaluation plan and inspect which targets will run before
 
 [source,scala]
 ----
-val segments = eval.resolveSegments("foo.compile")
-val tasks = eval.resolveTasks(segments)
+import mill.eval._
 val plan = eval.plan(tasks)
 // Print the ordered list of tasks to be evaluated
 plan.evaluationOrder.foreach(t => println(t.readableString))
 ----
 
-Expected output:
-
-[source]
+.Expected output (example)
+[%collapsible]
+====
+[source,scala]
 ----
 foo.compile
-// followed by dependent tasks such as foo.sources, mill.scalalib.ZincWorkerModule.worker, etc.
+foo.sources
+# ... actual dependent tasks as produced by your build
 ----
+====
 
 Pitfalls:
 
-* The plan only computes the graph; it does not run anything.
-* Large builds may generate large plans; avoid printing huge lists in production.
+* `plan` only computes the graph; it does not run anything.
+* Large builds may print large plans; avoid dumping in production.
 
 == execute
 
@@ -81,22 +116,24 @@ When to use: actually run the tasks computed by `plan`.
 
 [source,scala]
 ----
-val plan = eval.plan(eval.resolveTasks(eval.resolveSegments("foo.compile")))
+import mill.eval._
 val results = eval.execute(plan)
 println(results.failing.size)  // number of failing tasks (0 on success)
 ----
 
-Expected output:
-
-[source]
+.Expected output (example)
+[%collapsible]
+====
+[source,scala]
 ----
 0
 ----
+====
 
 Pitfalls:
 
-* Execution is incremental; the evaluator reuses cached results if nothing has changed.
-* Use appropriate reporters/interceptors if you need custom logging or progress.
+* Execution is incremental; cached results are reused if nothing changed.
+* Use reporters/interceptors if you need custom logging or progress.
 
 == evaluate
 
@@ -104,18 +141,26 @@ When to use: convenience method to resolve, plan and execute in one call (simila
 
 [source,scala]
 ----
+import mill.eval._
 val results = eval.evaluate("foo.compile")
 println(results.failing.size)
 ----
 
-Expected output:
-
-[source]
+.Expected output (example)
+[%collapsible]
+====
+[source,scala]
 ----
 0
 ----
+====
 
 Pitfalls:
 
 * Accepts multiple comma‑separated selectors; results are aggregated.
-* Exceptions from resolution or execution are propagated directly.
+* Exceptions from resolution or execution propagate directly.
+
+== See also
+
+* xref:extending/evaluator.adoc[Evaluator (experimental)]
+* xref:reference/evaluation-model.adoc[Evaluation model overview]
