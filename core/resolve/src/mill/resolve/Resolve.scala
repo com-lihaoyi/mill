@@ -14,7 +14,6 @@ import mill.api.{
 import mill.api.Result
 import mill.resolve.ResolveCore.{Resolved, makeResultException}
 
-
 private[mill] object Resolve {
   object Segments extends Resolve[Segments] {
     private[mill] def handleResolved(
