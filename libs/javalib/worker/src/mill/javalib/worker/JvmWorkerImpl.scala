@@ -2,20 +2,19 @@ package mill.javalib.worker
 
 import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
+import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.{
-  JavaCompilerOptions,
   JavaRuntimeOptions,
   ZincCompileJava,
   ZincCompileMixed,
-  ZincScaladocJar
+  ZincScaladocJar,
+  JvmWorkerApi
 }
-import mill.javalib.api.{CompilationResult, JvmWorkerApi}
-import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
+import mill.javalib.internal.{JvmWorkerApi, JvmWorkerArgs, RpcCompileProblemReporterMessage}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
 import mill.util.{CachedFactoryWithInitData, Jvm}
-import os.Path
 import sbt.internal.util.ConsoleOut
 
 @internal
@@ -144,11 +143,10 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       zincCtx: ZincWorker.InvocationContext,
       log: Logger
   ): ZincApi = {
-    val zincDeps =
-      ZincWorker.InvocationDependencies(
-        log = log,
-        consoleOut = ConsoleOut.printStreamOut(log.streams.err)
-      )
+    val zincDeps = ZincWorker.InvocationDependencies(
+      log = log,
+      consoleOut = ConsoleOut.printStreamOut(log.streams.err)
+    )
 
     zincLocalWorker.api(compilerBridgeData = ())(using zincCtx, zincDeps)
   }
