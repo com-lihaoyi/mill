@@ -13,8 +13,8 @@ import java.net.{InetAddress, Socket}
 import scala.jdk.CollectionConverters.*
 import scala.util.Try
 import scala.util.Using
-
 import java.util.concurrent.atomic.AtomicBoolean
+import scala.util.control.NonFatal
 
 /**
  * Models a long-lived server that receives requests from a client and calls a [[main0]]
@@ -32,7 +32,7 @@ abstract class Server[T](
   def outLock: mill.client.lock.Lock
   def out: os.Path
 
-  var stateCache = stateCache0
+  private var stateCache: T = stateCache0
   def stateCache0: T
 
   var lastMillVersion = Option.empty[String]
@@ -70,14 +70,15 @@ abstract class Server[T](
         object ConnectionTracker {
           private var activeConnections = 0
           private var inactiveTimestampOpt: Option[Long] = None
-          def wrap(t: => Unit) = synchronized { if (!serverSocket.isClosed) { t } }
-          def increment() = wrap {
+          def wrap(t: => Unit): Unit = synchronized { if (!serverSocket.isClosed) { t } }
+
+          def increment(): Unit = wrap {
             activeConnections += 1
             serverLog(s"$activeConnections active connections")
             inactiveTimestampOpt = None
           }
 
-          def decrement() = wrap {
+          def decrement(): Unit = wrap {
             activeConnections -= 1
             serverLog(s"$activeConnections active connections")
             if (activeConnections == 0) {
@@ -85,7 +86,7 @@ abstract class Server[T](
             }
           }
 
-          def closeIfTimedOut() = wrap {
+          def closeIfTimedOut(): Unit = wrap {
             inactiveTimestampOpt.foreach { inactiveTimestamp =>
               if (System.currentTimeMillis() - inactiveTimestamp > acceptTimeoutMillis) {
                 serverLog(s"shutting down due inactivity")
@@ -301,6 +302,7 @@ abstract class Server[T](
       t.interrupt()
       // Try to give thread a moment to stop before we kill it for real
       Thread.sleep(5)
+      // noinspection ScalaDeprecation
       try t.stop()
       catch {
         case _: UnsupportedOperationException =>
@@ -316,7 +318,8 @@ abstract class Server[T](
     } finally {
       try writeExitCode(1) // Send a termination if it has not already happened
       catch {
-        case _: Throwable => /*donothing*/
+        // TODO review: _ changed to NonFatal
+        case NonFatal(_) => /*donothing*/
       }
     }
   }
@@ -336,7 +339,8 @@ abstract class Server[T](
 }
 
 object Server {
-  def computeProcessId() = "pid" + ProcessHandle.current().pid()
+  def computeProcessId(): String = "pid" + ProcessHandle.current().pid()
+
   def checkProcessIdFile(processIdFile: os.Path, processId: String): Option[String] = {
     Try(os.read(processIdFile)) match {
       case scala.util.Failure(_) => Some(s"processId file missing")
@@ -397,14 +401,15 @@ object Server {
       def activeTaskString =
         try os.read(out / OutFiles.millActiveCommand)
         catch {
-          case _ => "<unknown>"
+          // TODO review: _ changed to NonFatal
+          case NonFatal(_) => "<unknown>"
         }
 
       def activeTaskPrefix = s"Another Mill process is running '$activeTaskString',"
 
       Using.resource {
         val tryLocked = outLock.tryLock()
-        if (tryLocked.isLocked()) tryLocked
+        if (tryLocked.isLocked) tryLocked
         else if (noWaitForBuildLock) throw new Exception(s"$activeTaskPrefix failing")
         else {
           streams.err.println(s"$activeTaskPrefix waiting for it to be done...")

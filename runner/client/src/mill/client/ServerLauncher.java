@@ -8,6 +8,11 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import mill.client.lock.Locked;
 import mill.client.lock.Locks;
 import mill.constants.DaemonFiles;
 import mill.constants.InputPumper;
@@ -17,9 +22,9 @@ import mill.constants.Util;
 /**
  * Client side code that interacts with `Server.scala` in order to launch a generic
  * long-lived background daemon.
- *
+ * <p>
  * The protocol is as follows:
- *
+ * <code><pre>
  * - Client:
  *   - Take launcherLock
  *   - If daemonLock is not yet taken, it means server is not running, so spawn a server
@@ -38,6 +43,7 @@ import mill.constants.Util;
  * - Client:
  *   - Wait for `ProxyStream.END` packet or `clientSocket.close()`,
  *     indicating server has finished execution and all data has been received
+ * </pre></code>
  */
 public abstract class ServerLauncher {
   public static class Result {
@@ -109,13 +115,39 @@ public abstract class ServerLauncher {
   }
 
   Socket launchConnectToServer(Path daemonDir) throws Exception {
+    return launchConnectToServer(
+      memoryLock != null ? memoryLock : Locks.files(daemonDir.toString()),
+      daemonDir,
+      serverInitWaitMillis,
+      () -> {
+        try {
+          return initServer(daemonDir, memoryLock);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      }
+    );
+  }
 
-    try (Locks locks = memoryLock != null ? memoryLock : Locks.files(daemonDir.toString());
-        mill.client.lock.Locked locked = locks.launcherLock.lock()) {
-
+  /**
+   * Establishes a connection to the Mill server by acquiring necessary locks and potentially
+   * starting a new server process if one is not already running.
+   *
+   * @param daemonDir the directory where daemon-related files are stored
+   * @param serverInitWaitMillis maximum amount of time to wait for the server to start
+   * @return a Socket connected to the Mill server
+   * @throws Exception if the server fails to start or a connection cannot be established
+   */
+  static Socket launchConnectToServer(
+    Locks locks, Path daemonDir,
+    int serverInitWaitMillis,
+    Supplier<Process> initServer
+  ) throws Exception {
+    try (Locked ignored = locks.launcherLock.lock()) {
       Process daemonProcess = null;
 
-      if (locks.daemonLock.probe()) daemonProcess = initServer(daemonDir, locks);
+      if (locks.daemonLock.probe()) daemonProcess = initServer.get();
+
       while (locks.daemonLock.probe()) {
         if (daemonProcess != null && !daemonProcess.isAlive()) {
           System.err.println("Mill daemon exited unexpectedly!");
@@ -138,9 +170,11 @@ public abstract class ServerLauncher {
           }
           System.exit(1);
         }
+        //noinspection BusyWait
         Thread.sleep(1);
       }
     }
+
     long retryStart = System.currentTimeMillis();
     Socket ioSocket = null;
     Throwable socketThrowable = null;
@@ -150,12 +184,15 @@ public abstract class ServerLauncher {
         ioSocket = new java.net.Socket(InetAddress.getLoopbackAddress(), port);
       } catch (Throwable e) {
         socketThrowable = e;
+        //noinspection BusyWait
         Thread.sleep(1);
       }
     }
+
     if (ioSocket == null) {
       throw new Exception("Failed to connect to server", socketThrowable);
     }
+
     return ioSocket;
   }
 
@@ -166,8 +203,8 @@ public abstract class ServerLauncher {
     }
   }
 
-  class PumperThread extends Thread {
-    ProxyStream.Pumper runnable;
+  static class PumperThread extends Thread {
+    final ProxyStream.Pumper runnable;
 
     public PumperThread(ProxyStream.Pumper runnable, String name) {
       super(runnable, name);
