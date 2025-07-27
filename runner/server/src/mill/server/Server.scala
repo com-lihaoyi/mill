@@ -22,7 +22,7 @@ import scala.util.control.NonFatal
  * JVM properties, wrapped input/output streams, and other metadata related to the
  * client command
  */
-abstract class Server[T](
+abstract class Server[State](
     daemonDir: os.Path,
     acceptTimeoutMillis: Int,
     locks: Locks,
@@ -32,12 +32,15 @@ abstract class Server[T](
   def outLock: mill.client.lock.Lock
   def out: os.Path
 
-  private var stateCache: T = stateCache0
-  def stateCache0: T
+  private var stateCache: State = stateCache0
+
+  /** Initial state. */
+  def stateCache0: State
 
   var lastMillVersion = Option.empty[String]
   var lastJavaVersion = Option.empty[String]
   val processId: String = Server.computeProcessId()
+
   def serverLog0(s: String): Unit = {
     if (os.exists(daemonDir) || testLogEvenWhenServerIdWrong) {
       os.write.append(daemonDir / DaemonFiles.serverLog, s"$s\n", createFolders = true)
@@ -177,6 +180,11 @@ abstract class Server[T](
     pipedInput
   }
 
+  /**
+   * @param systemExit stops the current process exiting with the provided exit code
+   * @param initialSystemProperties [[scala.sys.SystemProperties]] that have been obtained at the start of the server process
+   * @param serverSocketClose closes the server socket
+   */
   def handleRun(
       systemExit: Int => Nothing,
       clientSocket: Socket,
@@ -185,6 +193,7 @@ abstract class Server[T](
   ): Unit = {
     val currentOutErr = clientSocket.getOutputStream
     val writtenExitCode = AtomicBoolean()
+
     def writeExitCode(code: Int) = {
       if (!writtenExitCode.getAndSet(true)) {
         ProxyStream.sendEnd(currentOutErr, code)
@@ -199,7 +208,8 @@ abstract class Server[T](
         ProxyStream.sendHeartbeat(currentOutErr)
         true
       } catch {
-        case _: Throwable => false
+        // TODO review: _ changed to NonFatal
+        case NonFatal(_) => false
       }
     }
 
@@ -208,16 +218,12 @@ abstract class Server[T](
       val stderr = new PrintStream(new Output(currentOutErr, ProxyStream.ERR), true)
 
       val socketIn = clientSocket.getInputStream
+      val initData = Server.ConnectionInitData.read(socketIn)
+      import initData.*
 
-      val interactive = socketIn.read() != 0
-      val clientMillVersion = ClientUtil.readString(socketIn)
-      val clientJavaVersion = ClientUtil.readString(socketIn)
-      val args = ClientUtil.parseArgs(socketIn)
-      val env = ClientUtil.parseMap(socketIn)
       serverLog("args " + upickle.default.write(args))
-      serverLog("env " + upickle.default.write(env.asScala))
-      val userSpecifiedProperties = ClientUtil.parseMap(socketIn)
-      serverLog("props " + upickle.default.write(userSpecifiedProperties.asScala))
+      serverLog("env " + upickle.default.write(env))
+      serverLog("props " + upickle.default.write(userSpecifiedProperties))
       // Proxy the input stream through a pair of Piped**putStream via a pumper,
       // as the `UnixDomainSocketInputStream` we get directly from the socket does
       // not properly implement `available(): Int` and thus messes up polling logic
@@ -267,9 +273,9 @@ abstract class Server[T](
               stateCache,
               interactive,
               new SystemStreams(stdout, stderr, proxiedSocketInput),
-              env.asScala.toMap,
+              env.toMap,
               idle = _,
-              userSpecifiedProperties.asScala.toMap,
+              userSpecifiedProperties.toMap,
               initialSystemProperties,
               systemExit = exitCode => {
                 writeExitCode(exitCode)
@@ -326,7 +332,7 @@ abstract class Server[T](
 
   def main0(
       args: Array[String],
-      stateCache: T,
+      stateCache: State,
       mainInteractive: Boolean,
       streams: SystemStreams,
       env: Map[String, String],
@@ -334,7 +340,7 @@ abstract class Server[T](
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
       systemExit: Int => Nothing
-  ): (Boolean, T)
+  ): (Boolean, State)
 
 }
 
@@ -422,5 +428,4 @@ object Server {
       }
     }
   }
-
 }

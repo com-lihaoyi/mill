@@ -1,7 +1,6 @@
 package mill.client;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -16,32 +15,28 @@ import mill.constants.InputPumper;
 import mill.constants.ProxyStream;
 import mill.constants.Util;
 
-/**
- * Client side code that interacts with `Server.scala` in order to launch a generic
- * long-lived background daemon.
- * <p>
- * The protocol is as follows:
- * <code><pre>
- * - Client:
- *   - Take launcherLock
- *   - If daemonLock is not yet taken, it means server is not running, so spawn a server
- *   - Wait for server socket to be available for connection
- * - Server:
- *   - Take daemonLock.
- *     - If already taken, it means another server was running
- *       (e.g. spawned by a different client) so exit immediately
- * - Server: loop:
- *   - Listen for incoming client requests on serverSocket
- *   - Execute client request
- *   - If launcherLock is released during execution, terminate server (otherwise
- *     we have no safe way of terminating the in-process request, so the server
- *     may continue running for arbitrarily long with no client attached)
- *   - Send `ProxyStream.END` packet and call `clientSocket.close()`
- * - Client:
- *   - Wait for `ProxyStream.END` packet or `clientSocket.close()`,
- *     indicating server has finished execution and all data has been received
- * </pre></code>
- */
+/// Client side code that interacts with `Server.scala` in order to launch a generic
+/// long-lived background daemon.
+///
+/// The protocol is as follows:
+/// - Client:
+///   - Take launcherLock
+///   - If daemonLock is not yet taken, it means server is not running, so spawn a server
+///   - Wait for server socket to be available for connection
+/// - Server:
+///   - Take daemonLock.
+///     - If already taken, it means another server was running
+///       (e.g. spawned by a different client) so exit immediately
+/// - Server: loop:
+///   - Listen for incoming client requests on serverSocket
+///   - Execute client request
+///   - If launcherLock is released during execution, terminate server (otherwise
+///     we have no safe way of terminating the in-process request, so the server
+///     may continue running for arbitrarily long with no client attached)
+///   - Send `ProxyStream.END` packet and call `clientSocket.close()`
+/// - Client:
+///   - Wait for `ProxyStream.END` packet or `clientSocket.close()`,
+///     indicating server has finished execution and all data has been received
 public abstract class ServerLauncher {
   public static class Result {
     public int exitCode;
@@ -50,7 +45,7 @@ public abstract class ServerLauncher {
 
   final int serverInitWaitMillis = 10000;
 
-  public static interface InitServer {
+  public interface InitServer {
     /** Initializes the server, returning the server process or null. */
     Process init() throws Exception;
   }
@@ -104,7 +99,15 @@ public abstract class ServerLauncher {
 
     Result result = new Result();
     try {
-      PumperThread outPumperThread = startStreamPumpers(ioSocket, javaHome);
+      var initData = new ClientInitData(
+        /* interactive */ Util.hasConsole(),
+        BuildInfo.millVersion,
+        javaHome,
+        args,
+        env,
+        ClientUtil.getUserSetProperties()
+      );
+      var outPumperThread = startStreamPumpers(ioSocket, initData);
       forceTestFailure(daemonDir);
       outPumperThread.join();
       result.exitCode = outPumperThread.exitCode();
@@ -216,24 +219,18 @@ public abstract class ServerLauncher {
    * Starts the stream pumpers for the given socket connection to handle input and output streams.
    *
    * @param ioSocket the socket connected to the server
-   * @param javaHome the path to the Java home directory
    * @return a PumperThread that processes the output/error streams from the server
    * @throws Exception if an error occurs during stream initialization or communication
    */
-  PumperThread startStreamPumpers(Socket ioSocket, String javaHome) throws Exception {
-    InputStream outErr = ioSocket.getInputStream();
-    OutputStream in = ioSocket.getOutputStream();
-    in.write(Util.hasConsole() ? 1 : 0);
-    ClientUtil.writeString(in, BuildInfo.millVersion);
-    ClientUtil.writeString(in, javaHome);
-    ClientUtil.writeArgs(args, in);
-    ClientUtil.writeMap(env, in);
-    ClientUtil.writeMap(ClientUtil.getUserSetProperties(), in);
-    ProxyStream.Pumper outPumper = new ProxyStream.Pumper(outErr, stdout, stderr);
-    InputPumper inPump = new InputPumper(() -> stdin, () -> in, true);
-    PumperThread outPumperThread = new PumperThread(outPumper, "outPump");
+  PumperThread startStreamPumpers(Socket ioSocket, OutputStreamWritable initData) throws Exception {
+    var outAndErrCombined = ioSocket.getInputStream();
+    var in = ioSocket.getOutputStream();
+    initData.write(in);
+    var outPumper = new ProxyStream.Pumper(outAndErrCombined, stdout, stderr);
+    var inPump = new InputPumper(() -> stdin, () -> in, true);
+    var outPumperThread = new PumperThread(outPumper, "outPump");
     outPumperThread.setDaemon(true);
-    Thread inThread = new Thread(inPump, "inPump");
+    var inThread = new Thread(inPump, "inPump");
     inThread.setDaemon(true);
     outPumperThread.start();
     inThread.start();

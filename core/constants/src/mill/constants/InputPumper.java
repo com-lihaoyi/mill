@@ -4,11 +4,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.function.Supplier;
 
+/// A `Runnable` that reads from `src` and writes to `dest`.
 public class InputPumper implements Runnable {
-  private Supplier<InputStream> src0;
-  private Supplier<OutputStream> dest0;
+  private final Supplier<InputStream> src0;
+  private final Supplier<OutputStream> dest0;
 
-  private Boolean checkAvailable;
+  private final Boolean checkAvailable;
 
   public InputPumper(
       Supplier<InputStream> src, Supplier<OutputStream> dest, Boolean checkAvailable) {
