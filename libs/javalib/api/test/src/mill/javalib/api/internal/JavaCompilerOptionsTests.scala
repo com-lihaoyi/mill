@@ -1,4 +1,4 @@
-package mill.javalib.worker
+package mill.javalib.api.internal
 
 import utest.*
 

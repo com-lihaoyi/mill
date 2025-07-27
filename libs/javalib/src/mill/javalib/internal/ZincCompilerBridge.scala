@@ -14,7 +14,7 @@ import scala.util.Properties.isWin
  * @param logInfo  logs a message at INFO level.
  */
 @internal
-case class ZincCompilerBridge[AcquireData](
+case class ZincCompilerBridge[-AcquireData](
     taskDest: os.Path, // TODO review: this should be just a workplace directory, not necessarily a Task.dest
     logInfo: String => Unit,
     acquire: ZincCompilerBridge.Acquire[AcquireData]
@@ -27,11 +27,11 @@ object ZincCompilerBridge {
    *
    * @tparam Data extra data to pass to the acquire function.
    */
-  trait Acquire[Data] {
+  trait Acquire[-Data] {
     def apply(scalaVersion: String, scalaOrganization: String, data: Data): AcquireResult[os.Path]
   }
 
-  sealed trait AcquireResult[Path] {
+  sealed trait AcquireResult[+Path] {
     def map[B](f: Path => B): AcquireResult[B]
 
     def fullClasspath: Vector[Path]

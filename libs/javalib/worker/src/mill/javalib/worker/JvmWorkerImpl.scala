@@ -2,11 +2,17 @@ package mill.javalib.worker
 
 import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
-import mill.javalib.api.internal.{ZincCompileJava, ZincCompileMixed, ZincScaladocJar}
-import mill.javalib.api.{CompilationResult, JvmWorkerApi, ZincApi}
+import mill.javalib.api.internal.{
+  JavaCompilerOptions,
+  JavaRuntimeOptions,
+  ZincCompileJava,
+  ZincCompileMixed,
+  ZincScaladocJar
+}
+import mill.javalib.api.{CompilationResult, JvmWorkerApi}
 import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
-import mill.javalib.zinc.{ZincCompileJava, ZincCompileMixed, ZincScaladocJar, ZincWorker, ZincWorkerRpcServer}
+import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
 import mill.util.{CachedFactoryWithInitData, Jvm}
 import os.Path
@@ -26,39 +32,33 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     )
 
   override def compileJava(
-    op: ZincCompileJava,
-    reporter: Option[CompileProblemReporter],
-    reportCachedProblems: Boolean
+      op: ZincCompileJava,
+      javaHome: Option[os.Path],
+      javaRuntimeOptions: JavaRuntimeOptions,
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
-    runWith(javaHome, javacOptions) { (zinc, javacOptions) =>
-      zinc.compileJava(
-        op,
-        reporter = reporter,
-        reportCachedProblems = reportCachedProblems,
-      )
-    }
+    val zinc = zincApi(javaHome, javaRuntimeOptions)
+    zinc.compileJava(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
   }
 
   override def compileMixed(
-    op: ZincCompileMixed,
-    reporter: Option[CompileProblemReporter],
-    reportCachedProblems: Boolean
+      op: ZincCompileMixed,
+      javaHome: Option[os.Path],
+      javaRuntimeOptions: JavaRuntimeOptions,
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
   )(using ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
-    runWith(javaHome, javacOptions) { (zinc, javacOptions) =>
-      zinc.compileMixed(
-        op,
-        reporter = reporter,
-        reportCachedProblems = reportCachedProblems,
-      )
-    }
+    val zinc = zincApi(javaHome, javaRuntimeOptions)
+    zinc.compileMixed(op, reporter = reporter, reportCachedProblems = reportCachedProblems)
   }
 
-  def docJar(
-    op: ZincScaladocJar,
+  def scaladocJar(
+      op: ZincScaladocJar,
+      javaHome: Option[os.Path]
   )(using ctx: JvmWorkerApi.Ctx): Boolean = {
-    runWith(javaHome, javacOptions = Seq.empty) { (zinc, _) =>
-      zinc.scaladocJar(op)
-    }
+    val zinc = zincApi(javaHome, JavaRuntimeOptions(Seq.empty))
+    zinc.scaladocJar(op)
   }
 
   override def close(): Unit = {
@@ -68,16 +68,15 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
   }
 
   /**
-   * Runs the given function using either the local Zinc instance or the remote Zinc instance depending on the java
+   * Returns the [[ZincApi]] for either the local Zinc instance or the remote Zinc instance depending on the java
    * home and javac options.
    */
-  private def runWith[A](
+  private def zincApi(
       javaHome: Option[os.Path],
-      javacOptions: Seq[String]
-  )(f: (ZincApi, JavaCompilerOptions) => A)(using
+      javaRuntimeOptions: JavaRuntimeOptions
+  )(using
       ctx: JvmWorkerApi.Ctx
-  ): A = {
-    val jOpts = JavaCompilerOptions(javacOptions)
+  ): ZincApi = {
     val log = ctx.log
     val zincCtx = ZincWorker.InvocationContext(
       env = ctx.env,
@@ -86,10 +85,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       logPromptColored = log.prompt.colored
     )
 
-    if (jOpts.runtime.options.isEmpty && javaHome.isEmpty) runWithLocalZinc()
-    else runWithSpawned(javaHome, jOpts.runtime, zincCtx, log) { worker =>
-      f(worker, jOpts.compiler)
-    }
+    if (javaRuntimeOptions.options.isEmpty && javaHome.isEmpty) localZincApi(zincCtx, log)
+    else subprocessZincApi(javaHome, javaRuntimeOptions, zincCtx, log)
   }
 
   private case class SubprocessCacheKey(
@@ -144,8 +141,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
 
   /** Gives you API for the [[zincLocalWorker]] instance. */
   private def localZincApi(
-    ctx: ZincWorker.InvocationContext,
-    log: Logger
+      zincCtx: ZincWorker.InvocationContext,
+      log: Logger
   ): ZincApi = {
     val zincDeps =
       ZincWorker.InvocationDependencies(
@@ -153,43 +150,19 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         consoleOut = ConsoleOut.printStreamOut(log.streams.err)
       )
 
-    new {
-      override def compileJava(
-        op: ZincCompileJava,
-        reporter: Option[CompileProblemReporter],
-        reportCachedProblems: Boolean,
-      ): Result[CompilationResult] = zincLocalWorker.compileJava(
-        op = op,
-        reporter = reporter,
-        reportCachedProblems = reportCachedProblems,
-      )(using ctx, zincDeps)
-
-      override def compileMixed(
-        op: ZincCompileMixed,
-        reporter: Option[CompileProblemReporter],
-        reportCachedProblems: Boolean,
-      ): Result[CompilationResult] = zincLocalWorker.compileMixed(
-        op = op,
-        reporter = reporter,
-        reportCachedProblems = reportCachedProblems,
-        compilerBridgeData = ()
-      )(using ctx, zincDeps)
-
-      override def scaladocJar(op: ZincScaladocJar): Boolean =
-        zincLocalWorker.scaladocJar(op, compilerBridgeData = ())
-    }
+    zincLocalWorker.api(compilerBridgeData = ())(using zincCtx, zincDeps)
   }
 
   /**
-   * Spawns a [[ZincApi]] subprocess with the specified java version and runtime options and runs the given
-   * function with it.
+   * Spawns a [[ZincApi]] subprocess with the specified java version and runtime options and returns a [[ZincApi]]
+   * instance for it.
    */
-  private def runWithSpawned[A](
+  private def subprocessZincApi[A](
       javaHome: Option[os.Path],
       runtimeOptions: JavaRuntimeOptions,
       ctx: ZincWorker.InvocationContext,
       log: Logger
-  )(f: ZincApi => A): A = {
+  ): ZincApi = {
     val cacheKey = SubprocessCacheKey(javaHome, runtimeOptions)
 
     def withRpcClient[R](
@@ -219,24 +192,16 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       }
     }
 
-    val api = new ZincApi {
+    new {
       override def compileJava(
-          upstreamCompileOutput: Seq[CompilationResult],
-          sources: Seq[Path],
-          compileClasspath: Seq[Path],
-          javacOptions: JavaCompilerOptions,
+          op: ZincCompileJava,
           reporter: Option[CompileProblemReporter],
-          reportCachedProblems: Boolean,
-          incrementalCompilation: Boolean
+          reportCachedProblems: Boolean
       ): Result[CompilationResult] = {
         withRpcClient(serverRpcToClientHandler(reporter, log, cacheKey)) { rpcClient =>
           val msg = ZincWorkerRpcServer.ClientToServer.CompileJava(
-            upstreamCompileOutput = upstreamCompileOutput,
-            sources = sources,
-            compileClasspath = compileClasspath,
-            javacOptions = javacOptions,
+            op,
             reporterMode = toReporterMode(reporter, reportCachedProblems),
-            incrementalCompilation = incrementalCompilation,
             ctx = ctx
           )
           rpcClient(msg)
@@ -244,61 +209,27 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       }
 
       override def compileMixed(
-          upstreamCompileOutput: Seq[CompilationResult],
-          sources: Seq[Path],
-          compileClasspath: Seq[Path],
-          javacOptions: JavaCompilerOptions,
-          scalaVersion: String,
-          scalaOrganization: String,
-          scalacOptions: Seq[String],
-          compilerClasspath: Seq[PathRef],
-          scalacPluginClasspath: Seq[PathRef],
+          op: ZincCompileMixed,
           reporter: Option[CompileProblemReporter],
-          reportCachedProblems: Boolean,
-          incrementalCompilation: Boolean,
-          auxiliaryClassFileExtensions: Seq[String]
+          reportCachedProblems: Boolean
       ): Result[CompilationResult] = {
         withRpcClient(serverRpcToClientHandler(reporter, log, cacheKey)) { rpcClient =>
           val msg = ZincWorkerRpcServer.ClientToServer.CompileMixed(
-            upstreamCompileOutput = upstreamCompileOutput,
-            sources = sources,
-            compileClasspath = compileClasspath,
-            javacOptions = javacOptions,
-            scalaVersion = scalaVersion,
-            scalaOrganization = scalaOrganization,
-            scalacOptions = scalacOptions,
-            compilerClasspath = compilerClasspath,
-            scalacPluginClasspath = scalacPluginClasspath,
+            op,
             reporterMode = toReporterMode(reporter, reportCachedProblems),
-            incrementalCompilation = incrementalCompilation,
-            auxiliaryClassFileExtensions = auxiliaryClassFileExtensions,
             ctx = ctx
           )
           rpcClient(msg)
         }
       }
 
-      override def scaladocJar(
-          scalaVersion: String,
-          scalaOrganization: String,
-          compilerClasspath: Seq[PathRef],
-          scalacPluginClasspath: Seq[PathRef],
-          args: Seq[String]
-      ): Boolean = {
+      override def scaladocJar(op: ZincScaladocJar): Boolean = {
         withRpcClient(serverRpcToClientHandler(reporter = None, log, cacheKey)) { rpcClient =>
-          val msg = ZincWorkerRpcServer.ClientToServer.DocJar(
-            scalaVersion = scalaVersion,
-            scalaOrganization = scalaOrganization,
-            compilerClasspath = compilerClasspath,
-            scalacPluginClasspath = scalacPluginClasspath,
-            args = args
-          )
+          val msg = ZincWorkerRpcServer.ClientToServer.ScaladocJar(op)
           rpcClient(msg)
         }
       }
     }
-
-    f(api)
   }
 
   /** Handles messages sent from the Zinc RPC server. */

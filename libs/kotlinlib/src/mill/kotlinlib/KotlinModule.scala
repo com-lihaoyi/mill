@@ -11,7 +11,9 @@ import coursier.params.ResolutionParams
 import mill.api.Result
 import mill.api.ModuleRef
 import mill.kotlinlib.worker.api.KotlinWorkerTarget
-import mill.javalib.api.{CompilationResult, JvmWorkerApi}
+import mill.javalib.api.CompilationResult
+import mill.javalib.api.{JvmWorkerApi => PublicJvmWorkerApi}
+import mill.javalib.api.internal.JvmWorkerApi
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
@@ -312,7 +314,7 @@ trait KotlinModule extends JavaModule { outer =>
         )
         // The compile step is lazy, but its dependencies are not!
         internalCompileJavaFiles(
-          worker = jvmWorkerRef().worker(),
+          worker = jvmWorkerRef().internalWorker(),
           upstreamCompileOutput = updateCompileOutput,
           javaSourceFiles = javaSourceFiles,
           compileCp = compileCp,
@@ -410,7 +412,7 @@ trait KotlinModule extends JavaModule { outer =>
       javacOptions: Seq[String],
       compileProblemReporter: Option[CompileProblemReporter],
       reportOldProblems: Boolean
-  )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
+  )(implicit ctx: PublicJvmWorkerApi.Ctx): Result[CompilationResult] = {
     val jOpts = JavaCompilerOptions(javacOptions)
     worker.compileJava(
       ZincCompileJava(
@@ -423,7 +425,7 @@ trait KotlinModule extends JavaModule { outer =>
       javaHome = javaHome,
       javaRuntimeOptions = jOpts.runtime,
       reporter = compileProblemReporter,
-      reportCachedProblems = reportOldProblems,
+      reportCachedProblems = reportOldProblems
     )
   }
 

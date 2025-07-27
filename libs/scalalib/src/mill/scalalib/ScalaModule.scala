@@ -281,7 +281,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
     val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
 
     jvmWorker()
-      .worker()
+      .internalWorker()
       .compileMixed(
         ZincCompileMixed(
           upstreamCompileOutput = upstreamCompileOutput(),
@@ -299,7 +299,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         javaHome = javaHome().map(_.path),
         javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems(),
+        reportCachedProblems = zincReportCachedProblems()
       )
   }
 
@@ -328,7 +328,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         PathRef(javadocDir)
       } else {
         jvmWorker()
-          .worker()
+          .internalWorker()
           .scaladocJar(
             ZincScaladocJar(
               scalaVersion(),
@@ -337,11 +337,11 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
               scalacPluginClasspath(),
               options ++ compileCp ++ scalaDocOptions() ++ files.map(_.toString())
             ),
-            javaHome = javaHome().map(_.path),
+            javaHome = javaHome().map(_.path)
           ) match {
-            case true => PathRef(javadocDir)
-            case false => Task.fail("scaladoc generation failed")
-          }
+          case true => PathRef(javadocDir)
+          case false => Task.fail("scaladoc generation failed")
+        }
       }
     }
 
@@ -621,7 +621,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
     val jOpts = JavaCompilerOptions(javacOpts)
 
-    jvmWorker().worker()
+    jvmWorker().internalWorker()
       .compileMixed(
         ZincCompileMixed(
           upstreamCompileOutput = upstreamCompileOutput(),
@@ -640,7 +640,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         javaHome = javaHome().map(_.path),
         javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems(),
+        reportCachedProblems = zincReportCachedProblems()
       )
       .map { compileRes =>
         BuildCtx.withFilesystemCheckerDisabled {

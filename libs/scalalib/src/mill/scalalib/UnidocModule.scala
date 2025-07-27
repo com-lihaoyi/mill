@@ -102,7 +102,7 @@ trait UnidocModule extends ScalaModule {
           |""".stripMargin
     )
 
-    jvmWorker().worker().scaladocJar(
+    jvmWorker().internalWorker().scaladocJar(
       ZincScaladocJar(
         scalaVersion(),
         scalaOrganization(),
@@ -110,7 +110,7 @@ trait UnidocModule extends ScalaModule {
         scalacPluginClasspath(),
         options ++ unidocSourceFiles0.map(_.path.toString)
       ),
-      javaHome().map(_.path),
+      javaHome().map(_.path)
     ) match {
       case true => PathRef(Task.dest)
       case false => Task.fail("unidoc generation failed")

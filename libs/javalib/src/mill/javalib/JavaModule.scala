@@ -9,7 +9,13 @@ import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
 import mill.api.{MillException, Result}
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.daemon.internal.bsp.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, JvmBuildTarget}
+import mill.api.daemon.internal.bsp.{
+  BspBuildTarget,
+  BspJavaModuleApi,
+  BspModuleApi,
+  BspUri,
+  JvmBuildTarget
+}
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
 import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
@@ -822,7 +828,7 @@ trait JavaModule
   def compile: T[mill.javalib.api.CompilationResult] = Task(persistent = true) {
     val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
     jvmWorker()
-      .worker()
+      .internalWorker()
       .compileJava(
         ZincCompileJava(
           upstreamCompileOutput = upstreamCompileOutput(),
@@ -834,7 +840,7 @@ trait JavaModule
         javaHome = javaHome().map(_.path),
         javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems(),
+        reportCachedProblems = zincReportCachedProblems()
       )
   }
 

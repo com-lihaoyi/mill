@@ -1,12 +1,11 @@
 package mill.javalib.zinc
 
 import mill.api.JsonFormatters.*
-import mill.api.PathRef
 import mill.api.daemon.{Logger, Result}
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.CompilationResult
+import mill.javalib.api.internal.{ZincCompileJava, ZincCompileMixed, ZincScaladocJar}
 import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBridge}
-import mill.javalib.worker.JavaCompilerOptions
 import mill.rpc.*
 import org.apache.logging.log4j.core.util.NullOutputStream
 import sbt.internal.util.ConsoleOut
@@ -88,7 +87,8 @@ class ZincWorkerRpcServer
             compileJava(requestId, msg).asInstanceOf[input.Response]
           case msg: ClientToServer.CompileMixed =>
             compileMixed(requestId, msg).asInstanceOf[input.Response]
-          case msg: ClientToServer.DocJar => docJar(requestId, msg).asInstanceOf[input.Response]
+          case msg: ClientToServer.ScaladocJar =>
+            docJar(requestId, msg).asInstanceOf[input.Response]
         }
       }
 
@@ -99,7 +99,7 @@ class ZincWorkerRpcServer
         worker.compileJava(
           op = msg.op,
           reporter = reporterAsOption(clientRequestId, msg.reporterMode),
-          reportCachedProblems = msg.reporterMode.reportCachedProblems,
+          reportCachedProblems = msg.reporterMode.reportCachedProblems
         )(using msg.ctx, deps)
       }
 
@@ -117,7 +117,7 @@ class ZincWorkerRpcServer
 
       private def docJar(
           clientRequestId: MillRpcRequestId,
-          msg: ClientToServer.DocJar
+          msg: ClientToServer.ScaladocJar
       ): msg.Response =
         worker.scaladocJar(msg.op, compilerBridgeData = clientRequestId)
     }
@@ -160,7 +160,7 @@ object ZincWorkerRpcServer {
       override type Response = Result[CompilationResult]
     }
 
-    case class DocJar(
+    case class ScaladocJar(
         op: ZincScaladocJar
     ) extends ClientToServer {
       override type Response = Boolean

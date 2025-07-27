@@ -1,7 +1,7 @@
 package mill.javalib.internal
 
 import mill.api.daemon.internal.internal
-import mill.javalib.api.JvmWorkerApi
+import mill.javalib.api.internal.JvmWorkerApi
 
 @internal
 /**

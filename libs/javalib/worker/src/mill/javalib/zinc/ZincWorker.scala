@@ -4,6 +4,12 @@ import mill.api.JsonFormatters.*
 import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
+import mill.javalib.api.internal.{
+  JavaCompilerOptions,
+  ZincCompileJava,
+  ZincCompileMixed,
+  ZincScaladocJar
+}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.javalib.internal.ZincCompilerBridge
 import mill.javalib.internal.ZincCompilerBridge.AcquireResult
@@ -30,7 +36,7 @@ class ZincWorker[CompilerBridgeData](
     jobs: Int,
     compileToJar: Boolean,
     zincLogDebug: Boolean
-) extends AutoCloseable {
+) extends AutoCloseable { self =>
   private val incrementalCompiler = new sbt.internal.inc.IncrementalCompilerImpl()
   private val compilerBridgeLocks: mutable.Map[String, Object] = mutable.Map.empty[String, Object]
   private val zincLogLevel = if (zincLogDebug) sbt.util.Level.Debug else sbt.util.Level.Info
@@ -161,9 +167,9 @@ class ZincWorker[CompilerBridgeData](
   }
 
   def compileJava(
-    op: ZincCompileJava,
-    reporter: Option[CompileProblemReporter],
-    reportCachedProblems: Boolean,
+      op: ZincCompileJava,
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
   )(using
       ctx: ZincWorker.InvocationContext,
       deps: ZincWorker.InvocationDependencies
@@ -241,7 +247,9 @@ class ZincWorker[CompilerBridgeData](
         if (JvmWorkerUtil.isDotty(scalaVersion) || JvmWorkerUtil.isScala3Milestone(scalaVersion)) {
           // dotty 0.x and scala 3 milestones use the dotty-doc tool
           val dottydocClass =
-            compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.dottydoc.DocDriver")
+            compilers.scalac().scalaInstance().loader().loadClass(
+              "dotty.tools.dottydoc.DocDriver"
+            )
           val dottydocMethod = dottydocClass.getMethod("process", classOf[Array[String]])
           val reporter =
             dottydocMethod.invoke(dottydocClass.getConstructor().newInstance(), args.toArray)
@@ -271,6 +279,29 @@ class ZincWorker[CompilerBridgeData](
         }
       }
     }
+  }
+
+  /** Constructs a [[ZincApi]] given the invocation context and dependencies. */
+  def api(compilerBridgeData: CompilerBridgeData)(using
+      ctx: ZincWorker.InvocationContext,
+      deps: ZincWorker.InvocationDependencies
+  ): ZincApi = new {
+    override def compileJava(
+        op: ZincCompileJava,
+        reporter: Option[CompileProblemReporter],
+        reportCachedProblems: Boolean
+    ): Result[CompilationResult] =
+      self.compileJava(op, reporter, reportCachedProblems)
+
+    override def compileMixed(
+        op: ZincCompileMixed,
+        reporter: Option[CompileProblemReporter],
+        reportCachedProblems: Boolean
+    ): Result[CompilationResult] =
+      self.compileMixed(op, reporter, reportCachedProblems, compilerBridgeData)
+
+    override def scaladocJar(op: ZincScaladocJar): Boolean =
+      self.scaladocJar(op, compilerBridgeData)
   }
 
   def close(): Unit = {

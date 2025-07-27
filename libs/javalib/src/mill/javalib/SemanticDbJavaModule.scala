@@ -112,7 +112,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
     val jOpts = JavaCompilerOptions(javacOpts)
 
-    jvmWorker().worker()
+    jvmWorker().internalWorker()
       .compileJava(
         ZincCompileJava(
           upstreamCompileOutput = upstreamCompileOutput(),
@@ -125,7 +125,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
         javaHome = javaHome().map(_.path),
         javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems(),
+        reportCachedProblems = zincReportCachedProblems()
       )
       .map { r =>
         BuildCtx.withFilesystemCheckerDisabled {
