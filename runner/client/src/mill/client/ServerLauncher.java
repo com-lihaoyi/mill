@@ -8,9 +8,6 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import mill.client.lock.Locked;
 import mill.client.lock.Locks;
@@ -52,6 +49,11 @@ public abstract class ServerLauncher {
   }
 
   final int serverInitWaitMillis = 10000;
+
+  public static interface InitServer {
+    /** Initializes the server, returning the server process or null. */
+    Process init() throws Exception;
+  }
 
   /**
    * Starts a Mill server
@@ -119,13 +121,7 @@ public abstract class ServerLauncher {
       memoryLock != null ? memoryLock : Locks.files(daemonDir.toString()),
       daemonDir,
       serverInitWaitMillis,
-      () -> {
-        try {
-          return initServer(daemonDir, memoryLock);
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      }
+      () -> initServer(daemonDir, memoryLock)
     );
   }
 
@@ -138,15 +134,15 @@ public abstract class ServerLauncher {
    * @return a Socket connected to the Mill server
    * @throws Exception if the server fails to start or a connection cannot be established
    */
-  static Socket launchConnectToServer(
+  public static Socket launchConnectToServer(
     Locks locks, Path daemonDir,
     int serverInitWaitMillis,
-    Supplier<Process> initServer
+    InitServer initServer
   ) throws Exception {
     try (Locked ignored = locks.launcherLock.lock()) {
       Process daemonProcess = null;
 
-      if (locks.daemonLock.probe()) daemonProcess = initServer.get();
+      if (locks.daemonLock.probe()) daemonProcess = initServer.init();
 
       while (locks.daemonLock.probe()) {
         if (daemonProcess != null && !daemonProcess.isAlive()) {
@@ -216,6 +212,14 @@ public abstract class ServerLauncher {
     }
   }
 
+  /**
+   * Starts the stream pumpers for the given socket connection to handle input and output streams.
+   *
+   * @param ioSocket the socket connected to the server
+   * @param javaHome the path to the Java home directory
+   * @return a PumperThread that processes the output/error streams from the server
+   * @throws Exception if an error occurs during stream initialization or communication
+   */
   PumperThread startStreamPumpers(Socket ioSocket, String javaHome) throws Exception {
     InputStream outErr = ioSocket.getInputStream();
     OutputStream in = ioSocket.getOutputStream();
