@@ -57,7 +57,7 @@ public abstract class ServerLauncher {
    */
   public abstract Process initServer(Path daemonDir, Locks locks) throws Exception;
 
-  public abstract void preparedaemonDir(Path daemonDir) throws Exception;
+  public abstract void prepareDaemonDir(Path daemonDir) throws Exception;
 
   InputStream stdin;
   PrintStream stdout;
@@ -93,7 +93,7 @@ public abstract class ServerLauncher {
 
     Files.createDirectories(daemonDir);
 
-    preparedaemonDir(daemonDir);
+    prepareDaemonDir(daemonDir);
 
     Socket ioSocket = launchConnectToServer(daemonDir);
 

@@ -54,7 +54,7 @@ public class MillLauncherMain {
                 return MillProcessLauncher.launchMillDaemon(daemonDir);
               }
 
-              public void preparedaemonDir(Path daemonDir) throws Exception {
+              public void prepareDaemonDir(Path daemonDir) throws Exception {
                 MillProcessLauncher.prepareMillRunFolder(daemonDir);
               }
             };
