@@ -2,9 +2,11 @@
 :page-nav-title: Spark & Mill
 :toc:
 
-This guide explores Mill's Spark integration features, showing how to define Spark modules and run tasks directly through Mill. Each example lives in a tiny Mill sub-module in `examples/spark/` and demonstrates Mill-specific behaviours such as incremental compilation and task planning.
+This guide explores Mill’s Spark integration features, showing how to define Spark modules and run tasks directly through Mill. Each example lives in a tiny Mill sub‑module in `examples/spark/` and demonstrates Mill-specific behaviours such as incremental compilation and task planning.
 
 == Setup
+
+Create a new Mill `SparkModule` in your `build.sc`. The `SparkModule` trait adds tasks for packaging and running Spark jobs:
 
 [source,scala]
 ----
@@ -13,7 +15,7 @@ import mill.spark._
 
 object sparkDemo extends SparkModule {
   def scalaVersion = "3.3.1"
-  def mainClass = "example.WordCount"
+  def mainClass    = "example.WordCount"
 }
 ----
 
@@ -24,63 +26,62 @@ Run once to fetch dependencies and compile:
 mill sparkDemo.compile
 ----
 
+This will resolve Spark libraries and compile the code in the corresponding `example` package.
+
 == sparkSubmit
 
-Compile and submit your application to Spark. This uses the compiled jar and passes any arguments to your main class.
+Mill provides a `sparkSubmit` task which builds a fat jar and invokes `spark-submit` with any arguments you pass. You can use it to run your job on a Spark cluster or in local mode. For example, to run the WordCount job defined in `examples/spark/wordcount/src/main/scala/example/WordCount.scala`:
 
 [source,bash]
 ----
-mill sparkDemo.sparkSubmit --input text.txt --output out
+mill examples.spark.wordcount.sparkSubmit --input text.txt --output out
 ----
 
-.Expected Mill output (truncated)
-[%collapsible]
-====
-[source,text]
-----
-Compiling 1 Scala source ...
-Generated sparkDemo.jar
-Running Spark job example.WordCount with args: --input text.txt --output out
-[INFO] ... Job finished with result ...
-----
-====
+Mill first assembles a jar for the `wordcount` module, then runs `spark-submit` with the provided arguments. You should see Mill build output followed by your application’s logs. Replace `text.txt` and `out` with your own paths.
 
 == sparkRun (local)
 
-For quick iteration, run your application locally without submitting to a cluster.
+If you just want to run a Spark job locally without building a fat jar, call `sparkRun`. This runs your program in the current JVM using the Spark dependencies on the classpath.
 
 [source,bash]
 ----
-mill sparkDemo.sparkRun --input sample.txt
+mill examples.spark.wordcount.sparkRun --input text.txt
 ----
+
+This is handy for rapid iteration when developing on your laptop. You’ll see the job’s output printed to the console. All command‑line arguments after the task name are forwarded to your `main` method.
 
 == Incremental jar rebuild
 
-After editing sources, Mill recompiles only changed files. Try running:
+Mill caches compiled classes and only rebuilds jars when sources change. Try packaging a module twice:
 
 [source,bash]
 ----
-# First run
-mill sparkDemo.sparkSubmit
-# Make a small code change in examples/spark/wordcount/src/main/scala/example/WordCount.scala
-# Second run; note how Mill skips unchanged tasks
-mill sparkDemo.sparkSubmit
+mill examples.spark.wordcount.assembly   # first run – compiles and assembles
+mill examples.spark.wordcount.assembly   # second run – reused cached artifact
 ----
+
+The second invocation is much faster because no sources changed. If you edit `WordCount.scala`, Mill will recompile just that module and rebuild the jar incrementally.
 
 == Debugging / plan
 
-Use Mill's built-in planning and watch flags to understand what tasks will execute.
+Mill’s `--plan` option shows which tasks would run without actually executing them. Use it to understand task dependencies:
 
 [source,bash]
 ----
-# Show the task plan without running it
-mill --plan sparkDemo.sparkSubmit
-
-# Automatically re-run when files change
-mill --watch sparkDemo.sparkRun
+mill examples.spark.wordcount.sparkSubmit --plan
 ----
+
+You can also run tasks interactively with `-i` to see live reloading when files change:
+
+[source,bash]
+----
+mill -i examples.spark.wordcount.sparkRun --watch
+----
+
+Mill will recompile and rerun your job whenever you save changes.
 
 == FAQ
 
-* **How do I pass extra Spark arguments?** Use `--spark-args` followed by your arguments, e.g. `mill sparkDemo.sparkSubmit --spark-args "--driver-memory=2g"`.
-* **Where are the example sources?** See the `examples/spark/` directory in this repository. Each sub-module is a self-contained Spark job.
+- **Where are the examples?** The source code for each example lives under `examples/spark/<name>/src/main/scala/example/`. See `WordCount.scala`, `CsvETL.scala`, `JoinsWindows.scala`, `UdfVsBuiltins.scala`, and `StreamingFile.scala`.
+- **Do I need to specify Spark dependencies?** No. The `SparkModule` trait automatically adds Spark 3.5.x dependencies for the Scala version you specify.
+- **Can I pass arbitrary spark-submit flags?** Yes. Any arguments after `sparkSubmit` are passed directly to `spark-submit`, so you can configure master URL, executor memory, etc.
