@@ -7,7 +7,6 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-
 import mill.client.lock.Locked;
 import mill.client.lock.Locks;
 import mill.constants.DaemonFiles;
@@ -101,39 +100,38 @@ public abstract class ServerLauncher {
     prepareDaemonDir(daemonDir);
 
     var initData = new ClientInitData(
-      /* interactive */ Util.hasConsole(),
-      BuildInfo.millVersion,
-      javaHome,
-      args,
-      env,
-      ClientUtil.getUserSetProperties()
-    );
+        /* interactive */ Util.hasConsole(),
+        BuildInfo.millVersion,
+        javaHome,
+        args,
+        env,
+        ClientUtil.getUserSetProperties());
     var locks = memoryLock != null ? memoryLock : Locks.files(daemonDir.toString());
 
     return run(
-      daemonDir,
-      locks,
-      serverInitWaitMillis,
-      () -> initServer(daemonDir, memoryLock),
-      streams,
-      rawServerStdin -> {
-        initData.write(rawServerStdin);
-        forceTestFailure(daemonDir);
-      }
-    );
+        daemonDir,
+        locks,
+        serverInitWaitMillis,
+        () -> initServer(daemonDir, memoryLock),
+        streams,
+        rawServerStdin -> {
+          initData.write(rawServerStdin);
+          forceTestFailure(daemonDir);
+        });
   }
 
   public static Result run(
-    Path daemonDir,
-    Locks locks,
-    int serverInitWaitMillis,
-    InitServer initServer,
-    Streams streams,
-    RunClientLogic runClientLogic
-  ) throws Exception {
+      Path daemonDir,
+      Locks locks,
+      int serverInitWaitMillis,
+      InitServer initServer,
+      Streams streams,
+      RunClientLogic runClientLogic)
+      throws Exception {
     Files.createDirectories(daemonDir);
 
-    try (var ioSocket = launchOrConnectToServer(locks, daemonDir, serverInitWaitMillis, initServer)) {
+    try (var ioSocket =
+        launchOrConnectToServer(locks, daemonDir, serverInitWaitMillis, initServer)) {
       var socketInputStream = ioSocket.getInputStream();
       var socketOutputStream = ioSocket.getOutputStream();
       var pumperThread = startStreamPumpers(socketInputStream, socketOutputStream, streams);
@@ -153,10 +151,8 @@ public abstract class ServerLauncher {
    * @throws Exception if the server fails to start or a connection cannot be established
    */
   public static Socket launchOrConnectToServer(
-    Locks locks, Path daemonDir,
-    int serverInitWaitMillis,
-    InitServer initServer
-  ) throws Exception {
+      Locks locks, Path daemonDir, int serverInitWaitMillis, InitServer initServer)
+      throws Exception {
     try (Locked ignored = locks.launcherLock.lock()) {
       Process daemonProcess = null;
 
@@ -255,9 +251,7 @@ public abstract class ServerLauncher {
    * @return a PumperThread that processes the output/error streams from the server
    */
   static PumperThread startStreamPumpers(
-    InputStream socketInputStream, OutputStream socketOutputStream,
-    Streams streams
-  ) {
+      InputStream socketInputStream, OutputStream socketOutputStream, Streams streams) {
     var outPumper = new ProxyStream.Pumper(socketInputStream, streams.stdout, streams.stderr);
     var inPump = new InputPumper(() -> streams.stdin, () -> socketOutputStream, true);
     var outPumperThread = new PumperThread(outPumper, "outPump");

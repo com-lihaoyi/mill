@@ -10,20 +10,20 @@ trait ZincApi {
 
   /** Compile a Java-only project. */
   def compileJava(
-    op: ZincCompileJava,
-    reporter: Option[CompileProblemReporter],
-    reportCachedProblems: Boolean
+      op: ZincCompileJava,
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
   ): Result[CompilationResult]
 
   /** Compile a mixed Scala/Java or Scala-only project. */
   def compileMixed(
-    op: ZincCompileMixed,
-    reporter: Option[CompileProblemReporter],
-    reportCachedProblems: Boolean
+      op: ZincCompileMixed,
+      reporter: Option[CompileProblemReporter],
+      reportCachedProblems: Boolean
   ): Result[CompilationResult]
 
   /** Compiles a Scaladoc jar. */
   def scaladocJar(
-      op: ZincScaladocJar,
+      op: ZincScaladocJar
   ): Boolean
 }

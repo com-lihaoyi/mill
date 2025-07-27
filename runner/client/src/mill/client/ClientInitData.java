@@ -17,9 +17,12 @@ public class ClientInitData {
   public final Map<String, String> userSpecifiedProperties;
 
   public ClientInitData(
-    boolean interactive, String clientMillVersion, String clientJavaVersion, String[] args, Map<String, String> env,
-    Map<String, String> userSpecifiedProperties
-  ) {
+      boolean interactive,
+      String clientMillVersion,
+      String clientJavaVersion,
+      String[] args,
+      Map<String, String> env,
+      Map<String, String> userSpecifiedProperties) {
     this.interactive = interactive;
     this.clientMillVersion = clientMillVersion;
     this.clientJavaVersion = clientJavaVersion;
@@ -44,6 +47,7 @@ public class ClientInitData {
     var args = ClientUtil.parseArgs(socketIn);
     var env = ClientUtil.parseMap(socketIn);
     var userSpecifiedProperties = ClientUtil.parseMap(socketIn);
-    return new ClientInitData(interactive, clientMillVersion, clientJavaVersion, args, env, userSpecifiedProperties);
+    return new ClientInitData(
+        interactive, clientMillVersion, clientJavaVersion, args, env, userSpecifiedProperties);
   }
 }
