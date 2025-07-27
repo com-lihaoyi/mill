@@ -1,0 +1,86 @@
+= Spark‑Mill Integration Examples
+:page-nav-title: Spark & Mill
+:toc:
+
+This guide explores Mill's Spark integration features, showing how to define Spark modules and run tasks directly through Mill. Each example lives in a tiny Mill sub-module in `examples/spark/` and demonstrates Mill-specific behaviours such as incremental compilation and task planning.
+
+== Setup
+
+[source,scala]
+----
+import mill._, mill.scalalib._
+import mill.spark._
+
+object sparkDemo extends SparkModule {
+  def scalaVersion = "3.3.1"
+  def mainClass = "example.WordCount"
+}
+----
+
+Run once to fetch dependencies and compile:
+
+[source,bash]
+----
+mill sparkDemo.compile
+----
+
+== sparkSubmit
+
+Compile and submit your application to Spark. This uses the compiled jar and passes any arguments to your main class.
+
+[source,bash]
+----
+mill sparkDemo.sparkSubmit --input text.txt --output out
+----
+
+.Expected Mill output (truncated)
+[%collapsible]
+====
+[source,text]
+----
+Compiling 1 Scala source ...
+Generated sparkDemo.jar
+Running Spark job example.WordCount with args: --input text.txt --output out
+[INFO] ... Job finished with result ...
+----
+====
+
+== sparkRun (local)
+
+For quick iteration, run your application locally without submitting to a cluster.
+
+[source,bash]
+----
+mill sparkDemo.sparkRun --input sample.txt
+----
+
+== Incremental jar rebuild
+
+After editing sources, Mill recompiles only changed files. Try running:
+
+[source,bash]
+----
+# First run
+mill sparkDemo.sparkSubmit
+# Make a small code change in examples/spark/wordcount/src/main/scala/example/WordCount.scala
+# Second run; note how Mill skips unchanged tasks
+mill sparkDemo.sparkSubmit
+----
+
+== Debugging / plan
+
+Use Mill's built-in planning and watch flags to understand what tasks will execute.
+
+[source,bash]
+----
+# Show the task plan without running it
+mill --plan sparkDemo.sparkSubmit
+
+# Automatically re-run when files change
+mill --watch sparkDemo.sparkRun
+----
+
+== FAQ
+
+* **How do I pass extra Spark arguments?** Use `--spark-args` followed by your arguments, e.g. `mill sparkDemo.sparkSubmit --spark-args "--driver-memory=2g"`.
+* **Where are the example sources?** See the `examples/spark/` directory in this repository. Each sub-module is a self-contained Spark job.
