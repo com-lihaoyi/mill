@@ -161,17 +161,15 @@ class ZincWorker[CompilerBridgeData](
   }
 
   def compileJava(
-      upstreamCompileOutput: Seq[CompilationResult],
-      sources: Seq[os.Path],
-      compileClasspath: Seq[os.Path],
-      javacOptions: JavaCompilerOptions,
-      reporter: Option[CompileProblemReporter],
-      reportCachedProblems: Boolean,
-      incrementalCompilation: Boolean
+    op: ZincCompileJava,
+    reporter: Option[CompileProblemReporter],
+    reportCachedProblems: Boolean,
   )(using
       ctx: ZincWorker.InvocationContext,
       deps: ZincWorker.InvocationDependencies
   ): Result[CompilationResult] = {
+    import op.*
+
     val cacheKey = JavaCompilerCacheKey(javacOptions)
     javaOnlyCompilerCache.withValue(cacheKey) { compilers =>
       compileInternal(
@@ -184,30 +182,22 @@ class ZincWorker[CompilerBridgeData](
         reporter = reporter,
         reportCachedProblems = reportCachedProblems,
         incrementalCompilation = incrementalCompilation,
-        auxiliaryClassFileExtensions = Seq.empty[String]
+        auxiliaryClassFileExtensions = Seq.empty
       )
     }
   }
 
   def compileMixed(
-      upstreamCompileOutput: Seq[CompilationResult],
-      sources: Seq[os.Path],
-      compileClasspath: Seq[os.Path],
-      javacOptions: JavaCompilerOptions,
-      scalaVersion: String,
-      scalaOrganization: String,
-      scalacOptions: Seq[String],
-      compilerClasspath: Seq[PathRef],
-      scalacPluginClasspath: Seq[PathRef],
+      op: ZincCompileMixed,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean,
-      incrementalCompilation: Boolean,
-      auxiliaryClassFileExtensions: Seq[String],
       compilerBridgeData: CompilerBridgeData
   )(using
       ctx: ZincWorker.InvocationContext,
       deps: ZincWorker.InvocationDependencies
   ): Result[CompilationResult] = {
+    import op.*
+
     withScalaCompilers(
       scalaVersion = scalaVersion,
       scalaOrganization = scalaOrganization,
@@ -224,21 +214,19 @@ class ZincWorker[CompilerBridgeData](
         scalacOptions = scalacOptions,
         compilers = compilers,
         reporter = reporter,
-        reportCachedProblems: Boolean,
-        incrementalCompilation,
-        auxiliaryClassFileExtensions
+        reportCachedProblems = reportCachedProblems,
+        incrementalCompilation = incrementalCompilation,
+        auxiliaryClassFileExtensions = auxiliaryClassFileExtensions
       )
     }
   }
 
-  def docJar(
-      scalaVersion: String,
-      scalaOrganization: String,
-      compilerClasspath: Seq[PathRef],
-      scalacPluginClasspath: Seq[PathRef],
-      args: Seq[String],
+  def scaladocJar(
+      op: ZincScaladocJar,
       compilerBridgeData: CompilerBridgeData
   ): Boolean = {
+    import op.*
+
     withScalaCompilers(
       scalaVersion,
       scalaOrganization,
@@ -262,8 +250,7 @@ class ZincWorker[CompilerBridgeData](
         } else if (JvmWorkerUtil.isScala3(scalaVersion)) {
           // DottyDoc makes use of `com.fasterxml.jackson.databind.Module` which
           // requires the ContextClassLoader to be set appropriately
-          mill.api.ClassLoader.withContextClassLoader(getClass.getClassLoader) {
-
+          mill.api.ClassLoader.withContextClassLoader(this.getClass.getClassLoader) {
             val scaladocClass =
               compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.scaladoc.Main")
 
@@ -582,7 +569,7 @@ object ZincWorker {
       logPromptColored: Boolean
   ) derives upickle.default.ReadWriter
 
-  case class ScalaCompilerCacheKey(
+  private case class ScalaCompilerCacheKey(
       scalaVersion: String,
       compilerClasspath: Seq[PathRef],
       scalacPluginClasspath: Seq[PathRef],
@@ -592,9 +579,9 @@ object ZincWorker {
     val combinedCompilerClasspath: Seq[PathRef] = compilerClasspath ++ scalacPluginClasspath
   }
 
-  case class ScalaCompilerCached(classLoader: URLClassLoader, compilers: Compilers)
+  private case class ScalaCompilerCached(classLoader: URLClassLoader, compilers: Compilers)
 
-  case class JavaCompilerCacheKey(javacOptions: JavaCompilerOptions)
+  private case class JavaCompilerCacheKey(javacOptions: JavaCompilerOptions)
 
   private def getLocalOrCreateJavaTools(): JavaTools = {
     val compiler = javac.JavaCompiler.local.getOrElse(javac.JavaCompiler.fork())

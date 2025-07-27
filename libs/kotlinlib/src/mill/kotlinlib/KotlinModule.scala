@@ -16,10 +16,11 @@ import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
 import mill.*
-import java.io.File
 
+import java.io.File
 import mainargs.Flag
 import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 
 /**
  * Core configuration required to compile a single Kotlin module
@@ -410,15 +411,19 @@ trait KotlinModule extends JavaModule { outer =>
       compileProblemReporter: Option[CompileProblemReporter],
       reportOldProblems: Boolean
   )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
+    val jOpts = JavaCompilerOptions(javacOptions)
     worker.compileJava(
-      upstreamCompileOutput = upstreamCompileOutput,
-      sources = javaSourceFiles,
-      compileClasspath = compileCp,
+      ZincCompileJava(
+        upstreamCompileOutput = upstreamCompileOutput,
+        sources = javaSourceFiles,
+        compileClasspath = compileCp,
+        javacOptions = jOpts.compiler,
+        incrementalCompilation = true
+      ),
       javaHome = javaHome,
-      javacOptions = javacOptions,
+      javaRuntimeOptions = jOpts.runtime,
       reporter = compileProblemReporter,
       reportCachedProblems = reportOldProblems,
-      incrementalCompilation = true
     )
   }
 

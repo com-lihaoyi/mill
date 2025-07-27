@@ -9,17 +9,12 @@ import coursier.util.{EitherT, ModuleMatcher, Monad}
 import mainargs.Flag
 import mill.api.{MillException, Result}
 import mill.api.daemon.internal.{EvaluatorApi, JavaModuleApi, internal}
-import mill.api.daemon.internal.bsp.{
-  BspBuildTarget,
-  BspJavaModuleApi,
-  BspModuleApi,
-  BspUri,
-  JvmBuildTarget
-}
+import mill.api.daemon.internal.bsp.{BspBuildTarget, BspJavaModuleApi, BspModuleApi, BspUri, JvmBuildTarget}
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
 import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 import mill.javalib.bsp.{BspJavaModule, BspModule}
 import mill.javalib.internal.ModuleUtils
 import mill.javalib.publish.Artifact
@@ -825,17 +820,21 @@ trait JavaModule
    * Keep in sync with [[bspCompileClassesPath]]
    */
   def compile: T[mill.javalib.api.CompilationResult] = Task(persistent = true) {
+    val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
     jvmWorker()
       .worker()
       .compileJava(
-        upstreamCompileOutput = upstreamCompileOutput(),
-        sources = allSourceFiles().map(_.path),
-        compileClasspath = compileClasspath().map(_.path),
+        ZincCompileJava(
+          upstreamCompileOutput = upstreamCompileOutput(),
+          sources = allSourceFiles().map(_.path),
+          compileClasspath = compileClasspath().map(_.path),
+          javacOptions = jOpts.compiler,
+          incrementalCompilation = zincIncrementalCompilation()
+        ),
         javaHome = javaHome().map(_.path),
-        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
+        javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = zincIncrementalCompilation()
       )
   }
 

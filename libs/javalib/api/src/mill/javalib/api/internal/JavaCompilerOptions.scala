@@ -1,4 +1,4 @@
-package mill.javalib.worker
+package mill.javalib.api.internal
 
 /** Java compiler options, without the `-J` options (the Java runtime options). */
 case class JavaCompilerOptions private (options: Seq[String]) {

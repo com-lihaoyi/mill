@@ -97,13 +97,9 @@ class ZincWorkerRpcServer
           msg: ClientToServer.CompileJava
       ): msg.Response = {
         worker.compileJava(
-          upstreamCompileOutput = msg.upstreamCompileOutput,
-          sources = msg.sources,
-          compileClasspath = msg.compileClasspath,
-          javacOptions = msg.javacOptions,
+          op = msg.op,
           reporter = reporterAsOption(clientRequestId, msg.reporterMode),
           reportCachedProblems = msg.reporterMode.reportCachedProblems,
-          incrementalCompilation = msg.incrementalCompilation
         )(using msg.ctx, deps)
       }
 
@@ -112,19 +108,9 @@ class ZincWorkerRpcServer
           msg: ClientToServer.CompileMixed
       ): msg.Response = {
         worker.compileMixed(
-          upstreamCompileOutput = msg.upstreamCompileOutput,
-          sources = msg.sources,
-          compileClasspath = msg.compileClasspath,
-          javacOptions = msg.javacOptions,
-          scalaVersion = msg.scalaVersion,
-          scalaOrganization = msg.scalaOrganization,
-          scalacOptions = msg.scalacOptions,
-          compilerClasspath = msg.compilerClasspath,
-          scalacPluginClasspath = msg.scalacPluginClasspath,
+          msg.op,
           reporter = reporterAsOption(clientRequestId, msg.reporterMode),
           reportCachedProblems = msg.reporterMode.reportCachedProblems,
-          incrementalCompilation = msg.incrementalCompilation,
-          auxiliaryClassFileExtensions = msg.auxiliaryClassFileExtensions,
           compilerBridgeData = clientRequestId
         )(using msg.ctx, deps)
       }
@@ -133,14 +119,7 @@ class ZincWorkerRpcServer
           clientRequestId: MillRpcRequestId,
           msg: ClientToServer.DocJar
       ): msg.Response =
-        worker.docJar(
-          scalaVersion = msg.scalaVersion,
-          scalaOrganization = msg.scalaOrganization,
-          compilerClasspath = msg.compilerClasspath,
-          scalacPluginClasspath = msg.scalacPluginClasspath,
-          args = msg.args,
-          compilerBridgeData = clientRequestId
-        )
+        worker.scaladocJar(msg.op, compilerBridgeData = clientRequestId)
     }
   }
 }
@@ -166,41 +145,23 @@ object ZincWorkerRpcServer {
   sealed trait ClientToServer extends MillRpcMessage derives ReadWriter
   object ClientToServer {
     case class CompileJava(
-        upstreamCompileOutput: Seq[CompilationResult],
-        sources: Seq[os.Path],
-        compileClasspath: Seq[os.Path],
-        javacOptions: JavaCompilerOptions,
+        op: ZincCompileJava,
         reporterMode: ReporterMode,
-        incrementalCompilation: Boolean,
         ctx: ZincWorker.InvocationContext
     ) extends ClientToServer {
       override type Response = Result[CompilationResult]
     }
 
     case class CompileMixed(
-        upstreamCompileOutput: Seq[CompilationResult],
-        sources: Seq[os.Path],
-        compileClasspath: Seq[os.Path],
-        javacOptions: JavaCompilerOptions,
-        scalaVersion: String,
-        scalaOrganization: String,
-        scalacOptions: Seq[String],
-        compilerClasspath: Seq[PathRef],
-        scalacPluginClasspath: Seq[PathRef],
+        op: ZincCompileMixed,
         reporterMode: ReporterMode,
-        incrementalCompilation: Boolean,
-        auxiliaryClassFileExtensions: Seq[String],
         ctx: ZincWorker.InvocationContext
     ) extends ClientToServer {
       override type Response = Result[CompilationResult]
     }
 
     case class DocJar(
-        scalaVersion: String,
-        scalaOrganization: String,
-        compilerClasspath: Seq[PathRef],
-        scalacPluginClasspath: Seq[PathRef],
-        args: Seq[String]
+        op: ZincScaladocJar
     ) extends ClientToServer {
       override type Response = Boolean
     }
