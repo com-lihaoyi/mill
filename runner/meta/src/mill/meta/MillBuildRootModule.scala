@@ -285,7 +285,7 @@ trait MillBuildRootModule()(implicit
     // copied from `ScalaModule`
     val jOpts = JavaCompilerOptions(javacOptions() ++ mandatoryJavacOptions())
     jvmWorker()
-      .worker()
+      .internalWorker()
       .compileMixed(
         ZincCompileMixed(
           upstreamCompileOutput = upstreamCompileOutput(),
@@ -303,7 +303,7 @@ trait MillBuildRootModule()(implicit
         javaHome = javaHome().map(_.path),
         javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems(),
+        reportCachedProblems = zincReportCachedProblems()
       ).map {
         res =>
           // Perform the line-number updating in a copy of the classfiles, because

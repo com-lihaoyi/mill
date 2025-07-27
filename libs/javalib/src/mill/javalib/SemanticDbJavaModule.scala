@@ -33,7 +33,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
       "SEMANTICDB_VERSION",
       SemanticDbJavaModuleApi.contextSemanticDbVersion.get().getOrElse(builtin)
     )
-    Version.chooseNewest(requested, builtin)(Version.IgnoreQualifierOrdering)
+    Version.chooseNewest(requested, builtin)(using Version.IgnoreQualifierOrdering)
   }
 
   def semanticDbJavaVersion: T[String] = Task.Input {
@@ -42,7 +42,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
       "JAVASEMANTICDB_VERSION",
       SemanticDbJavaModuleApi.contextJavaSemanticDbVersion.get().getOrElse(builtin)
     )
-    Version.chooseNewest(requested, builtin)(Version.IgnoreQualifierOrdering)
+    Version.chooseNewest(requested, builtin)(using Version.IgnoreQualifierOrdering)
   }
 
   def semanticDbScalaVersion: T[String] = BuildInfo.scalaVersion
@@ -212,7 +212,7 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
       else List.empty
 
     val isNewEnough =
-      Version.isAtLeast(semanticDbJavaVersion, "0.8.10")(Version.IgnoreQualifierOrdering)
+      Version.isAtLeast(semanticDbJavaVersion, "0.8.10")(using Version.IgnoreQualifierOrdering)
     val buildTool = s" -build-tool:${if (isNewEnough) "mill" else "sbt"}"
     val verbose = if (ctx.log.debugEnabled) " -verbose" else ""
     javacOptions ++ Seq(

@@ -16,7 +16,7 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       javaRuntimeOptions: JavaRuntimeOptions,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
-  )(using context: PublicJvmWorkerApi.Ctx): Result[CompilationResult]
+  )(using context: JvmWorkerApi.Ctx): Result[CompilationResult]
 
   /** Compile a mixed Scala/Java or Scala-only project. */
   def compileMixed(
@@ -25,13 +25,13 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       javaRuntimeOptions: JavaRuntimeOptions,
       reporter: Option[CompileProblemReporter],
       reportCachedProblems: Boolean
-  )(using context: PublicJvmWorkerApi.Ctx): Result[CompilationResult]
+  )(using context: JvmWorkerApi.Ctx): Result[CompilationResult]
 
   /** Compiles a Scaladoc jar. */
   def scaladocJar(
       op: ZincScaladocJar,
       javaHome: Option[os.Path]
-  )(using context: PublicJvmWorkerApi.Ctx): Boolean
+  )(using context: JvmWorkerApi.Ctx): Boolean
 
   // public API forwarder
   override def compileJava(
@@ -119,4 +119,7 @@ trait JvmWorkerApi extends PublicJvmWorkerApi {
       javaHome = javaHome
     )
   }
+}
+object JvmWorkerApi {
+  type Ctx = PublicJvmWorkerApi.Ctx
 }

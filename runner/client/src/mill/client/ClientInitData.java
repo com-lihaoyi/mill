@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * The default data sent by the client on connection to the server.
  */
-public class ClientInitData implements OutputStreamWritable {
+public class ClientInitData {
   public final boolean interactive;
   public final String clientMillVersion;
   public final String clientJavaVersion;

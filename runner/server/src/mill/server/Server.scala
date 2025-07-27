@@ -23,7 +23,7 @@ abstract class Server[State](
     acceptTimeout: FiniteDuration,
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
-) extends GenericServer(
+) extends GenericServer[ClientInitData](
       daemonDir = daemonDir,
       acceptTimeout = acceptTimeout,
       locks = locks,
@@ -105,7 +105,7 @@ abstract class Server[State](
   }
 
   override protected def handleConnection(
-      socketIn: InputStream,
+      stdin: InputStream,
       stdout: PrintStream,
       stderr: PrintStream,
       stopServer: GenericServer.StopServer,
@@ -115,11 +115,14 @@ abstract class Server[State](
   ): Int = {
     // TODO review: this was previously in `preHandleConnection`, but I doubt that's a problem.
     //
+    // TODO review: I have no idea what this comment means and whether this is actually needed and should be in
+    // generic server instead.
+    //
     // Proxy the input stream through a pair of Piped**putStream via a pumper,
     // as the `UnixDomainSocketInputStream` we get directly from the socket does
     // not properly implement `available(): Int` and thus messes up polling logic
     // that relies on that method
-    val proxiedSocketInput = proxyInputStreamThroughPumper(socketIn)
+    val proxiedSocketInput = proxyInputStreamThroughPumper(stdin)
 
     val (result, newStateCache) = main0(
       data.args,

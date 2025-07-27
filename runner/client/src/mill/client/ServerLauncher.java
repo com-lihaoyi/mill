@@ -1,7 +1,7 @@
 package mill.client;
 
 import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -39,8 +39,13 @@ import mill.constants.Util;
 ///     indicating server has finished execution and all data has been received
 public abstract class ServerLauncher {
   public static class Result {
-    public int exitCode;
-    public Path daemonDir;
+    public final int exitCode;
+    public final Path daemonDir;
+
+    public Result(int exitCode, Path daemonDir) {
+      this.exitCode = exitCode;
+      this.daemonDir = daemonDir;
+    }
   }
 
   final int serverInitWaitMillis = 10000;
@@ -48,6 +53,14 @@ public abstract class ServerLauncher {
   public interface InitServer {
     /** Initializes the server, returning the server process or null. */
     Process init() throws Exception;
+  }
+
+  public interface RunClientLogic {
+    /** Runs the client logic.
+     *
+     * @param rawServerStdin raw access to the server's stdin, you should only use this if you know what you're doing,
+     *                       use {@link Streams} to communicate with the server instead. */
+    void run(OutputStream rawServerStdin) throws Exception;
   }
 
   /**
@@ -59,25 +72,19 @@ public abstract class ServerLauncher {
 
   public abstract void prepareDaemonDir(Path daemonDir) throws Exception;
 
-  InputStream stdin;
-  PrintStream stdout;
-  PrintStream stderr;
-  Map<String, String> env;
-  String[] args;
-  Locks memoryLock;
-  int forceFailureForTestingMillisDelay;
+  final Streams streams;
+  final Map<String, String> env;
+  final String[] args;
+  final Locks memoryLock;
+  final int forceFailureForTestingMillisDelay;
 
   public ServerLauncher(
-      InputStream stdin,
-      PrintStream stdout,
-      PrintStream stderr,
+      Streams streams,
       Map<String, String> env,
       String[] args,
       Locks memoryLock,
       int forceFailureForTestingMillisDelay) {
-    this.stdin = stdin;
-    this.stdout = stdout;
-    this.stderr = stderr;
+    this.streams = streams;
     this.env = env;
     this.args = args;
 
@@ -90,42 +97,50 @@ public abstract class ServerLauncher {
   }
 
   public Result run(Path daemonDir, String javaHome) throws Exception {
-
     Files.createDirectories(daemonDir);
-
     prepareDaemonDir(daemonDir);
 
-    Socket ioSocket = launchConnectToServer(daemonDir);
+    var initData = new ClientInitData(
+      /* interactive */ Util.hasConsole(),
+      BuildInfo.millVersion,
+      javaHome,
+      args,
+      env,
+      ClientUtil.getUserSetProperties()
+    );
+    var locks = memoryLock != null ? memoryLock : Locks.files(daemonDir.toString());
 
-    Result result = new Result();
-    try {
-      var initData = new ClientInitData(
-        /* interactive */ Util.hasConsole(),
-        BuildInfo.millVersion,
-        javaHome,
-        args,
-        env,
-        ClientUtil.getUserSetProperties()
-      );
-      var outPumperThread = startStreamPumpers(ioSocket, initData);
-      forceTestFailure(daemonDir);
-      outPumperThread.join();
-      result.exitCode = outPumperThread.exitCode();
-      result.daemonDir = daemonDir;
-    } finally {
-      ioSocket.close();
-    }
-
-    return result;
+    return run(
+      daemonDir,
+      locks,
+      serverInitWaitMillis,
+      () -> initServer(daemonDir, memoryLock),
+      streams,
+      rawServerStdin -> {
+        initData.write(rawServerStdin);
+        forceTestFailure(daemonDir);
+      }
+    );
   }
 
-  Socket launchConnectToServer(Path daemonDir) throws Exception {
-    return launchConnectToServer(
-      memoryLock != null ? memoryLock : Locks.files(daemonDir.toString()),
-      daemonDir,
-      serverInitWaitMillis,
-      () -> initServer(daemonDir, memoryLock)
-    );
+  public static Result run(
+    Path daemonDir,
+    Locks locks,
+    int serverInitWaitMillis,
+    InitServer initServer,
+    Streams streams,
+    RunClientLogic runClientLogic
+  ) throws Exception {
+    Files.createDirectories(daemonDir);
+
+    try (var ioSocket = launchOrConnectToServer(locks, daemonDir, serverInitWaitMillis, initServer)) {
+      var socketInputStream = ioSocket.getInputStream();
+      var socketOutputStream = ioSocket.getOutputStream();
+      var pumperThread = startStreamPumpers(socketInputStream, socketOutputStream, streams);
+      runClientLogic.run(socketOutputStream);
+      pumperThread.join();
+      return new Result(pumperThread.exitCode(), daemonDir);
+    }
   }
 
   /**
@@ -137,7 +152,7 @@ public abstract class ServerLauncher {
    * @return a Socket connected to the Mill server
    * @throws Exception if the server fails to start or a connection cannot be established
    */
-  public static Socket launchConnectToServer(
+  public static Socket launchOrConnectToServer(
     Locks locks, Path daemonDir,
     int serverInitWaitMillis,
     InitServer initServer
@@ -149,7 +164,7 @@ public abstract class ServerLauncher {
 
       while (locks.daemonLock.probe()) {
         if (daemonProcess != null && !daemonProcess.isAlive()) {
-          System.err.println("Mill daemon exited unexpectedly!");
+          System.err.println("Daemon exited unexpectedly!");
           Path stdout = daemonDir.toAbsolutePath().resolve(DaemonFiles.stdout);
           Path stderr = daemonDir.toAbsolutePath().resolve(DaemonFiles.stderr);
           if (Files.exists(stdout) && Files.size(stdout) > 0) {
@@ -202,6 +217,23 @@ public abstract class ServerLauncher {
     }
   }
 
+  public static class Streams {
+    /// The input stream to send to the server as the stdin.
+    public final InputStream stdin;
+
+    /// Server's stdout will be written to this output stream.
+    public final OutputStream stdout;
+
+    /// Server's stderr will be written to this output stream.
+    public final OutputStream stderr;
+
+    public Streams(InputStream stdin, OutputStream stdout, OutputStream stderr) {
+      this.stdin = stdin;
+      this.stdout = stdout;
+      this.stderr = stderr;
+    }
+  }
+
   static class PumperThread extends Thread {
     final ProxyStream.Pumper runnable;
 
@@ -218,16 +250,16 @@ public abstract class ServerLauncher {
   /**
    * Starts the stream pumpers for the given socket connection to handle input and output streams.
    *
-   * @param ioSocket the socket connected to the server
+   * @param socketInputStream the input stream from the server
+   * @param socketOutputStream the output stream to the server
    * @return a PumperThread that processes the output/error streams from the server
-   * @throws Exception if an error occurs during stream initialization or communication
    */
-  PumperThread startStreamPumpers(Socket ioSocket, OutputStreamWritable initData) throws Exception {
-    var outAndErrCombined = ioSocket.getInputStream();
-    var in = ioSocket.getOutputStream();
-    initData.write(in);
-    var outPumper = new ProxyStream.Pumper(outAndErrCombined, stdout, stderr);
-    var inPump = new InputPumper(() -> stdin, () -> in, true);
+  static PumperThread startStreamPumpers(
+    InputStream socketInputStream, OutputStream socketOutputStream,
+    Streams streams
+  ) {
+    var outPumper = new ProxyStream.Pumper(socketInputStream, streams.stdout, streams.stderr);
+    var inPump = new InputPumper(() -> streams.stdin, () -> socketOutputStream, true);
     var outPumperThread = new PumperThread(outPumper, "outPump");
     outPumperThread.setDaemon(true);
     var inThread = new Thread(inPump, "inPump");

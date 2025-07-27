@@ -10,7 +10,7 @@ import mill.javalib.api.internal.{
   ZincScaladocJar,
   JvmWorkerApi
 }
-import mill.javalib.internal.{JvmWorkerApi, JvmWorkerArgs, RpcCompileProblemReporterMessage}
+import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}

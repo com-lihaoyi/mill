@@ -43,13 +43,12 @@ public class MillLauncherMain {
 
         ServerLauncher launcher =
             new ServerLauncher(
-                System.in,
-                System.out,
-                System.err,
-                System.getenv(),
-                optsArgs.toArray(new String[0]),
-                null,
-                -1) {
+              new ServerLauncher.Streams(System.in, System.out, System.err),
+              System.getenv(),
+              optsArgs.toArray(new String[0]),
+              null,
+              -1
+            ) {
               public Process initServer(Path daemonDir, Locks locks) throws Exception {
                 return MillProcessLauncher.launchMillDaemon(daemonDir);
               }

@@ -1,7 +1,5 @@
 package mill.server
 
-import mill.api.daemon.SystemStreams
-import mill.client.{ClientInitData, ClientUtil}
 import mill.client.lock.Locks
 import mill.constants.{DaemonFiles, ProxyStream}
 

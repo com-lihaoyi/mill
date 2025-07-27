@@ -9,6 +9,7 @@ import utest.*
 import java.io.*
 import java.nio.file.Path
 import scala.jdk.CollectionConverters.*
+import concurrent.duration.*
 
 /**
  * Exercises the client-server logic in memory, using in-memory locks
@@ -23,7 +24,7 @@ object ClientServerTests extends TestSuite {
       locks: Locks,
       testLogEvenWhenServerIdWrong: Boolean,
       commandSleepMillis: Int = 0
-  ) extends Server[Option[Int]](daemonDir, 1000, locks, testLogEvenWhenServerIdWrong)
+  ) extends Server[Option[Int]](daemonDir, 1000.millis, locks, testLogEvenWhenServerIdWrong)
       with Runnable {
 
     override def outLock = mill.client.lock.Lock.memory()
@@ -93,9 +94,7 @@ object ClientServerTests extends TestSuite {
       val out = new ByteArrayOutputStream()
       val err = new ByteArrayOutputStream()
       val result = new ServerLauncher(
-        in,
-        new PrintStream(out),
-        new PrintStream(err),
+        ServerLauncher.Streams(in, out, err),
         env.asJava,
         args,
         memoryLock,

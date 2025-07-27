@@ -7,6 +7,7 @@ import mill.constants.OutFiles
 import sun.misc.{Signal, SignalHandler}
 import mill.api.BuildCtx
 import scala.util.{Properties, Try}
+import scala.concurrent.duration.*
 
 object MillDaemonMain {
   def main(args0: Array[String]): Unit = {
@@ -55,7 +56,7 @@ class MillDaemonMain(
     locks: Locks
 ) extends mill.server.Server[RunnerState](
       daemonDir,
-      acceptTimeoutMillis,
+      acceptTimeoutMillis.millis,
       locks
     ) {
 
