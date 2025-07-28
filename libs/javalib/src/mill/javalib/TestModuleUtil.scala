@@ -41,7 +41,8 @@ final class TestModuleUtil(
     testReportXml: Option[String],
     javaHome: Option[os.Path],
     testParallelism: Boolean,
-    testLogLevel: TestReporter.LogLevel
+    testLogLevel: TestReporter.LogLevel,
+    propagateEnv: Boolean = true
 )(implicit ctx: mill.api.TaskCtx) {
 
   private val (jvmArgs, props: Map[String, String]) =
@@ -163,7 +164,7 @@ final class TestModuleUtil(
         mainClass = "mill.javalib.testrunner.entrypoint.TestRunnerMain",
         classPath = (runClasspath ++ testrunnerEntrypointClasspath).map(_.path),
         jvmArgs = jvmArgs,
-        env = forkEnv,
+        env = forkEnv ++ (if (propagateEnv) Task.env else Map()),
         mainArgs = Seq(testRunnerClasspathArg, argsFile.toString),
         cwd = if (testSandboxWorkingDir) sandbox else forkWorkingDir,
         cpPassingJarPath = Option.when(useArgsFile)(
