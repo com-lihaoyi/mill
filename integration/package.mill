@@ -95,7 +95,6 @@ object `package` extends mill.Module {
 
       def forkEnv = Task {
         super.forkEnv() ++
-          Task.env ++
           IntegrationTestModule.this.forkEnv() ++
           Map(
             "MILL_INTEGRATION_DAEMON_MODE" -> (mode == "daemon").toString,
