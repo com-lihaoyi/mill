@@ -115,7 +115,7 @@
             <div class="cover">
              <div class="doc">
               <p>Manage the setup, teardown, and caching of objects of type <span data-unresolved-link="">V</span> safely in a multithreaded environment.</p>
-              <p>The user provides the <a href="util/CachedFactory.html#setup-d26">setup</a> and <a href="util/CachedFactory.html#teardown-ef2">teardown</a> logic along with a <a href="util/CachedFactory.html#maxCacheSize-0">maxCacheSize</a>, and <a href="util/CachedFactory.html">CachedFactory</a> provides instances of <span data-unresolved-link="">V</span> as requested using the <a href="util/CachedFactory.html#withValue-be0">withValue</a> method. These instances are automatically constructed on-demand from the give key, cached with an LRU strategy, and destroyed when they are eventually evicted</p>
+              <p>The user provides the <a href="util/CachedFactory.html#setup-d26">setup</a> and <a href="util/CachedFactory.html#teardown-ef2">teardown</a> logic along with a <a href="util/CachedFactory.html#maxCacheSize-0">maxCacheSize</a>, and <a href="util/CachedFactory.html">CachedFactory</a> provides instances of <span data-unresolved-link="">V</span> as requested using the <a href="util/CachedFactory.html#withValue-be0">withValue</a> method. These instances are automatically constructed on-demand from the give key, cached with an LRU strategy, and destroyed when they are assertEventually evicted</p>
               <p>Intended for relatively small caches approximately O(num-threads) in size that will typically get used in a build system, not intended for caching large amounts of entries</p>
              </div>
              <h2 class="h200">Attributes</h2>
