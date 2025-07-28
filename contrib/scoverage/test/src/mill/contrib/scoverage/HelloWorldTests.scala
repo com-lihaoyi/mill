@@ -71,7 +71,7 @@ trait HelloWorldTests extends utest.TestSuite {
         test("scoverageVersion") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
           val Right(result) = eval.apply(HelloWorld.core.scoverageVersion): @unchecked
 
-          assert(
+          assertAll(
             result.value == testScoverageVersion,
             result.evalCount > 0
           )
@@ -81,7 +81,7 @@ trait HelloWorldTests extends utest.TestSuite {
             val Right(result) =
               eval.apply(HelloWorld.core.scoverage.unmanagedClasspath): @unchecked
 
-            assert(
+            assertAll(
               result.value.map(_.toString).iterator.exists(_.contains("unmanaged.xml")),
               result.evalCount > 0
             )
@@ -95,7 +95,7 @@ trait HelloWorldTests extends utest.TestSuite {
               mvn"org.scoverage::scalac-scoverage-runtime:${testScoverageVersion}"
             )
 
-            assert(
+            assertAll(
               result.value == expected,
               result.evalCount > 0
             )
@@ -118,7 +118,7 @@ trait HelloWorldTests extends utest.TestSuite {
                   mvn"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}"
                 )
             }
-            assert(
+            assertAll(
               result.value == expected,
               result.evalCount > 0
             )
@@ -129,7 +129,7 @@ trait HelloWorldTests extends utest.TestSuite {
             val resultPath = result.value.path.toIO.getPath.replace("""\""", "/")
             val expectedEnd = "/out/core/scoverage/data.dest"
 
-            assert(
+            assertAll(
               resultPath.endsWith(expectedEnd),
               result.evalCount > 0
             )
@@ -196,12 +196,12 @@ trait HelloWorldTests extends utest.TestSuite {
             val runtimeExistsOnClasspath =
               result.value.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
             if (isScala3) {
-              assert(
+              assertAll(
                 !runtimeExistsOnClasspath,
                 result.evalCount > 0
               )
             } else {
-              assert(
+              assertAll(
                 runtimeExistsOnClasspath,
                 result.evalCount > 0
               )
@@ -214,12 +214,12 @@ trait HelloWorldTests extends utest.TestSuite {
             val runtimeExistsOnClasspath =
               result.value.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
             if (isScala3) {
-              assert(
+              assertAll(
                 !runtimeExistsOnClasspath,
                 result.evalCount > 0
               )
             } else {
-              assert(
+              assertAll(
                 runtimeExistsOnClasspath,
                 result.evalCount > 0
               )
@@ -232,12 +232,12 @@ trait HelloWorldTests extends utest.TestSuite {
               result.value.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime"))
 
             if (isScala3) {
-              assert(
+              assertAll(
                 !runtimeExistsOnClasspath,
                 result.evalCount > 0
               )
             } else {
-              assert(
+              assertAll(
                 runtimeExistsOnClasspath,
                 result.evalCount > 0
               )

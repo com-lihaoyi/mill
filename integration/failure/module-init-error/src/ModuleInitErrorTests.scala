@@ -16,7 +16,7 @@ object ModuleInitErrorTests extends UtestIntegrationTestSuite {
 
       val res2 = tester.eval(("resolve", "_._"))
       assert(res2.isSuccess == true)
-      assert(
+      assertAll(
         res2.out.contains("bar.barCommand"),
         res2.out.contains("bar.barTask"),
         res2.out.contains("bar.qux"),

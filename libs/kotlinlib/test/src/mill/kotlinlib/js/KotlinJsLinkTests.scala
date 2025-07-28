@@ -3,8 +3,8 @@ package mill.kotlinlib.js
 import mill.api.Discover
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.{Cross, T}
-import utest.{TestSuite, Tests, assert, test}
-import mill.util.TokenReaders._
+import utest.{TestSuite, Tests, assert, assertAll, test}
+import mill.util.TokenReaders.*
 object KotlinJsLinkTests extends TestSuite {
 
   private val kotlinVersion = "1.9.25"
@@ -40,7 +40,7 @@ object KotlinJsLinkTests extends TestSuite {
         val Right(result) = eval.apply(module.foo(true).linkBinary): @unchecked
 
         val binariesDir = result.value.classes.path
-        assert(
+        assertAll(
           os.isDir(binariesDir),
           os.exists(binariesDir / "foo.js"),
           os.exists(binariesDir / "foo.js.map"),
@@ -57,7 +57,7 @@ object KotlinJsLinkTests extends TestSuite {
         val Right(result) = eval.apply(module.foo(false).linkBinary): @unchecked
 
         val binariesDir = result.value.classes.path
-        assert(
+        assertAll(
           os.isDir(binariesDir),
           os.exists(binariesDir / "foo.js"),
           os.exists(binariesDir / "foo.js.map"),

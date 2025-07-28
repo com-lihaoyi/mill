@@ -57,7 +57,7 @@ object JarPublishRunTests extends TestSuite {
 
         val paths = ExecutionPaths.resolve(eval.outPath, task)
         val log = os.read(paths.log)
-        assert(
+        assertAll(
           result.evalCount > 0,
           log.contains("node")
           // TODO: re-enable somehow

@@ -6,7 +6,7 @@ import mill.api.ExecResult
 import mill.api.Discover
 import mill.api.ExecutionPaths
 import mill.testkit.{TestRootModule, UnitTester}
-import utest.{TestSuite, Tests, assert, test}
+import utest.{TestSuite, Tests, assert, assertAll, test}
 
 object KotlinJsKotlinTestPackageModuleTests extends TestSuite {
 
@@ -48,7 +48,7 @@ object KotlinJsKotlinTestPackageModuleTests extends TestSuite {
         val xmlReport =
           ExecutionPaths.resolve(eval.outPath, command).dest / "test-report.xml"
 
-        assert(
+        assertAll(
           os.exists(xmlReport),
           os.read(xmlReport).contains("HelloKotlinTestPackageTests.kt:"),
           failureMessage ==

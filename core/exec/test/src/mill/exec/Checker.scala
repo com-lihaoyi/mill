@@ -33,7 +33,7 @@ class Checker[T <: mill.testkit.TestRootModule](
       evaled.uncached.partition(expEvaled.contains)
 
     val evaledValues = evaled.values.map(_.value)
-    assert(
+    assertAll(
       evaledValues == Seq(expValue),
       matchingReturnedEvaled.toSet == expEvaled.toSet,
       extraEvaled == -1 || extra.length == extraEvaled
@@ -43,7 +43,7 @@ class Checker[T <: mill.testkit.TestRootModule](
     if (secondRunNoOp) {
       val evaled2 = execution.executeTasks(Seq(task))
       val expectedSecondRunEvaluated = Seq()
-      assert(
+      assertAll(
         evaled2.values.map(_.value) == evaled.values.map(_.value),
         evaled2.uncached == expectedSecondRunEvaluated
       )

@@ -63,7 +63,7 @@ object NodeJSConfigTests extends TestSuite {
         helloWorldEvaluator(command)
         val paths = ExecutionPaths.resolve(helloWorldEvaluator.outPath, command)
         val log = os.read(paths.log)
-        assert(
+        assertAll(
           nodeArgs.forall(log.contains),
           notNodeArgs.forall(!log.contains(_))
         )

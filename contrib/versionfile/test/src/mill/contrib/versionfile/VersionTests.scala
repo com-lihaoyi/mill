@@ -1,6 +1,6 @@
 package mill.contrib.versionfile
 
-import utest.{assert, assertMatch, intercept, test, Tests, TestSuite}
+import utest.{TestSuite, Tests, assert, assertAll, assertMatch, assertThrows, test}
 
 object VersionTests extends TestSuite {
   def tests = Tests {
@@ -57,7 +57,7 @@ object VersionTests extends TestSuite {
         val snapshot = Version.Snapshot(1, 2, 3)
         val release = Version.Release(1, 2, 3)
 
-        assert(
+        assertAll(
           snapshot.asRelease == release,
           release.asRelease == release
         )

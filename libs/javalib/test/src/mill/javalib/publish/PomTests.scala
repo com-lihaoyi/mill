@@ -43,7 +43,7 @@ object PomTests extends TestSuite {
       val fullPom = pomXml(artifact, deps, artifactId, settings, properties)
 
       test("topLevel") {
-        assert(
+        assertAll(
           singleText(fullPom \ "modelVersion") == "4.0.0",
           singleText(fullPom \ "name") == artifactId,
           singleText(fullPom \ "groupId") == artifact.group,
@@ -62,7 +62,7 @@ object PomTests extends TestSuite {
 
         val license = licenses.head
         val pomLicense = settings.licenses.head
-        assert(
+        assertAll(
           singleText(license \ "name") == pomLicense.name,
           singleText(license \ "url") == pomLicense.url,
           singleText(license \ "distribution") == pomLicense.distribution
@@ -73,7 +73,7 @@ object PomTests extends TestSuite {
         val scm = (fullPom \ "scm").head
         val pomScm = settings.versionControl
 
-        assert(
+        assertAll(
           optText(scm \ "connection") == pomScm.connection,
           optText(scm \ "developerConnection") == pomScm.developerConnection,
           optText(scm \ "tag").isEmpty,
@@ -88,14 +88,14 @@ object PomTests extends TestSuite {
 
         val pomDevelopers = settings.developers
 
-        assert(
+        assertAll(
           singleText(developers.head \ "id") == pomDevelopers.head.id,
           singleText(developers.head \ "name") == pomDevelopers.head.name,
           optText(developers.head \ "organization").isEmpty,
           optText(developers.head \ "organizationUrl").isEmpty
         )
 
-        assert(
+        assertAll(
           singleText(developers.last \ "id") == pomDevelopers.last.id,
           singleText(developers.last \ "name") == pomDevelopers.last.name,
           optText(developers.last \ "organization") == pomDevelopers.last.organization,
@@ -112,7 +112,7 @@ object PomTests extends TestSuite {
 
         dependencies.zipWithIndex.foreach {
           case (dep, index) =>
-            assert(
+            assertAll(
               singleText(dep \ "groupId") == pomDeps(index).artifact.group,
               singleText(dep \ "artifactId") == pomDeps(index).artifact.id,
               singleText(dep \ "version") == pomDeps(index).artifact.version,
@@ -141,7 +141,7 @@ object PomTests extends TestSuite {
         val scm = (pomEmptyScm \ "scm").head
         val pomScm = updatedSettings.versionControl
 
-        assert(
+        assertAll(
           optText(scm \ "connection").isEmpty,
           optText(scm \ "developerConnection").isEmpty,
           optText(scm \ "tag").isEmpty,
@@ -155,7 +155,7 @@ object PomTests extends TestSuite {
       val pomNoLicenses = pomXml(artifact, deps, artifactId, updatedSettings, properties)
 
       test("licenses") {
-        assert(
+        assertAll(
           (pomNoLicenses \ "licenses").nonEmpty,
           (pomNoLicenses \ "licenses" \ "licenses").isEmpty
         )
@@ -173,7 +173,7 @@ object PomTests extends TestSuite {
         )
 
       test("dependencies") {
-        assert(
+        assertAll(
           (pomNoDeps \ "dependencies").nonEmpty,
           (pomNoDeps \ "dependencies" \ "dependency").isEmpty
         )
@@ -208,7 +208,7 @@ object PomTests extends TestSuite {
         )
       }
       test("someDepMgmt") {
-        assert(
+        assertAll(
           (pomDepMgmt \ "dependencyManagement").nonEmpty,
           (pomDepMgmt \ "dependencyManagement" \ "dependencies").nonEmpty,
           (pomDepMgmt \ "dependencyManagement" \ "dependencies" \ "dependency").nonEmpty
@@ -236,7 +236,7 @@ object PomTests extends TestSuite {
           settings,
           Map("myVersion" -> "1.0", "scala.version" -> "2.13.7")
         )
-        assert(
+        assertAll(
           (pom \ "properties").nonEmpty,
           (pom \ "properties" \ "myVersion").text == "1.0",
           (pom \ "properties" \ "scala.version").text == "2.13.7"

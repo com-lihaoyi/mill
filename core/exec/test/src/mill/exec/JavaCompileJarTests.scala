@@ -174,7 +174,7 @@ object JavaCompileJarTests extends TestSuite {
         // Build.run is not cached, so every time we eval it, it has to
         // re-evaluate
         val Right(result) = eval(Build.run("test.Foo")): @unchecked
-        assert(
+        assertAll(
           result.value.out.text() == s"${31337 + 271828}${System.lineSeparator}",
           result.evalCount == 1
         )
@@ -195,12 +195,12 @@ object JavaCompileJarTests extends TestSuite {
         """
       )
       val Right(result2) = eval(Build.run("test.BarFour")): @unchecked
-      assert(
+      assertAll(
         result2.value.out.text() == "New Cls!" + System.lineSeparator,
         result2.evalCount == 3
       )
       val Right(result3) = eval(Build.run("test.BarFour")): @unchecked
-      assert(
+      assertAll(
         result3.value.out.text() == "New Cls!" + System.lineSeparator,
         result3.evalCount == 1
       )

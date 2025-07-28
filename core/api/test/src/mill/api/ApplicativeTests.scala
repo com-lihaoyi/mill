@@ -89,7 +89,7 @@ object ApplicativeTests extends TestSuite {
       val counter = new Counter()
       def up = Opt { "lol " + counter() }
       val down = Opt { if ("lol".length > 10) up() else "fail" }
-      assert(
+      assertAll(
         down == Opt.some("fail"),
         counter.value == 1
       )
@@ -101,7 +101,7 @@ object ApplicativeTests extends TestSuite {
       def up = Opt { "lol " + counter() }
       def runTwice[T](t: => T) = (t, t)
       val down = Opt { runTwice(up()) }
-      assert(
+      assertAll(
         down == Opt.some(("lol 1", "lol 1")),
         counter.value == 1
       )
@@ -113,7 +113,7 @@ object ApplicativeTests extends TestSuite {
       def up = Opt { "hello" + counter() }
       val down1 = Opt { (() => up())() }
       val down2 = Opt { Seq(1, 2, 3).map(n => up() * n) }
-      assert(
+      assertAll(
         down1 == Opt.some("hello1"),
         down2 == Opt.some(Seq("hello2", "hello2hello2", "hello2hello2hello2"))
       )

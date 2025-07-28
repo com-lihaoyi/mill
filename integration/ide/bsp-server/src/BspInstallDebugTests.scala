@@ -19,7 +19,7 @@ object BspInstallDebugTests extends UtestIntegrationTestSuite {
       val jsonFile = workspacePath / Constants.bspDir / s"${Constants.serverName}.json"
       assert(os.exists(jsonFile))
       val contents = os.read(jsonFile)
-      assert(
+      assertAll(
         contents.contains("--debug"),
         contents.contains(s""""bspVersion":"${bsp4jVersion}"""")
       )

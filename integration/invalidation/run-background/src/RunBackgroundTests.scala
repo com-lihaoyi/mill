@@ -33,7 +33,7 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
       eval(("foo.runBackground", lock, stop))
       assertEventually { !probeLockAvailable(lock) }
       if (tester.daemonMode) eval("shutdown")
-      continually { !probeLockAvailable(lock) }
+      assertContinually { !probeLockAvailable(lock) }
       os.write(stop, "")
       assertEventually { probeLockAvailable(lock) }
     }
@@ -57,7 +57,7 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
         )
 
         if (tester.daemonMode) eval("shutdown")
-        continually { !probeLockAvailable(lock2) }
+        assertContinually { !probeLockAvailable(lock2) }
         os.write(stop, "")
         assertEventually { probeLockAvailable(lock2) }
       }

@@ -36,7 +36,7 @@ object ScalaMixedProjectSemanticDbTests extends TestSuite {
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
           val expectedSemFiles = semanticDbFiles
-          assert(
+          assertAll(
             result.value.path == dataPath,
             outputFiles.nonEmpty,
             outputFiles.toSet == expectedSemFiles,

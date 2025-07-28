@@ -64,13 +64,13 @@ object VersionTests extends TestSuite {
 
     test("short version defaults") {
       test("1") - Version("1").tap { v =>
-        assert(v.major == 1, v.minor == 0, v.patch == 0)
+        assertAll(v.major == 1, v.minor == 0, v.patch == 0)
       }
       test("1.0") - Version("1.0").tap { v =>
-        assert(v.major == 1, v.minor == 0, v.patch == 0)
+        assertAll(v.major == 1, v.minor == 0, v.patch == 0)
       }
       test("1.1") - Version("1.1").tap { v =>
-        assert(v.major == 1, v.minor == 1, v.patch == 0)
+        assertAll(v.major == 1, v.minor == 1, v.patch == 0)
       }
     }
 

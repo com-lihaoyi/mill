@@ -126,14 +126,14 @@ object PublishModuleTests extends TestSuite {
       ).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldWithPublish.core.pom): @unchecked
 
-        assert(
+        assertAll(
           os.exists(result.value.path),
           result.evalCount > 0
         )
 
         val pomXml = scala.xml.XML.loadFile(result.value.path.toString)
         val scalaLibrary = pomXml \ "dependencies" \ "dependency"
-        assert(
+        assertAll(
           (pomXml \ "packaging").text == PackagingType.Jar,
           (scalaLibrary \ "artifactId").text == "scala-library",
           (scalaLibrary \ "groupId").text == "org.scala-lang"
@@ -142,7 +142,7 @@ object PublishModuleTests extends TestSuite {
       test("versionScheme") - UnitTester(HelloWorldWithPublish, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldWithPublish.core.pom): @unchecked
 
-        assert(
+        assertAll(
           os.exists(result.value.path),
           result.evalCount > 0
         )
@@ -168,7 +168,7 @@ object PublishModuleTests extends TestSuite {
           val Right(result) =
             eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds("")): @unchecked
 
-          assert(
+          assertAll(
             result.value == "user:password",
             result.evalCount > 0
           )
@@ -189,7 +189,7 @@ object PublishModuleTests extends TestSuite {
           val Right(result) =
             eval.apply(HelloWorldWithPublish.core.checkSonatypeCreds(directValue)): @unchecked
 
-          assert(
+          assertAll(
             result.value == directValue,
             result.evalCount > 0
           )
@@ -216,7 +216,7 @@ object PublishModuleTests extends TestSuite {
       ).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldWithPublish.core.ivy): @unchecked
 
-        assert(
+        assertAll(
           os.exists(result.value.path),
           result.evalCount > 0
         )
@@ -234,14 +234,14 @@ object PublishModuleTests extends TestSuite {
       test("pom") - UnitTester(PomOnly, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(PomOnly.core.pom): @unchecked
 
-        assert(
+        assertAll(
           os.exists(result.value.path),
           result.evalCount > 0
         )
 
         val pomXml = scala.xml.XML.loadFile(result.value.path.toString)
         val scalaLibrary = pomXml \ "dependencies" \ "dependency"
-        assert(
+        assertAll(
           (pomXml \ "packaging").text == PackagingType.Pom,
           (scalaLibrary \ "artifactId").text == "slf4j-api",
           (scalaLibrary \ "groupId").text == "org.slf4j"

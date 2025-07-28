@@ -149,7 +149,7 @@ object ClientServerTests extends TestSuite {
       val tester = new Tester(testLogEvenWhenServerIdWrong = true)
       val res1 = tester(args = Array("world"))
 
-      assert(
+      assertAll(
         res1.out == s"helloworld$ENDL",
         res1.err == s"HELLOworld$ENDL"
       )
@@ -157,7 +157,7 @@ object ClientServerTests extends TestSuite {
       // A second client in sequence connect to the same server
       val res2 = tester(args = Array(" WORLD"))
 
-      assert(
+      assertAll(
         res2.out == s"hello WORLD$ENDL",
         res2.err == s"HELLO WORLD$ENDL"
       )
@@ -171,7 +171,7 @@ object ClientServerTests extends TestSuite {
 
         // Have a third client spawn/connect-to a new server at the same path
         val res3 = tester(args = Array(" World"))
-        assert(
+        assertAll(
           res3.out == s"hello World$ENDL",
           res3.err == s"HELLO World$ENDL"
         )
@@ -189,7 +189,7 @@ object ClientServerTests extends TestSuite {
       val tester = new Tester(testLogEvenWhenServerIdWrong = false)
       val res1 = tester(args = Array("world"))
 
-      assert(
+      assertAll(
         res1.out == s"helloworld$ENDL",
         res1.err == s"HELLOworld$ENDL"
       )
@@ -259,7 +259,7 @@ object ClientServerTests extends TestSuite {
       // shut down half way through
       val tester = new Tester(testLogEvenWhenServerIdWrong = true, commandSleepMillis = 3000)
       val res1 = tester(args = Array("world"))
-      assert(
+      assertAll(
         res1.out == s"helloworld$ENDL",
         res1.err == s"HELLOworld$ENDL"
       )
@@ -284,7 +284,7 @@ object ClientServerTests extends TestSuite {
       val res1 = tester(env = env)
       val expected = s"a=$a1000${ENDL}b=$b1000${ENDL}c=$c1000$ENDL"
 
-      assert(
+      assertAll(
         res1.out == expected,
         res1.err == ""
       )
@@ -316,7 +316,7 @@ object ClientServerTests extends TestSuite {
 
       val expected2 = s"PATH=$pathEnvVar$ENDL"
 
-      assert(
+      assertAll(
         res2.out == expected2,
         res2.err == ""
       )

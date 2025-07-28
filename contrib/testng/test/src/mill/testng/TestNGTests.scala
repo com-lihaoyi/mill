@@ -44,7 +44,7 @@ object TestNGTests extends TestSuite {
   def tests: Tests = Tests {
     test("demo") - UnitTester(demo, resourcePath).scoped { eval =>
       val Right(result) = eval.apply(demo.test.testFramework): @unchecked
-      assert(
+      assertAll(
         result.value == "mill.testng.TestNGFramework",
         result.evalCount > 0
       )

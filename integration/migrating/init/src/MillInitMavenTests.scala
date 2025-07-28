@@ -23,19 +23,19 @@ object MillInitMavenJansiTests extends BuildGenTestSuite {
       import tester._
 
       val initRes = eval("init")
-      assert(
+      assertAll(
         initRes.out.contains(initMessage(1)),
         initRes.isSuccess
       )
 
       val compileRes = eval("compile")
-      assert(
+      assertAll(
         compileRes.err.contains("compiling 20 Java sources"),
         compileRes.isSuccess
       )
 
       val testRes = eval("test")
-      assert(
+      assertAll(
         testRes.out.contains("Test run finished: 0 failed, 1 ignored, 90 total"),
         testRes.isSuccess
       )
@@ -44,7 +44,7 @@ object MillInitMavenJansiTests extends BuildGenTestSuite {
       // so that we don't pollute the user's ~/.ivy2/local
       val ivy2Repo = tester.baseWorkspacePath / "ivy2Local"
       val publishLocalRes = eval(("publishLocal", "--localIvyRepo", ivy2Repo.toString))
-      assert(
+      assertAll(
         publishLocalRes.err.contains("Publishing Artifact(org.fusesource.jansi,jansi,2.4.1)"),
         publishLocalRes.isSuccess
       )

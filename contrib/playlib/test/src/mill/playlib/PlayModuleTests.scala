@@ -3,7 +3,7 @@ package playlib
 
 import mill.javalib.api.JvmWorkerUtil
 import mill.testkit.{TestRootModule, UnitTester}
-import utest.{TestSuite, Tests, assert, _}
+import utest.{TestSuite, Tests, assert, assertAll, *}
 import mill.api.Discover
 
 object PlayModuleTests extends TestSuite with PlayTestSuite {
@@ -37,7 +37,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
               eval.apply(playmulti.core(scalaVersion, playVersion).test.sources): @unchecked
             val Right(testResources) =
               eval.apply(playmulti.core(scalaVersion, playVersion).test.resources): @unchecked
-            assert(
+            assertAll(
               conf.value.map(_.path.relativeTo(playmulti.moduleDir).toString()) == Seq(
                 "core/conf"
               ),
@@ -75,7 +75,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
               "play-ahc-ws"
             )
             val outputModules = result.value.map(_.dep.module.name.value)
-            assert(
+            assertAll(
               outputModules.forall(expectedModules.contains),
               result.evalCount > 0
             )
@@ -120,7 +120,7 @@ object PlayModuleTests extends TestSuite with PlayTestSuite {
             ).map(
               eval.outPath / "core" / scalaVersion / playVersion / "compile.dest/classes" / _
             )
-            assert(
+            assertAll(
               result.value.classes.path == eval.outPath / "core" / scalaVersion / playVersion / "compile.dest/classes",
               outputClassFiles.nonEmpty,
               outputClassFiles.forall(expectedClassfiles.contains),
