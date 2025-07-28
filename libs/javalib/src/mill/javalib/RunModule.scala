@@ -288,7 +288,18 @@ object RunModule {
         background: Boolean,
         runBackgroundLogToConsole: Boolean
     )(implicit ctx: TaskCtx): Unit = {
-      run(args, mainClass, forkArgs, forkEnv, workingDir, useCpPassingJar, extraRunClasspath, background, runBackgroundLogToConsole, null)
+      run(
+        args,
+        mainClass,
+        forkArgs,
+        forkEnv,
+        workingDir,
+        useCpPassingJar,
+        extraRunClasspath,
+        background,
+        runBackgroundLogToConsole,
+        null
+      )
     }
     def run(
         args: os.Shellable,
@@ -302,7 +313,17 @@ object RunModule {
         runBackgroundLogToConsole: Boolean = false,
         propagateEnv: java.lang.Boolean = null
     )(implicit ctx: TaskCtx): Unit = {
-      run(args, mainClass, forkArgs, forkEnv, workingDir, useCpPassingJar, extraRunClasspath, background, runBackgroundLogToConsole)
+      run(
+        args,
+        mainClass,
+        forkArgs,
+        forkEnv,
+        workingDir,
+        useCpPassingJar,
+        extraRunClasspath,
+        background,
+        runBackgroundLogToConsole
+      )
     }
   }
   private class RunnerImpl(
