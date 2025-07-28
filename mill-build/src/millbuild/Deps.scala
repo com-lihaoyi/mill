@@ -285,7 +285,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
-    val utest = mvn"com.lihaoyi::utest:0.9.0-M2-18-5b9a4b-DIRTY806b8fed"
+    val utest = mvn"com.lihaoyi::utest:0.9.0-M2-19-264510-DIRTY6ac81a33"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
 

@@ -56,9 +56,9 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
       if (daemonMode) {
         checkClassloaders(tester)(
           SortedMap(
-          "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.javalib.JvmWorkerModule#worker cl" -> 1,
-          "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
+            "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader" -> 1,
+            "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
           )
         )
         checkThreads(tester)(
