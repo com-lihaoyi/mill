@@ -13,13 +13,12 @@ import utest._
  * doesn't increase when nothing has changed.
  */
 object LeakHygieneTests extends UtestIntegrationTestSuite {
-  def checkClassloaders(tester: IntegrationTester)(kvs: (String, Int)*) = {
+  def checkClassloaders(tester: IntegrationTester)(expected: utest.framework.GoldenFix.Span[SortedMap[String, Int]]) = {
     val res = tester.eval(("show", "countClassLoaders"), check = true)
 
-    val read = upickle.default.read[SortedMap[String, Int]](res.out)
-    val expected = SortedMap(kvs*)
+    val read = upickle.default.read[Map[String, Int]](res.out)
 
-    assert(read == expected)
+    assertGoldenLiteral(read, expected)
   }
 
   def checkThreads(tester: IntegrationTester)(expected: utest.framework.GoldenFix.Span[Seq[String]]) = {
@@ -49,6 +48,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
       }
       .sorted
 
+    pprint.log(sys.env.get("UTEST_UPDATE_GOLDEN_TESTS"))
     assertGoldenLiteral(filtered, expected)
   }
 
@@ -56,9 +56,11 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
     test - integrationTest { tester =>
       if (daemonMode) {
         checkClassloaders(tester)(
+          SortedMap(
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.javalib.JvmWorkerModule#worker cl" -> 1,
           "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
+          )
         )
         checkThreads(tester)(
           Seq(
@@ -81,10 +83,12 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "clean"))
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
+            SortedMap(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
             "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 2
+            )
           )
           checkThreads(tester)(
             Seq(
@@ -109,10 +113,12 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         for (i <- Range(0, 2)) {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
+            SortedMap(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
             "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 2
+            )
           )
           checkThreads(tester)(
             Seq(
@@ -136,8 +142,10 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
         tester.eval(("shutdown"), check = true)
         checkClassloaders(tester)(
+          SortedMap(
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.javalib.JvmWorkerModule#worker cl" -> 1
+          )
         )
         checkThreads(tester)(
           Seq(
@@ -160,10 +168,12 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "clean"))
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
+            SortedMap(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
             "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
+            )
           )
           checkThreads(tester)(
             Seq(
@@ -189,10 +199,12 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
+            SortedMap(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
             "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
+            )
           )
           checkThreads(tester)(
             Seq(
@@ -220,10 +232,12 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
+            SortedMap(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
             "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
+            )
           )
           checkThreads(tester)(
             Seq(
@@ -247,11 +261,13 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         // Make sure we can detect leaked classloaders and threads when the do happen
         tester.eval(("leakThreadClassloader"))
         checkClassloaders(tester)(
+          SortedMap(
           "leaked classloader" -> 1,
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.kotlinlib.KotlinWorkerManager" -> 1,
           "mill.javalib.JvmWorkerModule#worker cl" -> 2,
           "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
+          )
         )
         checkThreads(tester)(
           Seq(
