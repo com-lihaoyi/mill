@@ -39,7 +39,7 @@ object ScalaSemanticDbTests extends TestSuite {
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
           val expectedSemFiles = semanticDbFiles
-          assert(
+          assertAll(
             result.value.path == dataPath,
             outputFiles.nonEmpty,
             outputFiles.toSet == expectedSemFiles,
@@ -84,11 +84,10 @@ object ScalaSemanticDbTests extends TestSuite {
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
 
           val expectedSemFiles = semanticDbFiles.filter(_.ext != "class") ++ extraFiles.map(_._2)
-          pprint.log(outputFiles.toSet.filter(_.ext != "class"))
-          pprint.log(expectedSemFiles)
-          assert(
+          val filteredOutputFiles = outputFiles.toSet.filter(_.ext != "class")
+          assertAll(
             result.value.path == dataPath,
-            outputFiles.toSet.filter(_.ext != "class") == expectedSemFiles,
+            filteredOutputFiles == expectedSemFiles,
             result.evalCount > 0
           )
         }
@@ -108,7 +107,7 @@ object ScalaSemanticDbTests extends TestSuite {
           val outputFiles =
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
           val expectedFiles = semanticDbFiles.filter(_.ext != "class") ++ extraFiles.map(_._2)
-          assert(
+          assertAll(
             outputFiles.toSet.filter(_.ext != "class") == expectedFiles,
             result.evalCount > 0
           )
@@ -123,7 +122,7 @@ object ScalaSemanticDbTests extends TestSuite {
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
           val expectedFiles =
             semanticDbFiles.filter(_.ext != "class") ++ extraFiles.map(_._2).drop(1)
-          assert(
+          assertAll(
             outputFiles.toSet.filter(_.ext != "class") == expectedFiles,
             result.evalCount > 0
           )

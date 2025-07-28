@@ -123,7 +123,7 @@ object HelloWorldTests extends TestSuite {
       test("fromBuild") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorld.core.scalaVersion): @unchecked
 
-        assert(
+        assertAll(
           result.value == scala212Version,
           result.evalCount > 0
         )
@@ -131,7 +131,7 @@ object HelloWorldTests extends TestSuite {
       test("override") - UnitTester(HelloWorldScalaOverride, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldScalaOverride.core.scalaVersion): @unchecked
 
-        assert(
+        assertAll(
           result.value == scala213Version,
           result.evalCount > 0
         )
@@ -142,7 +142,7 @@ object HelloWorldTests extends TestSuite {
       test("emptyByDefault") - UnitTester(HelloWorld, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorld.core.scalacOptions): @unchecked
 
-        assert(
+        assertAll(
           result.value.isEmpty,
           result.evalCount > 0
         )
@@ -150,7 +150,7 @@ object HelloWorldTests extends TestSuite {
       test("override") - UnitTester(HelloWorldFatalWarnings, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldFatalWarnings.core.scalacOptions): @unchecked
 
-        assert(
+        assertAll(
           result.value == Seq("-Ywarn-unused", "-Xfatal-warnings"),
           result.evalCount > 0
         )
@@ -165,7 +165,7 @@ object HelloWorldTests extends TestSuite {
         val analysisFile = result.value.analysisFile
         val outputFiles = os.walk(result.value.classes.path)
         val expectedClassfiles = compileClassfiles.map(classesPath / _)
-        assert(
+        assertAll(
           result.value.classes.path == classesPath,
           os.exists(analysisFile),
           outputFiles.nonEmpty,
@@ -196,7 +196,7 @@ object HelloWorldTests extends TestSuite {
         val analysisFile = result.value.analysisFile
         val outputFiles = os.walk(result.value.classes.path)
         val expectedClassfiles = compileClassfiles.map(classesPath / _)
-        assert(
+        assertAll(
           result.value.classes.path == classesPath,
           os.exists(analysisFile),
           outputFiles.nonEmpty,
@@ -223,7 +223,7 @@ object HelloWorldTests extends TestSuite {
         os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "\n")
 
         val Right(result2) = eval.apply(HelloWorld.core.compile): @unchecked
-        assert(result2.evalCount > 0, result2.evalCount < result.evalCount)
+        assertAll(result2.evalCount > 0, result2.evalCount < result.evalCount)
       }
       test("failOnError") - UnitTester(HelloWorld, sourceRoot = resourcePath).scoped { eval =>
         os.write.append(HelloWorld.moduleDir / "core/src/Main.scala", "val x: ")
@@ -233,7 +233,7 @@ object HelloWorldTests extends TestSuite {
 
         val paths = ExecutionPaths.resolve(eval.outPath, HelloWorld.core.compile)
 
-        assert(
+        assertAll(
           os.walk(paths.dest / "classes").isEmpty,
           !os.exists(paths.meta)
         )
@@ -268,7 +268,7 @@ object HelloWorldTests extends TestSuite {
       test("nonEmpty") - UnitTester(HelloWorldWithMain, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldWithMain.core.jar): @unchecked
 
-        assert(
+        assertAll(
           os.exists(result.value.path),
           result.evalCount > 0
         )
@@ -283,7 +283,7 @@ object HelloWorldTests extends TestSuite {
           )
           val expectedFiles = (compileClassfiles.map(_.toString()) ++ otherFiles).sorted
 
-          assert(
+          assertAll(
             entries.nonEmpty,
             entries == expectedFiles
           )

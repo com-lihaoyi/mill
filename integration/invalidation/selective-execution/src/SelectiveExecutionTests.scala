@@ -210,7 +210,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
             )
           }
 
-          eventually(
+          assertEventually(
             output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           )
 
@@ -219,20 +219,20 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           // one set of tasks was ignored.
           output0 = Nil
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
-          eventually {
+          assertEventually {
             !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
 
           // Test for a bug where modifying the sources 2nd time would run tasks from both modules.
           output0 = Nil
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
-          eventually {
+          assertEventually {
             !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
 
           output0 = Nil
           modifyFile(workspacePath / "foo/foo.txt", _ + "!")
-          eventually {
+          assertEventually {
             output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
           }
         }
@@ -251,19 +251,19 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
             )
           }
 
-          eventually {
+          assertEventually {
             output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
           output0 = Nil
           modifyFile(workspacePath / "bar/bar.txt", _ + "!")
 
-          eventually {
+          assertEventually {
             !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
 
           output0 = Nil
           modifyFile(workspacePath / "foo/foo.txt", _ + "!")
-          eventually {
+          assertEventually {
             output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
           }
         }
@@ -284,7 +284,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
             )
           }
 
-          eventually {
+          assertEventually {
             output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
           output0 = Nil
@@ -292,7 +292,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
           // Check method body code changes correctly trigger downstream evaluation
           modifyFile(workspacePath / "build.mill", _.replace("\"barHelper \"", "\"barHelper! \""))
 
-          eventually {
+          assertEventually {
             !output.contains("Computing fooCommand") && output.contains("Computing barCommand")
           }
           output0 = Nil
@@ -303,7 +303,7 @@ object SelectiveExecutionWatchTests extends UtestIntegrationTestSuite {
             _.replace("object foo extends Module {", "object foo extends Module { println(123)")
           )
 
-          eventually {
+          assertEventually {
             output.contains("Computing fooCommand") && !output.contains("Computing barCommand")
           }
         }

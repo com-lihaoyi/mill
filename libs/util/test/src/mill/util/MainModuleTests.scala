@@ -7,7 +7,7 @@ import mill.api.{Cross, Discover, Module, PathRef, DefaultTaskModule}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import mill.util.MainModule
-import utest.{TestSuite, Tests, assert, test}
+import utest.{TestSuite, Tests, assert, assertAll, test}
 
 import java.io.{ByteArrayOutputStream, OutputStream, PrintStream}
 import scala.collection.mutable
@@ -148,7 +148,7 @@ object MainModuleTests extends TestSuite {
         val res =
           eval.evaluator.execute(Seq(mainModule.inspect(eval.evaluator, "hello"))).executionResults
         val ExecResult.Success(Val(value: String)) = res.results.head: @unchecked
-        assert(
+        assertAll(
           res.transitiveFailing.size == 0,
           value.startsWith("hello("),
           value.contains("MainModuleTests.scala:")
@@ -162,7 +162,7 @@ object MainModuleTests extends TestSuite {
             "hello2"
           ))).executionResults
         val ExecResult.Success(Val(value: String)) = res.results.head: @unchecked
-        assert(
+        assertAll(
           res.transitiveFailing.size == 0,
           value.startsWith("hello("),
           value.contains("MainModuleTests.scala:"),
@@ -173,7 +173,7 @@ object MainModuleTests extends TestSuite {
         val Right(result) = eval.apply("inspect", "helloCommand"): @unchecked
 
         val Seq(res: String) = result.value: @unchecked
-        assert(
+        assertAll(
           res.startsWith("helloCommand("),
           res.contains("MainModuleTests.scala:"),
           res.contains("hello")
@@ -183,7 +183,7 @@ object MainModuleTests extends TestSuite {
         val Right(result) = eval.apply("inspect", "helloWorker"): @unchecked
 
         val Seq(res: String) = result.value: @unchecked
-        assert(
+        assertAll(
           res.startsWith("helloWorker("),
           res.contains("MainModuleTests.scala:"),
           res.contains("The hello worker"),
@@ -194,7 +194,7 @@ object MainModuleTests extends TestSuite {
         val Right(result) = eval.apply("inspect", "sub"): @unchecked
 
         val Seq(res: String) = result.value: @unchecked
-        assert(
+        assertAll(
           res.startsWith("sub("),
           res.contains("MainModuleTests.scala:"),
           res.contains("    Sub module"),
@@ -322,7 +322,7 @@ object MainModuleTests extends TestSuite {
 
           val Left(ExecResult.Failure(failureMsg)) =
             evaluator.apply("show", "helloCommand"): @unchecked
-          assert(
+          assertAll(
             failureMsg.contains("Expected Signature: helloCommand"),
             failureMsg.contains("-x <int>"),
             failureMsg.contains("-y <str>")

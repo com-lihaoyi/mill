@@ -215,7 +215,7 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
         val appCompileRes = buildServer
           .buildTargetCompile(new b.CompileParams(List(targetsMap("app")).asJava))
           .get()
-        assert(
+        assertAll(
           buildCompileRes.getStatusCode == b.StatusCode.ERROR,
           appCompileRes.getStatusCode == b.StatusCode.OK
         )

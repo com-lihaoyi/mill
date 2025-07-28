@@ -41,7 +41,7 @@ object ScalaRunTests extends TestSuite {
           )): @unchecked
         assert(result.evalCount > 0)
 
-        assert(
+        assertAll(
           os.exists(runResult),
           os.read(runResult) == "hello rockjam, your age is: 25"
         )
@@ -63,7 +63,7 @@ object ScalaRunTests extends TestSuite {
 
           assert(result.evalCount > 0)
 
-          assert(
+          assertAll(
             os.exists(runResult),
             os.read(runResult) == expectedOut
           )
@@ -113,7 +113,7 @@ object ScalaRunTests extends TestSuite {
 
         assert(result.evalCount > 0)
 
-        assert(
+        assertAll(
           os.exists(runResult),
           os.read(runResult) == "hello rockjam, your age is: 25"
         )
@@ -147,7 +147,7 @@ object ScalaRunTests extends TestSuite {
 
           assert(result.evalCount > 0)
 
-          assert(
+          assertAll(
             os.exists(runResult),
             os.read(runResult) == "hello rockjam, your age is: 25"
           )
@@ -163,7 +163,7 @@ object ScalaRunTests extends TestSuite {
 
         assert(result.evalCount > 0)
 
-        assert(
+        assertAll(
           os.exists(runResult),
           os.read(runResult) == "hello rockjam, your age is: 25"
         )
@@ -176,7 +176,7 @@ object ScalaRunTests extends TestSuite {
 
         assert(result.evalCount > 0)
 
-        assert(
+        assertAll(
           os.exists(runResult),
           os.read(runResult) == "hello rockjam, your age is: 25"
         )

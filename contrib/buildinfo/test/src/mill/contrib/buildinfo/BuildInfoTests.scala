@@ -205,7 +205,7 @@ object BuildInfoTests extends TestSuite {
       val Right(_) =
         eval.apply(BuildInfoPlain.run(Task.Anon(Args(runResult.toString)))): @unchecked
 
-      assert(
+      assertAll(
         os.exists(runResult),
         os.read(runResult) == scalaVersionString
       )
@@ -239,7 +239,7 @@ object BuildInfoTests extends TestSuite {
       val Right(_) =
         eval.apply(BuildInfoJava.run(Task.Anon(Args(runResult.toString)))): @unchecked
 
-      assert(
+      assertAll(
         os.exists(runResult),
         os.read(runResult) == "not-provided-for-java-modules"
       )
@@ -252,7 +252,7 @@ object BuildInfoTests extends TestSuite {
         val Right(_) =
           eval.apply(BuildInfoJavaStatic.run(Task.Anon(Args(runResult.toString)))): @unchecked
 
-        assert(
+        assertAll(
           os.exists(runResult),
           os.exists(generatedSrc),
           os.read(runResult) == "not-provided-for-java-modules"
@@ -264,7 +264,7 @@ object BuildInfoTests extends TestSuite {
       val Right(_) =
         eval.apply(BuildInfoKotlin.run(Task.Anon(Args(runResult.toString)))): @unchecked
 
-      assert(
+      assertAll(
         os.exists(runResult),
         os.read(runResult) == scalaVersionString
       )
@@ -279,7 +279,7 @@ object BuildInfoTests extends TestSuite {
         val Right(_) =
           eval.apply(BuildInfoKotlinStatic.run(Task.Anon(Args(runResult.toString)))): @unchecked
 
-        assert(
+        assertAll(
           os.exists(runResult),
           os.exists(generatedSrc),
           os.read(runResult) == scalaVersionString
@@ -292,7 +292,7 @@ object BuildInfoTests extends TestSuite {
     ).scoped { eval =>
       val buildInfoGeneratedSourcesFolder = eval.outPath / "buildInfoSources.dest"
       val Right(result) = eval.apply(BuildInfoPlain.generatedSources): @unchecked
-      assert(
+      assertAll(
         result.value.size == 1,
         os.isDir(result.value.head.path),
         result.value.head.path == buildInfoGeneratedSourcesFolder

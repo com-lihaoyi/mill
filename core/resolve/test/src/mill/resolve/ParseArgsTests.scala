@@ -18,7 +18,7 @@ object ParseArgsTests extends TestSuite {
       ) = {
         val (selectors, args) = ParseArgs.extractSelsAndArgs(input, multiSelect)
 
-        assert(
+        assertAll(
           selectors == expectedSelectors,
           args == expectedArgs
         )
@@ -102,7 +102,7 @@ object ParseArgsTests extends TestSuite {
           case (Some(v1), Some(v2)) => (Some(v1.value), v2.value)
           case (None, Some(v2)) => (None, v2.value)
         }
-        assert(
+        assertAll(
           selectors == expectedSelectors,
           args == expectedArgs
         )

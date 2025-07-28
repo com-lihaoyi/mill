@@ -5,7 +5,7 @@ import mill.api.Discover
 import mill.javalib.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest.{TestSuite, Tests, assert, *}
+import utest.{TestSuite, Tests, assert, assertAll, *}
 
 object BuildTest extends TestSuite {
 
@@ -32,12 +32,12 @@ object BuildTest extends TestSuite {
 
     test("migrate") - UnitTester(Build, null).scoped { eval =>
       val Right(result) = eval(Build.build.flywayMigrate()): @unchecked
-      assert(
+      assertAll(
         result.evalCount > 0,
         result.value.migrationsExecuted == 1
       )
       val Right(resultAgain) = eval(Build.build.flywayMigrate()): @unchecked
-      assert(
+      assertAll(
         resultAgain.evalCount > 0,
         resultAgain.value.migrationsExecuted == 0
       )

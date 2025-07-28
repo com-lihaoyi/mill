@@ -2,9 +2,9 @@ package mill.playlib
 
 import mill.Task
 import mill.testkit.{TestRootModule, UnitTester}
-import utest.{TestSuite, Tests, assert, _}
+import utest.{TestSuite, Tests, assert, assertAll, *}
 import mill.api.Discover
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingleapi extends TestRootModule with PlayApiModule {
@@ -22,7 +22,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
     test("playVersion") {
       test("fromBuild") - UnitTester(playsingleapi, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(playsingleapi.playVersion): @unchecked
-        assert(
+        assertAll(
           result.value == testPlay28,
           result.evalCount > 0
         )
@@ -36,7 +36,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
         val Right(resources) = eval.apply(playsingleapi.resources): @unchecked
         val Right(testSources) = eval.apply(playsingleapi.test.sources): @unchecked
         val Right(testResources) = eval.apply(playsingleapi.test.resources): @unchecked
-        assert(
+        assertAll(
           conf.value.map(_.path.relativeTo(playsingleapi.moduleDir).toString()) == Seq(
             "conf"
           ),
@@ -75,7 +75,7 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
       ).map(
         eval.outPath / "compile.dest/classes" / _
       )
-      assert(
+      assertAll(
         result.value.classes.path == eval.outPath / "compile.dest/classes",
         outputFiles.nonEmpty,
         outputFiles.forall(expectedClassfiles.contains),

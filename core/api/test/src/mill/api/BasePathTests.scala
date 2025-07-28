@@ -66,7 +66,7 @@ object BasePathTests extends TestSuite {
       checkMillSourcePath(TestGraphs.nestedCrosses)(_.cross("210").cross2("js"), "cross", "cross2")
     }
     test("overridden") {
-      assert(
+      assertAll(
         overriddenBasePath.moduleDir == os.pwd / "overriddenBasePathRootValue",
         overriddenBasePath.nested.moduleDir == os.pwd / "overriddenBasePathRootValue/nested/overriddenBasePathNested",
         overriddenBasePath.nested.nested.moduleDir == os.pwd / "overriddenBasePathRootValue/nested/overriddenBasePathNested/nested/overriddenBasePathDoubleNested"

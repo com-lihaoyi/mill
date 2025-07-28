@@ -105,7 +105,7 @@ object ScalaAssemblyExcludeTests extends TestSuite with ScalaAssemblyTestUtils {
 
           val referenceContent = readFileFromJar(jarFile, "reference.conf")
 
-          assert(
+          assertAll(
             !referenceContent.contains("Model Reference Config File"),
             !referenceContent.contains("foo.bar=2"),
             referenceContent.contains("Core Reference Config File"),

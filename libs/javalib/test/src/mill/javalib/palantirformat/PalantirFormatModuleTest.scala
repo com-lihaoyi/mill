@@ -18,7 +18,7 @@ object PalantirFormatModuleTest extends TestSuite {
 
     test("palantirformat") {
 
-      assert(
+      assertAll(
         checkState(
           afterFormat(before / "google"),
           after / "google"
@@ -37,14 +37,14 @@ object PalantirFormatModuleTest extends TestSuite {
         )
       )
 
-      intercept[RuntimeException](
+      assertThrows[RuntimeException](
         afterFormat(before / "palantir", check = true)
       )
     }
 
     test("formatAll") {
 
-      assert(
+      assertAll(
         checkState(
           afterFormatAll(before / "google"),
           after / "google"
@@ -59,14 +59,14 @@ object PalantirFormatModuleTest extends TestSuite {
         )
       )
 
-      intercept[RuntimeException](
+      assertThrows[RuntimeException](
         afterFormatAll(before / "google", check = true)
       )
     }
 
     test("example") {
 
-      intercept[RuntimeException](
+      assertThrows[RuntimeException](
         afterFormat(before / "example", check = true)
       )
 

@@ -85,7 +85,7 @@ object PublishInfo {
      * extensions are without the dot, so things like ".tar.gz" aren't supported, but they do not seem to be used in Maven
      * ecosystem, so that works out for most of the cases.
      *
-     * This should eventually be rehauled, see https://github.com/com-lihaoyi/mill/issues/5538 for more information.
+     * This should assertEventually be rehauled, see https://github.com/com-lihaoyi/mill/issues/5538 for more information.
      *
      * @param fileName        name of the file to use. Can be different from the actual filename of the `file`.
      * @param artifactId      for example, "mill"

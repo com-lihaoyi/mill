@@ -1,6 +1,6 @@
 package mill.contrib.versionfile
 
-import utest.{assert, assertMatch, intercept, test, Tests, TestSuite}
+import utest.{TestSuite, Tests, assert, assertAll, assertMatch, assertThrows, test}
 
 object VersionTests extends TestSuite {
   def tests = Tests {
@@ -9,7 +9,7 @@ object VersionTests extends TestSuite {
       val snapshot = Version.Snapshot(1, 2, 3)
       val release = Version.Release(1, 2, 3)
 
-      assert(
+      assertAll(
         snapshot.toString == "1.2.3-SNAPSHOT",
         release.toString == "1.2.3"
       )
@@ -30,7 +30,7 @@ object VersionTests extends TestSuite {
       }
 
       test("x.y.z.r") {
-        intercept[MatchError] {
+        assertThrows[MatchError] {
           Version.of("1.2.3.4")
         }
       }
@@ -57,7 +57,7 @@ object VersionTests extends TestSuite {
         val snapshot = Version.Snapshot(1, 2, 3)
         val release = Version.Release(1, 2, 3)
 
-        assert(
+        assertAll(
           snapshot.asRelease == release,
           release.asRelease == release
         )
@@ -67,7 +67,7 @@ object VersionTests extends TestSuite {
         val snapshot = Version.Snapshot(1, 2, 3)
         val release = Version.Release(1, 2, 3)
 
-        assert(
+        assertAll(
           release.asSnapshot == snapshot,
           snapshot.asSnapshot == snapshot
         )

@@ -3,8 +3,8 @@ package mill.playlib
 import mill.api.Discover
 import mill.Task
 import mill.testkit.{TestRootModule, UnitTester}
-import utest.{TestSuite, Tests, assert, _}
-import mill.util.TokenReaders._
+import utest.{TestSuite, Tests, assertAll, *}
+import mill.util.TokenReaders.*
 object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingle extends TestRootModule with PlayModule {
@@ -27,7 +27,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
         val Right(resources) = eval.apply(playsingle.resources): @unchecked
         val Right(testSources) = eval.apply(playsingle.test.sources): @unchecked
         val Right(testResources) = eval.apply(playsingle.test.resources): @unchecked
-        assert(
+        assertAll(
           conf.value.map(_.path.relativeTo(playsingle.moduleDir).toString()) == Seq("conf"),
           app.value.map(_.path.relativeTo(playsingle.moduleDir).toString()) == Seq("app"),
           sources.value == app.value,
@@ -66,7 +66,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
       ).map(
         eval.outPath / "compile.dest/classes" / _
       )
-      assert(
+      assertAll(
         result.value.classes.path == eval.outPath / "compile.dest/classes",
         outputFiles.nonEmpty,
         outputFiles.forall(expectedClassfiles.contains),

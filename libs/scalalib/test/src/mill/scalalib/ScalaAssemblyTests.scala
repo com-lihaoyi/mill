@@ -15,7 +15,7 @@ object ScalaAssemblyTests extends TestSuite with ScalaAssemblyTestUtils {
         eval =>
           val Right(result) =
             eval.apply(HelloWorldTests.HelloWorldWithMain.core.assembly): @unchecked
-          assert(
+          assertAll(
             os.exists(result.value.path),
             result.evalCount > 0
           )
@@ -35,7 +35,7 @@ object ScalaAssemblyTests extends TestSuite with ScalaAssemblyTestUtils {
       test("run") - UnitTester(HelloWorldTests.HelloWorldWithMain, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldTests.HelloWorldWithMain.core.assembly): @unchecked
 
-        assert(
+        assertAll(
           os.exists(result.value.path),
           result.evalCount > 0
         )
@@ -43,7 +43,7 @@ object ScalaAssemblyTests extends TestSuite with ScalaAssemblyTestUtils {
 
         os.proc("java", "-jar", result.value.path, runResult).call(cwd = eval.outPath)
 
-        assert(
+        assertAll(
           os.exists(runResult),
           os.read(runResult) == "hello rockjam, your age is: 25"
         )

@@ -44,7 +44,7 @@ object MixedHelloWorldTests extends TestSuite {
         MixedHelloWorldKotlin.main.crossModules.foreach(m => {
           val Right(result) = eval.apply(m.compile): @unchecked
 
-          assert(
+          assertAll(
             os.walk(result.value.classes.path).exists(_.last == "KotlinHelloKt.class"),
             os.walk(result.value.classes.path).exists(_.last == "JavaHello.class")
           )

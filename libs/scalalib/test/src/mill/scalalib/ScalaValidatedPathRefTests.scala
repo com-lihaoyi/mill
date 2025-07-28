@@ -35,13 +35,13 @@ object ScalaValidatedPathRefTests extends TestSuite {
             eval =>
               // we reconstruct faulty behavior
               val Right(result) = eval.apply(t): @unchecked
-              assert(
+              assertAll(
                 result.value.path.last == (t.asInstanceOf[Task.Named[?]].label + ".dest"),
                 os.exists(result.value.path)
               )
               os.remove.all(result.value.path)
               val Right(result2) = eval.apply(t): @unchecked
-              assert(
+              assertAll(
                 result2.value.path.last == (t.asInstanceOf[Task.Named[?]].label + ".dest"),
                 // as the result was cached but not checked, this path is missing
                 os.exists(result2.value.path) == flip
@@ -55,13 +55,13 @@ object ScalaValidatedPathRefTests extends TestSuite {
           UnitTester(ValidatedTarget, null).scoped { eval =>
             // we reconstruct faulty behavior
             val Right(result) = eval.apply(t): @unchecked
-            assert(
+            assertAll(
               result.value.map(_.path.last) == Seq(t.asInstanceOf[Task.Named[?]].label + ".dest"),
               result.value.forall(p => os.exists(p.path))
             )
             result.value.foreach(p => os.remove.all(p.path))
             val Right(result2) = eval.apply(t): @unchecked
-            assert(
+            assertAll(
               result2.value.map(_.path.last) == Seq(t.asInstanceOf[Task.Named[?]].label + ".dest"),
               // as the result was cached but not checked, this path is missing
               result2.value.forall(p => os.exists(p.path) == flip)
@@ -75,13 +75,13 @@ object ScalaValidatedPathRefTests extends TestSuite {
           UnitTester(ValidatedTarget, null).scoped { eval =>
             // we reconstruct faulty behavior
             val Right(result) = eval.apply(t): @unchecked
-            assert(
+            assertAll(
               result.value.map(_.path.last) == Seq(t.asInstanceOf[Task.Named[?]].label + ".dest"),
               result.value.forall(p => os.exists(p.path))
             )
             result.value.foreach(p => os.remove.all(p.path))
             val Right(result2) = eval.apply(t): @unchecked
-            assert(
+            assertAll(
               result2.value.map(_.path.last) == Seq(t.asInstanceOf[Task.Named[?]].label + ".dest"),
               // as the result was cached but not checked, this path is missing
               result2.value.forall(p => os.exists(p.path) == flip)
@@ -95,13 +95,13 @@ object ScalaValidatedPathRefTests extends TestSuite {
           UnitTester(ValidatedTarget, null).scoped { eval =>
             // we reconstruct faulty behavior
             val Right(result) = eval.apply(t): @unchecked
-            assert(
+            assertAll(
               result.value._1.path.last == (t.asInstanceOf[Task.Named[?]].label + ".dest"),
               os.exists(result.value._1.path)
             )
             os.remove.all(result.value._1.path)
             val Right(result2) = eval.apply(t): @unchecked
-            assert(
+            assertAll(
               result2.value._1.path.last == (t.asInstanceOf[Task.Named[?]].label + ".dest"),
               // as the result was cached but not checked, this path is missing
               os.exists(result2.value._1.path) == flip

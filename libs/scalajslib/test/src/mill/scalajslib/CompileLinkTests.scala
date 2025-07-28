@@ -105,7 +105,7 @@ object CompileLinkTests extends TestSuite {
         val outPath = result.value.classes.path
         val outputFiles = os.walk(outPath)
         val expectedClassfiles = compileClassfiles(outPath, scalaVersion, scalaJSVersion)
-        assert(
+        assertAll(
           outputFiles.toSet == expectedClassfiles,
           result.evalCount > 0
         )

@@ -43,7 +43,7 @@ object ScalaDoc3Tests extends TestSuite {
       val Right(_) = eval.apply(StaticDocsModule.static.docJar): @unchecked
       val docjar = eval.outPath / "static/docJar.dest"
       val scaladoc = eval.outPath / "static/scalaDocGenerated.dest"
-      assert(
+      assertAll(
         os.exists(docjar / "out.jar"), // final jar should exist
         // check if extra markdown files have been included and translated to html
         os.exists(scaladoc / "javadoc/index.html"),
@@ -56,7 +56,7 @@ object ScalaDoc3Tests extends TestSuite {
       val Right(_) = eval.apply(EmptyDocsModule.empty.docJar): @unchecked
       val scaladoc = eval.outPath / "empty/scalaDocGenerated.dest"
       val docJar = eval.outPath / "empty/docJar.dest"
-      assert(
+      assertAll(
         os.exists(docJar / "out.jar"),
         os.exists(scaladoc / "javadoc/api/pkg/SomeClass.html")
       )
@@ -65,7 +65,7 @@ object ScalaDoc3Tests extends TestSuite {
       val Right(_) = eval.apply(MultiDocsModule.multidocs.docJar): @unchecked
       val docJar = eval.outPath / "multidocs/docJar.dest"
       val scaladoc = eval.outPath / "multidocs/scalaDocGenerated.dest"
-      assert(
+      assertAll(
         os.exists(docJar / "out.jar"), // final jar should exist
         os.exists(scaladoc / "javadoc/api/pkg/SomeClass.html"),
         os.exists(scaladoc / "javadoc/index.html"),

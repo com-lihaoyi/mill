@@ -60,7 +60,7 @@ object UnidocTests extends TestSuite {
               else module.moduleDir.toString
             )
           }
-        assert(
+        assertAll(
           // both modules should be present
           os.exists(dest / "foo" / "Foo.html"),
           os.exists(dest / "bar" / "Bar.html"),

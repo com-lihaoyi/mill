@@ -21,7 +21,7 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
 
           val referenceContent = readFileFromJar(jarFile, "reference.conf")
 
-          assert(
+          assertAll(
             // akka modules configs are present
             referenceContent.contains("akka-http Reference Config File"),
             referenceContent.contains("akka-http-core Reference Config File"),
@@ -50,7 +50,7 @@ object ScalaAssemblyAppendTests extends TestSuite with ScalaAssemblyTestUtils {
 
         val referenceContent = readFileFromJar(jarFile, "reference.conf")
 
-        assert(
+        assertAll(
           // reference config from core module
           referenceContent.contains("Core Reference Config File"),
           // reference config from model module

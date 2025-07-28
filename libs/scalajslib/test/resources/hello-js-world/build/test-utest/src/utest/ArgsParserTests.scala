@@ -5,7 +5,7 @@ object ArgsParserTests extends TestSuite {
   def tests: Tests = Tests {
     test("one") {
       val result = ArgsParser.parse("hello:world")
-      assert(
+      assertAll(
         result.length == 2,
         result == Seq("hello", "world")
       )

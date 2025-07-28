@@ -56,7 +56,7 @@ object BspModuleTests extends TestSuite {
           s"scala-library-${testScalaVersion}.jar"
         ).sorted
 
-        assert(
+        assertAll(
           relResult == expected,
           result.evalCount > 0
         )
@@ -93,7 +93,7 @@ object BspModuleTests extends TestSuite {
           os.rel / s"scala-library-${testScalaVersion}.jar"
         ).sortBy(_.toString)
 
-        assert(
+        assertAll(
           relResults == expected,
           result.evalCount > 0
         )

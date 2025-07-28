@@ -79,13 +79,13 @@ object ScalaMvnDepsTests extends TestSuite {
 
     test("mvnDeps") - UnitTester(HelloWorldMvnDeps, resourcePath).scoped { eval =>
       val Right(result) = eval.apply(HelloWorldMvnDeps.moduleA.runClasspath): @unchecked
-      assert(
+      assertAll(
         result.value.exists(_.path.last == "sourcecode_2.12-0.1.3.jar"),
         !result.value.exists(_.path.last == "sourcecode_2.12-0.1.4.jar")
       )
 
       val Right(result2) = eval.apply(HelloWorldMvnDeps.moduleB.runClasspath): @unchecked
-      assert(
+      assertAll(
         result2.value.exists(_.path.last == "sourcecode_2.12-0.1.4.jar"),
         !result2.value.exists(_.path.last == "sourcecode_2.12-0.1.3.jar")
       )
@@ -103,7 +103,7 @@ object ScalaMvnDepsTests extends TestSuite {
       eval =>
         val Right(result2) = eval.apply(TransitiveRunMvnDeps2.downstream.runClasspath): @unchecked
 
-        assert(
+        assertAll(
           result2.value.exists(_.path.last == "logback-classic-1.5.10.jar"),
           result2.value.exists(_.path.last == "slf4j-api-2.0.16.jar")
         )

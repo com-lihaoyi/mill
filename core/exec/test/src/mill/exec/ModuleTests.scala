@@ -52,7 +52,7 @@ object ModuleTests extends TestSuite {
       UnitTester(Build, null).scoped { check =>
         os.remove.all(check.outPath)
         val zresult = check.apply(Build.z)
-        assert(
+        assertAll(
           zresult == Right(Result(30, 1)),
           os.read(check.execution.outPath / "z.json").contains("30"),
           os.read(
@@ -72,7 +72,7 @@ object ModuleTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
 
-      intercept[java.lang.AssertionError] { Build }
+      assertThrows[java.lang.AssertionError] { Build }
     }
   }
 }
