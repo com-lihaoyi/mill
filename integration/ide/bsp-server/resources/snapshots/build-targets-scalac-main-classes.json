@@ -14,7 +14,7 @@
     },
     {
       "target": {
-        "uri": "file:///workspace/hello-scala"
+        "uri": "-scala"
       },
       "classes": [
         {

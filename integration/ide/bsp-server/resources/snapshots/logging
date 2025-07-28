@@ -1,10 +1,10 @@
 [bsp] Trying to load BSP server...
 [bsp] BSP server started
 [1-buildInitialize] Entered buildInitialize
-[1-buildInitialize] Got client semanticdbVersion: *. Enabling SemanticDB support.
+[1-buildInitialize] Got client semanticdbVersion: * Enabling SemanticDB support.
 [1-buildInitialize] buildInitialize took * msec
-[bsp-init-build.mill-*] [info] compiling * Scala sources to * ...
-[bsp-init-build.mill-*] [info] done compiling
+[bsp-init-build.mill-59] [info] compiling * Scala sources to * ...
+[bsp-init-build.mill-59] [info] done compiling
 [bsp-init] SNAPSHOT
 [2-workspaceBuildTargets] Entered workspaceBuildTargets
 [2-workspaceBuildTargets] Evaluating 13 tasks
@@ -15,7 +15,10 @@
 [3-loggingTest] Entered loggingTest
 [3-loggingTest] Evaluating 1 task
 [3-loggingTest-1] bspLoggingTest from System.out
-[3-loggingTest-1] bspLoggingTest from System.err
+[3-loggingTest-1] bspLoggingTest from System.errLOLS
+[3-loggingTest-1] bspLoggingTest from System.errLOLS
+[3-loggingTest-1] bspLoggingTest from System.errLOLS
+[3-loggingTest-1] bspLoggingTest from System.errLOLS
 [3-loggingTest-1] bspLoggingTest from Console.out
 [3-loggingTest-1] bspLoggingTest from Console.err
 [3-loggingTest-1] bspLoggingTest from Task.log.info
@@ -27,8 +30,8 @@
 [4-compile] buildTargetCompile took * msec
 [5-compile] Entered buildTargetCompile
 [5-compile] Evaluating 1 task
-[5-compile-57] [info] compiling 1 Scala source to */errored/compilation-error/semanticDbData.dest/classes ...
-[5-compile-57] [error] */errored/compilation-error/src/Thing.scala:2:3: not found: value nope
+[5-compile-57] [info] compiling * Scala source to * ...
+[5-compile-57] [error] *:2:3: not found: value nope
 [5-compile-57] [error]   nope
 [5-compile-57] [error]   ^
 [5-compile-57] [error] one error found

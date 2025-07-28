@@ -64,33 +64,17 @@ object BspServerTestUtil {
       ignoreLine: String => Boolean = _ => false
   )(implicit reporter: utest.framework.GoldenFix.Reporter): Unit = {
 
-    val logLines = log.linesIterator.filterNot(ignoreLine).toVector
-    val snapshotLinesOpt = Option.when(os.exists(snapshotPath))(os.read.lines(snapshotPath))
+    val logLines = log
+      .linesIterator
+      .filterNot(ignoreLine)
+      .toVector
+      .map(
+        _.replaceAll("semanticdbVersion: [0-9.]*", "semanticdbVersion: *")
+        .replaceAll("\\d+ msec", "* msec")
+        .replaceAll("\\d+ Scala (sources?) to .*\\.\\.\\.", "* Scala $1 to * ...")
+        .replaceAll("\\[error\\] [a-zA-Z0-9-_/.]+:2:3:", "[error] *:2:3:")
 
-    val matches = snapshotLinesOpt match {
-      case Some(snapshotLines) =>
-        if (snapshotLines.length == logLines.length)
-          snapshotLines.iterator
-            .zip(logLines.iterator)
-            .zipWithIndex
-            .forall {
-              case ((snapshotLine, logLine), lineIdx) =>
-                val cmp = TestRunnerUtils.matchesGlob(snapshotLine)
-                cmp(logLine) || {
-                  System.err.println(s"Line ${lineIdx + 1} differs:")
-                  System.err.println(s"  Expected: $snapshotLine")
-                  System.err.println(s"  Got: $logLine")
-                  false
-                }
-            }
-        else {
-          System.err.println(s"Expected ${snapshotLines.length} lines, got ${logLines.length}")
-          false
-        }
-      case None =>
-        System.err.println(s"$snapshotPath not found")
-        false
-    }
+      )
 
     utest.assertGoldenFile(
       logLines.mkString(System.lineSeparator()),
