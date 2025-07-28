@@ -48,7 +48,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
       }
       .sorted
 
-    pprint.log(sys.env.get("UTEST_UPDATE_GOLDEN_TESTS"))
     assertGoldenLiteral(filtered, expected)
   }
 
