@@ -24,7 +24,12 @@ object ClientServerTests extends TestSuite {
       locks: Locks,
       testLogEvenWhenServerIdWrong: Boolean,
       commandSleepMillis: Int = 0
-  ) extends MillDaemonServer[Option[Int]](daemonDir, 1000.millis, locks, testLogEvenWhenServerIdWrong)
+  ) extends MillDaemonServer[Option[Int]](
+        daemonDir,
+        1000.millis,
+        locks,
+        testLogEvenWhenServerIdWrong
+      )
       with Runnable {
 
     override def outLock = mill.client.lock.Lock.memory()

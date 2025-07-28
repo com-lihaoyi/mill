@@ -341,10 +341,10 @@ object Server {
   }
 
   def watchProcessIdFile(
-    processIdFile: os.Path,
-    processId: String,
-    running: () => Boolean,
-    exit: String => Unit
+      processIdFile: os.Path,
+      processId: String,
+      running: () => Boolean,
+      exit: String => Unit
   ): Unit = {
     os.write.over(processIdFile, processId, createFolders = true)
 

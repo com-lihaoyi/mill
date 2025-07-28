@@ -7,7 +7,7 @@ import millbuild.*
  * This package contains the code for the Mill-specific TCP server/client implementations.
  */
 object `package` extends MillPublishScalaModule {
-  def moduleDeps = Seq(/*build.core.api.daemon*/)
+  def moduleDeps = Seq( /*build.core.api.daemon*/ )
 
   def mvnDeps = Seq(
 //    Deps.osLib,

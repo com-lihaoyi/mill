@@ -32,6 +32,7 @@ object ZincCompilerBridge {
   }
 
   enum AcquireResult[+Path] derives ReadWriter {
+
     /**
      * The compiler bridge is already compiled and can be run.
      *
@@ -49,12 +50,14 @@ object ZincCompilerBridge {
 
     def map[B](f: Path => B): AcquireResult[B] = this match {
       case Compiled(bridgeJar) => Compiled(f(bridgeJar))
-      case NotCompiled(classpath, bridgeSourcesJar) => NotCompiled(classpath.map(f), f(bridgeSourcesJar))
+      case NotCompiled(classpath, bridgeSourcesJar) =>
+        NotCompiled(classpath.map(f), f(bridgeSourcesJar))
     }
 
     def fullClasspath: Vector[Path] = this match {
       case Compiled(bridgeJar) => Vector(bridgeJar)
-      case NotCompiled(classpath, bridgeSourcesJar) => (Iterator(bridgeSourcesJar) ++ classpath.iterator).toVector
+      case NotCompiled(classpath, bridgeSourcesJar) =>
+        (Iterator(bridgeSourcesJar) ++ classpath.iterator).toVector
     }
   }
 

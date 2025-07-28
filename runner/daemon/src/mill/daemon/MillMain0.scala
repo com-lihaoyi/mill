@@ -8,7 +8,14 @@ import mill.bsp.BSP
 import mill.client.lock.{DoubleLock, Lock}
 import mill.constants.{DaemonFiles, OutFiles}
 import mill.api.BuildCtx
-import mill.internal.{Colors, JsonArrayLogger, MultiStream, PrefixLogger, PromptLogger, SimpleLogger}
+import mill.internal.{
+  Colors,
+  JsonArrayLogger,
+  MultiStream,
+  PrefixLogger,
+  PromptLogger,
+  SimpleLogger
+}
 import mill.server.MillDaemonServer
 import mill.util.BuildInfo
 import mill.api
@@ -49,7 +56,7 @@ object MillMain0 {
   /**
    * We need a double lock because file system locks are not reentrant and blows up if you try to take them twice, while
    * memory locks just block until the lock is available.
-   **/
+   */
   def doubleLock(out: os.Path): DoubleLock = DoubleLock(
     outMemoryLock,
     Lock.file((out / OutFiles.millOutLock).toString)

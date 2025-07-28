@@ -3,13 +3,13 @@ package mill.server
 import mill.api.daemon.SystemStreams
 import mill.client.*
 import mill.client.lock.{Lock, Locks}
-import mill.constants.{InputPumper, OutFiles}
+import mill.constants.OutFiles
 
 import java.io.*
 import java.net.Socket
 import scala.concurrent.duration.FiniteDuration
 import scala.jdk.CollectionConverters.*
-import scala.util.{Try, Using}
+import scala.util.Using
 import scala.util.control.NonFatal
 
 /**
