@@ -15,10 +15,7 @@
 [3-loggingTest] Entered loggingTest
 [3-loggingTest] Evaluating 1 task
 [3-loggingTest-1] bspLoggingTest from System.out
-[3-loggingTest-1] bspLoggingTest from System.errLOLS
-[3-loggingTest-1] bspLoggingTest from System.errLOLS
-[3-loggingTest-1] bspLoggingTest from System.errLOLS
-[3-loggingTest-1] bspLoggingTest from System.errLOLS
+[3-loggingTest-1] bspLoggingTest from System.err
 [3-loggingTest-1] bspLoggingTest from Console.out
 [3-loggingTest-1] bspLoggingTest from Console.err
 [3-loggingTest-1] bspLoggingTest from Task.log.info
