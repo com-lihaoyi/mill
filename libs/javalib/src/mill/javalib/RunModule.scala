@@ -159,8 +159,7 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
   /**
    * Runs this module's code in a subprocess and waits for it to finish
    */
-  def runForkedTask(mainClass: Task[String],
-                    args: Task[Args] = Task.Anon(Args())): Task[Unit] =
+  def runForkedTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
       try {
         runner().run(args = args().value, mainClass = mainClass(), workingDir = forkWorkingDir())
@@ -181,14 +180,13 @@ trait RunModule extends WithJvmWorkerModule with RunModuleApi {
     )
   }
 
-
   /**
    * Whether or not to propagate the enclosing shell's environment variables to the
    * `.run` or `.testForked` process. Defaults to `true`, which is convenient when
    * you need to configure your subprocess or tests with environment variables, but
    * can be set to `false` if you prefer having additional hermeticity.
    */
-  def propagateEnv: T[Boolean] = Task{ true }
+  def propagateEnv: T[Boolean] = Task { true }
 
   def runLocalTask(mainClass: Task[String], args: Task[Args] = Task.Anon(Args())): Task[Unit] =
     Task.Anon {
