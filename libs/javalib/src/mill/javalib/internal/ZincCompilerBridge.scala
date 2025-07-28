@@ -31,23 +31,13 @@ object ZincCompilerBridge {
     def apply(scalaVersion: String, scalaOrganization: String, data: Data): AcquireResult[os.Path]
   }
 
-  sealed trait AcquireResult[+Path] {
-    def map[B](f: Path => B): AcquireResult[B]
-
-    def fullClasspath: Vector[Path]
-  }
-  object AcquireResult {
-
+  enum AcquireResult[+Path] derives ReadWriter {
     /**
-     * The compiler bridge is already compiled and can be ran.
+     * The compiler bridge is already compiled and can be run.
      *
      * @param bridgeJar The path to the compiled compiler bridge jar.
      */
-    case class Compiled[Path](bridgeJar: Path) extends AcquireResult[Path] {
-      override def map[B](f: Path => B): AcquireResult[B] = Compiled(f(bridgeJar))
-
-      override def fullClasspath: Vector[Path] = Vector(bridgeJar)
-    }
+    case Compiled(bridgeJar: Path)
 
     /**
      * The compiler bridge is not compiled yet and needs to be compiled.
@@ -55,16 +45,17 @@ object ZincCompilerBridge {
      * @param classpath The classpath to use to compile the compiler bridge.
      * @param bridgeSourcesJar The path to the compiler bridge sources jar.
      */
-    case class NotCompiled[Path](classpath: Seq[Path], bridgeSourcesJar: Path)
-        extends AcquireResult[Path] {
-      override def map[B](f: Path => B): AcquireResult[B] =
-        NotCompiled(classpath = classpath.map(f), bridgeSourcesJar = f(bridgeSourcesJar))
+    case NotCompiled(classpath: Seq[Path], bridgeSourcesJar: Path)
 
-      def fullClasspath: Vector[Path] =
-        (Iterator(bridgeSourcesJar) ++ classpath.iterator).toVector
+    def map[B](f: Path => B): AcquireResult[B] = this match {
+      case Compiled(bridgeJar) => Compiled(f(bridgeJar))
+      case NotCompiled(classpath, bridgeSourcesJar) => NotCompiled(classpath.map(f), f(bridgeSourcesJar))
     }
 
-    given rw[Path: ReadWriter]: ReadWriter[AcquireResult[Path]] = ReadWriter.derived
+    def fullClasspath: Vector[Path] = this match {
+      case Compiled(bridgeJar) => Vector(bridgeJar)
+      case NotCompiled(classpath, bridgeSourcesJar) => (Iterator(bridgeSourcesJar) ++ classpath.iterator).toVector
+    }
   }
 
   /** Compile the `sbt`/Zinc compiler bridge in the `compileDest` directory */
