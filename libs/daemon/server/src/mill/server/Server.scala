@@ -208,7 +208,7 @@ abstract class Server[PreHandleConnectionData](
     val currentOutErr = clientSocket.getOutputStream
     val writtenExitCode = AtomicBoolean()
 
-    def writeExitCode(code: Int) = {
+    def writeExitCode(code: Int): Unit = {
       if (!writtenExitCode.getAndSet(true)) {
         ProxyStream.sendEnd(currentOutErr, code)
       }
