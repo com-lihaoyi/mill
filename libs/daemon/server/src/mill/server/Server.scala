@@ -1,9 +1,9 @@
 package mill.server
 
 import mill.client.lock.{Lock, Locks}
-import mill.constants.{DaemonFiles, ProxyStream}
+import mill.constants.{DaemonFiles, InputPumper, ProxyStream}
 
-import java.io.{InputStream, PrintStream}
+import java.io.{InputStream, PipedInputStream, PipedOutputStream, PrintStream}
 import java.net.{InetAddress, Socket}
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.duration.FiniteDuration
@@ -222,7 +222,6 @@ abstract class Server[PreHandleConnectionData](
         ProxyStream.sendHeartbeat(currentOutErr)
         true
       } catch {
-        // TODO review: _ changed to NonFatal
         case NonFatal(_) => false
       }
     }
@@ -251,8 +250,17 @@ abstract class Server[PreHandleConnectionData](
       val t = new Thread(
         () =>
           try {
+            // Proxy the input stream through a pair of Piped**putStream via a pumper,
+            // as the `UnixDomainSocketInputStream` we get directly from the socket does
+            // not properly implement `available(): Int` and thus messes up polling logic
+            // that relies on that method
+            //
+            // TODO: this seems to be a leftover from the times when unix sockets were used, we should try removing it
+            // in a separate PR.
+            val proxiedSocketInput = Server.proxyInputStreamThroughPumper(socketIn)
+
             val exitCode = handleConnection(
-              stdin = socketIn,
+              stdin = proxiedSocketInput,
               stdout = stdout,
               stderr = stderr,
               stopServer = stopServer("connection handler", _),
@@ -299,7 +307,6 @@ abstract class Server[PreHandleConnectionData](
     } finally {
       try writeExitCode(1) // Send a termination if it has not already happened
       catch {
-        // TODO review: _ changed to NonFatal
         case NonFatal(_) => /*do nothing*/
       }
     }
@@ -366,5 +373,15 @@ object Server {
           None
         }
     }
+  }
+
+  private def proxyInputStreamThroughPumper(in: InputStream): PipedInputStream = {
+    val pipedInput = new PipedInputStream()
+    val pipedOutput = new PipedOutputStream(pipedInput)
+    val pumper = new InputPumper(() => in, () => pipedOutput, /* checkAvailable */ false)
+    val pumperThread = new Thread(pumper, "proxyInputStreamThroughPumper")
+    pumperThread.setDaemon(true)
+    pumperThread.start()
+    pipedInput
   }
 }

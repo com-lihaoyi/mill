@@ -41,16 +41,6 @@ abstract class MillDaemonServer[State](
   private var lastMillVersion = Option.empty[String]
   private var lastJavaVersion = Option.empty[String]
 
-  private def proxyInputStreamThroughPumper(in: InputStream): PipedInputStream = {
-    val pipedInput = new PipedInputStream()
-    val pipedOutput = new PipedOutputStream(pipedInput)
-    val pumper = new InputPumper(() => in, () => pipedOutput, /* checkAvailable */ false)
-    val pumperThread = new Thread(pumper, "proxyInputStreamThroughPumper")
-    pumperThread.setDaemon(true)
-    pumperThread.start()
-    pipedInput
-  }
-
   override protected def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
 
@@ -113,22 +103,11 @@ abstract class MillDaemonServer[State](
       initialSystemProperties: Map[String, String],
       data: ClientInitData
   ): Int = {
-    // TODO review: this was previously in `preHandleConnection`, but I doubt that's a problem.
-    //
-    // TODO review: I have no idea what this comment means and whether this is actually needed and should be in
-    // generic server instead.
-    //
-    // Proxy the input stream through a pair of Piped**putStream via a pumper,
-    // as the `UnixDomainSocketInputStream` we get directly from the socket does
-    // not properly implement `available(): Int` and thus messes up polling logic
-    // that relies on that method
-    val proxiedSocketInput = proxyInputStreamThroughPumper(stdin)
-
     val (result, newStateCache) = main0(
       data.args,
       stateCache,
       data.interactive,
-      new SystemStreams(stdout, stderr, proxiedSocketInput),
+      new SystemStreams(stdout, stderr, stdin),
       data.env.asScala.toMap,
       setIdle(_),
       data.userSpecifiedProperties.asScala.toMap,
@@ -169,7 +148,6 @@ object MillDaemonServer {
       def activeTaskString =
         try os.read(out / OutFiles.millActiveCommand)
         catch {
-          // TODO review: _ changed to NonFatal
           case NonFatal(_) => "<unknown>"
         }
 
