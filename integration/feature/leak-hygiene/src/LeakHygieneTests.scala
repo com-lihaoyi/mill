@@ -2,7 +2,7 @@ package mill.integration
 
 import mill.testkit.UtestIntegrationTestSuite
 import mill.testkit.IntegrationTester
-import scala.collection.SortedMap
+import scala.collection.Map
 import utest._
 
 /**
@@ -13,7 +13,7 @@ import utest._
  * doesn't increase when nothing has changed.
  */
 object LeakHygieneTests extends UtestIntegrationTestSuite {
-  def checkClassloaders(tester: IntegrationTester)(expected: utest.framework.GoldenFix.Span[SortedMap[String, Int]]) = {
+  def checkClassloaders(tester: IntegrationTester)(expected: utest.framework.GoldenFix.Span[Map[String, Int]]) = {
     val res = tester.eval(("show", "countClassLoaders"), check = true)
 
     val read = upickle.default.read[Map[String, Int]](res.out)
@@ -55,25 +55,25 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
     test - integrationTest { tester =>
       if (daemonMode) {
         checkClassloaders(tester)(
-          SortedMap(
-          "mill.javalib.JvmWorkerModule#worker cl" -> 1,
+          Map(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader" -> 1,
+            "mill.javalib.JvmWorkerModule#worker cl" -> 1,
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
           )
         )
         checkThreads(tester)(
-          Seq(
-          "HandleRunThread",
-          "JsonArrayLogger mill-chrome-profile.json",
-          "JsonArrayLogger mill-profile.json",
-          "MillServerActionRunner",
-          "MillServerTimeouThread",
-          "Process ID Checker Thread",
-          "FileToStreamTailerThread",
-          "FileToStreamTailerThread",
-          "main",
-          "prompt-logger-stream-pumper-thread",
-          "proxyInputStreamThroughPumper"
+          List(
+            "HandleRunThread",
+            "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
+            "MillServerActionRunner",
+            "MillServerTimeouThread",
+            "Process ID Checker Thread",
+            "FileToStreamTailerThread",
+            "FileToStreamTailerThread",
+            "main",
+            "prompt-logger-stream-pumper-thread",
+            "proxyInputStreamThroughPumper"
           )
         )
 
@@ -82,7 +82,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.eval(("show", "clean"))
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
-            SortedMap(
+            Map(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
             "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
@@ -90,19 +90,19 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             )
           )
           checkThreads(tester)(
-            Seq(
-            "HandleRunThread",
-            "JsonArrayLogger mill-chrome-profile.json",
-            "JsonArrayLogger mill-profile.json",
-            "MillServerActionRunner",
-            "MillServerTimeoutThread",
-            "Process ID Checker Thread",
-            "FileToStreamTailerThread",
-            "FileToStreamTailerThread",
-            "Timer",
-            "main",
-            "prompt-logger-stream-pumper-thread",
-            "proxyInputStreamThroughPumper"
+            List(
+              "HandleRunThread",
+              "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
+              "MillServerActionRunner",
+              "MillServerTimeoutThread",
+              "Process ID Checker Thread",
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
+              "Timer",
+              "main",
+              "prompt-logger-stream-pumper-thread",
+              "proxyInputStreamThroughPumper"
             )
           )
 
@@ -112,7 +112,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         for (i <- Range(0, 2)) {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
-            SortedMap(
+            Map(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
             "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
@@ -120,19 +120,19 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             )
           )
           checkThreads(tester)(
-            Seq(
-            "HandleRunThread",
-            "JsonArrayLogger mill-chrome-profile.json",
-            "JsonArrayLogger mill-profile.json",
-            "MillServerActionRunner",
-            "MillServerTimeoutThead",
-            "Process ID Checker Thread",
-            "FileToStreamTailerThread",
-            "FileToStreamTailerThread",
-            "Timer",
-            "main",
-            "prompt-logger-stream-pumper-thread",
-            "proxyInputStreamThroughPumper"
+            List(
+              "HandleRunThread",
+              "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
+              "MillServerActionRunner",
+              "MillServerTimeoutThead",
+              "Process ID Checker Thread",
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
+              "Timer",
+              "main",
+              "prompt-logger-stream-pumper-thread",
+              "proxyInputStreamThroughPumper"
             )
           )
         }
@@ -141,41 +141,13 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
         tester.eval(("shutdown"), check = true)
         checkClassloaders(tester)(
-          SortedMap(
+          Map(
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.javalib.JvmWorkerModule#worker cl" -> 1
           )
         )
         checkThreads(tester)(
-          Seq(
-          "HandleRunThread",
-          "JsonArrayLogger mill-chrome-profile.json",
-          "JsonArrayLogger mill-profile.json",
-          "MillServerActionRunner",
-          "MillServerTimeoutThread",
-          "Process ID Checker Thread",
-          "FileToStreamTailerThread",
-          "FileToStreamTailerThread",
-          "main",
-          "prompt-logger-stream-pumper-thread",
-          "proxyInputStreamThroughPumper"
-          )
-        )
-
-        // Exercise clean compile all post-shutdown
-        for (i <- Range(0, 2)) {
-          tester.eval(("show", "clean"))
-          tester.eval(("show", "__.compile"))
-          checkClassloaders(tester)(
-            SortedMap(
-            "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-            "mill.kotlinlib.KotlinWorkerManager" -> 1,
-            "mill.javalib.JvmWorkerModule#worker cl" -> 2,
-            "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
-            )
-          )
-          checkThreads(tester)(
-            Seq(
+          List(
             "HandleRunThread",
             "JsonArrayLogger mill-chrome-profile.json",
             "JsonArrayLogger mill-profile.json",
@@ -184,10 +156,38 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "Process ID Checker Thread",
             "FileToStreamTailerThread",
             "FileToStreamTailerThread",
-            "Timer",
             "main",
             "prompt-logger-stream-pumper-thread",
             "proxyInputStreamThroughPumper"
+          )
+        )
+
+        // Exercise clean compile all post-shutdown
+        for (i <- Range(0, 2)) {
+          tester.eval(("show", "clean"))
+          tester.eval(("show", "__.compile"))
+          checkClassloaders(tester)(
+            Map(
+            "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
+            "mill.kotlinlib.KotlinWorkerManager" -> 1,
+            "mill.javalib.JvmWorkerModule#worker cl" -> 2,
+            "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
+            )
+          )
+          checkThreads(tester)(
+            List(
+              "HandleRunThread",
+              "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
+              "MillServerActionRunner",
+              "MillServerTimeoutThread",
+              "Process ID Checker Thread",
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
+              "Timer",
+              "main",
+              "prompt-logger-stream-pumper-thread",
+              "proxyInputStreamThroughPumper"
             )
           )
         }
@@ -198,7 +198,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
-            SortedMap(
+            Map(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
             "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
@@ -206,19 +206,19 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             )
           )
           checkThreads(tester)(
-            Seq(
-            "HandleRunThread",
-            "JsonArrayLogger mill-chrome-profile.json",
-            "JsonArrayLogger mill-profile.json",
-            "MillServerActionRunner",
-            "MillServerTimeoutThread",
-            "Process ID Checker Thread",
-            "FileToStreamTailerThread",
-            "FileToStreamTailerThread",
-            "Timer",
-            "main",
-            "prompt-logger-stream-pumper-thread",
-            "proxyInputStreamThroughPumper"
+            List(
+              "HandleRunThread",
+              "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
+              "MillServerActionRunner",
+              "MillServerTimeoutThread",
+              "Process ID Checker Thread",
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
+              "Timer",
+              "main",
+              "prompt-logger-stream-pumper-thread",
+              "proxyInputStreamThroughPumper"
             )
           )
 
@@ -231,7 +231,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
-            SortedMap(
+            Map(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
             "mill.kotlinlib.KotlinWorkerManager" -> 1,
             "mill.javalib.JvmWorkerModule#worker cl" -> 2,
@@ -239,7 +239,37 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             )
           )
           checkThreads(tester)(
-            Seq(
+            List(
+              "HandleRunThread",
+              "JsonArrayLogger mill-chrome-profile.json",
+              "JsonArrayLogger mill-profile.json",
+              "MillServerActionRunner",
+              "MillServerTimeoutThread",
+              "Process ID Checker Thread",
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
+              "Timer",
+              "main",
+              "prompt-logger-stream-pumper-thread",
+              "proxyInputStreamThroughPumper"
+            )
+          )
+
+        }
+
+        // Make sure we can detect leaked classloaders and threads when the do happen
+        tester.eval(("leakThreadClassloader"))
+        checkClassloaders(tester)(
+          Map(
+          "leaked classloader" -> 1,
+          "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
+          "mill.kotlinlib.KotlinWorkerManager" -> 1,
+          "mill.javalib.JvmWorkerModule#worker cl" -> 2,
+          "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
+          )
+        )
+        checkThreads(tester)(
+          List(
             "HandleRunThread",
             "JsonArrayLogger mill-chrome-profile.json",
             "JsonArrayLogger mill-profile.json",
@@ -249,40 +279,10 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "FileToStreamTailerThread",
             "FileToStreamTailerThread",
             "Timer",
+            "leaked thread",
             "main",
             "prompt-logger-stream-pumper-thread",
             "proxyInputStreamThroughPumper"
-            )
-          )
-
-        }
-
-        // Make sure we can detect leaked classloaders and threads when the do happen
-        tester.eval(("leakThreadClassloader"))
-        checkClassloaders(tester)(
-          SortedMap(
-          "leaked classloader" -> 1,
-          "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
-          "mill.kotlinlib.KotlinWorkerManager" -> 1,
-          "mill.javalib.JvmWorkerModule#worker cl" -> 2,
-          "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
-          )
-        )
-        checkThreads(tester)(
-          Seq(
-          "HandleRunThread",
-          "JsonArrayLogger mill-chrome-profile.json",
-          "JsonArrayLogger mill-profile.json",
-          "MillServerActionRunner",
-          "MillServerTimeoutThread",
-          "Process ID Checker Thread",
-          "FileToStreamTailerThread",
-          "FileToStreamTailerThread",
-          "Timer",
-          "leaked thread",
-          "main",
-          "prompt-logger-stream-pumper-thread",
-          "proxyInputStreamThroughPumper"
           )
         )
       }
