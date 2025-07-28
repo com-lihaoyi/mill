@@ -138,7 +138,7 @@ object Deps {
   val osLibVersion = "0.11.5-M10"
   val osLib = mvn"com.lihaoyi::os-lib:$osLibVersion"
   val osLibWatch = mvn"com.lihaoyi::os-lib-watch:$osLibVersion"
-  val pprint = mvn"com.lihaoyi::pprint:0.9.0"
+  val pprint = mvn"com.lihaoyi::pprint:0.9.3"
   val mainargs = mvn"com.lihaoyi::mainargs:0.7.6"
   val millModuledefsVersion = "0.11.10"
   val millModuledefsString = s"com.lihaoyi::mill-moduledefs:${millModuledefsVersion}"
@@ -285,7 +285,7 @@ object Deps {
     // tests framework (test)
     val scalaCheck = mvn"org.scalacheck::scalacheck:1.18.1"
     val scalaTest = mvn"org.scalatest::scalatest:3.2.19"
-    val utest = mvn"com.lihaoyi::utest:0.9.0-M3"
+    val utest = mvn"com.lihaoyi::utest:0.9.0-M4"
     val zioTest = mvn"dev.zio::zio-test:2.1.14"
   }
 
