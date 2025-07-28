@@ -279,6 +279,19 @@ object RunModule {
   trait Runner {
     def run(
         args: os.Shellable,
+        mainClass: String,
+        forkArgs: Seq[String],
+        forkEnv: Map[String, String],
+        workingDir: os.Path,
+        useCpPassingJar: java.lang.Boolean,
+        extraRunClasspath: Seq[os.Path],
+        background: Boolean,
+        runBackgroundLogToConsole: Boolean
+    )(implicit ctx: TaskCtx): Unit = {
+      run(args, mainClass, forkArgs, forkEnv, workingDir, useCpPassingJar, extraRunClasspath, background, runBackgroundLogToConsole, null)
+    }
+    def run(
+        args: os.Shellable,
         mainClass: String = null,
         forkArgs: Seq[String] = null,
         forkEnv: Map[String, String] = null,
@@ -288,7 +301,9 @@ object RunModule {
         background: Boolean = false,
         runBackgroundLogToConsole: Boolean = false,
         propagateEnv: java.lang.Boolean = null
-    )(implicit ctx: TaskCtx): Unit
+    )(implicit ctx: TaskCtx): Unit = {
+      run(args, mainClass, forkArgs, forkEnv, workingDir, useCpPassingJar, extraRunClasspath, background, runBackgroundLogToConsole)
+    }
   }
   private class RunnerImpl(
       mainClass0: Either[String, String],
@@ -300,7 +315,7 @@ object RunModule {
       propagateEnv0: Boolean = true
   ) extends Runner {
 
-    def run(
+    override def run(
         args: os.Shellable,
         mainClass: String = null,
         forkArgs: Seq[String] = null,
