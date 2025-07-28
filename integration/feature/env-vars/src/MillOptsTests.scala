@@ -25,10 +25,12 @@ object MillOptsTests extends UtestIntegrationTestSuite {
       assert(res4.out.contains("test: efghi"))
       assert(!res4.isSuccess)
 
-
       // If `def propagateEnv = false` is configured, no env vars are passed
       // from the launcher to the daemon.
-      tester.modifyFile(tester.workspacePath / "build.mill", _.replace("}", "def propagateEnv = false}"))
+      tester.modifyFile(
+        tester.workspacePath / "build.mill",
+        _.replace("}", "def propagateEnv = false}")
+      )
 
       val res5 = tester.eval("foo.run", env = Map("MY_ENV_VAR" -> "12345"))
       assert(res5.out.contains("run: null"))
