@@ -172,7 +172,8 @@ final class TestModuleUtil(
         ),
         javaHome = javaHome,
         stdin = os.Inherit,
-        stdout = os.Inherit
+        stdout = os.Inherit,
+        propagateEnv = false
       )
     }
 
