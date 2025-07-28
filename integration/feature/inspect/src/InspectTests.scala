@@ -80,6 +80,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    core.allForkEnv
           |    core.runUseArgsFile
           |    core.javaHome
+          |    core.propagateEnv
           |    core.finalMainClass
           |    core.forkWorkingDir
           |""",
