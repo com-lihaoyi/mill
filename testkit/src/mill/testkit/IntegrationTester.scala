@@ -75,7 +75,7 @@ object IntegrationTester {
       asTestValue(check),
       asTestValue(propagateEnv),
       asTestValue(shutdownGracePeriod)
-    ).map(tv => tv.copy(name = "eval." + tv.name))
+    )
   }
 
   trait Impl extends AutoCloseable with IntegrationTesterBase {

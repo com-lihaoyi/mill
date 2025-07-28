@@ -1,7 +1,7 @@
 package mill.util
 
 import mill.util.Version
-import utest.{TestSuite, Tests, assert, test}
+import utest.{TestSuite, Tests, assert, assertAll, test}
 
 object VersionTests extends TestSuite {
 
@@ -79,7 +79,7 @@ object VersionTests extends TestSuite {
     test("Version.isAtLeast(String, String)") {
       test("ignoreQualifier") {
         given Ordering[Version] = Version.IgnoreQualifierOrdering
-        assert(
+        assertAll(
           Version.isAtLeast("0.8.9", "0.7.10") == true,
           Version.isAtLeast("0.8.9", "0.8.10") == false,
           Version.isAtLeast("0.8.10", "0.8.10") == true,

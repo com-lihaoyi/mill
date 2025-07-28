@@ -31,11 +31,11 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
       val stop = os.temp()
       os.remove(stop)
       eval(("foo.runBackground", lock, stop))
-      eventually { !probeLockAvailable(lock) }
+      assertEventually { !probeLockAvailable(lock) }
       if (tester.daemonMode) eval("shutdown")
       continually { !probeLockAvailable(lock) }
       os.write(stop, "")
-      eventually { probeLockAvailable(lock) }
+      assertEventually { probeLockAvailable(lock) }
     }
 
     test("sequential") - integrationTest { tester =>
@@ -48,9 +48,9 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
         val stop = os.temp()
         os.remove(stop)
         eval(("foo.runBackground", lock1, stop))
-        eventually { !probeLockAvailable(lock1) }
+        assertEventually { !probeLockAvailable(lock1) }
         eval(("foo.runBackground", lock2, stop))
-        eventually { !probeLockAvailable(lock2) }
+        assertEventually { !probeLockAvailable(lock2) }
         Predef.assert(
           probeLockAvailable(lock1),
           "first process should be exited after second process is running"
@@ -59,7 +59,7 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
         if (tester.daemonMode) eval("shutdown")
         continually { !probeLockAvailable(lock2) }
         os.write(stop, "")
-        eventually { probeLockAvailable(lock2) }
+        assertEventually { probeLockAvailable(lock2) }
       }
     }
 
@@ -69,12 +69,12 @@ object RunBackgroundTests extends UtestIntegrationTestSuite {
       val stop = os.temp()
       os.remove(stop)
       eval(("foo.runBackground", lock, stop))
-      eventually {
+      assertEventually {
         !probeLockAvailable(lock)
       }
 
       eval(("clean", "foo.runBackground"))
-      eventually {
+      assertEventually {
         probeLockAvailable(lock)
       }
     }

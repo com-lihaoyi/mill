@@ -22,8 +22,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
     assert(read == expected)
   }
 
-  def checkThreads(tester: IntegrationTester)(expected0: String*) = {
-    val expected = expected0.sorted
+  def checkThreads(tester: IntegrationTester)(expected: utest.framework.GoldenFix.Span[Seq[String]]) = {
     val out = tester.eval(("show", "countThreads")).out
     val read = upickle.default.read[Seq[String]](out)
     // Filter out threads from the thread pool that runs tasks
@@ -50,7 +49,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
       }
       .sorted
 
-    assert(filtered == expected)
+    assertGoldenLiteral(filtered, expected)
   }
 
   val tests: Tests = Tests {
@@ -62,17 +61,19 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
         )
         checkThreads(tester)(
+          Seq(
           "HandleRunThread",
           "JsonArrayLogger mill-chrome-profile.json",
           "JsonArrayLogger mill-profile.json",
           "MillServerActionRunner",
-          "MillServerTimeoutThread",
+          "MillServerTimeouThread",
           "Process ID Checker Thread",
           "FileToStreamTailerThread",
           "FileToStreamTailerThread",
           "main",
           "prompt-logger-stream-pumper-thread",
           "proxyInputStreamThroughPumper"
+          )
         )
 
         // Exercise clean compile all
@@ -86,6 +87,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 2
           )
           checkThreads(tester)(
+            Seq(
             "HandleRunThread",
             "JsonArrayLogger mill-chrome-profile.json",
             "JsonArrayLogger mill-profile.json",
@@ -98,6 +100,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "main",
             "prompt-logger-stream-pumper-thread",
             "proxyInputStreamThroughPumper"
+            )
           )
 
         }
@@ -112,11 +115,12 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 2
           )
           checkThreads(tester)(
+            Seq(
             "HandleRunThread",
             "JsonArrayLogger mill-chrome-profile.json",
             "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
-            "MillServerTimeoutThread",
+            "MillServerTimeoutThead",
             "Process ID Checker Thread",
             "FileToStreamTailerThread",
             "FileToStreamTailerThread",
@@ -124,8 +128,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "main",
             "prompt-logger-stream-pumper-thread",
             "proxyInputStreamThroughPumper"
+            )
           )
-
         }
 
         // Exercise post-shutdown
@@ -136,6 +140,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           "mill.javalib.JvmWorkerModule#worker cl" -> 1
         )
         checkThreads(tester)(
+          Seq(
           "HandleRunThread",
           "JsonArrayLogger mill-chrome-profile.json",
           "JsonArrayLogger mill-profile.json",
@@ -147,6 +152,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           "main",
           "prompt-logger-stream-pumper-thread",
           "proxyInputStreamThroughPumper"
+          )
         )
 
         // Exercise clean compile all post-shutdown
@@ -160,6 +166,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
           )
           checkThreads(tester)(
+            Seq(
             "HandleRunThread",
             "JsonArrayLogger mill-chrome-profile.json",
             "JsonArrayLogger mill-profile.json",
@@ -172,6 +179,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "main",
             "prompt-logger-stream-pumper-thread",
             "proxyInputStreamThroughPumper"
+            )
           )
         }
 
@@ -187,6 +195,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
           )
           checkThreads(tester)(
+            Seq(
             "HandleRunThread",
             "JsonArrayLogger mill-chrome-profile.json",
             "JsonArrayLogger mill-profile.json",
@@ -199,6 +208,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "main",
             "prompt-logger-stream-pumper-thread",
             "proxyInputStreamThroughPumper"
+            )
           )
 
         }
@@ -216,6 +226,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
           )
           checkThreads(tester)(
+            Seq(
             "HandleRunThread",
             "JsonArrayLogger mill-chrome-profile.json",
             "JsonArrayLogger mill-profile.json",
@@ -228,6 +239,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
             "main",
             "prompt-logger-stream-pumper-thread",
             "proxyInputStreamThroughPumper"
+            )
           )
 
         }
@@ -242,6 +254,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
         )
         checkThreads(tester)(
+          Seq(
           "HandleRunThread",
           "JsonArrayLogger mill-chrome-profile.json",
           "JsonArrayLogger mill-profile.json",
@@ -255,6 +268,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           "main",
           "prompt-logger-stream-pumper-thread",
           "proxyInputStreamThroughPumper"
+          )
         )
       }
     }

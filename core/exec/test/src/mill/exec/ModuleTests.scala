@@ -72,7 +72,7 @@ object ModuleTests extends TestSuite {
         lazy val millDiscover = Discover[this.type]
       }
 
-      intercept[java.lang.AssertionError] { Build }
+      assertThrows[java.lang.AssertionError] { Build }
     }
   }
 }

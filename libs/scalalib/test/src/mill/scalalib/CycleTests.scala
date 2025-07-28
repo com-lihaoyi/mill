@@ -36,13 +36,13 @@ object CycleTests extends TestSuite {
   override def tests: Tests = Tests {
     test("moduleDeps") {
       test("self-reference") - UnitTester(CycleBase, null).scoped { eval =>
-        val ex = intercept[mill.api.MillException] {
+        val ex = assertThrows[mill.api.MillException] {
           eval.apply(CycleBase.a.compile)
         }
         assert(ex.getMessage.contains("a.moduleDeps: cycle detected: a -> a"))
       }
       test("cycle-in-deps") - UnitTester(CycleBase, null).scoped { eval =>
-        val ex = intercept[mill.api.MillException] {
+        val ex = assertThrows[mill.api.MillException] {
           eval.apply(CycleBase.e.compile)
         }
         assert(ex.getMessage.contains("e.moduleDeps: cycle detected: b -> b.c -> b.d -> b"))
@@ -50,7 +50,7 @@ object CycleTests extends TestSuite {
     }
     test("compileModuleDeps") {
       test("self-reference") - UnitTester(CycleBase, null).scoped { eval =>
-        val ex = intercept[mill.api.MillException] {
+        val ex = assertThrows[mill.api.MillException] {
           eval.apply(CycleBase.f.compile)
         }
         assert(ex.getMessage.contains("f.compileModuleDeps: cycle detected: f -> f"))
