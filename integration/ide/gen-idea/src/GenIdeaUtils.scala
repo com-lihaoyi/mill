@@ -32,6 +32,10 @@ object GenIdeaUtils {
           "path=\"[a-zA-Z0-9._/]+/maven2/",
           "path=\".../"
         )
+        .replaceAll(
+          "-Xplugin:/[a-zA-Z0-9._/]+/maven2/",
+          "-Xplugin:.../",
+        )
 
       utest.assertGoldenFile(
         actualResourceString,

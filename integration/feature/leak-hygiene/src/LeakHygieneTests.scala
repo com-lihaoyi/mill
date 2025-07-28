@@ -61,21 +61,21 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
       if (daemonMode) {
         checkClassloaders(tester)(
           Map(
-            "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader" -> 1,
-            "mill.javalib.JvmWorkerModule#worker cl" -> 1,
-            "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1
+            "mill.javalib.worker.JvmWorkerImpl#scalaCompilerCache.setup loader" -> 1,
+            "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
+            "mill.javalib.JvmWorkerModule#worker cl" -> 1
           )
         )
         checkThreads(tester)(
           List(
+            "FileToStreamTailerThread",
+            "FileToStreamTailerThread",
             "HandleRunThread",
             "JsonArrayLogger mill-chrome-profile.json",
             "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
-            "MillServerTimeouThread",
+            "MillServerTimeoutThread",
             "Process ID Checker Thread",
-            "FileToStreamTailerThread",
-            "FileToStreamTailerThread",
             "main",
             "prompt-logger-stream-pumper-thread",
             "proxyInputStreamThroughPumper"
@@ -96,14 +96,14 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             List(
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
               "HandleRunThread",
               "JsonArrayLogger mill-chrome-profile.json",
               "JsonArrayLogger mill-profile.json",
               "MillServerActionRunner",
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
-              "FileToStreamTailerThread",
-              "FileToStreamTailerThread",
               "Timer",
               "main",
               "prompt-logger-stream-pumper-thread",
@@ -126,14 +126,14 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             List(
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
               "HandleRunThread",
               "JsonArrayLogger mill-chrome-profile.json",
               "JsonArrayLogger mill-profile.json",
               "MillServerActionRunner",
-              "MillServerTimeoutThead",
+              "MillServerTimeoutThread",
               "Process ID Checker Thread",
-              "FileToStreamTailerThread",
-              "FileToStreamTailerThread",
               "Timer",
               "main",
               "prompt-logger-stream-pumper-thread",
@@ -153,14 +153,14 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         )
         checkThreads(tester)(
           List(
+            "FileToStreamTailerThread",
+            "FileToStreamTailerThread",
             "HandleRunThread",
             "JsonArrayLogger mill-chrome-profile.json",
             "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
-            "FileToStreamTailerThread",
-            "FileToStreamTailerThread",
             "main",
             "prompt-logger-stream-pumper-thread",
             "proxyInputStreamThroughPumper"
@@ -181,14 +181,14 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             List(
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
               "HandleRunThread",
               "JsonArrayLogger mill-chrome-profile.json",
               "JsonArrayLogger mill-profile.json",
               "MillServerActionRunner",
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
-              "FileToStreamTailerThread",
-              "FileToStreamTailerThread",
               "Timer",
               "main",
               "prompt-logger-stream-pumper-thread",
@@ -212,14 +212,14 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             List(
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
               "HandleRunThread",
               "JsonArrayLogger mill-chrome-profile.json",
               "JsonArrayLogger mill-profile.json",
               "MillServerActionRunner",
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
-              "FileToStreamTailerThread",
-              "FileToStreamTailerThread",
               "Timer",
               "main",
               "prompt-logger-stream-pumper-thread",
@@ -245,14 +245,14 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             List(
+              "FileToStreamTailerThread",
+              "FileToStreamTailerThread",
               "HandleRunThread",
               "JsonArrayLogger mill-chrome-profile.json",
               "JsonArrayLogger mill-profile.json",
               "MillServerActionRunner",
               "MillServerTimeoutThread",
               "Process ID Checker Thread",
-              "FileToStreamTailerThread",
-              "FileToStreamTailerThread",
               "Timer",
               "main",
               "prompt-logger-stream-pumper-thread",
@@ -275,14 +275,14 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         )
         checkThreads(tester)(
           List(
+            "FileToStreamTailerThread",
+            "FileToStreamTailerThread",
             "HandleRunThread",
             "JsonArrayLogger mill-chrome-profile.json",
             "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
-            "FileToStreamTailerThread",
-            "FileToStreamTailerThread",
             "Timer",
             "leaked thread",
             "main",

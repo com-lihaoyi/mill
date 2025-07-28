@@ -134,7 +134,6 @@ object InspectTests extends UtestIntegrationTestSuite {
 
       assert(eval(("inspect", "core")).isSuccess)
       val coreInspect = out("inspect").json.str
-      pprint.log(coreInspect)
       assertGoldenLiteral(
         coreInspect,
         """core(build.mill:30)
