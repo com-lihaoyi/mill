@@ -4,7 +4,6 @@ import mill.testkit.{asTestValue, withTestClues}
 
 import java.util.regex.Pattern
 import scala.util.Try
-import utest.assert
 
 object GenIdeaUtils {
 

@@ -4,7 +4,11 @@ import pprint.{TPrint, TPrintColors}
 import utest.TestValue
 
 def asTestValue[A](a: sourcecode.Text[A])(using typeName: TPrint[A]): TestValue =
-  TestValue.Single(a.source, Some(typeName.render(using TPrintColors.BlackWhite).plainText), a.value)
+  TestValue.Single(
+    a.source,
+    Some(typeName.render(using TPrintColors.BlackWhite).plainText),
+    a.value
+  )
 
 def asTestValue[A](name: String, a: A)(using typeName: TPrint[A]): TestValue =
   TestValue.Single(name, Some(typeName.render(using TPrintColors.BlackWhite).plainText), a)

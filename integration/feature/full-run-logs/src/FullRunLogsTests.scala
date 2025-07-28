@@ -26,7 +26,6 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       assert(res.out == "<h1>hello</h1>")
       val normalized = normalize(res.err, tester.workspacePath)
 
-
       assertGoldenLiteral(
         normalized,
         List(

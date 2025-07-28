@@ -5,7 +5,6 @@ import com.google.gson.{Gson, GsonBuilder}
 import coursier.cache.CacheDefaults
 import mill.api.BuildInfo
 import mill.bsp.Constants
-import mill.javalib.testrunner.TestRunnerUtils
 import org.eclipse.lsp4j as l
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
 
@@ -16,7 +15,6 @@ import scala.jdk.CollectionConverters.*
 import scala.reflect.ClassTag
 
 object BspServerTestUtil {
-
 
   private[mill] def bsp4jVersion: String = sys.props.getOrElse("BSP4J_VERSION", ???)
 
@@ -70,10 +68,9 @@ object BspServerTestUtil {
       .toVector
       .map(
         _.replaceAll("semanticdbVersion: [0-9.]*", "semanticdbVersion: *")
-        .replaceAll("\\d+ msec", "* msec")
-        .replaceAll("\\d+ Scala (sources?) to .*\\.\\.\\.", "* Scala $1 to * ...")
-        .replaceAll("\\[error\\] [a-zA-Z0-9-_/.]+:2:3:", "[error] *:2:3:")
-
+          .replaceAll("\\d+ msec", "* msec")
+          .replaceAll("\\d+ Scala (sources?) to .*\\.\\.\\.", "* Scala $1 to * ...")
+          .replaceAll("\\[error\\] [a-zA-Z0-9-_/.]+:2:3:", "[error] *:2:3:")
       )
 
     utest.assertGoldenFile(
