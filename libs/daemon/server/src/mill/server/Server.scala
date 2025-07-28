@@ -1,12 +1,13 @@
 package mill.server
 
-import mill.client.lock.Locks
+import mill.client.lock.{Lock, Locks}
 import mill.constants.{DaemonFiles, ProxyStream}
 
 import java.io.{InputStream, PrintStream}
 import java.net.{InetAddress, Socket}
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.duration.FiniteDuration
+import scala.util.Try
 import scala.util.control.NonFatal
 
 /**
@@ -16,13 +17,13 @@ import scala.util.control.NonFatal
  * @param daemonDir directory used for exchanging pre-TCP data with a client
  * @param acceptTimeout how long to wait for a client to connect
  */
-abstract class GenericServer[PreHandleConnectionData](
+abstract class Server[PreHandleConnectionData](
     daemonDir: os.Path,
     acceptTimeout: FiniteDuration,
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
 ) {
-  val processId: String = GenericServer.computeProcessId()
+  val processId: String = Server.computeProcessId()
   private val acceptTimeoutMillis = acceptTimeout.toMillis
   private val handlerName = getClass.getName
 
@@ -41,7 +42,7 @@ abstract class GenericServer[PreHandleConnectionData](
       stdin: InputStream,
       stdout: PrintStream,
       stderr: PrintStream,
-      stopServer: GenericServer.StopServer,
+      stopServer: Server.StopServer,
       initialSystemProperties: Map[String, String]
   ): PreHandleConnectionData
 
@@ -54,8 +55,8 @@ abstract class GenericServer[PreHandleConnectionData](
       stdin: InputStream,
       stdout: PrintStream,
       stderr: PrintStream,
-      stopServer: GenericServer.StopServer,
-      setIdle: GenericServer.SetIdle,
+      stopServer: Server.StopServer,
+      setIdle: Server.SetIdle,
       initialSystemProperties: Map[String, String],
       data: PreHandleConnectionData
   ): Int
@@ -197,7 +198,7 @@ abstract class GenericServer[PreHandleConnectionData](
    * @param serverSocketClose       closes the server socket
    */
   private def runForSocket(
-      systemExit0: GenericServer.StopServer,
+      systemExit0: Server.StopServer,
       clientSocket: Socket,
       initialSystemProperties: Map[String, String],
       serverSocketClose: () => Unit
@@ -304,7 +305,7 @@ abstract class GenericServer[PreHandleConnectionData](
     }
   }
 }
-object GenericServer {
+object Server {
 
   /** Immediately stops the server reporting the provided exit code to all clients. */
   @FunctionalInterface trait StopServer {
@@ -319,4 +320,51 @@ object GenericServer {
   }
 
   def computeProcessId(): String = "pid" + ProcessHandle.current().pid()
+
+  def checkProcessIdFile(processIdFile: os.Path, processId: String): Option[String] = {
+    Try(os.read(processIdFile)) match {
+      case scala.util.Failure(_) => Some(s"processId file missing")
+
+      case scala.util.Success(s) =>
+        Option.when(s != processId) {
+          s"processId file contents $s does not match processId $processId"
+        }
+    }
+
+  }
+
+  def watchProcessIdFile(
+    processIdFile: os.Path,
+    processId: String,
+    running: () => Boolean,
+    exit: String => Unit
+  ): Unit = {
+    os.write.over(processIdFile, processId, createFolders = true)
+
+    val processIdThread = new Thread(
+      () =>
+        while (running()) {
+          checkProcessIdFile(processIdFile, processId) match {
+            case None => Thread.sleep(100)
+            case Some(msg) => exit(msg)
+          }
+        },
+      "Process ID Checker Thread"
+    )
+    processIdThread.setDaemon(true)
+    processIdThread.start()
+  }
+
+  def tryLockBlock[T](lock: Lock)(block: mill.client.lock.TryLocked => T): Option[T] = {
+    lock.tryLock() match {
+      case null => None
+      case l =>
+        if (l.isLocked) {
+          try Some(block(l))
+          finally l.release()
+        } else {
+          None
+        }
+    }
+  }
 }

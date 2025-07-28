@@ -2,7 +2,7 @@ package mill.daemon
 
 import mill.api.SystemStreams
 import mill.client.ClientUtil
-import mill.client.lock.{DoubleLock, Lock, Locks}
+import mill.client.lock.{Lock, Locks}
 import mill.constants.OutFiles
 import sun.misc.{Signal, SignalHandler}
 import mill.api.BuildCtx
@@ -54,7 +54,7 @@ class MillDaemonMain(
     daemonDir: os.Path,
     acceptTimeoutMillis: Int,
     locks: Locks
-) extends mill.server.Server[RunnerState](
+) extends mill.server.MillDaemonServer[RunnerState](
       daemonDir,
       acceptTimeoutMillis.millis,
       locks
@@ -64,10 +64,7 @@ class MillDaemonMain(
 
   val out: os.Path = BuildCtx.workspaceRoot / OutFiles.out
 
-  val outLock = new DoubleLock(
-    MillMain0.outMemoryLock,
-    Lock.file((out / OutFiles.millOutLock).toString)
-  )
+  val outLock = MillMain0.doubleLock(out)
 
   def main0(
       args: Array[String],

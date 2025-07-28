@@ -1,10 +1,9 @@
 package mill.daemon
 
-import mill.client.lock.{DoubleLock, Lock}
 import mill.constants.{DaemonFiles, OutFiles, Util}
-import mill.daemon.MillMain0.{handleMillException, main0, outMemoryLock}
+import mill.daemon.MillMain0.{handleMillException, main0}
 import mill.api.BuildCtx
-import mill.server.{GenericServer, Server}
+import mill.server.Server
 
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
@@ -22,7 +21,7 @@ object MillNoDaemonMain {
       // UnsatisfiedLinkError: Native Library C:\Windows\System32\ole32.dll already loaded in another classloader
       sys.props("coursier.windows.disable-ffm") = "true"
 
-    val processId = GenericServer.computeProcessId()
+    val processId = Server.computeProcessId()
     val out = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
     Server.watchProcessIdFile(
       out / OutFiles.millNoDaemon / processId / DaemonFiles.processId,
@@ -34,10 +33,7 @@ object MillNoDaemonMain {
       }
     )
 
-    val outLock = new DoubleLock(
-      outMemoryLock,
-      Lock.file((out / OutFiles.millOutLock).toString)
-    )
+    val outLock = MillMain0.doubleLock(out)
 
     val daemonDir = os.Path(args.head)
     val (result, _) =

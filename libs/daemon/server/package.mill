@@ -1,0 +1,17 @@
+package build.libs.daemon.server
+
+import mill.*
+import millbuild.*
+
+/**
+ * This package contains the code for the Mill-specific TCP server implementation.
+ */
+object `package` extends MillPublishScalaModule {
+  def moduleDeps = Seq(build.libs.daemon.client)
+
+  def mvnDeps = Seq(
+    Deps.osLib,
+//    Deps.upickle,
+//    Deps.pprint
+  )
+}

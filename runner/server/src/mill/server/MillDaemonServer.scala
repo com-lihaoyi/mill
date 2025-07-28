@@ -18,12 +18,12 @@ import scala.util.control.NonFatal
  * JVM properties, wrapped input/output streams, and other metadata related to the
  * client command
  */
-abstract class Server[State](
+abstract class MillDaemonServer[State](
     daemonDir: os.Path,
     acceptTimeout: FiniteDuration,
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
-) extends GenericServer[ClientInitData](
+) extends Server[ClientInitData](
       daemonDir = daemonDir,
       acceptTimeout = acceptTimeout,
       locks = locks,
@@ -58,7 +58,7 @@ abstract class Server[State](
       stdin: InputStream,
       stdout: PrintStream,
       stderr: PrintStream,
-      stopServer: GenericServer.StopServer,
+      stopServer: Server.StopServer,
       initialSystemProperties: Map[String, String]
   ): ClientInitData = {
     val initData = ClientInitData.read(stdin)
@@ -72,7 +72,7 @@ abstract class Server[State](
     val javaVersionChanged = lastJavaVersion.exists(_ != clientJavaVersion)
 
     if (millVersionChanged || javaVersionChanged) {
-      Server.withOutLock(
+      MillDaemonServer.withOutLock(
         noBuildLock = false,
         noWaitForBuildLock = false,
         out = out,
@@ -108,8 +108,8 @@ abstract class Server[State](
       stdin: InputStream,
       stdout: PrintStream,
       stderr: PrintStream,
-      stopServer: GenericServer.StopServer,
-      setIdle: GenericServer.SetIdle,
+      stopServer: Server.StopServer,
+      setIdle: Server.SetIdle,
       initialSystemProperties: Map[String, String],
       data: ClientInitData
   ): Int = {
@@ -154,54 +154,7 @@ abstract class Server[State](
   ): (Boolean, State)
 }
 
-object Server {
-
-  def checkProcessIdFile(processIdFile: os.Path, processId: String): Option[String] = {
-    Try(os.read(processIdFile)) match {
-      case scala.util.Failure(_) => Some(s"processId file missing")
-
-      case scala.util.Success(s) =>
-        Option.when(s != processId) {
-          s"processId file contents $s does not match processId $processId"
-        }
-    }
-
-  }
-
-  def watchProcessIdFile(
-      processIdFile: os.Path,
-      processId: String,
-      running: () => Boolean,
-      exit: String => Unit
-  ): Unit = {
-    os.write.over(processIdFile, processId, createFolders = true)
-
-    val processIdThread = new Thread(
-      () =>
-        while (running()) {
-          checkProcessIdFile(processIdFile, processId) match {
-            case None => Thread.sleep(100)
-            case Some(msg) => exit(msg)
-          }
-        },
-      "Process ID Checker Thread"
-    )
-    processIdThread.setDaemon(true)
-    processIdThread.start()
-  }
-
-  def tryLockBlock[T](lock: Lock)(block: mill.client.lock.TryLocked => T): Option[T] = {
-    lock.tryLock() match {
-      case null => None
-      case l =>
-        if (l.isLocked) {
-          try Some(block(l))
-          finally l.release()
-        } else {
-          None
-        }
-    }
-  }
+object MillDaemonServer {
 
   def withOutLock[T](
       noBuildLock: Boolean,

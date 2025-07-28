@@ -1,0 +1,17 @@
+package build.libs.rpc
+
+import mill.*
+import millbuild.*
+
+/**
+ * This package contains the remote procedure call (RPC) library used by Mill.
+ */
+object `package` extends MillPublishScalaModule {
+  def moduleDeps = Seq(build.core.api.daemon)
+
+  def mvnDeps = Seq(
+    Deps.osLib,
+    Deps.upickle,
+    Deps.pprint
+  )
+}

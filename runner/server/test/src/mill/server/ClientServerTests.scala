@@ -2,7 +2,7 @@ package mill.server
 
 import mill.api.SystemStreams
 import mill.client.lock.Locks
-import mill.client.ServerLauncher
+import mill.client.{ServerLauncher, MillServerLauncher}
 import mill.constants.{DaemonFiles, Util}
 import utest.*
 
@@ -24,7 +24,7 @@ object ClientServerTests extends TestSuite {
       locks: Locks,
       testLogEvenWhenServerIdWrong: Boolean,
       commandSleepMillis: Int = 0
-  ) extends Server[Option[Int]](daemonDir, 1000.millis, locks, testLogEvenWhenServerIdWrong)
+  ) extends MillDaemonServer[Option[Int]](daemonDir, 1000.millis, locks, testLogEvenWhenServerIdWrong)
       with Runnable {
 
     override def outLock = mill.client.lock.Lock.memory()
@@ -93,7 +93,7 @@ object ClientServerTests extends TestSuite {
       val in = new ByteArrayInputStream(s"hello$ENDL".getBytes())
       val out = new ByteArrayOutputStream()
       val err = new ByteArrayOutputStream()
-      val result = new ServerLauncher(
+      val result = new MillServerLauncher(
         ServerLauncher.Streams(in, out, err),
         env.asJava,
         args,

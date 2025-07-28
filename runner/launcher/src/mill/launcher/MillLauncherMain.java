@@ -41,9 +41,9 @@ public class MillLauncherMain {
         optsArgs.addAll(MillProcessLauncher.millOpts());
         Collections.addAll(optsArgs, args);
 
-        ServerLauncher launcher =
-            new ServerLauncher(
-                new ServerLauncher.Streams(System.in, System.out, System.err),
+        MillServerLauncher launcher =
+            new MillServerLauncher(
+                new MillServerLauncher.Streams(System.in, System.out, System.err),
                 System.getenv(),
                 optsArgs.toArray(new String[0]),
                 null,
