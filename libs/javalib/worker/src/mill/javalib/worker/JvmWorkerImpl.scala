@@ -110,7 +110,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         key: SubprocessCacheKey,
         init: SubprocessCacheInitialize
     ): MillRpcClient[ZincWorkerRpcServer.ClientToServer, ZincWorkerRpcServer.ServerToClient] = {
-      println(s"Spawning JVM worker subprocess: ${key.debugStr}")
       val process = Jvm.spawnProcess(
         mainClass = "mill.javalib.zinc.ZincWorkerMain",
         javaHome = key.javaHome,
@@ -133,7 +132,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
           ZincWorkerRpcServer.ServerToClient
         ]
     ): Unit = {
-      println(s"Tearing down JVM worker subprocess: ${key.debugStr}")
       client.close()
     }
   }
@@ -184,6 +182,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         )
       ) { client =>
         // Exchange the handler from the cached value.
+        // TODO review: document more
         client.withServerToClientHandler(handler)
 
         f(client)

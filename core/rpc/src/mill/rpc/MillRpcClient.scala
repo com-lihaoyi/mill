@@ -52,6 +52,7 @@ object MillRpcClient {
       // fulfill our request.
       var responseReceived = Option.empty[A]
       while (responseReceived.isEmpty) {
+        // TODO review: comment why we parse into json first
         wireTransport.readAndTryToParse[MillRpcServerToClient[ujson.Value]](logDebug) match {
           case None =>
             throw new IllegalStateException(
