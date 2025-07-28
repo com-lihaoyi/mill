@@ -3,20 +3,20 @@ import shared.Utils
 
 object MainTests extends TestSuite {
   def tests: Tests = Tests {
-    'Lib - {
-      'addTwice - {
+    test("Lib") {
+      test("addTwice") {
         assert(
           Lib.addTwice(1, 2) == 6
         )
       }
-      'parse - {
+      test("parse") {
         assert(
           Lib.parse("hello:world") == Seq("hello", "world")
         )
       }
     }
-    'shared - {
-      'add - {
+    test("shared") {
+      test("add") {
         assert(
           Utils.add(1, 2) == 3
         )
