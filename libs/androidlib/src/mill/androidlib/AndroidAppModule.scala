@@ -816,7 +816,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     Task.log.debug("Building dex with command: " + dex.dexCliArgs.mkString(" "))
 
-    Task.log.info(os.call(dex.dexCliArgs).err.text())
+    os.call(dex.dexCliArgs)
 
     PathRef(dex.outPath.path)
 

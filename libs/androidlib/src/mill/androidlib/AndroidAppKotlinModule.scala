@@ -27,7 +27,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
 
   private def kotlinSources = Task.Sources("src/main/kotlin")
   override def sources: T[Seq[PathRef]] =
-    super.sources() ++ kotlinSources()
+    super[AndroidAppModule].sources() ++ kotlinSources()
 
   trait AndroidAppKotlinTests extends AndroidAppKotlinModule with AndroidAppTests {
     override def kotlinVersion: T[String] = outer.kotlinVersion
