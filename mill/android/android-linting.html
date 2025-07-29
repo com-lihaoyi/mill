@@ -250,6 +250,10 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="java.html">Android Java Projects</a>
   </li>
 
@@ -257,7 +261,7 @@
     <a class="nav-link" href="kotlin.html">Android Kotlin Projects</a>
   </li>
 
-  <li class="nav-item is-current-page" data-depth="3">
+  <li class="nav-item is-current-page is-active" data-depth="3">
     <a class="nav-link" href="android-linting.html">Linting Android Projects</a>
   </li>
 
@@ -617,7 +621,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.1</span>
+    <span class="version">1.0.2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -627,10 +631,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.1</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.0.1-22-3ffc87/index.html">dev-1.0.1-22-3ffc87</a>
+          <a href="../index.html">1.0.2</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -690,7 +691,7 @@ security, and usability warnings. This helps maintain the health and quality of 
 <p>In this example, we set a custom config to generate the report in both txt and HTML formats.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1/mill-dist-1.0.1-example-androidlib-java-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/androidlib/java/3-linting">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2/mill-dist-1.0.2-example-androidlib-java-3-linting.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/androidlib/java/3-linting">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -737,7 +738,7 @@ import mill.*, androidlib.*</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/AndroidManifest.xml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/androidlib/java/3-linting/app/src/main/AndroidManifest.xml">browse</a>)</div>
+<div class="title">app/src/main/AndroidManifest.xml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/androidlib/java/3-linting/app/src/main/AndroidManifest.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0"&gt;
     &lt;application android:label="@string/app_name" android:theme="@android:style/Theme.Light.NoTitleBar" android:debuggable="true"&gt;
@@ -756,7 +757,7 @@ import mill.*, androidlib.*</code></pre>
 <p>The <code>AndroidManifest.xml</code> file shown above is flawed with hardcoded string linting problem so it can be spoted by running the <code>androidLintRun</code> task.</p>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/res/values/colors.xml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/androidlib/java/3-linting/app/src/main/res/values/colors.xml">browse</a>)</div>
+<div class="title">app/src/main/res/values/colors.xml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/androidlib/java/3-linting/app/src/main/res/values/colors.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;resources&gt;
     &lt;color name="white"&gt;#FFFFFF&lt;/color&gt;
@@ -765,7 +766,7 @@ import mill.*, androidlib.*</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/res/values/strings.xml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/androidlib/java/3-linting/app/src/main/res/values/strings.xml">browse</a>)</div>
+<div class="title">app/src/main/res/values/strings.xml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/androidlib/java/3-linting/app/src/main/res/values/strings.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;resources&gt;
     &lt;string name="app_name"&gt;HelloWorldApp&lt;/string&gt;
@@ -774,7 +775,7 @@ import mill.*, androidlib.*</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/src/main/java/com/helloworld/app/MainActivity.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/androidlib/java/3-linting/app/src/main/java/com/helloworld/app/MainActivity.java">browse</a>)</div>
+<div class="title">app/src/main/java/com/helloworld/app/MainActivity.java (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/androidlib/java/3-linting/app/src/main/java/com/helloworld/app/MainActivity.java">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package com.helloworld.app;
 
@@ -818,7 +819,7 @@ public class MainActivity extends Activity {
 </div>
 </div>
 <div class="listingblock">
-<div class="title">app/lint.xml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/androidlib/java/3-linting/app/lint.xml">browse</a>)</div>
+<div class="title">app/lint.xml (<a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/androidlib/java/3-linting/app/lint.xml">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">&lt;?xml version="1.0" encoding="utf-8"?&gt;
 &lt;lint&gt;

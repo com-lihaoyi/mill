@@ -250,6 +250,10 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
     <a class="nav-link" href="../android/java.html">Android Java Projects</a>
   </li>
 
@@ -257,7 +261,7 @@
     <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
   </li>
 
-  <li class="nav-item" data-depth="3">
+  <li class="nav-item is-active" data-depth="3">
     <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
   </li>
 
@@ -617,7 +621,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.1</span>
+    <span class="version">1.0.2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -627,10 +631,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.1</a>
-        </li>
-        <li class="version">
-          <a href="../dev-1.0.1-22-3ffc87/index.html">dev-1.0.1-22-3ffc87</a>
+          <a href="../index.html">1.0.2</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -701,7 +702,7 @@ as part of its <a href="../depth/sandboxing.html" class="xref page">Mill Sandbox
 interference between tasks:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1/mill-dist-1.0.1-example-fundamentals-libraries-1-oslib.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/fundamentals/libraries/1-oslib">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2/mill-dist-1.0.2-example-fundamentals-libraries-1-oslib.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/libraries/1-oslib">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
 
@@ -787,7 +788,7 @@ need to be recomputed</p>
 collections types (<code>Seq</code>s, <code>List</code>s, <code>Tuple</code>s, etc.) are serializable by default.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1/mill-dist-1.0.1-example-fundamentals-libraries-2-upickle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/fundamentals/libraries/2-upickle">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2/mill-dist-1.0.2-example-fundamentals-libraries-2-upickle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/libraries/2-upickle">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
 
@@ -920,7 +921,7 @@ are downloaded once and cached for later use.</p>
 compile the Remote APIs source code as part of our build:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1/mill-dist-1.0.1-example-fundamentals-libraries-3-requests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/fundamentals/libraries/3-requests">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2/mill-dist-1.0.2-example-fundamentals-libraries-3-requests.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/libraries/3-requests">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
 
@@ -1053,7 +1054,7 @@ servers, and so on. So this works out surprisingly well in practice.</p>
 are run from the command line.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.1/mill-dist-1.0.1-example-fundamentals-libraries-4-mainargs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.1/example/fundamentals/libraries/4-mainargs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2/mill-dist-1.0.2-example-fundamentals-libraries-4-mainargs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/libraries/4-mainargs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
 
