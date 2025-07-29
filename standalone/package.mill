@@ -6,12 +6,15 @@ import millbuild._
 
 object `package` extends Module {
 
-  trait StandaloneTestModule extends Cross.Module[String] with MillBaseTestsModule
+  trait StandaloneTestModule extends Cross.Module[String] with MillScalaModule
+      with MillBaseTestsModule
       with TestModule.Utest {
     def moduleDir = super.moduleDir / crossValue
     def moduleDeps = Seq(build.core.eval, testkit)
     def mvnDeps = Seq(Deps.TestDeps.utest)
+    def scalaVersion = Deps.scalaVersion
 
+    def testParallelism = false
     def forkArgs = super.forkArgs() ++ build.dist.forkArgs()
     def forkEnv = super.forkEnv() ++
       Map(
@@ -21,11 +24,7 @@ object `package` extends Module {
       build.dist.localTestOverridesEnv()
   }
 
-  object migrating extends Cross[StandaloneCrossTestModule](build.listCross)
-  trait StandaloneCrossTestModule extends MillScalaModule with StandaloneTestModule {
-    override def moduleDeps = super[StandaloneTestModule].moduleDeps
-    def scalaVersion = Deps.scalaVersion
-  }
+  object migrate extends Cross[StandaloneTestModule](build.listCross)
 
   object testkit extends MillScalaModule {
     def moduleDeps = Seq(build.core.eval)
