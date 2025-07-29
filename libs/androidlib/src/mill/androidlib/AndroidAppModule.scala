@@ -822,7 +822,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   // uses the d8 tool to generate the dex file, when minification is disabled
-  private def androidD8Dex: Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
+  private def androidD8Dex
+      : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
 
     val outPath = Task.dest
 
