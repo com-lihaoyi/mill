@@ -2,13 +2,11 @@ package mill
 package javalib
 
 import coursier.core.{Configuration, DependencyManagement}
-import mill.api.{DefaultTaskModule, ExternalModule, Task}
-import mill.api.PathRef
-import mill.api.Result
+import mill.api.daemon.Logger
+import mill.api.{BuildCtx, DefaultTaskModule, ExternalModule, PathRef, Result, Task, TaskCtx}
 import mill.util.{FileSetContents, JarManifest, Secret, Tasks}
 import mill.javalib.publish.{Artifact, SonatypePublisher}
 import os.Path
-import mill.api.BuildCtx
 import mill.javalib.internal.PublishModule.{GpgArgs, checkSonatypeCreds}
 
 /**
@@ -631,7 +629,11 @@ trait PublishModule extends JavaModule { outer =>
       pom = pom().path,
       artifact = artifactMetadata(),
       publishInfos = publishInfos
-    )
+    )(new TaskCtx.Log{
+      // Silence logging for publishLocalTestRepo since it's very spammy during
+      // development, and since it's all local we can just see the files on disk
+      override def log: Logger = mill.api.DummyLogger
+    })
     PathRef(Task.dest)
   }
 }
