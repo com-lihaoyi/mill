@@ -32,8 +32,8 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
         watchTerminated = true
       }
 
-      if (tester.daemonMode) eventually { os.exists(workspacePath / "out/mill-daemon") }
-      else eventually { os.exists(workspacePath / "out/mill-no-daemon") }
+      if (tester.daemonMode) assertEventually { os.exists(workspacePath / "out/mill-daemon") }
+      else assertEventually { os.exists(workspacePath / "out/mill-no-daemon") }
 
       assert(watchTerminated == false)
 
@@ -41,7 +41,7 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
         if (tester.daemonMode) workspacePath / "out/mill-daemon"
         else workspacePath / "out/mill-no-daemon"
 
-      eventually {
+      assertEventually {
         os.walk(processRoot).exists(_.last == "processId")
       }
 
@@ -53,7 +53,7 @@ object ProcessFileDeletedExit extends UtestIntegrationTestSuite {
         }
       }
 
-      eventually {
+      assertEventually {
         watchTerminated == true
       }
     }

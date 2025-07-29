@@ -37,7 +37,7 @@ object PalantirFormatModuleTest extends TestSuite {
         )
       )
 
-      intercept[RuntimeException](
+      assertThrows[RuntimeException](
         afterFormat(before / "palantir", check = true)
       )
     }
@@ -59,14 +59,14 @@ object PalantirFormatModuleTest extends TestSuite {
         )
       )
 
-      intercept[RuntimeException](
+      assertThrows[RuntimeException](
         afterFormatAll(before / "google", check = true)
       )
     }
 
     test("example") {
 
-      intercept[RuntimeException](
+      assertThrows[RuntimeException](
         afterFormat(before / "example", check = true)
       )
 

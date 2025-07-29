@@ -251,6 +251,7 @@ final class EvaluatorImpl private[mill] (
       key0 = Seq("resolve"),
       message = "resolve " + scriptArgs.mkString(" ")
     )
+
     val resolved = promptLineLogger.withPromptLine {
       os.checker.withValue(ResolveChecker(workspace)) {
         Evaluator.withCurrentEvaluator(this) {

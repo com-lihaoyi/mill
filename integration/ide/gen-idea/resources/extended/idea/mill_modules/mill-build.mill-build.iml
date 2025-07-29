@@ -34,13 +34,13 @@
         <orderEntry type="library" name="coursier-util_2.13-2.1.25-M16.jar" level="project"/>
         <orderEntry type="library" name="coursier_2.13-2.1.25-M16.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="dependency_2.13-0.3.2.jar" level="project"/>
-        <orderEntry type="library" name="fansi_3-0.5.0.jar" level="project"/>
+        <orderEntry type="library" name="fansi_3-0.5.1.jar" level="project"/>
         <orderEntry type="library" name="fastparse_3-3.1.1.jar" level="project"/>
         <orderEntry type="library" name="geny_3-1.1.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="graphviz-java-0.18.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="graphviz-java-min-deps-0.18.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="is-terminal-0.1.2.jar" level="project"/>
-        <orderEntry type="library" scope="RUNTIME" name="jansi<!-- IGNORE -->.jar" level="project"/>
+        <orderEntry type="library" scope="RUNTIME" name="jansi.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="javax.inject-1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jcl-over-slf4j-1.7.30.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="jgrapht-core-1.4.0.jar" level="project"/>
@@ -90,7 +90,7 @@
         <orderEntry type="library" scope="RUNTIME" name="plexus-container-default-2.1.1.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-io-3.5.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-utils-4.0.1.jar" level="project"/>
-        <orderEntry type="library" name="pprint_3-0.9.0.jar" level="project"/>
+        <orderEntry type="library" name="pprint_3-0.9.3.jar" level="project"/>
         <orderEntry type="library" name="requests_3-0.9.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="scala-collection-compat_2.13-2.13.0.jar" level="project"/>
         <orderEntry type="library" name="scala-collection-compat_3-2.12.0.jar" level="project"/>

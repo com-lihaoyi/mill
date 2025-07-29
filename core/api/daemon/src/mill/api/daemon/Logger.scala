@@ -1,6 +1,6 @@
 package mill.api.daemon
 
-import java.io.PrintStream
+import java.io.{ByteArrayInputStream, PrintStream}
 
 /**
  * The standard logging interface of the Mill build tool.
@@ -122,6 +122,27 @@ trait Logger {
 }
 
 object Logger {
+  object DummyLogger extends Logger {
+    def colored = false
+
+    val streams = new SystemStreams(
+      new PrintStream(_ => ()),
+      new PrintStream(_ => ()),
+      new ByteArrayInputStream(Array())
+    )
+
+    def info(s: String) = ()
+
+    def warn(s: String) = ()
+
+    def error(s: String) = ()
+
+    def ticker(s: String) = ()
+
+    def debug(s: String) = ()
+
+    def prompt = new Logger.Prompt.NoOp
+  }
 
   /**
    * APIs that allow a logger to interact with the global prompt: setting and unsetting

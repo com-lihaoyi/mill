@@ -26,7 +26,7 @@ object ScalaCrossVersionTests extends TestSuite {
       CrossModuleDeps.cuttingEdge(scala33Version).moduleDeps
     }
     test("scala-213-depend-on-scala-212-fails") {
-      val message = intercept[Exception](
+      val message = assertThrows[Exception](
         CrossModuleDeps.cuttingEdge(scala213Version).moduleDeps
       ).getMessage
       assert(

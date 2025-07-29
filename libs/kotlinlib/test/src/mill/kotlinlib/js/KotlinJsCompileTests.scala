@@ -4,7 +4,7 @@ package js
 
 import mill.api.Discover
 import mill.testkit.{TestRootModule, UnitTester}
-import utest.{TestSuite, Tests, assert, test}
+import utest.{TestSuite, Tests, test, assert}
 
 object KotlinJsCompileTests extends TestSuite {
 
