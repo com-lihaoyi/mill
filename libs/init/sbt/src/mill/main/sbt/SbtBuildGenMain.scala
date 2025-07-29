@@ -56,7 +56,8 @@ object SbtBuildGenMain
 
   def main(args: Array[String]): Unit = {
     val cfg = ParserForClass[Config].constructOrExit(args.toSeq)
-    run(cfg)
+    if (cfg.poc.value.nonEmpty) mill.init.migrate.sbt.ImportSbtBuildMain.main(cfg.poc.value.toArray)
+    else run(cfg)
   }
 
   private def run(cfg: Config): Unit = {
@@ -537,6 +538,7 @@ object SbtBuildGenMain
       )
       baseProject: Option[String] = None,
       @arg(doc = "the custom sbt executable location")
-      customSbt: Option[String] = None
+      customSbt: Option[String] = None,
+      poc: mainargs.Leftover[String]
   )
 }
