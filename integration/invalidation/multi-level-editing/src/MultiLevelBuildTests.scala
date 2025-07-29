@@ -304,10 +304,10 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
     test("compileErrorEdits") - retry(retryCount) {
       integrationTest { tester =>
         import tester._
-        def causeCompileError(p: os.Path) =
+        def causeassertCompileError(p: os.Path) =
           modifyFile(p, _ + "\nimport doesnt.exist")
 
-        def fixCompileError(p: os.Path) =
+        def fixassertCompileError(p: os.Path) =
           modifyFile(p, _.replace("import doesnt.exist", ""))
 
         runAssertSuccess(tester, "<h1>hello</h1><p>world</p><p>0.13.1</p>!")
@@ -319,7 +319,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
         )
         checkChangedClassloaders(tester, null, true, true)
 
-        causeCompileError(workspacePath / "build.mill")
+        causeassertCompileError(workspacePath / "build.mill")
         evalCheckErr(
           tester,
           "\n1 tasks failed",
@@ -331,7 +331,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
         checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester))
         checkChangedClassloaders(tester, null, null, false)
 
-        causeCompileError(workspacePath / "mill-build/build.mill")
+        causeassertCompileError(workspacePath / "mill-build/build.mill")
         evalCheckErr(
           tester,
           "\n1 tasks failed",
@@ -341,7 +341,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
         checkWatchedFiles(tester, Nil, Nil, buildPaths2(tester))
         checkChangedClassloaders(tester, null, null, null)
 
-        fixCompileError(workspacePath / "mill-build/build.mill")
+        fixassertCompileError(workspacePath / "mill-build/build.mill")
         evalCheckErr(
           tester,
           "\n1 tasks failed",
@@ -351,7 +351,7 @@ object MultiLevelBuildTestsCompileErrorEdits extends MultiLevelBuildTests {
         checkWatchedFiles(tester, Nil, buildPaths(tester), buildPaths2(tester))
         checkChangedClassloaders(tester, null, null, true)
 
-        fixCompileError(workspacePath / "build.mill")
+        fixassertCompileError(workspacePath / "build.mill")
         runAssertSuccess(tester, "<h1>hello</h1><p>world</p><p>0.13.1</p>!")
         checkWatchedFiles(
           tester,

@@ -1,6 +1,6 @@
 package mill.contrib.versionfile
 
-import utest.{assert, assertMatch, intercept, test, Tests, TestSuite}
+import utest.{TestSuite, Tests, assert, assertMatch, assertThrows, test}
 
 object VersionTests extends TestSuite {
   def tests = Tests {
@@ -30,7 +30,7 @@ object VersionTests extends TestSuite {
       }
 
       test("x.y.z.r") {
-        intercept[MatchError] {
+        assertThrows[MatchError] {
           Version.of("1.2.3.4")
         }
       }

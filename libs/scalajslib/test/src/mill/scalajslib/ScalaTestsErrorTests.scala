@@ -23,7 +23,7 @@ object ScalaTestsErrorTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("extends-ScalaTests") {
-      val error = intercept[ExceptionInInitializerError] {
+      val error = assertThrows[ExceptionInInitializerError] {
         ScalaTestsError.scalaTestsError.test
       }
       val message = error.getCause.getMessage

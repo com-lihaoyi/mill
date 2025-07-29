@@ -21,31 +21,31 @@ object BuildClasspathContentsTests extends UtestIntegrationTestSuite {
         .map(_.toString)
         .sorted
       if (sys.env("MILL_INTEGRATION_IS_PACKAGED_LAUNCHER") == "true") {
-
-        val expected = List(
-          "mill-core-api-daemon_3.jar",
-          "mill-core-api_3.jar",
-          "mill-core-constants.jar",
-          "mill-libs-androidlib_3.jar",
-          "mill-libs-javalib-api_3.jar",
-          "mill-libs-javalib-testrunner-entrypoint.jar",
-          "mill-libs-javalib-testrunner_3.jar",
-          "mill-libs-javalib_3.jar",
-          "mill-libs-javascriptlib_3.jar",
-          "mill-libs-kotlinlib-api_3.jar",
-          "mill-libs-kotlinlib_3.jar",
-          "mill-libs-pythonlib_3.jar",
-          "mill-libs-scalajslib-api_3.jar",
-          "mill-libs-scalajslib_3.jar",
-          "mill-libs-scalalib_3.jar",
-          "mill-libs-scalanativelib-api_3.jar",
-          "mill-libs-scalanativelib_3.jar",
-          "mill-libs-util_3.jar",
-          "mill-libs_3.jar",
-          "mill-moduledefs_3-0.11.10.jar"
+        assertGoldenLiteral(
+          millPublishedJars,
+          List(
+            "mill-core-api-daemon_3.jar",
+            "mill-core-api_3.jar",
+            "mill-core-constants.jar",
+            "mill-libs-androidlib_3.jar",
+            "mill-libs-javalib-api_3.jar",
+            "mill-libs-javalib-testrunner-entrypoint.jar",
+            "mill-libs-javalib-testrunner_3.jar",
+            "mill-libs-javalib_3.jar",
+            "mill-libs-javascriptlib_3.jar",
+            "mill-libs-kotlinlib-api_3.jar",
+            "mill-libs-kotlinlib_3.jar",
+            "mill-libs-pythonlib_3.jar",
+            "mill-libs-scalajslib-api_3.jar",
+            "mill-libs-scalajslib_3.jar",
+            "mill-libs-scalalib_3.jar",
+            "mill-libs-scalanativelib-api_3.jar",
+            "mill-libs-scalanativelib_3.jar",
+            "mill-libs-util_3.jar",
+            "mill-libs_3.jar",
+            "mill-moduledefs_3-0.11.10.jar"
+          )
         )
-
-        assert(millPublishedJars == expected)
         assert(millLocalClasspath == Nil)
       } else {
         sys.error("This test must be run in `packaged` mode, not `local`")

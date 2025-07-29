@@ -2,9 +2,9 @@ package mill.playlib
 
 import mill.Task
 import mill.testkit.{TestRootModule, UnitTester}
-import utest.{TestSuite, Tests, assert, _}
+import utest.{TestSuite, Tests, assert, *}
 import mill.api.Discover
-import mill.util.TokenReaders._
+import mill.util.TokenReaders.*
 object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingleapi extends TestRootModule with PlayApiModule {

@@ -5,7 +5,7 @@ import mill.api.ExecResult
 import mill.api.Discover
 import mill.api.ExecutionPaths
 import mill.testkit.{TestRootModule, UnitTester}
-import utest.{TestSuite, Tests, assert, test}
+import utest.{TestSuite, Tests, test, assert}
 
 object KotlinJsKotestModuleTests extends TestSuite {
 
