@@ -4,7 +4,7 @@ import mill.api.ExecResult
 import mill.api.{Cross, Discover}
 import mill.scalalib.ScalaModule
 import mill.testkit.{TestRootModule, UnitTester}
-import utest.{TestSuite, Tests, assert, assertAll, *}
+import utest.{TestSuite, Tests, assert, *}
 import mill.util.TokenReaders.*
 object RouterModuleTests extends TestSuite with PlayTestSuite {
 
@@ -47,7 +47,7 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
             ).map(
               eval.outPath / "core" / scalaVersion / playVersion / "compileRouter.dest" / _
             )
-            assertAll(
+            assert(
               result.value.classes.path == eval.outPath / "core" / scalaVersion / playVersion / "compileRouter.dest",
               outputFiles.nonEmpty,
               outputFiles.forall(expectedClassfiles.contains),

@@ -36,7 +36,7 @@ object InitModuleTests extends TestSuite {
         val consoleShown = outStream.toString
 
         val examplesList: Seq[String] = value.asInstanceOf[Seq[String]]
-        assertAll(
+        assert(
           consoleShown.startsWith(initmodule.msg),
           examplesList.forall(_.nonEmpty)
         )

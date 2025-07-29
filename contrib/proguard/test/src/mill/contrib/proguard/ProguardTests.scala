@@ -29,7 +29,7 @@ object ProguardTests extends TestSuite {
       test("should download proguard jars") - UnitTester(proguard, testModuleSourcesPath).scoped {
         eval =>
           val Right(result) = eval.apply(proguard.proguardClasspath): @unchecked
-          assertAll(
+          assert(
             result.value.iterator.toSeq.nonEmpty,
             result.value.iterator.toSeq.head.path.toString().contains("proguard-base")
           )
@@ -46,7 +46,7 @@ object ProguardTests extends TestSuite {
             mergeErrIntoOut = true,
             check = false
           )
-          assertAll(
+          assert(
             res.exitCode == 0,
             res.out.text().contains("Hello world!")
           )
@@ -63,7 +63,7 @@ object ProguardTests extends TestSuite {
             mergeErrIntoOut = true,
             check = false
           )
-          assertAll(
+          assert(
             res.exitCode == 0,
             res.out.text().contains("Hello proguarded world!")
           )

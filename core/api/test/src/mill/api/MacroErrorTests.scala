@@ -24,7 +24,7 @@ object MacroErrorTests extends TestSuite {
           }
           mill.api.Discover[foo.type]
         """)
-        assertAll(
+        assert(
           e.msg.contains("`Task.Command` definition `method w` must have 1 parameter list"),
           e.pos.contains("def w = ")
         )
@@ -38,7 +38,7 @@ object MacroErrorTests extends TestSuite {
           }
           mill.api.Discover[foo.type]
         """)
-        assertAll(
+        assert(
           e.msg.contains("Task definition `method x` must have 0 parameter lists"),
           e.pos.contains("def x() = ")
         )
@@ -51,7 +51,7 @@ object MacroErrorTests extends TestSuite {
           }
           mill.api.Discover[foo.type]
         """)
-        assertAll(
+        assert(
           e.msg.contains("Task definition `method y` must have 0 parameter lists"),
           e.pos.contains("def y() = ")
         )
@@ -64,7 +64,7 @@ object MacroErrorTests extends TestSuite {
           }
           mill.api.Discover[foo.type]
         """)
-        assertAll(
+        assert(
           e.msg.contains("Task definition `method z` must have 0 parameter lists"),
           e.pos.contains("def z() = ")
         )
@@ -77,7 +77,7 @@ object MacroErrorTests extends TestSuite {
           }
           mill.api.Discover[foo.type]
         """)
-        assertAll(
+        assert(
           e.msg.contains("Task definition `method a` must have 0 parameter lists"),
           e.pos.contains("def a() = ")
         )

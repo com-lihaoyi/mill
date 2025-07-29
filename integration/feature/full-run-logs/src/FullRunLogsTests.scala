@@ -10,7 +10,7 @@ import utest.*
 object FullRunLogsTests extends UtestIntegrationTestSuite {
 
   def normalize(s: String, workspacePath: os.Path) = s.replace('\\', '/')
-    .replace(workspacePath.toString, "${tester.workspacePath}")
+    .replace(workspacePath.toString, "...")
     .replaceAll("\\d+", "<digits>")
     .replaceAll("--+", " <dashes>")
     .linesIterator
@@ -29,9 +29,9 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
       assertGoldenLiteral(
         normalized,
         List(
-          "[info] compiling <digits> Scala sources to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...",
+          "[info] compiling <digits> Scala sources to .../out/mill-build/compile.dest/classes ...",
           "[info] done compiling",
-          "[info] compiling <digits> Java source to ${tester.workspacePath}/out/compile.dest/classes ...",
+          "[info] compiling <digits> Java source to .../out/compile.dest/classes ...",
           "[info] done compiling"
         )
       )
@@ -48,10 +48,10 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         List(
           "============================== run  <dashes>text hello ==============================",
           "[build.mill-<digits>/<digits>] compile",
-          "[build.mill-<digits>] [info] compiling <digits> Scala sources to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...",
+          "[build.mill-<digits>] [info] compiling <digits> Scala sources to .../out/mill-build/compile.dest/classes ...",
           "[build.mill-<digits>] [info] done compiling",
           "[<digits>/<digits>] compile",
-          "[<digits>] [info] compiling <digits> Java source to ${tester.workspacePath}/out/compile.dest/classes ...",
+          "[<digits>] [info] compiling <digits> Java source to .../out/compile.dest/classes ...",
           "[<digits>] [info] done compiling",
           "[<digits>/<digits>] run",
           "[<digits>/<digits>] ============================== run  <dashes>text hello ============================== <digits>s"
@@ -70,12 +70,12 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
         List(
           "============================== jar ==============================",
           "[build.mill-<digits>/<digits>] compile",
-          "[build.mill-<digits>] [info] compiling <digits> Scala sources to ${tester.workspacePath}/out/mill-build/compile.dest/classes ...",
+          "[build.mill-<digits>] [info] compiling <digits> Scala sources to .../out/mill-build/compile.dest/classes ...",
           "[build.mill-<digits>] [info] done compiling",
-          "[<digits>/<digits>] compile",
-          "[<digits>] [info] compiling <digits> Java source to ${tester.workspacePath}/out/compile.dest/classes ...",
-          "[<digits>] [error] ${tester.workspacePath}/src/foo/Foo.java:<digits>:<digits>: reached end of file while parsing",
-          "[<digits>] compile failed",
+          "[<digits>/<digits>] compilation",
+          "[<digits>] [info] compiling <digits> Java source to .../out/compile.dest/classes ...",
+          "[<digits>] [error] .../src/foo/Foo.java:<digits>:<digits>: reached end of file while parsing",
+          "[<digits>] compilation failed",
           "[<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
           "<digits> tasks failed",
           "compile javac returned non-zero exit code"

@@ -4,7 +4,7 @@ package js
 
 import mill.api.Discover
 import mill.testkit.{TestRootModule, UnitTester}
-import utest.{TestSuite, Tests, assertAll, test}
+import utest.{TestSuite, Tests, test, assert}
 
 object KotlinJsCompileTests extends TestSuite {
 
@@ -35,7 +35,7 @@ object KotlinJsCompileTests extends TestSuite {
         val Right(result) = eval.apply(module.foo.compile): @unchecked
 
         val irDir = result.value.classes.path
-        assertAll(
+        assert(
           os.isDir(irDir),
           os.exists(irDir / "default/manifest"),
           os.exists(irDir / "default/linkdata/package_foo"),

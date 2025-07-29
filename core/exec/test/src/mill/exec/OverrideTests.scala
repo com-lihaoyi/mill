@@ -106,7 +106,7 @@ object OverrideTests extends TestSuite {
       val overridden = os.read(
         checker.execution.outPath / "foo.super/BaseModule.json"
       )
-      assertAll(
+      assert(
         public.contains("base"),
         public.contains("object"),
         overridden.contains("base"),
@@ -133,7 +133,7 @@ object OverrideTests extends TestSuite {
       val overridden = os.read(
         checker.execution.outPath / "cmd.super/BaseModule.json"
       )
-      assertAll(
+      assert(
         public.contains("base1"),
         public.contains("object1"),
         overridden.contains("base1"),

@@ -6,7 +6,7 @@ import mill.constants.Util
 import mill.api.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest.{TestSuite, Tests, assert, assertAll, *}
+import utest.{TestSuite, Tests, assert, *}
 
 object TutorialTests extends TestSuite {
   val testScalaPbVersion = "0.11.7"
@@ -89,7 +89,7 @@ object TutorialTests extends TestSuite {
       test("fromBuild") - UnitTester(Tutorial, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(Tutorial.core.scalaPBVersion): @unchecked
 
-        assertAll(
+        assert(
           result.value == testScalaPbVersion,
           result.evalCount > 0
         )
@@ -107,7 +107,7 @@ object TutorialTests extends TestSuite {
 
           val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
 
-          assertAll(
+          assert(
             result.value.path == eval.outPath / "core/compileScalaPB.dest",
             outputFiles.nonEmpty,
             outputFiles.forall(expectedSourcefiles.contains),
@@ -141,7 +141,7 @@ object TutorialTests extends TestSuite {
             os.rel / "IncludeProto.scala"
           ).map(outPath / _)
 
-          assertAll(
+          assert(
             result.value.path == eval.outPath / "core/compileScalaPB.dest",
             outputFiles.nonEmpty,
             outputFiles.forall(expectedSourcefiles.contains),

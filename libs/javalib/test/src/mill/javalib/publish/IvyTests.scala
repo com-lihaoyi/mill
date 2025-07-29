@@ -40,7 +40,7 @@ object IvyTests extends TestSuite {
 
       test("topLevel") {
         val info = singleNode(fullIvy \ "info")
-        assertAll(
+        assert(
           mandatoryAttr(info, "organisation") == artifact.group,
           mandatoryAttr(info, "module") == artifact.id,
           mandatoryAttr(info, "revision") == artifact.version
@@ -77,7 +77,7 @@ object IvyTests extends TestSuite {
         assert(dependencies.size == mvnDeps.size)
 
         dependencies.zipWithIndex.foreach { case (dep, index) =>
-          assertAll(
+          assert(
             mandatoryAttr(dep, "org") == mvnDeps(index).artifact.group,
             mandatoryAttr(dep, "name") == mvnDeps(index).artifact.id,
             mandatoryAttr(dep, "rev") == mvnDeps(index).artifact.version,

@@ -38,7 +38,7 @@ object HelloJavaTests extends TestSuite {
         val Right(result2) = eval.apply(HelloJava.core.compile): @unchecked
         val Right(result3) = eval.apply(HelloJava.app.compile): @unchecked
 
-        assertAll(
+        assert(
           result1.value == result2.value,
           result2.evalCount == 0,
           result3.evalCount != 0,
@@ -65,7 +65,7 @@ object HelloJavaTests extends TestSuite {
             os.walk(result.value.path).filter(os.isFile).map(_.relativeTo(result.value.path))
           val dataPath = eval.outPath / "core/semanticDbData.dest/data"
 
-          assertAll(
+          assert(
             result.value.path == dataPath,
             outputFiles.nonEmpty,
             outputFiles.toSet == Set(expectedFile1, expectedFile2),
@@ -117,7 +117,7 @@ object HelloJavaTests extends TestSuite {
             os.rel / "META-INF/semanticdb/core/src/hello/Second.java.semanticdb"
           val expectedFile3 =
             os.rel / "META-INF/semanticdb/core/src/hello/Third.java.semanticdb"
-          assertAll(
+          assert(
             result.value.path == dataPath,
             outputFiles.nonEmpty,
             outputFiles.toSet == Set(
@@ -141,7 +141,7 @@ object HelloJavaTests extends TestSuite {
           val Right(result2) = eval.apply(HelloJava.core.semanticDbData): @unchecked
           val files2 =
             os.walk(result2.value.path).filter(os.isFile).map(_.relativeTo(result2.value.path))
-          assertAll(
+          assert(
             files2.toSet == Set(
               expectedFile1,
               expectedFile3,
@@ -188,7 +188,7 @@ object HelloJavaTests extends TestSuite {
 
         val Right(result2) = eval.apply(HelloJava.app.test.testForked()): @unchecked
 
-        assertAll(
+        assert(
           result2.value.results(0).fullyQualifiedName == "hello.MyAppTests.appTest",
           result2.value.results(0).status == "Success",
           result2.value.results(1).fullyQualifiedName == "hello.MyAppTests.coreTest",

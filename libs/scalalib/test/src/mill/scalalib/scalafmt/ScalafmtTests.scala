@@ -46,7 +46,7 @@ object ScalafmtTests extends TestSuite {
 
           val firstReformat = getProjectFiles(ScalafmtTestModule.core, eval)
 
-          assertAll(
+          assert(
             firstReformat("Main.scala").modifyTime > before("Main.scala").modifyTime,
             firstReformat("Main.scala").content != before("Main.scala").content,
             firstReformat("Person.scala").modifyTime > before("Person.scala").modifyTime,
@@ -58,12 +58,12 @@ object ScalafmtTests extends TestSuite {
           )
 
           if (buildSrcIncluded) {
-            assertAll(
+            assert(
               firstReformat("util.sc").modifyTime > before("util.sc").modifyTime,
               firstReformat("util.sc").content != before("util.sc").content
             )
           } else {
-            assertAll(
+            assert(
               firstReformat("util.sc").modifyTime == before("util.sc").modifyTime,
               firstReformat("util.sc").content == before("util.sc").content
             )
@@ -74,7 +74,7 @@ object ScalafmtTests extends TestSuite {
 
           val cached = getProjectFiles(ScalafmtTestModule.core, eval)
 
-          assertAll(
+          assert(
             cached("Main.scala").modifyTime == firstReformat("Main.scala").modifyTime,
             cached("Person.scala").modifyTime == firstReformat("Person.scala").modifyTime,
             cached("util.sc").modifyTime == firstReformat("util.sc").modifyTime,
@@ -90,7 +90,7 @@ object ScalafmtTests extends TestSuite {
 
           val afterChange = getProjectFiles(ScalafmtTestModule.core, eval)
 
-          assertAll(
+          assert(
             afterChange("Main.scala").modifyTime > cached("Main.scala").modifyTime,
             afterChange("Person.scala").modifyTime == cached("Person.scala").modifyTime,
             afterChange("application.conf").modifyTime == cached(
