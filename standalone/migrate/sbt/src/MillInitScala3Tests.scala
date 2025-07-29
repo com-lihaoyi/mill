@@ -8,14 +8,13 @@ object MillInitScala3Tests extends GitRepoStandaloneTestSuite {
   def gitRepoBranch = "3.7.1"
 
   def tests = Tests {
-    test - standaloneTest { tester =>
+    test("poc") - standaloneTest { tester =>
       import tester.*
 
-      eval("init").isSuccess ==> true
-      eval("__.compile").isSuccess ==> true
-      /*
-[6380] Exception in thread "main" java.lang.IllegalArgumentException: Project at duplicate locations
-       */
+      eval(("init", "--poc")).isSuccess ==> true
+      eval(("resolve", "_")).isSuccess ==> false
+
+      "multiple modules have the same base directory"
     }
   }
 }

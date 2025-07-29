@@ -102,7 +102,7 @@ object `package` extends MillPublishScalaModule {
   }
 
   object sbt extends MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(buildgen, models(Deps.scalaVersion))
+    def moduleDeps = Seq(buildgen, models(Deps.scalaVersion), build.libs.init.migrate.sbt)
 
     def sbtPluginJarResources = Task {
       val assemblyPathRef = exportplugin.assembly()

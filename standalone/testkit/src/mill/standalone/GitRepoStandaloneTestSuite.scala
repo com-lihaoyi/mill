@@ -1,5 +1,7 @@
 package mill.standalone
 
+import mill.constants.Util.isWindows
+
 trait GitRepoStandaloneTestSuite extends utest.TestSuite, StandaloneTestSuite {
 
   def gitRepoUrl: String
@@ -11,6 +13,11 @@ trait GitRepoStandaloneTestSuite extends utest.TestSuite, StandaloneTestSuite {
     // preserve repo dir name for a realistic reproduction
     os.proc("git", "clone", gitRepoUrl, "--depth", gitRepoDepth, "--branch", gitRepoBranch)
       .call(cwd = cwd)
-    os.list(cwd).head
+    val workspace = os.list(cwd).head
+    os.symlink(
+      workspace / (if (isWindows) "mill.bat" else "mill"),
+      millExecutable
+    )
+    workspace
   }
 }
