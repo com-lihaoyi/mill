@@ -24,7 +24,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
     os.call(dex.dexCliArgs)
 
-    dex.outPath
+    PathRef(dex.outPath.path)
 
   }
 
@@ -129,7 +129,8 @@ trait AndroidR8AppModule extends AndroidAppModule {
    * Prepares the R8 cli command to build this android app!
    * @return
    */
-  def androidR8Dex: T[(outPath: PathRef, dexCliArgs: Seq[String])] = Task {
+  private def androidR8Dex
+      : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
     val destDir = Task.dest / "minify"
     os.makeDir.all(destDir)
 
@@ -154,16 +155,16 @@ trait AndroidR8AppModule extends AndroidAppModule {
          |""".stripMargin.trim
     os.write.over(extraRulesFile, extraRulesContent)
 
-    val classpathClassFiles: Seq[String] = androidPackagedClassfiles()
+    val classpathClassFiles: Seq[PathRef] = androidPackagedClassfiles()
       .filter(_.path.ext == "class")
-      .map(_.path.toString)
 
-    val appCompiledFiles: Seq[String] = androidPackagedCompiledClasses()
+    val appCompiledFiles: Seq[PathRef] = androidPackagedCompiledClasses()
       .filter(_.path.ext == "class")
-      .map(_.path.toString)
 
-    val allClassFiles =
-      classpathClassFiles ++ appCompiledFiles ++ androidPackagedDeps().map(_.path.toString)
+    val allClassFilesPathRefs =
+      classpathClassFiles ++ appCompiledFiles ++ androidPackagedDeps()
+
+    val allClassFiles = allClassFilesPathRefs.map(_.path.toString)
 
     val r8ArgsBuilder = Seq.newBuilder[String]
 
@@ -224,7 +225,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
 
     val r8Args = r8ArgsBuilder.result()
 
-    PathRef(outputPath) -> r8Args
+    (PathRef(outputPath), r8Args, allClassFilesPathRefs)
   }
 
 }
