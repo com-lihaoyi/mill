@@ -183,7 +183,9 @@ object GradleBuildGenMain extends BuildGenBase.MavenAndGradle[ProjectModel, Dep]
       // skipped, requires relatively new API (JavaPluginExtension.getSourceSets)
       resources = Nil,
       testResources = Nil,
-      publishProperties = getPublishProperties(project, cfg.shared)
+      publishProperties = getPublishProperties(project, cfg.shared),
+      jvmId = cfg.shared.basicConfig.jvmId,
+      testForkDir = None
     )
   }
 

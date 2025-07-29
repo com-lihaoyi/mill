@@ -1,7 +1,7 @@
 package mill.javalib
 
-import mill.api.{ModuleRef, Task}
-import mill.{Module, PathRef, T}
+import mill.api.Task
+import mill.Module
 import mill.api.daemon.internal.idea.{GenIdeaModuleApi, IdeaConfigFile, JavaFacet}
 
 /**

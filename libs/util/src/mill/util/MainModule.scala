@@ -1,7 +1,6 @@
 package mill.util
 
 import mill.{util, *}
-import mill.api.*
 import mill.api.daemon.internal.MainModuleApi
 import mill.api.*
 import mill.api.internal.{RootModule, RootModule0}
@@ -10,9 +9,6 @@ import mill.api.daemon.Watchable
 import mill.moduledefs.Scaladoc
 import mill.api.BuildCtx
 import mill.api.daemon.internal.bsp.BspMainModuleApi
-
-import java.util.concurrent.LinkedBlockingQueue
-import scala.collection.mutable
 
 abstract class MainRootModule()(implicit
     baseModuleInfo: RootModule.Info,
@@ -130,7 +126,7 @@ trait MainModule extends RootModule0, MainModuleApi {
     Task.Command(exclusive = true) {
       MainModule.show0(evaluator, tasks, Task.log, BuildCtx.evalWatch0) { res =>
         res.flatMap(_._2) match {
-          case Seq((k, singleValue)) => singleValue
+          case Seq((_, singleValue)) => singleValue
           case multiple => ujson.Obj.from(multiple)
         }
       }
@@ -353,7 +349,7 @@ object MainModule {
           watched.foreach(watch0)
           Result.Failure(err)
 
-        case Evaluator.Result(watched, Result.Success(res), selectedTasks, executionResults) =>
+        case Evaluator.Result(watched, Result.Success(_), selectedTasks, executionResults) =>
           val namesAndJson = for (t <- selectedTasks) yield {
             t match {
               case t: mill.api.Task.Named[_] =>

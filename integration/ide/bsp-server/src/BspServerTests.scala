@@ -41,7 +41,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         millTestSuiteEnv
       ) { (buildServer, initRes) =>
         val kotlinVersion = sys.props.getOrElse("TEST_KOTLIN_VERSION", ???)
-        val kotlinTransitiveSubstitutions = transitiveDependenciesSubstitutions(
+        transitiveDependenciesSubstitutions(
           coursierapi.Dependency.of(
             "org.jetbrains.kotlin",
             "kotlin-stdlib",
@@ -417,7 +417,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
       }
       val expectedMessages = Seq(
         // no message for errored.compilation-error, compilation diagnostics are enough
-        (b.MessageType.ERROR, "Compiling errored.exception failed, see Mill logs for more details")
       )
       assert(expectedMessages == messages0)
     }

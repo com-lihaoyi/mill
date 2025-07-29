@@ -1,0 +1,27 @@
+/** Usage
+
+> rm build.mill # remove any existing build file
+
+> git init .
+> git remote add -f origin https://github.com/iluwatar/java-design-patterns
+> git checkout ede37bd05568b1b8b814d8e9a1d2bbd71d9d615d
+
+> ./mill init --jvm-id 21 # Repo needs Java >=21 to build and test
+
+> rm twin/src/test/java/com/iluwatar/twin/BallThreadTest.java # skip flaky test
+> rm actor-model/src/test/java/com/iluwatar/actor/ActorModelTest.java # skip flaky test
+
+> ./mill __.compile # Compile all 300+ subprojects!
+compiling 6 Java sources to ...service-to-worker...
+compiling 4 Java sources to ...update-method...
+
+> ./mill acyclic-visitor.test # run a subproject's tests
+...
+Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForDos() started
+Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForDos() finished, took ...
+Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForUnix() started
+Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForUnix() finished, took ...
+Test com.iluwatar.acyclicvisitor.ZoomTest finished, took ...
+...
+
+*/

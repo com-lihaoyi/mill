@@ -1,13 +1,13 @@
 package mill.eval
 
-import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, ExecutionResultsApi, TestReporter}
 import mill.constants.OutFiles
 import mill.constants.OutFiles.*
 import mill.api.{PathRef, *}
-import mill.api.internal.{RootModule0, ResolveChecker}
+import mill.api.internal.{ResolveChecker, RootModule0}
 import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
+import mill.internal.PrefixLogger
 import mill.resolve.Resolve
 
 /**
@@ -180,9 +180,9 @@ final class EvaluatorImpl private[mill] (
         @scala.annotation.nowarn("msg=cannot be checked at runtime")
         val watched = (evaluated.transitiveResults.iterator ++ selectiveResults)
           .collect {
-            case (t: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
+            case (_: Task.Sources, ExecResult.Success(Val(ps: Seq[PathRef]))) =>
               ps.map(r => Watchable.Path(r.path.toNIO, r.quick, r.sig))
-            case (t: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
+            case (_: Task.Source, ExecResult.Success(Val(p: PathRef))) =>
               Seq(Watchable.Path(p.path.toNIO, p.quick, p.sig))
             case (t: Task.Input[_], result) =>
 
@@ -246,19 +246,25 @@ final class EvaluatorImpl private[mill] (
       reporter: Int => Option[CompileProblemReporter] = _ => None,
       selectiveExecution: Boolean = false
   ): mill.api.Result[Evaluator.Result[Any]] = {
-    val resolved = os.checker.withValue(ResolveChecker(workspace)) {
-      Evaluator.withCurrentEvaluator(this) {
-        Resolve.Tasks.resolve(
-          rootModule,
-          scriptArgs,
-          selectMode,
-          allowPositionalCommandArgs
-        )
+    val promptLineLogger = new PrefixLogger(
+      logger0 = baseLogger,
+      key0 = Seq("resolve"),
+      message = "resolve " + scriptArgs.mkString(" ")
+    )
+    val resolved = promptLineLogger.withPromptLine {
+      os.checker.withValue(ResolveChecker(workspace)) {
+        Evaluator.withCurrentEvaluator(this) {
+          Resolve.Tasks.resolve(
+            rootModule,
+            scriptArgs,
+            selectMode,
+            allowPositionalCommandArgs
+          )
+        }
       }
     }
-
-    for (task <- resolved)
-      yield execute(Seq.from(task), reporter = reporter, selectiveExecution = selectiveExecution)
+    for (tasks <- resolved)
+      yield execute(Seq.from(tasks), reporter = reporter, selectiveExecution = selectiveExecution)
   }
 
   def close(): Unit = execution.close()

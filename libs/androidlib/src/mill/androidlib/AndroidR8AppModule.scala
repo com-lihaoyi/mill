@@ -3,7 +3,6 @@ package mill.androidlib
 import mill.*
 import mill.api.{PathRef, Task}
 import mill.api.BuildCtx
-import mill.javalib.{Dep, DepSyntax}
 
 @mill.api.experimental
 trait AndroidR8AppModule extends AndroidAppModule {

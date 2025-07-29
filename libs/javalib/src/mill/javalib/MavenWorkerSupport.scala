@@ -8,7 +8,7 @@ import os.Path
 private[mill] trait MavenWorkerSupport extends CoursierModule with OfflineSupportModule {
   private def mavenWorkerClasspath: T[Seq[PathRef]] = Task {
     defaultResolver().classpath(Seq(
-      Dep.millProjectModule("mill-libs-jvmlib-maven-worker")
+      Dep.millProjectModule("mill-libs-javalib-maven-worker")
     ))
   }
 
@@ -21,9 +21,9 @@ private[mill] trait MavenWorkerSupport extends CoursierModule with OfflineSuppor
     Jvm.createClassLoader(classPath = classPath, parent = getClass.getClassLoader)
   }
 
-  protected def mavenWorker: Task.Worker[MavenWorkerSupport.Api] = Task.Worker {
+  private[mill] def mavenWorker: Task.Worker[internal.MavenWorkerSupport.Api] = Task.Worker {
     mavenWorkerClassloader().loadClass("mill.javalib.maven.worker.impl.WorkerImpl")
-      .getConstructor().newInstance().asInstanceOf[MavenWorkerSupport.Api]
+      .getConstructor().newInstance().asInstanceOf[internal.MavenWorkerSupport.Api]
   }
 }
 object MavenWorkerSupport {
@@ -40,6 +40,7 @@ object MavenWorkerSupport {
   }
 
   object RemoteM2Publisher {
+    @deprecated("This should have been an internal API.", "1.0.1")
     def asM2Artifacts(
         pom: os.Path,
         artifact: Artifact,
@@ -49,6 +50,19 @@ object MavenWorkerSupport {
         pom,
         artifact
       ) +: publishInfos.iterator.map(M2Artifact.Default(_, artifact)).toList
+
+    private[mill] def asM2ArtifactsFromPublishDatas(
+        artifact: Artifact,
+        publishDatas: Map[os.SubPath, PathRef]
+    ): List[M2Artifact.Default] =
+      publishDatas.iterator.map { case (name, pathRef) =>
+        val publishInfo = PublishInfo.IvyMetadata.parseFromFile(
+          fileName = name.toString,
+          artifactId = artifact.id,
+          artifactVersion = artifact.version
+        ).toPublishInfo(pathRef)
+        M2Artifact.Default(publishInfo, artifact): M2Artifact.Default
+      }.toList
 
     enum M2Artifact {
       case Default(info: PublishInfo, artifact: Artifact)

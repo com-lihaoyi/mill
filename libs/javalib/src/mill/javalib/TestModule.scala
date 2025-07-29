@@ -23,7 +23,6 @@ import mill.javalib.testrunner.{
 }
 
 import java.nio.file.Path
-import java.nio.file.Path
 
 /**
  * A module containing JVM test suites. Requires you define a [[testFramework]] for your
@@ -301,7 +300,7 @@ trait TestModule
     val (frameworkName, classFingerprint) =
       mill.util.Jvm.withClassLoader(
         classPath = runClasspath().map(_.path),
-        sharedPrefixes = Seq("sbt.testing.")
+        sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
       ) { classLoader =>
         val framework = Framework.framework(testFramework())(classLoader)
         framework.name() -> TestRunnerUtils
@@ -408,7 +407,7 @@ object TestModule {
     override def discoveredTestClasses: T[Seq[String]] = Task {
       Jvm.withClassLoader(
         classPath = runClasspath().map(_.path).toVector,
-        sharedPrefixes = Seq("sbt.testing.")
+        sharedPrefixes = Seq("sbt.testing.", "mill.api.daemon.internal.TestReporter")
       ) { classLoader =>
         val builderClass: Class[?] =
           classLoader.loadClass("com.github.sbt.junit.jupiter.api.JupiterTestCollector$Builder")
@@ -617,13 +616,13 @@ object TestModule {
     TestModuleUtil.handleResults(doneMsg, results, ctx, testReportXml, props)
 
   trait JavaModuleBase extends BspModule {
-    def mvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
-    def mandatoryMvnDeps: T[Seq[Dep]] = Seq.empty[Dep]
+    def mvnDeps: T[Seq[Dep]] = Seq()
+    def mandatoryMvnDeps: T[Seq[Dep]] = Seq()
     def resources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
   }
 
   trait ScalaModuleBase extends mill.Module {
-    def scalacOptions: T[Seq[String]] = Seq.empty[String]
+    def scalacOptions: T[Seq[String]] = Seq()
   }
 
 }

@@ -76,6 +76,16 @@ trait Logger {
   }
 
   /**
+   * Helper method to enable this logger as a line item in the global prompt
+   * while the given code block is running
+   */
+  private[mill] final def withChromeProfile[T](text: String)(t: => T): T = {
+    prompt.beginChromeProfileEntry(text)
+    try t
+    finally prompt.endChromeProfileEntry()
+  }
+
+  /**
    * A short dash-separated prefix that is printed before every log line. Used to
    * uniquely identify log lines belonging to this logger from log lines belonging
    * to others, which is especially necessary in the presence of concurrency and
@@ -119,7 +129,6 @@ object Logger {
    * to logger unchanged without any customization.
    */
   private[mill] trait Prompt {
-
     private[mill] def setPromptDetail(key: Seq[String], s: String): Unit
     private[mill] def reportKey(key: Seq[String]): Unit
     private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit
@@ -129,6 +138,8 @@ object Logger {
     private[mill] def withPromptPaused[T](t: => T): T
     private[mill] def withPromptUnpaused[T](t: => T): T
 
+    private[mill] def beginChromeProfileEntry(text: String): Unit
+    private[mill] def endChromeProfileEntry(): Unit
     def debugEnabled: Boolean
 
     private[mill] def enableTicker: Boolean
@@ -149,6 +160,10 @@ object Logger {
       private[mill] def removePromptLine(key: Seq[String]): Unit = ()
       private[mill] def withPromptPaused[T](t: => T): T = t
       private[mill] def withPromptUnpaused[T](t: => T): T = t
+
+      private[mill] def beginChromeProfileEntry(text: String): Unit = ()
+
+      private[mill] def endChromeProfileEntry(): Unit = ()
 
       def debugEnabled: Boolean = false
 

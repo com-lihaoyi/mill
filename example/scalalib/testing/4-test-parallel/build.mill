@@ -19,7 +19,7 @@ object foo extends ScalaModule {
 
 /** Usage
 
-> ./mill --jobs 3 foo.test
+> ./mill --jobs 2 foo.test
 
 > find out/foo/test/testForked.dest
 ...
@@ -27,8 +27,6 @@ out/foo/test/testForked.dest/worker-0.log
 out/foo/test/testForked.dest/worker-0
 out/foo/test/testForked.dest/worker-1.log
 out/foo/test/testForked.dest/worker-1
-out/foo/test/testForked.dest/worker-2.log
-out/foo/test/testForked.dest/worker-2
 out/foo/test/testForked.dest/test-classes
 out/foo/test/testForked.dest/test-report.xml
 ...

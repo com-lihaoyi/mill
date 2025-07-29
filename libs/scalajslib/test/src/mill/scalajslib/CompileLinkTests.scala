@@ -21,13 +21,7 @@ object CompileLinkTests extends TestSuite {
   }
 
   object HelloJSWorld extends TestRootModule {
-    val scalaVersions = Seq("2.13.3", "3.0.0-RC1", "2.12.12")
-    val scalaJSVersions = Seq("1.8.0", "1.0.1")
-    val matrix = for {
-      scala <- scalaVersions
-      scalaJS <- scalaJSVersions
-      if !(JvmWorkerUtil.isScala3(scala) && scalaJS != scalaJSVersions.head)
-    } yield (scala, scalaJS)
+    val matrix = Seq("2.13.15" -> "1.19.0", "3.7.1" -> "1.19.0")
 
     object build extends Cross[RootModule](matrix)
     trait RootModule extends HelloJSWorldModule {
@@ -45,8 +39,7 @@ object CompileLinkTests extends TestSuite {
 
       object `test-utest` extends ScalaJSTests with TestModule.Utest {
         override def sources = Task.Sources("src/utest")
-        override def utestVersion =
-          if (JvmWorkerUtil.isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
+        override def utestVersion = "0.8.9"
       }
 
       object `test-scalatest` extends ScalaJSTests with TestModule.ScalaTest {

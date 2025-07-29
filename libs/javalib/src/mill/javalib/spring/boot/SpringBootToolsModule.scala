@@ -1,6 +1,5 @@
 package mill.javalib.spring.boot
 
-import java.net.{URL, URLClassLoader}
 import mill.*
 import mill.api.{Discover, ExternalModule}
 import mill.javalib.{CoursierModule, Dep, DepSyntax}

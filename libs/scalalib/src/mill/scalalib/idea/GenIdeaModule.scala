@@ -1,14 +1,9 @@
 package mill.scalalib.idea
 
-import java.nio.file.Path
 import mill.scalalib.ScalaModule
 import mill.Task
-import mill.api.Segments
-import mill.api.daemon.internal.idea.{GenIdeaInternalApi, ResolvedModule}
 import mill.api.daemon.internal.internal
-import mill.api.{Discover, ExternalModule, ModuleCtx, PathRef}
-import mill.javalib.{BoundDep, Dep, JavaModule}
-import mill.api.JsonFormatters.given
+import mill.api.ModuleCtx
 trait GenIdeaModule extends mill.javalib.idea.GenIdeaModule {
   def javaModuleRef: mill.api.ModuleRef[ScalaModule]
   override def scalaCompilerClasspath = Task.Anon(javaModuleRef().scalaCompilerClasspath())

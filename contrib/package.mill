@@ -29,17 +29,17 @@ object `package` extends mill.Module {
 
   trait ContribModule extends MillPublishScalaModule {
     def readme = Task.Source("readme.adoc")
+
+    def localTestExtraModules =
+      super.localTestExtraModules ++
+        Seq(
+          build.libs.javalib,
+          build.libs.javalib.worker,
+          build.libs.javalib.testrunner.entrypoint
+        )
   }
 
   object testng extends JavaModule with ContribModule {
-
-    def transitiveLocalTestOverrides =
-      super.transitiveLocalTestOverrides() ++
-        Seq(
-          build.libs.javalib.localTestOverride(),
-          build.libs.javalib.worker.localTestOverride(),
-          build.libs.javalib.testrunner.entrypoint.localTestOverride()
-        )
 
     // pure Java implementation
     def artifactSuffix: T[String] = ""
@@ -61,10 +61,8 @@ object `package` extends mill.Module {
     def moduleDeps = Seq(twirllib, playlib.api)
     def compileModuleDeps = Seq(build.libs.scalalib)
 
-    def transitiveLocalTestOverrides =
-      super.transitiveLocalTestOverrides() ++ Task.traverse(
-        Deps.play.keys.toSeq
-      )(worker(_).localTestOverride)()
+    def localTestExtraModules =
+      super.localTestExtraModules ++ Deps.play.keys.toSeq.map(worker(_))
 
     def testArgs = Task {
       super.testArgs() ++
@@ -111,8 +109,8 @@ object `package` extends mill.Module {
     def moduleDeps = Seq(scoverage.api)
     def compileModuleDeps = Seq(build.libs.scalalib)
 
-    def transitiveLocalTestOverrides =
-      super.transitiveLocalTestOverrides() ++ Seq(worker2.localTestOverride())
+    def localTestExtraModules =
+      super.localTestExtraModules ++ Seq(worker2)
 
     def testArgs = Task {
       super.testArgs() ++
@@ -133,7 +131,6 @@ object `package` extends mill.Module {
 
     // Worker for Scoverage 2.0
     object worker2 extends MillPublishScalaModule {
-      def localTestOverridePaths = Task { Seq(compile().classes) }
       def compileModuleDeps = Seq(
         build.core.api.daemon,
         scoverage.api
@@ -151,6 +148,15 @@ object `package` extends mill.Module {
   }
 
   object buildinfo extends ContribModule {
+
+    def localTestExtraModules =
+      super.localTestExtraModules ++
+        Seq(
+          build.libs.javalib,
+          build.libs.scalajslib.worker("1"),
+          build.libs.kotlinlib.worker
+        )
+
     def compileModuleDeps =
       Seq(
         build.libs.javalib,

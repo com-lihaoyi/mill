@@ -1,7 +1,6 @@
 package mill.util
 
 import mill.api.experimental
-import mill.util.{IgnoreQualifierVersion, MavenVersion, OsgiVersion, Version}
 
 @experimental
 class Version private (

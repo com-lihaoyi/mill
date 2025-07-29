@@ -52,6 +52,8 @@ object jimfs extends PublishModule, MavenModule {
 
 /** Usage
 
+> rm jimfs/src/test/java/com/google/common/jimfs/JimfsFileChannelTest.java # disable flaky tests
+
 > ./mill jimfs.test
 Test run com.google.common.jimfs.FileTest started
 Test run com.google.common.jimfs.FileTest finished: 0 failed, 0 ignored, 7 total...

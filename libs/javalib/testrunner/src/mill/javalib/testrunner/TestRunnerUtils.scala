@@ -81,7 +81,7 @@ import scala.math.Ordering.Implicits.*
       // so makes the jimfs test suite fail
       //
       // https://stackoverflow.com/a/17468590
-      .filter { case (c, f) => !c.isMemberClass && !c.isAnonymousClass }
+      .filter { case (c, _) => !c.isMemberClass && !c.isAnonymousClass }
 
     testClasses
   }

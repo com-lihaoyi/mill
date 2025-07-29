@@ -15,8 +15,11 @@ object `package` extends MillPublishScalaModule {
   private def sources0 = Task.Sources(BuildCtx.workspaceRoot / "mill-build/src-testkit")
   def sources = super.sources() ++ sources0()
 
+  def localTestExtraModules =
+    super.localTestExtraModules ++ build.dist.localTestExtraModules
+
   def forkEnv =
     super.forkEnv() ++
       Map("MILL_EXECUTABLE_PATH" -> build.dist.launcher().path.toString()) ++
-      build.dist.localTestOverridesEnv()
+      build.dist.testForkEnv()
 }

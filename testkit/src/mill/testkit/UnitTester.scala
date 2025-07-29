@@ -11,7 +11,7 @@ import mill.constants.OutFiles.millChromeProfile
 import mill.constants.OutFiles.millProfile
 import mill.api.Evaluator
 import mill.api.SelectMode
-import mill.exec.JsonArrayLogger
+import mill.internal.JsonArrayLogger
 import mill.resolve.Resolve
 
 import java.io.InputStream
@@ -99,7 +99,8 @@ class UnitTester(
         debugEnabled = debugEnabled,
         titleText = "",
         terminfoPath = os.temp(),
-        currentTimeMillis = () => System.currentTimeMillis()
+        currentTimeMillis = () => System.currentTimeMillis(),
+        chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile)
       ) {
     val prefix: String = {
       val idx = fullName.value.lastIndexOf(".")
@@ -121,8 +122,7 @@ class UnitTester(
 
   val execution = new mill.exec.Execution(
     baseLogger = logger,
-    chromeProfileLogger = new JsonArrayLogger.ChromeProfile(outPath / millChromeProfile),
-    profileLogger = new JsonArrayLogger.Profile(outPath / millProfile),
+    profileLogger = new mill.internal.JsonArrayLogger.Profile(outPath / millProfile),
     workspace = module.moduleDir,
     outPath = outPath,
     externalOutPath = outPath,
@@ -229,12 +229,18 @@ class UnitTester(
     } finally close()
   }
 
-  def close(): Unit = {
+  def closeWithoutCheckingLeaks(): Unit = {
     for (case (_, Val(obsolete: AutoCloseable)) <- evaluator.workerCache.values) {
       obsolete.close()
     }
     evaluator.close()
+  }
 
+  def close(): Unit = {
+    closeWithoutCheckingLeaks()
+    checkLeaks()
+  }
+  def checkLeaks() = {
     assert(
       mill.api.MillURLClassLoader.openClassloaders.isEmpty,
       s"Unit tester detected leaked classloaders on close: \n${mill.api.MillURLClassLoader.openClassloaders.mkString("\n")}"

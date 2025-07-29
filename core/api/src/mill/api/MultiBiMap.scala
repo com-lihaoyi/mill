@@ -19,6 +19,7 @@ private[mill] trait MultiBiMap[K, V] {
   def items(): Iterator[(K, collection.Seq[V])]
   def values(): Iterator[collection.Seq[V]]
   def keyCount: Int
+  def foreach(f: (K, collection.Seq[V]) => Unit): Unit
 }
 
 private[mill] object MultiBiMap {
@@ -51,5 +52,7 @@ private[mill] object MultiBiMap {
     def items(): Iterator[(K, collection.Seq[V])] = keyToValues.iterator
 
     def keyCount: Int = keyToValues.size
+
+    def foreach(f: (K, collection.Seq[V]) => Unit): Unit = keyToValues.foreach(f(_, _))
   }
 }

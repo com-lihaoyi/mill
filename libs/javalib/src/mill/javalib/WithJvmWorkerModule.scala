@@ -1,7 +1,6 @@
 package mill.javalib
 
-import mill.T
-import mill.api.{Module, ModuleRef, PathRef, Task}
+import mill.api.ModuleRef
 
 /**
  * Common trait for modules that use either a custom or a globally shared [[JvmWorkerModule]].

@@ -45,7 +45,7 @@ trait JlinkModule extends JavaModule {
 
     val libs = Task.dest / "libs"
     val cp = runClasspath().map(_.path)
-    val jars = cp.filter(os.exists).zipWithIndex.map { case (p, idx) =>
+    val jars = cp.filter(os.exists).zipWithIndex.map { case (p, _) =>
       val dest = libs / s"${p.last}"
       os.copy(p, dest, createFolders = true)
       dest

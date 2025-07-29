@@ -48,7 +48,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
       .map {
         // Timers have incrementing IDs, but we don't care what
         // the ID is as long as it is a timer thread.
-        case s"Timer-$n" => "Timer"
+        case s"Timer-$_" => "Timer"
         case s => s
       }
       .sorted
@@ -63,7 +63,6 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
   val tests: Tests = Tests {
     test - integrationTest { tester =>
       if (daemonMode) {
-        mill.constants.DebugLog("\nstart")
         checkClassloaders(tester)(
           "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
           "mill.javalib.JvmWorkerModule#worker cl" -> 1,
@@ -71,6 +70,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         )
         checkThreads(tester)(
           "HandleRunThread",
+          "JsonArrayLogger mill-chrome-profile.json",
+          "JsonArrayLogger mill-profile.json",
           "MillServerActionRunner",
           "MillServerTimeoutThread",
           "Process ID Checker Thread",
@@ -93,6 +94,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             "HandleRunThread",
+            "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
@@ -117,6 +120,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             "HandleRunThread",
+            "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
@@ -139,6 +144,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         )
         checkThreads(tester)(
           "HandleRunThread",
+          "JsonArrayLogger mill-chrome-profile.json",
+          "JsonArrayLogger mill-profile.json",
           "MillServerActionRunner",
           "MillServerTimeoutThread",
           "Process ID Checker Thread",
@@ -161,6 +168,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             "HandleRunThread",
+            "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
@@ -186,6 +195,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             "HandleRunThread",
+            "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
@@ -204,7 +215,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           tester.modifyFile(tester.workspacePath / "hello-kotlin/src/Foo.kt", "//hello\n" + _)
           tester.modifyFile(tester.workspacePath / "hello-scala/src/Foo.scala", "//hello\n" + _)
 
-          val res = tester.eval(("show", "__.compile"))
+          tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             "mill.daemon.MillBuildBootstrap#processRunClasspath classLoader cl" -> 1,
             "mill.kotlinlib.KotlinWorkerManager" -> 1,
@@ -213,6 +224,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
           )
           checkThreads(tester)(
             "HandleRunThread",
+            "JsonArrayLogger mill-chrome-profile.json",
+            "JsonArrayLogger mill-profile.json",
             "MillServerActionRunner",
             "MillServerTimeoutThread",
             "Process ID Checker Thread",
@@ -237,6 +250,8 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         )
         checkThreads(tester)(
           "HandleRunThread",
+          "JsonArrayLogger mill-chrome-profile.json",
+          "JsonArrayLogger mill-profile.json",
           "MillServerActionRunner",
           "MillServerTimeoutThread",
           "Process ID Checker Thread",

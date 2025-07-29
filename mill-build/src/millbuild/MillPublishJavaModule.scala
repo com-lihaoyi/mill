@@ -8,10 +8,14 @@ import mill.Task
 import mill.scalalib.Dep
 import mill.scalalib.JavaModule
 import mill.scalalib.PublishModule
-import mill.scalalib.publish.Developer
-import mill.scalalib.publish.License
-import mill.scalalib.publish.PomSettings
-import mill.scalalib.publish.VersionControl
+import mill.scalalib.publish.{
+  Developer,
+  License,
+  LocalM2Publisher,
+  PomSettings,
+  PublishInfo,
+  VersionControl
+}
 
 trait MillPublishJavaModule extends MillJavaModule with PublishModule {
 

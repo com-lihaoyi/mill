@@ -18,13 +18,14 @@ import mill.api.daemon.internal.bsp.{
 }
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
-import mill.api.{ModuleRef, PathRef, Segment, Task, TaskCtx, DefaultTaskModule}
+import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
 import mill.javalib.api.CompilationResult
 import mill.javalib.bsp.{BspJavaModule, BspModule}
 import mill.javalib.internal.ModuleUtils
 import mill.javalib.publish.Artifact
 import mill.util.{JarManifest, Jvm}
 import os.Path
+
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.matching.Regex
 
@@ -287,19 +288,19 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycle.
    *  @see [[moduleDepsChecked]]
    */
-  def moduleDeps: Seq[JavaModule] = Seq.empty
+  def moduleDeps: Seq[JavaModule] = Seq()
 
   /**
    *  The compile-only direct dependencies of this module. These are *not*
    *  transitive, and only take effect in the module that they are declared in.
    */
-  def compileModuleDeps: Seq[JavaModule] = Seq.empty
+  def compileModuleDeps: Seq[JavaModule] = Seq()
 
   /**
    * The runtime-only direct dependencies of this module. These *are* transitive,
    * and so get propagated to downstream modules automatically
    */
-  def runModuleDeps: Seq[JavaModule] = Seq.empty
+  def runModuleDeps: Seq[JavaModule] = Seq()
 
   /**
    *  Bill of Material (BOM) dependencies of this module.
@@ -308,7 +309,7 @@ trait JavaModule
    *  which uses a cached result which is also checked to be free of cycles.
    *  @see [[bomModuleDepsChecked]]
    */
-  def bomModuleDeps: Seq[BomModule] = Seq.empty
+  def bomModuleDeps: Seq[BomModule] = Seq()
 
   /**
    * Same as [[moduleDeps]] but checked to not contain cycles.
@@ -1085,11 +1086,7 @@ trait JavaModule
    */
   def docJarUseArgsFile: T[Boolean] = Task { scala.util.Properties.isWin }
 
-  /**
-   * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
-   * publishing to Maven Central
-   */
-  def docJar: T[PathRef] = Task[PathRef] {
+  def javadocGenerated: T[PathRef] = Task[PathRef] {
     val outDir = Task.dest
 
     val javadocDir = outDir / "javadoc"
@@ -1141,8 +1138,15 @@ trait JavaModule
         stdout = os.Inherit
       )
     }
+    PathRef(javadocDir)
+  }
 
-    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(javadocDir)))
+  /**
+   * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
+   * publishing to Maven Central
+   */
+  def docJar: T[PathRef] = Task[PathRef] {
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(javadocGenerated().path)))
   }
 
   /**
@@ -1446,6 +1450,21 @@ trait JavaModule
     else Task.Anon { compile().classes.path.toNIO }
   }
 
+  /**
+   * Stable version of [[repositoriesTask]] so it doesn't keep getting
+   * recomputed over and over during the recursive traversal
+   */
+  private lazy val repositoriesTaskStable = Task.Anon {
+    val transitive = Task.traverse(recursiveModuleDeps)(_.repositoriesTask)()
+    val sup = repositoriesTask0()
+    (sup ++ transitive.flatten).distinct
+  }
+
+  /**
+   * Repositories are transitively aggregated from upstream modules, following
+   * the behavior of Maven, Gradle, and SBT
+   */
+  override def repositoriesTask: Task[Seq[Repository]] = repositoriesTaskStable
 }
 
 object JavaModule {

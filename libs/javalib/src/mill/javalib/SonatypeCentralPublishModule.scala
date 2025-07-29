@@ -1,5 +1,6 @@
 package mill.javalib
 
+import com.lihaoyi.unroll
 import com.lumidion.sonatype.central.client.core.{PublishingType, SonatypeCredentials}
 import mill.*
 import javalib.*
@@ -18,9 +19,11 @@ import mill.javalib.SonatypeCentralPublishModule.{
 import mill.javalib.publish.Artifact
 import mill.javalib.publish.SonatypeHelpers.{PASSWORD_ENV_VARIABLE_NAME, USERNAME_ENV_VARIABLE_NAME}
 import mill.api.BuildCtx
+import mill.api.daemon.Logger
+import mill.javalib.PublishModule.PublishData
 import mill.javalib.internal.PublishModule.GpgArgs
 
-trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport {
+trait SonatypeCentralPublishModule extends PublishModule, MavenWorkerSupport {
   @deprecated("Use `sonatypeCentralGpgArgsForKey` instead.", "1.0.1")
   def sonatypeCentralGpgArgs: T[String] =
     Task { SonatypeCentralPublishModule.sonatypeCentralGpgArgsSentinelValue }
@@ -51,74 +54,50 @@ trait SonatypeCentralPublishModule extends PublishModule with MavenWorkerSupport
 
   def sonatypeCentralShouldRelease: T[Boolean] = Task { true }
 
+  // noinspection ScalaUnusedSymbol - used as a Mill task invokable from CLI
   def publishSonatypeCentral(
       username: String = defaultCredentials,
-      password: String = defaultCredentials
+      password: String = defaultCredentials,
+      @unroll sources: Boolean = true,
+      @unroll docs: Boolean = true
   ): Task.Command[Unit] = Task.Command {
     val artifact = artifactMetadata()
-    val finalCredentials = getSonatypeCredentials(username, password)()
+    val credentials = getSonatypeCredentials(username, password)()
+    val publishData = publishArtifactsPayload(sources = sources, docs = docs)()
+    val publishingType = getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
 
-    def publishSnapshot(): Unit = {
-      val uri = sonatypeCentralSnapshotUri
-      val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2Artifacts(
-        pom().path,
-        artifact,
-        defaultPublishInfos()
-      )
+    val maybeKeyId = internal.PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
 
-      Task.log.info(
-        s"Detected a 'SNAPSHOT' version, publishing to Sonatype Central Snapshots at '$uri'"
-      )
-      val worker = mavenWorker()
-      val result = worker.publishToRemote(
-        uri = uri,
-        workspace = Task.dest / "maven",
-        username = finalCredentials.username,
-        password = finalCredentials.password,
-        artifacts
-      )
-      Task.log.info(s"Deployment to '$uri' finished with result: $result")
-    }
-
-    def publishRelease(): Unit = {
-      val publishData = publishArtifacts()
-      val fileMapping = publishData.withConcretePath._1
-
-      val maybeKeyId = internal.PublishModule.pgpImportSecretIfProvidedOrThrow(Task.env)
-      val keyId = maybeKeyId.getOrElse(throw new IllegalArgumentException(
+    def makeGpgArgs() =
+      sonatypeCentralGpgArgsForKey()(maybeKeyId.getOrElse(throw new IllegalArgumentException(
         s"Publishing to Sonatype Central requires a PGP key. Please set the " +
           s"'${internal.PublishModule.EnvVarPgpSecretBase64}' and '${internal.PublishModule.EnvVarPgpPassphrase}' " +
           s"(if needed) environment variables."
-      ))
+      )))
 
-      val gpgArgs = sonatypeCentralGpgArgsForKey()(keyId)
-      val publisher = new SonatypeCentralPublisher(
-        credentials = finalCredentials,
-        gpgArgs = gpgArgs,
-        connectTimeout = sonatypeCentralConnectTimeout(),
-        readTimeout = sonatypeCentralReadTimeout(),
-        log = Task.log,
-        workspace = BuildCtx.workspaceRoot,
-        env = Task.env,
-        awaitTimeout = sonatypeCentralAwaitTimeout()
-      )
-      publisher.publish(
-        fileMapping,
-        artifact,
-        getPublishingTypeFromReleaseFlag(sonatypeCentralShouldRelease())
-      )
-    }
-
-    // The snapshot publishing does not use the same API as release publishing.
-    if (artifact.version.endsWith("SNAPSHOT")) publishSnapshot()
-    else publishRelease()
+    SonatypeCentralPublishModule.publishAll(
+      Seq(PublishData(artifact, publishData)),
+      bundleName = None,
+      credentials,
+      publishingType,
+      makeGpgArgs,
+      awaitTimeout = sonatypeCentralAwaitTimeout(),
+      connectTimeout = sonatypeCentralConnectTimeout(),
+      readTimeout = sonatypeCentralReadTimeout(),
+      sonatypeCentralSnapshotUri = sonatypeCentralSnapshotUri,
+      taskDest = Task.dest,
+      log = Task.log,
+      env = Task.env,
+      worker = mavenWorker()
+    )
   }
 }
 
 /**
  * External module to publish artifacts to `central.sonatype.org`
  */
-object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModule {
+object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModule
+    with MavenWorkerSupport {
   private final val sonatypeCentralGpgArgsSentinelValue = "<user did not override this method>"
 
   def self = this
@@ -141,34 +120,133 @@ object SonatypeCentralPublishModule extends ExternalModule with DefaultTaskModul
       readTimeout: Int = defaultReadTimeout,
       connectTimeout: Int = defaultConnectTimeout,
       awaitTimeout: Int = defaultAwaitTimeout,
-      bundleName: String = ""
+      bundleName: String = "",
+      @unroll snapshotUri: String = PublishModule.sonatypeCentralSnapshotUri
   ): Command[Unit] = Task.Command {
-
-    val artifacts =
-      Task.sequence(publishArtifacts.value)().map(_.withConcretePath)
+    val artifacts = Task.sequence(publishArtifacts.value)()
 
     val finalBundleName = if (bundleName.isEmpty) None else Some(bundleName)
-    val finalCredentials = getSonatypeCredentials(username, password)()
-    val gpgArgs0 = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
+    val credentials = getSonatypeCredentials(username, password)()
+    def makeGpgArgs() = internal.PublishModule.pgpImportSecretIfProvidedAndMakeGpgArgs(
       Task.env,
       GpgArgs.fromUserProvided(gpgArgs)
     )
-    val publisher = new SonatypeCentralPublisher(
-      credentials = finalCredentials,
-      gpgArgs = gpgArgs0,
-      connectTimeout = connectTimeout,
-      readTimeout = readTimeout,
-      log = Task.log,
-      workspace = BuildCtx.workspaceRoot,
-      env = Task.env,
-      awaitTimeout = awaitTimeout
-    )
-    Task.ctx().log.info(s"artifacts ${pprint.apply(artifacts)}")
-    publisher.publishAll(
-      getPublishingTypeFromReleaseFlag(shouldRelease),
+    val publishingType = getPublishingTypeFromReleaseFlag(shouldRelease)
+
+    publishAll(
+      artifacts,
       finalBundleName,
-      artifacts*
+      credentials,
+      publishingType,
+      makeGpgArgs,
+      readTimeout = readTimeout,
+      connectTimeout = connectTimeout,
+      awaitTimeout = awaitTimeout,
+      sonatypeCentralSnapshotUri = snapshotUri,
+      taskDest = Task.dest,
+      log = Task.log,
+      env = Task.env,
+      worker = mavenWorker()
     )
+  }
+
+  private def publishAll(
+      publishArtifacts: Seq[PublishData],
+      bundleName: Option[String],
+      credentials: SonatypeCredentials,
+      publishingType: PublishingType,
+      makeGpgArgs: () => GpgArgs,
+      readTimeout: Int,
+      connectTimeout: Int,
+      awaitTimeout: Int,
+      sonatypeCentralSnapshotUri: String,
+      taskDest: os.Path,
+      log: Logger,
+      env: Map[String, String],
+      worker: internal.MavenWorkerSupport.Api
+  ): Unit = {
+    val dryRun = env.get("MILL_TESTS_PUBLISH_DRY_RUN").contains("1")
+
+    def publishSnapshot(publishData: PublishData): Unit = {
+      val uri = sonatypeCentralSnapshotUri
+      val artifacts = MavenWorkerSupport.RemoteM2Publisher.asM2ArtifactsFromPublishDatas(
+        publishData.meta,
+        publishData.payloadAsMap
+      )
+
+      log.info(
+        s"Detected a 'SNAPSHOT' version for ${publishData.meta}, publishing to Sonatype Central Snapshots at '$uri'"
+      )
+
+      /** Maven uses this as a workspace for file manipulation. */
+      val mavenWorkspace = taskDest / "maven"
+
+      if (dryRun) {
+        val publishTo = taskDest / "repository"
+        val result = worker.publishToLocal(
+          publishTo = publishTo,
+          workspace = mavenWorkspace,
+          artifacts
+        )
+        log.info(s"Dry-run publishing to '$publishTo' finished with result: $result")
+      } else {
+        val result = worker.publishToRemote(
+          uri = uri,
+          workspace = mavenWorkspace,
+          username = credentials.username,
+          password = credentials.password,
+          artifacts
+        )
+        log.info(s"Publishing to '$uri' finished with result: $result")
+      }
+    }
+
+    def publishReleases(artifacts: Seq[PublishData], gpgArgs: GpgArgs): Unit = {
+      val publisher = new SonatypeCentralPublisher(
+        credentials = credentials,
+        gpgArgs = gpgArgs,
+        connectTimeout = connectTimeout,
+        readTimeout = readTimeout,
+        log = log,
+        workspace = BuildCtx.workspaceRoot,
+        env = env,
+        awaitTimeout = awaitTimeout
+      )
+
+      val artifactDatas = artifacts.map(_.withConcretePath)
+      if (dryRun) {
+        val publishTo = taskDest / "repository"
+        log.info(
+          s"Dry-run publishing all release artifacts to '$publishTo': ${pprint.apply(artifacts)}"
+        )
+        publisher.publishAllToLocal(publishTo, singleBundleName = bundleName, artifactDatas*)
+        log.info(s"Dry-run publishing to '$publishTo' finished.")
+      } else {
+        log.info(
+          s"Publishing all release artifacts to Sonatype Central (publishing type = $publishingType): ${
+              pprint.apply(artifacts)
+            }"
+        )
+        publisher.publishAll(publishingType, singleBundleName = bundleName, artifactDatas*)
+        log.info(s"Published all release artifacts to Sonatype Central.")
+      }
+    }
+
+    val (snapshots, releases) = publishArtifacts.partition(_.meta.isSnapshot)
+
+    bundleName.filter(_ => snapshots.nonEmpty).foreach { bundleName =>
+      throw new IllegalArgumentException(
+        s"Publishing SNAPSHOT versions when bundle name ($bundleName) is specified is not supported.\n\n" +
+          s"SNAPSHOT versions: ${pprint.apply(snapshots)}"
+      )
+    }
+
+    if (releases.nonEmpty) {
+      // If this fails do not publish anything.
+      val gpgArgs = makeGpgArgs()
+      publishReleases(releases, gpgArgs)
+    }
+    snapshots.foreach(publishSnapshot)
   }
 
   private def getPublishingTypeFromReleaseFlag(shouldRelease: Boolean): PublishingType = {

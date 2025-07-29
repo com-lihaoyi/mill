@@ -2,6 +2,7 @@
 :page-aliases: Configuring_Mill.adoc, Scala_Module_Config.adoc
 :language: Scala
 :language-small: scala
+:language-doc: scaladoc
 
 This page goes into more detail about the various configuration options
 for `ScalaModule`.
