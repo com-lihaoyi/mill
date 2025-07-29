@@ -23,7 +23,7 @@ on:
       timeout-minutes:
         default: 60
         type: number
-      install-android-sdk:
+      setup-android:
         default: false
         type: boolean
       install-sbt:
@@ -52,7 +52,7 @@ jobs:
           os: ${{ inputs.os }}
 
       - uses: ./.github/actions/setup-android
-        if: ${{ inputs.install-android-sdk }}
+        if: ${{ inputs.setup-android }}
 
       - uses: sbt/setup-sbt@v1
         if: ${{ inputs.install-sbt }}

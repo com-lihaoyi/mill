@@ -307,7 +307,6 @@ object Deps {
     val uiTooling = mvn"androidx.compose.ui:ui:1.7.6"
     val screenshotValidationJunitEngine =
       mvn"com.android.tools.screenshot:screenshot-validation-junit-engine:0.0.1-alpha09"
-
     val cmdlineToolsVersion = "19.0"
     // TODO: uiTooling is needed for screenshot tests
     // so we handle it diferrently.
