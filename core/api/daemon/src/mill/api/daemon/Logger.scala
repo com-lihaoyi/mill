@@ -122,7 +122,7 @@ trait Logger {
 }
 
 object Logger {
-  private[mill] object DummyLogger extends Logger {
+  object DummyLogger extends Logger {
     def colored = false
 
     val streams = new SystemStreams(

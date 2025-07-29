@@ -2,7 +2,7 @@ package mill.contrib.gitlab
 
 import mill.api.Result
 import mill.contrib.gitlab.GitlabTokenLookup.*
-import mill.api.DummyLogger
+import mill.api.Logger.DummyLogger
 import mill.javalib.publish.*
 import utest.{TestSuite, Tests, assert, assertMatch, test}
 

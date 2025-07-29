@@ -1,6 +1,6 @@
 package mill.androidlib
 
-import mill.api.DummyLogger
+import mill.api.Logger.DummyLogger
 import mill.androidlib.InstrumentationOutput.*
 import utest.*
 
