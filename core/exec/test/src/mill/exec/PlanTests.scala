@@ -77,7 +77,7 @@ object PlanTests extends TestSuite {
         checkTopological(flattened)
         for ((terminal, expectedSize) <- expected) {
           val grouping = grouped.lookupKey(terminal)
-          assertAll(
+          assert(
             grouping.size == expectedSize,
             grouping.flatMap(_.asSimple: Option[Simple[?]]).filter(important.contains) == Seq(
               terminal

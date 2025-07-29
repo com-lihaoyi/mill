@@ -40,7 +40,7 @@ object JavaHomeTests extends TestSuite {
 
           val coreClassFile = os.walk(result.value.classes.path).find(_.last == "Core.class")
 
-          assertAll(
+          assert(
             coreClassFile.isDefined,
 
             // The first eight bytes are magic numbers followed by two bytes for major version and two bytes for minor version
@@ -56,7 +56,7 @@ object JavaHomeTests extends TestSuite {
 
           val coreClassFile = os.walk(result.value.classes.path).find(_.last == "Core.class")
 
-          assertAll(
+          assert(
             coreClassFile.isDefined,
 
             // The first eight bytes are magic numbers followed by two bytes for major version and two bytes for minor version

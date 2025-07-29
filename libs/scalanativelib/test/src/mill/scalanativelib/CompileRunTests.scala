@@ -92,7 +92,7 @@ object CompileRunTests extends TestSuite {
         val outPath = result.value.classes.path
         val outputFiles = os.walk(outPath).filter(os.isFile).map(_.last).toSet
         val expectedClassfiles = compileClassfiles(scalaVersion)
-        assertAll(
+        assert(
           outputFiles == expectedClassfiles,
           result.evalCount > 0
         )
@@ -134,7 +134,7 @@ object CompileRunTests extends TestSuite {
 
         val paths = ExecutionPaths.resolve(eval.outPath, task)
         val stdout = os.proc(paths.dest / "out").call().out.lines()
-        assertAll(
+        assert(
           stdout.contains("Hello Scala Native"),
           result.evalCount > 0
         )

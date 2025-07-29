@@ -18,7 +18,7 @@ object PalantirFormatModuleTest extends TestSuite {
 
     test("palantirformat") {
 
-      assertAll(
+      assert(
         checkState(
           afterFormat(before / "google"),
           after / "google"
@@ -44,7 +44,7 @@ object PalantirFormatModuleTest extends TestSuite {
 
     test("formatAll") {
 
-      assertAll(
+      assert(
         checkState(
           afterFormatAll(before / "google"),
           after / "google"

@@ -41,7 +41,7 @@ object MultiModuleTests extends TestSuite {
         val Right(result) = evaluator(task): @unchecked
 
         val runOutput = ScalaJsUtils.runJS(result.value.dest.path / "main.js")
-        assertAll(
+        assert(
           result.evalCount > 0,
           runOutput == "Hello from Scala.js, result is: 3\n"
         )
@@ -55,7 +55,7 @@ object MultiModuleTests extends TestSuite {
       UnitTester(MultiModule, sourcePath).scoped { evaluator =>
         val Right(result) = evaluator(MultiModule.client.test.testForked()): @unchecked
 
-        assertAll(
+        assert(
           result.evalCount > 0,
           result.value.results.size == 3,
           result.value.results.forall(_.status == "Success")
@@ -71,7 +71,7 @@ object MultiModuleTests extends TestSuite {
 
         val paths = ExecutionPaths.resolve(evaluator.outPath, command)
         val log = os.read(paths.log)
-        assertAll(
+        assert(
           result.evalCount > 0,
           log.contains("node")
           // TODO: re-enable somehow

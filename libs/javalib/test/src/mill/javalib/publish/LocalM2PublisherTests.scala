@@ -3,7 +3,7 @@ package mill.javalib.publish
 import mill.api.{PathRef, TaskCtx}
 import mill.api.Logger
 import mill.internal.DummyLogger
-import utest.{TestSuite, Tests, assert, assertAll, test}
+import utest.{TestSuite, Tests, assert, test}
 
 object LocalM2PublisherTests extends TestSuite {
   override def tests: Tests = Tests {
@@ -44,7 +44,7 @@ object LocalM2PublisherTests extends TestSuite {
         subrepo / "id-version-javadoc.jar",
         subrepo / "id-version-extra.jar"
       )
-      assertAll(
+      assert(
         res.size == 5,
         res.toSet == expected,
         os.walk(subrepo).filter(os.isFile).toSet == expected,

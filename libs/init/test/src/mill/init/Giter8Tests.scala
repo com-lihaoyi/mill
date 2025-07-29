@@ -36,7 +36,7 @@ object Giter8Tests extends TestSuite {
             os.sub / "hello/test/src/MyTest.scala"
           )
 
-          assertAll(
+          assert(
             res.transitiveFailing.size == 0,
             res.values.size == 1,
             files.forall(f => os.exists(g8Module.moduleDir / "hello" / f))

@@ -3,7 +3,7 @@ package mill.twirllib
 import mill.api.Discover
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest.{TestSuite, Tests, assert, assertAll, *}
+import utest.{TestSuite, Tests, assert, *}
 
 trait HelloWorldTests extends TestSuite {
   val testTwirlVersion: String
@@ -73,7 +73,7 @@ trait HelloWorldTests extends TestSuite {
         val Right(result) =
           eval.apply(HelloWorld.core.twirlVersion): @unchecked
 
-        assertAll(
+        assert(
           result.value == testTwirlVersion,
           result.evalCount > 0
         )
@@ -91,7 +91,7 @@ trait HelloWorldTests extends TestSuite {
             eval.outPath / "core/compileTwirl.dest" / _
           )
 
-          assertAll(
+          assert(
             result.value.classes.path == eval.outPath / "core/compileTwirl.dest",
             outputFiles.nonEmpty,
             outputFiles.forall(expectedClassfiles.contains),
@@ -137,7 +137,7 @@ trait HelloWorldTests extends TestSuite {
 
           println(s"outputFiles: $outputFiles")
 
-          assertAll(
+          assert(
             result.value.classes.path == eval.outPath / "core/compileTwirl.dest",
             outputFiles.nonEmpty,
             outputFiles.forall(expectedClassfiles.contains),

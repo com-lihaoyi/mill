@@ -36,7 +36,7 @@ object CheckstyleModuleTest extends TestSuite {
 
       test("sources") {
 
-        assertAll(
+        assert(
           testJava(
             resources / "non-compatible",
             violations = violations.take(2),
@@ -64,7 +64,7 @@ object CheckstyleModuleTest extends TestSuite {
 
       test("format") {
 
-        assertAll(
+        assert(
           testJava(resources / "non-compatible", "plain", violations = violations),
           testJava(resources / "non-compatible", "sarif", violations = violations),
           testJava(resources / "non-compatible", "xml", violations = violations),
@@ -83,7 +83,7 @@ object CheckstyleModuleTest extends TestSuite {
 
       test("version") {
 
-        assertAll(
+        assert(
           testJava(resources / "compatible-java", "plain", "6.3"),
           testJava(resources / "compatible-java", "sarif", "8.43"),
           testJava(resources / "compatible-java", "xml", "6.3")
@@ -98,7 +98,7 @@ object CheckstyleModuleTest extends TestSuite {
     test("limitations") {
 
       test("incompatible version generates report with unexpected violation") {
-        assertAll(
+        assert(
           testJava(
             resources / "compatible-java",
             "plain",

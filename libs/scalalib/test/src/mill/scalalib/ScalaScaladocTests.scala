@@ -40,21 +40,21 @@ object ScalaScaladocTests extends TestSuite {
     test("scalaDocOptions") {
       test("emptyByDefault") - UnitTester(HelloWorldTests.HelloWorld, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldTests.HelloWorld.core.scalaDocOptions): @unchecked
-        assertAll(
+        assert(
           result.value.isEmpty,
           result.evalCount > 0
         )
       }
       test("override") - UnitTester(HelloWorldDocTitle, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldDocTitle.core.scalaDocOptions): @unchecked
-        assertAll(
+        assert(
           result.value == Seq("-doc-title", "Hello World"),
           result.evalCount > 0
         )
       }
       test("extend") - UnitTester(HelloWorldWithDocVersion, resourcePath).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldWithDocVersion.core.scalaDocOptions): @unchecked
-        assertAll(
+        assert(
           result.value == Seq("-Ywarn-unused", "-Xfatal-warnings", "-doc-version", "1.2.3"),
           result.evalCount > 0
         )
@@ -65,7 +65,7 @@ object ScalaScaladocTests extends TestSuite {
         sourceRoot = os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "hello-world"
       ).scoped { eval =>
         val Right(result) = eval.apply(HelloWorldDocTitle.core.docJar): @unchecked
-        assertAll(
+        assert(
           result.evalCount > 0,
           os.read(eval.outPath / "core/scalaDocGenerated.dest/javadoc/index.html").contains(
             "<span id=\"doc-title\">Hello World"

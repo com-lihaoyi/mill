@@ -52,7 +52,7 @@ object ModuleTests extends TestSuite {
       UnitTester(Build, null).scoped { check =>
         os.remove.all(check.outPath)
         val zresult = check.apply(Build.z)
-        assertAll(
+        assert(
           zresult == Right(Result(30, 1)),
           os.read(check.execution.outPath / "z.json").contains("30"),
           os.read(
