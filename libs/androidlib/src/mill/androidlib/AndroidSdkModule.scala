@@ -288,7 +288,11 @@ trait AndroidSdkModule extends Module {
     s"https://dl.google.com/android/repository/commandlinetools-$platform-${versionLong}_latest.zip"
   }
 
-  private def installCmdlineTools(sdkPath: os.Path, versionShort: String, remoteReposInfo: os.Path) = {
+  private def installCmdlineTools(
+      sdkPath: os.Path,
+      versionShort: String,
+      remoteReposInfo: os.Path
+  ) = {
     object CmdlineToolsHelper {
       def versionShort = "19.0"
       def versionLong = "13114758"
@@ -307,7 +311,10 @@ trait AndroidSdkModule extends Module {
 
       // Accept Licenses
       if (isCI)
-        os.proc("echo", "y\n" * 10).pipeTo(os.proc(sdkManagerHelperExe.toString, "--licenses")).call()
+        os.proc(
+          "echo",
+          "y\n" * 10
+        ).pipeTo(os.proc(sdkManagerHelperExe.toString, "--licenses")).call()
     }
     if (!isLicenseAccepted(sdkPath, remoteReposInfo, s"cmdline-tools;$versionShort")) {
       throw new IllegalStateException(
@@ -316,10 +323,11 @@ trait AndroidSdkModule extends Module {
       )
     }
     if (versionShort != CmdlineToolsHelper.versionShort) {
-      os.call(Seq(
-        sdkManagerHelperExe.toString,
-        s"cmdline-tools;$versionShort"
-      ),
+      os.call(
+        Seq(
+          sdkManagerHelperExe.toString,
+          s"cmdline-tools;$versionShort"
+        ),
         stdout = os.Inherit,
         stderr = os.Inherit
       )

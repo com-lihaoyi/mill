@@ -13,12 +13,14 @@ Mill requires the Android SDK `cmdline-tools` to build Android applications.
 
 Ensure the `$ANDROID_HOME` environment variable is set (typically to `~/Android/Sdk`).
 
-If `cmdline-tools` is missing, Mill will automatically install the `latest` version.
+If `cmdline-tools` is missing, Mill will automatically install the `19.0` version.
 To override the version, set `cmdlineToolsVersion` in your `build.mill`:
 [source,scala]
 ----
 object androidSdkModule0 extends AndroidSdkModule {
   override def cmdlineToolsVersion = Task { "17.0" }
+  // Or
+  override def cmdlineToolsVersion = Task { "latest" }
 }
 ----
 
