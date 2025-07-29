@@ -72,10 +72,10 @@ object FullRunLogsTests extends UtestIntegrationTestSuite {
           "[build.mill-<digits>/<digits>] compile",
           "[build.mill-<digits>] [info] compiling <digits> Scala sources to .../out/mill-build/compile.dest/classes ...",
           "[build.mill-<digits>] [info] done compiling",
-          "[<digits>/<digits>] compilation",
+          "[<digits>/<digits>] compile",
           "[<digits>] [info] compiling <digits> Java source to .../out/compile.dest/classes ...",
           "[<digits>] [error] .../src/foo/Foo.java:<digits>:<digits>: reached end of file while parsing",
-          "[<digits>] compilation failed",
+          "[<digits>] compile failed",
           "[<digits>/<digits>, <digits> failed] ============================== jar ============================== <digits>s",
           "<digits> tasks failed",
           "compile javac returned non-zero exit code"
