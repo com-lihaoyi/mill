@@ -9,6 +9,7 @@ package build
 import mill.*, javalib.*
 
 private def foo = 1
+
 /** Usage
 
 > ./mill version
