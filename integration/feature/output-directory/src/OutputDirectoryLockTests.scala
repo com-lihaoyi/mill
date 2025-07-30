@@ -33,7 +33,7 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       }
 
       // Wait for blocking task to write signal file, to indicate it has begun
-      eventually { os.exists(signalFile) }
+      assertEventually { os.exists(signalFile) }
 
       val testCommand: os.Shellable = ("show", "hello")
       val testMessage = "Hello from hello task"
@@ -64,7 +64,7 @@ object OutputDirectoryLockTests extends UtestIntegrationTestSuite {
       }
 
       // Ensure we see the waiting message
-      eventually {
+      assertEventually {
         os.read(waitingLogFile)
           .contains(
             s"Another Mill process is running 'show blockWhileExists --path $signalFile', waiting for it to be done..."

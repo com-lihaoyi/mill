@@ -80,6 +80,7 @@ object `package` extends Module {
 
   object cli extends Module {
     object builtins extends Cross[ExampleCrossModule](build.listCross)
+    object header extends Cross[ExampleCrossModule](build.listCross)
   }
 
   object fundamentals extends Module {

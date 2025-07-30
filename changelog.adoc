@@ -12,6 +12,38 @@ endif::[]
 _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
+[#1-0-2]
+=== 1.0.2
+_2025-07-29_
+
+
+:version: 1.0.2
+:milestone-name: 1.0.2
+:milestone: 122
+:prev-version: 1.0.1
+
+
+
+* Fix mill server timeout back to 30min ({link-pr}/5620[#5620])
+* Propagate environment variables to run and test unless `def propagateEnv = false` ({link-pr}/5617[#5617])
+* Lots of performance optimizations, ~halving the fixed overhead of running a build
+  ({link-pr}/5605[#5605], {link-pr}/5603[#5603], {link-pr}/5597[#5597])
+* Make `mill-chrome-profile.json` properly report incomplete tasks and display the
+  time taken for non-task `resolve` and `planning` phases ({link-pr}/5602[#5602])
+* Turn on incremental compilation for `semanticDbData` task to improve IDE integration
+  latencies ({link-pr}/5591[#5591])
+* Silence noisy BSP errors in VSCode/Metals ({link-pr}/5595[#5595])
+* Preserve last-generated `compiledClassesAndSemanticDbFiles` to make VSCode/Metals IDE
+  integration work when compilation is broken by using the previous compilation output
+  ({link-pr}/5590[#5590])
+* Fix incorrect parsing of `PublishInfo` from string when artifact id or version contains
+  regex-sensitive characters ({link-pr}/5589[#5589])
+* Make `MavenTests`/`SbtTests`/`KotlinMavenTests` modules take their folder path
+  from their module name ({link-pr}/5587[#5587])
+* Improve type inference for `def task = Seq()` and `def task = Nil` ({link-pr}/5584[#5584])
+
+
+
 [#1-0-1]
 === 1.0.1
 _2025-07-21_

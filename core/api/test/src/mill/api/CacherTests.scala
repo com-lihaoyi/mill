@@ -63,7 +63,7 @@ object CacherTests extends TestSuite {
     //    compilation pipeline to hit the override checks
     //
     //    test("overrideOutsideModuleFails") {
-    //      compileError("""
+    //      assertCompileError("""
     //        trait Foo{
     //          def x = 1
     //        }

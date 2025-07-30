@@ -4,14 +4,8 @@ import mill.testkit.{asTestValue, withTestClues}
 
 import java.util.regex.Pattern
 import scala.util.Try
-import utest.assert
 
 object GenIdeaUtils {
-
-  /**
-   * Set this to true to update the gen-idea tests snapshot data
-   */
-  def updateResources: Boolean = false
 
   /**
    * The resource content will be loaded from the classpath and matched against the file.
@@ -21,7 +15,7 @@ object GenIdeaUtils {
       workspaceSourcePath: os.Path,
       workspacePath: os.Path,
       resource: os.SubPath
-  ): Unit = {
+  )(implicit reporter: utest.framework.GoldenFix.Reporter): Unit = {
     val expectedResourcePath = workspaceSourcePath / "idea" / resource
     val actualResourcePath = workspacePath / ".idea" / resource
 
@@ -30,27 +24,23 @@ object GenIdeaUtils {
       asTestValue(actualResourcePath)
     ) {
       println(s"Checking ${expectedResourcePath.relativeTo(workspaceSourcePath)} ...")
-      val expectedResourceString = os.read.lines(expectedResourcePath).mkString("\n")
       val actualResourceString = normaliseLibraryPaths(os.read(actualResourcePath), workspacePath)
+        // Normalize jansi jar name because it differs across Linux/OS-X/Winows
+        .replace("jansi-2.4.1.jar", "jansi.jar")
+        // Normalize coursier cache references which contain the user-specific home folder
+        .replaceAll(
+          "path=\"[a-zA-Z0-9._/]+/maven2/",
+          "path=\".../"
+        )
+        .replaceAll(
+          "-Xplugin:/[a-zA-Z0-9._/]+/maven2/",
+          "-Xplugin:.../"
+        )
 
-      if (updateResources) {
-        val matches = partialContentMatches(
-          found = actualResourceString,
-          expected = expectedResourceString,
-          resource.toString()
-        )
-        if (!matches) {
-          System.err.println(s"Writing $expectedResourcePath")
-          os.write.over(expectedResourcePath, actualResourceString)
-        }
-      } else
-        assert(
-          partialContentMatches(
-            found = actualResourceString,
-            expected = expectedResourceString,
-            resource.toString()
-          )
-        )
+      utest.assertGoldenFile(
+        actualResourceString,
+        expectedResourcePath.toNIO
+      )
     }
   }
 

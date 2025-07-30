@@ -26,7 +26,7 @@ object MillDaemonMain {
       Server.overrideSigIntHandling()
 
       val acceptTimeout =
-        Try(System.getProperty("mill.server_timeout").toInt.millis).getOrElse(30.seconds)
+        Try(System.getProperty("mill.server_timeout").toInt.millis).getOrElse(30.minutes)
 
       new MillDaemonMain(
         daemonDir = os.Path(args0(0)),

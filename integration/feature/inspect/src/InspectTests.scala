@@ -4,21 +4,6 @@ import mill.testkit.UtestIntegrationTestSuite
 import utest._
 
 object InspectTests extends UtestIntegrationTestSuite {
-  def globMatches(glob: String, input: String): Boolean = {
-    StringContext
-      .glob(
-        // Normalize the line separator to be `\n` for comparisons
-        glob.stripMargin.linesIterator.mkString("\n").split("\\.\\.\\.").toIndexedSeq,
-        input.linesIterator.mkString("\n")
-      )
-      .isDefined
-  }
-  def assertGlobMatches(glob: String, input: String): Unit = {
-    val matches = globMatches(glob, input)
-    if (!matches) Console.err.println("[[[" + input.split("\n").mkString("$\n") + "]]]")
-    assert(globMatches(glob, input))
-  }
-
   val tests: Tests = Tests {
     test("test") - integrationTest { tester =>
       import tester._
@@ -26,7 +11,8 @@ object InspectTests extends UtestIntegrationTestSuite {
       assert(res.isSuccess == true)
 
       val inheritedMvnDeps = out("inspect").json.str
-      assertGlobMatches(
+      assertGoldenLiteral(
+        inheritedMvnDeps,
         """core.test.mvnDeps(build.mill:10)
           |    Overridden mvnDeps Docs!!!
           |
@@ -35,39 +21,39 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    for Java dependencies
           |
           |Inputs:
-          |""".stripMargin,
-        inheritedMvnDeps
+          |""".stripMargin
       )
 
       assert(eval(("inspect", "core.task")).isSuccess)
       val task = out("inspect").json.str
-      assertGlobMatches(
+      assertGoldenLiteral(
+        task,
         """core.task(build.mill:48)
           |    Core Task Docz!
           |
           |Inputs:
-          |""",
-        task
+          |""".stripMargin
       )
 
       assert(eval(("inspect", "inspect")).isSuccess)
       val doc = out("inspect").json.str
-      assertGlobMatches(
+      assertGoldenLiteral(
+        doc.replaceAll("\\d+", "..."),
         """inspect(MainModule.scala:...)
           |    Displays metadata about the given task without actually running it.
           |
           |    tasks <str>...
           |
           |Inputs:
-          |""".stripMargin,
-        doc
+          |""".stripMargin
       )
 
       val res2 = eval(("inspect", "core.run"))
       assert(res2.isSuccess)
       val run = out("inspect").json.str
 
-      assertGlobMatches(
+      assertGoldenLiteral(
+        run.replaceAll("\\d+", "..."),
         """core.run(RunModule.scala:...)
           |    Runs this module's code in a subprocess and waits for it to finish
           |
@@ -80,17 +66,18 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    core.allForkEnv
           |    core.runUseArgsFile
           |    core.javaHome
+          |    core.propagateEnv
           |    core.finalMainClass
           |    core.forkWorkingDir
-          |""",
-        run
+          |""".stripMargin
       )
 
       assert(eval(("inspect", "core.showMvnDepsTree")).isSuccess)
 
       val mvnDepsTree = out("inspect").json.str
 
-      assertGlobMatches(
+      assertGoldenLiteral(
+        mvnDepsTree.replaceAll("\\d+", "..."),
         """core.showMvnDepsTree(JavaModule.scala:...)
           |    Command to print the transitive dependency tree to STDOUT.
           |
@@ -112,22 +99,21 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    core.depManagement
           |    core.repositories
           |    core.checkGradleModules
-          |""".stripMargin,
-        mvnDepsTree
+          |""".stripMargin
       )
 
       assert(eval(("inspect", "core.test.theWorker")).isSuccess)
       val theWorkerInspect = out("inspect").json.str
 
-      assertGlobMatches(
+      assertGoldenLiteral(
+        theWorkerInspect,
         """core.test.theWorker(build.mill:38)
           |    -> The worker <-
           |
           |    *The worker*
           |
           |Inputs:
-          |""".stripMargin,
-        theWorkerInspect
+          |""".stripMargin
       )
 
       // Make sure both kebab-case and camelCase flags work, even though the
@@ -138,59 +124,75 @@ object InspectTests extends UtestIntegrationTestSuite {
       val basic = eval(("inspect", "basic"))
       assert(basic.isSuccess)
       val basicInspect = out("inspect").json.str
-      assertGlobMatches(
+      assertGoldenLiteral(
+        basicInspect,
         """basic(build.mill:25)
           |
-          |Inherited Modules:""",
-        basicInspect
+          |Inherited Modules:
+          |""".stripMargin
       )
 
       assert(eval(("inspect", "core")).isSuccess)
       val coreInspect = out("inspect").json.str
-      assert(
-        globMatches(
-          """core(build.mill:30)
-            |    The Core Module Docz!
-            |
-            |Inherited Modules:
-            |...JavaModule...
-            |
-            |Default Task: core.run
-            |
-            |Tasks (re-/defined):
-            |    core.task
-            |""",
-          coreInspect
-        )
+      assertGoldenLiteral(
+        coreInspect,
+        """core(build.mill:30)
+          |    The Core Module Docz!
+          |
+          |Inherited Modules:
+          |    mill.javalib.CoursierModule
+          |    mill.javalib.JavaHomeModule
+          |    mill.javalib.WithJvmWorkerModule
+          |    mill.javalib.bsp.BspModule
+          |    mill.javalib.RunModule
+          |    mill.javalib.GenIdeaModule
+          |    mill.javalib.OfflineSupportModule
+          |    mill.javalib.SemanticDbJavaModule
+          |    mill.javalib.AssemblyModule
+          |    mill.javalib.JavaModule
+          |
+          |Default Task: core.run
+          |
+          |Tasks (re-/defined):
+          |    core.task
+          |""".stripMargin
       )
 
       assert(eval(("inspect", "MyJavaTaskModule")).isSuccess)
       val jtmInspect = out("inspect").json.str
-      assert(
-        globMatches(
-          """MyJavaTaskModule(build.mill:53)
-            |
-            |Inherited Modules:
-            |...JavaModule...
-            |
-            |Module Dependencies:
-            |    core
-            |    core2
-            |
-            |Default Task: MyJavaTaskModule.run
-            |
-            |Tasks (re-/defined):
-            |    MyJavaTaskModule.lineCount
-            |    MyJavaTaskModule.task
-            |""",
-          jtmInspect
-        )
+      assertGoldenLiteral(
+        jtmInspect,
+        """MyJavaTaskModule(build.mill:53)
+          |
+          |Inherited Modules:
+          |    mill.javalib.CoursierModule
+          |    mill.javalib.JavaHomeModule
+          |    mill.javalib.WithJvmWorkerModule
+          |    mill.javalib.bsp.BspModule
+          |    mill.javalib.RunModule
+          |    mill.javalib.GenIdeaModule
+          |    mill.javalib.OfflineSupportModule
+          |    mill.javalib.SemanticDbJavaModule
+          |    mill.javalib.AssemblyModule
+          |    mill.javalib.JavaModule
+          |
+          |Module Dependencies:
+          |    core
+          |    core2
+          |
+          |Default Task: MyJavaTaskModule.run
+          |
+          |Tasks (re-/defined):
+          |    MyJavaTaskModule.lineCount
+          |    MyJavaTaskModule.task
+          |""".stripMargin
       )
 
       val core3Res = eval(("inspect", "core3"))
       assert(core3Res.isSuccess)
       val core3Inspect = out("inspect").json.str
-      assertGlobMatches(
+      assertGoldenLiteral(
+        core3Inspect,
         """core3(core3/package.mill:6)
           |    Subfolder Module Scaladoc
           |
@@ -198,8 +200,7 @@ object InspectTests extends UtestIntegrationTestSuite {
           |    build_.core3.package_
           |
           |Default Task: core3.run
-          |""",
-        core3Inspect
+          |""".stripMargin
       )
     }
   }

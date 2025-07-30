@@ -264,7 +264,8 @@ trait TestModule
         testReportXml(),
         javaHome().map(_.path),
         testParallelism(),
-        testLogLevel()
+        testLogLevel(),
+        propagateEnv()
       )
       testModuleUtil.runTests()
     }

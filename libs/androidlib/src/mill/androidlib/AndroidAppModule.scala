@@ -818,21 +818,24 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     os.call(dex.dexCliArgs)
 
-    dex.outPath
+    PathRef(dex.outPath.path)
 
   }
 
   // uses the d8 tool to generate the dex file, when minification is disabled
-  private def androidD8Dex: T[(outPath: PathRef, dexCliArgs: Seq[String])] = Task {
+  private def androidD8Dex
+      : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
 
     val outPath = Task.dest
 
-    val appCompiledFiles = (androidPackagedCompiledClasses() ++ androidPackagedClassfiles())
-      .map(_.path.toString())
+    val appCompiledPathRefs = androidPackagedCompiledClasses() ++ androidPackagedClassfiles()
 
-    val libsJarFiles = androidPackagedDeps()
+    val appCompiledFiles = appCompiledPathRefs.map(_.path.toString())
+
+    val libsJarPathRefs = androidPackagedDeps()
       .filter(_ != androidSdkModule().androidJarPath())
-      .map(_.path.toString())
+
+    val libsJarFiles = libsJarPathRefs.map(_.path.toString())
 
     val proguardFile = Task.dest / "proguard-rules.pro"
     val knownProguardRules = androidUnpackArchives()
@@ -870,7 +873,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
 
-    PathRef(outPath) -> d8Args
+    (PathRef(outPath), d8Args, appCompiledPathRefs ++ libsJarPathRefs)
   }
 
   trait AndroidAppTests extends AndroidAppModule with JavaTests {

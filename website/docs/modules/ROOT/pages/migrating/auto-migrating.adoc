@@ -1,30 +1,50 @@
-= Importing Maven Projects
-:page-aliases: Migrating_A_Maven_Build_to_Mill.adoc
+= Automated Migration Tools
 :icons: font
 
 
 
-The Mill `init` command can be used to convert a Maven build to Mill. This has
-xref:#limitations[limitations] and is not intended to reliably migrate 100% of
-Maven builds out there in the wild, but is instead meant to provide the basic
+The Mill `init` command can be used to convert a Maven, Gradle, or SBT build to Mill.
+This has xref:#limitations[limitations] and is not intended to reliably migrate 100% of
+existing builds out there in the wild, but is instead meant to provide the basic
 scaffolding of a Mill build for you to further refine and update manually.
 
-Each Maven module with a `pom.xml` is converted to a Mill `build.mill`/`package.mill`
-file containing a top-level `MavenModule`.
-A nested `test` module is defined, if `src/test` exists, and is configured with a supported xref:javalib/testing.adoc[test framework], if found.
+Each Maven module with a `pom.xml`, Gradle module with a `.gradle` file, or SBT module
+is converted to a Mill `build.mill`/`package.mill` file containing a top-level `MavenModule`
+or `SbtModule`. A nested `test` module is defined, if `src/test` exists, and is configured
+with a supported xref:javalib/testing.adoc[test framework], if found.
 
 Again, note that `mill init` importing Maven builds is best-effort.
 This means that while small projects can be expected to complete without issue:
 
+**Maven**
+
 include::partial$example/migrating/javalib/1-maven-complete.adoc[]
+
+**Gradle**
+
+include::partial$example/migrating/javalib/4-gradle-complete.adoc[]
+
+**SBT**
+
+include::partial$example/migrating/scalalib/1-sbt-complete.adoc[]
 
 Larger projects often require some manual tweaking in order to work:
 
+**Maven**
+
 include::partial$example/migrating/javalib/2-maven-incomplete.adoc[]
+
+**Gradle**
+
+include::partial$example/migrating/javalib/5-gradle-incomplete.adoc[]
+
+**SBT**
+
+include::partial$example/migrating/scalalib/2-sbt-incomplete.adoc[]
 
 Nevertheless, even for larger builds `mill init` automates most of the tedious
 busy-work of writing `build.mill`/`package.mill` files, and makes it much quicker
-to get a working Mill build for any existing Maven project. For example,
+to get a working Mill build for any existing  project. For example,
 the `iluwatar/java-design-patterns` repo has 363 subprojects
 (including test projects) and `./mill init` is able to get it imported,
 compiling, and passing all tests in Mill:
@@ -38,15 +58,27 @@ The conversion
 
 * handles deeply nested modules
 * captures publish settings
-* configures dependencies for scopes
-** compile
-** provided
-** runtime
-** test
-* configures testing frameworks
-** JUnit 4
-** JUnit 5
-** TestNG
+* configures dependencies for configurations:
+** no configuration
+** Compile
+** Test
+** Runtime
+** Provided
+** Optional
+* configures testing frameworks:
+** Java:
+*** JUnit 4
+*** JUnit 5
+*** TestNG
+** Scala:
+*** ScalaTest
+*** Specs2
+*** µTest
+*** MUnit
+*** Weaver
+*** ZIOTest
+*** ScalaCheck
+
 * configures multiple, compile and test, resource directories
 
 === Command line arguments
@@ -161,18 +193,30 @@ These limitations can be overcome by:
 
 == FAQ
 
-How to fix compilation errors in generated build files?
+=== How to fix compilation errors in generated build files?
 
 This could happen if a module and task name collision occurs. Either rename the module or enclose the name in backticks.
 
-How to fix JPMS `module not found` compilation errors?
+=== How to fix JPMS `module not found` compilation errors?
 
 Add https://github.com/tfesenko/Java-Modules-JPMS-CheatSheet#how-to-export-or-open-a-package[options]
 for Java modules to `javacOptions`.
 
-How to fix test compilation errors?
+=== How to fix test compilation errors?
 
 * The test framework configured may be for an unsupported version; try upgrading the
   corresponding dependencies.
 * Mill does not add `compileMvnDeps` dependencies to the transitive dependencies of the nested
 test module; specify the dependencies again, in `mvnDeps` or `runMvnDeps`.
+
+=== `java.io.IOError: java.lang.RuntimeException: /packages cannot be represented as URI`
+
+This error:
+`java.lang.UnsupportedOperationException: The Security Manager is deprecated and will be removed in a future release`,
+`java.io.IOError: java.lang.RuntimeException: /packages cannot be represented as URI`,
+and `java.lang.RuntimeException: java.lang.reflect.InvocationTargetException`
+thrown by the `sbt` command invoked by `mill init`
+
+Update the project's `sbt` version to the latest or our tested version v1.10.10,
+and check whether you have the appropriate Java version,
+and try again.
