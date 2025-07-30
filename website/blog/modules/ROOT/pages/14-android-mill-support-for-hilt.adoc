@@ -101,7 +101,7 @@ Clearly, there was some bytecode manipulation at play which we were missing. At 
 The dagger plugin for AGP has (https://github.com/google/dagger/blob/b3d3443e3581b8530cd85929614a1765cd37b12c/java/dagger/hilt/android/plugin/main/src/main/kotlin/dagger/hilt/android/plugin/transform/AndroidEntryPointClassVisitor.kt#L122)[a special ASM adapter], that runs through the classes and re-writes the bytecode when it sees some pre-defined annotations such as `@AndroidEntryPoint`
 and `@HiltAndroidApp` .
 
-We devised an easy way to test, creating a small Java app, not far from the end result which looks like (https://github.com/com-lihaoyi/mill/commit/787a791c73f59a6b65d8d72ee5b3a0f675f687c1)[this]. We passed the TodoActivity in it, and that was it! Same bytecode was generated!
+We devised an easy way to test, creating a small Java app, not far from the end result which looks like https://github.com/com-lihaoyi/mill/commit/787a791c73f59a6b65d8d72ee5b3a0f675f687c1[this]. We passed the TodoActivity in it, and that was it! Same bytecode was generated!
 
 That was the magical step that complemented all the work done to get the right dependencies and compiler plugins in the right place, and we could run the android-architecture-samples for the first time!
 
