@@ -334,17 +334,25 @@ trait AndroidSdkModule extends Module {
       remoteReposInfo: os.Path,
       destination: os.Path,
       autoAcceptLicenses: Boolean
-  ) = AndroidSdkLock.synchronized {
+  ) = {
     val millCmdlineToolsPath = sdkPath / "cmdline-tools" / millVersionShort
     val millSdkManagerExe = millCmdlineToolsPath / "bin" / "sdkmanager"
     if (!os.exists(millSdkManagerExe)) {
       val zipDestination = destination / "cmdline-tools.zip"
-      os.write(zipDestination, requests.get(cmdlineToolsURL(cmdlineToolsShortToLong(millVersionShort))))
+      os.write(
+        zipDestination,
+        requests.get(cmdlineToolsURL(cmdlineToolsShortToLong(millVersionShort)))
+      )
 
       os.unzip(zipDestination, destination)
 
       // Move the extracted tools to the version-specific directory
-      os.move(destination / "cmdline-tools", millCmdlineToolsPath, createFolders = true, atomicMove = true)
+      os.move(
+        destination / "cmdline-tools",
+        millCmdlineToolsPath,
+        createFolders = true,
+        atomicMove = true
+      )
     }
     if (!isLicenseAccepted(sdkPath, remoteReposInfo, s"cmdline-tools;$versionShort")) {
       if (autoAcceptLicenses) {
@@ -375,22 +383,24 @@ trait AndroidSdkModule extends Module {
    * @return A task containing a [[PathRef]] pointing to the SDK directory.
    */
   private def cmdlineToolsPath: Task[PathRef] = Task.Anon {
-    val cmdlineToolsVersionShort = cmdlineToolsVersion()
-    val cmdlineToolsPath0 = sdkPath().path / "cmdline-tools" / cmdlineToolsVersionShort
-    if (!os.exists(cmdlineToolsPath0)) {
-      Task.log.info(
-        s"Cmdline tools version $cmdlineToolsVersionShort not found. Downloading and installing, this may take a while..."
-      )
-      installCmdlineTools(
-        sdkPath().path,
-        millCmdlineToolsVersion(),
-        cmdlineToolsVersionShort,
-        remoteReposInfo().path,
-        Task.dest,
-        autoAcceptLicenses()
-      )
+    AndroidCmdlineToolsLock.synchronized {
+      val cmdlineToolsVersionShort = cmdlineToolsVersion()
+      val cmdlineToolsPath0 = sdkPath().path / "cmdline-tools" / cmdlineToolsVersionShort
+      if (!os.exists(cmdlineToolsPath0)) {
+        Task.log.info(
+          s"Cmdline tools version $cmdlineToolsVersionShort not found. Downloading and installing, this may take a while..."
+        )
+        installCmdlineTools(
+          sdkPath().path,
+          millCmdlineToolsVersion(),
+          cmdlineToolsVersionShort,
+          remoteReposInfo().path,
+          Task.dest,
+          autoAcceptLicenses()
+        )
+      }
+      PathRef(cmdlineToolsPath0)
     }
-    PathRef(cmdlineToolsPath0)
   }
 
   /**
@@ -536,6 +546,7 @@ trait AndroidSdkModule extends Module {
 
 private object AndroidSdkLock
 private object AndroidNdkLock
+private object AndroidCmdlineToolsLock
 
 object AndroidSdkModule {
 

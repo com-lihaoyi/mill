@@ -32,6 +32,12 @@ object androidSdkModule0 extends AndroidSdkModule {
   override def autoAcceptLicenses = true
 }
 ----
+[NOTE]
+====
+This feature is still experimental.
+If any issues occur with the automatic installation, you can manually install the `cmdline-tools` package via the Android Studio SDK Manager tab, or download it directly from the https://developer.android.com/studio#command-line-tools-only[official Android website].
+====
+
 
 
 == 3. Create a new Mill project
