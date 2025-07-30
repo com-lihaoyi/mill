@@ -20,3 +20,9 @@ mill-assembly.jar
 mill-native
 *.mill.orig
 *.mill.rej
+
+# Eclipse JDT related files
+.project
+.classpath
+.settings/
+example/**/bin/
