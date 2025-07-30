@@ -7,24 +7,31 @@ This page provides an overview of the initial setup required for building Androi
 Don't have Mill installed yet?
 You can follow the steps as described in xref:cli/installation-ide.adoc[]
 
-== 2. Android cmdline-tools
+== 2. SDK cmdline-tools
 
 Mill requires the Android SDK `cmdline-tools` to build Android applications.
 
 Ensure the `$ANDROID_HOME` environment variable is set (typically to `~/Android/Sdk`).
 
-If `cmdline-tools` is missing, Mill will automatically install the `19.0` version.
-To override the version, set `cmdlineToolsVersion` in your `build.mill`:
+Mill will automatically install and use the `19.0` version.
+To use a different version, override `cmdlineToolsVersion` in your `build.mill`.
+[NOTE]
+====
+The SDK package licenses must be accepted before installing new packages.
+If not accepted, Mill will throw an error with instructions.
+You can also configure Mill to automatically accept the licenses by overriding `autoAcceptLicenses`.
+====
 [source,scala]
 ----
 object androidSdkModule0 extends AndroidSdkModule {
-  override def cmdlineToolsVersion = Task { "17.0" }
+  override def cmdlineToolsVersion = "17.0"
   // Or
-  override def cmdlineToolsVersion = Task { "latest" }
+  override def cmdlineToolsVersion = "latest"
+
+  // Automatically accept licenses
+  override def autoAcceptLicenses = true
 }
 ----
-
-If the SDK package licenses are not accepted, Mill will emit an error message with instructions on how to accept them.
 
 
 == 3. Create a new Mill project

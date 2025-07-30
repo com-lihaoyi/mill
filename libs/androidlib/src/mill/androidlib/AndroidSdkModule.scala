@@ -72,10 +72,17 @@ trait AndroidSdkModule extends Module {
   def platformsVersion: T[String] = Task { "android-" + buildToolsVersion().split('.').head }
 
   /**
-   * Specifies the version of the Android Command Line Tools to be used.
+   * Specifies the version of the internal Command Line Tools to be used.
+   */
+  private def millCmdlineToolsVersion: T[String] = Task {
+    Versions.millCmdlineToolsVersion
+  }
+
+  /**
+   * Specifies the version of the Command Line Tools to be used.
    */
   def cmdlineToolsVersion: T[String] = Task {
-    Versions.cmdlineToolsVersion
+    millCmdlineToolsVersion()
   }
 
   /**
@@ -261,6 +268,19 @@ trait AndroidSdkModule extends Module {
     PathRef(ndkPath().path / "build" / "cmake" / "android.toolchain.cmake")
   }
 
+  def autoAcceptLicenses: T[Boolean] = Task {
+    // Automatically accept licenses in CI environments
+    isCI
+  }
+
+  private def acceptLicenses(sdkManagerExePath: os.Path) = {
+    // Use `echo` to ensure compatibility with Windows environments
+    os.proc(
+      "echo",
+      "y\n" * 10
+    ).pipeTo(os.proc(sdkManagerExePath.toString, "--licenses")).call()
+  }
+
   private def isCI: Boolean = {
     val ciEnvironments = Seq(
       "CI",
@@ -276,8 +296,27 @@ trait AndroidSdkModule extends Module {
     ciEnvironments.exists(env => sys.env.contains(env))
   }
 
+  // TODO: Replace hardcoded mapping with automated parsing
+  // of [[remoteReposInfo]]
+  private def cmdlineToolsShortToLong(versionShort: String): String = {
+    versionShort match {
+      case "7.0" => "8512546"
+      case "8.0" => "9123335"
+      case "9.0" => "9477386"
+      case "10.0" => "9862592"
+      case "11.0" => "10406996"
+      case "12.0" => "11076708"
+      case "13.0" => "11479570"
+      case "16.0" => "12266719"
+      case "17.0" => "12700392"
+      case "19.0" => "13114758"
+      case _ =>
+        throw new IllegalArgumentException(s"Unsupported cmdline tools version: $versionShort")
+    }
+  }
+
   private def cmdlineToolsURL(versionLong: String): String = {
-    val osName = System.getProperty("os.name").toLowerCase
+    val osName: Option[String] = sys.props.get("os.name").map(_.toLowerCase)
 
     val platform = Seq("linux", "mac", "windows").find(osName.contains) match {
       case Some(p) => p
@@ -290,42 +329,39 @@ trait AndroidSdkModule extends Module {
 
   private def installCmdlineTools(
       sdkPath: os.Path,
+      millVersionShort: String,
       versionShort: String,
-      remoteReposInfo: os.Path
+      remoteReposInfo: os.Path,
+      autoAcceptLicenses: Boolean
   ) = {
-    object CmdlineToolsHelper {
-      def versionShort = "19.0"
-      def versionLong = "13114758"
-    }
-    val cmdlineToolsHelperPath = sdkPath / "cmdline-tools" / CmdlineToolsHelper.versionShort
-    val sdkManagerHelperExe = cmdlineToolsHelperPath / "bin" / "sdkmanager"
-    if (!os.exists(sdkManagerHelperExe)) {
-      val downloaded = os.temp(requests.get(cmdlineToolsURL(CmdlineToolsHelper.versionLong)))
+    val millCmdlineToolsPath = sdkPath / "cmdline-tools" / millVersionShort
+    val millSdkManagerExe = millCmdlineToolsPath / "bin" / "sdkmanager"
+    if (!os.exists(millSdkManagerExe)) {
+      os.makeDir.all(sdkPath / "cmdline-tools")
+      val downloaded =
+        os.temp(requests.get(cmdlineToolsURL(cmdlineToolsShortToLong(millVersionShort))))
 
-      val extractTo = sdkPath / "cmdline-tools"
-      os.makeDir.all(extractTo)
+      val extractTo = os.temp.dir()
       os.unzip(downloaded, extractTo)
 
       // Move the extracted tools to the version-specific directory
-      os.move(extractTo / "cmdline-tools", cmdlineToolsHelperPath)
-
-      // Accept Licenses
-      if (isCI)
-        os.proc(
-          "echo",
-          "y\n" * 10
-        ).pipeTo(os.proc(sdkManagerHelperExe.toString, "--licenses")).call()
+      os.move(extractTo / "cmdline-tools", millCmdlineToolsPath)
     }
     if (!isLicenseAccepted(sdkPath, remoteReposInfo, s"cmdline-tools;$versionShort")) {
-      throw new IllegalStateException(
-        s"License for cmdline-tools version $versionShort is not accepted. " +
-          s"Please run `${sdkManagerHelperExe.toString} --licenses` to review and accept the licenses."
-      )
+      if (autoAcceptLicenses) {
+        acceptLicenses(millSdkManagerExe)
+      } else {
+        throw new IllegalStateException(
+          s"License for cmdline-tools;$versionShort is not accepted. " +
+            s"Please run `${millSdkManagerExe.toString} --licenses` to review and accept the licenses" +
+            ", or override `autoAcceptLicenses` to `true`."
+        )
+      }
     }
-    if (versionShort != CmdlineToolsHelper.versionShort) {
+    if (versionShort != millVersionShort) {
       os.call(
         Seq(
-          sdkManagerHelperExe.toString,
+          millSdkManagerExe.toString,
           s"cmdline-tools;$versionShort"
         ),
         stdout = os.Inherit,
@@ -346,7 +382,13 @@ trait AndroidSdkModule extends Module {
       Task.log.info(
         s"Cmdline tools version $cmdlineToolsVersionShort not found. Downloading and installing, this may take a while..."
       )
-      installCmdlineTools(sdkPath().path, cmdlineToolsVersionShort, remoteReposInfo()().path)
+      installCmdlineTools(
+        sdkPath().path,
+        millCmdlineToolsVersion(),
+        cmdlineToolsVersionShort,
+        remoteReposInfo()().path,
+        autoAcceptLicenses()
+      )
     }
     PathRef(cmdlineToolsPath0)
   }
@@ -383,11 +425,16 @@ trait AndroidSdkModule extends Module {
         .map(p => (p, isLicenseAccepted(sdkPath0.path, remoteReposInfo()().path, p)))
         .filter(!_._2)
       if (packagesWithoutLicense.nonEmpty) {
-        throw new IllegalStateException(
-          "Failed to install the following SDK packages, because their respective" +
-            s" licenses are not accepted:\n\n${packagesWithoutLicense.map(_._1).mkString("\n")}" +
-            s"\nPlease run `${sdkManagerPath0.toString} --licenses` to review and accept the licenses."
-        )
+        if (autoAcceptLicenses()) {
+          acceptLicenses(sdkManagerPath0)
+        } else {
+          throw new IllegalStateException(
+            "Failed to install the following SDK packages, because their respective" +
+              s" licenses are not accepted:\n\n${packagesWithoutLicense.map(_._1).mkString("\n")}" +
+              s"\nPlease run `${sdkManagerPath0.toString} --licenses` to review and accept the licenses" +
+              ", or override `autoAcceptLicenses` to `true`."
+          )
+        }
       }
 
       if (missingPackages.nonEmpty) {
