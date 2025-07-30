@@ -111,7 +111,7 @@ image:blog::hilt_first_success.png[]
 
 Of course, the main motivation for any Dependency Injection framework is the Inversion of Control between running tests and the real program. Starting with the unit tests.
 
-The major obstacle was that unit tests had no visibility over internal declarations of the main module, and that came down to improving the out of the box (https://kotlinlang.org/api/kotlin-gradle-plugin/kotlin-gradle-plugin-api/org.jetbrains.kotlin.gradle.tasks/-base-kotlin-compile/friend-paths.html)[friends path] support provided by Mill.
+The major obstacle was that unit tests had no visibility over internal declarations of the main module, and that came down to improving the out of the box https://kotlinlang.org/api/kotlin-gradle-plugin/kotlin-gradle-plugin-api/org.jetbrains.kotlin.gradle.tasks/-base-kotlin-compile/friend-paths.html[friends path] support provided by Mill.
 
 Other improvements are summarised in this {link-pr}/5169[PR #5169], such as a fix to the previously developed ASM tool, to not drop META-INF directories and their contents.
 
