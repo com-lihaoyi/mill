@@ -5,7 +5,7 @@ import mill.constants.{DaemonFiles, InputPumper, ProxyStream}
 import sun.misc.{Signal, SignalHandler}
 
 import java.io.{InputStream, PipedInputStream, PipedOutputStream, PrintStream}
-import java.net.{InetAddress, Socket}
+import java.net.{InetAddress, Socket, SocketAddress}
 import java.util.concurrent.atomic.AtomicBoolean
 import scala.concurrent.duration.FiniteDuration
 import scala.util.Try
@@ -16,16 +16,16 @@ import scala.util.control.NonFatal
  * connections.
  *
  * @param daemonDir directory used for exchanging pre-TCP data with a client
- * @param acceptTimeout how long to wait for a client to connect
+ * @param acceptTimeout shuts down after this timeout if no clients are connected
  */
-abstract class Server[PreHandleConnectionData](
+abstract class Server(
     daemonDir: os.Path,
-    acceptTimeout: FiniteDuration,
+    acceptTimeout: Option[FiniteDuration],
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
 ) {
   val processId: String = Server.computeProcessId()
-  private val acceptTimeoutMillis = acceptTimeout.toMillis
+  private val acceptTimeoutMillis = acceptTimeout.map(_.toMillis)
   private val handlerName = getClass.getName
 
   def serverLog0(s: String): Unit = {
@@ -36,10 +36,13 @@ abstract class Server[PreHandleConnectionData](
 
   def serverLog(s: String): Unit = serverLog0(s"$processId $s")
 
+  protected type PreHandleConnectionData
+
   /**
    * Invoked before a thread that runs [[handleConnection]] is spawned.
    */
   protected def preHandleConnection(
+      socketInfo: Server.SocketInfo,
       stdin: InputStream,
       stdout: PrintStream,
       stderr: PrintStream,
@@ -53,6 +56,7 @@ abstract class Server[PreHandleConnectionData](
    * @return the exit code to return to the client
    */
   protected def handleConnection(
+      socketInfo: Server.SocketInfo,
       stdin: InputStream,
       stdout: PrintStream,
       stderr: PrintStream,
@@ -111,11 +115,18 @@ abstract class Server[PreHandleConnectionData](
           }
 
           def closeIfTimedOut(): Unit = wrap {
-            inactiveTimestampOpt.foreach { inactiveTimestamp =>
-              if (System.currentTimeMillis() - inactiveTimestamp > acceptTimeoutMillis) {
-                serverLog(s"shutting down due inactivity")
-                serverSocket.close()
-              }
+            // Explicit matching as we're doing this every 1ms.
+            acceptTimeoutMillis match {
+              case None => // Do nothing
+              case Some(acceptTimeoutMillis) =>
+                inactiveTimestampOpt match {
+                  case None => // Do nothing
+                  case Some(inactiveTimestamp) =>
+                    if (System.currentTimeMillis() - inactiveTimestamp > acceptTimeoutMillis) {
+                      serverLog(s"shutting down due inactivity")
+                      serverSocket.close()
+                    }
+                }
             }
           }
         }
@@ -235,10 +246,17 @@ abstract class Server[PreHandleConnectionData](
 
     try {
       val socketIn = clientSocket.getInputStream
+
+      val socketInfo = Server.SocketInfo(
+        remote = clientSocket.getRemoteSocketAddress,
+        local = clientSocket.getLocalSocketAddress
+      )
+
       val stdout = new PrintStream(new ProxyStream.Output(currentOutErr, ProxyStream.OUT), true)
       val stderr = new PrintStream(new ProxyStream.Output(currentOutErr, ProxyStream.ERR), true)
 
       val data = preHandleConnection(
+        socketInfo = socketInfo,
         stdin = socketIn,
         stdout = stdout,
         stderr = stderr,
@@ -261,6 +279,7 @@ abstract class Server[PreHandleConnectionData](
             val proxiedSocketInput = Server.proxyInputStreamThroughPumper(socketIn)
 
             val exitCode = handleConnection(
+              socketInfo = socketInfo,
               stdin = proxiedSocketInput,
               stdout = stdout,
               stderr = stderr,
@@ -315,6 +334,14 @@ abstract class Server[PreHandleConnectionData](
 }
 object Server {
 
+  /**
+   * @param remote the address of the client
+   * @param local the address of the server
+   */
+  case class SocketInfo(remote: SocketAddress, local: SocketAddress) {
+    override def toString: String = s"SocketInfo(remote=$remote, local=$local)"
+  }
+
   /** Immediately stops the server reporting the provided exit code to all clients. */
   @FunctionalInterface trait StopServer {
     def apply(exitCode: Int): Nothing
@@ -325,6 +352,13 @@ object Server {
 
     /** @param idle true when server is not processing any requests, false when server is processing a request. */
     def apply(idle: Boolean): Unit
+
+    /** Runs the provided function, setting the server as non-idle while it runs. */
+    inline def doWork[A](f: => A): A = {
+      apply(false)
+      try f
+      finally apply(true)
+    }
   }
 
   /// Override (by default: disable) SIGINT interrupt signal in the Mill server.

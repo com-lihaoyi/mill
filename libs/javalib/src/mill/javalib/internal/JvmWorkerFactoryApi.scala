@@ -10,7 +10,7 @@ import mill.javalib.api.internal.JvmWorkerApi
  * @param classPath The classpath of the worker.
  */
 case class JvmWorkerArgs[CompilerBridgeData](
-    compilerBridge: ZincCompilerBridge[CompilerBridgeData],
+    compilerBridge: ZincCompilerBridgeProvider[CompilerBridgeData],
     classPath: Seq[os.Path],
     jobs: Int,
     compileToJar: Boolean,

@@ -7,7 +7,7 @@ import mill.javalib.CoursierModule.Resolver
 import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.javalib.api.internal.JvmWorkerApi as InternalJvmWorkerApi
 import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil, Versions}
-import mill.javalib.internal.{JvmWorkerArgs, JvmWorkerFactoryApi, ZincCompilerBridge}
+import mill.javalib.internal.{JvmWorkerArgs, JvmWorkerFactoryApi, ZincCompilerBridgeProvider}
 
 /**
  * A default implementation of [[JvmWorkerModule]]
@@ -62,7 +62,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
         .asInstanceOf[JvmWorkerFactoryApi]
 
     val ctx = Task.ctx()
-    val zincCompilerBridge = ZincCompilerBridge[Unit](
+    val zincCompilerBridge = ZincCompilerBridgeProvider[Unit](
       workspace = ctx.dest,
       logInfo = ctx.log.info,
       acquire = (scalaVersion, scalaOrganization, _) =>
@@ -87,7 +87,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       scalaVersion: String,
       scalaOrganization: String,
       resolver: Resolver
-  )(implicit ctx: TaskCtx): ZincCompilerBridge.AcquireResult[PathRef] = {
+  )(implicit ctx: TaskCtx): ZincCompilerBridgeProvider.AcquireResult[PathRef] = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, JvmWorkerUtil.scalaBinaryVersion(scalaVersion))
     }
@@ -128,8 +128,8 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
 
     if (useSources) {
       val classpath = compilerInterfaceClasspath(scalaVersion, scalaOrganization, resolver)
-      ZincCompilerBridge.AcquireResult.NotCompiled(classpath, bridgeJar)
-    } else ZincCompilerBridge.AcquireResult.Compiled(bridgeJar)
+      ZincCompilerBridgeProvider.AcquireResult.NotCompiled(classpath, bridgeJar)
+    } else ZincCompilerBridgeProvider.AcquireResult.Compiled(bridgeJar)
   }
 
   @deprecated("This is an internal API that has been accidentally exposed.", "1.0.2")
@@ -143,8 +143,8 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       scalaOrganization = scalaOrganization,
       resolver
     ) match {
-      case ZincCompilerBridge.AcquireResult.Compiled(bridgeJar) => (None, bridgeJar)
-      case ZincCompilerBridge.AcquireResult.NotCompiled(classpath, bridgeSourcesJar) =>
+      case ZincCompilerBridgeProvider.AcquireResult.Compiled(bridgeJar) => (None, bridgeJar)
+      case ZincCompilerBridgeProvider.AcquireResult.NotCompiled(classpath, bridgeSourcesJar) =>
         (Some(classpath), bridgeSourcesJar)
     }
 

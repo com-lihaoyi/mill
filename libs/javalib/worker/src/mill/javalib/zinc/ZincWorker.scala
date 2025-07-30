@@ -7,8 +7,8 @@ import mill.api.daemon.{Logger, Result}
 import mill.constants.OutFiles
 import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava, ZincCompileMixed, ZincScaladocJar}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
-import mill.javalib.internal.ZincCompilerBridge
-import mill.javalib.internal.ZincCompilerBridge.AcquireResult
+import mill.javalib.internal.ZincCompilerBridgeProvider
+import mill.javalib.internal.ZincCompilerBridgeProvider.AcquireResult
 import mill.javalib.worker.*
 import mill.javalib.zinc.ZincWorker.*
 import mill.util.{CachedFactory, CachedFactoryWithInitData, RefCountedClassLoaderCache}
@@ -28,7 +28,7 @@ import java.util.Optional
 import scala.collection.mutable
 
 class ZincWorker[CompilerBridgeData](
-    compilerBridge: ZincCompilerBridge[CompilerBridgeData],
+    compilerBridge: ZincCompilerBridgeProvider[CompilerBridgeData],
     jobs: Int,
     compileToJar: Boolean,
     zincLogDebug: Boolean
@@ -560,7 +560,7 @@ class ZincWorker[CompilerBridgeData](
         acquired match {
           case AcquireResult.Compiled(bridgeJar) => bridgeJar
           case AcquireResult.NotCompiled(bridgeClasspath, bridgeSourcesJar) =>
-            ZincCompilerBridge.compile(
+            ZincCompilerBridgeProvider.compile(
               compilerBridge.logInfo,
               workingDir,
               compiledDest,

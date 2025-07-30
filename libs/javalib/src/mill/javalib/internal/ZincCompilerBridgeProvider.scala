@@ -1,7 +1,6 @@
 package mill.javalib.internal
 
 import mill.api.daemon.internal.internal
-import mill.constants.OutFiles
 import mill.javalib.api.JvmWorkerUtil
 import upickle.default.ReadWriter
 
@@ -15,13 +14,13 @@ import scala.util.Properties.isWin
  * @param logInfo  logs a message at INFO level.
  */
 @internal
-case class ZincCompilerBridge[-AcquireData](
+case class ZincCompilerBridgeProvider[-AcquireData](
     workspace: os.Path,
     logInfo: String => Unit,
-    acquire: ZincCompilerBridge.Acquire[AcquireData]
+    acquire: ZincCompilerBridgeProvider.Acquire[AcquireData]
 )
 @internal
-object ZincCompilerBridge {
+object ZincCompilerBridgeProvider {
 
   /**
    * Provides the compiler bridge.

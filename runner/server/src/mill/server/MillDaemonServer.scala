@@ -23,13 +23,12 @@ abstract class MillDaemonServer[State](
     acceptTimeout: FiniteDuration,
     locks: Locks,
     testLogEvenWhenServerIdWrong: Boolean = false
-) extends Server[ClientInitData](
+) extends Server(
       daemonDir = daemonDir,
-      acceptTimeout = acceptTimeout,
+      acceptTimeout = Some(acceptTimeout),
       locks = locks,
       testLogEvenWhenServerIdWrong = testLogEvenWhenServerIdWrong
     ) {
-
   def outLock: mill.client.lock.Lock
   def out: os.Path
 
@@ -44,7 +43,10 @@ abstract class MillDaemonServer[State](
   override protected def connectionHandlerThreadName(socket: Socket): String =
     s"MillServerActionRunner(${socket.getInetAddress}:${socket.getPort})"
 
+  protected override type PreHandleConnectionData = ClientInitData
+
   override protected def preHandleConnection(
+      socketInfo: Server.SocketInfo,
       stdin: InputStream,
       stdout: PrintStream,
       stderr: PrintStream,
@@ -54,6 +56,7 @@ abstract class MillDaemonServer[State](
     val initData = ClientInitData.read(stdin)
     import initData.*
 
+    serverLog(socketInfo.toString)
     serverLog("args " + upickle.default.write(args))
     serverLog("env " + upickle.default.write(env.asScala))
     serverLog("props " + upickle.default.write(userSpecifiedProperties.asScala))
@@ -95,6 +98,7 @@ abstract class MillDaemonServer[State](
   }
 
   override protected def handleConnection(
+      socketInfo: Server.SocketInfo,
       stdin: InputStream,
       stdout: PrintStream,
       stderr: PrintStream,

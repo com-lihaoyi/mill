@@ -5,20 +5,21 @@ import mill.api.daemon.{Logger, Result}
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.{ZincCompileJava, ZincCompileMixed, ZincScaladocJar}
-import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBridge}
+import mill.javalib.internal.{RpcCompileProblemReporterMessage, ZincCompilerBridgeProvider}
 import mill.rpc.*
+import mill.server.Server
 import org.apache.logging.log4j.core.util.NullOutputStream
 import sbt.internal.util.ConsoleOut
 import upickle.default.ReadWriter
 
 import java.io.PrintStream
 
-class ZincWorkerRpcServer
+class ZincWorkerRpcServer(serverName: String, transport: MillRpcWireTransport, setIdle: Server.SetIdle)
     extends MillRpcServerImpl[
       ZincWorkerRpcServer.Initialize,
       ZincWorkerRpcServer.ClientToServer,
       ZincWorkerRpcServer.ServerToClient
-    ](MillRpcWireTransport.ViaStdinAndStdout) {
+    ](serverName, transport) {
   import ZincWorkerRpcServer.*
 
   override def initialize(
@@ -28,7 +29,7 @@ class ZincWorkerRpcServer
       clientStderr: RpcConsole,
       serverToClient: MillRpcChannel[ServerToClient]
   ): MillRpcChannel[ClientToServer] = {
-    val zincCompilerBridge = ZincCompilerBridge[MillRpcRequestId](
+    val zincCompilerBridge = ZincCompilerBridgeProvider[MillRpcRequestId](
       workspace = initialize.compilerBridgeWorkspace,
       logInfo = log.info,
       acquire = (scalaVersion, scalaOrganization, clientRequestId) =>
@@ -81,7 +82,7 @@ class ZincWorkerRpcServer
     }
 
     new MillRpcChannel[ClientToServer] {
-      override def apply(requestId: MillRpcRequestId, input: ClientToServer): input.Response = {
+      override def apply(requestId: MillRpcRequestId, input: ClientToServer): input.Response = setIdle.doWork {
         input match {
           case msg: ClientToServer.CompileJava =>
             compileJava(requestId, msg).asInstanceOf[input.Response]
@@ -171,7 +172,7 @@ object ZincWorkerRpcServer {
   object ServerToClient {
     case class AcquireZincCompilerBridge(scalaVersion: String, scalaOrganization: String)
         extends ServerToClient {
-      override type Response = ZincCompilerBridge.AcquireResult[os.Path]
+      override type Response = ZincCompilerBridgeProvider.AcquireResult[os.Path]
     }
 
     /**

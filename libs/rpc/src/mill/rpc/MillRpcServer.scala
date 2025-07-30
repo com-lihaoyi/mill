@@ -33,6 +33,7 @@ object MillRpcServer {
       ClientToServer <: MillRpcMessage: Reader,
       ServerToClient <: MillRpcMessage: Writer
   ](
+      serverName: String,
       wireTransport: MillRpcWireTransport
   )(initializer: (
       Initialize,
@@ -41,7 +42,7 @@ object MillRpcServer {
       RpcConsole,
       MillRpcChannel[ServerToClient]
   ) => MillRpcChannel[ClientToServer]): MillRpcServer[Initialize, ClientToServer, ServerToClient] =
-    new MillRpcServerImpl[Initialize, ClientToServer, ServerToClient](wireTransport) {
+    new MillRpcServerImpl[Initialize, ClientToServer, ServerToClient](serverName, wireTransport) {
       override def initialize(
           initialize: Initialize,
           log: Logger.Actions,
@@ -58,7 +59,7 @@ trait MillRpcServerImpl[
     Initialize: Reader,
     ClientToServer <: MillRpcMessage: Reader,
     ServerToClient <: MillRpcMessage: Writer
-](wireTransport: MillRpcWireTransport)
+](serverName: String, wireTransport: MillRpcWireTransport)
     extends MillRpcServer[Initialize, ClientToServer, ServerToClient] {
   @volatile private var initializedOnClientMessage = Option.empty[MillRpcChannel[ClientToServer]]
 
@@ -166,7 +167,7 @@ trait MillRpcServerImpl[
 
   /** Logs a message locally in the RPC server. */
   private def logLocal(message: String): Unit = {
-    System.err.println(s"$message")
+    System.err.println(s"[$serverName] $message")
   }
 
   private def createServerToClientChannel(): MillRpcChannel[ServerToClient] = {

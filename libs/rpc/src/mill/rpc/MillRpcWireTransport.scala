@@ -3,6 +3,7 @@ package mill.rpc
 import pprint.{TPrint, TPrintColors}
 import upickle.default.{Reader, Writer}
 
+import java.io.{BufferedReader, PrintStream}
 import java.util.concurrent.BlockingQueue
 
 trait MillRpcWireTransport extends AutoCloseable {
@@ -92,6 +93,21 @@ object MillRpcWireTransport {
     override def close(): Unit = {
       outQueue.clear()
       closed = true
+    }
+  }
+
+  class ViaStreams(override val name: String, in: BufferedReader, out: PrintStream)
+      extends MillRpcWireTransport {
+    override def read(): Option[String] = Option(in.readLine())
+
+    override def write(message: String): Unit = {
+      out.println(message)
+      out.flush()
+    }
+
+    override def close(): Unit = {
+      in.close()
+      out.close()
     }
   }
 }
