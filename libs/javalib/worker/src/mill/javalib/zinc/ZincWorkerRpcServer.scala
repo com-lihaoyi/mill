@@ -14,8 +14,11 @@ import upickle.default.ReadWriter
 
 import java.io.PrintStream
 
-class ZincWorkerRpcServer(serverName: String, transport: MillRpcWireTransport, setIdle: Server.SetIdle)
-    extends MillRpcServerImpl[
+class ZincWorkerRpcServer(
+    serverName: String,
+    transport: MillRpcWireTransport,
+    setIdle: Server.SetIdle
+) extends MillRpcServerImpl[
       ZincWorkerRpcServer.Initialize,
       ZincWorkerRpcServer.ClientToServer,
       ZincWorkerRpcServer.ServerToClient
@@ -82,16 +85,17 @@ class ZincWorkerRpcServer(serverName: String, transport: MillRpcWireTransport, s
     }
 
     new MillRpcChannel[ClientToServer] {
-      override def apply(requestId: MillRpcRequestId, input: ClientToServer): input.Response = setIdle.doWork {
-        input match {
-          case msg: ClientToServer.CompileJava =>
-            compileJava(requestId, msg).asInstanceOf[input.Response]
-          case msg: ClientToServer.CompileMixed =>
-            compileMixed(requestId, msg).asInstanceOf[input.Response]
-          case msg: ClientToServer.ScaladocJar =>
-            docJar(requestId, msg).asInstanceOf[input.Response]
+      override def apply(requestId: MillRpcRequestId, input: ClientToServer): input.Response =
+        setIdle.doWork {
+          input match {
+            case msg: ClientToServer.CompileJava =>
+              compileJava(requestId, msg).asInstanceOf[input.Response]
+            case msg: ClientToServer.CompileMixed =>
+              compileMixed(requestId, msg).asInstanceOf[input.Response]
+            case msg: ClientToServer.ScaladocJar =>
+              docJar(requestId, msg).asInstanceOf[input.Response]
+          }
         }
-      }
 
       private def compileJava(
           clientRequestId: MillRpcRequestId,
@@ -129,8 +133,12 @@ object ZincWorkerRpcServer {
   /**
    * @param compilerBridgeWorkspace The workspace to use for the compiler bridge.
    */
-  case class Initialize(compilerBridgeWorkspace: os.Path, jobs: Int, compileToJar: Boolean, zincLogDebug: Boolean)
-      derives ReadWriter
+  case class Initialize(
+      compilerBridgeWorkspace: os.Path,
+      jobs: Int,
+      compileToJar: Boolean,
+      zincLogDebug: Boolean
+  ) derives ReadWriter
 
   sealed trait ReporterMode derives ReadWriter {
     def reportCachedProblems: Boolean

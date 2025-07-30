@@ -4,8 +4,12 @@ import mill.api.JsonFormatters.*
 import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
-import mill.constants.OutFiles
-import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava, ZincCompileMixed, ZincScaladocJar}
+import mill.javalib.api.internal.{
+  JavaCompilerOptions,
+  ZincCompileJava,
+  ZincCompileMixed,
+  ZincScaladocJar
+}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.javalib.internal.ZincCompilerBridgeProvider
 import mill.javalib.internal.ZincCompilerBridgeProvider.AcquireResult
