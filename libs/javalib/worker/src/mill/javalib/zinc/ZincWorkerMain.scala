@@ -36,7 +36,7 @@ object ZincWorkerMain {
                 initialSystemProperties: Map[String, String],
                 data: PreHandleConnectionData
             ): Int = {
-              val serverName = s"${socketInfo.remote} -> ${socketInfo.local}}"
+              val serverName = s"${socketInfo.remote} -> ${socketInfo.local}"
               Using.resource(BufferedReader(InputStreamReader(stdin))) { stdin =>
                 val transport = MillRpcWireTransport.ViaStreams(s"TCP[$serverName]", stdin, stdout)
                 try {

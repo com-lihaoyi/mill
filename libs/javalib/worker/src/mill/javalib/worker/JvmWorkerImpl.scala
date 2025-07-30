@@ -2,20 +2,23 @@ package mill.javalib.worker
 
 import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
+import mill.client.ServerLauncher
+import mill.client.lock.Locks
 import mill.javalib.api.CompilationResult
-import mill.javalib.api.internal.{
-  JavaRuntimeOptions,
-  ZincCompileJava,
-  ZincCompileMixed,
-  ZincScaladocJar,
-  JvmWorkerApi
-}
+import mill.javalib.api.internal.*
 import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
 import mill.util.{CachedFactoryWithInitData, Jvm}
 import sbt.internal.util.ConsoleOut
+
+import java.io.{BufferedReader, InputStreamReader, PrintStream}
+import java.security.MessageDigest
+import java.util.HexFormat
+import scala.concurrent.duration.*
+import scala.jdk.OptionConverters.*
+import scala.util.Using
 
 @internal
 class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoCloseable {
@@ -93,46 +96,69 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       runtimeOptions: JavaRuntimeOptions
   ) {
     def debugStr = s"javaHome=$javaHome, runtimeOptions=$runtimeOptions"
+
+    def sha256: String = {
+      val digest = MessageDigest.getInstance("sha256").digest(debugStr.getBytes("UTF-8"))
+      HexFormat.of().formatHex(digest)
+    }
   }
   private case class SubprocessCacheInitialize(
-      zincRpcServerInit: ZincWorkerRpcServer.Initialize,
-      log: Logger.Actions,
-      handler: MillRpcChannel[ZincWorkerRpcServer.ServerToClient]
+      taskDest: os.Path,
+//      zincRpcServerInit: ZincWorkerRpcServer.Initialize,
+//      handler: MillRpcChannel[ZincWorkerRpcServer.ServerToClient]
   )
+  private case class SubprocessCacheValue(port: Int)
   private val subprocessCache = new CachedFactoryWithInitData[
     SubprocessCacheKey,
     SubprocessCacheInitialize,
-    MillRpcClient[ZincWorkerRpcServer.ClientToServer, ZincWorkerRpcServer.ServerToClient]
+    SubprocessCacheValue
   ] {
     override def maxCacheSize: Int = jobs
 
     override def setup(
         key: SubprocessCacheKey,
         init: SubprocessCacheInitialize
-    ): MillRpcClient[ZincWorkerRpcServer.ClientToServer, ZincWorkerRpcServer.ServerToClient] = {
-      val process = Jvm.spawnProcess(
-        mainClass = "mill.javalib.zinc.ZincWorkerMain",
-        javaHome = key.javaHome,
-        jvmArgs = key.runtimeOptions.options,
-        classPath = classPath
-      )
-      val wireTransport = MillRpcWireTransport.ViaStdinAndStdoutOfSubprocess(process)
+    ): SubprocessCacheValue = {
+      val workerDir = init.taskDest / "zinc-worker" / key.sha256
+      val daemonDir = workerDir / "daemon"
+      os.makeDir.all(daemonDir)
+      os.write.over(workerDir / "java-home", key.javaHome.map(_.toString).getOrElse("<default>"))
+      os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.options.mkString("\n"))
+      val locks = Locks.files(daemonDir.toString)
+      val mainClass = "mill.javalib.zinc.ZincWorkerMain"
 
-      MillRpcClient.create[
-        ZincWorkerRpcServer.Initialize,
-        ZincWorkerRpcServer.ClientToServer,
-        ZincWorkerRpcServer.ServerToClient
-      ](init.zincRpcServerInit, wireTransport, init.log)(init.handler)
+      ServerLauncher.ensureServerIsRunning(
+        locks,
+        daemonDir.toNIO,
+        () =>
+          Jvm.spawnProcess(
+            mainClass = mainClass,
+            mainArgs = Seq(daemonDir.toString),
+            javaHome = key.javaHome,
+            jvmArgs = key.runtimeOptions.options,
+            classPath = classPath
+          ).wrapped
+      ).toScala.foreach { failure =>
+        throw Exception(
+          s"""Failed to launch '$mainClass' for:
+             |  javaHome = ${key.javaHome}
+             |  runtimeOptions = ${key.runtimeOptions.options.mkString(",")}
+             |  daemonDir = $daemonDir
+             |
+             |Failure:
+             |${failure.debugString}
+             |""".stripMargin
+        )
+      }
+
+      val serverInitWaitMillis = 5.seconds.toMillis.toInt
+      val startTime = System.currentTimeMillis
+      val port = ServerLauncher.readServerPort(daemonDir.toNIO, startTime, serverInitWaitMillis)
+      SubprocessCacheValue(port)
     }
 
-    override def teardown(
-        key: SubprocessCacheKey,
-        client: MillRpcClient[
-          ZincWorkerRpcServer.ClientToServer,
-          ZincWorkerRpcServer.ServerToClient
-        ]
-    ): Unit = {
-      client.close()
+    override def teardown(key: SubprocessCacheKey, value: SubprocessCacheValue): Unit = {
+      // TODO review: should we kill the process?
     }
   }
 
@@ -153,7 +179,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
    * Spawns a [[ZincApi]] subprocess with the specified java version and runtime options and returns a [[ZincApi]]
    * instance for it.
    */
-  private def subprocessZincApi[A](
+  private def subprocessZincApi(
       javaHome: Option[os.Path],
       runtimeOptions: JavaRuntimeOptions,
       ctx: ZincWorker.InvocationContext,
@@ -167,25 +193,31 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         : R = {
       subprocessCache.withValue(
         cacheKey,
-        SubprocessCacheInitialize(
-          ZincWorkerRpcServer.Initialize(
+        SubprocessCacheInitialize(ctx.dest)
+      ) { case SubprocessCacheValue(port) =>
+        Using.Manager { use =>
+          val startTimeMillis = System.currentTimeMillis()
+          val socket = use(ServerLauncher.connectToServer(startTimeMillis, 5.seconds.toMillis.toInt, port))
+          val stdin = use(BufferedReader(InputStreamReader(socket.getInputStream)))
+          val stdout = use(PrintStream(socket.getOutputStream))
+          val wireTransport = MillRpcWireTransport.ViaStreams(
+            s"TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}", stdin, stdout
+          )
+
+          val init = ZincWorkerRpcServer.Initialize(
             compilerBridgeWorkspace = compilerBridge.workspace,
             jobs = jobs,
             compileToJar = compileToJar,
             zincLogDebug = zincLogDebug
-          ),
-          log,
-          (requestId, msg) =>
-            throw new IllegalStateException(
-              s"Server message handler is not ready to handle request $requestId: $msg"
-            )
-        )
-      ) { client =>
-        // Exchange the handler from the cached value.
-        // TODO review: document more
-        client.withServerToClientHandler(handler)
+          )
+          val client = MillRpcClient.create[
+            ZincWorkerRpcServer.Initialize,
+            ZincWorkerRpcServer.ClientToServer,
+            ZincWorkerRpcServer.ServerToClient
+          ](init, wireTransport, log)(handler)
 
-        f(client)
+          f(client)
+        }.get
       }
     }
 
