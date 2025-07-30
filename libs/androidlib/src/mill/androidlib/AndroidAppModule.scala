@@ -617,7 +617,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     bootMessage.get
   }
 
-  def adbDevices: T[String] = Task {
+  def adbDevices(): Command[String] = Task.Command {
     os.call((androidSdkModule().adbPath().path, "devices", "-l")).out.text()
   }
 

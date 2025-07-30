@@ -332,20 +332,19 @@ trait AndroidSdkModule extends Module {
       millVersionShort: String,
       versionShort: String,
       remoteReposInfo: os.Path,
+      destination: os.Path,
       autoAcceptLicenses: Boolean
-  ) = {
+  ) = AndroidSdkLock.synchronized {
     val millCmdlineToolsPath = sdkPath / "cmdline-tools" / millVersionShort
     val millSdkManagerExe = millCmdlineToolsPath / "bin" / "sdkmanager"
     if (!os.exists(millSdkManagerExe)) {
-      os.makeDir.all(sdkPath / "cmdline-tools")
-      val downloaded =
-        os.temp(requests.get(cmdlineToolsURL(cmdlineToolsShortToLong(millVersionShort))))
+      val zipDestination = destination / "cmdline-tools.zip"
+      os.write(zipDestination, requests.get(cmdlineToolsURL(cmdlineToolsShortToLong(millVersionShort))))
 
-      val extractTo = os.temp.dir()
-      os.unzip(downloaded, extractTo)
+      os.unzip(zipDestination, destination)
 
       // Move the extracted tools to the version-specific directory
-      os.move(extractTo / "cmdline-tools", millCmdlineToolsPath)
+      os.move(destination / "cmdline-tools", millCmdlineToolsPath, createFolders = true, atomicMove = true)
     }
     if (!isLicenseAccepted(sdkPath, remoteReposInfo, s"cmdline-tools;$versionShort")) {
       if (autoAcceptLicenses) {
@@ -375,7 +374,7 @@ trait AndroidSdkModule extends Module {
    * Downloads if missing.
    * @return A task containing a [[PathRef]] pointing to the SDK directory.
    */
-  private def cmdlineToolsPath: T[PathRef] = Task {
+  private def cmdlineToolsPath: Task[PathRef] = Task.Anon {
     val cmdlineToolsVersionShort = cmdlineToolsVersion()
     val cmdlineToolsPath0 = sdkPath().path / "cmdline-tools" / cmdlineToolsVersionShort
     if (!os.exists(cmdlineToolsPath0)) {
@@ -386,7 +385,8 @@ trait AndroidSdkModule extends Module {
         sdkPath().path,
         millCmdlineToolsVersion(),
         cmdlineToolsVersionShort,
-        remoteReposInfo()().path,
+        remoteReposInfo().path,
+        Task.dest,
         autoAcceptLicenses()
       )
     }
@@ -397,7 +397,7 @@ trait AndroidSdkModule extends Module {
    * Provides the path for the Android SDK Manager tool
    * @return A task containing a [[PathRef]] pointing to the SDK directory.
    */
-  def sdkManagerPath: T[PathRef] = Task {
+  def sdkManagerPath: Task[PathRef] = Task.Anon {
     PathRef(cmdlineToolsPath().path / "bin" / "sdkmanager")
   }
 
@@ -407,7 +407,7 @@ trait AndroidSdkModule extends Module {
    * For more details on the `sdkmanager` tool, refer to:
    * [[https://developer.android.com/tools/sdkmanager sdkmanager Documentation]]
    */
-  def installAndroidSdkComponents: T[Unit] = Task {
+  def installAndroidSdkComponents: Task[Unit] = Task.Anon {
     val sdkPath0 = sdkPath()
     val sdkManagerPath0 = sdkManagerPath().path
 
@@ -422,7 +422,7 @@ trait AndroidSdkModule extends Module {
     AndroidSdkLock.synchronized {
       val missingPackages = packages.filter(p => !isPackageInstalled(sdkPath0.path, p))
       val packagesWithoutLicense = missingPackages
-        .map(p => (p, isLicenseAccepted(sdkPath0.path, remoteReposInfo()().path, p)))
+        .map(p => (p, isLicenseAccepted(sdkPath0.path, remoteReposInfo().path, p)))
         .filter(!_._2)
       if (packagesWithoutLicense.nonEmpty) {
         if (autoAcceptLicenses()) {
@@ -512,17 +512,18 @@ trait AndroidSdkModule extends Module {
     (licenseName, licenseHash)
   }
 
-  def remoteReposInfo(): Command[PathRef] = Task.Command {
+  def remoteReposInfo: Task[PathRef] = Task.Anon {
+    val repositoryFile = Task.dest / "repository.xml"
     if (Task.offline) Result.Failure("Can't fetch remote repositories in offline mode.")
     else Result.create {
       // shouldn't be persistent, allow it to be re-downloaded again.
       // it will be called only if some packages are not installed.
-      val path = Task.dest / "repository.xml"
       os.write.over(
-        Task.dest / "repository.xml",
-        requests.get(remotePackagesUrl).bytes
+        repositoryFile,
+        requests.get(remotePackagesUrl).bytes,
+        createFolders = true
       )
-      PathRef(path)
+      PathRef(repositoryFile)
     }
   }
 
