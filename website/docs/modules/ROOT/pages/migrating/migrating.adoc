@@ -5,12 +5,10 @@
 This page documents a playbook for migrating existing projects
 from Maven, Gradle, or `sbt` to Mill.
 
-Some build tools also have additional semi-automated
-tooling.
+Mill also supports semi-automated tooling-assisted migrations from
+these tools, which is documented at:
 
-* xref:migrating/maven.adoc[]
-* xref:migrating/gradle.adoc[]
-* xref:migrating/sbt.adoc[]
+* xref:migrating/auto-migrating.adoc[]
 
 While automation helps with
 some of the scaffolding the general principles laid out on this page still apply.

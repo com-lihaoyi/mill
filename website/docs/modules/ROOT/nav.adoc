@@ -63,9 +63,7 @@
 ** xref:cli/query-syntax.adoc[]
 ** xref:cli/build-header.adoc[]
 * xref:migrating/migrating.adoc[]
-** xref:migrating/maven.adoc[]
-** xref:migrating/gradle.adoc[]
-** xref:migrating/sbt.adoc[]
+** xref:migrating/auto-migrating.adoc[]
 // This section gives a tour of the various user-facing features of Mill:
 // library deps, out folder, queries, tasks, etc.. These are things that
 // every Mill user will likely encounter, and are touched upon in the various
