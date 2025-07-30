@@ -1,13 +1,13 @@
 package mill.daemon
 
-import mill.api.SystemStreams
+import mill.api.{BuildCtx, SystemStreams}
 import mill.client.ClientUtil
 import mill.client.lock.{Lock, Locks}
 import mill.constants.OutFiles
-import sun.misc.{Signal, SignalHandler}
-import mill.api.BuildCtx
-import scala.util.{Properties, Try}
+import mill.server.Server
+
 import scala.concurrent.duration.*
+import scala.util.{Properties, Try}
 
 object MillDaemonMain {
   def main(args0: Array[String]): Unit = {
@@ -23,26 +23,14 @@ object MillDaemonMain {
       sys.props("coursier.windows.disable-ffm") = "true"
 
     mill.api.SystemStreamsUtils.withTopLevelSystemStreamProxy {
-      // Disable SIGINT interrupt signal in the Mill server.
-      //
-      // This gets passed through from the client to server whenever the user
-      // hits `Ctrl-C`, which by default kills the server, which defeats the purpose
-      // of running a background daemon. Furthermore, the background daemon already
-      // can detect when the Mill client goes away, which is necessary to handle
-      // the case when a Mill client that did *not* spawn the server gets `CTRL-C`ed
-      Signal.handle(
-        new Signal("INT"),
-        new SignalHandler() {
-          def handle(sig: Signal) = {} // do nothing
-        }
-      )
+      Server.overrideSigIntHandling()
 
-      val acceptTimeoutMillis =
-        Try(System.getProperty("mill.server_timeout").toInt).getOrElse(30 * 1000) // 30 minutes
+      val acceptTimeout =
+        Try(System.getProperty("mill.server_timeout").toInt.millis).getOrElse(30.seconds)
 
       new MillDaemonMain(
         daemonDir = os.Path(args0(0)),
-        acceptTimeoutMillis = acceptTimeoutMillis,
+        acceptTimeout = acceptTimeout,
         Locks.files(args0(0))
       ).run()
 
@@ -52,11 +40,11 @@ object MillDaemonMain {
 }
 class MillDaemonMain(
     daemonDir: os.Path,
-    acceptTimeoutMillis: Int,
+    acceptTimeout: FiniteDuration,
     locks: Locks
 ) extends mill.server.MillDaemonServer[RunnerState](
       daemonDir,
-      acceptTimeoutMillis.millis,
+      acceptTimeout,
       locks
     ) {
 

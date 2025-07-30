@@ -2,6 +2,7 @@ package mill.server
 
 import mill.client.lock.{Lock, Locks}
 import mill.constants.{DaemonFiles, InputPumper, ProxyStream}
+import sun.misc.{Signal, SignalHandler}
 
 import java.io.{InputStream, PipedInputStream, PipedOutputStream, PrintStream}
 import java.net.{InetAddress, Socket}
@@ -324,6 +325,17 @@ object Server {
 
     /** @param idle true when server is not processing any requests, false when server is processing a request. */
     def apply(idle: Boolean): Unit
+  }
+
+  /// Override (by default: disable) SIGINT interrupt signal in the Mill server.
+  ///
+  /// This gets passed through from the client to server whenever the user
+  /// hits `Ctrl-C`, which by default kills the server, which defeats the purpose
+  /// of running a background daemon. Furthermore, the background daemon already
+  /// can detect when the Mill client goes away, which is necessary to handle
+  /// the case when a Mill client that did *not* spawn the server gets `CTRL-C`ed
+  def overrideSigIntHandling(handler: SignalHandler = _ => ()): Unit = {
+    Signal.handle(new Signal("INT"), handler)
   }
 
   def computeProcessId(): String = "pid" + ProcessHandle.current().pid()
