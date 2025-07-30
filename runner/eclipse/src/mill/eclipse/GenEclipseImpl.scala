@@ -346,7 +346,8 @@ object GenEclipseImpl {
   }
 
   /** Checks whether or not a specific module is also a test module containing test sources */
-  private def isTestModule(javaModule: JavaModuleApi): Boolean = javaModule.isInstanceOf[TestModuleApi]
+  private def isTestModule(javaModule: JavaModuleApi): Boolean =
+    javaModule.isInstanceOf[TestModuleApi]
 
   /**
    *  When we have a dependency from any module, we want to provide to Eclipse as much information
