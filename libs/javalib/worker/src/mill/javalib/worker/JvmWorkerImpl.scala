@@ -136,7 +136,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
             mainArgs = Seq(daemonDir.toString),
             javaHome = key.javaHome,
             jvmArgs = key.runtimeOptions.options,
-            classPath = classPath
+            classPath = classPath,
+            stdout = os.Inherit
           ).wrapped
       ).toScala.foreach { failure =>
         throw Exception(
