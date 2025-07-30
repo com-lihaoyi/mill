@@ -169,7 +169,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         cacheKey,
         SubprocessCacheInitialize(
           ZincWorkerRpcServer.Initialize(
-            taskDest = ctx.dest, // TODO review: suspicious
+            compilerBridgeWorkspace = compilerBridge.workspace,
             jobs = jobs,
             compileToJar = compileToJar,
             zincLogDebug = zincLogDebug

@@ -1,6 +1,7 @@
 package mill.javalib.internal
 
 import mill.api.daemon.internal.internal
+import mill.constants.OutFiles
 import mill.javalib.api.JvmWorkerUtil
 import upickle.default.ReadWriter
 
@@ -10,12 +11,12 @@ import scala.util.Properties.isWin
 /**
  * Allows you to retrieve or compile the Scala compiler bridge.
  *
- * @param taskDest The task's destination folder.
+ * @param workspace Workspace for the compiler bridge.
  * @param logInfo  logs a message at INFO level.
  */
 @internal
 case class ZincCompilerBridge[-AcquireData](
-    taskDest: os.Path, // TODO review: this should be just a workplace directory, not necessarily a Task.dest
+    workspace: os.Path,
     logInfo: String => Unit,
     acquire: ZincCompilerBridge.Acquire[AcquireData]
 )

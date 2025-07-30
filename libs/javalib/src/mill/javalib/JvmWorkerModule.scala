@@ -2,13 +2,11 @@ package mill.javalib
 
 import mainargs.Flag
 import mill.*
-import mill.api.Result
-import mill.api.{PathRef, TaskCtx}
-import mill.api.{Discover, ExternalModule, Task}
-import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
-import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil, Versions}
-import mill.javalib.api.internal.{JvmWorkerApi => InternalJvmWorkerApi}
+import mill.api.{PathRef, Task, *}
 import mill.javalib.CoursierModule.Resolver
+import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
+import mill.javalib.api.internal.JvmWorkerApi as InternalJvmWorkerApi
+import mill.javalib.api.{JvmWorkerApi, JvmWorkerUtil, Versions}
 import mill.javalib.internal.{JvmWorkerArgs, JvmWorkerFactoryApi, ZincCompilerBridge}
 
 /**
@@ -65,7 +63,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
 
     val ctx = Task.ctx()
     val zincCompilerBridge = ZincCompilerBridge[Unit](
-      taskDest = ctx.dest,
+      workspace = ctx.dest,
       logInfo = ctx.log.info,
       acquire = (scalaVersion, scalaOrganization, _) =>
         scalaCompilerBridgeJarV2(

@@ -4,12 +4,8 @@ import mill.api.JsonFormatters.*
 import mill.api.PathRef
 import mill.api.daemon.internal.CompileProblemReporter
 import mill.api.daemon.{Logger, Result}
-import mill.javalib.api.internal.{
-  JavaCompilerOptions,
-  ZincCompileJava,
-  ZincCompileMixed,
-  ZincScaladocJar
-}
+import mill.constants.OutFiles
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava, ZincCompileMixed, ZincScaladocJar}
 import mill.javalib.api.{CompilationResult, JvmWorkerUtil, Versions}
 import mill.javalib.internal.ZincCompilerBridge
 import mill.javalib.internal.ZincCompilerBridge.AcquireResult
@@ -547,11 +543,12 @@ class ZincWorker[CompilerBridgeData](
       compilerClasspath: Seq[os.Path],
       acquireData: CompilerBridgeData
   ): os.Path = {
-    val workingDir = compilerBridge.taskDest / s"zinc-${Versions.zinc}" / scalaVersion
+    val workingDir = compilerBridge.workspace / s"zinc-${Versions.zinc}" / scalaVersion
     val lock = synchronized(compilerBridgeLocks.getOrElseUpdate(scalaVersion, new Object()))
     val compiledDest = workingDir / "compiled"
+    val doneFile = compiledDest / "DONE"
     lock.synchronized {
-      if (os.exists(compiledDest / "DONE")) compiledDest
+      if (os.exists(doneFile)) compiledDest
       else {
         val acquired =
           compilerBridge.acquire(
@@ -572,7 +569,7 @@ class ZincWorker[CompilerBridgeData](
               bridgeClasspath,
               bridgeSourcesJar
             )
-            os.write(compiledDest / "DONE", "")
+            os.write(doneFile, "")
             compiledDest
         }
       }

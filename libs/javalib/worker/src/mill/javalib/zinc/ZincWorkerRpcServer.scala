@@ -29,7 +29,7 @@ class ZincWorkerRpcServer
       serverToClient: MillRpcChannel[ServerToClient]
   ): MillRpcChannel[ClientToServer] = {
     val zincCompilerBridge = ZincCompilerBridge[MillRpcRequestId](
-      taskDest = initialize.taskDest,
+      workspace = initialize.compilerBridgeWorkspace,
       logInfo = log.info,
       acquire = (scalaVersion, scalaOrganization, clientRequestId) =>
         serverToClient(
@@ -126,9 +126,9 @@ class ZincWorkerRpcServer
 object ZincWorkerRpcServer {
 
   /**
-   * @param taskDest the task's destination folder.
+   * @param compilerBridgeWorkspace The workspace to use for the compiler bridge.
    */
-  case class Initialize(taskDest: os.Path, jobs: Int, compileToJar: Boolean, zincLogDebug: Boolean)
+  case class Initialize(compilerBridgeWorkspace: os.Path, jobs: Int, compileToJar: Boolean, zincLogDebug: Boolean)
       derives ReadWriter
 
   sealed trait ReporterMode derives ReadWriter {
