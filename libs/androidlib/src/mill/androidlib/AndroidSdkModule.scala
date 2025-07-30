@@ -398,7 +398,13 @@ trait AndroidSdkModule extends Module {
           Task.dest,
           autoAcceptLicenses()
         )
+      } else if (!os.exists(cmdlineToolsPath0 / "bin" / "sdkmanager")) {
+        throw new IllegalStateException(
+          s"$cmdlineToolsPath0 exists but is not setup correctly. " +
+            "Please remove it and retry or fix the installation manually (e.g. via Android Studio)."
+        )
       }
+
       PathRef(cmdlineToolsPath0)
     }
   }
