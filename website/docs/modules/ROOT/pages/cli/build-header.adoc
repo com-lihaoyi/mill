@@ -42,7 +42,7 @@ Mill's build headers can contain the following keys:
 
 4. `mvnDeps` and `repositories`: these allow you to define dependencies for usage
    in your `build.mill`, and are described in more detail in the
-   xref:extending/import-mvn-plugins.adoc[Import Libraries and Plugins] page
+   xref:extending/import-mvn-plugins.adoc[Import Libraries and Plugins] page.
    Other keys are allowed as well, and these are uniformly treated as overrides for
    tasks on xref:extending/meta-build.adoc[]
 
