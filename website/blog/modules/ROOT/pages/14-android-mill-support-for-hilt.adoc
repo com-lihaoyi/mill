@@ -127,14 +127,14 @@ https://github.com/com-lihaoyi/mill/blob/e71de91c46c885c47222b24c23ef38254048d82
 digraph G {
   rankdir=TB
   node [shape=box width=0 height=0]
-  "Android Entry Points" -> Hilt -> "Dagger"
-  "Dagger" -> "KSP"
+  "Hilt/Dagger" -> "KSP"
   "KSP" -> "Generated Sources (Java)"
-  "Generated Sources (Java)" -> "Javac"
-  "Javac" -> "Compiled Generated Sources"
-  "Kotlinc" -> "Compiled Sources"
-  "Compiled Sources" -> "ASM Transform"
-  "Compiled Generated Sources" -> "ASM Transform"
+  "Generated Sources (Java)" -> "Compile (Java)"
+  "Java Sources" -> "Compile (Java)"
+  "Kotlin Sources" -> "Compile (Kotlin)"
+  "Compile (Java)" -> "Compiled Classes"
+  "Compile (Kotlin)" -> "Compiled Classes"
+  "Compiled Classes" -> "ASM Transform"
   "ASM Transform" -> "Packageable Classes"
 }
 ....
