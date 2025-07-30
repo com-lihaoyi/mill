@@ -121,11 +121,29 @@ Finally it was the turn for Android Tests to complete the loop. After trial and 
 == Conclusion
 
 After a major piece of work, which involved a large portion of the Kotlin Compiler stack, we managed to support:
+
 1. KSP for all Kotlin Projects using Mill
 2. Dagger
 3. Android DI codebases using Hilt
 4. Non-trivial builds using R8
 5. Kotlin's friend paths for Android
+
+[graphviz]
+....
+digraph G {
+  rankdir=TB
+  node [shape=box width=0 height=0]
+  "Android Entry Points" -> Hilt -> "Dagger"
+  "Dagger" -> "KSP"
+  "KSP" -> "Generated Sources (Java)"
+  "Generated Sources (Java)" -> "Javac"
+  "Javac" -> "Compiled Generated Sources"
+  "Kotlinc" -> "Compiled Sources"
+  "Compiled Sources" -> "ASM Transform"
+  "Compiled Generated Sources" -> "ASM Transform"
+  "ASM Transform" -> "Packageable Classes"
+}
+....
 
 That was also the moment, at least for us that Android support for Mill started to get real. The complexity was quite high, but getting there increases confidence that Mill would one day support a diverse set of Android codebases!
 
