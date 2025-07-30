@@ -1,0 +1,132 @@
+= Supporting Android Architectures with Hilt
+
+:link-github: https://github.com/com-lihaoyi/mill
+:link-pr: {link-github}/pull
+
+// tag::header[]
+:author: Vasilis Nicolaou
+:revdate: 30 July 2025
+
+_{author}, {revdate}_#
+
+The development efforts to support Dependency Injection architectures with Hilt for Android: Source code generation, Kotlin Symbol Processing and bytecode manipulation!
+
+// end::header[]
+
+== Introduction
+
+With Mill's basic functionality for supporting Android in place, it was vital to start testing more complex
+setups to extend the tool's capabilities. Such an example is https://github.com/android/architecture-samples[Android Architecture Samples].
+The "niche" about this setup is the use of https://developer.android.com/training/dependency-injection/hilt-android[Hilt]
+as the Dependency Injection tool.
+
+=== Hilt
+
+Hilt is built on top of https://developer.android.com/training/dependency-injection/dagger-basics[Dagger]
+which in turn relies on https://kotlinlang.org/docs/ksp-overview.html[Kotlin Symbol Processing]
+
+Thus the work required for Mill to support Android, was split into 3 tasks:
+
+1. Implement built-in support for KSP in Mill's Kotlin module and create Dagger examples
+for Kotlin.
+2. Setup a Mill equivalent android-architecture-samples as Gradle for compiling, packaging and running the sample Android app
+3. Implement remaining functionality so android tests (instrumented tests) run as well, to prove the DI is working for both main app and androidTest modes.
+
+=== Kotlin Symbol Processing (KSP) and Dagger
+
+KSP support, proved to be non-trivial with a few classpath issues along the way. There is a way to https://kotlinlang.org/docs/ksp-command-line.html[run KSP from the command line] but having a rich compiler classpath already, means a lot of things can go wrong, with classpath errors such as Method not found or class not found errors.
+
+The most significant error when using the kotlin compiler and the symbol processing api in its Mill equivalent setup had classpath issues:
+
+[source]
+----
+daemon.MillURLClassLoader @3c676e29; com.google.common.graph.Traverser is in unnamed module of loader java.net.URLClassLoader @29f9a4f4)
+[54]    at com.google.common.graph.Traverser.forTree(Traverser.java:182)
+----
+
+In order to resolve this, we needed to switch to the https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196[embeddable compiler] .
+
+While symbol-processing-cmdline is compatible with the `kotlin-compiler`, `symbol-processing` is compatible with `kotlin-compiler-embeddable`. If the two are mixed, an error such the below happens:
+
+[source]
+----
+s(com.intellij.mock.MockProject, org.jetbrains.kotlin.config.CompilerConfiguration)' of interface org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar.
+[54]    at org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment$Companion.registerExtensionsFromPlugins$cli_base(KotlinCoreEnvironment.kt:755)
+[54]    at org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment$ProjectEnvironment.registerExtensionsFromPlugins(KotlinCoreEnvironment.kt:194)
+[54]    at org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment$Companion.configureProjectEnvironment(KotlinCoreEnvironment.kt:652)
+[54]    at org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment.<init>(KotlinCoreEnvironment.kt:224)
+[54]    at org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment.<init>(KotlinCoreEnvironment.kt)
+----
+
+Thus, with the work in {link-pr}/4557[#4557] and {link-pr}/4485[#4485] a KSPModule was introduced which by default uses the `kotlin-compiler-embeddable`
+along with the `symbol-processing`.
+
+Part 1 was done, we had now Dagger auto-generating sources to achieve its DI goals!
+
+=== Hilt
+
+Hilt proved to be quite challenging! While up to this point, we were able to reverse engineer Gradle quite effectively, just having the hilt compiler in the classpath and running various stages of compilation, proved not enough! Something was hidden from us!
+
+So we started looking at the bytecode generated! Building the samples with Android Gradle Plugin (AGP) (i.e., via a typical Android Studio setup), was resulting in the compiled TodoActivity to look like this:
+
+[source]
+----
+.method public constructor <init>()V
+    .registers 1
+
+    .line 29
+    invoke-direct {p0}, Lcom/example/android/architecture/blueprints/todoapp/Hilt_TodoActivity;-><init>()V
+
+    return-void
+.end method
+----
+
+While our compilation looked like:
+
+[source]
+----
+.method public constructor <init>()V
+    .registers 1
+
+    .line 29
+    invoke-direct {p0}, Landroidx/activity/ComponentActivity;-><init>()V
+
+    .line 28
+    return-void
+.end method#
+----
+
+Clearly, there was some bytecode manipulation at play which we were missing. At what stage did it happen? And what was the tool that did it?
+
+The dagger plugin for AGP has (https://github.com/google/dagger/blob/b3d3443e3581b8530cd85929614a1765cd37b12c/java/dagger/hilt/android/plugin/main/src/main/kotlin/dagger/hilt/android/plugin/transform/AndroidEntryPointClassVisitor.kt#L122)[a special ASM adapter], that runs through the classes and re-writes the bytecode when it sees some pre-defined annotations such as `@AndroidEntryPoint`
+and `@HiltAndroidApp` .
+
+We devised an easy way to test, creating a small Java app, not far from the end result which looks like (https://github.com/com-lihaoyi/mill/commit/787a791c73f59a6b65d8d72ee5b3a0f675f687c1)[this]. We passed the TodoActivity in it, and that was it! Same bytecode was generated!
+
+That was the magical step that complemented all the work done to get the right dependencies and compiler plugins in the right place, and we could run the android-architecture-samples for the first time!
+
+image:blog::hilt_first_success.png[]
+
+=== Android Tests
+
+Of course, the main motivation for any Dependency Injection framework is the Inversion of Control between running tests and the real program. Starting with the unit tests.
+
+The major obstacle was that unit tests had no visibility over internal declarations of the main module, and that came down to improving the out of the box (https://kotlinlang.org/api/kotlin-gradle-plugin/kotlin-gradle-plugin-api/org.jetbrains.kotlin.gradle.tasks/-base-kotlin-compile/friend-paths.html)[friends path] support provided by Mill.
+
+Other improvements are summarised in this {link-pr}/5169[PR #5169], such as a fix to the previously developed ASM tool, to not drop META-INF directories and their contents.
+
+Finally it was the turn for Android Tests to complete the loop. After trial and error, we dropped building the architecture-samples with D8 and switched to R8 (which is used in the AGP configuration as well). In the work done in {link-pr}/5219[#5219] you can also watch the final result, a video of running the android tests rapidly inside the emulator.
+
+
+== Conclusion
+
+After a major piece of work, which involved a large portion of the Kotlin Compiler stack, we managed to support:
+1. KSP for all Kotlin Projects using Mill
+2. Dagger
+3. Android DI codebases using Hilt
+4. Non-trivial builds using R8
+5. Kotlin's friend paths for Android
+
+That was also the moment, at least for us that Android support for Mill started to get real. The complexity was quite high, but getting there increases confidence that Mill would one day support a diverse set of Android codebases!
+
+
