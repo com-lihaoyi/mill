@@ -54,7 +54,7 @@ following the https://dot-config.github.io/[`.config` XDG Base Directory Standar
 == mill-opts
 
 Mill supports `mill-opts` for passing a default set of command line
-options to Mill itself.For example, if your project's tasks are CPU heavy, you
+options to Mill itself. For example, if your project's tasks are CPU heavy, you
 may want everyone using your project to run only 0.5 concurrent tasks per CPU. This
 can be done by adding your build header:
 
