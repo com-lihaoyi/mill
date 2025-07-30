@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Tasks :: The Mill Build Tool</title>
     <link rel="canonical" href="https://mill-build.org/mill/fundamentals/tasks.html" />
-    <link rel="prev" href="../migrating/sbt.html" />
+    <link rel="prev" href="../migrating/auto-migrating.html" />
     <link rel="next" href="modules.html" />
     <meta name="generator" content="Antora 3.1.9" />
     <link rel="stylesheet" href="../../../_/css/site.css" />
@@ -392,15 +392,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
   </li>
 </ul>
   </li>
@@ -635,6 +627,9 @@
           <a href="../../index.html">1.0.2</a>
         </li>
         <li class="version">
+          <a href="../../dev-1.0.2-3-e42a40/index.html">dev-1.0.2-3-e42a40</a>
+        </li>
+        <li class="version">
           <a href="../../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
@@ -781,7 +776,7 @@ making use of the most common <code>Task.Source</code>, <code>Task</code>, and <
 to define a simple build graph with some input source files and intermediate build steps:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-3-e42a40/mill-dist-1.0.2-3-e42a40-example-fundamentals-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/tasks/1-task-graph">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-4-e71de9/mill-dist-1.0.2-4-e71de9-example-fundamentals-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/tasks/1-task-graph">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1213,7 +1208,7 @@ skipped is due to <a href="../large/selective-execution.html" class="xref page">
 <div class="sect2">
 <h3 id="_sources"><a class="anchor" href="#_sources"></a>Sources</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-3-e42a40/mill-dist-1.0.2-3-e42a40-example-fundamentals-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/tasks/2-primary-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-4-e71de9/mill-dist-1.0.2-4-e71de9-example-fundamentals-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/tasks/2-primary-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 
@@ -1802,7 +1797,7 @@ path for consumption by external tools.</p>
 <div class="sect2">
 <h3 id="_inputs"><a class="anchor" href="#_inputs"></a>Inputs</h3>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-3-e42a40/mill-dist-1.0.2-3-e42a40-example-fundamentals-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/tasks/4-inputs">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-4-e71de9/mill-dist-1.0.2-4-e71de9-example-fundamentals-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/tasks/4-inputs">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -1984,7 +1979,7 @@ and re-use previously-compressed files if a file in the
 input folder did not change:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-3-e42a40/mill-dist-1.0.2-3-e42a40-example-fundamentals-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/tasks/5-persistent-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-4-e71de9/mill-dist-1.0.2-4-e71de9-example-fundamentals-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/tasks/5-persistent-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -2101,7 +2096,7 @@ but even if the Mill process is restarted it can load the cache values from disk
 without having to recompute them:</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-3-e42a40/mill-dist-1.0.2-3-e42a40-example-fundamentals-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/tasks/6-workers">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-4-e71de9/mill-dist-1.0.2-4-e71de9-example-fundamentals-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/tasks/6-workers">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*, scalalib.*
@@ -2414,7 +2409,7 @@ not runnable from the command-line, but can be used to share common code you
 find yourself repeating in <code>Task</code>s and <code>Command</code>s.</p>
 </div>
 <div class="listingblock">
-<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-3-e42a40/mill-dist-1.0.2-3-e42a40-example-fundamentals-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/tasks/3-anonymous-tasks">browse</a>)</div>
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-4-e71de9/mill-dist-1.0.2-4-e71de9-example-fundamentals-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/fundamentals/tasks/3-anonymous-tasks">browse</a>)</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
 import mill.*
@@ -2460,7 +2455,7 @@ World!</code></pre>
 </div>
 </div>
 <nav class="pagination">
-  <span class="prev"><a href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a></span>
+  <span class="prev"><a href="../migrating/auto-migrating.html">Automated Migration Tools</a></span>
   <span class="next"><a href="modules.html">Modules</a></span>
 </nav>
 </article>

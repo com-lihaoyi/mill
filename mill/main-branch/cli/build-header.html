@@ -392,15 +392,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
   </li>
 </ul>
   </li>
@@ -635,6 +627,9 @@
           <a href="../../index.html">1.0.2</a>
         </li>
         <li class="version">
+          <a href="../../dev-1.0.2-3-e42a40/index.html">dev-1.0.2-3-e42a40</a>
+        </li>
+        <li class="version">
           <a href="../../0.12.x/index.html">0.12.14</a>
         </li>
         <li class="version">
@@ -724,7 +719,7 @@ e.g. to configure how much memory to give it</p>
 <li>
 <p><code>mvnDeps</code> and <code>repositories</code>: these allow you to define dependencies for usage
 in your <code>build.mill</code>, and are described in more detail in the
-<a href="../extending/import-mvn-plugins.html" class="xref page">Import Libraries and Plugins</a> page
+<a href="../extending/import-mvn-plugins.html" class="xref page">Import Libraries and Plugins</a> page.
 Other keys are allowed as well, and these are uniformly treated as overrides for
 tasks on <a href="../extending/meta-build.html" class="xref page">The Mill Meta-Build</a></p>
 </li>
@@ -743,7 +738,7 @@ following the <a href="https://dot-config.github.io/"><code>.config</code> XDG B
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mill supports <code>mill-opts</code> for passing a default set of command line
-options to Mill itself.For example, if your project’s tasks are CPU heavy, you
+options to Mill itself. For example, if your project’s tasks are CPU heavy, you
 may want everyone using your project to run only 0.5 concurrent tasks per CPU. This
 can be done by adding your build header:</p>
 </div>
@@ -845,6 +840,40 @@ root that contains JVM options one per line.</p>
 </div>
 <div class="paragraph">
 <p>Missing environment variables are converted to the empty string.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_meta_build_task_overrides"><a class="anchor" href="#_meta_build_task_overrides"></a>Meta-build Task Overrides</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can use the build header to override arbitrary tasks in <a href="../extending/meta-build.html" class="xref page">The Mill Meta-Build</a>,
+which is responsible for compiling your <code>build.mill</code> file. Apart from customizing
+<code>mvnDeps</code> and <code>repositories</code> to make libraries available in your <code>build.mill</code>,
+you can also override other tasks such as <code>scalacOptions</code> which in this example
+is used to turn on fatal warnings for unused private methods:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-4-e71de9/mill-dist-1.0.2-4-e71de9-example-cli-header-1-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2/example/cli/header/1-tasks">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| scalacOptions: [&quot;-Wunused:privates&quot;, &quot;-Xfatal-warnings&quot;]
+
+package build
+import mill.*, javalib.*
+
+private def foo = 1</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill version
+error: ...unused private member
+...No warnings can be incurred under -Werror (or -Xfatal-warnings)</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As the <code>build.mill</code> file is written in Scala, most tasks you override on
+<code>ScalaModule</code> can be set in the build header to apply to your <code>build.mill</code>.</p>
 </div>
 </div>
 </div>
