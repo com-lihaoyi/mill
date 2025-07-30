@@ -1,0 +1,20 @@
+//| scalacOptions: ["-Wunused:privates", "-Xfatal-warnings"]
+// You can use the build header to override arbitrary tasks in xref:extending/meta-build.adoc[],
+// which is responsible for compiling your `build.mill` file. Apart from customizing
+// `mvnDeps` and `repositories` to make libraries available in your `build.mill`,
+// you can also override other tasks such as `scalacOptions` which in this example
+// is used to turn on fatal warnings for unused private methods:
+
+package build
+import mill.*, javalib.*
+
+private def foo = 1
+/** Usage
+
+> ./mill version
+error: ...unused private member
+...No warnings can be incurred under -Werror (or -Xfatal-warnings)
+*/
+
+// As the `build.mill` file is written in Scala, most tasks you override on
+// `ScalaModule` can be set in the build header to apply to your `build.mill`.

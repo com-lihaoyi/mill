@@ -129,3 +129,6 @@ _build.mill_
 
 Missing environment variables are converted to the empty string.
 
+== Meta-build Task Overrides
+
+include::partial$example/cli/header/1-tasks.adoc[]
