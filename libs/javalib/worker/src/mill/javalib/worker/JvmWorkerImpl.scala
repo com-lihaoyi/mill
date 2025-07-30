@@ -103,7 +103,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     }
   }
   private case class SubprocessCacheInitialize(
-      taskDest: os.Path,
+      taskDest: os.Path
 //      zincRpcServerInit: ZincWorkerRpcServer.Initialize,
 //      handler: MillRpcChannel[ZincWorkerRpcServer.ServerToClient]
   )
@@ -198,11 +198,14 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       ) { case SubprocessCacheValue(port) =>
         Using.Manager { use =>
           val startTimeMillis = System.currentTimeMillis()
-          val socket = use(ServerLauncher.connectToServer(startTimeMillis, 5.seconds.toMillis.toInt, port))
+          val socket =
+            use(ServerLauncher.connectToServer(startTimeMillis, 5.seconds.toMillis.toInt, port))
           val stdin = use(BufferedReader(InputStreamReader(socket.getInputStream)))
           val stdout = use(PrintStream(socket.getOutputStream))
           val wireTransport = MillRpcWireTransport.ViaStreams(
-            s"TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}", stdin, stdout
+            s"TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}",
+            stdin,
+            stdout
           )
 
           val init = ZincWorkerRpcServer.Initialize(
