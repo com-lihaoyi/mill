@@ -9,7 +9,7 @@
 
 _{author}, {revdate}_#
 
-The development efforts to support Dependency Injection architectures with Hilt for Android: Source code generation, Kotlin Symbol Processing and bytecode manipulation!
+The development efforts to support Dependency Injection architectures with xref:mill::android/hilt-sample.adoc[Hilt for Android]: Source code generation, Kotlin Symbol Processing and bytecode manipulation!
 
 // end::header[]
 
@@ -129,4 +129,5 @@ After a major piece of work, which involved a large portion of the Kotlin Compil
 
 That was also the moment, at least for us that Android support for Mill started to get real. The complexity was quite high, but getting there increases confidence that Mill would one day support a diverse set of Android codebases!
 
+You can check the full example xref:mill::android/hilt-sample.adoc[here]
 
