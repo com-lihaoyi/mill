@@ -168,7 +168,7 @@ object MillRpcTests extends TestSuite {
 
       try {
         serverThread.start()
-        eventually(initializeRef.value.contains(initialize))
+        assertEventually(initializeRef.value.contains(initialize))
 
         client(ClientToServer.Ping)
         assert(serverMessagesRef.value.contains(ReceivedServerMessage(
@@ -219,7 +219,7 @@ object MillRpcTests extends TestSuite {
         testWithExtraInfo("pear", "c4")
 
         {
-          val ex = intercept[RpcThrowable](client(ClientToServer.ThrowAnException))
+          val ex = assertThrows[RpcThrowable](client(ClientToServer.ThrowAnException))
           assert(serverMessagesRef.value.contains(ReceivedServerMessage(
             id("c5"),
             ClientToServer.ThrowAnException
