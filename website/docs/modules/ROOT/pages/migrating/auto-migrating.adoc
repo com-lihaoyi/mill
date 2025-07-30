@@ -1,4 +1,4 @@
-= Auto-Migrating Existing Projects
+= Automated Migration Tools
 :icons: font
 
 
@@ -44,7 +44,7 @@ include::partial$example/migrating/scalalib/2-sbt-incomplete.adoc[]
 
 Nevertheless, even for larger builds `mill init` automates most of the tedious
 busy-work of writing `build.mill`/`package.mill` files, and makes it much quicker
-to get a working Mill build for any existing Maven project. For example,
+to get a working Mill build for any existing  project. For example,
 the `iluwatar/java-design-patterns` repo has 363 subprojects
 (including test projects) and `./mill init` is able to get it imported,
 compiling, and passing all tests in Mill:
