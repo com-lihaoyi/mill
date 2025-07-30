@@ -117,16 +117,10 @@ Other improvements are summarised in this {link-pr}/5169[PR #5169], such as a fi
 
 Finally it was the turn for Android Tests to complete the loop. After trial and error, we dropped building the architecture-samples with D8 and switched to R8 (which is used in the AGP configuration as well). In the work done in {link-pr}/5219[#5219] you can also watch the final result, a video of running the android tests rapidly inside the emulator.
 
+== Connecting Everything Together
 
-== Conclusion
-
-After a major piece of work, which involved a large portion of the Kotlin Compiler stack, we managed to support:
-
-1. KSP for all Kotlin Projects using Mill
-2. Dagger
-3. Android DI codebases using Hilt
-4. Non-trivial builds using R8
-5. Kotlin's friend paths for Android
+The process of binding everything together, is laid out in
+https://github.com/com-lihaoyi/mill/blob/e71de91c46c885c47222b24c23ef38254048d82e/libs/androidlib/src/mill/androidlib/hilt/AndroidHiltSupport.scala[AndroidHiltSupport.scala] and https://github.com/com-lihaoyi/mill/blob/e71de91c46c885c47222b24c23ef38254048d82e/libs/androidlib/src/mill/androidlib/hilt/AndroidHiltTransform.scala[AndroidHiltTransform] , which using Mill's design principles execute the various stages in an Object Oriented Programming hierarchy style as the diagram below:
 
 [graphviz]
 ....
@@ -144,6 +138,17 @@ digraph G {
   "ASM Transform" -> "Packageable Classes"
 }
 ....
+
+
+== Conclusion
+
+After a major piece of work, which involved a large portion of the Kotlin Compiler stack, we managed to support:
+
+1. KSP for all Kotlin Projects using Mill
+2. Dagger
+3. Android DI codebases using Hilt
+4. Non-trivial builds using R8
+5. Kotlin's friend paths for Android
 
 That was also the moment, at least for us that Android support for Mill started to get real. The complexity was quite high, but getting there increases confidence that Mill would one day support a diverse set of Android codebases!
 
