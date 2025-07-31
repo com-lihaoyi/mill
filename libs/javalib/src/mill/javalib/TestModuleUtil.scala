@@ -206,9 +206,6 @@ final class TestModuleUtil(
 
     val groupFolderData: Seq[(Path, Path, Int)] = prepareTestGroups(filteredClassLists)
 
-    val groupLength = groupFolderData.length
-    val maxGroupLength = groupLength.toString.length
-
     val outputs = {
       // We got "--jobs" threads, and "groupLength" test groups, so we will spawn at most jobs * groupLength runners here
       // In most case, this is more than necessary, and runner creation is expensive,
@@ -217,8 +214,11 @@ final class TestModuleUtil(
         ((groupFolder, testClassQueueFolder, numTests), groupIndex) <-
           groupFolderData.zipWithIndex.toVector
         (jobs, maxProcessLength) = jobsProcessLength(numTests)
-        paddedGroupIndex =
-          mill.api.internal.Util.leftPad(groupIndex.toString, maxGroupLength, '0')
+        paddedGroupIndex = Util.leftPad(
+          groupIndex.toString,
+          groupFolderData.length.toString.length,
+          '0'
+        )
         processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)
       } yield runTestFuture(
         filteredClassCount,
@@ -236,9 +236,17 @@ final class TestModuleUtil(
       subprocessFutures.flatMap(_._2.value).map(_.get)
     }
 
+    processTestResults(outputs)
+  }
+
+  def processTestResults(outputs: Vector[(
+      Int,
+      String,
+      Option[Result[(String, Seq[TestResult])]]
+  )]) = {
+    val failMap = mutable.Map.empty[String, String]
+    val successMap = mutable.Map.empty[String, (String, Seq[TestResult])]
     val subprocessResult = {
-      val failMap = mutable.Map.empty[String, String]
-      val successMap = mutable.Map.empty[String, (String, Seq[TestResult])]
 
       outputs.foreach {
         case (_, name, Some(Result.Failure(v))) =>
