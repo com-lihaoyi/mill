@@ -34,9 +34,7 @@ object foo extends ScalaModule {
 
 > find out/foo/test/testForked.dest
 ...
-out/foo/test/testForked.dest/foo.HelloTests.log
 out/foo/test/testForked.dest/foo.HelloTests/sandbox
-out/foo/test/testForked.dest/foo.WorldTests.log
 out/foo/test/testForked.dest/foo.WorldTests/sandbox
 out/foo/test/testForked.dest/test-report.xml
 
