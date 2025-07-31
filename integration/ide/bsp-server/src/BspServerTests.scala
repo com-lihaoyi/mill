@@ -72,13 +72,13 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         val targetIds = buildTargets.getTargets.asScala.map(_.getId).asJava
         val metaBuildTargetId = new b.BuildTargetIdentifier(
-          (workspacePath / "mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
+          (workspacePath / "mill-build").toURI.toASCIIString.stripSuffix("/")
         )
         assert(targetIds.contains(metaBuildTargetId))
         val targetIdsSubset = targetIds.asScala.filter(_ != metaBuildTargetId).asJava
 
         val appTargetId = new b.BuildTargetIdentifier(
-          (workspacePath / "app").toNIO.toUri.toASCIIString.stripSuffix("/")
+          (workspacePath / "app").toURI.toASCIIString.stripSuffix("/")
         )
         assert(targetIds.contains(appTargetId))
 
@@ -99,7 +99,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
             buildServer
               .buildTargetInverseSources(
                 new b.InverseSourcesParams(
-                  new b.TextDocumentIdentifier(file.toNIO.toUri().toASCIIString)
+                  new b.TextDocumentIdentifier(file.toURI.toASCIIString)
                 )
               )
               .get(),

@@ -23,7 +23,7 @@ object CoursierClient {
       .toSeq
       .flatMap(_.split(File.pathSeparator).toSeq)
       .map { path =>
-        MavenRepository(os.Path(path).toNIO.toUri.toASCIIString)
+        MavenRepository(os.Path(path).toURI.toASCIIString)
       }
 
     val artifactsResultOrError = {

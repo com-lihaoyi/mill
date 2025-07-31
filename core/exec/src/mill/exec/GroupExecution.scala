@@ -41,7 +41,7 @@ private trait GroupExecution {
     // recursively convert java data structure to ujson.Value
     val envWithPwd = env ++ Seq(
       "PWD" -> workspace.toString,
-      "PWD_URI" -> workspace.toNIO.toUri.toString,
+      "PWD_URI" -> workspace.toURI.toString,
       "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
       "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
     )

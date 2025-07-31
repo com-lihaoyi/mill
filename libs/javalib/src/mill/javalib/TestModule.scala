@@ -215,7 +215,7 @@ trait TestModule
 
       val testRunnerClasspathArg =
         jvmWorker().scalalibClasspath()
-          .map(_.path.toNIO.toUri.toURL).mkString(",")
+          .map(_.path.toURL).mkString(",")
 
       val cp = (runClasspath() ++ jvmWorker().testrunnerEntrypointClasspath()).map(_.path.toNIO)
 
@@ -423,7 +423,7 @@ object TestModule {
 
         builderClass.getMethod("withRuntimeClassPath", classOf[Array[java.net.URL]]).invoke(
           builder,
-          testClasspath().map(_.path.wrapped.toUri().toURL()).toArray
+          testClasspath().map(_.path.toURL).toArray
         )
         builderClass.getMethod("withClassLoader", classOf[ClassLoader]).invoke(builder, classLoader)
 

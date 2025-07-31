@@ -302,13 +302,13 @@ object PublishModuleTests extends TestSuite {
       }
       def ivy2Cp(moduleName: String, config: String) =
         localRepoCp(
-          coursierapi.IvyRepository.of(ivy2Repo.toNIO.toUri.toASCIIString + "[defaultPattern]"),
+          coursierapi.IvyRepository.of(ivy2Repo.toURI.toASCIIString + "[defaultPattern]"),
           moduleName,
           config
         )
       def m2Cp(moduleName: String, config: String) =
         localRepoCp(
-          coursierapi.MavenRepository.of(m2Repo.toNIO.toUri.toASCIIString),
+          coursierapi.MavenRepository.of(m2Repo.toURI.toASCIIString),
           moduleName,
           config
         )

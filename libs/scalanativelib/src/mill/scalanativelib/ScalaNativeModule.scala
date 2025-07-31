@@ -308,7 +308,7 @@ trait ScalaNativeModule extends ScalaModule with ScalaNativeModuleApi { outer =>
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         ScalaPlatform.Native,
-        jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
+        jars = scalaCompilerClasspath().map(_.path.toURI.toString).iterator.toSeq,
         jvmBuildTarget = None
       )
     ))
