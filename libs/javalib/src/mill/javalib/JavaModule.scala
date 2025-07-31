@@ -790,6 +790,14 @@ trait JavaModule
   def generatedSources: T[Seq[PathRef]] = Task { Seq.empty[PathRef] }
 
   /**
+   * Path to sources generated as part of the `compile` step, eg.  by Java annotation
+   * processors which often generate source code alongside classfiles during compilation.
+   *
+   * Typically these do not need to be compiled again, and are only used by IDEs
+   */
+  def compileGeneratedSources: T[os.Path] = Task(persistent = true) { Task.dest }
+
+  /**
    * The folders containing all source files fed into the compiler
    */
   def allSources: T[Seq[PathRef]] = Task { sources() ++ generatedSources() }
@@ -825,6 +833,14 @@ trait JavaModule
    * Keep in sync with [[bspCompileClassesPath]]
    */
   def compile: T[mill.javalib.api.CompilationResult] = Task(persistent = true) {
+    // Prepare an empty `compileGeneratedSources` folder for java annotation processors
+    // to write generated sources into, that can then be picked up by IDEs like IntelliJ
+    val compileGenSources = compileGeneratedSources()
+    mill.api.BuildCtx.withFilesystemCheckerDisabled {
+      os.remove.all(compileGenSources)
+      os.makeDir.all(compileGenSources)
+    }
+
     jvmWorker()
       .worker()
       .compileJava(
@@ -832,7 +848,8 @@ trait JavaModule
         sources = allSourceFiles().map(_.path),
         compileClasspath = compileClasspath().map(_.path),
         javaHome = javaHome().map(_.path),
-        javacOptions = javacOptions() ++ mandatoryJavacOptions(),
+        javacOptions =
+          Seq("-s", compileGenSources.toString) ++ javacOptions() ++ mandatoryJavacOptions(),
         reporter = Task.reporter.apply(hashCode),
         reportCachedProblems = zincReportCachedProblems(),
         incrementalCompilation = zincIncrementalCompilation()
