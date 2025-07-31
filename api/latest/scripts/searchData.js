@@ -1869,6 +1869,7 @@ pages = [{"l":"index.html#","e":false,"i":"","n":"Mill","t":"Mill","d":"","k":"s
 {"l":"mill/javalib/JavaModule.html#bomModuleDepsChecked-0","e":false,"i":"","n":"bomModuleDepsChecked","t":"bomModuleDepsChecked: Seq[BomModule]","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#bomMvnDeps-0","e":false,"i":"","n":"bomMvnDeps","t":"bomMvnDeps: Simple[Seq[Dep]]","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#compile-0","e":false,"i":"","n":"compile","t":"compile: Simple[CompilationResult]","d":"mill.javalib.JavaModule","k":"def","x":""},
+{"l":"mill/javalib/JavaModule.html#compileGeneratedSources-0","e":false,"i":"","n":"compileGeneratedSources","t":"compileGeneratedSources: Simple[Path]","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#compileModuleDeps-0","e":false,"i":"","n":"compileModuleDeps","t":"compileModuleDeps: Seq[JavaModule]","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#compileModuleDepsChecked-0","e":false,"i":"","n":"compileModuleDepsChecked","t":"compileModuleDepsChecked: Seq[JavaModule]","d":"mill.javalib.JavaModule","k":"def","x":""},
 {"l":"mill/javalib/JavaModule.html#compileMvnDeps-0","e":false,"i":"","n":"compileMvnDeps","t":"compileMvnDeps: Simple[Seq[Dep]]","d":"mill.javalib.JavaModule","k":"def","x":""},
