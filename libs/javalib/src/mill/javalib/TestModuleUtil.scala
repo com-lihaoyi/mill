@@ -19,6 +19,8 @@ import java.util.concurrent.Executors
 import mill.api.BuildCtx
 import mill.javalib.testrunner.{GetTestTasksMain, TestArgs, TestResult, TestRunnerUtils}
 
+import scala.concurrent.Future
+
 /**
  * Implementation code used by [[TestModule]] to actually run tests.
  */
@@ -295,22 +297,32 @@ final class TestModuleUtil(
           val paddedProcessIndex =
             mill.api.internal.Util.leftPad(processIndex.toString, maxProcessLength, '0')
 
-          val processFolder = groupFolder / s"worker-$paddedProcessIndex"
+          val workerLabel = s"worker-$paddedProcessIndex"
+          val processFolder =
+            if (testParallelism && filteredClassCount != 1) groupFolder / workerLabel
+            else groupFolder
 
           val label =
             if (groupFolderData.size == 1) paddedProcessIndex
             else s"$paddedGroupIndex-$paddedProcessIndex"
 
-          Task.fork.async(
-            processFolder,
-            label,
-            "",
-            // With the test queue scheduler, prioritize the *first* test subprocess
-            // over other Mill tasks via `priority = -1`, but de-prioritize the others
-            // increasingly according to their processIndex. This should help Mill
-            // use fewer longer-lived test subprocesses, minimizing JVM startup overhead
-            priority = if (processIndex == 0) -1 else processIndex
-          ) {
+          def fork[T](block: Logger => T): Future[T] = {
+            if (testParallelism && filteredClassCount != 1) {
+              Task.fork.async(
+                processFolder,
+                label,
+                workerLabel,
+                // With the test queue scheduler, prioritize the *first* test subprocess
+                // over other Mill tasks via `priority = -1`, but de-prioritize the others
+                // increasingly according to their processIndex. This should help Mill
+                // use fewer longer-lived test subprocesses, minimizing JVM startup overhead
+                priority = if (processIndex == 0) -1 else processIndex
+              ) {
+                block
+              }
+            }else Future.successful(block(ctx.log))
+          }
+          fork {
             logger =>
               val result = runTestRunnerSubprocess(
                 processFolder,
