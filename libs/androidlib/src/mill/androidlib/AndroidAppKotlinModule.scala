@@ -57,10 +57,11 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
 
   trait AndroidAppKotlinScreenshotTests extends AndroidAppKotlinModule with TestModule with Junit5 {
 
-    /* There are no testclasses for screenshot tests, just the engine running a diff over the images */
-    override def discoveredTestClasses: T[Seq[String]] = Task { Seq.empty[String] }
-
     override def androidApplicationId: String = outer.androidApplicationId
+
+    override def discoveredTestClasses: T[Seq[String]] = Task {
+      super[TestModule].discoveredTestClasses()
+    }
 
     /**
      * Screenshot tests cannot be run in parallel for now
