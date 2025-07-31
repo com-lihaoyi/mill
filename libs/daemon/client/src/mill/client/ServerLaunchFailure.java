@@ -12,7 +12,8 @@ public class ServerLaunchFailure {
   /// The process that died.
   public final Process deadProcess;
 
-  public ServerLaunchFailure(Optional<String> stdout, Optional<String> stderr, Process deadProcess) {
+  public ServerLaunchFailure(
+      Optional<String> stdout, Optional<String> stderr, Process deadProcess) {
     this.stdout = stdout;
     this.stderr = stderr;
     this.deadProcess = deadProcess;
@@ -24,14 +25,12 @@ public class ServerLaunchFailure {
     sb.append("\n");
 
     stdout.ifPresentOrElse(
-      s -> sb.append("Daemon stdout:\n\n").append(s).append("\n\n"),
-      () -> sb.append("No daemon stdout\n\n")
-    );
+        s -> sb.append("Daemon stdout:\n\n").append(s).append("\n\n"),
+        () -> sb.append("No daemon stdout\n\n"));
 
     stderr.ifPresentOrElse(
-      s -> sb.append("Daemon stderr:\n\n").append(s).append("\n\n"),
-      () -> sb.append("No daemon stderr\n\n")
-    );
+        s -> sb.append("Daemon stderr:\n\n").append(s).append("\n\n"),
+        () -> sb.append("No daemon stderr\n\n"));
 
     return sb.toString();
   }
