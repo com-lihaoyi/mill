@@ -41,7 +41,9 @@ trait BuildGenBase[M, D, I] {
 
     // for resolving moduleDeps
     val moduleNodes =
-      moduleOptionTree.nodes().flatMap(node => node.value.map(m => node.copy(value = m))).toSeq
+      moduleOptionTree.iterator.toSeq.flatMap(node =>
+        node.value.map(m => node.copy(value = m))
+      ).toSeq
     val moduleRefMap = getModuleFqnMap(moduleNodes)
 
     val baseInfo =

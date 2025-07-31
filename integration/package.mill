@@ -142,6 +142,7 @@ object `package` extends mill.Module {
   object failure extends Cross[IntegrationCrossModule](build.listCross)
   object feature extends Cross[IntegrationCrossModule](build.listCross)
   object invalidation extends Cross[IntegrationCrossModule](build.listCross)
+  object manual extends Cross[IntegrationCrossModule](build.listCross)
   object ide extends Cross[IdeIntegrationCrossModule](build.listCross)
   object bootstrap extends Cross[IdeIntegrationCrossModule](build.listCross)
   object migrating extends Cross[IdeIntegrationCrossModule](build.listCross)

@@ -1,12 +1,12 @@
 package build.libs.init
 
 import mill._
+import mill.api.{BuildCtx, Cross}
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib.Assembly.Rule
 import mill.scalalib.ScalaModule
 import mill.util.Jvm
 import millbuild.*
-import mill.api.BuildCtx
 
 object `package` extends MillPublishScalaModule {
 
@@ -69,16 +69,14 @@ object `package` extends MillPublishScalaModule {
   }
 
   object buildgen extends MillPublishScalaModule {
-    def moduleDeps = Seq(build.libs.init, build.core.internal, build.libs.util)
+    def moduleDeps =
+      Seq(api(Deps.scalaVersion), build.libs.init, build.core.internal, build.libs.util)
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib)
 
-    // I tried moving `Tree` into this module, but it doesn't compile with Scala 2.12.20.
-    /*
-    object tree extends Cross[TreeModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
-    trait TreeModule extends MillPublishCrossScalaModule {
+    object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
+    trait ApiModule extends MillPublishCrossScalaModule {
       def mvnDeps = Seq(Deps.upickle)
     }
-     */
   }
   object gradle extends MillPublishScalaModule {
     def moduleDeps = Seq(buildgen)
@@ -102,45 +100,27 @@ object `package` extends MillPublishScalaModule {
   }
 
   object sbt extends MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(buildgen, models(Deps.scalaVersion), build.libs.init.migrate.sbt)
-
-    def sbtPluginJarResources = Task {
-      val assemblyPathRef = exportplugin.assembly()
-      os.copy(assemblyPathRef.path, Task.dest / "exportplugin-assembly.jar")
+    def moduleDeps = Seq(api(Deps.scalaVersion), buildgen)
+    def sbtScriptJarResource = Task {
+      os.copy(exportscript.assembly().path, Task.dest / "exportscript-assembly.jar")
       PathRef(Task.dest)
     }
-    def resources: T[Seq[PathRef]] = Task { super.resources() ++ Seq(sbtPluginJarResources()) }
+    def resources = Task { super.resources() ++ Seq(sbtScriptJarResource()) }
     def testModuleDeps = super.testModuleDeps ++ Seq(build.libs.scalalib, buildgen.test)
-
     def buildInfoPackageName = "mill.main.sbt"
-    def buildInfoObjectName: String = "Versions"
     def buildInfoMembers = Seq(
-      BuildInfo.Value("sbtVersion", Deps.sbt.version, "Version of sbt.")
+      BuildInfo.Value("exportscriptAssemblyResource", "/exportscript-assembly.jar")
     )
 
-    // An `sbt` plugin is built with Scala 2.12. See https://www.scala-sbt.org/1.x/docs/Plugins.html#Creating+an+auto+plugin.
-    object models extends Cross[ModelsModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
-    trait ModelsModule extends MillPublishCrossScalaModule {
-      // def moduleDeps = Seq(buildgen.tree())
-      def mvnDeps = Seq(Deps.upickle)
-      def compileMvnDeps = Seq(Deps.sbt) // for definition references only
-
-      def docJar =
-        if (crossScalaVersion == Deps.scalaVersion)
-          // Without this, docJar currently outputs more than 50k lines of warning. Disabling it.
-          Task {
-            PathRef(Jvm.createJar(Task.dest / "empty.jar", Seq.empty[os.Path]))
-          }
-        else
-          super.docJar
+    object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
+    trait ApiModule extends MillPublishCrossScalaModule {
+      def moduleDeps = Seq(buildgen.api())
     }
 
-    // no need to publish this
-    // `test` fails with `MillScalaModule`, and since it's an `sbt` plugin project it's most likely not needed.
-    object exportplugin extends ScalaModule {
-      private val scalaVersionString = Deps.sbtScalaVersion212
-      def scalaVersion = scalaVersionString
-      def moduleDeps = Seq(models(scalaVersionString))
+    object exportscript extends ScalaModule {
+      def scalaVersion = Deps.sbtScalaVersion212
+      def mvnDeps = Seq(Deps.osLib)
+      def moduleDeps = Seq(api(Deps.sbtScalaVersion212))
       def compileMvnDeps = Seq(Deps.sbt)
       def assemblyRules = Seq(Rule.ExcludePattern("scala\\.*"))
     }

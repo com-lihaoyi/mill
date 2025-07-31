@@ -13,8 +13,8 @@ def merge[T](
     node: Node[T]
 ): Tree[Node[Option[T]]] =
   dirs match
-    case Nil => tree.copy(node =
-        tree.node.value.fold(node.copy(value = Some(node.value)))(existingProject =>
+    case Nil => tree.copy(root =
+        tree.root.value.fold(node.copy(value = Some(node.value)))(existingProject =>
           throw IllegalArgumentException(
             s"Project at duplicate locations: $existingProject and $node"
           )
@@ -23,7 +23,7 @@ def merge[T](
     case dir :: nextDirs =>
       tree.copy(children = {
         def nextPrefixDirs = prefixDirs :+ dir
-        tree.children.iterator.zipWithIndex.find(_._1.node.dirs.last == dir) match
+        tree.children.iterator.zipWithIndex.find(_._1.root.dirs.last == dir) match
           case Some((childTree, index)) =>
             tree.children.updated(index, merge(childTree, nextPrefixDirs, nextDirs, node))
           case None => tree.children :+ toTree(nextPrefixDirs, nextDirs, node)

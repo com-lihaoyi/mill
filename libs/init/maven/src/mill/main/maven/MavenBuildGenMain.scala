@@ -52,7 +52,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
     val modeler = Modeler(cfg)
     val input = Tree.from(Seq.empty[String]) { dirs =>
       val model = modeler(workspace / dirs)
-      (Node(dirs, model), model.getModules.iterator().asScala.map(dirs :+ _))
+      (Node(dirs, model), model.getModules.iterator().asScala.map(dirs :+ _).toSeq)
     }
 
     convertWriteOut(cfg, cfg.shared.basicConfig, input)
@@ -66,7 +66,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
       baseModule: String,
       packagesSize: Int
   ): IrBaseInfo = {
-    val model = input.node.value
+    val model = input.root.value
     val javacOptions = Plugins.MavenCompilerPlugin.javacOptions(model)
     val scalaVersion = None
     val scalacOptions = None

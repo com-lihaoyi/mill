@@ -28,12 +28,18 @@ object TreeTests extends TestSuite {
         )
       )
 
-    test("BreadthFirst") {
-      assert(tree.nodes(Tree.Traversal.BreadthFirst).toSeq == Seq(50, 25, 10, 5, 2, 5, 5, 2))
+    test("iterator") {
+      assert(tree.iterator.toSeq == Seq(50, 25, 5, 10, 5, 2, 5, 2))
     }
 
-    test("DepthFirst") {
-      assert(tree.nodes(Tree.Traversal.DepthFirst).toSeq == Seq(5, 25, 5, 2, 10, 5, 2, 50))
+    test("map") {
+      assert(tree.map(-_).iterator.toSeq == Seq(-50, -25, -5, -10, -5, -2, -5, -2))
+    }
+
+    test("transform") {
+      assert(tree.transform((i, is) => Tree(-i, is.reverse)).iterator.toSeq == Seq(
+        -50, -2, -5, -10, -2, -5, -25, -5
+      ))
     }
   }
 }

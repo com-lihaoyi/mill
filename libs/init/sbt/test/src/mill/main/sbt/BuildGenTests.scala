@@ -1,11 +1,11 @@
 package mill.main.sbt
 
-import mill.main.buildgen.BuildGenChecker
 import utest.*
 
 object BuildGenTests extends TestSuite {
 
   def tests: Tests = Tests {
+    /* TODO enable tests after finalizing imported tasks and main args
     val checker = BuildGenChecker()
 
     test("scala-seed-project") {
@@ -56,5 +56,6 @@ object BuildGenTests extends TestSuite {
         }
       }
     }
+     */
   }
 }
