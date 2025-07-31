@@ -75,7 +75,7 @@ digraph G {
 
 The typical Android build process is encapsulated in `AndroidAppModule` and `AndroidModule`, including support for manifest merging, resource compilation, dexing, packaging, signing, and device installation.
 
-When you add Hilt to the mix—bringing in code generation and bytecode rewriting—the complexity increases. Supporting this correctly meant understanding how Gradle orchestrates these steps and implementing a Mill idiomatic process that achieves equivalent results in a Mill-idiomatic approach.
+When you add Hilt to the mix—bringing in code generation and bytecode manipulation—the complexity increases. Supporting this correctly meant understanding how Gradle orchestrates these steps and implementing a Mill idiomatic process that achieves equivalent results in a Mill-idiomatic approach.
 
 == Enriching the Mill Toolchain to Support Hilt
 
