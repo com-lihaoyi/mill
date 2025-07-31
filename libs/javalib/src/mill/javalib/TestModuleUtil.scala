@@ -394,7 +394,7 @@ final class TestModuleUtil(
           startingTestClass.foreach(logger.ticker(_))
           // queue.log file will be appended by the runner with the stolen test class's name
           // it can be used to check the order of test classes of the runner
-          val claimLog = claimFolder / "../claim.log"
+          val claimLog = processFolder / "../claim.log"
           os.write.over(claimLog, Array.empty[Byte])
 
           callTestRunnerSubprocess(
@@ -403,7 +403,7 @@ final class TestModuleUtil(
             Right((startingTestClass, testClassQueueFolder, claimFolder)),
             () => {
               val now = System.currentTimeMillis()
-              os.read.lines(processFolder / "claim.log").lastOption.foreach { currentTestClass =>
+              os.read.lines(claimLog).lastOption.foreach { currentTestClass =>
                 testClassTimeMap.putIfAbsent(currentTestClass, now)
                 val last = testClassTimeMap.get(currentTestClass)
                 logger.ticker(s"$currentTestClass${Util.renderSecondsSuffix(now - last)}")
@@ -412,8 +412,7 @@ final class TestModuleUtil(
           )
         }
 
-        val claimedClasses =
-          if (os.exists(processFolder / "claim")) os.list(processFolder / "claim").size else 0
+        val claimedClasses = if (os.exists(claimFolder)) os.list(claimFolder).size else 0
 
         (claimedClasses, groupName, result)
     }
