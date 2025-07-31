@@ -108,9 +108,6 @@ final class TestModuleUtil(
       }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
-    /** If we only have a single group with one test there is no point in running things in parallel. */
-    val parallelismIsUseless =
-      filteredClassLists.sizeIs == 1 && filteredClassLists.forall(_.sizeIs == 1)
     val result = runTestQueueScheduler(filteredClassLists)
 
     result match {
