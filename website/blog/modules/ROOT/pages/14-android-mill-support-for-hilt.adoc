@@ -1,15 +1,20 @@
-= Supporting Android Architectures with Hilt
+= Unlocking Android Hilt Support with Mill
 
 :link-github: https://github.com/com-lihaoyi/mill
 :link-pr: {link-github}/pull
+:link-perm: {link-github}/blob/
 
 // tag::header[]
 :author: Vasilis Nicolaou
-:revdate: 30 July 2025
+:revdate: 31 July 2025
 
 _{author}, {revdate}_#
 
-The development efforts to support Dependency Injection architectures with xref:mill::android/hilt-sample.adoc[Hilt for Android]: Source code generation, Kotlin Symbol Processing and bytecode manipulation!
+Until recently, if you wanted to build Android apps, your only real option was Gradle. Mill, a fast and modular build tool for Scala and Java, now supports Android development, including complex setups like https://developer.android.com/training/dependency-injection/hilt-android[Hilt-based] dependency injection.
+
+While building out Android support in Mill, we tested several complex projects to identify missing pieces. One setup we tested was https://github.com/android/architecture-samples[android-architecture-samples] which uses Hilt, a dependency injection framework that pushes the limits of typical Android build tooling.
+
+This blog post is a deep dive into how we brought full Hilt support to Mill, and what it means for Android developers looking for a faster, simpler, and more transparent alternative to Gradle.
 
 // end::header[]
 
@@ -17,57 +22,89 @@ The development efforts to support Dependency Injection architectures with xref:
 
 With Mill's basic functionality for supporting Android in place, it was vital to start testing more complex
 setups to extend the tool's capabilities. Such an example is https://github.com/android/architecture-samples[Android Architecture Samples].
-The "niche" about this setup is the use of https://developer.android.com/training/dependency-injection/hilt-android[Hilt]
-as the Dependency Injection tool.
 
-=== Hilt
+What makes this example compelling is its use of both Hilt and Jetpack Compose, which pushes the boundaries of Mill's build tooling for Android.
 
-Hilt is built on top of https://developer.android.com/training/dependency-injection/dagger-basics[Dagger]
-which in turn relies on https://kotlinlang.org/docs/ksp-overview.html[Kotlin Symbol Processing]
+=== Why Hilt?
 
-Thus the work required for Mill to support Android, was split into 3 tasks:
+To ensure Mill can support real-world Android apps, we set a high bar: making it possible to build and test the official Android Architecture Samples. These are small but representative apps that cover common development patterns, including:
 
-1. Implement built-in support for KSP in Mill's Kotlin module and create Dagger examples
-for Kotlin.
-2. Setup a Mill equivalent android-architecture-samples as Gradle for compiling, packaging and running the sample Android app
-3. Implement remaining functionality so android tests (instrumented tests) run as well, to prove the DI is working for both main app and androidTest modes.
+1. Kotlin and Java mixed source sets
+2. Dependency Injection with Dagger and Hilt
+3. Jetpack components and Compose
+4. Unit and instrumentation tests
 
-=== Kotlin Symbol Processing (KSP) and Dagger
+The challenge? Hilt's code generation and bytecode transformation are quite dependent on Android Gradle Plugin (AGP). We either needed to re-implement it, or reuse Gradle independent functionality. Luckily,
+we were able to reuse just enough, to create {link-perm}/6351d7f3a29dd272c9393f690a3eb82ffa2b4f41/libs/androidlib/Hilt/src/mill/androidlib/Hilt/AndroidHiltTransformAsm.scala[a small utility tool] that runs inside Mill and does the ASM transformation step.
 
-KSP support, proved to be non-trivial with a few classpath issues along the way. There is a way to https://kotlinlang.org/docs/ksp-command-line.html[run KSP from the command line] but having a rich compiler classpath already, means a lot of things can go wrong, with classpath errors such as Method not found or class not found errors.
+== Android Builds Are Inherently Complex
 
-The most significant error when using the kotlin compiler and the symbol processing api in its Mill equivalent setup had classpath issues:
+Android builds are multi-step and intricate, even for basic apps. Unlike typical JVM builds—which often compile Java/Kotlin sources and then package them, Android introduces additional phases that increase complexity:
+
+- *Resource compilation* (`aapt2`) for XML layouts, drawables, and strings
+- *Manifest merging* for combining manifests from dependencies
+- *DEX bytecode conversion* (via `d8` or `r8`) for the Android runtime
+- *APK packaging* including resource and class merging
+- *Code shrinking and obfuscation* using `r8` or Proguard
+- *Multi-variant handling* for debug, release, and test builds
+- *App signing* with either debug or production keystores
+- *Emulator deployment and test execution* via ADB tools
+
+.Standard Android build pipeline (without Hilt)
+[graphviz]
+....
+digraph G {
+  rankdir=TB
+  node [shape=box width=0 height=0]
+
+  "Java/Kotlin Sources" -> "Compile (Java/Kotlin)"
+  "Resources (res/)" -> "Compile Resources (aapt2)"
+  "AndroidManifest.xml" -> "Manifest Merging"
+  "Manifest Merging" -> "Linked Resources"
+  "Compile Resources (aapt2)" -> "Linked Resources"
+  "Compile (Java/Kotlin)" -> "Compiled Classes"
+  "Linked Resources" -> "Package APK"
+  "Compiled Classes" -> "DEX (d8/r8)"
+  "DEX (d8/r8)" -> "Package APK"
+  "Package APK" -> "Code Shrinking (r8/Proguard)"
+  "Code Shrinking (r8/Proguard)" -> "Sign APK"
+  "Sign APK" -> "Install to Emulator"
+  "Install to Emulator" -> "Run/Test via ADB"
+}
+....
+
+The typical Android build process is encapsulated in `AndroidAppModule` and `AndroidModule`, including support for manifest merging, resource compilation, dexing, packaging, signing, and device installation.
+
+When you add Hilt to the mix—bringing in code generation and bytecode rewriting—the complexity increases. Supporting this correctly meant understanding how Gradle orchestrates these steps and implementing a Mill idiomatic process that achieves equivalent results in a Mill-idiomatic approach.
+
+== Enriching the Mill Toolchain to Support Hilt
+
+=== Kotlin Symbol Processing (KSP)
+
+Mill now runs https://kotlinlang.org/docs/ksp-overview.html[KSP] as a separate step before normal Kotlin compilation. This allows us to support annotation processors like `dagger-compiler` and `hilt-android-compiler`.
+
+To prevent classpath conflicts between the compiler and its plugins (e.g., Guava related packages showing up in both), we use the embeddable Kotlin compiler, just like Gradle does.
+
+=== Hilt Bytecode Transformation (ASM)
+
+Gradle uses https://github.com/google/dagger/tree/b3d3443e3581b8530cd85929614a1765cd37b12c/java/dagger/hilt/android/plugin/main/src/main/kotlin/dagger/hilt/android/plugin[android-hilt-gradle-plugin] to rewrite bytecode at build time so that classes annotated with `@AndroidEntryPoint` or `@HiltAndroidApp` properly extend the generated base classes.
+
+We reused key parts from the plugin and implement the ASM transformation step which is the critical bit that achieves the compile time dependency injection. For example, the bytecode of a component activity annotated with `@AndroidEntryPoint` would look like this with pure compilation:
 
 [source]
 ----
-daemon.MillURLClassLoader @3c676e29; com.google.common.graph.Traverser is in unnamed module of loader java.net.URLClassLoader @29f9a4f4)
-[54]    at com.google.common.graph.Traverser.forTree(Traverser.java:182)
+.method public constructor <init>()V
+    .registers 1
+
+    .line 29
+    invoke-direct {p0}, Landroidx/activity/ComponentActivity;-><init>()V
+
+    .line 28
+    return-void
+.end method
 ----
 
-In order to resolve this, we needed to switch to the https://discuss.kotlinlang.org/t/kotlin-compiler-embeddable-vs-kotlin-compiler/3196[embeddable compiler] .
-
-While symbol-processing-cmdline is compatible with the `kotlin-compiler`, `symbol-processing` is compatible with `kotlin-compiler-embeddable`. If the two are mixed, an error such the below happens:
-
-[source]
-----
-s(com.intellij.mock.MockProject, org.jetbrains.kotlin.config.CompilerConfiguration)' of interface org.jetbrains.kotlin.compiler.plugin.ComponentRegistrar.
-[54]    at org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment$Companion.registerExtensionsFromPlugins$cli_base(KotlinCoreEnvironment.kt:755)
-[54]    at org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment$ProjectEnvironment.registerExtensionsFromPlugins(KotlinCoreEnvironment.kt:194)
-[54]    at org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment$Companion.configureProjectEnvironment(KotlinCoreEnvironment.kt:652)
-[54]    at org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment.<init>(KotlinCoreEnvironment.kt:224)
-[54]    at org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment.<init>(KotlinCoreEnvironment.kt)
-----
-
-Thus, with the work in {link-pr}/4557[#4557] and {link-pr}/4485[#4485] a KSPModule was introduced which by default uses the `kotlin-compiler-embeddable`
-along with the `symbol-processing`.
-
-Part 1 was done, we had now Dagger auto-generating sources to achieve its DI goals!
-
-=== Hilt
-
-Hilt proved to be quite challenging! While up to this point, we were able to reverse engineer Gradle quite effectively, just having the hilt compiler in the classpath and running various stages of compilation, proved not enough! Something was hidden from us!
-
-So we started looking at the bytecode generated! Building the samples with Android Gradle Plugin (AGP) (i.e., via a typical Android Studio setup), was resulting in the compiled TodoActivity to look like this:
+While with the Hilt ASM transformation, it turns into:
 
 [source]
 ----
@@ -81,76 +118,118 @@ So we started looking at the bytecode generated! Building the samples with Andro
 .end method
 ----
 
-While our compilation looked like:
+=== How Hilt Integrates Into the Android Build Pipeline
 
-[source]
-----
-.method public constructor <init>()V
-    .registers 1
+In summary, Hilt introduces two major steps beyond the standard Android build process:
 
-    .line 29
-    invoke-direct {p0}, Landroidx/activity/ComponentActivity;-><init>()V
+1. **Kotlin Symbol Processing (KSP)**: Generates code for dependency injection before normal compilation.
+2. **ASM Bytecode Transformation**: Rewrites compiled classes at the bytecode level to inject runtime logic, similar to what the `android-Hilt-gradle-plugin` does in Gradle.
 
-    .line 28
-    return-void
-.end method#
-----
+These two steps hook directly into the existing pipeline:
 
-Clearly, there was some bytecode manipulation at play which we were missing. At what stage did it happen? And what was the tool that did it?
-
-The dagger plugin for AGP has https://github.com/google/dagger/blob/b3d3443e3581b8530cd85929614a1765cd37b12c/java/dagger/hilt/android/plugin/main/src/main/kotlin/dagger/hilt/android/plugin/transform/AndroidEntryPointClassVisitor.kt#L122[a special ASM adapter], that runs through the classes and re-writes the bytecode when it sees some pre-defined annotations such as `@AndroidEntryPoint`
-and `@HiltAndroidApp` .
-
-We devised an easy way to test, creating a small Java app, not far from the end result which looks like https://github.com/com-lihaoyi/mill/commit/787a791c73f59a6b65d8d72ee5b3a0f675f687c1[this]. We passed the TodoActivity in it, and that was it! Same bytecode was generated!
-
-That was the magical step that complemented all the work done to get the right dependencies and compiler plugins in the right place, and we could run the android-architecture-samples for the first time!
-
-image:blog::hilt_first_success.png[]
-
-=== Android Tests
-
-Of course, the main motivation for any Dependency Injection framework is the Inversion of Control between running tests and the real program. Starting with the unit tests.
-
-The major obstacle was that unit tests had no visibility over internal declarations of the main module, and that came down to improving the out of the box https://kotlinlang.org/api/kotlin-gradle-plugin/kotlin-gradle-plugin-api/org.jetbrains.kotlin.gradle.tasks/-base-kotlin-compile/friend-paths.html[friends path] support provided by Mill.
-
-Other improvements are summarised in this {link-pr}/5169[PR #5169], such as a fix to the previously developed ASM tool, to not drop META-INF directories and their contents.
-
-Finally it was the turn for Android Tests to complete the loop. After trial and error, we dropped building the architecture-samples with D8 and switched to R8 (which is used in the AGP configuration as well). In the work done in {link-pr}/5219[#5219] you can also watch the final result, a video of running the android tests rapidly inside the emulator.
-
-== Connecting Everything Together
-
-The process of binding everything together, is laid out in
-https://github.com/com-lihaoyi/mill/blob/e71de91c46c885c47222b24c23ef38254048d82e/libs/androidlib/src/mill/androidlib/hilt/AndroidHiltSupport.scala[AndroidHiltSupport.scala] and https://github.com/com-lihaoyi/mill/blob/e71de91c46c885c47222b24c23ef38254048d82e/libs/androidlib/src/mill/androidlib/hilt/AndroidHiltTransform.scala[AndroidHiltTransform] , which using Mill's design principles execute the various stages in an Object Oriented Programming hierarchy style as the diagram below:
-
+.Android build pipeline with Hilt integration (KSP and ASM shown in red)
 [graphviz]
 ....
 digraph G {
   rankdir=TB
-  node [shape=box width=0 height=0]
-  "Hilt/Dagger" -> "KSP"
-  "KSP" -> "Generated Sources (Java)"
-  "Generated Sources (Java)" -> "Compile (Java)"
-  "Java Sources" -> "Compile (Java)"
-  "Kotlin Sources" -> "Compile (Kotlin)"
-  "Compile (Java)" -> "Compiled Classes"
-  "Compile (Kotlin)" -> "Compiled Classes"
-  "Compiled Classes" -> "ASM Transform"
-  "ASM Transform" -> "Packageable Classes"
+  node [shape=box width=0 height=0 fontsize=10]
+
+  // Standard Android build steps
+  "Java/Kotlin Sources" -> "Compile (Java/Kotlin)"
+  "Resources (res/)" -> "Compile Resources (aapt2)"
+  "AndroidManifest.xml" -> "Manifest Merging"
+  "Manifest Merging" -> "Linked Resources"
+  "Compile Resources (aapt2)" -> "Linked Resources"
+  "Compile (Java/Kotlin)" -> "Compiled Classes"
+  "Linked Resources" -> "Package APK"
+  "Compiled Classes" -> "DEX (d8/r8)"
+  "DEX (d8/r8)" -> "Package APK"
+  "Package APK" -> "Code Shrinking (r8/Proguard)"
+  "Code Shrinking (r8/Proguard)" -> "Sign APK"
+  "Sign APK" -> "Install to Emulator"
+  "Install to Emulator" -> "Run/Test via ADB"
+
+  // Hilt integration
+  "Java/Kotlin Sources" -> "KSP (Hilt/Dagger)" [color=red fontcolor=red label="Hilt" penwidth=2]
+  "KSP (Hilt/Dagger)" -> "Generated Sources" [color=red penwidth=2]
+  "Generated Sources" -> "Compile (Java/Kotlin)" [color=red penwidth=2]
+
+  "Compiled Classes" -> "ASM Transform (Hilt)" [color=red penwidth=2]
+  "ASM Transform (Hilt)" -> "DEX (d8/r8)" [color=red penwidth=2]
 }
 ....
 
+== It Works: Building Real Android Apps with Hilt in Mill
 
-== Conclusion
+Here's what we can now support:
 
-After a major piece of work, which involved a large portion of the Kotlin Compiler stack, we managed to support:
+- Kotlin + Java mixed source projects
+- Full Hilt/Dagger code generation
+- Bytecode rewriting (ASM) for DI injection
+- Unit tests (with friend-path support)
+- Instrumentation tests on emulators
+- Support for R8, desugaring, and manifest merging
+- androidApplicationId/androidNamespace support
 
-1. KSP for all Kotlin Projects using Mill
-2. Dagger
-3. Android DI codebases using Hilt
-4. Non-trivial builds using R8
-5. Kotlin's friend paths for Android
+We validated all this by successfully building, running, and testing the https://github.com/android/architecture-samples[TODO app] from the Android Architecture Samples repo using Mill.
 
-That was also the moment, at least for us that Android support for Mill started to get real. The complexity was quite high, but getting there increases confidence that Mill would one day support a diverse set of Android codebases!
+.Screenshot: Hilt-enabled TODO app running in an emulator
+image:blog::hilt_first_success.png[]
 
-You can check the full example xref:mill::android/hilt-sample.adoc[here]
+== Try It Yourself
+
+Here's how you can try the exact setup used to validate Mill's Hilt support:
+
+[source,bash]
+----
+git clone git@github.com:android/architecture-samples.git
+cd architecture-samples
+----
+
+Install mill
+
+[source,bash]
+----
+curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2/mill-dist-1.0.2-mill.sh -o mill
+chmod +x mill
+echo "//| mill-version: 1.0.2-3-e42a40" > build.mill
+./mill version
+----
+
+Configure the mill build
+
+[source,bash]
+----
+curl https://raw.githubusercontent.com/com-lihaoyi/mill/6351d7f3a29dd272c9393f690a3eb82ffa2b4f41/example/thirdparty/androidtodo/build.mill >>build.mill
+----
+
+Start the emulator and run the app
+[source,bash]
+----
+./mill show app.createAndroidVirtualDevice
+./mill show app.startAndroidEmulator
+./mill show app.androidInstall
+./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
+----
+
+Run the instrumented tests and watch the app being tested inside the emulator:
+
+[source,bash]
+----
+./mill app.androidTest
+----
+
+.Screenshots: Instrumentation tests running inside emulator via Mill
+image:blog::hilt_test_screen.png[]
+
+image:blog::hilt_test_screen_2.png[]
+
+== Conclusion: A New Option for Android Builds
+
+This wasn't just about making Hilt work! It was about proving that Mill can support real Android development workflows, from build to test to emulator deployment.
+
+We now support fully functional Android applications with Hilt, built using Mill.
+
+If you're frustrated with Gradle's performance or complexity, or just want to try something new, give it a spin. You might be surprised how far you can go with a simple, transparent build tool.
+
 
