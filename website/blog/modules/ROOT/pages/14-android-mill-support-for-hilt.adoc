@@ -180,6 +180,8 @@ image:blog::hilt_first_success.png[]
 
 Here's how you can try the exact setup used to validate Mill's Hilt support:
 
+Get the architecture-samples containing the Todo App.
+
 [source,bash]
 ----
 git clone git@github.com:android/architecture-samples.git
