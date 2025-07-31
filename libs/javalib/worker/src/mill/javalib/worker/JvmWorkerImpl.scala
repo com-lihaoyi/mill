@@ -10,13 +10,12 @@ import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
 import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
-import mill.util.{CachedFactoryWithInitData, Jvm}
+import mill.util.{CachedFactoryWithInitData, HexFormat, Jvm}
 import org.apache.logging.log4j.core.util.NullOutputStream
 import sbt.internal.util.ConsoleOut
 
 import java.io.{BufferedReader, InputStreamReader, PipedInputStream, PipedOutputStream, PrintStream}
 import java.security.MessageDigest
-import java.util.HexFormat
 import scala.concurrent.duration.*
 import scala.jdk.OptionConverters.*
 import scala.util.Using
@@ -100,7 +99,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
 
     def sha256: String = {
       val digest = MessageDigest.getInstance("sha256").digest(debugStr.getBytes("UTF-8"))
-      HexFormat.of().formatHex(digest)
+      HexFormat.bytesToHex(digest)
     }
   }
   private case class SubprocessCacheInitialize(
