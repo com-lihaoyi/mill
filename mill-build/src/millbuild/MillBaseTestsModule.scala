@@ -29,5 +29,5 @@ trait MillBaseTestsModule extends TestModule {
   }
 
   def testFramework = "mill.api.UTestFramework"
-  def testParallelism = true
+  def testParallelism = false
 }
