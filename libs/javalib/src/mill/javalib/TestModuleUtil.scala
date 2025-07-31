@@ -288,10 +288,6 @@ final class TestModuleUtil(
           mill.api.internal.Util.leftPad(groupIndex.toString, maxGroupLength, '0')
         processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)
       } yield {
-
-
-
-
         val paddedProcessIndex =
           mill.api.internal.Util.leftPad(processIndex.toString, maxProcessLength, '0')
 
