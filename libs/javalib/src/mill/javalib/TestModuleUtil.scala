@@ -411,7 +411,7 @@ final class TestModuleUtil(
             () => {
               val now = System.currentTimeMillis()
               os.read.lines(claimLog).lastOption.foreach { currentTestClass =>
-                testClassTimeMp.putIfAbsent(currentTestClass, now)
+                testClassTimeMap.putIfAbsent(currentTestClass, now)
                 val last = testClassTimeMap.get(currentTestClass)
                 logger.ticker(s"$currentTestClass${Util.renderSecondsSuffix(now - last)}")
               }
