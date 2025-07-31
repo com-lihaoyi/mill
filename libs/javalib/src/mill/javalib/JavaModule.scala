@@ -791,7 +791,9 @@ trait JavaModule
 
   /**
    * Path to sources generated as part of the `compile` step, eg.  by Java annotation
-   * processors which often generate source code alongside classfiles during compilation
+   * processors which often generate source code alongside classfiles during compilation.
+   *
+   * Typically these do not need to be compiled again, and are only used by IDEs
    */
   def compileGeneratedSources: T[os.Path] = Task(persistent = true) { Task.dest }
 
