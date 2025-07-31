@@ -76,7 +76,6 @@ trait TestModule
             testClasspath().flatMap(p => Seq("--testCp", p.path.toString())) ++
             Seq("--framework", testFramework()),
         javaHome = javaHome().map(_.path),
-        jvmArgs = discoveryJvmArgs(),
         stdin = os.Inherit,
         stdout = os.Pipe,
         cwd = Task.dest
@@ -90,11 +89,6 @@ trait TestModule
     }
     classes.sorted
   }
-
-  /**
-   * Any Jvm args passed to the [[discoveredTestClasses]]
-   */
-  def discoveryJvmArgs: T[Seq[String]] = Task { Seq.empty }
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the

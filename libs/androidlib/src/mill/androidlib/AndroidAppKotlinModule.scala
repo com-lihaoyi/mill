@@ -63,8 +63,6 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
       super[TestModule].discoveredTestClasses()
     }
 
-    override def discoveryJvmArgs = super.discoveryJvmArgs() ++ testJvmArgs()
-
     /**
      * Screenshot tests cannot be run in parallel for now
      */
