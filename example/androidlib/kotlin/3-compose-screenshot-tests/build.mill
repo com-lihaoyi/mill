@@ -41,7 +41,9 @@ object app extends AndroidAppKotlinModule {
   )
 
   object screenshotTest extends AndroidAppKotlinScreenshotTests {
-
+    // TODO this exists until auto discovery of classes is implemented
+    override def discoveredTestClasses: T[Seq[String]] =
+      Task { Seq("com.example.screenshottest.ExampleMessageCardScreenshots") }
     // TODO this exists until auto discovery of methods is implemented
     override def androidScreenshotTestMethods: Seq[(String, Seq[String])] = Seq(
       "com.example.screenshottest.ExampleMessageCardScreenshots.oMessageCardScreenshot" -> Seq.empty
