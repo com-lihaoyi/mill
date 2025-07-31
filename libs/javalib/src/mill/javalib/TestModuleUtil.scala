@@ -226,13 +226,10 @@ final class TestModuleUtil(
         // it can be used to check the order of test classes of the runner
         val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
         os.write.over(claimLog, Array.empty[Byte])
-        // test runner will log success/failure test class counter here while running
-        val resultPath = base / s"result.log"
-        os.write.over(resultPath, upickle.default.write((0L, 0L)))
 
         val result = callTestRunnerSubprocess(
           base,
-          resultPath,
+          base / s"result.log",
           Right((startingTestClass, testClassQueueFolder, claimFolder)),
           poll
         )
@@ -292,6 +289,9 @@ final class TestModuleUtil(
         processIndex <- 0 until Math.max(Math.min(jobs, numTests), 1)
       } yield {
 
+
+
+
         val paddedProcessIndex =
           mill.api.internal.Util.leftPad(processIndex.toString, maxProcessLength, '0')
 
@@ -300,6 +300,8 @@ final class TestModuleUtil(
           if (testParallelism && filteredClassCount != 1) groupFolder / workerLabel
           else groupFolder
 
+        val resultPath = processFolder / s"result.log"
+        os.write.over(resultPath, upickle.default.write((0L, 0L)), createFolders = true)
         val label =
           if (groupFolderData.size == 1) paddedProcessIndex
           else s"$paddedGroupIndex-$paddedProcessIndex"
