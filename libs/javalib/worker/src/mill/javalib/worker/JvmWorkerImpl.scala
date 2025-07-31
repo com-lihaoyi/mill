@@ -135,8 +135,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
             mainArgs = Seq(daemonDir.toString),
             javaHome = key.javaHome,
             jvmArgs = key.runtimeOptions.options,
-            classPath = classPath,
-            stdout = os.Inherit
+            classPath = classPath
           ).wrapped
       )
       result.failure.toScala.foreach { failure =>
@@ -159,7 +158,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     }
 
     override def teardown(key: SubprocessCacheKey, value: SubprocessCacheValue): Unit = {
-      // TODO review: should we kill the process?
       value.process.destroy()
     }
   }

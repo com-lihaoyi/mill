@@ -313,7 +313,9 @@ abstract class Server(
 
       t.interrupt()
       // Try to give thread a moment to stop before we kill it for real
-      // TODO review: this is only 5ms, should we wait longer?
+      //
+      // We only give it 5ms because it's supposed to be idle at this point and this should
+      // only interrupt the `Thread.sleep` it's sitting on.
       Thread.sleep(5)
       // noinspection ScalaDeprecation
       try t.stop()

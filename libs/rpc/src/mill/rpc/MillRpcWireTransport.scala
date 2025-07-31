@@ -20,6 +20,7 @@ trait MillRpcWireTransport extends AutoCloseable {
 
   /** Helper that reads a message from the wire and tries to parse it, logging along the way. */
   def readAndTryToParse[A: Reader](typeName: String, log: String => Unit): Option[A] = {
+    log(s"Trying to read $typeName")
     read() match {
       case None =>
         log("Transport wire broken.")

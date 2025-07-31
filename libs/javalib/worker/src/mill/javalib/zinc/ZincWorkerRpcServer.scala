@@ -17,12 +17,13 @@ import java.io.PrintStream
 class ZincWorkerRpcServer(
     serverName: String,
     transport: MillRpcWireTransport,
-    setIdle: Server.SetIdle
+    setIdle: Server.SetIdle,
+    writeToLocalLog: String => Unit
 ) extends MillRpcServerImpl[
       ZincWorkerRpcServer.Initialize,
       ZincWorkerRpcServer.ClientToServer,
       ZincWorkerRpcServer.ServerToClient
-    ](serverName, transport) {
+    ](serverName, transport, writeToLocalLog) {
   import ZincWorkerRpcServer.*
 
   override def initialize(

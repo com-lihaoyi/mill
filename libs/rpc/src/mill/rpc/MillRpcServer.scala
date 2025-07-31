@@ -34,7 +34,8 @@ object MillRpcServer {
       ServerToClient <: MillRpcMessage: Writer
   ](
       serverName: String,
-      wireTransport: MillRpcWireTransport
+      wireTransport: MillRpcWireTransport,
+      writeToLocalLog: String => Unit
   )(initializer: (
       Initialize,
       Logger.Actions,
@@ -42,7 +43,7 @@ object MillRpcServer {
       RpcConsole,
       MillRpcChannel[ServerToClient]
   ) => MillRpcChannel[ClientToServer]): MillRpcServer[Initialize, ClientToServer, ServerToClient] =
-    new MillRpcServerImpl[Initialize, ClientToServer, ServerToClient](serverName, wireTransport) {
+    new MillRpcServerImpl[Initialize, ClientToServer, ServerToClient](serverName, wireTransport, writeToLocalLog) {
       override def initialize(
           initialize: Initialize,
           log: Logger.Actions,
@@ -59,16 +60,16 @@ trait MillRpcServerImpl[
     Initialize: Reader,
     ClientToServer <: MillRpcMessage: Reader,
     ServerToClient <: MillRpcMessage: Writer
-](serverName: String, wireTransport: MillRpcWireTransport)
+](serverName: String, wireTransport: MillRpcWireTransport, writeToLocalLog: String => Unit)
     extends MillRpcServer[Initialize, ClientToServer, ServerToClient] {
   @volatile private var initializedOnClientMessage = Option.empty[MillRpcChannel[ClientToServer]]
 
   private val clientLogger =
     RpcLogger.create(message => sendToClient(MillRpcServerToClient.Log(message)))
 
-  private val clientStdout =
+  val clientStdout: RpcConsole =
     RpcConsole.create(msg => sendToClient(MillRpcServerToClient.Stdout(msg)))
-  private val clientStderr =
+  val clientStderr: RpcConsole =
     RpcConsole.create(msg => sendToClient(MillRpcServerToClient.Stderr(msg)))
 
   def run(): Unit = {
@@ -167,7 +168,7 @@ trait MillRpcServerImpl[
 
   /** Logs a message locally in the RPC server. */
   private def logLocal(message: String): Unit = {
-    System.err.println(s"[$serverName] $message")
+    writeToLocalLog(s"[$serverName] $message")
   }
 
   private def createServerToClientChannel(): MillRpcChannel[ServerToClient] = {

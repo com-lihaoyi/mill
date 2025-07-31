@@ -1,5 +1,7 @@
 package mill.javalib.zinc
 
+import mill.api.daemon.{DummyInputStream, DummyOutputStream, SystemStreams}
+import mill.api.SystemStreamsUtils
 import mill.client.lock.Locks
 import mill.rpc.MillRpcWireTransport
 import mill.server.Server
@@ -10,11 +12,16 @@ import scala.util.control.NonFatal
 
 /** Entry point for the Zinc worker subprocess. */
 object ZincWorkerMain {
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = SystemStreamsUtils.withTopLevelSystemStreamProxy {
     args match {
       case Array(daemonDir) =>
         val server: Server =
-          new Server(os.Path(daemonDir), acceptTimeout = None, Locks.files(daemonDir)) {
+          new Server(
+            os.Path(daemonDir),
+            // The worker kills the process when it needs to.
+            acceptTimeout = None,
+            Locks.files(daemonDir)
+          ) {
             override protected type PreHandleConnectionData = Unit
 
             override protected def preHandleConnection(
@@ -40,14 +47,24 @@ object ZincWorkerMain {
               Using.resource(BufferedReader(InputStreamReader(stdin))) { stdin =>
                 val transport = MillRpcWireTransport.ViaStreams(serverName, stdin, stdout)
                 try {
-                  ZincWorkerRpcServer(serverName, transport, setIdle).run()
-                  0
+                  val server = ZincWorkerRpcServer(serverName, transport, setIdle, serverLog)
+
+                  // Make sure stdout and stderr is sent to the client
+                  SystemStreamsUtils.withStreams(SystemStreams(
+                    out = PrintStream(server.clientStdout.asStream),
+                    err = PrintStream(server.clientStderr.asStream),
+                    in = DummyInputStream
+                  )) {
+                    serverLog("server.run() starting")
+                    server.run()
+                    serverLog("server.run() finished")
+                    0
+                  }
                 } catch {
                   case NonFatal(err) =>
                     serverLog(s"$socketInfo failed: $err")
                     1
                 }
-
               }
             }
           }

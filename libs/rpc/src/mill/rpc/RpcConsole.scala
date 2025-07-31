@@ -1,12 +1,20 @@
 package mill.rpc
 
-import java.io.PrintStream
+import java.io.{OutputStream, PrintStream}
+import java.nio.charset.StandardCharsets
 
 /** Messages for simulating a simple console via RPC. */
-trait RpcConsole {
+trait RpcConsole { self =>
   def print(s: String): Unit
   def println(s: String): Unit = print(s + "\n")
   def flush(): Unit
+
+  def asStream: OutputStream = new {
+    override def write(b: Int): Unit = self.print(b.toChar.toString)
+    override def write(b: Array[Byte]): Unit = self.print(String(b, StandardCharsets.UTF_8))
+    override def write(b: Array[Byte], off: Int, len: Int): Unit = self.print(String(b, off, len, StandardCharsets.UTF_8))
+    override def flush(): Unit = self.flush()
+  }
 }
 object RpcConsole {
   enum Message derives upickle.default.ReadWriter {
