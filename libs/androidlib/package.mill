@@ -43,6 +43,11 @@ object `package` extends MillPublishScalaModule with BuildInfo {
       "screenshotValidationJunitEngineVersion",
       Deps.AndroidDeps.screenshotValidationJunitEngine.version,
       "Version of screenshotValidationJunitEngine"
+    ),
+    BuildInfo.Value(
+      "millCmdlineToolsVersion",
+      Deps.AndroidDeps.millCmdlineToolsVersion,
+      "Version of Internal CommandLineTools"
     )
   )
 

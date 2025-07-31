@@ -19,6 +19,8 @@ import java.util.concurrent.Executors
 import mill.api.BuildCtx
 import mill.javalib.testrunner.{GetTestTasksMain, TestArgs, TestResult, TestRunnerUtils}
 
+import scala.concurrent.Future
+
 /**
  * Implementation code used by [[TestModule]] to actually run tests.
  */
@@ -106,14 +108,7 @@ final class TestModuleUtil(
       }
     if (selectors.nonEmpty && filteredClassLists.isEmpty) throw doesNotMatchError
 
-    /** If we only have a single group with one test there is no point in running things in parallel. */
-    val parallelismIsUseless =
-      filteredClassLists.sizeIs == 1 && filteredClassLists.forall(_.sizeIs == 1)
-    val result = if (testParallelism && !parallelismIsUseless) {
-      runTestQueueScheduler(filteredClassLists)
-    } else {
-      runTestDefault(filteredClassLists)
-    }
+    val result = runTestQueueScheduler(filteredClassLists)
 
     result match {
       case Result.Failure(errMsg) => Result.Failure(errMsg)
@@ -181,86 +176,6 @@ final class TestModuleUtil(
       Result.Failure(s"Test reporting Failed: ${outputPath} does not exist")
     else
       Result.Success(upickle.default.read[(String, Seq[TestResult])](ujson.read(outputPath.toIO)))
-  }
-
-  private def runTestDefault(
-      filteredClassLists: Seq[Seq[String]]
-  )(implicit ctx: mill.api.TaskCtx) = {
-
-    def runTestRunnerSubprocess(
-        base: os.Path,
-        testClassList: Seq[String],
-        workerResultSet: java.util.concurrent.ConcurrentMap[os.Path, Unit]
-    ) = {
-      os.makeDir.all(base)
-
-      // test runner will log success/failure test class counter here while running
-      val resultPath = base / s"result.log"
-      os.write.over(resultPath, upickle.default.write((0L, 0L)))
-      workerResultSet.put(resultPath, ())
-
-      callTestRunnerSubprocess(
-        base,
-        resultPath,
-        Left(testClassList)
-      )
-    }
-
-    TestModuleUtil.withTestProgressTickerThread(filteredClassLists.map(_.size).sum) {
-      (_, workerResultSet) =>
-        filteredClassLists match {
-          // When no tests at all are discovered, run at least one test JVM
-          // process to go through the test framework setup/teardown logic
-          case Nil => runTestRunnerSubprocess(Task.dest, Nil, workerResultSet)
-          case Seq(singleTestClassList) =>
-            runTestRunnerSubprocess(Task.dest, singleTestClassList, workerResultSet)
-          case multipleTestClassLists =>
-            val maxLength = multipleTestClassLists.length.toString.length
-            val futures = multipleTestClassLists.zipWithIndex.map { case (testClassList, i) =>
-              val groupPromptMessage = testClassList match {
-                case Seq(single) => single
-                case multiple =>
-                  TestModuleUtil.collapseTestClassNames(
-                    multiple
-                  ).mkString(", ") + s", ${multiple.length} suites"
-              }
-
-              val paddedIndex = mill.api.internal.Util.leftPad(i.toString, maxLength, '0')
-              val folderName = testClassList match {
-                case Seq(single) => single
-                case multiple =>
-                  s"group-$paddedIndex-${multiple.head}"
-              }
-
-              // set priority = -1 to always prioritize test subprocesses over normal Mill
-              // tasks. This minimizes the number of blocked tasks since Mill tasks can be
-              // blocked on test subprocesses, but not vice versa, so better to schedule
-              // the test subprocesses first
-              Task.fork.async(
-                Task.dest / folderName,
-                paddedIndex,
-                groupPromptMessage,
-                priority = -1
-              ) {
-                _ =>
-                  (
-                    folderName,
-                    runTestRunnerSubprocess(Task.dest / folderName, testClassList, workerResultSet)
-                  )
-              }
-            }
-
-            val outputs = Task.fork.awaitAll(futures)
-
-            val (lefts, rights) = outputs.partitionMap {
-              case (name, Result.Failure(v)) => Left(name + " " + v)
-              case (name, Result.Success((msg, results))) => Right((name + " " + msg, results))
-            }
-
-            if (lefts.nonEmpty) Result.Failure(lefts.mkString("\n"))
-            else Result.Success((rights.map(_._1).mkString("\n"), rights.flatMap(_._2)))
-        }
-    }
   }
 
   private def runTestQueueScheduler(
@@ -379,22 +294,32 @@ final class TestModuleUtil(
           val paddedProcessIndex =
             mill.api.internal.Util.leftPad(processIndex.toString, maxProcessLength, '0')
 
-          val processFolder = groupFolder / s"worker-$paddedProcessIndex"
+          val workerLabel = s"worker-$paddedProcessIndex"
+          val processFolder =
+            if (testParallelism && filteredClassCount != 1) groupFolder / workerLabel
+            else groupFolder
 
           val label =
             if (groupFolderData.size == 1) paddedProcessIndex
             else s"$paddedGroupIndex-$paddedProcessIndex"
 
-          Task.fork.async(
-            processFolder,
-            label,
-            "",
-            // With the test queue scheduler, prioritize the *first* test subprocess
-            // over other Mill tasks via `priority = -1`, but de-prioritize the others
-            // increasingly according to their processIndex. This should help Mill
-            // use fewer longer-lived test subprocesses, minimizing JVM startup overhead
-            priority = if (processIndex == 0) -1 else processIndex
-          ) {
+          def fork[T](block: Logger => T): Future[T] = {
+            if (testParallelism && filteredClassCount != 1) {
+              Task.fork.async(
+                processFolder,
+                label,
+                workerLabel,
+                // With the test queue scheduler, prioritize the *first* test subprocess
+                // over other Mill tasks via `priority = -1`, but de-prioritize the others
+                // increasingly according to their processIndex. This should help Mill
+                // use fewer longer-lived test subprocesses, minimizing JVM startup overhead
+                priority = if (processIndex == 0) -1 else processIndex
+              ) {
+                block
+              }
+            } else Future.successful(block(ctx.log))
+          }
+          fork {
             logger =>
               val result = runTestRunnerSubprocess(
                 processFolder,

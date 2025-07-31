@@ -33,9 +33,12 @@ object TestRunnerScalatestTests extends TestSuite {
           Seq("mill.scalalib.ScalaTestSpec"),
           3, {
             val results = Set(
+              "claim",
+              "claim.log",
               "out.json",
               "result.log",
               "sandbox",
+              "test-classes",
               "test-report.xml",
               "testargs"
             )
@@ -56,9 +59,12 @@ object TestRunnerScalatestTests extends TestSuite {
           9,
           Map(
             testrunner.scalatest -> Set(
+              "claim",
+              "claim.log",
               "out.json",
               "result.log",
               "sandbox",
+              "test-classes",
               "test-report.xml",
               "testargs"
             ),
@@ -91,9 +97,12 @@ object TestRunnerScalatestTests extends TestSuite {
           3,
           Map(
             testrunner.scalatest -> Set(
+              "claim",
+              "claim.log",
               "out.json",
               "result.log",
               "sandbox",
+              "test-classes",
               "test-report.xml",
               "testargs"
             ),

@@ -153,11 +153,11 @@ jobs:
 
           - java-version: 17
             millargs: "'example.androidlib.__.local.daemon'"
-            install-android-sdk: true
+            setup-android: true
 
           - java-version: 17
             millargs: "'example.thirdparty[android-compose-samples].packaged.daemon'"
-            install-android-sdk: true
+            setup-android: true
 
           - java-version: 24
             millargs: "'example.migrating.scalalib.__.local.daemon'"
@@ -188,7 +188,7 @@ jobs:
 
     uses: ./.github/workflows/post-build-selective.yml
     with:
-      install-android-sdk: ${{ matrix.install-android-sdk || false }}
+      setup-android: ${{ matrix.setup-android || false }}
       install-sbt: ${{ matrix.install-sbt || false }}
       install-xvfb: ${{ matrix.install-xvfb || false }}
       java-version: ${{ matrix.java-version }}
