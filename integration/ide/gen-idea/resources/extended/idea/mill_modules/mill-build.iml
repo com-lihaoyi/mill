@@ -81,8 +81,8 @@
         <orderEntry type="library" name="mill-moduledefs_3-0.11.10.jar" level="project"/>
         <orderEntry type="library" name="munit_3-0.7.29.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="native-terminal-no-ffm-0.0.9.1.jar" level="project"/>
-        <orderEntry type="library" name="os-lib_3-0.11.5-M10.jar" level="project"/>
-        <orderEntry type="library" name="os-zip-0.11.5-M10.jar" level="project"/>
+        <orderEntry type="library" name="os-lib_3-0.11.5.jar" level="project"/>
+        <orderEntry type="library" name="os-zip-0.11.5.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-archiver-4.10.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-classworlds-2.6.0.jar" level="project"/>
         <orderEntry type="library" scope="RUNTIME" name="plexus-container-default-2.1.1.jar" level="project"/>
