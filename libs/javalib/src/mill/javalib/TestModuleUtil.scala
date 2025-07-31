@@ -394,7 +394,7 @@ final class TestModuleUtil(
           startingTestClass.foreach(logger.ticker(_))
           // queue.log file will be appended by the runner with the stolen test class's name
           // it can be used to check the order of test classes of the runner
-          val claimLog = processFolder / "../claim.log"
+          val claimLog = processFolder / "claim.log"
           os.write.over(claimLog, Array.empty[Byte])
 
           callTestRunnerSubprocess(
