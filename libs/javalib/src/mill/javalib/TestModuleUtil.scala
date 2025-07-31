@@ -205,6 +205,9 @@ final class TestModuleUtil(
       val claimFolder = base / "claim"
       os.makeDir.all(claimFolder)
 
+      // Make sure we can claim at least one test class to start before we spawn the
+      // subprocess, because creating JVM subprocesses are expensive and we don't want
+      // to spawn one if there is nothing for it to do
       val startingTestClass = os
         .list
         .stream(testClassQueueFolder)
@@ -213,13 +216,13 @@ final class TestModuleUtil(
 
       if (force || startingTestClass.nonEmpty) {
         startingTestClass.foreach(logger.ticker(_))
-        // queue.log file will be appended by the runner with the stolen test class's name
+        // claim.log file will be appended by the runner with the stolen test class's name
         // it can be used to check the order of test classes of the runner
-        val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
+        val claimLog = claimFolder / "../claim.log"
         os.write.over(claimLog, Array.empty[Byte])
         workerStatusMap.put(claimLog, logger.ticker)
         // test runner will log success/failure test class counter here while running
-        val resultPath = base / s"result.log"
+        val resultPath = base / "result.log"
         os.write.over(resultPath, upickle.default.write((0L, 0L)))
         workerResultSet.put(resultPath, ())
 
