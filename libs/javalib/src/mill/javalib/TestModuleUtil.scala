@@ -320,7 +320,7 @@ final class TestModuleUtil(
               ) {
                 block
               }
-            }else Future.successful(block(ctx.log))
+            } else Future.successful(block(ctx.log))
           }
           fork {
             logger =>
