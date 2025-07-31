@@ -43,7 +43,11 @@ object MillRpcServer {
       RpcConsole,
       MillRpcChannel[ServerToClient]
   ) => MillRpcChannel[ClientToServer]): MillRpcServer[Initialize, ClientToServer, ServerToClient] =
-    new MillRpcServerImpl[Initialize, ClientToServer, ServerToClient](serverName, wireTransport, writeToLocalLog) {
+    new MillRpcServerImpl[Initialize, ClientToServer, ServerToClient](
+      serverName,
+      wireTransport,
+      writeToLocalLog
+    ) {
       override def initialize(
           initialize: Initialize,
           log: Logger.Actions,

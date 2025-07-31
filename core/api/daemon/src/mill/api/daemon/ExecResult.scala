@@ -59,13 +59,13 @@ object ExecResult {
 
   /**
    * A failed task execution.
-   * 
+   *
    * @tparam T The result type of the computed task.
    */
   sealed trait Failing[+T] extends ExecResult[T] {
     def map[V](f: T => V): Failing[V]
     def flatMap[V](f: T => ExecResult[V]): Failing[V]
-    
+
     override def asFailing: Option[ExecResult.Failing[T]] = Some(this)
     def throwException: Nothing = this match {
       case f: ExecResult.Failure[?] => throw new Result.Exception(f.msg)
@@ -75,7 +75,7 @@ object ExecResult {
 
   /**
    * An intentional failure, which provides a proper error message as well as an optional result value.
-   * 
+   *
    * @param msg The error message.
    * @tparam T The result type of the computed task.
    */

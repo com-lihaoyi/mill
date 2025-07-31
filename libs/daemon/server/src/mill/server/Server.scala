@@ -235,7 +235,9 @@ abstract class Server(
         true
       } catch {
         case NonFatal(err) =>
-          serverLog(s"error sending heartbeat, client seems to be dead: $err\n\n${err.getStackTrace.mkString("\n")}")
+          serverLog(
+            s"error sending heartbeat, client seems to be dead: $err\n\n${err.getStackTrace.mkString("\n")}"
+          )
           false
       }
     }

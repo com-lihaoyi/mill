@@ -64,8 +64,8 @@ object JavaHomeTests extends TestSuite {
           val Left(failing) = result: @unchecked
           failing match {
             case _: ExecResult.Failure[?]
-                 // javadoc fails with a process error code 1
-                 | ExecResult.Exception(_: os.SubprocessException, _) =>
+                // javadoc fails with a process error code 1
+                | ExecResult.Exception(_: os.SubprocessException, _) =>
               errors.foreach(error => assert(stderr.contains(error)))
             case _ =>
               failing.throwException

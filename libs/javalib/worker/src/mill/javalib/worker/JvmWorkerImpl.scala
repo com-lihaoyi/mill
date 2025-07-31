@@ -104,7 +104,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     }
   }
   private case class SubprocessCacheInitialize(
-      taskDest: os.Path,
+      taskDest: os.Path
   )
   private case class SubprocessCacheValue(port: Int, process: Process)
   private val subprocessCache = new CachedFactoryWithInitData[
@@ -197,35 +197,43 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       ) { case SubprocessCacheValue(port, _) =>
         Using.Manager { use =>
           val startTimeMillis = System.currentTimeMillis()
-          val socket = use(ServerLauncher.connectToServer(startTimeMillis, 5.seconds.toMillis.toInt, port))
+          val socket =
+            use(ServerLauncher.connectToServer(startTimeMillis, 5.seconds.toMillis.toInt, port))
           val stdin = use(PipedInputStream())
           val stdout = use(PipedOutputStream())
           val streams = ServerLauncher.Streams(
-            stdin, stdout,
+            stdin,
+            stdout,
             // stderr stream is not used in this case
             NullOutputStream.getInstance()
           )
-          ServerLauncher.runWithConnection(socket, streams, /* closeConnectionAfterCommand */ true, _ => {
-            val serverToClient = use(BufferedReader(InputStreamReader(PipedInputStream(stdout))))
-            val clientToServer = use(PrintStream(PipedOutputStream(stdin)))
-            val wireTransport = MillRpcWireTransport.ViaStreams(
-              s"TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}", serverToClient, clientToServer
-            )
+          ServerLauncher.runWithConnection(
+            socket,
+            streams, /* closeConnectionAfterCommand */ true,
+            _ => {
+              val serverToClient = use(BufferedReader(InputStreamReader(PipedInputStream(stdout))))
+              val clientToServer = use(PrintStream(PipedOutputStream(stdin)))
+              val wireTransport = MillRpcWireTransport.ViaStreams(
+                s"TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}",
+                serverToClient,
+                clientToServer
+              )
 
-            val init = ZincWorkerRpcServer.Initialize(
-              compilerBridgeWorkspace = compilerBridge.workspace,
-              jobs = jobs,
-              compileToJar = compileToJar,
-              zincLogDebug = zincLogDebug
-            )
-            val client = MillRpcClient.create[
-              ZincWorkerRpcServer.Initialize,
-              ZincWorkerRpcServer.ClientToServer,
-              ZincWorkerRpcServer.ServerToClient
-            ](init, wireTransport, log)(handler)
+              val init = ZincWorkerRpcServer.Initialize(
+                compilerBridgeWorkspace = compilerBridge.workspace,
+                jobs = jobs,
+                compileToJar = compileToJar,
+                zincLogDebug = zincLogDebug
+              )
+              val client = MillRpcClient.create[
+                ZincWorkerRpcServer.Initialize,
+                ZincWorkerRpcServer.ClientToServer,
+                ZincWorkerRpcServer.ServerToClient
+              ](init, wireTransport, log)(handler)
 
-            f(client)
-          }).result
+              f(client)
+            }
+          ).result
         }.get
       }
     }

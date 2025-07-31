@@ -1,6 +1,6 @@
 package mill.javalib.zinc
 
-import mill.api.daemon.{DummyInputStream, DummyOutputStream, SystemStreams}
+import mill.api.daemon.{DummyInputStream, SystemStreams}
 import mill.api.SystemStreamsUtils
 import mill.client.lock.Locks
 import mill.rpc.MillRpcWireTransport

@@ -8,7 +8,7 @@ public class ServerLaunchFailure {
 
   /// The stderr of the failed server (if any).
   public final Optional<String> stderr;
-  
+
   /// The process that died.
   public final Process deadProcess;
 

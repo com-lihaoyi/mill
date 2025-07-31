@@ -46,7 +46,11 @@ object MillRpcTests extends TestSuite {
       initializeRef: Ref[Option[Initialize]],
       messagesRef: Ref[Vector[ReceivedServerMessage]]
   ) =
-    MillRpcServer.create[Initialize, ClientToServer, ServerToClient]("testServer", transport, Console.err.println) {
+    MillRpcServer.create[Initialize, ClientToServer, ServerToClient](
+      "testServer",
+      transport,
+      Console.err.println
+    ) {
       (initialize, log, stdout, stderr, serverToClient) =>
         log.info("info from server")
         log.debug("debug from server")

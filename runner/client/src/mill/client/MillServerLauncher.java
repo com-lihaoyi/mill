@@ -1,11 +1,10 @@
 package mill.client;
 
-import mill.client.lock.Locks;
-import mill.constants.Util;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import mill.client.lock.Locks;
+import mill.constants.Util;
 
 /// Mill daemon specific {@link ServerLauncher}.
 public abstract class MillServerLauncher extends ServerLauncher {
@@ -15,12 +14,13 @@ public abstract class MillServerLauncher extends ServerLauncher {
   final String[] args;
   final Locks memoryLock;
   final int forceFailureForTestingMillisDelay;
+
   public MillServerLauncher(
-    Streams streams,
-    Map<String, String> env,
-    String[] args,
-    Locks memoryLock,
-    int forceFailureForTestingMillisDelay) {
+      Streams streams,
+      Map<String, String> env,
+      String[] args,
+      Locks memoryLock,
+      int forceFailureForTestingMillisDelay) {
     this.streams = streams;
     this.env = env;
     this.args = args;
@@ -47,21 +47,23 @@ public abstract class MillServerLauncher extends ServerLauncher {
     prepareDaemonDir(daemonDir);
 
     var initData = new ClientInitData(
-      /* interactive */ Util.hasConsole(),
-      BuildInfo.millVersion,
-      javaHome,
-      args,
-      env,
-      ClientUtil.getUserSetProperties());
+        /* interactive */ Util.hasConsole(),
+        BuildInfo.millVersion,
+        javaHome,
+        args,
+        env,
+        ClientUtil.getUserSetProperties());
     var locks = memoryLock != null ? memoryLock : Locks.files(daemonDir.toString());
 
     try (var connection = launchOrConnectToServer(
-      locks, daemonDir, serverInitWaitMillis, () -> initServer(daemonDir, memoryLock),
-      failure -> {
-        System.err.println(failure.debugString());
-        System.exit(1);
-      }
-    )) {
+        locks,
+        daemonDir,
+        serverInitWaitMillis,
+        () -> initServer(daemonDir, memoryLock),
+        failure -> {
+          System.err.println(failure.debugString());
+          System.exit(1);
+        })) {
       var result = runWithConnection(connection, streams, false, rawServerStdin -> {
         initData.write(rawServerStdin);
         forceTestFailure(daemonDir);

@@ -12,7 +12,8 @@ trait RpcConsole { self =>
   def asStream: OutputStream = new {
     override def write(b: Int): Unit = self.print(b.toChar.toString)
     override def write(b: Array[Byte]): Unit = self.print(String(b, StandardCharsets.UTF_8))
-    override def write(b: Array[Byte], off: Int, len: Int): Unit = self.print(String(b, off, len, StandardCharsets.UTF_8))
+    override def write(b: Array[Byte], off: Int, len: Int): Unit =
+      self.print(String(b, off, len, StandardCharsets.UTF_8))
     override def flush(): Unit = self.flush()
   }
 }

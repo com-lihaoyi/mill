@@ -842,7 +842,10 @@ trait JavaModule
       os.makeDir.all(compileGenSources)
     }
 
-    val jOpts = JavaCompilerOptions(Seq("-s", compileGenSources.toString) ++ javacOptions() ++ mandatoryJavacOptions())
+    val jOpts = JavaCompilerOptions(Seq(
+      "-s",
+      compileGenSources.toString
+    ) ++ javacOptions() ++ mandatoryJavacOptions())
 
     jvmWorker()
       .internalWorker()
