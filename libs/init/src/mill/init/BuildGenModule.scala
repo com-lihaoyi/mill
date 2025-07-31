@@ -19,7 +19,11 @@ trait BuildGenModule extends CoursierModule with DefaultTaskModule {
 
   def buildGenMainClass: T[String]
 
-  def buildGenScalafmtConfig: T[PathRef] = PathRef(mill.init.Util.scalafmtConfigFile)
+  def buildGenScalafmtConfig: T[PathRef] = Task {
+    val out = Task.dest / ".scalafmt.conf"
+    os.write(out, mill.init.Util.scalafmtConfigContent)
+    PathRef(out)
+  }
 
   def init(args: String*): Command[Unit] = Task.Command(exclusive = true) {
     val root = moduleDir
