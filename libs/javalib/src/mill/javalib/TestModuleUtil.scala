@@ -48,8 +48,7 @@ final class TestModuleUtil(
     propagateEnv: Boolean = true
 )(implicit ctx: mill.api.TaskCtx) {
 
-  private val (jvmArgs, props: Map[String, String]) =
-    TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
+  private val (jvmArgs, props) = TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
 
   private val testRunnerClasspathArg = scalalibClasspath
     .map(_.path.toNIO.toUri.toURL)
@@ -122,7 +121,7 @@ final class TestModuleUtil(
     }
   }
 
-  private def callTestRunnerSubprocess(
+  def callTestRunnerSubprocess(
       baseFolder: os.Path,
       resultPath: os.Path,
       // either:
@@ -240,7 +239,7 @@ final class TestModuleUtil(
     (cappedJobs, cappedJobs.toString.length)
   }
 
-  private def runTestQueueScheduler(
+  def runTestQueueScheduler(
       filteredClassLists: Seq[Seq[String]]
   )(implicit ctx: mill.api.TaskCtx) = {
 
@@ -354,7 +353,7 @@ final class TestModuleUtil(
     subprocessResult
   }
 
-  private def spawnSingleTestProcess(
+  def spawnSingleTestProcess(
       filteredClassCount: Int,
       groupFolderData: Seq[(Path, Path, Int)],
       groupFolder: Path,
@@ -427,7 +426,7 @@ final class TestModuleUtil(
 
 private[mill] object TestModuleUtil {
 
-  private def loadArgsAndProps(useArgsFile: Boolean, forkArgs: Seq[String]) = {
+  def loadArgsAndProps(useArgsFile: Boolean, forkArgs: Seq[String]): (Seq[String], Map[String, String]) = {
     if (useArgsFile) {
       val (props, jvmArgs) = forkArgs.partition(_.startsWith("-D"))
       val sysProps =
@@ -549,7 +548,7 @@ private[mill] object TestModuleUtil {
     if (results0.nonEmpty) Some(xml) else None
   }
 
-  private def formatTimestamp(timestamp: Instant): String = {
+  def formatTimestamp(timestamp: Instant): String = {
     DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(
       LocalDateTime.ofInstant(
         timestamp.truncatedTo(ChronoUnit.SECONDS),
@@ -558,7 +557,7 @@ private[mill] object TestModuleUtil {
     )
   }
 
-  private def testCaseStatus(e: TestResult): Option[Elem] = {
+  def testCaseStatus(e: TestResult): Option[Elem] = {
     val trace: String = e.exceptionTrace.map(stackTraceTrace =>
       stackTraceTrace.map(t =>
         s"${t.getClassName}.${t.getMethodName}(${t.getFileName}:${t.getLineNumber})"
