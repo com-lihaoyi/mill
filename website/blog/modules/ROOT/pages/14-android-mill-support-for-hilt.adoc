@@ -123,7 +123,7 @@ While with the Hilt ASM transformation, it turns into:
 In summary, Hilt introduces two major steps beyond the standard Android build process:
 
 1. **Kotlin Symbol Processing (KSP)**: Generates code for dependency injection before normal compilation.
-2. **ASM Bytecode Transformation**: Rewrites compiled classes at the bytecode level to inject runtime logic, similar to what the `android-Hilt-gradle-plugin` does in Gradle.
+2. **ASM Bytecode Transformation**: Rewrites compiled classes at the bytecode level to inject runtime logic, similar to what the `android-hilt-gradle-plugin` does in Gradle.
 
 These two steps hook directly into the existing pipeline:
 
