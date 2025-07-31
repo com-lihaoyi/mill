@@ -291,7 +291,7 @@ final class TestModuleUtil(
       )
     }) {
       val allResultsOpt =
-        // Don't crash if the result.log file is malformed, just try again
+        // Don't crash if a result.log file is malformed, just try again
         // since that might happen transiently during a write
         try {
           Some(subprocessFutures.map(_._1 / "result.log").map(p =>
