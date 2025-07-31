@@ -170,7 +170,7 @@ object BspServerTestUtil {
         "Mill Integration",
         BuildInfo.millVersion,
         b.Bsp4j.PROTOCOL_VERSION,
-        workspacePath.toNIO.toUri.toASCIIString,
+        workspacePath.toURI.toASCIIString,
         new b.BuildClientCapabilities(List("java", "scala", "kotlin").asJava)
       )
       // Tell Mill BSP we want semanticdbs
@@ -221,11 +221,11 @@ object BspServerTestUtil {
       javaVersion: String = sys.props("java.version")
   ): Seq[(String, String)] =
     Seq(
-      workspacePath.toNIO.toUri.toASCIIString.stripSuffix("/") -> "file:///workspace",
-      coursierCache.toNIO.toUri.toASCIIString -> "file:///coursier-cache/",
-      millWorkspace.toNIO.toUri.toASCIIString -> "file:///mill-workspace/",
-      javaHome.toNIO.toUri.toASCIIString.stripSuffix("/") -> "file:///java-home",
-      os.home.toNIO.toUri.toASCIIString.stripSuffix("/") -> "file:///user-home",
+      workspacePath.toURI.toASCIIString.stripSuffix("/") -> "file:///workspace",
+      coursierCache.toURI.toASCIIString -> "file:///coursier-cache/",
+      millWorkspace.toURI.toASCIIString -> "file:///mill-workspace/",
+      javaHome.toURI.toASCIIString.stripSuffix("/") -> "file:///java-home",
+      os.home.toURI.toASCIIString.stripSuffix("/") -> "file:///user-home",
       ("\"" + javaVersion + "\"") -> "\"<java-version>\"",
       workspacePath.toString -> "/workspace",
       coursierCache.toString -> "/coursier-cache",

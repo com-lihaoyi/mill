@@ -340,7 +340,7 @@ trait ScalaJSModule extends scalalib.ScalaModule with ScalaJSModuleApi { outer =
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JS,
-        jars = scalaCompilerClasspath().iterator.map(_.path.toNIO.toUri.toString).toSeq,
+        jars = scalaCompilerClasspath().iterator.map(_.path.toURI.toString).toSeq,
         jvmBuildTarget = None
       )
     ))

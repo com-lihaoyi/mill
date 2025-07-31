@@ -124,7 +124,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
 
     // Zinc isn't outputting any help with `-help` options, so we ask the compiler directly
     val cp = scalaCompilerClasspath()
-    Using.resource(ScalaClassLoader.fromURLs(cp.toSeq.map(_.path.toNIO.toUri().toURL()))) { cl =>
+    Using.resource(ScalaClassLoader.fromURLs(cp.toSeq.map(_.path.toURL))) { cl =>
       def handleResult(trueIsSuccess: Boolean): PartialFunction[Any, Result[Unit]] = {
         val ok = Result.Success(())
         val fail = Result.Failure("The compiler exited with errors (exit code 1)")
@@ -584,7 +584,7 @@ trait ScalaModule extends JavaModule with TestModule.ScalaModuleBase
         scalaVersion = scalaVersion(),
         scalaBinaryVersion = JvmWorkerUtil.scalaBinaryVersion(scalaVersion()),
         platform = ScalaPlatform.JVM,
-        jars = scalaCompilerClasspath().map(_.path.toNIO.toUri.toString).iterator.toSeq,
+        jars = scalaCompilerClasspath().map(_.path.toURI.toString).iterator.toSeq,
         jvmBuildTarget = Some(bspJvmBuildTargetTask())
       )
     ))
