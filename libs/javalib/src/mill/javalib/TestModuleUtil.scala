@@ -291,15 +291,15 @@ final class TestModuleUtil(
       )
     }) {
       val allResultsOpt =
+        // Don't crash if the result.log file is malformed, just try again
+        // since that might happen transiently during a write
         try {
-          // Don't crash if the result.log file is malformed, just try again
-          // since that might happen transiently during a write
           Some(subprocessFutures.map(_._1 / "result.log").map(p =>
             upickle.default.read[(Long, Long)](os.read.stream(p))
           ))
         } catch { case _: Exception => None }
-      for (allResults <- allResultsOpt) {
 
+      for (allResults <- allResultsOpt) {
         val totalSuccess = allResults.map(_._1).sum
         val totalFailure = allResults.map(_._2).sum
         val totalClassCount = filteredClassCount
@@ -411,7 +411,7 @@ final class TestModuleUtil(
             () => {
               val now = System.currentTimeMillis()
               os.read.lines(claimLog).lastOption.foreach { currentTestClass =>
-                testClassTimeMap.putIfAbsent(currentTestClass, now)
+                testClassTimeMp.putIfAbsent(currentTestClass, now)
                 val last = testClassTimeMap.get(currentTestClass)
                 logger.ticker(s"$currentTestClass${Util.renderSecondsSuffix(now - last)}")
               }
