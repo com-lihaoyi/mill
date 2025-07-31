@@ -374,21 +374,20 @@ final class TestModuleUtil(
 
     processFolder -> fork {
       logger =>
-
         val testClassTimeMap = new ConcurrentHashMap[String, Long]()
 
         val claimFolder = processFolder / "claim"
         os.makeDir.all(claimFolder)
 
-        val startingTestClass =
-          try {
-            os.list
-              .stream(testClassQueueFolder)
-              .map(TestRunnerUtils.claimFile(_, claimFolder))
-              .collectFirst { case Some(name) => name }
-          } catch {
-            case _: Throwable => None
-          }
+        // Make sure we can claim at least one test class to start before we spawn the
+        // subprocess, because creating JVM subprocesses are expensive and we don't want
+        // to spawn one if there is nothing for it to do
+        val startingTestClass = os
+          .list
+          .stream(testClassQueueFolder)
+          .map(TestRunnerUtils.claimFile(_, claimFolder))
+          .collectFirst { case Some(name) => name }
+
         // force run when processIndex == 0 (first subprocess), even if there are no tests to run
         // to force the process to go through the test framework setup/teardown logic
         val result = Option.when(processIndex == 0 || startingTestClass.nonEmpty) {
