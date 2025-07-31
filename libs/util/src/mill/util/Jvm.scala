@@ -346,7 +346,7 @@ object Jvm {
       jar = jar,
       inputPaths = Seq(),
       manifest = JarManifest.MillDefault.add(
-        "Class-Path" -> classpath.iterator.map(_.toNIO.toUri().toURL().toExternalForm()).mkString(
+        "Class-Path" -> classpath.iterator.map(_.toURL.toExternalForm()).mkString(
           " "
         )
       ),
@@ -671,7 +671,7 @@ object Jvm {
         .flatMap(_.split(File.pathSeparator).toSeq)
         .filter(_.nonEmpty)
         .map { path =>
-          MavenRepository(os.Path(path).toNIO.toUri.toASCIIString)
+          MavenRepository(os.Path(path).toURI.toASCIIString)
             .withCheckModule(checkGradleModules)
         }
 

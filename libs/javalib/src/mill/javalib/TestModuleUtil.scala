@@ -51,7 +51,7 @@ final class TestModuleUtil(
   private val (jvmArgs, props) = TestModuleUtil.loadArgsAndProps(useArgsFile, forkArgs)
 
   private val testRunnerClasspathArg = scalalibClasspath
-    .map(_.path.toNIO.toUri.toURL)
+    .map(_.path.toURL)
     .mkString(",")
 
   def runTests(): Result[(msg: String, results: Seq[TestResult])] = {

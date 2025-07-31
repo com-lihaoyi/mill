@@ -582,7 +582,7 @@ object BomTests extends TestSuite {
         )
       )
       .addRepositories(
-        coursierapi.IvyRepository.of(localIvyRepo.toNIO.toUri.toASCIIString + "[defaultPattern]")
+        coursierapi.IvyRepository.of(localIvyRepo.toURI.toASCIIString + "[defaultPattern]")
       )
       .withResolutionParams {
         val defaultParams = coursierapi.ResolutionParams.create()
@@ -618,7 +618,7 @@ object BomTests extends TestSuite {
         )
       )
       .addRepositories(
-        coursierapi.MavenRepository.of(localM2Repo.toNIO.toUri.toASCIIString)
+        coursierapi.MavenRepository.of(localM2Repo.toURI.toASCIIString)
       )
       .fetch()
       .asScala

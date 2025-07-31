@@ -1428,7 +1428,7 @@ trait JavaModule
   def sanitizeUri(uri: String): String =
     if (uri.endsWith("/")) sanitizeUri(uri.substring(0, uri.length - 1)) else uri
 
-  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toNIO.toUri.toString)
+  def sanitizeUri(uri: os.Path): String = sanitizeUri(uri.toURI.toString)
 
   def sanitizeUri(uri: PathRef): String = sanitizeUri(uri.path)
 
