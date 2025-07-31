@@ -11,9 +11,10 @@ import mill.javalib.zinc.ZincWorkerRpcServer.ReporterMode
 import mill.javalib.zinc.{ZincApi, ZincWorker, ZincWorkerRpcServer}
 import mill.rpc.{MillRpcChannel, MillRpcClient, MillRpcWireTransport}
 import mill.util.{CachedFactoryWithInitData, Jvm}
+import org.apache.logging.log4j.core.util.NullOutputStream
 import sbt.internal.util.ConsoleOut
 
-import java.io.{BufferedReader, InputStreamReader, PrintStream}
+import java.io.{BufferedReader, InputStreamReader, PipedInputStream, PipedOutputStream, PrintStream}
 import java.security.MessageDigest
 import java.util.HexFormat
 import scala.concurrent.duration.*
@@ -104,10 +105,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
   }
   private case class SubprocessCacheInitialize(
       taskDest: os.Path,
-//      zincRpcServerInit: ZincWorkerRpcServer.Initialize,
-//      handler: MillRpcChannel[ZincWorkerRpcServer.ServerToClient]
   )
-  private case class SubprocessCacheValue(port: Int)
+  private case class SubprocessCacheValue(port: Int, process: Process)
   private val subprocessCache = new CachedFactoryWithInitData[
     SubprocessCacheKey,
     SubprocessCacheInitialize,
@@ -127,7 +126,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       val locks = Locks.files(daemonDir.toString)
       val mainClass = "mill.javalib.zinc.ZincWorkerMain"
 
-      ServerLauncher.ensureServerIsRunning(
+      val result = ServerLauncher.ensureServerIsRunning(
         locks,
         daemonDir.toNIO,
         () =>
@@ -139,7 +138,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
             classPath = classPath,
             stdout = os.Inherit
           ).wrapped
-      ).toScala.foreach { failure =>
+      )
+      result.failure.toScala.foreach { failure =>
         throw Exception(
           s"""Failed to launch '$mainClass' for:
              |  javaHome = ${key.javaHome}
@@ -147,7 +147,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
              |  daemonDir = $daemonDir
              |
              |Failure:
-             |${failure.debugString}
+             |${failure.debugString()}
              |""".stripMargin
         )
       }
@@ -155,11 +155,12 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       val serverInitWaitMillis = 5.seconds.toMillis.toInt
       val startTime = System.currentTimeMillis
       val port = ServerLauncher.readServerPort(daemonDir.toNIO, startTime, serverInitWaitMillis)
-      SubprocessCacheValue(port)
+      SubprocessCacheValue(port, result.process)
     }
 
     override def teardown(key: SubprocessCacheKey, value: SubprocessCacheValue): Unit = {
       // TODO review: should we kill the process?
+      value.process.destroy()
     }
   }
 
@@ -194,30 +195,39 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         : R = {
       subprocessCache.withValue(
         cacheKey,
-        SubprocessCacheInitialize(ctx.dest)
-      ) { case SubprocessCacheValue(port) =>
+        SubprocessCacheInitialize(compilerBridge.workspace)
+      ) { case SubprocessCacheValue(port, _) =>
         Using.Manager { use =>
           val startTimeMillis = System.currentTimeMillis()
           val socket = use(ServerLauncher.connectToServer(startTimeMillis, 5.seconds.toMillis.toInt, port))
-          val stdin = use(BufferedReader(InputStreamReader(socket.getInputStream)))
-          val stdout = use(PrintStream(socket.getOutputStream))
-          val wireTransport = MillRpcWireTransport.ViaStreams(
-            s"TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}", stdin, stdout
+          val stdin = use(PipedInputStream())
+          val stdout = use(PipedOutputStream())
+          val streams = ServerLauncher.Streams(
+            stdin, stdout,
+            // stderr stream is not used in this case
+            NullOutputStream.getInstance()
           )
+          ServerLauncher.runWithConnection(socket, streams, /* closeConnectionAfterCommand */ true, _ => {
+            val serverToClient = use(BufferedReader(InputStreamReader(PipedInputStream(stdout))))
+            val clientToServer = use(PrintStream(PipedOutputStream(stdin)))
+            val wireTransport = MillRpcWireTransport.ViaStreams(
+              s"TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}", serverToClient, clientToServer
+            )
 
-          val init = ZincWorkerRpcServer.Initialize(
-            compilerBridgeWorkspace = compilerBridge.workspace,
-            jobs = jobs,
-            compileToJar = compileToJar,
-            zincLogDebug = zincLogDebug
-          )
-          val client = MillRpcClient.create[
-            ZincWorkerRpcServer.Initialize,
-            ZincWorkerRpcServer.ClientToServer,
-            ZincWorkerRpcServer.ServerToClient
-          ](init, wireTransport, log)(handler)
+            val init = ZincWorkerRpcServer.Initialize(
+              compilerBridgeWorkspace = compilerBridge.workspace,
+              jobs = jobs,
+              compileToJar = compileToJar,
+              zincLogDebug = zincLogDebug
+            )
+            val client = MillRpcClient.create[
+              ZincWorkerRpcServer.Initialize,
+              ZincWorkerRpcServer.ClientToServer,
+              ZincWorkerRpcServer.ServerToClient
+            ](init, wireTransport, log)(handler)
 
-          f(client)
+            f(client)
+          }).result
         }.get
       }
     }

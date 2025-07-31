@@ -62,11 +62,12 @@ public abstract class MillServerLauncher extends ServerLauncher {
         System.exit(1);
       }
     )) {
-      var exitCode = runWithConnection(connection, streams, rawServerStdin -> {
+      var result = runWithConnection(connection, streams, false, rawServerStdin -> {
         initData.write(rawServerStdin);
         forceTestFailure(daemonDir);
+        return null;
       });
-      return new Result(exitCode, daemonDir);
+      return new Result(result.exitCode, daemonDir);
     }
   }
 

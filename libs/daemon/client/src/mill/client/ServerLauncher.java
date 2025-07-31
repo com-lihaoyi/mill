@@ -40,24 +40,35 @@ import java.util.function.Supplier;
 ///   - Wait for `ProxyStream.END` packet or `clientSocket.close()`,
 ///     indicating server has finished execution and all data has been received
 public abstract class ServerLauncher {
-  final int serverInitWaitMillis = 10000;
+  public static class RunWithConnectionResult<A> {
+    public final A result;
+
+    public final int exitCode;
+
+    public RunWithConnectionResult(A result, int exitCode) {
+      this.result = result;
+      this.exitCode = exitCode;
+    }
+  }
 
   /// Run a client logic with an connection established to a Mill server
-  /// (via {@link ServerLauncher#launchOrConnectToServer}).
+  /// (via {@link ServerLauncher#connectToServer}).
   ///
   /// @param connection     the socket connected to the server
   /// @param streams        streams to use for the client logic
+  /// @param closeConnectionAfterClientLogic whether to close the connection after running the client logic
   /// @param runClientLogic the client logic to run
   /// @return the exit code that the server sent back
-  public static int runWithConnection(
-    Socket connection, Streams streams, RunClientLogic runClientLogic
+  public static <A> RunWithConnectionResult<A> runWithConnection(
+    Socket connection, Streams streams, boolean closeConnectionAfterClientLogic, RunClientLogic<A> runClientLogic
   ) throws Exception {
     var socketInputStream = connection.getInputStream();
     var socketOutputStream = connection.getOutputStream();
     var pumperThread = startStreamPumpers(socketInputStream, socketOutputStream, streams);
-    runClientLogic.run(socketOutputStream);
+    var result = runClientLogic.run(socketOutputStream);
+    if (closeConnectionAfterClientLogic) socketInputStream.close();
     pumperThread.join();
-    return pumperThread.exitCode();
+    return new RunWithConnectionResult<>(result, pumperThread.exitCode());
   }
 
   /**
@@ -73,8 +84,8 @@ public abstract class ServerLauncher {
     Locks locks, Path daemonDir, int serverInitWaitMillis, InitServer initServer,
     Consumer<ServerLaunchFailure> onFailure
   ) throws Exception {
-    var maybeFailure = ensureServerIsRunning(locks, daemonDir, initServer);
-    maybeFailure.ifPresent(onFailure);
+    var result = ensureServerIsRunning(locks, daemonDir, initServer);
+    result.failure.ifPresent(onFailure);
 
     var startTime = System.currentTimeMillis();
     var port = readServerPort(daemonDir, startTime, serverInitWaitMillis);
@@ -92,6 +103,9 @@ public abstract class ServerLauncher {
     );
   }
 
+  /// Connects to the Mill server at the given port.
+  ///
+  /// @return a socket that should then be used with {@link ServerLauncher#runWithConnection}
   public static Socket connectToServer(long startTimeMillis, int serverInitWaitMillis, int port) throws Exception {
     return withTimeout(startTimeMillis, serverInitWaitMillis, "Failed to connect to server", () -> {
       try {
@@ -130,9 +144,8 @@ public abstract class ServerLauncher {
    * @param locks      the locks to use for coordination
    * @param daemonDir  the directory where the server will write its port
    * @param initServer the function to use to start the server
-   * @return an {@link Optional} containing a {@link ServerLaunchFailure} if the server failed to start
    */
-  public static Optional<ServerLaunchFailure> ensureServerIsRunning(
+  public static ServerLaunchResult ensureServerIsRunning(
     Locks locks, Path daemonDir, InitServer initServer
   ) throws Exception {
     Files.createDirectories(daemonDir);
@@ -153,15 +166,18 @@ public abstract class ServerLauncher {
           Optional<String> stderrStr = Optional.empty();
           if (Files.exists(stderr) && Files.size(stderr) > 0) stderrStr = Optional.of(Files.readString(stderr));
 
-          return Optional.of(new ServerLaunchFailure(stdoutStr, stderrStr, daemonProcess));
+          return new ServerLaunchResult(
+            daemonProcess,
+            Optional.of(new ServerLaunchFailure(stdoutStr, stderrStr, daemonProcess))
+          );
         }
 
         //noinspection BusyWait
         Thread.sleep(1);
       }
-    }
 
-    return Optional.empty();
+      return new ServerLaunchResult(daemonProcess, Optional.empty());
+    }
   }
 
   /**
@@ -172,7 +188,8 @@ public abstract class ServerLauncher {
    * @return a PumperThread that processes the output/error streams from the server
    */
   static PumperThread startStreamPumpers(
-    InputStream socketInputStream, OutputStream socketOutputStream, Streams streams) {
+    InputStream socketInputStream, OutputStream socketOutputStream, Streams streams
+  ) {
     var outPumper = new ProxyStream.Pumper(socketInputStream, streams.stdout, streams.stderr);
     var inPump = new InputPumper(() -> streams.stdin, () -> socketOutputStream, true);
     var outPumperThread = new PumperThread(outPumper, "outPump");
@@ -191,14 +208,14 @@ public abstract class ServerLauncher {
     Process init() throws Exception;
   }
 
-  public interface RunClientLogic {
+  public interface RunClientLogic<A> {
     /**
      * Runs the client logic.
      *
      * @param rawServerStdin raw access to the server's stdin, you should only use this if you know what you're doing,
      *                       use {@link Streams} to communicate with the server instead.
      */
-    void run(OutputStream rawServerStdin) throws Exception;
+    A run(OutputStream rawServerStdin) throws Exception;
   }
 
   public static class Result {

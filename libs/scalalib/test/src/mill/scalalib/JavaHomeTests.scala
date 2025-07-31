@@ -48,6 +48,7 @@ object JavaHomeTests extends TestSuite {
           eval =>
             val result = eval.apply(task)
             val stderr = errStream.toString()
+//            println("STDERR: " + stderr)
             f(result, stderr)
         }
       }
@@ -60,7 +61,7 @@ object JavaHomeTests extends TestSuite {
 
       def testFailure(module: TestRootModule, task: Task[?], errors: String*): Unit = {
         captureOutput(module, task) { (result, stderr) =>
-          val Left(_) = result: @unchecked
+          val Left(_: ExecResult.Failure[?]) = result: @unchecked
           errors.foreach(error => assert(stderr.contains(error)))
         }
       }

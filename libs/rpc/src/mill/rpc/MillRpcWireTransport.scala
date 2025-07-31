@@ -96,18 +96,22 @@ object MillRpcWireTransport {
     }
   }
 
-  class ViaStreams(override val name: String, in: BufferedReader, out: PrintStream)
+  /**
+   * @param serverToClient server to client stream
+   * @param clientToServer client to server stream
+   */
+  class ViaStreams(override val name: String, serverToClient: BufferedReader, clientToServer: PrintStream)
       extends MillRpcWireTransport {
-    override def read(): Option[String] = Option(in.readLine())
+    override def read(): Option[String] = Option(serverToClient.readLine())
 
     override def write(message: String): Unit = {
-      out.println(message)
-      out.flush()
+      clientToServer.println(message)
+      clientToServer.flush()
     }
 
     override def close(): Unit = {
-      in.close()
-      out.close()
+      serverToClient.close()
+      clientToServer.close()
     }
   }
 }

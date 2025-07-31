@@ -234,7 +234,9 @@ abstract class Server(
         ProxyStream.sendHeartbeat(currentOutErr)
         true
       } catch {
-        case NonFatal(_) => false
+        case NonFatal(err) =>
+          serverLog(s"error sending heartbeat, client seems to be dead: $err\n\n${err.getStackTrace.mkString("\n")}")
+          false
       }
     }
 
@@ -311,6 +313,7 @@ abstract class Server(
 
       t.interrupt()
       // Try to give thread a moment to stop before we kill it for real
+      // TODO review: this is only 5ms, should we wait longer?
       Thread.sleep(5)
       // noinspection ScalaDeprecation
       try t.stop()
