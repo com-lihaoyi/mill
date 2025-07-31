@@ -15,7 +15,7 @@ import scala.xml.Elem
 import scala.collection.mutable
 import mill.api.Logger
 
-import java.util.concurrent.{ConcurrentHashMap, Executors}
+import java.util.concurrent.ConcurrentHashMap
 import mill.api.BuildCtx
 import mill.javalib.testrunner.{GetTestTasksMain, TestArgs, TestResult, TestRunnerUtils}
 import os.Path
