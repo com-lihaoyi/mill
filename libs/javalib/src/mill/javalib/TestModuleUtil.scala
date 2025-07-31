@@ -205,16 +205,11 @@ final class TestModuleUtil(
       val claimFolder = base / "claim"
       os.makeDir.all(claimFolder)
 
-      val startingTestClass =
-        try {
-          os
-            .list
-            .stream(testClassQueueFolder)
-            .map(TestRunnerUtils.claimFile(_, claimFolder))
-            .collectFirst { case Some(name) => name }
-        } catch {
-          case _: Throwable => None
-        }
+      val startingTestClass = os
+        .list
+        .stream(testClassQueueFolder)
+        .map(TestRunnerUtils.claimFile(_, claimFolder))
+        .collectFirst { case Some(name) => name }
 
       if (force || startingTestClass.nonEmpty) {
         startingTestClass.foreach(logger.ticker(_))
