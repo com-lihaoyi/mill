@@ -836,7 +836,7 @@ trait JavaModule
     // Prepare an empty `compileGeneratedSources` folder for java annotation processors
     // to write generated sources into, that can then be picked up by IDEs like IntelliJ
     val compileGenSources = compileGeneratedSources()
-    mill.api.BuildCtx.withFilesystemCheckerDisabled{
+    mill.api.BuildCtx.withFilesystemCheckerDisabled {
       os.remove.all(compileGenSources)
       os.makeDir.all(compileGenSources)
     }
