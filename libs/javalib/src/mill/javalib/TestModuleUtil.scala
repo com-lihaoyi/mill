@@ -290,15 +290,20 @@ final class TestModuleUtil(
           subprocessFutures.forall(_._2.isCompleted)
       )
     }) {
-      val allResults = subprocessFutures.map(_._1 / "result.log").map(p =>
-        upickle.default.read[(Long, Long)](os.read.stream(p))
-      )
-      val totalSuccess = allResults.map(_._1).sum
-      val totalFailure = allResults.map(_._2).sum
-      val totalClassCount = filteredClassCount
-      ctx.log.ticker(s"${totalSuccess + totalFailure}/$totalClassCount completed${
-          if totalFailure > 0 then s", $totalFailure failures." else "."
-        }")
+      val allResultsOpt =
+        try {
+          Some(subprocessFutures.map(_._1 / "result.log").map(p =>
+            upickle.default.read[(Long, Long)](os.read.stream(p))
+          ))
+        } catch { case _: Exception => None }
+      for (allResults <- allResultsOpt) {
+
+        val totalSuccess = allResults.map(_._1).sum
+        val totalFailure = allResults.map(_._2).sum
+        val totalClassCount = filteredClassCount
+        val failureSuffix = if totalFailure > 0 then s", $totalFailure failures" else ""
+        ctx.log.ticker(s"${totalSuccess + totalFailure}/$totalClassCount completed$failureSuffix.")
+      }
       Thread.sleep(10)
     }
   }
