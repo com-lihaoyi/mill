@@ -18,6 +18,8 @@ case class SbtBuildGenMainArgs(
 object SbtBuildGenMain {
 
   def main(args: Array[String]): Unit = {
+    println("converting sbt build")
+
     val args0 = mainargs.ParserForClass[SbtBuildGenMainArgs].constructOrExit(args.toSeq)
     import args0.{getClass as _, *}
 
