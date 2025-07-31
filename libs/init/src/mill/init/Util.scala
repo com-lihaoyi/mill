@@ -8,6 +8,11 @@ object Util {
       """version = "3.8.4"
         |runner.dialect = scala213
         |newlines.source=fold
+        |newlines.topLevelStatementBlankLines = [
+        |  {
+        |    blanks { before = 1 }
+        |  }
+        |]
         |""".stripMargin
     )
 
