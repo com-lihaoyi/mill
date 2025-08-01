@@ -13,6 +13,29 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+[#0-12-15]
+=== 0.12.15 - 2025-08-01
+:version: 0.12.15
+:milestone-name: 0.12.15
+:milestone: 116
+:prev-version: 0.12.14
+
+* Fixes incorrect parsing of `PublishInfo` from string when artifact id or
+  version contains regex-sensitive characters ({link-pr}/5599[#5599])
+
+* Use system calls to get terminal size on Linux / Mac ({link-pr}/4497[#4497])
+
+* Support Snapshot handling in `SonatypeCentralPublishModule/publishAll`
+  ({link-pr}/5542[#5542], {link-pr}/5541[#5541], {link-pr}/5576[#5576])
+
+* Support `nativeServiceProviders` in `ScalaNativeModule` ({link-pr}/4744[#4744])
+
+* Fix -D property passing with graal native launcher ({link-pr}/5442[#5442])
+
+* Fix `./mill init` example download in 0.12.x ({link-pr}/5333[#5333])
+
+
+
 [#0-12-14]
 === 0.12.14 - 2025-05-20
 :version: 0.12.14
