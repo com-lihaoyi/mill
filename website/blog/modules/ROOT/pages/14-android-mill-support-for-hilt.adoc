@@ -36,12 +36,7 @@ Mill to build android projects using:
 
 To try and extend Mill's featureset to cover more real-world Android projects, we tried using
 Mill to build the https://github.com/android/architecture-samples[Android Architecture Samples].
-These are small but representative apps that cover common development patterns, including:
-
-1. Kotlin and Java mixed source sets
-2. Dependency Injection with Dagger and Hilt
-3. Jetpack components and Compose
-4. Unit and instrumentation tests
+These are small but representative apps that cover common development patterns.
 
 Android builds are multi-step and intricate, even for basic apps. Unlike typical JVM builds—
 which often compile Java/Kotlin sources and then package them, Android introduces additional
