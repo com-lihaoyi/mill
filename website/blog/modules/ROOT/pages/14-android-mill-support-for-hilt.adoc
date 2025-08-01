@@ -1,4 +1,4 @@
-= Unlocking Android Hilt Support with Mill
+= Building Non-Trivial Android Apps with the Mill Build Tool
 
 :link-github: https://github.com/com-lihaoyi/mill
 :link-pr: {link-github}/pull
@@ -10,36 +10,42 @@
 
 _{author}, {revdate}_#
 
-Until recently, if you wanted to build Android apps, your only real option was Gradle. Mill, a fast and modular build tool for Scala and Java, now supports Android development, including complex setups like https://developer.android.com/training/dependency-injection/hilt-android[Hilt-based] dependency injection.
+Traditionally Gradle was the only tool available for building Android apps, but nowadays
+Mill - a faster build tool for Java projects - also now supports Android development.
+While working on Android support in Mill, we tested several complex projects to identify
+missing pieces, such as the https://github.com/android/architecture-samples[android-architecture-samples].
+One requirement we found was support for Hilt, a dependency injection framework that pushes
+the limits of typical Android build tooling.
 
-While building out Android support in Mill, we tested several complex projects to identify missing pieces. One setup we tested was https://github.com/android/architecture-samples[android-architecture-samples] which uses Hilt, a dependency injection framework that pushes the limits of typical Android build tooling.
-
-This blog post is a deep dive into how we brought full Hilt support to Mill, and what it means for Android developers looking for a faster, simpler, and more transparent alternative to Gradle.
+This blog post is a deep dive into how we brought full Hilt support to Mill, and what it
+means for Android developers looking for a faster, simpler, and more transparent
+alternative to Gradle.
 
 // end::header[]
 
 == Introduction
 
-With Mill's basic functionality for supporting Android in place, it was vital to start testing more complex
-setups to extend the tool's capabilities. Such an example is https://github.com/android/architecture-samples[Android Architecture Samples].
+With Mill's basic functionality for supporting Android in place, you could already use
+Mill to build android projects using:
 
-What makes this example compelling is its use of both Hilt and Jetpack Compose, which pushes the boundaries of Mill's build tooling for Android.
+- Kotlin + Java mixed source projects
+- Unit tests (with friend-path support)
+- Instrumentation tests on emulators
+- R8, desugaring, and manifest merging
+- androidApplicationId/androidNamespace support
 
-=== Why Hilt?
-
-To ensure Mill can support real-world Android apps, we set a high bar: making it possible to build and test the official Android Architecture Samples. These are small but representative apps that cover common development patterns, including:
+To try and extend Mill's featureset to cover more real-world Android projects, we tried using
+Mill to build the https://github.com/android/architecture-samples[Android Architecture Samples].
+These are small but representative apps that cover common development patterns, including:
 
 1. Kotlin and Java mixed source sets
 2. Dependency Injection with Dagger and Hilt
 3. Jetpack components and Compose
 4. Unit and instrumentation tests
 
-The challenge? Hilt's code generation and bytecode transformation are quite dependent on Android Gradle Plugin (AGP). We either needed to re-implement it, or reuse Gradle independent functionality. Luckily,
-we were able to reuse just enough, to create {link-perm}/6351d7f3a29dd272c9393f690a3eb82ffa2b4f41/libs/androidlib/Hilt/src/mill/androidlib/Hilt/AndroidHiltTransformAsm.scala[a small utility tool] that runs inside Mill and does the ASM transformation step.
-
-== Android Builds Are Inherently Complex
-
-Android builds are multi-step and intricate, even for basic apps. Unlike typical JVM builds—which often compile Java/Kotlin sources and then package them, Android introduces additional phases that increase complexity:
+Android builds are multi-step and intricate, even for basic apps. Unlike typical JVM builds—
+which often compile Java/Kotlin sources and then package them, Android introduces additional
+phases that increase complexity:
 
 - *Resource compilation* (`aapt2`) for XML layouts, drawables, and strings
 - *Manifest merging* for combining manifests from dependencies
@@ -49,6 +55,8 @@ Android builds are multi-step and intricate, even for basic apps. Unlike typical
 - *Multi-variant handling* for debug, release, and test builds
 - *App signing* with either debug or production keystores
 - *Emulator deployment and test execution* via ADB tools
+
+Visualized as a pipeline, it looks something like this:
 
 .Standard Android build pipeline (without Hilt)
 [graphviz]
@@ -73,23 +81,44 @@ digraph G {
 }
 ....
 
-The typical Android build process is encapsulated in `AndroidAppModule` and `AndroidModule`, including support for manifest merging, resource compilation, dexing, packaging, signing, and device installation.
+The typical Android build process is encapsulated in
+https://mill-build.org/api/latest/mill/androidlib/AndroidAppModule.html[AndroidAppModule] and
+https://mill-build.org/api/latest/mill/androidlib/AndroidModule.html[AndroidModule],
+including support for manifest merging, resource compilation, dexing, packaging, signing, and
+device installation.
 
-When you add Hilt to the mix—bringing in code generation and bytecode manipulation—the complexity increases. Supporting this correctly meant understanding how Gradle orchestrates these steps and implementing a Mill idiomatic process that achieves equivalent results in a Mill-idiomatic approach.
+The most challenging part of Android tooling not listed above is https://developer.android.com/training/dependency-injection/hilt-android[Hilt],
+a popular dependency injection framework in the Android ecosystem. Hilt is not just another library,
+but also contains a code generation and bytecode transformation system, implemented
+as part of the Android Gradle Plugin.
 
 == Enriching the Mill Toolchain to Support Hilt
 
+The Hilt framework, apart from normal library code, has two other components:
+
 === Kotlin Symbol Processing (KSP)
 
-Mill now runs https://kotlinlang.org/docs/ksp-overview.html[KSP] as a separate step before normal Kotlin compilation. This allows us to support annotation processors like `dagger-compiler` and `hilt-android-compiler`.
+https://kotlinlang.org/docs/ksp-overview.html[Kotlin Symbol Processing] is an API
+used to develop Kotlin compiler plugins. KSP is relatively new, although Mill supported
+Kotlin projects in the past (e.g.
+https://mill-build.org/mill/kotlinlib/web-examples.html[Websites with Ktor or KotlinJS])
+it did not have KSP support built in yet.
 
-To prevent classpath conflicts between the compiler and its plugins (e.g., Guava related packages showing up in both), we use the embeddable Kotlin compiler, just like Gradle does.
+We implemented KSP support in Mill to support Android projects using Hilt, and run
+it as a separate step before normal Kotlin compilation. This allows us to support
+annotation processors like `dagger-compiler` and `hilt-android-compiler`.
+
+To prevent classpath conflicts between the compiler and its plugins (e.g., Guava related
+packages showing up in both), we use the embeddable Kotlin compiler, just like Gradle does.
 
 === Hilt Bytecode Transformation (ASM)
 
-Gradle uses https://github.com/google/dagger/tree/b3d3443e3581b8530cd85929614a1765cd37b12c/java/dagger/hilt/android/plugin/main/src/main/kotlin/dagger/hilt/android/plugin[android-hilt-gradle-plugin] to rewrite bytecode at build time so that classes annotated with `@AndroidEntryPoint` or `@HiltAndroidApp` properly extend the generated base classes.
+Apart from the KSP compiler plugins, Hilt also relies on bytecode-transformation logic. Gradle uses
+https://github.com/google/dagger/tree/b3d3443e3581b8530cd85929614a1765cd37b12c/java/dagger/hilt/android/plugin/main/src/main/kotlin/dagger/hilt/android/plugin[android-hilt-gradle-plugin]
+to rewrite bytecode at build time so that classes annotated with `@AndroidEntryPoint`
+or `@HiltAndroidApp` properly extend the generated base classes.
 
-We reused key parts from the plugin and implement the ASM transformation step which is the critical bit that achieves the compile time dependency injection. For example, the bytecode of a component activity annotated with `@AndroidEntryPoint` would look like this with pure compilation:
+For example, the bytecode of a component activity annotated with `@AndroidEntryPoint` would look like this with pure compilation:
 
 [source]
 ----
@@ -118,14 +147,16 @@ While with the Hilt ASM transformation, it turns into:
 .end method
 ----
 
+We were able to integrate this bytecode-transformation logic in Mill
+in {link-perm}/6351d7f3a29dd272c9393f690a3eb82ffa2b4f41/libs/androidlib/Hilt/src/mill/androidlib/Hilt/AndroidHiltTransformAsm.scala[AndroidHiltTransformAsm],
+that runs inside Mill and does the ASM transformation step.
+This re-uses the main logic from the Gradle Android plugin from the plugin and implements
+the ASM transformation step needed to make Hilt work in Mill.
+
 === How Hilt Integrates Into the Android Build Pipeline
 
-In summary, Hilt introduces two major steps beyond the standard Android build process:
-
-1. **Kotlin Symbol Processing (KSP)**: Generates code for dependency injection before normal compilation.
-2. **ASM Bytecode Transformation**: Rewrites compiled classes at the bytecode level to inject runtime logic, similar to what the `android-hilt-gradle-plugin` does in Gradle.
-
-These two steps hook directly into the existing pipeline:
+These two steps of KSP and bytecode-transformation are implemented in Mill as
+steps in the existing pipeline:
 
 .Android build pipeline with Hilt integration (KSP and ASM shown in red)
 [graphviz]
@@ -159,19 +190,15 @@ digraph G {
 }
 ....
 
+This allows it to fit nicely into Mill's build pipelines, so the steps are automatically
+cached where possible, and automatially invalidated and re-run where necessary.
+
 == It Works: Building Real Android Apps with Hilt in Mill
 
-Here's what we can now support:
-
-- Kotlin + Java mixed source projects
-- Full Hilt/Dagger code generation
-- Bytecode rewriting (ASM) for DI injection
-- Unit tests (with friend-path support)
-- Instrumentation tests on emulators
-- Support for R8, desugaring, and manifest merging
-- androidApplicationId/androidNamespace support
-
-We validated all this by successfully building, running, and testing the https://github.com/android/architecture-samples[TODO app] from the Android Architecture Samples repo using Mill.
+Now that the Mill build tool supports KSP compiler plugins and Hilt/Dagger
+bytecode rewriting, we can now successfully build, run, and test the
+https://github.com/android/architecture-samples[TODO app] from the Android Architecture Samples
+repo using Mill.
 
 .Screenshot: Hilt-enabled TODO app running in an emulator
 image:blog::hilt_first_success.png[]
@@ -228,10 +255,15 @@ image:blog::hilt_test_screen_2.png[]
 
 == Conclusion: A New Option for Android Builds
 
-This wasn't just about making Hilt work! It was about proving that Mill can support real Android development workflows, from build to test to emulator deployment.
+This blog post explores some of the interesting technical challenges of building Android
+projects with the Mill build tool. We explored the shape of an Android build pipeline,
+and did a deep dive into one particular tooling feature - Hilt framework support - and how
+we ported it to Mill
 
-We now support fully functional Android applications with Hilt, built using Mill.
+From the screenshots above you can see that Mill's support for Android projects is complete
+enough to use for real Android projects, from build to test to emulator deployment. This
+includes more advanced frameworks like KSP, Hilt, and others.
 
-If you're frustrated with Gradle's performance or complexity, or just want to try something new, give it a spin. You might be surprised how far you can go with a simple, transparent build tool.
-
-
+If you're frustrated with Gradle's performance or complexity, you should definitely try using
+Mill to build your Android apps! You might be surprised how far you can go with a simple,
+transparent build tool.
