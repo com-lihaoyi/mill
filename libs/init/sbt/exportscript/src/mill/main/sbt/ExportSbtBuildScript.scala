@@ -1,8 +1,8 @@
 package mill.main.sbt
 
-import mill.main.buildgen._
 import _root_.sbt._
 import _root_.sbt.std.TaskExtra
+import mill.main.buildgen._
 
 import scala.util.Using
 
@@ -11,24 +11,24 @@ object ExportSbtBuildScript extends (State => State) {
 
   val millInitExportArgs = settingKey[(File, String)]("")
   val millInitExport = taskKey[Unit]("")
-  val millInitModule = taskKey[SbtModule]("")
+  val millInitModule = taskKey[SbtModuleRepr]("")
   // https://github.com/portable-scala/sbt-crossproject/
   val crossProjectBaseDirectory = settingKey[File]("base directory of the current cross project")
 
   def apply(state: State) = {
     val extracted = Project.extract(state)
     import extracted._
-    val sessionSettings = inScope(GlobalScope)(millInitExport := exportModules.value) ++
+    val sessionSettings = inScope(GlobalScope)(millInitExport := exportTask.value) ++
       structure.allProjectRefs.flatMap(ref =>
         Project.transform(
           Scope.resolveScope(Scope(Select(ref), Zero, Zero, Zero), ref.build, rootProject),
-          Seq(millInitModule := module.value)
+          Seq(millInitModule := moduleTask.value)
         )
       )
     BuiltinCommands.reapply(session.appendRaw(sessionSettings), structure, state)
   }
 
-  def exportModules = Def.taskDyn {
+  def exportTask = Def.taskDyn {
     val out = os.Path(millInitExportArgs.value._1)
     val state = Keys.state.value
     val structure = Project.structure(state)
@@ -44,7 +44,7 @@ object ExportSbtBuildScript extends (State => State) {
     }
   }
 
-  def module = Def.taskDyn {
+  def moduleTask = Def.taskDyn {
     val testModuleName = millInitExportArgs.value._2
     val project = Keys.thisProject.value
     val mvnDependencies = Keys.libraryDependencies.value.filterNot(dep =>
@@ -66,9 +66,9 @@ object ExportSbtBuildScript extends (State => State) {
           val platform = crossVersion match {
             case v: librarymanagement.Full if v.prefix.nonEmpty => "::"
             case v: librarymanagement.Binary if v.prefix.nonEmpty => "::"
-            case v: librarymanagement.For2_13Use3 if v.prefix.nonEmpty => "_3" + "::"
+            case v: librarymanagement.For2_13Use3 if v.prefix.nonEmpty => "_3::"
             case _: librarymanagement.For2_13Use3 => "_3:"
-            case v: librarymanagement.For3Use2_13 if v.prefix.nonEmpty => "_2.13" + "::"
+            case v: librarymanagement.For3Use2_13 if v.prefix.nonEmpty => "_2.13::"
             case _: librarymanagement.For3Use2_13 => "_2.13:"
             case v: librarymanagement.Constant if v.value.nonEmpty => "_" + v.value + ":"
             case _ => ":"
@@ -104,7 +104,6 @@ object ExportSbtBuildScript extends (State => State) {
       .orElse( // crossProjectBaseDirectory was added in v1.3.0
         if (baseDir.last.matches("""^[.]?(js|jvm|native)$""")) Some(baseDir / os.up) else None)
     val moduleDir = crossPlatformBaseDir.getOrElse(baseDir)
-    val mandatoryScalacOptions = Seq("-scalajs")
 
     Def.task {
       val mainConfigs = Seq(
@@ -123,8 +122,9 @@ object ExportSbtBuildScript extends (State => State) {
       ).flatten ++ Seq(
         ScalaModuleConfig(
           scalaVersion = if (isCrossScalaVersion) "" else Keys.scalaVersion.value,
-          scalacOptions =
-            Keys.scalacOptions.value.filterNot(_.startsWith("-P")).diff(mandatoryScalacOptions),
+          scalacOptions = Keys.scalacOptions.value.filterNot(option =>
+            option.startsWith("-P") || option == "-scalajs"
+          ),
           scalacPluginMvnDeps = mvnDeps(_.contains("plugin->default(compile)"))
         ),
         JavaModuleConfig(
@@ -200,7 +200,7 @@ object ExportSbtBuildScript extends (State => State) {
           ))
         else Nil
 
-      SbtModule(
+      SbtModuleRepr(
         moduleDir = moduleDir.subRelativeTo(os.pwd).segments,
         baseDir = baseDir.subRelativeTo(os.pwd).segments,
         platformCrossType = crossPlatformBaseDir.map { dir =>

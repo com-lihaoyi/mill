@@ -80,127 +80,126 @@ trait PackageWriter {
   }
 
   def writeModuleConfigs(ps: PrintStream, configs: Seq[ModuleConfig]) = {
-    for config <- configs do
-      config match
-        case config: CoursierModuleConfig =>
-          import config.*
-          if (repositories.nonEmpty)
-            ps.println()
-            ps.print("def repositories = super.repositories() ++ ")
-            ps.print("Seq(")
-            ps.print(literalize(repositories.head))
-            for repository <- repositories.tail do
-              ps.print(", ")
-              ps.print(literalize(repository))
-            ps.println(')')
-        case config: JavaModuleConfig =>
-          import config.*
-          if (mvnDeps.nonEmpty)
-            ps.println()
-            ps.print("def mvnDeps = super.mvnDeps() ++ ")
-            ps.print("Seq(")
-            writeDep(ps, mvnDeps.head)
-            for dep <- mvnDeps.tail do
-              ps.print(", ")
-              writeDep(ps, dep)
-            ps.println(')')
-          if (compileMvnDeps.nonEmpty)
-            ps.println()
-            ps.print("def compileMvnDeps = super.compileMvnDeps() ++ ")
-            ps.print("Seq(")
-            writeDep(ps, compileMvnDeps.head)
-            for dep <- compileMvnDeps.tail do
-              ps.print(", ")
-              writeDep(ps, dep)
-            ps.println(')')
-          if (runMvnDeps.nonEmpty)
-            ps.println()
-            ps.print("def runMvnDeps = super.runMvnDeps() ++ ")
-            ps.print("Seq(")
-            writeDep(ps, runMvnDeps.head)
-            for dep <- runMvnDeps.tail do
-              ps.print(", ")
-              writeDep(ps, dep)
-            ps.println(')')
-          if (moduleDeps.nonEmpty)
-            ps.println()
-            ps.print("def moduleDeps = super.moduleDeps ++ ")
-            ps.print("Seq(")
-            writeModuleDep(ps, moduleDeps.head)
-            for dep <- moduleDeps.tail do
-              ps.print(", ")
-              writeModuleDep(ps, dep)
-            ps.println(')')
-          if (compileModuleDeps.nonEmpty)
-            ps.println()
-            ps.print("def compileModuleDeps = super.compileModuleDeps ++ ")
-            ps.print("Seq(")
-            writeModuleDep(ps, compileModuleDeps.head)
-            for dep <- compileModuleDeps.tail do
-              ps.print(", ")
-              writeModuleDep(ps, dep)
-            ps.println(')')
-          if (runModuleDeps.nonEmpty)
-            ps.println()
-            ps.print("def runModuleDeps = super.runModuleDeps ++ ")
-            ps.print("Seq(")
-            writeModuleDep(ps, runModuleDeps.head)
-            for dep <- runModuleDeps.tail do
-              ps.print(", ")
-              writeModuleDep(ps, dep)
-            ps.println(')')
-          if (javacOptions.nonEmpty)
-            ps.println()
-            ps.print("def javacOptions = super.javacOptions() ++ ")
-            ps.print("Seq(")
-            ps.print(literalize(javacOptions.head))
-            for option <- javacOptions.tail do
-              ps.print(", ")
-              ps.print(literalize(option))
-            ps.println(')')
-        case config: PublishModuleConfig =>
-          import config.*
-          writePomSettings(ps, pomSettings)
+    configs.foreach:
+      case config: CoursierModuleConfig =>
+        import config.*
+        if (repositories.nonEmpty)
           ps.println()
-          ps.print("def publishVersion = ")
-          ps.print(literalize(publishVersion))
-          writeVersionScheme(ps, versionScheme)
-        case config: ScalaModuleConfig =>
-          import config.*
-          if (scalaVersion.nonEmpty)
-            ps.println()
-            ps.print("def scalaVersion = ")
-            ps.println(literalize(scalaVersion))
-          if (scalacOptions.nonEmpty)
-            ps.println()
-            ps.print("def scalacOptions = super.scalacOptions() ++ ")
-            ps.print("Seq(")
-            ps.print(literalize(scalacOptions.head))
-            for scalacOption <- scalacOptions.tail do
-              ps.print(", ")
-              ps.print(literalize(scalacOption))
-            ps.println(')')
-          if (scalacPluginMvnDeps.nonEmpty)
-            ps.println()
-            ps.print("def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++ ")
-            ps.print("Seq(")
-            writeDep(ps, scalacPluginMvnDeps.head)
-            for dep <- scalacPluginMvnDeps.tail do
-              ps.print(", ")
-              writeDep(ps, dep)
-            ps.println(")")
-        case config: ScalaJSModuleConfig =>
-          import config.*
-          if (scalaJSVersion.nonEmpty)
-            ps.println()
-            ps.print("def scalaJSVersion = ")
-            ps.println(literalize(scalaJSVersion))
-        case config: ScalaNativeModuleConfig =>
-          import config.*
-          if (scalaNativeVersion.nonEmpty)
-            ps.println()
-            ps.print("def scalaNativeVersion = ")
-            ps.println(literalize(scalaNativeVersion))
+          ps.print("def repositories = super.repositories() ++ ")
+          ps.print("Seq(")
+          ps.print(literalize(repositories.head))
+          for repository <- repositories.tail do
+            ps.print(", ")
+            ps.print(literalize(repository))
+          ps.println(')')
+      case config: JavaModuleConfig =>
+        import config.*
+        if (mvnDeps.nonEmpty)
+          ps.println()
+          ps.print("def mvnDeps = super.mvnDeps() ++ ")
+          ps.print("Seq(")
+          writeDep(ps, mvnDeps.head)
+          for dep <- mvnDeps.tail do
+            ps.print(", ")
+            writeDep(ps, dep)
+          ps.println(')')
+        if (compileMvnDeps.nonEmpty)
+          ps.println()
+          ps.print("def compileMvnDeps = super.compileMvnDeps() ++ ")
+          ps.print("Seq(")
+          writeDep(ps, compileMvnDeps.head)
+          for dep <- compileMvnDeps.tail do
+            ps.print(", ")
+            writeDep(ps, dep)
+          ps.println(')')
+        if (runMvnDeps.nonEmpty)
+          ps.println()
+          ps.print("def runMvnDeps = super.runMvnDeps() ++ ")
+          ps.print("Seq(")
+          writeDep(ps, runMvnDeps.head)
+          for dep <- runMvnDeps.tail do
+            ps.print(", ")
+            writeDep(ps, dep)
+          ps.println(')')
+        if (moduleDeps.nonEmpty)
+          ps.println()
+          ps.print("def moduleDeps = super.moduleDeps ++ ")
+          ps.print("Seq(")
+          writeModuleDep(ps, moduleDeps.head)
+          for dep <- moduleDeps.tail do
+            ps.print(", ")
+            writeModuleDep(ps, dep)
+          ps.println(')')
+        if (compileModuleDeps.nonEmpty)
+          ps.println()
+          ps.print("def compileModuleDeps = super.compileModuleDeps ++ ")
+          ps.print("Seq(")
+          writeModuleDep(ps, compileModuleDeps.head)
+          for dep <- compileModuleDeps.tail do
+            ps.print(", ")
+            writeModuleDep(ps, dep)
+          ps.println(')')
+        if (runModuleDeps.nonEmpty)
+          ps.println()
+          ps.print("def runModuleDeps = super.runModuleDeps ++ ")
+          ps.print("Seq(")
+          writeModuleDep(ps, runModuleDeps.head)
+          for dep <- runModuleDeps.tail do
+            ps.print(", ")
+            writeModuleDep(ps, dep)
+          ps.println(')')
+        if (javacOptions.nonEmpty)
+          ps.println()
+          ps.print("def javacOptions = super.javacOptions() ++ ")
+          ps.print("Seq(")
+          ps.print(literalize(javacOptions.head))
+          for option <- javacOptions.tail do
+            ps.print(", ")
+            ps.print(literalize(option))
+          ps.println(')')
+      case config: PublishModuleConfig =>
+        import config.*
+        writePomSettings(ps, pomSettings)
+        ps.println()
+        ps.print("def publishVersion = ")
+        ps.print(literalize(publishVersion))
+        writeVersionScheme(ps, versionScheme)
+      case config: ScalaModuleConfig =>
+        import config.*
+        if (scalaVersion.nonEmpty)
+          ps.println()
+          ps.print("def scalaVersion = ")
+          ps.println(literalize(scalaVersion))
+        if (scalacOptions.nonEmpty)
+          ps.println()
+          ps.print("def scalacOptions = super.scalacOptions() ++ ")
+          ps.print("Seq(")
+          ps.print(literalize(scalacOptions.head))
+          for scalacOption <- scalacOptions.tail do
+            ps.print(", ")
+            ps.print(literalize(scalacOption))
+          ps.println(')')
+        if (scalacPluginMvnDeps.nonEmpty)
+          ps.println()
+          ps.print("def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++ ")
+          ps.print("Seq(")
+          writeDep(ps, scalacPluginMvnDeps.head)
+          for dep <- scalacPluginMvnDeps.tail do
+            ps.print(", ")
+            writeDep(ps, dep)
+          ps.println(")")
+      case config: ScalaJSModuleConfig =>
+        import config.*
+        if (scalaJSVersion.nonEmpty)
+          ps.println()
+          ps.print("def scalaJSVersion = ")
+          ps.println(literalize(scalaJSVersion))
+      case config: ScalaNativeModuleConfig =>
+        import config.*
+        if (scalaNativeVersion.nonEmpty)
+          ps.println()
+          ps.print("def scalaNativeVersion = ")
+          ps.println(literalize(scalaNativeVersion))
   }
 
   def writeDep(ps: PrintStream, dep: String): Unit = {
