@@ -104,6 +104,18 @@
         {
           "uri": "file:///workspace/.bloop/",
           "kind": 2
+        },
+        {
+          "uri": "file:///workspace/.project/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///workspace/.classpath/",
+          "kind": 2
+        },
+        {
+          "uri": "file:///workspace/.settings/",
+          "kind": 2
         }
       ]
     }
