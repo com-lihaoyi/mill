@@ -333,7 +333,9 @@ object GenEclipseImpl {
    *  the box - it is only supported via third-party plug-ins.
    */
   private def isOnlyJavaModuleApi(module: ModuleApi): Boolean =
-    module.isInstanceOf[JavaModuleApi] && !module.isInstanceOf[ScalaModuleApi] && !module.isInstanceOf[KotlinModuleApi]
+    module.isInstanceOf[JavaModuleApi] && !module.isInstanceOf[
+      ScalaModuleApi
+    ] && !module.isInstanceOf[KotlinModuleApi]
 
   /** Checks whether or not a specific module is also a test module containing test sources */
   private def isTestModule(javaModule: JavaModuleApi): Boolean =
