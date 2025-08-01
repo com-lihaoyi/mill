@@ -10,7 +10,7 @@ import scala.util.Using
 case class SbtBuildGenMainArgs(
     testModuleName: String = "test",
     depsObjectName: String = "Deps",
-    noUnify: mainargs.Flag,
+    noMerge: mainargs.Flag,
     sbtCmd: Option[String],
     sbtOptions: mainargs.Leftover[String]
 )
@@ -42,19 +42,19 @@ object SbtBuildGenMain {
          case exe if os.exists(os.pwd / exe) => s"./$exe"
        .toRight("sbt")) match {
         case Left(cmd) if os.call((cmd, "--help"), check = false).exitCode == 1 => cmd
-        case Left(cmd) => sys.error(s"No system-wide $cmd found")
+        case Left(cmd) => sys.error(s"no system-wide $cmd found")
         case Right(cmd) => cmd
       }
     os.proc(cmd, sbtOptions.value, script).call(stdout = os.Inherit, stderr = os.Inherit)
 
-    val sbtModules = upickle.default.read[Seq[SbtModule]](out.toNIO)
+    val sbtModules = upickle.default.read[Seq[SbtModuleRepr]](out.toNIO)
     if (sbtModules.isEmpty) {
-      println(s"No modules found using $cmd")
+      println(s"no modules found using $cmd")
       return
     }
 
     val packages = sbtModules.groupBy(_.moduleDir).map:
-      case (dir, Seq(sbtModule: SbtModule)) if dir == sbtModule.baseDir =>
+      case (dir, Seq(sbtModule: SbtModuleRepr)) if dir == sbtModule.baseDir =>
         import sbtModule.*
         PackageRepr(segments = moduleDir, modules = Tree(module))
       case (crossPlatformDir, sbtModules) =>
@@ -67,7 +67,7 @@ object SbtBuildGenMain {
     .toSeq
 
     val packageTree = PackageTree.fill(packages)
-    val packageTree0 = if (noUnify.value) packageTree else packageTree.unified
+    val packageTree0 = if (noMerge.value) packageTree else packageTree.merged
 
     val platformCrossTypeBySegments = sbtModules.iterator.collect {
       case module if module.platformCrossType.nonEmpty =>
@@ -83,9 +83,9 @@ object SbtBuildGenMain {
       depsObjectName,
       packageTree0.namesByDep
     )
-    PackageTree.writeFiles(packageTree0, packageWriter)
+    packageTree0.writeFiles(packageWriter)
 
-    {
+    locally {
       val jvmOptsSbt = os.pwd / ".jvmopts"
       val jvmOptsMill = os.pwd / ".mill-jvm-opts"
 

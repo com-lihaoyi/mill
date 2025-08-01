@@ -3,7 +3,7 @@ package mill.main.sbt
 import mill.main.buildgen._
 import upickle.default.{ReadWriter, macroRW}
 
-case class SbtModule(
+case class SbtModuleRepr(
     moduleDir: Seq[String],
     baseDir: Seq[String],
     platformCrossType: Option[String],
@@ -11,7 +11,7 @@ case class SbtModule(
     module: ModuleRepr
 )
 
-object SbtModule {
+object SbtModuleRepr {
 
   def apply(
       moduleDir: Seq[String],
@@ -23,7 +23,7 @@ object SbtModule {
       testModuleName: String,
       testModuleBase: Option[String],
       testConfigs: Seq[ModuleConfig]
-  ): SbtModule = {
+  ): SbtModuleRepr = {
     val isCrossPlatform = moduleDir != baseDir
     val isCrossVersion = crossScalaVersions.length > 1
     val layoutType =
@@ -42,7 +42,7 @@ object SbtModule {
         testConfigs
       ).extend(testSupertypeByLayout(layoutType), testSupertype0)
     )
-    SbtModule(
+    SbtModuleRepr(
       moduleDir,
       baseDir,
       platformCrossType,
@@ -58,5 +58,5 @@ object SbtModule {
     "CrossSbtPlatformModule" -> "CrossSbtPlatformTests"
   )
 
-  implicit val rw: ReadWriter[SbtModule] = macroRW
+  implicit val rw: ReadWriter[SbtModuleRepr] = macroRW
 }
