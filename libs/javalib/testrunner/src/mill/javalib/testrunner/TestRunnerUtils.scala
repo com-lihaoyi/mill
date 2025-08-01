@@ -311,13 +311,22 @@ import scala.math.Ordering.Implicits.*
       os.write.over(resultPath, upickle.default.write((successCounter, failureCounter)))
     }
 
+    def logClaim[T](testClass: String)(t: => T): T = {
+      val claimLog = claimFolder / os.up / "claim.log"
+      os.write.append(claimLog, s"CLAIM $testClass ${System.nanoTime()}\n")
+      try t
+      finally {
+        os.write.append(claimLog, s"COMPLETED ${System.nanoTime()}\n")
+      }
+    }
     startingTestClass.foreach { testClass =>
-      os.write.append(claimFolder / os.up / s"${claimFolder.last}.log", s"$testClass\n")
-      runClaimedTestClass(testClass)
+      logClaim(testClass) { runClaimedTestClass(testClass) }
     }
 
     for (file <- os.list(testClassQueueFolder)) {
-      for (claimedTestClass <- claimFile(file, claimFolder)) runClaimedTestClass(claimedTestClass)
+      for (claimedTestClass <- claimFile(file, claimFolder)) {
+        logClaim(claimedTestClass) { runClaimedTestClass(claimedTestClass) }
+      }
     }
 
     handleRunnerDone(runner, events)
@@ -328,10 +337,7 @@ import scala.math.Ordering.Implicits.*
       os.exists(file) &&
         scala.util.Try(os.move(file, claimFolder / file.last, atomicMove = true)).isSuccess
     ) {
-      // append only log, used to communicate with parent about what test is being claimed
-      // so that the parent can log the claimed test's name to its logger
-      val claimLog = claimFolder / os.up / s"${claimFolder.last}.log"
-      os.write.append(claimLog, s"${file.last}\n")
+
       file.last
     }
   }

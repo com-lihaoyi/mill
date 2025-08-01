@@ -72,7 +72,7 @@ trait Logger {
   private[mill] final def withPromptLine[T](t: => T): T = {
     prompt.setPromptLine(logKey, keySuffix, message)
     try t
-    finally prompt.removePromptLine(logKey)
+    finally prompt.removePromptLine(logKey, message)
   }
 
   /**
@@ -155,12 +155,16 @@ object Logger {
     private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit
     private[mill] def setPromptHeaderPrefix(s: String): Unit
     private[mill] def clearPromptStatuses(): Unit
-    private[mill] def removePromptLine(key: Seq[String]): Unit
+    private[mill] def removePromptLine(key: Seq[String], message: String): Unit
     private[mill] def withPromptPaused[T](t: => T): T
     private[mill] def withPromptUnpaused[T](t: => T): T
 
     private[mill] def beginChromeProfileEntry(text: String): Unit
     private[mill] def endChromeProfileEntry(): Unit
+
+    private[mill] def logBeginChromeProfileEntry(message: String, timestamp: Long) = ()
+    private[mill] def logEndChromeProfileEntry(timestamp: Long) = ()
+
     def debugEnabled: Boolean
 
     private[mill] def enableTicker: Boolean
@@ -178,7 +182,7 @@ object Logger {
         ()
       private[mill] def setPromptHeaderPrefix(s: String): Unit = ()
       private[mill] def clearPromptStatuses(): Unit = ()
-      private[mill] def removePromptLine(key: Seq[String]): Unit = ()
+      private[mill] def removePromptLine(key: Seq[String], message: String): Unit = ()
       private[mill] def withPromptPaused[T](t: => T): T = t
       private[mill] def withPromptUnpaused[T](t: => T): T = t
 

@@ -108,17 +108,25 @@ private[mill] class PromptLogger(
   object prompt extends Logger.Prompt {
 
     private[mill] def beginChromeProfileEntry(text: String): Unit = {
+      logBeginChromeProfileEntry(text, System.nanoTime())
+    }
+
+    private[mill] def endChromeProfileEntry(): Unit = {
+      logEndChromeProfileEntry(System.nanoTime())
+    }
+
+    override private[mill] def logBeginChromeProfileEntry(message: String, nanoTime: Long) = {
       chromeProfileLogger.logBegin(
-        text,
+        message,
         "job",
-        System.nanoTime() / 1000,
+        nanoTime / 1000,
         threadNumberer.getThreadId(Thread.currentThread())
       )
     }
 
-    private[mill] def endChromeProfileEntry(): Unit = {
+    override private[mill] def logEndChromeProfileEntry(nanoTime: Long) = {
       chromeProfileLogger.logEnd(
-        System.nanoTime() / 1000,
+        nanoTime / 1000,
         threadNumberer.getThreadId(Thread.currentThread())
       )
     }
@@ -132,10 +140,11 @@ private[mill] class PromptLogger(
       promptLineState.clearStatuses()
     }
 
-    override def removePromptLine(key: Seq[String]): Unit = PromptLogger.this.synchronized {
-      promptLineState.setCurrent(key, None)
-      endChromeProfileEntry()
-    }
+    override def removePromptLine(key: Seq[String], message: String): Unit =
+      PromptLogger.this.synchronized {
+        promptLineState.setCurrent(key, None)
+        if (message != "") endChromeProfileEntry()
+      }
 
     override def setPromptDetail(key: Seq[String], s: String): Unit =
       PromptLogger.this.synchronized {
@@ -162,7 +171,7 @@ private[mill] class PromptLogger(
 
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
       PromptLogger.this.synchronized {
-        beginChromeProfileEntry(message)
+        if (message != "") beginChromeProfileEntry(message)
         promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${spaceNonEmpty(message)}"))
         seenIdentifiers(key) = (keySuffix, message)
       }
