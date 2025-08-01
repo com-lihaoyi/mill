@@ -6,7 +6,9 @@ import mill.api.daemon.internal.{
   EvaluatorApi,
   ExecutionResultsApi,
   JavaModuleApi,
+  KotlinModuleApi,
   ModuleApi,
+  ScalaModuleApi,
   TaskApi,
   TestModuleApi
 }
@@ -14,11 +16,28 @@ import mill.api.daemon.internal.{
 import java.nio.file.{Files, Path, Paths}
 import scala.collection.mutable
 
+/**
+ *  This generates Eclipse and Eclipse JDT project files for Java - Scala, Kotlin not supported!
+ *
+ *  This includes the following files per project:
+ *  - ".project", see [[EclipseJdtUtils.createProjectFileContent]]
+ *  - ".classpath", see [[EclipseJdtUtils.createClasspathFileContent]]
+ *  - ".settings/org.eclipse.core.prefs", see [[EclipseJdtUtils.getOrgEclipseCoreResourcesPrefsContent]]
+ *  - ".settings/org.eclipse.jdt.core.prefs", see [[EclipseJdtUtils.getOrgEclipseJdtCorePrefsContent]]
+ *
+ *  For more information as well as limited references for the file format, see the latest
+ *  <a href="https://help.eclipse.org/latest/index.jsp">Eclipse IDE documentation</a>.
+ */
 class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
   import GenEclipseImpl._
 
   /** Used to have distinct log messages for this generator */
   private def log(message: String): Unit = println(s"[Eclipse JDT Project generator] $message")
+
+  /** This aggregates all the (transitive) modules into one flat sequence */
+  private def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
+    Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
+  }
 
   /**
    *  This aggregates the Java Modules with their direct children (Test Modules only) that will be
@@ -30,20 +49,32 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
   private def getAggregatedJavaModules(evaluator: EvaluatorApi): Map[Path, JavaModuleDto] = {
     val aggregatedJavaModules = mutable.Map.empty[Path, JavaModuleDto]
 
-    val rootModule = evaluator.rootModule
-    rootModule match {
-      case api: JavaModuleApi =>
+    val allJavaModules = transitiveModules(evaluator.rootModule)
+      .filter(module => isOnlyJavaModuleApi(module))
+      .collect(module => module.asInstanceOf[JavaModuleApi])
+
+    var pathOfLastJavaModuleAdded: Path | Null = null
+    for (javaModule <- allJavaModules) {
+      val childModuleDir = javaModule.moduleDirJava
+
+      if (aggregatedJavaModules.contains(childModuleDir)) {
+        // There is another module already present at this folder, e.g. a Maven Module for which the source code is in a
+        // parallel structure for the source sets.
+        aggregatedJavaModules(childModuleDir).addSourceSetModule(javaModule)
+      } else if (isTestModule(javaModule) && pathOfLastJavaModuleAdded != null) {
+        // This is a test module that will be added to the last (parent) Java Module. That will be the case for any form
+        // of JavaModule (directly or a child implementation excluding Scala / Kotlin) including the objects of type
+        // TestModule inside them.
+        aggregatedJavaModules(pathOfLastJavaModuleAdded).addSourceSetModule(javaModule)
+      } else {
+        // This will either be the first Java Module added (therefore no element yet in "aggregatedJavaModules") or some
+        // other kind of JavaModuleApi-extending hybrid that we provide forward facing support for!
         aggregatedJavaModules +=
-          (rootModule.moduleDirJava ->
-            JavaModuleDto(evaluator, api, mutable.Set.empty[JavaModuleApi]))
-      case _ =>
+          (childModuleDir ->
+            JavaModuleDto(evaluator, javaModule, mutable.Set.empty[JavaModuleApi]))
+        pathOfLastJavaModuleAdded = childModuleDir
+      }
     }
-    iterateModuleChildren(
-      aggregatedJavaModules,
-      evaluator,
-      rootModule.moduleDirJava,
-      rootModule.moduleDirectChildren
-    )
 
     aggregatedJavaModules.toMap
   }
@@ -298,52 +329,11 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
 object GenEclipseImpl {
 
   /**
-   * Iterete over the children of a module [[ModuleApi]] and either create a new [[JavaModuleDto]]
-   * object out of it or add it as a source set module to an existing one.
-   *
-   * @param javaModuleDtos  where to add new object to / extend an existing one
-   * @param evaluator       the evaluator of the children, will be used for adding a new object
-   * @param parentModuleDir the parent Java (not test) module dir
-   * @param children        to iterate over
+   *  We want to make sure that this works only on Java Modules since Eclipse JDT does not support Scala / Kotlin out of
+   *  the box - it is only supported via third-party plug-ins.
    */
-  private def iterateModuleChildren(
-      javaModuleDtos: mutable.Map[Path, JavaModuleDto],
-      evaluator: EvaluatorApi,
-      parentModuleDir: Path,
-      children: Seq[ModuleApi]
-  ): Unit = {
-    for (child <- children) {
-      var newParentModuleDir = parentModuleDir
-
-      child match {
-        case api: JavaModuleApi =>
-          val childModuleDirJava = child.moduleDirJava
-
-          if (javaModuleDtos.contains(childModuleDirJava)) {
-            javaModuleDtos(childModuleDirJava).addSourceSetModule(api)
-          } else if (
-            child.isInstanceOf[TestModuleApi] && javaModuleDtos.contains(parentModuleDir)
-          ) {
-            javaModuleDtos(parentModuleDir).addSourceSetModule(api)
-          } else {
-            javaModuleDtos +=
-              (childModuleDirJava ->
-                JavaModuleDto(evaluator, api, mutable.Set.empty[JavaModuleApi]))
-            newParentModuleDir = childModuleDirJava
-          }
-        case _ =>
-      }
-
-      // If a test module was added we check its children, if they are also test modules, add them
-      // to the next top most Java module (production code).
-      iterateModuleChildren(
-        javaModuleDtos,
-        evaluator,
-        newParentModuleDir,
-        child.moduleDirectChildren
-      )
-    }
-  }
+  private def isOnlyJavaModuleApi(module: ModuleApi): Boolean =
+    module.isInstanceOf[JavaModuleApi] && !module.isInstanceOf[ScalaModuleApi] && !module.isInstanceOf[KotlinModuleApi]
 
   /** Checks whether or not a specific module is also a test module containing test sources */
   private def isTestModule(javaModule: JavaModuleApi): Boolean =
@@ -386,8 +376,8 @@ object GenEclipseImpl {
    *
    * @see [[Module.moduleSegments]]
    */
-  private def moduleName(p: Segments): String =
-    p.value
+  private def moduleName(p: Segments): String = {
+    val name = p.value
       .foldLeft(new StringBuilder()) {
         case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
         case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
@@ -396,6 +386,12 @@ object GenEclipseImpl {
       }
       .mkString
       .toLowerCase()
+
+    // If for whatever reason no name could be created based on the module segments, create a
+    // generic one. Users can rename the project inside the Eclipse IDE if they like.s
+    if (name.isBlank) "MillProject"
+    else name
+  }
 
   /**
    *  This is used when iterating all Java modules and pre-aggregating them for the actual Eclipse

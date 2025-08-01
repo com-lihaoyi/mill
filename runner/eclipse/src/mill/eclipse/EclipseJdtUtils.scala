@@ -182,6 +182,9 @@ object EclipseJdtUtils {
   /**
    *  Creates the content for the ".settings/org.eclipse.core.resources.prefs" file. This is the
    *  standard configuration, users can later change / enhance this from within Eclipse itself.
+   *
+   *  This is the Java Properties file format, the content is the default set when a project is
+   *  created from within Eclipse.
    */
   def getOrgEclipseCoreResourcesPrefsContent: String = {
     "eclipse.preferences.version=1\n" +
@@ -190,6 +193,9 @@ object EclipseJdtUtils {
 
   /**
    *  Creates the content for the ".settings/org.eclipse.jdt.core.prefs" file.
+   *
+   *  This is the Java Properties file format, the content is the default set when a Java project
+   *  is created from within Eclipse.
    *
    *  @param javaSourceVersion used for setting the compiler source / compliance version
    *  @param javaTargetVersion used for setting the compiler target version
