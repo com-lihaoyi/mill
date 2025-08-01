@@ -11,7 +11,7 @@
 _{author}, {revdate}_#
 
 Traditionally Gradle was the only tool available for building Android apps, but nowadays
-Mill - a faster build tool for Java projects - also now supports Android development.
+Mill - a faster build tool for Java Scala and Kotlin projects - also now supports Android development.
 While working on Android support in Mill, we tested several complex projects to identify
 missing pieces, such as the https://github.com/android/architecture-samples[android-architecture-samples].
 One requirement we found was support for Hilt, a dependency injection framework that pushes
