@@ -1,85 +1,24 @@
 package mill.main.buildgen
 
-import geny.Generator
+import upickle.default.{ReadWriter, macroRW}
 
-/**
- * A recursive data structure that defines parent-child relationships between nodes.
- *
- * @param node the root node of this tree
- * @param children the child subtrees of this tree
- */
-@mill.api.experimental
-case class Tree[+Node](node: Node, children: Seq[Tree[Node]] = Seq.empty) {
+case class Tree[+A](root: A, children: Seq[Tree[A]] = Nil) {
 
-  def map[Out](f: Node => Out): Tree[Out] =
-    transform[Out]((node, children) => Tree(f(node), children.iterator.toSeq))
+  def iterator: Iterator[A] = Iterator(root) ++ children.iterator.flatMap(_.iterator)
 
-  def nodes(traversal: Tree.Traversal = Tree.Traversal.DepthFirst): Generator[Node] =
-    subtrees(traversal).map(_.node)
+  def map[B](f: A => B): Tree[B] = Tree(f(root), children.map(_.map(f)))
 
-  def subtrees(traversal: Tree.Traversal): Generator[Tree[Node]] =
-    traversal.subtrees(this)
-
-  def transform[Out](f: (Node, IterableOnce[Tree[Out]]) => Tree[Out]): Tree[Out] = {
-    def recurse(tree: Tree[Node]): Tree[Out] =
-      f(tree.node, tree.children.iterator.map(recurse))
-
-    recurse(this)
-  }
+  def transform[B](f: (A, Seq[Tree[B]]) => Tree[B]): Tree[B] = f(root, children.map(_.transform(f)))
 }
-@mill.api.experimental
 object Tree {
 
-  /** Generates a tree from `start` using the `step` function. */
-  def from[Input, Node](start: Input)(step: Input => (Node, IterableOnce[Input])): Tree[Node] = {
-    def recurse(input: Input): Tree[Node] = {
-      val (node, next) = step(input)
-      Tree(node, next.iterator.map(recurse).toSeq)
+  def from[S, A](init: S)(step: S => (A, Seq[S])): Tree[A] = {
+    def recurse(state: S): Tree[A] = {
+      val (a, states) = step(state)
+      Tree(a, states.map(recurse))
     }
-
-    recurse(start)
+    recurse(init)
   }
 
-  sealed trait Traversal {
-
-    def subtrees[Node](root: Tree[Node]): Generator[Tree[Node]]
-  }
-  object Traversal {
-
-    object BreadthFirst extends Traversal {
-
-      def subtrees[Node](root: Tree[Node]): Generator[Tree[Node]] = handleItem => {
-        @annotation.tailrec
-        def recurse(level: Seq[Tree[Node]]): Generator.Action = {
-          var last: Generator.Action = Generator.Continue
-          var index = 0
-          while (last == Generator.Continue && index < level.length) {
-            last = handleItem(level(index))
-            index += 1
-          }
-          val nextLevel = level.flatMap(_.children)
-          if (last == Generator.Continue && nextLevel.nonEmpty) recurse(nextLevel) else last
-        }
-
-        recurse(Seq(root))
-      }
-    }
-
-    object DepthFirst extends Traversal {
-
-      def subtrees[Node](root: Tree[Node]): Generator[Tree[Node]] = handleItem => {
-        def recurse(tree: Tree[Node]): Generator.Action = {
-          var last: Generator.Action = Generator.Continue
-          var index = 0
-          while (last == Generator.Continue && index < tree.children.length) {
-            last = recurse(tree.children(index))
-            index += 1
-          }
-          if (last == Generator.Continue) handleItem(tree) else last
-        }
-
-        recurse(root)
-      }
-    }
-  }
+  implicit def rw[A: ReadWriter]: ReadWriter[Tree[A]] = macroRW
 }
