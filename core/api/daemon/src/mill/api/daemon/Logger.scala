@@ -161,6 +161,10 @@ object Logger {
 
     private[mill] def beginChromeProfileEntry(text: String): Unit
     private[mill] def endChromeProfileEntry(): Unit
+
+    private[mill] def logBeginChromeProfileEntry(message: String, timestamp: Long) = ()
+    private[mill] def logEndChromeProfileEntry(timestamp: Long) = ()
+
     def debugEnabled: Boolean
 
     private[mill] def enableTicker: Boolean

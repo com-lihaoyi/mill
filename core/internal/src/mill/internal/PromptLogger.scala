@@ -123,6 +123,22 @@ private[mill] class PromptLogger(
       )
     }
 
+    override private[mill] def logBeginChromeProfileEntry(message: String, nanoTime: Long) = {
+      chromeProfileLogger.logBegin(
+        message,
+        "job",
+        nanoTime / 1000,
+        threadNumberer.getThreadId(Thread.currentThread())
+      )
+    }
+
+    override private[mill] def logEndChromeProfileEntry(nanoTime: Long) = {
+      chromeProfileLogger.logEnd(
+        nanoTime / 1000,
+        threadNumberer.getThreadId(Thread.currentThread())
+      )
+    }
+
     val threadNumberer = new ThreadNumberer()
     override def setPromptHeaderPrefix(s: String): Unit = PromptLogger.this.synchronized {
       promptLineState.setHeaderPrefix(s)

@@ -104,6 +104,16 @@ private[mill] class MultiLogger(
       logger1.prompt.endChromeProfileEntry()
       logger2.prompt.endChromeProfileEntry()
     }
+
+    override private[mill] def logBeginChromeProfileEntry(message: String, nanoTime: Long) = {
+      logger1.prompt.logBeginChromeProfileEntry(message, nanoTime)
+      logger2.prompt.logBeginChromeProfileEntry(message, nanoTime)
+    }
+
+    override private[mill] def logEndChromeProfileEntry(nanoTime: Long) = {
+      logger1.prompt.logEndChromeProfileEntry(nanoTime)
+      logger2.prompt.logEndChromeProfileEntry(nanoTime)
+    }
   }
   def debug(s: String): Unit = {
     logger1.debug(s)
