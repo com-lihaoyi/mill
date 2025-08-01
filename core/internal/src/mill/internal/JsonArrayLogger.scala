@@ -49,6 +49,7 @@ private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path,
   writeThread.start()
 
   def log(t: T): Unit = synchronized {
+    // Somehow in BSP mode we sometimes get logs coming in after close, just ignore them
     if (!closed) buffer.put(Some(t))
   }
 
