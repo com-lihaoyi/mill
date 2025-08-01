@@ -8,19 +8,19 @@ import java.util.*;
 
 public class ClientUtil {
   // use methods instead of constants to avoid inlining by compiler
-  public static final int ExitClientCodeCannotReadFromExitCodeFile() {
+  public static int ExitClientCodeCannotReadFromExitCodeFile() {
     return 1;
   }
 
-  public static final int ExitServerCodeWhenIdle() {
+  public static int ExitServerCodeWhenIdle() {
     return 0;
   }
 
-  public static final int ExitServerCodeWhenVersionMismatch() {
+  public static int ExitServerCodeWhenVersionMismatch() {
     return 101;
   }
 
-  private static Charset utf8 = Charset.forName("UTF-8");
+  private static final Charset utf8 = StandardCharsets.UTF_8;
 
   /**
    * When using Graal Native Image, the launcher receives any `-D` properties

@@ -41,11 +41,9 @@ public class MillLauncherMain {
         optsArgs.addAll(MillProcessLauncher.millOpts());
         Collections.addAll(optsArgs, args);
 
-        ServerLauncher launcher =
-            new ServerLauncher(
-                System.in,
-                System.out,
-                System.err,
+        MillServerLauncher launcher =
+            new MillServerLauncher(
+                new MillServerLauncher.Streams(System.in, System.out, System.err),
                 System.getenv(),
                 optsArgs.toArray(new String[0]),
                 null,
@@ -54,7 +52,7 @@ public class MillLauncherMain {
                 return MillProcessLauncher.launchMillDaemon(daemonDir);
               }
 
-              public void preparedaemonDir(Path daemonDir) throws Exception {
+              public void prepareDaemonDir(Path daemonDir) throws Exception {
                 MillProcessLauncher.prepareMillRunFolder(daemonDir);
               }
             };

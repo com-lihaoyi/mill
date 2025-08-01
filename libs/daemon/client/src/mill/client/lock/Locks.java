@@ -4,7 +4,10 @@ import mill.constants.DaemonFiles;
 
 public final class Locks implements AutoCloseable {
 
+  /** The lock used by the client process (the launcher that launches the server). */
   public final Lock launcherLock;
+
+  /** The lock used by the server process. */
   public final Lock daemonLock;
 
   public Locks(Lock launcherLock, Lock daemonLock) {

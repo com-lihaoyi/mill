@@ -1,0 +1,16 @@
+package build.libs.daemon.client
+
+import mill.*
+import millbuild.*
+import mill.scalalib.*
+
+/**
+ * This package contains the code for the Mill-specific TCP client implementation.
+ */
+object `package` extends MillPublishJavaModule {
+  def moduleDeps = Seq(build.core.constants)
+
+  object test extends JavaTests with TestModule.Junit4 {
+    def mvnDeps = Seq(Deps.junitInterface, Deps.commonsIo)
+  }
+}

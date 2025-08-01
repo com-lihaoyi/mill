@@ -4,32 +4,32 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-/**
- * Logic to capture a pair of streams (typically stdout and stderr), combining
- * them into a single stream, and splitting it back into two streams later while
- * preserving ordering. This is useful for capturing stderr and stdout and forwarding
- * them to a terminal while strictly preserving the ordering, i.e. users won't see
- * exception stack traces and printlns arriving jumbled up and impossible to debug
- *
- * This works by converting writes from either of the two streams into packets of
- * the form:
- *
- *  1 byte         n bytes
- * | header |         body |
- *
- * Where header is a single byte of the form:
- *
- * - header more than 0 indicating that this packet is for the `OUT` stream
- * - header less than 0 indicating that this packet is for the `ERR` stream
- * - abs(header) indicating the length of the packet body, in bytes
- * - header == 0 indicating the end of the stream
- *
- * Writes to either of the two `Output`s are synchronized on the shared
- * `destination` stream, ensuring that they always arrive complete and without
- * interleaving. On the other side, a `Pumper` reads from the combined
- * stream, forwards each packet to its respective destination stream, or terminates
- * when it hits a packet with `header == 0`
- */
+/// Logic to capture a pair of streams (typically stdout and stderr), combining
+/// them into a single stream, and splitting it back into two streams later while
+/// preserving ordering. This is useful for capturing stderr and stdout and forwarding
+/// them to a terminal while strictly preserving the ordering, i.e. users won't see
+/// exception stack traces and printlns arriving jumbled up and impossible to debug
+///
+/// This works by converting writes from either of the two streams into packets of
+/// the form:
+/// ```
+///  1 byte         n bytes
+/// | header |         body |
+/// ```
+///
+/// Where header is a single byte of the form:
+///
+///   - header more than 0 indicating that this packet is for the `OUT` stream
+///   - header less than 0 indicating that this packet is for the `ERR` stream
+///   - abs(header) indicating the length of the packet body, in bytes
+///   - header == 0 indicating the end of the stream
+///
+///
+/// Writes to either of the two `Output`s are synchronized on the shared
+/// `destination` stream, ensuring that they always arrive complete and without
+/// interleaving. On the other side, a `Pumper` reads from the combined
+/// stream, forwards each packet to its respective destination stream, or terminates
+/// when it hits a packet with `header == 0`
 public class ProxyStream {
 
   public static final int OUT = 1;
@@ -191,7 +191,7 @@ public class ProxyStream {
           destOut.flush();
           destErr.flush();
         }
-      } catch (IOException e) {
+      } catch (IOException ignored) {
       }
     }
 

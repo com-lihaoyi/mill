@@ -1,5 +1,6 @@
 package mill.client.lock;
 
+/** Combines two locks into one, making sure we only lock if we can get both locks. */
 public class DoubleLock extends Lock {
 
   private final Lock lock1;

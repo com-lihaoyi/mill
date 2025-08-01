@@ -1,8 +1,8 @@
-package mill.javalib.worker
+package mill.javalib.zinc
 
 import mill.api.daemon.internal.{DiagnosticCode, internal}
 
-import scala.jdk.OptionConverters._
+import scala.jdk.OptionConverters.*
 
 @internal
 final case class ZincDiagnosticCode(base: xsbti.DiagnosticCode) extends DiagnosticCode {

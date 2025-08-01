@@ -52,29 +52,17 @@ trait DiagnosticCode {
  */
 trait ProblemPosition {
   def line: Option[Int]
-
   def lineContent: String
-
   def offset: Option[Int]
-
   def pointer: Option[Int]
-
   def pointerSpace: Option[String]
-
   def sourcePath: Option[String]
-
   def sourceFile: Option[File]
-
   def startOffset: Option[Int]
-
   def endOffset: Option[Int]
-
   def startLine: Option[Int]
-
   def startColumn: Option[Int]
-
   def endLine: Option[Int]
-
   def endColumn: Option[Int]
 }
 

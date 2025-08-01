@@ -11,6 +11,7 @@ import mill.{T, Task}
 import scala.jdk.CollectionConverters.*
 import scala.util.Properties
 import mill.api.daemon.internal.bsp.BspBuildTarget
+import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 
 @experimental
 trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
@@ -32,7 +33,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
       "SEMANTICDB_VERSION",
       SemanticDbJavaModuleApi.contextSemanticDbVersion.get().getOrElse(builtin)
     )
-    Version.chooseNewest(requested, builtin)(Version.IgnoreQualifierOrdering)
+    Version.chooseNewest(requested, builtin)(using Version.IgnoreQualifierOrdering)
   }
 
   def semanticDbJavaVersion: T[String] = Task.Input {
@@ -41,7 +42,7 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
       "JAVASEMANTICDB_VERSION",
       SemanticDbJavaModuleApi.contextJavaSemanticDbVersion.get().getOrElse(builtin)
     )
-    Version.chooseNewest(requested, builtin)(Version.IgnoreQualifierOrdering)
+    Version.chooseNewest(requested, builtin)(using Version.IgnoreQualifierOrdering)
   }
 
   def semanticDbScalaVersion: T[String] = BuildInfo.scalaVersion
@@ -109,17 +110,22 @@ trait SemanticDbJavaModule extends CoursierModule with SemanticDbJavaModuleApi
 
     Task.log.debug(s"effective javac options: ${javacOpts}")
 
-    jvmWorker().worker()
+    val jOpts = JavaCompilerOptions(javacOpts)
+
+    jvmWorker().internalWorker()
       .compileJava(
-        upstreamCompileOutput = upstreamCompileOutput(),
-        sources = allSourceFiles().map(_.path),
-        compileClasspath =
-          (compileClasspath() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
+        ZincCompileJava(
+          upstreamCompileOutput = upstreamCompileOutput(),
+          sources = allSourceFiles().map(_.path),
+          compileClasspath =
+            (compileClasspath() ++ resolvedSemanticDbJavaPluginMvnDeps()).map(_.path),
+          javacOptions = jOpts.compiler,
+          incrementalCompilation = zincIncrementalCompilation()
+        ),
         javaHome = javaHome().map(_.path),
-        javacOptions = javacOpts,
+        javaRuntimeOptions = jOpts.runtime,
         reporter = Task.reporter.apply(hashCode),
-        reportCachedProblems = zincReportCachedProblems(),
-        incrementalCompilation = zincIncrementalCompilation()
+        reportCachedProblems = zincReportCachedProblems()
       )
       .map { r =>
         BuildCtx.withFilesystemCheckerDisabled {
@@ -206,7 +212,7 @@ object SemanticDbJavaModule extends ExternalModule with CoursierModule {
       else List.empty
 
     val isNewEnough =
-      Version.isAtLeast(semanticDbJavaVersion, "0.8.10")(Version.IgnoreQualifierOrdering)
+      Version.isAtLeast(semanticDbJavaVersion, "0.8.10")(using Version.IgnoreQualifierOrdering)
     val buildTool = s" -build-tool:${if (isNewEnough) "mill" else "sbt"}"
     val verbose = if (ctx.log.debugEnabled) " -verbose" else ""
     javacOptions ++ Seq(

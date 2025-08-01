@@ -2,13 +2,14 @@ package mill.server
 
 import mill.api.SystemStreams
 import mill.client.lock.Locks
-import mill.client.ServerLauncher
+import mill.client.{ServerLauncher, MillServerLauncher}
 import mill.constants.{DaemonFiles, Util}
 import utest.*
 
 import java.io.*
 import java.nio.file.Path
 import scala.jdk.CollectionConverters.*
+import concurrent.duration.*
 
 /**
  * Exercises the client-server logic in memory, using in-memory locks
@@ -23,7 +24,12 @@ object ClientServerTests extends TestSuite {
       locks: Locks,
       testLogEvenWhenServerIdWrong: Boolean,
       commandSleepMillis: Int = 0
-  ) extends Server[Option[Int]](daemonDir, 1000, locks, testLogEvenWhenServerIdWrong)
+  ) extends MillDaemonServer[Option[Int]](
+        daemonDir,
+        1000.millis,
+        locks,
+        testLogEvenWhenServerIdWrong
+      )
       with Runnable {
 
     override def outLock = mill.client.lock.Lock.memory()
@@ -92,16 +98,14 @@ object ClientServerTests extends TestSuite {
       val in = new ByteArrayInputStream(s"hello$ENDL".getBytes())
       val out = new ByteArrayOutputStream()
       val err = new ByteArrayOutputStream()
-      val result = new ServerLauncher(
-        in,
-        new PrintStream(out),
-        new PrintStream(err),
+      val result = new MillServerLauncher(
+        ServerLauncher.Streams(in, out, err),
         env.asJava,
         args,
         memoryLock,
         forceFailureForTestingMillisDelay
       ) {
-        def preparedaemonDir(daemonDir: Path) = { /*do nothing*/ }
+        def prepareDaemonDir(daemonDir: Path) = { /*do nothing*/ }
         def initServer(daemonDir: Path, locks: Locks) = {
           val processId = "server-" + nextServerId
           nextServerId += 1
