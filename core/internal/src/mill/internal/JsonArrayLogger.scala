@@ -7,6 +7,8 @@ import java.util.concurrent.ArrayBlockingQueue
 private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, indent: Int) {
   private var used = false
 
+  var closedStack: Seq[StackTraceElement] = Nil
+  @volatile var closed = false
   val indentStr: String = " " * indent
   private lazy val traceStream = {
     val options = Seq(
@@ -47,11 +49,14 @@ private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path,
   )
   writeThread.start()
 
-  def log(t: T): Unit = {
+  def log(t: T): Unit = synchronized{
+    assert(!closed, s"Cannot log to $outPath after closing at " + closedStack.mkString("\n"))
     buffer.put(Some(t))
   }
 
   def close(): Unit = synchronized {
+    closedStack = new Exception().getStackTrace
+    closed = true
     buffer.put(None)
     // wait for background thread to clear out any buffered entries before shutting down
     writeThread.join()
