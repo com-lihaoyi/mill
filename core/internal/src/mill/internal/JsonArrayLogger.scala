@@ -7,6 +7,7 @@ import java.util.concurrent.ArrayBlockingQueue
 private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path, indent: Int) {
   private var used = false
 
+  @volatile var closed = false
   val indentStr: String = " " * indent
   private lazy val traceStream = {
     val options = Seq(
@@ -20,20 +21,14 @@ private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path,
   // Log the JSON entries asynchronously on a separate thread to try and avoid blocking
   // the main execution, but keep the size bounded so if the logging falls behind the
   // main thread will get blocked until logging can catch up
-  val buffer = new ArrayBlockingQueue[T](100)
+  val buffer = new ArrayBlockingQueue[Option[T]](100)
   val writeThread = new Thread(
     () =>
       // Make sure all writes to `traceStream` are synchronized, as we
       // have two threads writing to it (one while active, one on close()
       traceStream.synchronized {
         while ({
-          val value =
-            try Some(buffer.take())
-            catch {
-              case _: InterruptedException => None
-            }
-
-          value match {
+          buffer.take() match {
             case Some(v) =>
               if (used) traceStream.println(",")
               else traceStream.println("[")
@@ -53,14 +48,16 @@ private[mill] class JsonArrayLogger[T: upickle.default.Writer](outPath: os.Path,
   )
   writeThread.start()
 
-  def log(t: T): Unit = {
-    buffer.offer(t)
+  def log(t: T): Unit = synchronized {
+    // Somehow in BSP mode we sometimes get logs coming in after close, just ignore them
+    if (!closed) buffer.put(Some(t))
   }
 
   def close(): Unit = synchronized {
+    closed = true
+    buffer.put(None)
     // wait for background thread to clear out any buffered entries before shutting down
-    while (buffer.size() > 0) Thread.sleep(1)
-    writeThread.interrupt()
+    writeThread.join()
     traceStream.synchronized {
       traceStream.flush()
       traceStream.println()
