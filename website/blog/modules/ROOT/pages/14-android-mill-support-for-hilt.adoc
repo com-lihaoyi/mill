@@ -2,7 +2,7 @@
 
 :link-github: https://github.com/com-lihaoyi/mill
 :link-pr: {link-github}/pull
-:link-perm: {link-github}/blob/
+:link-perm: {link-github}/blob
 
 // tag::header[]
 :author: Vasilis Nicolaou
@@ -142,7 +142,7 @@ While with the Hilt ASM transformation, it turns into:
 ----
 
 We were able to integrate this bytecode-transformation logic in Mill
-in {link-perm}/6351d7f3a29dd272c9393f690a3eb82ffa2b4f41/libs/androidlib/Hilt/src/mill/androidlib/Hilt/AndroidHiltTransformAsm.scala[AndroidHiltTransformAsm],
+in {link-perm}/15bfae9879776a591a3fe544186ac905760c0adb/libs/androidlib/hilt/src/mill/androidlib/hilt/AndroidHiltTransformAsm.scala[AndroidHiltTransformAsm],
 that runs inside Mill and does the ASM transformation step.
 This re-uses the main logic from the Gradle Android plugin and implements
 the ASM transformation step needed to make Hilt work in Mill.
