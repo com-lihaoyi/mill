@@ -13,8 +13,8 @@ _{author}, {revdate}_#
 Traditionally Gradle was the only tool available for building Android apps, but nowadays
 Mill - a faster build tool for Java Scala and Kotlin projects - also now supports Android development.
 While working on Android support in Mill, we tested several complex projects to identify
-missing pieces, such as the https://github.com/android/architecture-samples[android-architecture-samples].
-One requirement we found was support for Hilt, a dependency injection framework that pushes
+missing features, such as the https://github.com/android/architecture-samples[Android `architecture-samples`].
+One requirement we found was support for https://developer.android.com/training/dependency-injection/hilt-android[Hilt], a dependency injection framework that pushes
 the limits of typical Android build tooling.
 
 This blog post is a deep dive into how we brought full Hilt support to Mill, and what it
@@ -25,8 +25,7 @@ alternative to Gradle.
 
 == Introduction
 
-With Mill's basic functionality for supporting Android in place, you could already use
-Mill to build android projects using:
+With Mill's basic functionality for supporting Android in place, you could already build Android projects with Mill using:
 
 - Kotlin + Java mixed source projects
 - Unit tests (with friend-path support)
@@ -34,7 +33,7 @@ Mill to build android projects using:
 - R8, desugaring, and manifest merging
 - androidApplicationId/androidNamespace support
 
-To try and extend Mill's featureset to cover more real-world Android projects, we tried using
+To try and extend Mill's feature-set to cover more real-world Android projects, we tried using
 Mill to build the https://github.com/android/architecture-samples[Android Architecture Samples].
 These are small but representative apps that cover common development patterns.
 
@@ -145,7 +144,7 @@ While with the Hilt ASM transformation, it turns into:
 We were able to integrate this bytecode-transformation logic in Mill
 in {link-perm}/6351d7f3a29dd272c9393f690a3eb82ffa2b4f41/libs/androidlib/Hilt/src/mill/androidlib/Hilt/AndroidHiltTransformAsm.scala[AndroidHiltTransformAsm],
 that runs inside Mill and does the ASM transformation step.
-This re-uses the main logic from the Gradle Android plugin from the plugin and implements
+This re-uses the main logic from the Gradle Android plugin and implements
 the ASM transformation step needed to make Hilt work in Mill.
 
 === How Hilt Integrates Into the Android Build Pipeline
@@ -186,7 +185,7 @@ digraph G {
 ....
 
 This allows it to fit nicely into Mill's build pipelines, so the steps are automatically
-cached where possible, and automatially invalidated and re-run where necessary.
+cached where possible, and automatically invalidated and re-run where necessary.
 
 == It Works: Building Real Android Apps with Hilt in Mill
 
@@ -202,7 +201,7 @@ image:blog::hilt_first_success.png[]
 
 Here's how you can try the exact setup used to validate Mill's Hilt support:
 
-Get the architecture-samples containing the Todo App.
+Get the `architecture-samples` containing the Todo App.
 
 [source,bash]
 ----
@@ -253,12 +252,15 @@ image:blog::hilt_test_screen_2.png[]
 This blog post explores some of the interesting technical challenges of building Android
 projects with the Mill build tool. We explored the shape of an Android build pipeline,
 and did a deep dive into one particular tooling feature - Hilt framework support - and how
-we ported it to Mill
+we ported it to Mill.
 
-From the screenshots above you can see that Mill's support for Android projects is complete
+From the screenshots above, you can see that Mill's support for Android projects is complete
 enough to use for real Android projects, from build to test to emulator deployment. This
 includes more advanced frameworks like KSP, Hilt, and others.
 
 If you're frustrated with Gradle's performance or complexity, you should definitely try using
 Mill to build your Android apps! You might be surprised how far you can go with a simple,
 transparent build tool.
+
+For more advanced setup and documentation specific to Hilt, check out the xref:mill::android/hilt-sample.adoc[full Hilt example in Mill's docs].
+
