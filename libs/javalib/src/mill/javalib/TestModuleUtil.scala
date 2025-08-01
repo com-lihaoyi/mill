@@ -231,7 +231,9 @@ final class TestModuleUtil(
         processIndex
       )
 
-      Task.fork.blocking { TestModuleUtil.waitForFutures(ctx, filteredClassCount, subprocessFutures) }
+      Task.fork.blocking {
+        TestModuleUtil.waitForFutures(ctx, filteredClassCount, subprocessFutures)
+      }
 
       subprocessFutures.flatMap(_._2.value).map(_.get)
     }
@@ -340,7 +342,7 @@ final class TestModuleUtil(
             Right((startingTestClass, testClassQueueFolder, claimFolder)),
             () => {
               val lines = os.read.lines(claimLog)
-              lines.drop(seenLines).collect{
+              lines.drop(seenLines).collect {
                 case s"CLAIM $currentTestClass $nanoTime" =>
                   logger.prompt.logBeginChromeProfileEntry(currentTestClass, nanoTime.toLong)
                 case s"COMPLETED $nanoTime" =>
@@ -348,7 +350,7 @@ final class TestModuleUtil(
               }
               seenLines = lines.length
               val now = System.currentTimeMillis()
-              lines.collect{case s"CLAIM $currentTestClass $nanoTime" =>
+              lines.collect { case s"CLAIM $currentTestClass $_" =>
                 testClassTimeMap.putIfAbsent(currentTestClass, now)
                 val last = testClassTimeMap.get(currentTestClass)
                 logger.ticker(s"$currentTestClass${Util.renderSecondsSuffix(now - last)}")
@@ -546,10 +548,10 @@ private[mill] object TestModuleUtil {
   }
 
   def processTestResults(outputs: Vector[(
-    Int,
+      Int,
       String,
       Option[Result[(String, Seq[TestResult])]]
-    )]) = {
+  )]) = {
     val failMap = mutable.Map.empty[String, String]
     val successMap = mutable.Map.empty[String, (String, Seq[TestResult])]
     val subprocessResult = {
@@ -582,19 +584,19 @@ private[mill] object TestModuleUtil {
   }
 
   private def waitForFutures(
-                              ctx: TaskCtx,
-                              filteredClassCount: Int,
-                              subprocessFutures: Vector[(
-                                Path,
-                                  Future[(Int, String, Option[Result[(String, Seq[TestResult])]])]
-                                )]
-                            ): Unit = {
-    while ( {
+      ctx: TaskCtx,
+      filteredClassCount: Int,
+      subprocessFutures: Vector[(
+          Path,
+          Future[(Int, String, Option[Result[(String, Seq[TestResult])]])]
+      )]
+  ): Unit = {
+    while ({
       val claimedCounts = subprocessFutures.flatMap(_._2.value).flatMap(_.toOption).map(_._1)
       !(
         (claimedCounts.sum == filteredClassCount && subprocessFutures.head._2.isCompleted) ||
           subprocessFutures.forall(_._2.isCompleted)
-        )
+      )
     }) {
       val allResultsOpt =
         // Don't crash if a result.log file is malformed, just try again

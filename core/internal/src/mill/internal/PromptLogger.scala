@@ -108,19 +108,11 @@ private[mill] class PromptLogger(
   object prompt extends Logger.Prompt {
 
     private[mill] def beginChromeProfileEntry(text: String): Unit = {
-      chromeProfileLogger.logBegin(
-        text,
-        "job",
-        System.nanoTime() / 1000,
-        threadNumberer.getThreadId(Thread.currentThread())
-      )
+      logBeginChromeProfileEntry(text, System.nanoTime())
     }
 
     private[mill] def endChromeProfileEntry(): Unit = {
-      chromeProfileLogger.logEnd(
-        System.nanoTime() / 1000,
-        threadNumberer.getThreadId(Thread.currentThread())
-      )
+      logEndChromeProfileEntry(System.nanoTime())
     }
 
     override private[mill] def logBeginChromeProfileEntry(message: String, nanoTime: Long) = {
@@ -148,10 +140,11 @@ private[mill] class PromptLogger(
       promptLineState.clearStatuses()
     }
 
-    override def removePromptLine(key: Seq[String], message: String): Unit = PromptLogger.this.synchronized {
-      promptLineState.setCurrent(key, None)
-      if (message != "") endChromeProfileEntry()
-    }
+    override def removePromptLine(key: Seq[String], message: String): Unit =
+      PromptLogger.this.synchronized {
+        promptLineState.setCurrent(key, None)
+        if (message != "") endChromeProfileEntry()
+      }
 
     override def setPromptDetail(key: Seq[String], s: String): Unit =
       PromptLogger.this.synchronized {

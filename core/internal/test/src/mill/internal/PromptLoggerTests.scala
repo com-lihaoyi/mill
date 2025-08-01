@@ -70,7 +70,7 @@ object PromptLoggerTests extends TestSuite {
 
       prefixLogger.streams.out.println("WORLD")
 
-      promptLogger.prompt.removePromptLine(Seq("1"))
+      promptLogger.prompt.removePromptLine(Seq("1"), "my-task")
 
       now += 10000
       promptLogger.refreshPrompt()
@@ -174,7 +174,7 @@ object PromptLoggerTests extends TestSuite {
         ""
       )
 
-      newPrefixLogger3.prompt.removePromptLine(Seq("3"))
+      newPrefixLogger3.prompt.removePromptLine(Seq("3"), "my-task-short-lived")
 
       now += 1000
 
@@ -196,7 +196,7 @@ object PromptLoggerTests extends TestSuite {
         ""
       )
 
-      promptLogger.prompt.removePromptLine(Seq("1"))
+      promptLogger.prompt.removePromptLine(Seq("1"), "my-task")
 
       now += 10
 
@@ -301,7 +301,7 @@ object PromptLoggerTests extends TestSuite {
         "[1] my-task 1s detail-too-long-gets-truncated...fghijklmnopqrstuvwxyz1234567890",
         ""
       )
-      promptLogger.prompt.removePromptLine(Seq("1"))
+      promptLogger.prompt.removePromptLine(Seq("1"), "my-task")
       now += 10000
       promptLogger.refreshPrompt()
       check(promptLogger, baos)(

@@ -320,7 +320,7 @@ import scala.math.Ordering.Implicits.*
       }
     }
     startingTestClass.foreach { testClass =>
-      logClaim(testClass){ runClaimedTestClass(testClass) }
+      logClaim(testClass) { runClaimedTestClass(testClass) }
     }
 
     for (file <- os.list(testClassQueueFolder)) {
