@@ -65,9 +65,9 @@ private[mill] class MultiLogger(
       logger2.prompt.clearPromptStatuses()
     }
 
-    private[mill] override def removePromptLine(key: Seq[String]): Unit = {
-      logger1.prompt.removePromptLine(key)
-      logger2.prompt.removePromptLine(key)
+    private[mill] override def removePromptLine(key: Seq[String], message: String): Unit = {
+      logger1.prompt.removePromptLine(key, message)
+      logger2.prompt.removePromptLine(key, message)
     }
 
     private[mill] override def setPromptHeaderPrefix(s: String): Unit = {

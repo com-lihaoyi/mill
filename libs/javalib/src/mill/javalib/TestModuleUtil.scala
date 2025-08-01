@@ -343,7 +343,7 @@ final class TestModuleUtil(
               lines.drop(seenLines).collect{
                 case s"CLAIM $currentTestClass $nanoTime" =>
                   logger.prompt.logBeginChromeProfileEntry(currentTestClass, nanoTime.toLong)
-                case s"COMPLETE $nanoTime" =>
+                case s"COMPLETED $nanoTime" =>
                   logger.prompt.logEndChromeProfileEntry(nanoTime.toLong)
               }
               seenLines = lines.length

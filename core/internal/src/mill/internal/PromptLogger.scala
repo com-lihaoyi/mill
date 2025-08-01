@@ -148,9 +148,9 @@ private[mill] class PromptLogger(
       promptLineState.clearStatuses()
     }
 
-    override def removePromptLine(key: Seq[String]): Unit = PromptLogger.this.synchronized {
+    override def removePromptLine(key: Seq[String], message: String): Unit = PromptLogger.this.synchronized {
       promptLineState.setCurrent(key, None)
-      endChromeProfileEntry()
+      if (message != "") endChromeProfileEntry()
     }
 
     override def setPromptDetail(key: Seq[String], s: String): Unit =
@@ -178,7 +178,7 @@ private[mill] class PromptLogger(
 
     override def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit =
       PromptLogger.this.synchronized {
-        beginChromeProfileEntry(message)
+        if (message != "") beginChromeProfileEntry(message)
         promptLineState.setCurrent(key, Some(s"[${key.mkString("-")}]${spaceNonEmpty(message)}"))
         seenIdentifiers(key) = (keySuffix, message)
       }
