@@ -54,7 +54,7 @@ private[this] object TabCompleteModule extends ExternalModule {
             // Complete long flags by looking at prefixes
             case Some(s"--$flag") =>
               MillCliConfig.parser.main.argSigs0
-                .flatMap(_.mappedName(mainargs.Util.kebabCaseNameMapper))
+                .flatMap(_.longName(mainargs.Util.kebabCaseNameMapper))
                 .filter(_.startsWith(flag))
                 .map("--" + _)
                 .foreach(println)
@@ -75,17 +75,13 @@ private[this] object TabCompleteModule extends ExternalModule {
   }
 
   def delegateToBash(args: mainargs.Leftover[String], index: Int) = {
-    mill.constants.DebugLog.println("delegateToBash " + os.pwd)
     val res = os.call((
         "bash",
         "-c",
         "compgen -f -- " + args.value.lift(index).map(pprint.Util.literalize(_)).getOrElse("\"\"")
       ), check = false)
 
-
-    mill.constants.DebugLog.println("delegateToBash " + pprint.apply(res))
-    res.out
-      .lines().foreach(println)
+    res.out.lines().foreach(println)
   }
 
 

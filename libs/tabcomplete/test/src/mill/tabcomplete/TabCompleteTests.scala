@@ -2,7 +2,6 @@ package mill.tabcomplete
 
 import mill.Task
 import mill.api.{Cross, Discover, Module}
-import mill.internal.MillCliConfig
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
@@ -43,145 +42,145 @@ object TabCompleteTests extends TestSuite {
       outStream.toString.linesIterator.toSeq
     }
 
-    test("empty-bash") - {
+    test("empty-bash") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", ""),
         List("bar", "foo", "qux", "task1")
       )
     }
-    test("empty-zsh") - {
+    test("empty-zsh") {
       assertGoldenLiteral(
         evalComplete("1", "./mill"),
         List("bar", "foo", "qux", "task1")
       )
     }
-    test("task") - {
+    test("task") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "t"),
         List("task1")
       )
     }
-    test("firstTask") - {
+    test("firstTask") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "t", "bar.task2"),
         List("task1")
       )
     }
 
-    test("secondNonTask") - {
+    test("secondNonTask") {
       assertGoldenLiteral(
         evalComplete("2", "./mill", "bar.task2", "f"),
         List("file2.txt", "file1.txt")
       )
     }
-    test("secondNonTaskEmpty") - {
+    test("secondNonTaskEmpty") {
       assertGoldenLiteral(
         evalComplete("2", "./mill", "bar.task2", ""),
         List("file2.txt", "file1.txt", "out")
       )
     }
 
-    test("module") - {
+    test("module") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "fo"),
         List("foo")
       )
     }
 
-    test("exactModule") - {
+    test("exactModule") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "bar"),
         List("bar", "bar.task2")
       )
     }
 
-    test("nested") - {
+    test("nested") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "bar."),
         List("bar.task2")
       )
     }
 
-    test("cross") - {
+    test("cross") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "qux["),
         List("qux[12]", "qux[34]", "qux[56]")
       )
     }
 
-    test("cross2") - {
+    test("cross2") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "qux"),
         List("qux", "qux[12]", "qux[34]", "qux[56]")
       )
     }
 
-    test("crossPartial") - {
+    test("crossPartial") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "qux[1"),
         List("qux[12]")
       )
     }
 
-    test("crossNested") - {
+    test("crossNested") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "qux[12]"),
         List("qux[12].task3")
       )
     }
 
-    test("crossNestedSlashed") - {
+    test("crossNestedSlashed") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "qux\\[12\\]"),
         List("qux[12].task3")
       )
     }
-    test("crossNestedSingleQuoted") - {
+    test("crossNestedSingleQuoted") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "'qux[12]"),
         List("qux[12].task3")
       )
     }
-    test("crossNestedDoubleQuoted") - {
+    test("crossNestedDoubleQuoted") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "\"qux[12]"),
         List("qux[12].task3")
       )
     }
 
-    test("crossComplete") - {
+    test("crossComplete") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "qux[12].task3"),
         List("qux[12].task3")
       )
 
     }
-    test("shortflags") - {
+    test("shortflags") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "-"),
         List("-v", "-b", "-d", "-k", "-D", "-j", "-i", "-w", "-h", "-s")
       )
     }
-    test("emptyAfterFlag") - {
+    test("emptyAfterFlag") {
       assertGoldenLiteral(
         evalComplete("2", "./mill", "-v"),
         List("bar", "foo", "qux", "task1")
       )
 
     }
-    test("filterAfterFlag") - {
+    test("filterAfterFlag") {
       assertGoldenLiteral(
         evalComplete("2", "./mill", "-v", "f"),
         List("foo")
       )
     }
-    test("filterAfterFlagAfterTask") - {
+    test("filterAfterFlagAfterTask") {
       assertGoldenLiteral(
         evalComplete("3", "./mill", "-v", "task1", "f"),
         Seq("file2.txt", "file1.txt")
       )
     }
-    test("longflags") - {
+    test("longflags") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "--"),
         List(
@@ -213,10 +212,16 @@ object TabCompleteTests extends TestSuite {
         )
       )
     }
-    test("longflagsfiltered") - {
+    test("longflagsfiltered") {
       assertGoldenLiteral(
         evalComplete("1", "./mill", "--h"),
         List("--help", "--help-advanced", "--home")
+      )
+    }
+    test("longFlagBrokenEarlier") {
+      assertGoldenLiteral(
+        evalComplete("1", "./mill", "--jo", "1", "task1"),
+        List("--jobs")
       )
     }
   }
