@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Android Java Projects :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/android/java.html">
+    <link rel="prev" href="android-initial-setup.html">
+    <link rel="next" href="kotlin.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.0.2-15-ec8f45">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item is-current-page" data-depth="3">
+    <a class="nav-link" href="java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="hilt-sample.html">Android Hilt Sample</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../fundamentals/out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../fundamentals/configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.0.2-15-ec8f45</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.0.2</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.0.2-15-ec8f45</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.14</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Android Java Projects</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This page provides an example of using Mill as a build tool for Android applications.
+This workflow is still pretty rough and nowhere near production ready, but can serve as
+a starting point for further experimentation and development.</p>
+</div>
+<div class="paragraph">
+<p><strong>Relevant Modules</strong></p>
+</div>
+<div class="paragraph">
+<p>These are the main Mill Modules that are relevant for building Android apps:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/androidlib/AndroidSdkModule.html"><code>mill.androidlib.AndroidSdkModule</code></a>: Handles Android SDK management and tools.</p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/androidlib/AndroidAppModule.html"><code>mill.androidlib.AndroidAppModule</code></a>: Provides a framework for building Android applications.</p>
+</li>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/javalib/JavaModule.html"><code>mill.javalib.JavaModule</code></a>: General Java build tasks like compiling Java code and creating JAR files.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_simple_android_hello_world_application"><a class="anchor" href="#_simple_android_hello_world_application"></a>Simple Android Hello World Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section sets up a basic Android project using Mill.
+We utilize <code>AndroidAppModule</code> and <code>AndroidSdkModule</code> to streamline the process of
+building an Android application with minimal configuration.</p>
+</div>
+<div class="paragraph">
+<p>By extending <code>AndroidAppModule</code>, we inherit all Android-related tasks such as
+resource generation, APK building, DEX conversion, and APK signing.
+Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-15-ec8f45/mill-dist-1.0.2-15-ec8f45-example-androidlib-java-1-hello-world.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2-15-ec8f45/example/androidlib/java/1-hello-world">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, androidlib.*, scalalib.*</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create and configure an Android SDK module to manage Android SDK paths and tools.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = "35.0.0"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Actual android application</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object app extends AndroidAppModule {
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+  def androidMinSdk = 19
+  def androidCompileSdk = 35
+  def androidApplicationId = "com.helloworld.app"
+  def androidApplicationNamespace = "com.helloworld.app"
+
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
+  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+
+  override def androidVirtualDeviceIdentifier: String = "java-test"
+
+  object test extends AndroidAppTests, TestModule.Junit4 {
+    def junit4Version = "4.13.2"
+  }
+
+  object it extends AndroidAppInstrumentedTests, AndroidTestModule.AndroidJUnit {
+
+    def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+
+    /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
+     * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
+     * resolution resolves conflicts between androidJvm and jvm platform types
+     */
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"androidx.test.ext:junit:1.2.1",
+      mvn"androidx.test:runner:1.6.2",
+      mvn"androidx.test.espresso:espresso-core:3.5.1",
+      mvn"junit:junit:4.13.2"
+    )
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.androidApk
+".../out/app/androidApk.dest/app.apk"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This command triggers the build process, which installs the Android Setup, compiles the Java
+code, generates Android resources, converts Java bytecode to DEX format, packages everything
+into an APK, optimizes the APK using <code>zipalign</code>, and finally signs it.</p>
+</div>
+<div class="paragraph">
+<p>This Mill build configuration is designed to build a simple "Hello World" Android application.
+By extending <code>AndroidAppModule</code>, we leverage its predefined Android build tasks, ensuring that
+all necessary steps (resource generation, APK creation, and signing) are executed automatically.</p>
+</div>
+<div class="sect3">
+<h4 id="_project_structure"><a class="anchor" href="#_project_structure"></a>Project Structure:</h4>
+<div class="paragraph">
+<p>The project follows the standard Android app layout. Below is a typical project folder structure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>.
+├── app
+│     └── src
+│         ├── androidTest/java/com/helloworld/app/ExampleInstrumentedTest.java
+│         ├── main
+│         │     ├── AndroidManifest.xml
+│         │     ├── java/com/helloworld/app/MainActivity.java
+│         │     └── res
+│         │         └── values
+│         │             ├── colors.xml
+│         │             └── strings.xml
+│         └── test/java/com/helloworld/app/ExampleUnitTest.java
+└── build.mill</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.test
+...compiling 1 Java source...
+
+&gt; cat out/app/test/testForked.dest/out.json
+["",[{"fullyQualifiedName":"com.helloworld.ExampleUnitTest.textSize_isCorrect","selector":"com.helloworld.ExampleUnitTest.textSize_isCorrect","duration":...,"status":"Success"}]]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This command runs unit tests on your local environment.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.createAndroidVirtualDevice
+...Name: java-test, DeviceId: medium_phone...
+
+&gt; ./mill show app.startAndroidEmulator
+
+&gt; ./mill show app.adbDevices
+...emulator-5554...device...
+
+&gt; ./mill show app.it
+...
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+...
+
+&gt; cat out/app/it/testForked.dest/test-report.xml
+...
+&lt;?xml version='1.0' encoding='UTF-8'?&gt;
+&lt;testsuites tests="1" failures="0" errors="0" skipped="0" time="..."&gt;
+        &lt;testsuite name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" tests="1" failures="0" errors="0" skipped="0" time="0.0" timestamp="..."&gt;
+        &lt;properties&gt;
+      &lt;/properties&gt;
+        &lt;testcase classname="com.helloworld.app.ExampleInstrumentedTest.useAppContext" name="com.helloworld.app.ExampleInstrumentedTest.useAppContext" time="..."&gt;
+        &lt;/testcase&gt;
+      &lt;/testsuite&gt;
+      &lt;/testsuites&gt;
+...
+
+&gt; ./mill show app.stopAndroidEmulator
+
+&gt; ./mill show app.deleteAndroidVirtualDevice</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The android tests (existing typically in androidTest directory, aka instrumented tests)
+typically run on an android device.
+The createAndroidVirtualDevice command creates an AVD (Android Virtual Device)
+and the startAndroidEmulator command starts the AVD. The it task runs the android tests
+against the available AVD. The stopAndroidEmulator command stops the AVD and the
+destroyAndroidVirtualDevice command destroys the AVD.
+The provided commands can be used in a CI/CD pipeline assuming the right setup is in place.</p>
+</div>
+<div class="paragraph">
+<p>This example demonstrates how to create a basic "Hello World" Android application
+using the Mill build tool. It outlines the minimum setup required to compile Java code,
+package it into an APK, and run the app on an Android device.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_understanding_androidsdkmodule_and_androidappmodule"><a class="anchor" href="#_understanding_androidsdkmodule_and_androidappmodule"></a>Understanding <code>AndroidSdkModule</code> and <code>AndroidAppModule</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The two main modules you need to understand when building Android apps with Mill
+are <code>AndroidSdkModule</code> and <code>AndroidAppModule</code>.</p>
+</div>
+<div class="paragraph">
+<p><code>AndroidSdkModule</code>:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>This module manages the installation and configuration of the Android SDK, which includes
+tools like <code>aapt</code>, <code>d8</code>, <code>zipalign</code>, and <code>apksigner</code>. These tools are used
+for compiling, packaging, and signing Android applications.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>AndroidAppModule</code>:
+This module provides the step-by-step workflow for building an Android app. It handles
+everything from compiling the code to generating a signed APK for distribution.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><strong>Compiling Java code</strong>: The module compiles your Java code into <code>.class</code> files, which is the first step in creating an Android app.</p>
+</li>
+<li>
+<p><strong>Packaging into JAR</strong>: It then packages the compiled <code>.class</code> files into a JAR file, which is necessary before converting to Android&#8217;s format.</p>
+</li>
+<li>
+<p><strong>Converting to DEX format</strong>: The JAR file is converted into DEX format, which is the executable format for Android applications.</p>
+</li>
+<li>
+<p><strong>Creating an APK</strong>: The DEX files and Android resources (like layouts and strings) are packaged together into an APK file, which is the installable file for Android devices.</p>
+</li>
+<li>
+<p><strong>Optimizing with zipalign</strong>: The APK is optimized using <code>zipalign</code> to ensure better performance on Android devices.</p>
+</li>
+<li>
+<p><strong>Signing the APK</strong>: Finally, the APK is signed with a digital signature, allowing it to be distributed and installed on Android devices.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>After creating Simple Android Application now let&#8217;s focus on how to create Android App Bundle Using Mill Build Tool</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_android_app_bundle"><a class="anchor" href="#_android_app_bundle"></a>Android App Bundle</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This Example provides the basic setup for building Android App Bundle using Mill Build Tool.</p>
+</div>
+<div class="paragraph">
+<p>By extending <code>AndroidAppBundle</code>, we inherit all Android Bundle tasks such as
+Android Bundle zip generation, Bundle Creation and Bundle signing.
+Additionally, <code>AndroidSdkModule</code> is embedded, making SDK management seamless.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-15-ec8f45/mill-dist-1.0.2-15-ec8f45-example-androidlib-java-2-app-bundle.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2-15-ec8f45/example/androidlib/java/2-app-bundle">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, androidlib.*
+
+object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = "35.0.0"
+}
+
+object bundle extends AndroidAppBundle {
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+  def androidCompileSdk = 35
+
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
+  def androidApplicationId = "com.helloworld.app"
+  def androidApplicationNamespace = "com.helloworld.app"
+
+  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show bundle.androidBundle
+".../out/bundle/androidBundle.dest/signedBundle.aab"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This command triggers the App Bundle Build process, which installs Bundle Tool then resource compilation,
+and then building Android Bundle Zip then Creation of Android App Bundle and finally signs it.</p>
+</div>
+<div class="paragraph">
+<p>This Mill build configuration is designed to build a simple "Hello World" Android App Bundle.
+By extending <code>AndroidAppBundle</code>, we leverage its predefined Android App Bundle build tasks,
+ensuring that all necessary steps (generation, creation, and signing) are executed automatically.</p>
+</div>
+<div class="sect3">
+<h4 id="_project_structure_2"><a class="anchor" href="#_project_structure_2"></a>Project Structure:</h4>
+<div class="paragraph">
+<p>The project follows the standard Android App Bundle layout. Below is a typical project folder structure:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>.
+bundle/
+└── src
+   ├── main
+   │   ├── AndroidManifest.xml
+   │   └── java/com/helloworld/app/MainActivity.java
+   └── res
+       └── values
+           ├── colors.xml
+           └── strings.xml</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_understanding_androidappbundle"><a class="anchor" href="#_understanding_androidappbundle"></a>Understanding <code>AndroidAppBundle</code></h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The <code>AndroidAppBundle</code> trait is used to create and manage Android App Bundles (AAB) in Mill. It provides tasks for creating, building, and signing an AAB from Android resources and DEX files.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/androidlib/AndroidAppBundle.html"><code>mill.androidlib.AndroidAppBundle</code></a>: Provides a framework for building Android App Bundle.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_key_functions"><a class="anchor" href="#_key_functions"></a>Key Functions</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>androidAaptOptions:</strong> Here, Overrides <code>androidAaptOptions</code> to add the <code>--proto-format</code> option to AAPT commands, enabling protocol buffer format for assets.</p>
+</li>
+<li>
+<p><strong>androidBundleZip:</strong> Creates a zip archive containing: <code>Compiled DEX files</code>, <code>Resources</code>, <code>libraries</code>, and <code>assets</code>, The <code>Android manifest</code>.
+This zip follows the Android App Bundle format, as outlined in the official documentation.</p>
+</li>
+<li>
+<p><strong>androidUnsignedBundle:</strong> Uses the <code>bundleTool</code> to build an unsigned AAB from the bundle zip.</p>
+</li>
+<li>
+<p><strong>androidBundle:</strong> Signs the AAB using a specified keystore with the <code>jarsigner</code> tool, producing a signed Android App Bundle (AAB).</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_the_r8_optimization_tool_in_android_modules"><a class="anchor" href="#_using_the_r8_optimization_tool_in_android_modules"></a>Using the R8 optimization tool in Android modules</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>R8 is a code shrinker and obfuscator for Android applications. Is designed to optimize the size of the APK
+while maintaining the functionality of the app.
+When using R8, you can configure the rules for code shrinking and obfuscation in a ProGuard configuration file.
+R8 relies on ProGuard rules files to adjust its default behavior and gain a better understanding of your app’s structure,
+such as identifying the classes that act as entry points. While you can modify some of these rules files,
+certain rules may be automatically generated by compile-time tools (like AAPT2) or inherited from your app’s library dependencies.
+You need 2 files on the root of your project:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>proguard-rules.pro: This file contains the rules for R8 to follow when shrinking and obfuscating the code.</p>
+</li>
+<li>
+<p>test-proguard-rules.pro: This file contains the rules for R8 to follow when shrinking and obfuscating the unit and instrumented tests.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can also override the default Proguard files by using <code>override def proguardConfigs: T[Seq[PathRef]]</code>
+More informations about the R8 in general and about the Proguard rules files can be found in the links below:</p>
+</div>
+<div class="paragraph">
+<p><a href="https://developer.android.com/build/shrink-code" class="bare">https://developer.android.com/build/shrink-code</a></p>
+</div>
+<div class="paragraph">
+<p><a href="https://www.guardsquare.com/manual/configuration/usage" class="bare">https://www.guardsquare.com/manual/configuration/usage</a></p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-15-ec8f45/mill-dist-1.0.2-15-ec8f45-example-androidlib-java-5-R8.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2-15-ec8f45/example/androidlib/java/5-R8">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, androidlib.*, scalalib.*
+
+object androidSdkModule0 extends AndroidSdkModule { <i class="conum" data-value="1"></i><b>(1)</b>
+  def buildToolsVersion = "35.0.0"
+}
+
+object app extends AndroidR8AppModule { <i class="conum" data-value="2"></i><b>(2)</b>
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+  def androidMinSdk = 19
+  def androidCompileSdk = 35
+  def androidApplicationId = "com.helloworld.app"
+  def androidApplicationNamespace = "com.helloworld.app"
+
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
+  def androidReleaseKeyName: Option[String] = Some("releaseKey.jks")
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+
+  override def androidVirtualDeviceIdentifier: String = "java-test"
+  override def androidIsDebug: T[Boolean] = Task { false }
+
+  override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
+    super.androidReleaseSettings().withProguardLocalFiles(
+      Seq(
+        moduleDir / "proguard-rules.pro"
+      )
+    )
+  }
+
+  // Unit tests for the application
+  object test extends AndroidAppTests, TestModule.Junit4 {
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"junit:junit:4.13.2"
+    )
+  }
+
+  // Instrumented tests (runs on emulator)
+  object it extends AndroidAppInstrumentedTests, AndroidR8AppModule,
+        AndroidTestModule.AndroidJUnit {
+    def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+
+    override def androidIsDebug: T[Boolean] = Task {
+      false
+    }
+
+    override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
+      AndroidBuildTypeSettings(isMinifyEnabled = false).withProguardLocalFiles(
+        Seq(
+          moduleDir / "test-proguard-rules.pro"
+        )
+      )
+    }
+
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"androidx.test.ext:junit:1.2.1",
+      mvn"androidx.test:runner:1.6.2",
+      mvn"androidx.test.espresso:espresso-core:3.5.1",
+      mvn"junit:junit:4.13.2"
+    )
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Create and configure an Android SDK module to manage Android SDK paths and tools.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The actual Android application</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.androidApk
+
+&gt; ./mill show app.createAndroidVirtualDevice
+...Name: java-test, DeviceId: medium_phone...
+
+&gt; ./mill show app.startAndroidEmulator
+
+&gt; ./mill show app.androidInstall
+...All files should be loaded. Notifying the device...
+
+&gt; ./mill show app.it
+...
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.useAppContext",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+
+
+&gt; ./mill show app.stopAndroidEmulator
+
+&gt; ./mill show app.deleteAndroidVirtualDevice</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>R8 will run automatically when you run the <code>androidInstall</code> task with androidIsDebug set to false.
+If you want to create the APK without R8, you can set the androidReleaseSettings isMinifyEnabled to false. You can also
+run the <code>andoidInstall</code> task that will automaticaly run the <code>androidApk</code> and also install it in the emulator.
+The release settings used in <code>androidInstall</code> task will install the optimized APK on the emulator.
+So first you need to create the emulator and start it.
+After the emulator is started, you can run the <code>androidReleaseInstall</code> task and see the app in the emulator.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_third_party_native_libraries"><a class="anchor" href="#_using_third_party_native_libraries"></a>Using Third-Party Native Libraries</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Native libraries are libraries written in C/C  that are compiled to android code
+and are used in the app. They are usually used for performance reasons or to use
+libraries that are not available in Java/Kotlin.
+This example shows how to use native libraries in the app.
+The native library is a simple C library that returns a string "Hello from C"
+and is used in the app to show a toast with the string. In my example i used also
+one of the core C/C  libraires that can be used in the android and are already given ( &lt;android/log.h&gt; ).
+There is a list of the core C/C++ libraries that can be used in the android here:
+<a href="https://developer.android.com/ndk/reference" class="bare">https://developer.android.com/ndk/reference</a></p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-15-ec8f45/mill-dist-1.0.2-15-ec8f45-example-androidlib-java-6-native-libs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2-15-ec8f45/example/androidlib/java/6-native-libs">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.*, androidlib.*, scalalib.*
+import mill.api.BuildCtx
+
+object androidSdkModule0 extends AndroidSdkModule {
+  def buildToolsVersion = "35.0.0"
+}
+
+object app extends AndroidNativeAppModule { <i class="conum" data-value="1"></i><b>(1)</b>
+  def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+  def androidMinSdk = 19
+  def androidCompileSdk = 35
+  def androidApplicationId = "com.helloworld.app"
+  def androidApplicationNamespace = "com.helloworld.app"
+
+  /**
+   * Configuration for ReleaseKey
+   * WARNING: Replace these default values with secure and private credentials before using in production.
+   * Never use these defaults in a production environment as they are not secure.
+   * This is just for testing purposes.
+   */
+  def androidReleaseKeyAlias: T[Option[String]] = Task { Some("releaseKey") }
+  def androidReleaseKeyPass: T[Option[String]] = Task { Some("MillBuildTool") }
+  def androidReleaseKeyStorePass: T[Option[String]] = Task { Some("MillBuildTool") }
+
+  override def androidVirtualDeviceIdentifier: String = "java-test"
+
+  def androidExternalNativeLibs = Task { <i class="conum" data-value="2"></i><b>(2)</b>
+    Seq(
+      PathRef(BuildCtx.workspaceRoot / "app/src/main/cpp/native-lib.cpp")
+    )
+  }
+
+  // Instrumented tests (runs on emulator)
+  object it extends AndroidAppInstrumentedTests, AndroidTestModule.AndroidJUnit {
+    def androidSdkModule = mill.api.ModuleRef(androidSdkModule0)
+
+    /* TODO currently the dependency resolution ignores the platform type and kotlinx-coroutines-core has
+     * conflicting classes with kotlinx-coroutines-core-jvm . Remove the exclusions once the dependency
+     * resolution resolves conflicts between androidJvm and jvm platform types
+     */
+    def mvnDeps = super.mvnDeps() ++ Seq(
+      mvn"androidx.test.ext:junit:1.2.1",
+      mvn"androidx.test:runner:1.6.2",
+      mvn"androidx.test.espresso:espresso-core:3.5.1",
+      mvn"junit:junit:4.13.2"
+    )
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>You need to extend AndroidNativeLibs trait to use native libraries in the app.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>This is the path to the native library that will be used in the app.</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show app.androidApk
+".../out/app/androidApk.dest/app.apk"
+
+&gt; ./mill show app.createAndroidVirtualDevice
+...Name: java-test, DeviceId: medium_phone...
+
+&gt; ./mill show app.startAndroidEmulator
+
+&gt; ./mill show app.androidInstall
+...All files should be loaded. Notifying the device...
+
+&gt; ./mill show app.it
+...
+{
+  "msg": "",
+  "results": [
+    {
+      "fullyQualifiedName": "com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp",
+      "selector": "com.helloworld.app.ExampleInstrumentedTest.textViewDisplaysHelloFromCpp",
+      "duration": ...,
+      "status": "Success"
+    }
+  ]
+}
+...
+
+&gt; ./mill show app.stopAndroidEmulator
+
+&gt; ./mill show app.deleteAndroidVirtualDevice</code></pre>
+</div>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="android-initial-setup.html">Android Initial Setup</a></span>
+  <span class="next"><a href="kotlin.html">Android Kotlin Projects</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>
