@@ -3,7 +3,7 @@ package mill.tabcomplete
 import mill.*
 import mill.api.{SelectMode, Result}
 import mill.api.{Discover, Evaluator, ExternalModule}
-
+import mill.internal.MillCliConfig
 import mainargs.arg
 
 /**
@@ -14,6 +14,7 @@ private[this] object TabCompleteModule extends ExternalModule {
 
   lazy val millDiscover = Discover[this.type]
 
+
   /**
    * The main entrypoint for Mill's Bash and Zsh tab-completion logic
    */
@@ -23,7 +24,66 @@ private[this] object TabCompleteModule extends ExternalModule {
       args: mainargs.Leftover[String]
   ) = Task.Command(exclusive = true) {
 
-    val (query, unescapedOpt) = args.value.lift(index) match {
+
+    MillCliConfig.parser.constructRaw(args.value, allowRepeats = true) match{
+      // Initial parse succeeds, `leftoverArgs` contains either the task selector,
+      // or the start of another flag
+      case mainargs.Result.Success(v) =>
+
+        val parsedArgCount = args.value.length - v.leftoverArgs.value.length
+        // The cursor is after the task being run, we don't know anything about those
+        // flags so delegate to bash completion
+        if (index > parsedArgCount) delegateToBash(args, index)
+        // The cursor is before the task being run. It can't be an incomplete
+        // `-f` or `--flag` because parsing succeeded, so delegate to file completion
+        else if (index < parsedArgCount) delegateToBash(args, index)
+        // This is the task I need to autocomplete, or the next incomplete flag
+        else if (index == parsedArgCount) {
+          args.value.lift(index) match{
+            // Complete long flags by looking at prefixes
+            case Some(s"--$flag") =>
+              MillCliConfig.parser.main.argSigs0
+                .flatMap(_.argName)
+                .filter(_.startsWith(flag))
+                .map("--" + _)
+                .foreach(println)
+
+            case Some(s"-$flag") =>
+              MillCliConfig.parser.main.argSigs0
+                .flatMap(_.shortName)
+                .filter(_.toString.startsWith(flag))
+                .map("-" + _)
+                .foreach(println)
+
+            case _ => completeTasks(ev, index, args.value)
+          }
+        }
+
+
+        else ???
+
+      // Initial parse fails. Only failure mode is `incomplete`:
+      //
+      // - `missing` should be empty since all Mill flags have defaults
+      // - `duplicate` should be empty since we use `allowRepeats = true`
+      // - `unknown` should be empty since unknown tokens end up in `leftoverArgs`
+      case mainargs.Result.Failure.MismatchedArguments(Nil, unknown, Nil, Some(incomplete)) =>
+        // do nothing for now
+    }
+
+
+  }
+
+  def delegateToBash(args: mainargs.Leftover[String], index: Int) = os.call((
+    "bash",
+    "-c",
+    "compgen -f -- " + args.value.lift(index).map(pprint.Util.literalize(_)).getOrElse("")
+  )).out.lines.foreach(println)
+
+
+  def completeTasks(ev: Evaluator, index: Int, args: Seq[String]) = {
+
+    val (query, unescapedOpt) = args.lift(index) match {
       // Zsh has the index pointing off the end of the args list, while
       // Bash has the index pointing at an empty string arg
       case None | Some("") => ("_", None)
