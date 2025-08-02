@@ -1,6 +1,7 @@
 package mill.internal
 
 import mainargs.{Flag, Leftover, arg}
+import mill.api.JsonFormatters.*
 
 case class MillCliConfig(
     // ==================== NORMAL CLI FLAGS ====================

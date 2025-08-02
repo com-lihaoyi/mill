@@ -23,14 +23,25 @@ private[this] object TabCompleteModule extends ExternalModule {
       @arg(positional = true) index: Int,
       args: mainargs.Leftover[String]
   ) = Task.Command(exclusive = true) {
+    val parsed = MillCliConfig.parser.constructRaw(args.value.drop(1), allowRepeats = true)
+    parsed match {
+      // Initial parse fails. Only failure mode is `incomplete`:
+      //
+      // - `missing` should be empty since all Mill flags have defaults
+      // - `duplicate` should be empty since we use `allowRepeats = true`
+      // - `unknown` should be empty since unknown tokens end up in `leftoverArgs`
+      case mainargs.Result.Failure.MismatchedArguments(Nil, unknown, Nil, Some(incomplete)) =>
+        // In this case, we cannot really identify any tokens in the argument list
+        // which are task selectors, since the last flag is incomplete and prior
+        // flags are all completed. So just delegate to bash completion
+        delegateToBash(args, index)
 
-
-    MillCliConfig.parser.constructRaw(args.value, allowRepeats = true) match{
       // Initial parse succeeds, `leftoverArgs` contains either the task selector,
       // or the start of another flag
       case mainargs.Result.Success(v) =>
 
         val parsedArgCount = args.value.length - v.leftoverArgs.value.length
+
         // The cursor is after the task being run, we don't know anything about those
         // flags so delegate to bash completion
         if (index > parsedArgCount) delegateToBash(args, index)
@@ -43,7 +54,7 @@ private[this] object TabCompleteModule extends ExternalModule {
             // Complete long flags by looking at prefixes
             case Some(s"--$flag") =>
               MillCliConfig.parser.main.argSigs0
-                .flatMap(_.argName)
+                .flatMap(_.mappedName(mainargs.Util.kebabCaseNameMapper))
                 .filter(_.startsWith(flag))
                 .map("--" + _)
                 .foreach(println)
@@ -57,28 +68,25 @@ private[this] object TabCompleteModule extends ExternalModule {
 
             case _ => completeTasks(ev, index, args.value)
           }
-        }
-
-
-        else ???
-
-      // Initial parse fails. Only failure mode is `incomplete`:
-      //
-      // - `missing` should be empty since all Mill flags have defaults
-      // - `duplicate` should be empty since we use `allowRepeats = true`
-      // - `unknown` should be empty since unknown tokens end up in `leftoverArgs`
-      case mainargs.Result.Failure.MismatchedArguments(Nil, unknown, Nil, Some(incomplete)) =>
-        // do nothing for now
+        } else ???
     }
 
 
   }
 
-  def delegateToBash(args: mainargs.Leftover[String], index: Int) = os.call((
-    "bash",
-    "-c",
-    "compgen -f -- " + args.value.lift(index).map(pprint.Util.literalize(_)).getOrElse("")
-  )).out.lines.foreach(println)
+  def delegateToBash(args: mainargs.Leftover[String], index: Int) = {
+    mill.constants.DebugLog.println("delegateToBash " + os.pwd)
+    val res = os.call((
+        "bash",
+        "-c",
+        "compgen -f -- " + args.value.lift(index).map(pprint.Util.literalize(_)).getOrElse("\"\"")
+      ), check = false)
+
+
+    mill.constants.DebugLog.println("delegateToBash " + pprint.apply(res))
+    res.out
+      .lines().foreach(println)
+  }
 
 
   def completeTasks(ev: Evaluator, index: Int, args: Seq[String]) = {
