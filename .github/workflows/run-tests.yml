@@ -136,7 +136,7 @@ jobs:
             millargs: "'{contrib,core,testkit,runner,dist}.__.test'"
 
           - java-version: 17
-            millargs: "'libs.{scalalib,init}.__.test'"
+            millargs: "'libs.{scalalib,init,tabcomplete}.__.test'"
             install-sbt: true
 
           - java-version: 11
@@ -208,7 +208,7 @@ jobs:
             millargs: '"example.migrating.javalib.__.packaged.daemon"'
 
           - java-version: 11
-            millargs: '"libs.{util,javalib,androidlib,graphviz,tabcomplete}.__.test"'
+            millargs: '"libs.{util,javalib,androidlib,graphviz}.__.test"'
 
           - java-version: 17
             millargs: '"example.scalalib.{basic,publishing}.__.packaged.daemon"'

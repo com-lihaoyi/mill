@@ -1,6 +1,7 @@
-package mill.daemon
+package mill.internal
 
 import mainargs.{Flag, Leftover, arg}
+import mill.api.JsonFormatters.*
 
 case class MillCliConfig(
     // ==================== NORMAL CLI FLAGS ====================
@@ -189,9 +190,7 @@ task cheat sheet:
 options:
 """
 
-  import mill.api.JsonFormatters.*
-
-  private lazy val parser: ParserForClass[MillCliConfig] = mainargs.ParserForClass[MillCliConfig]
+  lazy val parser: ParserForClass[MillCliConfig] = mainargs.ParserForClass[MillCliConfig]
 
   private lazy val helpAdvancedParser: ParserForClass[MillCliConfig] = new ParserForClass(
     parser.main.copy(argSigs0 = parser.main.argSigs0.collect {
