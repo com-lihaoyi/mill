@@ -21,9 +21,15 @@ private[this] object TabCompleteModule extends ExternalModule {
       ev: Evaluator,
       @arg(positional = true) index: Int,
       args: mainargs.Leftover[String]
-  ) = Task.Command(exclusive = true) {
-    val parsed = MillCliConfig.parser.constructRaw(args.value.drop(1), allowRepeats = true)
-    parsed match {
+  ) = Task.Command(exclusive = true)[Unit] {
+    mainargs.TokenGrouping.groupArgs(
+      args.value.drop(1),
+      MillCliConfig.parser.main.flattenedArgSigs,
+      allowPositional = false,
+      allowRepeats = true,
+      allowLeftover = true,
+      nameMapper = mainargs.Util.kebabCaseNameMapper
+    )  match {
       // Initial parse fails. Only failure mode is `incomplete`:
       //
       // - `missing` should be empty since all Mill flags have defaults
@@ -38,38 +44,79 @@ private[this] object TabCompleteModule extends ExternalModule {
       // Initial parse succeeds, `leftoverArgs` contains either the task selector,
       // or the start of another flag
       case mainargs.Result.Success(v) =>
-
-        val parsedArgCount = args.value.length - v.leftoverArgs.value.length
+        val parsedArgCount = args.value.length - v.remaining.length
 
         // The cursor is after the task being run, we don't know anything about those
         // flags so delegate to bash completion
-        if (index > parsedArgCount) delegateToBash(args, index)
+        if (index > parsedArgCount) {
+          val resolved = ev.resolveTasks(Seq(args.value(parsedArgCount)), SelectMode.Multi)
+
+          resolved match{
+            case _: Result.Failure => delegateToBash(args, index)
+            case Result.Success(ts) =>
+              val entryPoints: Seq[mainargs.MainData[_, _]] = ts.flatMap{t =>
+                ev
+                  .rootModule
+                  .moduleCtx
+                  .discover
+                  .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
+              }
+              for(ep <- entryPoints.headOption){
+                val taskArgs = v.remaining.drop(index - 1)
+
+                val grouped2 = mainargs.TokenGrouping.groupArgs(
+                  taskArgs,
+                  ep.flattenedArgSigs,
+                  allowPositional = false,
+                  allowRepeats = true,
+                  allowLeftover = false,
+                  nameMapper = mainargs.Util.kebabCaseNameMapper
+                )
+
+                grouped2 match{
+                  case mainargs.Result.Success(grouping) =>
+                    val commandParsedArgCount = v.remaining.length - grouping.remaining.length - 1
+                    if (index - parsedArgCount - 1 == commandParsedArgCount){
+                      findMatchingArgs(grouping.remaining.headOption, ep.flattenedArgSigs.map(_._1))
+                        .getOrElse(delegateToBash(args, index))
+                    }else delegateToBash(args, index)
+                  case mainargs.Result.Failure.MismatchedArguments(missing, unknown, duplicate, incomplete) =>
+                    findMatchingArgs(unknown.headOption, ep.flattenedArgSigs.map(_._1))
+                      .getOrElse(delegateToBash(args, index))
+                }
+              }
+
+          }
+
+
+        }
         // The cursor is before the task being run. It can't be an incomplete
         // `-f` or `--flag` because parsing succeeded, so delegate to file completion
         else if (index < parsedArgCount) delegateToBash(args, index)
         // This is the task I need to autocomplete, or the next incomplete flag
         else if (index == parsedArgCount) {
-          args.value.lift(index) match {
-            // Complete long flags by looking at prefixes
-            case Some(s"--$flag") =>
-              MillCliConfig.parser.main.argSigs0
-                .flatMap(_.longName(mainargs.Util.kebabCaseNameMapper))
-                .filter(_.startsWith(flag))
-                .map("--" + _)
-                .foreach(println)
-
-            case Some(s"-$flag") =>
-              MillCliConfig.parser.main.argSigs0
-                .flatMap(_.shortName)
-                .filter(_.toString.startsWith(flag))
-                .map("-" + _)
-                .foreach(println)
-
-            case _ => completeTasks(ev, index, args.value)
-          }
+          findMatchingArgs(args.value.lift(index), MillCliConfig.parser.main.flattenedArgSigs.map(_._1))
+            .getOrElse(completeTasks(ev, index, args.value))
         } else ???
     }
 
+  }
+
+  def findMatchingArgs(stringOpt: Option[String],
+                       argSigs: Seq[mainargs.ArgSig]): Option[Unit] = stringOpt.collect{
+    case s"--$flag" =>
+    argSigs
+        .flatMap(_.longName(mainargs.Util.kebabCaseNameMapper))
+        .filter(_.startsWith(flag))
+        .map("--" + _)
+        .foreach(println)
+
+    case s"-$flag" =>
+    argSigs
+        .flatMap(_.shortName)
+        .filter(_.toString.startsWith(flag))
+        .map("-" + _)
+        .foreach(println)
   }
 
   def delegateToBash(args: mainargs.Leftover[String], index: Int) = {
