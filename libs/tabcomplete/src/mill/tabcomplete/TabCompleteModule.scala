@@ -73,21 +73,23 @@ private[this] object TabCompleteModule extends ExternalModule {
                   nameMapper = mainargs.Util.kebabCaseNameMapper
                 )
 
+                def handleRemaining(remaining: Seq[String]) = {
+                  val commandParsedArgCount = v.remaining.length - remaining.length - 1
+                  if (index - parsedArgCount - 1 == commandParsedArgCount) {
+                    findMatchingArgs(remaining.headOption, ep.flattenedArgSigs.map(_._1))
+                      .getOrElse(delegateToBash(args, index))
+                  } else delegateToBash(args, index)
+                }
+
                 grouped2 match {
-                  case mainargs.Result.Success(grouping) =>
-                    val commandParsedArgCount = v.remaining.length - grouping.remaining.length - 1
-                    if (index - parsedArgCount - 1 == commandParsedArgCount) {
-                      findMatchingArgs(grouping.remaining.headOption, ep.flattenedArgSigs.map(_._1))
-                        .getOrElse(delegateToBash(args, index))
-                    } else delegateToBash(args, index)
+                  case mainargs.Result.Success(grouping) => handleRemaining(grouping.remaining)
                   case mainargs.Result.Failure.MismatchedArguments(
                         missing,
                         unknown,
                         duplicate,
                         incomplete
                       ) =>
-                    findMatchingArgs(unknown.headOption, ep.flattenedArgSigs.map(_._1))
-                      .getOrElse(delegateToBash(args, index))
+                    handleRemaining(unknown)
                 }
               }
 
@@ -113,6 +115,7 @@ private[this] object TabCompleteModule extends ExternalModule {
     stringOpt.collect {
       case s"--$flag" =>
         argSigs
+          .filter(!_.positional)
           .flatMap(_.longName(mainargs.Util.kebabCaseNameMapper))
           .filter(_.startsWith(flag))
           .map("--" + _)
@@ -120,6 +123,7 @@ private[this] object TabCompleteModule extends ExternalModule {
 
       case s"-$flag" =>
         argSigs
+          .filter(!_.positional)
           .flatMap(_.shortName)
           .filter(_.toString.startsWith(flag))
           .map("-" + _)
