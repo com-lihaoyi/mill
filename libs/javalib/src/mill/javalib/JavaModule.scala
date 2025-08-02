@@ -16,6 +16,7 @@ import mill.api.daemon.internal.bsp.{
   BspUri,
   JvmBuildTarget
 }
+import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.javalib.*
 import mill.api.daemon.internal.idea.GenIdeaInternalApi
 import mill.api.{DefaultTaskModule, ModuleRef, PathRef, Segment, Task, TaskCtx}
@@ -50,6 +51,13 @@ trait JavaModule
     ModuleRef(new BspJavaModule.Wrap(this) {}.internalBspJavaModule)
   }
   override private[mill] def bspJavaModule: () => BspJavaModuleApi = () => bspExt()
+
+  private[mill] lazy val genEclipseInternalExt: ModuleRef[mill.javalib.eclipse.GenEclipseModule] = {
+    ModuleRef(new mill.javalib.eclipse.GenEclipseModule.Wrap(this) {}.internalGenEclipse)
+  }
+
+  private[mill] override def genEclipseInternal: () => GenEclipseInternalApi =
+    () => genEclipseInternalExt()
 
   private[mill] lazy val genIdeaInternalExt: ModuleRef[mill.javalib.idea.GenIdeaModule] = {
     ModuleRef(new mill.javalib.idea.GenIdeaModule.Wrap(this) {}.internalGenIdea)
