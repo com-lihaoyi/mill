@@ -551,7 +551,7 @@ private object GroupExecution {
           if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
             sys.error(
               s"Writing to ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
-                "You can only write to files within your `Task.dest`, or to other files from a `Task.Command"
+                "Normal `Task`s can only write to files within their `Task.dest` folder, only `Task.Command`s can write to other arbitrary files."
             )
           }
         }
