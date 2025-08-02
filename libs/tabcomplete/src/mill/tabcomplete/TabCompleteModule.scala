@@ -29,7 +29,7 @@ private[this] object TabCompleteModule extends ExternalModule {
       allowRepeats = true,
       allowLeftover = true,
       nameMapper = mainargs.Util.kebabCaseNameMapper
-    )  match {
+    ) match {
       // Initial parse fails. Only failure mode is `incomplete`:
       //
       // - `missing` should be empty since all Mill flags have defaults
@@ -51,17 +51,17 @@ private[this] object TabCompleteModule extends ExternalModule {
         if (index > parsedArgCount) {
           val resolved = ev.resolveTasks(Seq(args.value(parsedArgCount)), SelectMode.Multi)
 
-          resolved match{
+          resolved match {
             case _: Result.Failure => delegateToBash(args, index)
             case Result.Success(ts) =>
-              val entryPoints: Seq[mainargs.MainData[_, _]] = ts.flatMap{t =>
+              val entryPoints: Seq[mainargs.MainData[_, _]] = ts.flatMap { t =>
                 ev
                   .rootModule
                   .moduleCtx
                   .discover
                   .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
               }
-              for(ep <- entryPoints.headOption){
+              for (ep <- entryPoints.headOption) {
                 val taskArgs = v.remaining.drop(index - 1)
 
                 val grouped2 = mainargs.TokenGrouping.groupArgs(
@@ -73,14 +73,19 @@ private[this] object TabCompleteModule extends ExternalModule {
                   nameMapper = mainargs.Util.kebabCaseNameMapper
                 )
 
-                grouped2 match{
+                grouped2 match {
                   case mainargs.Result.Success(grouping) =>
                     val commandParsedArgCount = v.remaining.length - grouping.remaining.length - 1
-                    if (index - parsedArgCount - 1 == commandParsedArgCount){
+                    if (index - parsedArgCount - 1 == commandParsedArgCount) {
                       findMatchingArgs(grouping.remaining.headOption, ep.flattenedArgSigs.map(_._1))
                         .getOrElse(delegateToBash(args, index))
-                    }else delegateToBash(args, index)
-                  case mainargs.Result.Failure.MismatchedArguments(missing, unknown, duplicate, incomplete) =>
+                    } else delegateToBash(args, index)
+                  case mainargs.Result.Failure.MismatchedArguments(
+                        missing,
+                        unknown,
+                        duplicate,
+                        incomplete
+                      ) =>
                     findMatchingArgs(unknown.headOption, ep.flattenedArgSigs.map(_._1))
                       .getOrElse(delegateToBash(args, index))
                 }
@@ -88,36 +93,38 @@ private[this] object TabCompleteModule extends ExternalModule {
 
           }
 
-
         }
         // The cursor is before the task being run. It can't be an incomplete
         // `-f` or `--flag` because parsing succeeded, so delegate to file completion
         else if (index < parsedArgCount) delegateToBash(args, index)
         // This is the task I need to autocomplete, or the next incomplete flag
         else if (index == parsedArgCount) {
-          findMatchingArgs(args.value.lift(index), MillCliConfig.parser.main.flattenedArgSigs.map(_._1))
+          findMatchingArgs(
+            args.value.lift(index),
+            MillCliConfig.parser.main.flattenedArgSigs.map(_._1)
+          )
             .getOrElse(completeTasks(ev, index, args.value))
         } else ???
     }
 
   }
 
-  def findMatchingArgs(stringOpt: Option[String],
-                       argSigs: Seq[mainargs.ArgSig]): Option[Unit] = stringOpt.collect{
-    case s"--$flag" =>
-    argSigs
-        .flatMap(_.longName(mainargs.Util.kebabCaseNameMapper))
-        .filter(_.startsWith(flag))
-        .map("--" + _)
-        .foreach(println)
+  def findMatchingArgs(stringOpt: Option[String], argSigs: Seq[mainargs.ArgSig]): Option[Unit] =
+    stringOpt.collect {
+      case s"--$flag" =>
+        argSigs
+          .flatMap(_.longName(mainargs.Util.kebabCaseNameMapper))
+          .filter(_.startsWith(flag))
+          .map("--" + _)
+          .foreach(println)
 
-    case s"-$flag" =>
-    argSigs
-        .flatMap(_.shortName)
-        .filter(_.toString.startsWith(flag))
-        .map("-" + _)
-        .foreach(println)
-  }
+      case s"-$flag" =>
+        argSigs
+          .flatMap(_.shortName)
+          .filter(_.toString.startsWith(flag))
+          .map("-" + _)
+          .foreach(println)
+    }
 
   def delegateToBash(args: mainargs.Leftover[String], index: Int) = {
     val res = os.call(

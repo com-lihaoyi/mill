@@ -238,7 +238,7 @@ object TabCompleteTests extends TestSuite {
         )
       }
     }
-    test("commandflags"){
+    test("commandflags") {
       test {
         assertGoldenLiteral(
           evalComplete("2", "./mill", "task1", "--a"),
