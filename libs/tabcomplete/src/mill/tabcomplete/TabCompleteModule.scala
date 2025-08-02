@@ -14,7 +14,6 @@ private[this] object TabCompleteModule extends ExternalModule {
 
   lazy val millDiscover = Discover[this.type]
 
-
   /**
    * The main entrypoint for Mill's Bash and Zsh tab-completion logic
    */
@@ -30,7 +29,7 @@ private[this] object TabCompleteModule extends ExternalModule {
       // - `missing` should be empty since all Mill flags have defaults
       // - `duplicate` should be empty since we use `allowRepeats = true`
       // - `unknown` should be empty since unknown tokens end up in `leftoverArgs`
-      case mainargs.Result.Failure.MismatchedArguments(Nil, unknown, Nil, Some(incomplete)) =>
+      case mainargs.Result.Failure.MismatchedArguments(Nil, unknown, Nil, Some(_)) =>
         // In this case, we cannot really identify any tokens in the argument list
         // which are task selectors, since the last flag is incomplete and prior
         // flags are all completed. So just delegate to bash completion
@@ -50,7 +49,7 @@ private[this] object TabCompleteModule extends ExternalModule {
         else if (index < parsedArgCount) delegateToBash(args, index)
         // This is the task I need to autocomplete, or the next incomplete flag
         else if (index == parsedArgCount) {
-          args.value.lift(index) match{
+          args.value.lift(index) match {
             // Complete long flags by looking at prefixes
             case Some(s"--$flag") =>
               MillCliConfig.parser.main.argSigs0
@@ -71,19 +70,20 @@ private[this] object TabCompleteModule extends ExternalModule {
         } else ???
     }
 
-
   }
 
   def delegateToBash(args: mainargs.Leftover[String], index: Int) = {
-    val res = os.call((
+    val res = os.call(
+      (
         "bash",
         "-c",
         "compgen -f -- " + args.value.lift(index).map(pprint.Util.literalize(_)).getOrElse("\"\"")
-      ), check = false)
+      ),
+      check = false
+    )
 
     res.out.lines().foreach(println)
   }
-
 
   def completeTasks(ev: Evaluator, index: Int, args: Seq[String]) = {
 
