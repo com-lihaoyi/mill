@@ -538,7 +538,8 @@ private object GroupExecution {
           if (!isCommand && !isInput && mill.api.FilesystemCheckerEnabled.value) {
             if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
               sys.error(
-                s"Reading from ${path.relativeTo(workspace)} not allowed during execution of `$terminal`"
+                s"Reading from ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
+                  "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
               )
             }
           }
@@ -549,7 +550,8 @@ private object GroupExecution {
         if (!isCommand && mill.api.FilesystemCheckerEnabled.value) {
           if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
             sys.error(
-              s"Writing to ${path.relativeTo(workspace)} not allowed during execution of `$terminal`"
+              s"Writing to ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
+                "You can only write to files within your `Task.dest`, or to other files from a `Task.Command"
             )
           }
         }

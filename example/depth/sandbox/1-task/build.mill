@@ -32,7 +32,7 @@ def bannedWriteTask = Task {
 
 /** Usage
 > ./mill bannedWriteTask
-error: ...Writing to banned-path not allowed during execution of `bannedWriteTask`
+error: ...Writing to banned-path not allowed during execution of `bannedWriteTask`.
 */
 
 def bannedReadTask = Task {
@@ -41,7 +41,7 @@ def bannedReadTask = Task {
 
 /** Usage
 > ./mill bannedReadTask
-error: ...Reading from build.mill not allowed during execution of `bannedReadTask`
+error: ...Reading from build.mill not allowed during execution of `bannedReadTask`.
 */
 
 def bannedReadTask2 = Task {
@@ -50,7 +50,7 @@ def bannedReadTask2 = Task {
 
 /** Usage
 > ./mill bannedReadTask2
-error: ...Reading from out/foo/tDestTask.json not allowed during execution of `bannedReadTask2`
+error: ...Reading from out/foo/tDestTask.json not allowed during execution of `bannedReadTask2`.
 */
 
 // Furthermore, code _outside_ of a task that runs during module initialization can only
