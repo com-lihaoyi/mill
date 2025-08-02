@@ -539,7 +539,7 @@ private object GroupExecution {
             if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
               sys.error(
                 s"Reading from ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
-                "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
+                  "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
               )
             }
           }
@@ -551,7 +551,7 @@ private object GroupExecution {
           if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
             sys.error(
               s"Writing to ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
-              "You can only write to files within your `Task.dest`, or to other files from a `Task.Command"
+                "You can only write to files within your `Task.dest`, or to other files from a `Task.Command"
             )
           }
         }

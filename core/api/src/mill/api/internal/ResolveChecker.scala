@@ -6,7 +6,7 @@ private[mill] class ResolveChecker(workspace: os.Path) extends os.Checker {
       case path: os.Path if mill.api.FilesystemCheckerEnabled.value =>
         sys.error(
           s"Reading from ${path.relativeTo(workspace)} not allowed during resolution phase.\n" +
-          "You may only read from files during resolution within a `BuildCtx.watchValue block."
+            "You may only read from files during resolution within a `BuildCtx.watchValue block."
         )
       case _ =>
     }
