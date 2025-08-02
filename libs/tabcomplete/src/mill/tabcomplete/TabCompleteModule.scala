@@ -142,7 +142,7 @@ private[this] object TabCompleteModule extends ExternalModule {
         val homeDest = ".cache/mill/download/mill-completion.sh"
 
         writeLoudly(os.home / os.SubPath(homeDest), script)
-        for (fileName <- Seq(".bash_profile", ".zshrc")) {
+        for (fileName <- Seq(".bash_profile", ".zshrc", ".bashrc")) {
           val file = os.home / fileName
           // We use the marker comment to help remove any previous `source` line before
           // adding a new line, so that running `install` over and over doesn't build up
