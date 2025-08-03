@@ -16,7 +16,10 @@ object TabCompleteTests extends TestSuite {
     object foo extends Module
     object bar extends Module {
       def task2(argA3: String, argB4: Int) = Task.Command { 456 }
-      def taskPositional(@mainargs.arg(positional = true) argA3: String, @mainargs.arg(positional = true) argB4: Int) = Task.Command { 456 }
+      def taskPositional(
+          @mainargs.arg(positional = true) argA3: String,
+          @mainargs.arg(positional = true) argB4: Int
+      ) = Task.Command { 456 }
 
     }
     object qux extends Cross[QuxModule](12, 34, 56)

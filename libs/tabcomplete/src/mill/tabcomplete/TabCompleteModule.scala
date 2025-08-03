@@ -22,9 +22,11 @@ private[this] object TabCompleteModule extends ExternalModule {
       @arg(positional = true) index: Int,
       args: mainargs.Leftover[String]
   ) = Task.Command(exclusive = true)[Unit] {
-    def group(tokens: Seq[String],
-              flattenedArgSigs: Seq[(ArgSig, TokensReader.Terminal[_])],
-              allowLeftover: Boolean) = {
+    def group(
+        tokens: Seq[String],
+        flattenedArgSigs: Seq[(ArgSig, TokensReader.Terminal[_])],
+        allowLeftover: Boolean
+    ) = {
       mainargs.TokenGrouping.groupArgs(
         tokens,
         flattenedArgSigs,
