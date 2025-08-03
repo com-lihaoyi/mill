@@ -3,6 +3,7 @@ package mill.constants;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.SocketException;
 
 /// Logic to capture a pair of streams (typically stdout and stderr), combining
 /// them into a single stream, and splitting it back into two streams later while
@@ -37,11 +38,22 @@ public class ProxyStream {
   public static final int END = 0;
   public static final int HEARTBEAT = 127;
 
+  private static boolean clientHasClosedConnection(SocketException e) {
+    var message = e.getMessage();
+    return message != null && message.contains("Broken pipe");
+  }
+
   public static void sendEnd(OutputStream out, int exitCode) throws IOException {
     synchronized (out) {
-      out.write(ProxyStream.END);
-      out.write(exitCode);
-      out.flush();
+      try {
+        out.write(ProxyStream.END);
+        out.write(exitCode);
+        out.flush();
+      }
+      catch (SocketException e) {
+        // If the client has already closed the connection, we don't really care about sending the exit code to it.
+        if (!clientHasClosedConnection(e)) throw e;
+      }
     }
   }
 
