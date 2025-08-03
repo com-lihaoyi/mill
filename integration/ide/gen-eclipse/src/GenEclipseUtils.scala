@@ -109,7 +109,9 @@ object GenEclipseUtils {
     // Check for test module source folders
     for (testSrcFolderName <- testSrcFolderNames) {
       val adjustedTestSrcFolderName = testSrcFolderName.replace("/", "-").replace("\\", "-")
-      assert(fileContent.contains(s"<classpathentry kind=\"src\" path=\"$testSrcFolderName\" output=\"bin/$adjustedTestSrcFolderName-classes\""))
+      assert(fileContent.contains(
+        s"<classpathentry kind=\"src\" path=\"$testSrcFolderName\" output=\"bin/$adjustedTestSrcFolderName-classes\""
+      ))
     }
     assert(getOccurrences(
       fileContent,

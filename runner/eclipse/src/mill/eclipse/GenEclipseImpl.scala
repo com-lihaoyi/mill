@@ -427,9 +427,8 @@ object GenEclipseImpl {
       isTest: Boolean
   ): Unit = {
     try {
-      val existingElement = sourceFolders.filter(
-        sourceFolder => sourceFolder.relativePath == relativePath
-      ).head
+      val existingElement =
+        sourceFolders.filter(sourceFolder => sourceFolder.relativePath == relativePath).head
       existingElement.isTest = existingElement.isTest || isTest
     } catch {
       case _: NoSuchElementException => sourceFolders += SourceFolder(relativePath, isTest)
