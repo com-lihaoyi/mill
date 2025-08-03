@@ -7,13 +7,13 @@ object base extends JavaModule {
     os.write(
       Task.dest / "production" / "MessageCreator.java",
       """
-         |package production;
-         |
-         |public class MessageCreator {
-         |    public static String getMessage() {
-         |        return "Hello World";
-         |    }
-         |}
+        |package production;
+        |
+        |public class MessageCreator {
+        |    public static String getMessage() {
+        |        return "Hello World";
+        |    }
+        |}
       """.stripMargin,
       createFolders = true
     )

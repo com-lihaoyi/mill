@@ -7,7 +7,8 @@ import utest.{Tests, test}
 
 object GenEclipseMultiGeneratedJavaTests extends UtestIntegrationTestSuite {
 
-  override def workspaceSourcePath: Path = super.workspaceSourcePath / "multi-generated-java-project"
+  override def workspaceSourcePath: Path =
+    super.workspaceSourcePath / "multi-generated-java-project"
 
   def tests: Tests = Tests {
     test("Multi module project with generated sources") - integrationTest { tester =>

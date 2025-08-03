@@ -87,27 +87,38 @@ object GenEclipseUtils {
     val javaVersion = getJavaVersion
     val fileContent = os.read.lines(generatedFile).mkString("\n")
     assert(fileContent.contains("<classpathentry kind=\"output\" path=\"bin\"/>"))
-    assert(fileContent.contains(s"<classpathentry kind=\"con\" path=\"org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-$javaVersion\"/>"))
+    assert(fileContent.contains(
+      s"<classpathentry kind=\"con\" path=\"org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-$javaVersion\"/>"
+    ))
 
     // Source folder classpath entry only created when there are actually sources in it
     if (srcFolderName != null) {
-      assert(fileContent.contains(s"<classpathentry kind=\"src\" path=\"$srcFolderName\" output=\"bin/classes\"/>"))
+      assert(fileContent.contains(
+        s"<classpathentry kind=\"src\" path=\"$srcFolderName\" output=\"bin/classes\"/>"
+      ))
     }
-    
+
     // Check for linked resources as additional source folders, e.g. generated sources
     for (linkedResourceName <- linkedResourceNames) {
-      assert(fileContent.contains(s"<classpathentry kind=\"src\" path=\"$linkedResourceName\" output=\"bin/$linkedResourceName-classes\"/>"))
+      assert(fileContent.contains(
+        s"<classpathentry kind=\"src\" path=\"$linkedResourceName\" output=\"bin/$linkedResourceName-classes\"/>"
+      ))
     }
 
     // Check for test module source folders
     for (testSrcFolderName <- testSrcFolderNames) {
       assert(fileContent.contains(s"<classpathentry kind=\"src\" path=\"$testSrcFolderName\""))
     }
-    assert(getOccurrences(fileContent, "<attribute name=\"test\" value=\"true\"/>") == testSrcFolderNames.size)
+    assert(getOccurrences(
+      fileContent,
+      "<attribute name=\"test\" value=\"true\"/>"
+    ) == testSrcFolderNames.size)
 
     // Check for dependent projects
     for (dependentProjectName <- dependentProjectNames) {
-      assert(fileContent.contains(s"<classpathentry kind=\"src\" combineaccessrules=\"false\" path=\"/$dependentProjectName\"/>"))
+      assert(fileContent.contains(
+        s"<classpathentry kind=\"src\" combineaccessrules=\"false\" path=\"/$dependentProjectName\"/>"
+      ))
     }
     assert(getOccurrences(fileContent, "combineaccessrules") == dependentProjectNames.size)
 
