@@ -1,10 +1,10 @@
 package mill.tabcomplete
 
 import mill.*
-import mill.api.{SelectMode, Result}
+import mill.api.{Result, SelectMode}
 import mill.api.{Discover, Evaluator, ExternalModule}
 import mill.internal.MillCliConfig
-import mainargs.arg
+import mainargs.{ArgSig, TokensReader, arg}
 
 /**
  * Handles Bash and Zsh tab completions, which provide an array of tokens in the current
@@ -22,14 +22,20 @@ private[this] object TabCompleteModule extends ExternalModule {
       @arg(positional = true) index: Int,
       args: mainargs.Leftover[String]
   ) = Task.Command(exclusive = true)[Unit] {
-    mainargs.TokenGrouping.groupArgs(
-      args.value.drop(1),
-      MillCliConfig.parser.main.flattenedArgSigs,
-      allowPositional = false,
-      allowRepeats = true,
-      allowLeftover = true,
-      nameMapper = mainargs.Util.kebabCaseNameMapper
-    ) match {
+    def group(tokens: Seq[String],
+              flattenedArgSigs: Seq[(ArgSig, TokensReader.Terminal[_])],
+              allowLeftover: Boolean) = {
+      mainargs.TokenGrouping.groupArgs(
+        tokens,
+        flattenedArgSigs,
+        allowPositional = false,
+        allowRepeats = true,
+        allowLeftover = allowLeftover,
+        nameMapper = mainargs.Util.kebabCaseNameMapper
+      )
+    }
+
+    group(args.value.drop(1), MillCliConfig.parser.main.flattenedArgSigs, true) match {
       // Initial parse fails. Only failure mode is `incomplete`:
       //
       // - `missing` should be empty since all Mill flags have defaults
@@ -65,15 +71,6 @@ private[this] object TabCompleteModule extends ExternalModule {
                 val taskArgs = v.remaining.drop(1)
                 val taskArgsIndex = index - parsedArgCount - 1
 
-                val grouped2 = mainargs.TokenGrouping.groupArgs(
-                  taskArgs,
-                  ep.flattenedArgSigs,
-                  allowPositional = false,
-                  allowRepeats = true,
-                  allowLeftover = false,
-                  nameMapper = mainargs.Util.kebabCaseNameMapper
-                )
-
                 def handleRemaining(remaining: Seq[String]) = {
                   val commandParsedArgCount = v.remaining.length - remaining.length - 1
                   if (taskArgsIndex == commandParsedArgCount) {
@@ -82,7 +79,7 @@ private[this] object TabCompleteModule extends ExternalModule {
                   } else delegateToBash(args, index)
                 }
 
-                grouped2 match {
+                group(taskArgs, ep.flattenedArgSigs, false) match {
                   case mainargs.Result.Success(grouping) => handleRemaining(grouping.remaining)
                   case mainargs.Result.Failure.MismatchedArguments(
                         missing,
