@@ -43,7 +43,7 @@ trait JavaModuleApi extends ModuleApi with GenIdeaModuleApi {
    *  Internal access to some GenEclipse helper tasks. These are used when constructing the necessary information to
    *  create a resolved module. This in turn will be used later for creating the actual Eclipse JDT project files!
    */
-  private[mill] def genEclipseInternal: () => GenEclipseInternalApi
+  private[mill] def genEclipseInternal: () => GenEclipseInternalApi = null
 }
 
 object JavaModuleApi
