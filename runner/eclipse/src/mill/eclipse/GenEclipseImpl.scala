@@ -144,7 +144,7 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
 
     for ((path, value) <- resolvedJavaModules) {
       val projectModule = value.resolvedModule
-      val projectName = moduleName(projectModule.segments)
+      val projectName = moduleName(projectModule.segments, path)
       val isMainTestModule = isTestModule(projectModule.module)
 
       // By default source folders are inside the Eclipse JDT Project and therefore we create a
@@ -185,7 +185,10 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
       dependentLibraryPaths ++= projectModule.allLibraryDependencies
 
       for (sourceSetModule <- value.sourceSetResolvedModules) {
-        val sourceSetProjectName = moduleName(sourceSetModule.segments)
+        val sourceSetProjectName = moduleName(
+          sourceSetModule.segments,
+          sourceSetModule.module.moduleDirJava
+        )
         val isSourceSetTestModule = isTestModule(sourceSetModule.module)
 
         for (source <- sourceSetModule.allSources) {
@@ -374,12 +377,13 @@ object GenEclipseImpl {
   }
 
   /**
-   * Create the module name (to be used by Eclipse) for the module based on it segments.
+   *  Create the module name (to be used by Eclipse) for the module based on it segments. If the
+   *  segments yield no result, use the Mill Module folder name.
    *
-   * @see [[Module.moduleSegments]]
+   *  @see [[Module.moduleSegments]]
    */
-  private def moduleName(p: Segments): String = {
-    val name = p.value
+  private def moduleName(segments: Segments, path: Path): String = {
+    val name = segments.value
       .foldLeft(new StringBuilder()) {
         case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
         case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
@@ -390,8 +394,9 @@ object GenEclipseImpl {
       .toLowerCase()
 
     // If for whatever reason no name could be created based on the module segments, create a
-    // generic one. Users can rename the project inside the Eclipse IDE if they like.s
-    if (name.isBlank) "MillProject"
+    // generic one from the Mill Module folder name. Users can rename the project inside the
+    // Eclipse IDE if they like.
+    if (name.isBlank) path.getFileName.toString
     else name
   }
 

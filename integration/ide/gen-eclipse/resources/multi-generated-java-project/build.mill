@@ -1,0 +1,26 @@
+package build
+
+import mill.*, javalib.*
+
+object base extends JavaModule {
+  def generatedSources = Task {
+    os.write(
+      Task.dest / "production" / "MessageCreator.java",
+      """
+         |package production;
+         |
+         |public class MessageCreator {
+         |    public static String getMessage() {
+         |        return "Hello World";
+         |    }
+         |}
+      """.stripMargin,
+      createFolders = true
+    )
+    Seq(PathRef(Task.dest))
+  }
+}
+
+object runner extends JavaModule {
+  def moduleDeps = Seq(base)
+}

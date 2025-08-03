@@ -26,3 +26,4 @@ mill-native
 .classpath
 .settings/
 example/**/bin/
+integration/**/bin/
