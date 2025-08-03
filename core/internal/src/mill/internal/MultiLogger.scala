@@ -65,9 +65,9 @@ private[mill] class MultiLogger(
       logger2.prompt.clearPromptStatuses()
     }
 
-    private[mill] override def removePromptLine(key: Seq[String]): Unit = {
-      logger1.prompt.removePromptLine(key)
-      logger2.prompt.removePromptLine(key)
+    private[mill] override def removePromptLine(key: Seq[String], message: String): Unit = {
+      logger1.prompt.removePromptLine(key, message)
+      logger2.prompt.removePromptLine(key, message)
     }
 
     private[mill] override def setPromptHeaderPrefix(s: String): Unit = {
@@ -103,6 +103,16 @@ private[mill] class MultiLogger(
     override private[mill] def endChromeProfileEntry(): Unit = {
       logger1.prompt.endChromeProfileEntry()
       logger2.prompt.endChromeProfileEntry()
+    }
+
+    override private[mill] def logBeginChromeProfileEntry(message: String, nanoTime: Long) = {
+      logger1.prompt.logBeginChromeProfileEntry(message, nanoTime)
+      logger2.prompt.logBeginChromeProfileEntry(message, nanoTime)
+    }
+
+    override private[mill] def logEndChromeProfileEntry(nanoTime: Long) = {
+      logger1.prompt.logEndChromeProfileEntry(nanoTime)
+      logger2.prompt.logEndChromeProfileEntry(nanoTime)
     }
   }
   def debug(s: String): Unit = {

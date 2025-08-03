@@ -1,10 +1,10 @@
 package mill.tabcomplete
 
 import mill.*
-import mill.api.{SelectMode, Result}
+import mill.api.{Result, SelectMode}
 import mill.api.{Discover, Evaluator, ExternalModule}
-
-import mainargs.arg
+import mill.internal.MillCliConfig
+import mainargs.{ArgSig, TokensReader, arg}
 
 /**
  * Handles Bash and Zsh tab completions, which provide an array of tokens in the current
@@ -21,9 +21,131 @@ private[this] object TabCompleteModule extends ExternalModule {
       ev: Evaluator,
       @arg(positional = true) index: Int,
       args: mainargs.Leftover[String]
-  ) = Task.Command(exclusive = true) {
+  ) = Task.Command(exclusive = true)[Unit] {
+    def group(
+        tokens: Seq[String],
+        flattenedArgSigs: Seq[(ArgSig, TokensReader.Terminal[_])],
+        allowLeftover: Boolean
+    ) = {
+      mainargs.TokenGrouping.groupArgs(
+        tokens,
+        flattenedArgSigs,
+        allowPositional = false,
+        allowRepeats = true,
+        allowLeftover = allowLeftover,
+        nameMapper = mainargs.Util.kebabCaseNameMapper
+      )
+    }
 
-    val (query, unescapedOpt) = args.value.lift(index) match {
+    group(args.value.drop(1), MillCliConfig.parser.main.flattenedArgSigs, true) match {
+      // Initial parse fails. Only failure mode is `incomplete`:
+      //
+      // - `missing` should be empty since all Mill flags have defaults
+      // - `duplicate` should be empty since we use `allowRepeats = true`
+      // - `unknown` should be empty since unknown tokens end up in `leftoverArgs`
+      case mainargs.Result.Failure.MismatchedArguments(Nil, unknown, Nil, Some(_)) =>
+        // In this case, we cannot really identify any tokens in the argument list
+        // which are task selectors, since the last flag is incomplete and prior
+        // flags are all completed. So just delegate to bash completion
+        delegateToBash(args, index)
+
+      // Initial parse succeeds, `leftoverArgs` contains either the task selector,
+      // or the start of another flag
+      case mainargs.Result.Success(v) =>
+        val parsedArgCount = args.value.length - v.remaining.length
+
+        // The cursor is after the task being run, we don't know anything about those
+        // flags so delegate to bash completion
+        if (index > parsedArgCount) {
+          val resolved = ev.resolveTasks(Seq(args.value(parsedArgCount)), SelectMode.Multi)
+
+          resolved match {
+            case _: Result.Failure => delegateToBash(args, index)
+            case Result.Success(ts) =>
+              val entryPoints: Seq[mainargs.MainData[_, _]] = ts.flatMap { t =>
+                ev
+                  .rootModule
+                  .moduleCtx
+                  .discover
+                  .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
+              }
+              for (ep <- entryPoints.headOption) {
+                val taskArgs = v.remaining.drop(1)
+                val taskArgsIndex = index - parsedArgCount - 1
+
+                def handleRemaining(remaining: Seq[String]) = {
+                  val commandParsedArgCount = v.remaining.length - remaining.length - 1
+                  if (taskArgsIndex == commandParsedArgCount) {
+                    findMatchingArgs(remaining.lift(taskArgsIndex), ep.flattenedArgSigs.map(_._1))
+                      .getOrElse(delegateToBash(args, index))
+                  } else delegateToBash(args, index)
+                }
+
+                group(taskArgs, ep.flattenedArgSigs, false) match {
+                  case mainargs.Result.Success(grouping) => handleRemaining(grouping.remaining)
+                  case mainargs.Result.Failure.MismatchedArguments(
+                        missing,
+                        unknown,
+                        duplicate,
+                        incomplete
+                      ) =>
+                    handleRemaining(unknown)
+                }
+              }
+
+          }
+
+        }
+        // The cursor is before the task being run. It can't be an incomplete
+        // `-f` or `--flag` because parsing succeeded, so delegate to file completion
+        else if (index < parsedArgCount) delegateToBash(args, index)
+        // This is the task I need to autocomplete, or the next incomplete flag
+        else if (index == parsedArgCount) {
+          findMatchingArgs(
+            args.value.lift(index),
+            MillCliConfig.parser.main.flattenedArgSigs.map(_._1)
+          )
+            .getOrElse(completeTasks(ev, index, args.value))
+        } else ???
+    }
+
+  }
+
+  def findMatchingArgs(stringOpt: Option[String], argSigs: Seq[mainargs.ArgSig]): Option[Unit] =
+    stringOpt.collect {
+      case s"--$flag" =>
+        argSigs
+          .filter(!_.positional)
+          .flatMap(_.longName(mainargs.Util.kebabCaseNameMapper))
+          .filter(_.startsWith(flag))
+          .map("--" + _)
+          .foreach(println)
+
+      case s"-$flag" =>
+        argSigs
+          .filter(!_.positional)
+          .flatMap(_.shortName)
+          .filter(_.toString.startsWith(flag))
+          .map("-" + _)
+          .foreach(println)
+    }
+
+  def delegateToBash(args: mainargs.Leftover[String], index: Int) = {
+    val res = os.call(
+      (
+        "bash",
+        "-c",
+        "compgen -f -- " + args.value.lift(index).map(pprint.Util.literalize(_)).getOrElse("\"\"")
+      ),
+      check = false
+    )
+
+    res.out.lines().foreach(println)
+  }
+
+  def completeTasks(ev: Evaluator, index: Int, args: Seq[String]) = {
+
+    val (query, unescapedOpt) = args.lift(index) match {
       // Zsh has the index pointing off the end of the args list, while
       // Bash has the index pointing at an empty string arg
       case None | Some("") => ("_", None)
@@ -78,7 +200,7 @@ private[this] object TabCompleteModule extends ExternalModule {
         val homeDest = ".cache/mill/download/mill-completion.sh"
 
         writeLoudly(os.home / os.SubPath(homeDest), script)
-        for (fileName <- Seq(".bash_profile", ".zshrc")) {
+        for (fileName <- Seq(".bash_profile", ".zshrc", ".bashrc")) {
           val file = os.home / fileName
           // We use the marker comment to help remove any previous `source` line before
           // adding a new line, so that running `install` over and over doesn't build up

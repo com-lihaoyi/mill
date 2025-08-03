@@ -14,7 +14,8 @@ import mill.internal.{
   MultiStream,
   PrefixLogger,
   PromptLogger,
-  SimpleLogger
+  SimpleLogger,
+  MillCliConfig
 }
 import mill.server.MillDaemonServer
 import mill.util.BuildInfo
