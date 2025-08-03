@@ -1,0 +1,2478 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Tasks :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/fundamentals/tasks.html">
+    <link rel="prev" href="../migrating/auto-migrating.html">
+    <link rel="next" href="modules.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../../../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../../../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="mill" data-version="dev-1.0.2-19-fe3d72">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javalib/intro.html">Building Java with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/module-config.html">Java Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/dependencies.html">Java Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../javalib/testing.html">Testing Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/linting.html">Linting Java Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/publishing.html">Java Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/build-examples.html">Java Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../javalib/web-examples.html">Java Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../scalalib/intro.html">Building Scala with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/module-config.html">Scala Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/dependencies.html">Scala Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../scalalib/testing.html">Testing Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/linting.html">Linting Scala Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/publishing.html">Scala Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/build-examples.html">Scala Build Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/web-examples.html">Scala Web Project Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/native-examples.html">Scala Native Examples</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../scalalib/spark.html">Spark Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../kotlinlib/intro.html">Building Kotlin with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/module-config.html">Kotlin Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/dependencies.html">Kotlin Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/testing.html">Testing Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/linting.html">Linting Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/publishing.html">Kotlin Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../kotlinlib/web-examples.html">Kotlin Web Project Examples</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Experimental Platform Support</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Building Android Apps</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/android-initial-setup.html">Android Initial Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/java.html">Android Java Projects</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../android/kotlin.html">Android Kotlin Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/android-linting.html">Linting Android Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/compose-samples.html">Android Jetpack Compose</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../android/hilt-sample.html">Android Hilt Sample</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../pythonlib/intro.html">Building Python with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/module-config.html">Python Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/dependencies.html">Python Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../pythonlib/linting.html">Linting Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/testing.html">Testing Python Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../pythonlib/publishing.html">Python Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <span class="nav-text">xref:pythonlib/web-examples.adoc</span>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../javascriptlib/intro.html">Building Javascript with Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/dependencies.html">Typescript Library Dependencies</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/module-config.html">Typescript Module Configuration</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/testing.html">Testing Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/linting.html">Linting Typescript Projects</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/publishing.html">Typescript Packaging &amp; Publishing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../javascriptlib/build-examples.html">JavaScript Build Examples</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../comparisons/why-mill.html">Why Use Mill?</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/maven.html">Case Study: Mill vs Maven</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/gradle.html">Case Study: Mill vs Gradle</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../comparisons/sbt.html">Case Study: Mill vs <code>sbt</code></a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">The Mill CLI</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/installation-ide.html">Installation &amp; IDE Setup</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/flags.html">Mill Command-Line Flags</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../cli/builtin-commands.html">Built-in Commands</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/query-syntax.html">Task Query Syntax</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../cli/build-header.html">Build Header Config</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../migrating/migrating.html">Migrating to Mill</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill Fundamentals</span>
+<ul class="nav-list">
+
+  <li class="nav-item is-current-page" data-depth="2">
+    <a class="nav-link" href="tasks.html">Tasks</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="modules.html">Modules</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="out-dir.html">The Output Directory</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="library-deps.html">Library Dependencies in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="cross-builds.html">Cross Builds</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="bundled-libraries.html">Bundled Libraries</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="configuring-jvm-versions.html">Configuring JVM Versions</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Extending Mill</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/import-mvn-plugins.html">Import Libraries and Plugins</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../extending/contrib-plugins.html">Contrib Plugins</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/artifactory.html">Artifactory</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/buildinfo.html">BuildInfo</a>
+  </li>
+
+  <li class="nav-item" data-depth="3">
+    <a class="nav-link" href="../contrib/codeartifact.html">Codeartifact</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/docker.html">Docker</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/flyway.html">Flyway</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/gitlab.html">Gitlab</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/jmh.html">JMH</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/playlib.html">Play Framework</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/proguard.html">Proguard</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scalapblib.html">ScalaPB</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/scoverage.html">Scoverage</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/sonatypecentral.html">Sonatype Central (Plugin Moved to Scalalib)</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/testng.html">TestNG</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/twirllib.html">Twirl</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="3">
+    <a class="nav-link" href="../contrib/versionfile.html">Version file</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../extending/thirdparty-plugins.html">Third-Party Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/running-jvm-code.html">Running Dynamic JVM Code</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/writing-plugins.html">Writing Mill Plugins</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/meta-build.html">The Mill Meta-Build</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-typescript-support.html">Example: Typescript Support</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../extending/example-python-support.html">Example: Python Support</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="../large/large.html">Large Builds and Monorepos</a>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/selective-execution.html">Selective Test Execution</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-file-builds.html">Multi-File Builds</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../large/multi-language-builds.html">Multi-Language Builds</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Mill In Depth</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/evaluation-model.html">The Mill Evaluation Model</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/caching.html">Caching in Mill</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../depth/parallelism.html">Parallelism in Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/process-architecture.html">The Mill Process Architecture</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/sandboxing.html">Mill Sandboxing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/design-principles.html">Mill Design Principles</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="2">
+    <a class="nav-link" href="../depth/why-scala.html">Why does Mill use Scala?</a>
+  </li>
+</ul>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Reference</span>
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://mill-build.org/api/latest/mill.html">Mill API Reference</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc">Changelog</a>
+  </li>
+
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="../reference/talks-blog-posts.html">Talks &amp; Blog Posts</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">Mill Documentation</span>
+    <span class="version">dev-1.0.2-19-fe3d72</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <div class="title"><a href="../../index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../../main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../../index.html">1.0.2</a>
+        </li>
+        <li class="version is-current">
+          <a href="../index.html">dev-1.0.2-19-fe3d72</a>
+        </li>
+        <li class="version">
+          <a href="../../0.12.x/index.html">0.12.14</a>
+        </li>
+        <li class="version">
+          <a href="../../0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../../0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../../0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <div class="title"><a href="../../../blog/index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Tasks</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>One of Mill&#8217;s core abstractions is its <em>Task Graph</em>: this is how Mill defines,
+orders and caches work it needs to do, and exists independently of any support
+for building Java, Kotlin, or Scala.</p>
+</div>
+<div class="paragraph">
+<p>Mill task graphs are primarily built using methods and macros defined on
+<code>mill.api.Task</code>, whose type is often aliased as <code>T[_]</code> for conciseness:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://mill-build.org/api/latest/mill/api/Task$.html">mill.api.Task</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_task_cheat_sheet"><a class="anchor" href="#_task_cheat_sheet"></a>Task Cheat Sheet</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following table might help you make sense of the small collection of
+different Task types:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 14.2857%;">
+<col style="width: 14.2858%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top"></th>
+<th class="tableblock halign-left valign-top">Simple Task</th>
+<th class="tableblock halign-left valign-top">Command</th>
+<th class="tableblock halign-left valign-top">Source/Input</th>
+<th class="tableblock halign-left valign-top">Persistent Task</th>
+<th class="tableblock halign-left valign-top">Worker</th>
+<th class="tableblock halign-left valign-top">Anonymous Task</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cached to Disk</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JSON Writable</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JSON Readable</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CLI Runnable</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Takes Arguments</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cached In-Memory</p></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">X</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>The following is a simple self-contained example using Mill to compile Java,
+making use of the most common <code>Task.Source</code>, <code>Task</code>, and <code>Task.Command</code> types
+to define a simple build graph with some input source files and intermediate build steps:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-19-fe3d72/mill-dist-1.0.2-19-fe3d72-example-fundamentals-tasks-1-task-graph.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2-19-fe3d72/example/fundamentals/tasks/1-task-graph">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*
+
+def mainClass: T[Option[String]] = Some("foo.Foo")
+
+def sources = Task.Source("src")
+def resources = Task.Source("resources")
+
+def compile = Task {
+  val allSources = os.walk(sources().path)
+  os.call(("javac", allSources, "-d", Task.dest))
+  PathRef(Task.dest)
+}
+
+def assembly = Task {
+  for (p &lt;- Seq(compile(), resources())) os.copy(p.path, Task.dest, mergeFolders = true)
+
+  val mainFlags = mainClass().toSeq.flatMap(Seq("-e", _))
+  os.call(("jar", "-c", mainFlags, "-f", Task.dest / "assembly.jar", "."))
+
+  PathRef(Task.dest / "assembly.jar")
+}
+
+def run(args: String*) = Task.Command {
+  os.call(("java", "-jar", assembly().path, args), stdout = os.Inherit)
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This code defines the following task graph, with the boxes being the tasks
+and the arrows representing the <em>data-flow</em> between them:</p>
+</div>
+<div class="paragraph">
+<center>
+<svg width="351px" height="119px"
+ viewBox="0.00 0.00 351.07 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"/>
+<!-- sources -->
+<g id="node1" class="node">
+<title>sources</title>
+<polygon fill="white" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"/>
+<text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
+</g>
+<!-- compile -->
+<g id="node2" class="node">
+<title>compile</title>
+<polygon fill="white" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"/>
+<text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
+</g>
+<!-- sources&#45;&gt;compile -->
+<g id="edge1" class="edge">
+<title>sources&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"/>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"/>
+</g>
+<!-- assembly -->
+<g id="node3" class="node">
+<title>assembly</title>
+<polygon fill="white" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"/>
+<text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
+</g>
+<!-- compile&#45;&gt;assembly -->
+<g id="edge2" class="edge">
+<title>compile&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"/>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"/>
+</g>
+<!-- run -->
+<g id="node6" class="node">
+<title>run</title>
+<polygon fill="white" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"/>
+<text text-anchor="middle" x="325.74" y="-51.2" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- assembly&#45;&gt;run -->
+<g id="edge5" class="edge">
+<title>assembly&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"/>
+<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"/>
+</g>
+<!-- resources -->
+<g id="node4" class="node">
+<title>resources</title>
+<polygon fill="white" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"/>
+<text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
+</g>
+<!-- resources&#45;&gt;assembly -->
+<g id="edge3" class="edge">
+<title>resources&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"/>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"/>
+</g>
+<!-- mainClass -->
+<g id="node5" class="node">
+<title>mainClass</title>
+<polygon fill="white" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"/>
+<text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
+</g>
+<!-- mainClass&#45;&gt;assembly -->
+<g id="edge4" class="edge">
+<title>mainClass&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"/>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>This example does not use any of Mill&#8217;s builtin support for building Java or
+Scala projects, and instead builds a pipeline "from scratch" using Mill
+tasks and <code>javac</code>/<code>jar</code>/<code>java</code> subprocesses. It makes use of the three most
+common kind of tasks:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>sources</code> and <code>resources</code> are <a href="#_sources">Sources</a></p>
+</li>
+<li>
+<p><code>mainClass</code>, <code>compile</code>, and <code>assembly</code> are cached <a href="#_tasks">Tasks</a></p>
+</li>
+<li>
+<p><code>run</code> is a <a href="#_commands">Command</a></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show assembly
+".../out/assembly.dest/assembly.jar"
+
+&gt; java -jar out/assembly.dest/assembly.jar i am cow
+Foo.value: 31337
+args: i am cow
+
+&gt; unzip -p out/assembly.dest/assembly.jar foo.txt
+My Example Text</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you first evaluate <code>assembly</code> (e.g. via <code>mill assembly</code> at the command
+line), it will evaluate all the defined tasks: <code>mainClass</code>, <code>sources</code>,
+<code>compile</code>, and <code>assembly</code>.</p>
+</div>
+<div class="paragraph">
+<p>Subsequent invocations of <code>mill assembly</code> will evaluate only as much as is
+necessary, depending on what input sources changed:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If the files in <code>sources</code> change, it will re-evaluate
+<code>compile</code>, and <code>assembly</code> (red)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<center>
+<svg width="351px" height="119px"
+ viewBox="0.00 0.00 351.07 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"/>
+<!-- sources -->
+<g id="node1" class="node">
+<title>sources</title>
+<polygon fill="lightpink" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"/>
+<text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
+</g>
+<!-- compile -->
+<g id="node2" class="node">
+<title>compile</title>
+<polygon fill="lightpink" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"/>
+<text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
+</g>
+<!-- sources&#45;&gt;compile -->
+<g id="edge1" class="edge">
+<title>sources&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"/>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"/>
+</g>
+<!-- assembly -->
+<g id="node3" class="node">
+<title>assembly</title>
+<polygon fill="lightpink" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"/>
+<text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
+</g>
+<!-- compile&#45;&gt;assembly -->
+<g id="edge2" class="edge">
+<title>compile&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"/>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"/>
+</g>
+<!-- run -->
+<g id="node6" class="node">
+<title>run</title>
+<polygon fill="white" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"/>
+<text text-anchor="middle" x="325.74" y="-51.2" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- assembly&#45;&gt;run -->
+<g id="edge5" class="edge">
+<title>assembly&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"/>
+<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"/>
+</g>
+<!-- resources -->
+<g id="node4" class="node">
+<title>resources</title>
+<polygon fill="lightgreen" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"/>
+<text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
+</g>
+<!-- resources&#45;&gt;assembly -->
+<g id="edge3" class="edge">
+<title>resources&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"/>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"/>
+</g>
+<!-- mainClass -->
+<g id="node5" class="node">
+<title>mainClass</title>
+<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"/>
+<text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
+</g>
+<!-- mainClass&#45;&gt;assembly -->
+<g id="edge4" class="edge">
+<title>mainClass&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"/>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If the files in <code>resources</code> change, it will only re-evaluate <code>assembly</code> (red)
+and use the cached output of <code>compile</code> (green)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<center>
+<svg width="351px" height="119px"
+ viewBox="0.00 0.00 351.07 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"/>
+<!-- sources -->
+<g id="node1" class="node">
+<title>sources</title>
+<polygon fill="lightgreen" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"/>
+<text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
+</g>
+<!-- compile -->
+<g id="node2" class="node">
+<title>compile</title>
+<polygon fill="lightgreen" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"/>
+<text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
+</g>
+<!-- sources&#45;&gt;compile -->
+<g id="edge1" class="edge">
+<title>sources&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"/>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"/>
+</g>
+<!-- assembly -->
+<g id="node3" class="node">
+<title>assembly</title>
+<polygon fill="lightpink" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"/>
+<text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
+</g>
+<!-- compile&#45;&gt;assembly -->
+<g id="edge2" class="edge">
+<title>compile&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"/>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"/>
+</g>
+<!-- run -->
+<g id="node6" class="node">
+<title>run</title>
+<polygon fill="white" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"/>
+<text text-anchor="middle" x="325.74" y="-51.2" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- assembly&#45;&gt;run -->
+<g id="edge5" class="edge">
+<title>assembly&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"/>
+<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"/>
+</g>
+<!-- resources -->
+<g id="node4" class="node">
+<title>resources</title>
+<polygon fill="lightpink" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"/>
+<text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
+</g>
+<!-- resources&#45;&gt;assembly -->
+<g id="edge3" class="edge">
+<title>resources&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"/>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"/>
+</g>
+<!-- mainClass -->
+<g id="node5" class="node">
+<title>mainClass</title>
+<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"/>
+<text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
+</g>
+<!-- mainClass&#45;&gt;assembly -->
+<g id="edge4" class="edge">
+<title>mainClass&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"/>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p><code>run</code> behaves differently from <code>assembly</code>: as a <code>Task.Command</code> it is executed
+every time you run it, even if none of it&#8217;s upstream <code>Task</code>s or <code>Source</code>s changed.</p>
+</div>
+<div class="paragraph">
+<center>
+<svg width="351px" height="119px"
+ viewBox="0.00 0.00 351.07 118.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 114.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-114.8 347.07,-114.8 347.07,4 -4,4"/>
+<!-- sources -->
+<g id="node1" class="node">
+<title>sources</title>
+<polygon fill="lightgreen" stroke="black" points="57.97,-110.7 0.01,-110.7 0.01,-86.1 57.97,-86.1 57.97,-110.7"/>
+<text text-anchor="middle" x="28.99" y="-94.2" font-family="Times,serif" font-size="14.00">sources</text>
+</g>
+<!-- compile -->
+<g id="node2" class="node">
+<title>compile</title>
+<polygon fill="lightgreen" stroke="black" points="161.74,-110.7 100.54,-110.7 100.54,-86.1 161.74,-86.1 161.74,-110.7"/>
+<text text-anchor="middle" x="131.14" y="-94.2" font-family="Times,serif" font-size="14.00">compile</text>
+</g>
+<!-- sources&#45;&gt;compile -->
+<g id="edge1" class="edge">
+<title>sources&#45;&gt;compile</title>
+<path fill="none" stroke="black" d="M58.15,-98.4C68.15,-98.4 79.6,-98.4 90.38,-98.4"/>
+<polygon fill="black" stroke="black" points="90.44,-101.9 100.44,-98.4 90.44,-94.9 90.44,-101.9"/>
+</g>
+<!-- assembly -->
+<g id="node3" class="node">
+<title>assembly</title>
+<polygon fill="lightgreen" stroke="black" points="272.46,-67.7 204.26,-67.7 204.26,-43.1 272.46,-43.1 272.46,-67.7"/>
+<text text-anchor="middle" x="238.36" y="-51.2" font-family="Times,serif" font-size="14.00">assembly</text>
+</g>
+<!-- compile&#45;&gt;assembly -->
+<g id="edge2" class="edge">
+<title>compile&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M161.73,-86.31C172.86,-81.76 185.69,-76.51 197.6,-71.65"/>
+<polygon fill="black" stroke="black" points="198.96,-74.87 206.89,-67.85 196.31,-68.39 198.96,-74.87"/>
+</g>
+<!-- run -->
+<g id="node6" class="node">
+<title>run</title>
+<polygon fill="lightpink" stroke="black" points="342.9,-67.7 308.57,-67.7 308.57,-43.1 342.9,-43.1 342.9,-67.7"/>
+<text text-anchor="middle" x="325.74" y="-51.2" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- assembly&#45;&gt;run -->
+<g id="edge5" class="edge">
+<title>assembly&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M272.61,-55.4C280.98,-55.4 289.86,-55.4 297.87,-55.4"/>
+<polygon fill="black" stroke="black" points="298.13,-58.9 308.13,-55.4 298.13,-51.9 298.13,-58.9"/>
+</g>
+<!-- resources -->
+<g id="node4" class="node">
+<title>resources</title>
+<polygon fill="lightgreen" stroke="black" points="165.5,-67.7 96.79,-67.7 96.79,-43.1 165.5,-43.1 165.5,-67.7"/>
+<text text-anchor="middle" x="131.14" y="-51.2" font-family="Times,serif" font-size="14.00">resources</text>
+</g>
+<!-- resources&#45;&gt;assembly -->
+<g id="edge3" class="edge">
+<title>resources&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M165.72,-55.4C174.73,-55.4 184.6,-55.4 194.06,-55.4"/>
+<polygon fill="black" stroke="black" points="194.09,-58.9 204.09,-55.4 194.09,-51.9 194.09,-58.9"/>
+</g>
+<!-- mainClass -->
+<g id="node5" class="node">
+<title>mainClass</title>
+<polygon fill="lightgreen" stroke="black" points="168.47,-24.7 93.81,-24.7 93.81,-0.1 168.47,-0.1 168.47,-24.7"/>
+<text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">mainClass</text>
+</g>
+<!-- mainClass&#45;&gt;assembly -->
+<g id="edge4" class="edge">
+<title>mainClass&#45;&gt;assembly</title>
+<path fill="none" stroke="black" d="M162.29,-24.72C173.3,-29.22 185.92,-34.38 197.63,-39.17"/>
+<polygon fill="black" stroke="black" points="196.62,-42.53 207.2,-43.08 199.27,-36.05 196.62,-42.53"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p><code>Command</code> outputs are never cached, and thus can never be
+re-used. The only times <code>Command</code>s may be
+skipped is due to <a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="primitive-tasks"><a class="anchor" href="#primitive-tasks"></a>Primary Tasks</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are three primary kinds of <em>Tasks</em> that you should care about:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="#_sources">Sources</a>, defined using <code>Task.Sources(&#8230;&#8203;)</code></p>
+</li>
+<li>
+<p><a href="#_tasks">Tasks</a>, defined using <code>Task {&#8230;&#8203;}</code></p>
+</li>
+<li>
+<p><a href="#_commands">Commands</a>, defined using <code>Task.Command {&#8230;&#8203;}</code></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_sources"><a class="anchor" href="#_sources"></a>Sources</h3>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-19-fe3d72/mill-dist-1.0.2-19-fe3d72-example-fundamentals-tasks-2-primary-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2-19-fe3d72/example/fundamentals/tasks/2-primary-tasks">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+
+import mill.{Module, T, _}
+
+def sources = Task.Source("src")
+def resources = Task.Source("resources")</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>Source</code>s are defined using <code>Task.Source(&#8230;&#8203;)</code> taking one path, or <code>Task.Sources(&#8230;&#8203;)</code>,
+taking multiple paths as arguments. Both accept <code>os.Path</code>, <code>os.SubPath</code>, <code>os.RelPath</code>
+or a <code>String</code> containing a sub-path. All relative paths will be resolve against the <code>moduleDir</code>
+of the enclosing module. A <code>Source</code>'s:
+its build signature/<code>hashCode</code> depends not just on the path
+it refers to (e.g. <code>foo/bar/baz</code>) but also the MD5 hash of the file contents or
+folder tree at that path.</p>
+</div>
+<div class="paragraph">
+<p><code>Task.Source</code> and <code>Task.Sources</code> are common inputs in any Mill build:
+they watch source files and folders and cause downstream tasks to
+re-compute if a change is detected. Non-file inputs to the build can
+also be captured via the more general <a href="#_inputs">Input</a> tasks</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_tasks"><a class="anchor" href="#_tasks"></a>Tasks</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def allSources = Task {
+  os.walk(sources().path)
+    .filter(_.ext == "java")
+    .map(PathRef(_))
+}
+
+def lineCount: T[Int] = Task {
+  println("Computing line count")
+  allSources()
+    .map(p =&gt; os.read.lines(p.path).size)
+    .sum
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<center>
+<svg width="284px" height="33px"
+ viewBox="0.00 0.00 283.51 32.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 279.51,-28.8 279.51,4 -4,4"/>
+<!-- sources -->
+<g id="node1" class="node">
+<title>sources</title>
+<polygon fill="white" stroke="white" points="57.97,-24.7 0.01,-24.7 0.01,-0.1 57.97,-0.1 57.97,-24.7"/>
+<text text-anchor="middle" x="28.99" y="-8.2" font-family="Times,serif" font-size="14.00">sources</text>
+</g>
+<!-- allSources -->
+<g id="node2" class="node">
+<title>allSources</title>
+<polygon fill="white" stroke="black" points="168.45,-24.7 93.82,-24.7 93.82,-0.1 168.45,-0.1 168.45,-24.7"/>
+<text text-anchor="middle" x="131.14" y="-8.2" font-family="Times,serif" font-size="14.00">allSources</text>
+</g>
+<!-- sources&#45;&gt;allSources -->
+<g id="edge1" class="edge">
+<title>sources&#45;&gt;allSources</title>
+<path fill="none" stroke="black" d="M58.15,-12.4C66.14,-12.4 75.05,-12.4 83.8,-12.4"/>
+<polygon fill="black" stroke="black" points="83.95,-15.9 93.95,-12.4 83.95,-8.9 83.95,-15.9"/>
+</g>
+<!-- lineCount -->
+<g id="node3" class="node">
+<title>lineCount</title>
+<polygon fill="white" stroke="black" points="275.63,-24.7 204.18,-24.7 204.18,-0.1 275.63,-0.1 275.63,-24.7"/>
+<text text-anchor="middle" x="239.9" y="-8.2" font-family="Times,serif" font-size="14.00">lineCount</text>
+</g>
+<!-- allSources&#45;&gt;lineCount -->
+<g id="edge2" class="edge">
+<title>allSources&#45;&gt;lineCount</title>
+<path fill="none" stroke="black" d="M168.58,-12.4C176.74,-12.4 185.49,-12.4 193.95,-12.4"/>
+<polygon fill="black" stroke="black" points="194.06,-15.9 204.06,-12.4 194.06,-8.9 194.06,-15.9"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p><code>Tasks</code>s are defined using the <code>def foo = Task {&#8230;&#8203;}</code> syntax, and dependencies
+on other tasks are defined using <code>foo()</code> to extract the value from them.
+Apart from the <code>foo()</code> calls, the <code>Task {&#8230;&#8203;}</code> block contains arbitrary code that
+does some work and returns a result. Note that tasks cannot have circular dependencies
+between each other.</p>
+</div>
+<div class="paragraph">
+<p>The <code>os.walk</code> and <code>os.read.lines</code> statements above are from the
+<a href="https://github.com/com-lihaoyi/os-lib">OS-Lib</a> library, which provides all common
+filesystem and subprocess operations for Mill builds. You can see the OS-Lib library
+documentation for more details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/os-lib">OS-Lib Library Documentation</a></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show lineCount
+Computing line count
+18
+
+&gt; ./mill show lineCount # line count already cached, doesn't need to be computed
+18</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If a cached task&#8217;s inputs change but its output does not, then
+downstream tasks do not re-evaluate. e.g. Someone may change a
+comment within an input source file that doesn&#8217;t affect the output classfiles.
+This is determined using the <code>.hashCode</code> of the cached task&#8217;s return value.</p>
+</div>
+<div class="paragraph">
+<p>Furthermore, when code changes occur, cached tasks only invalidate if the code change
+may directly or indirectly affect it. e.g. adding a comment to <code>lineCount</code> will
+not cause it to recompute:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff"> def lineCount: T[Int] = Task {
+  println("Computing line count")
++  // Hello World
+  allSources()
+    .map(p =&gt; os.read.lines(p.path).size)
+    .sum</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>But changing the code of the cached task or any upstream helper method will cause the
+old value to be invalidated and a new value re-computed (with a new <code>println</code>)
+next time it is invoked:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-diff hljs" data-lang="diff">  def lineCount: T[Int] = Task {
+-  println("Computing line count")
++  println("Computing line count!!!")
+  allSources()
+    .map(p =&gt; os.read.lines(p.path).size)
+    .sum</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more information on how invalidating tasks
+based on code-changes works, see <a href="https://github.com/com-lihaoyi/mill/pull/2417">PR#2417</a>
+that implemented it.</p>
+</div>
+<div class="paragraph">
+<p>The return-value of cached tasks has to be JSON-serializable via
+<a href="https://github.com/com-lihaoyi/upickle">uPickle</a>. You can run cached tasks directly from the command
+line, or use <code>show</code> if you want to see the JSON content or pipe it to
+external tools. See the uPickle library documentation for more details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/upickle">uPickle Library Documentation</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_task_dest"><a class="anchor" href="#_task_dest"></a>Task.dest</h3>
+<div class="paragraph">
+<p>Each task is assigned a unique <code>Task.dest</code>
+folder on disk (e.g. <code>classFiles</code> is given <code>out/classFiles.dest/</code>). <code>Task.dest</code> is
+reset every time a task is recomputed, and can be used as scratch space or to store the task&#8217;s
+output files. Any metadata returned from the task is automatically JSON-serialized
+and stored at <code>out/classFiles.json</code> adjacent to it&#8217;s <code>.dest</code> folder. If you want to return a file
+or a set of files as the result of a <code>Task</code>, write them to disk within your <code>Task.dest</code>
+folder and return a <code>PathRef()</code> that referencing the files or folders
+you want to return:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def classFiles = Task {
+  println("Generating classfiles")
+
+  os.call(cmd = ("javac", allSources().map(_.path), "-d", Task.dest))
+
+  PathRef(Task.dest)
+}
+
+def jar = Task {
+  println("Generating jar")
+  os.copy(classFiles().path, Task.dest, mergeFolders = true)
+  os.copy(resources().path, Task.dest, mergeFolders = true)
+
+  os.call(
+    cmd = ("jar", "-cfe", Task.dest / "foo.jar", "foo.Foo", "."),
+    cwd = Task.dest
+  )
+
+  PathRef(Task.dest / "foo.jar")
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<center>
+<svg width="256px" height="76px"
+ viewBox="0.00 0.00 255.51 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 251.51,-71.8 251.51,4 -4,4"/>
+<!-- allSources -->
+<g id="node1" class="node">
+<title>allSources</title>
+<polygon fill="white" stroke="white" points="74.47,-67.7 -0.16,-67.7 -0.16,-43.1 74.47,-43.1 74.47,-67.7"/>
+<text text-anchor="middle" x="37.16" y="-51.2" font-family="Times,serif" font-size="14.00">allSources</text>
+</g>
+<!-- classFiles -->
+<g id="node2" class="node">
+<title>classFiles</title>
+<polygon fill="white" stroke="black" points="180.96,-67.7 110.1,-67.7 110.1,-43.1 180.96,-43.1 180.96,-67.7"/>
+<text text-anchor="middle" x="145.53" y="-51.2" font-family="Times,serif" font-size="14.00">classFiles</text>
+</g>
+<!-- allSources&#45;&gt;classFiles -->
+<g id="edge1" class="edge">
+<title>allSources&#45;&gt;classFiles</title>
+<path fill="none" stroke="black" d="M74.47,-55.4C82.68,-55.4 91.5,-55.4 100.01,-55.4"/>
+<polygon fill="black" stroke="black" points="100.18,-58.9 110.18,-55.4 100.18,-51.9 100.18,-58.9"/>
+</g>
+<!-- jar -->
+<g id="node3" class="node">
+<title>jar</title>
+<polygon fill="white" stroke="black" points="247.39,-45.7 216.86,-45.7 216.86,-21.1 247.39,-21.1 247.39,-45.7"/>
+<text text-anchor="middle" x="232.13" y="-29.2" font-family="Times,serif" font-size="14.00">jar</text>
+</g>
+<!-- classFiles&#45;&gt;jar -->
+<g id="edge2" class="edge">
+<title>classFiles&#45;&gt;jar</title>
+<path fill="none" stroke="black" d="M180.94,-46.45C189.59,-44.2 198.7,-41.83 206.75,-39.74"/>
+<polygon fill="black" stroke="black" points="207.79,-43.09 216.58,-37.18 206.03,-36.31 207.79,-43.09"/>
+</g>
+<!-- resources -->
+<g id="node4" class="node">
+<title>resources</title>
+<polygon fill="white" stroke="white" points="179.88,-24.7 111.17,-24.7 111.17,-0.1 179.88,-0.1 179.88,-24.7"/>
+<text text-anchor="middle" x="145.53" y="-8.2" font-family="Times,serif" font-size="14.00">resources</text>
+</g>
+<!-- resources&#45;&gt;jar -->
+<g id="edge3" class="edge">
+<title>resources&#45;&gt;jar</title>
+<path fill="none" stroke="black" d="M179.96,-20.7C188.93,-22.92 198.45,-25.29 206.81,-27.36"/>
+<polygon fill="black" stroke="black" points="206.11,-30.8 216.66,-29.81 207.8,-24 206.11,-30.8"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill jar
+Generating classfiles
+Generating jar
+
+&gt; ./mill show jar
+".../out/jar.dest/foo.jar"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you do not want the <code>Task.dest</code> folder to be cleared between invocations, you
+can use a <a href="#_persistent_tasks">Persistent Task</a></p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<strong><code>os.pwd</code> within a <code>Task</code> is set to the <code>Task.dest</code> folder by default.</strong>,
+and a task may only read from upstream <code>Task.dest</code> folders and write to its own
+<code>Task.dest</code> folder. See <a href="../depth/sandboxing.html#_task_sandboxing" class="xref page">Task Sandboxing</a>
+for more details and how to work around it.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_dependent_tasks"><a class="anchor" href="#_dependent_tasks"></a>Dependent Tasks</h3>
+<div class="paragraph">
+<p>Tasks can depend on other tasks via the <code>foo()</code> syntax.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def largeFile = Task {
+  println("Finding Largest File")
+  allSources()
+    .map(_.path)
+    .filter(_.ext == "java")
+    .maxBy(os.read.lines(_).size)
+}
+
+def hugeFileName = Task {
+  if (lineCount() &gt; 999) largeFile().last
+  else "&lt;no-huge-file&gt;"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<center>
+<svg width="318px" height="33px"
+ viewBox="0.00 0.00 318.49 32.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 314.49,-28.8 314.49,4 -4,4"/>
+<!-- allSources -->
+<g id="node1" class="node">
+<title>allSources</title>
+<polygon fill="white" stroke="white" points="74.47,-24.7 -0.16,-24.7 -0.16,-0.1 74.47,-0.1 74.47,-24.7"/>
+<text text-anchor="middle" x="37.16" y="-8.2" font-family="Times,serif" font-size="14.00">allSources</text>
+</g>
+<!-- largeFile -->
+<g id="node2" class="node">
+<title>largeFile</title>
+<polygon fill="white" stroke="black" points="175.95,-24.7 110.43,-24.7 110.43,-0.1 175.95,-0.1 175.95,-24.7"/>
+<text text-anchor="middle" x="143.19" y="-8.2" font-family="Times,serif" font-size="14.00">largeFile</text>
+</g>
+<!-- allSources&#45;&gt;largeFile -->
+<g id="edge1" class="edge">
+<title>allSources&#45;&gt;largeFile</title>
+<path fill="none" stroke="black" d="M74.54,-12.4C82.79,-12.4 91.62,-12.4 100.08,-12.4"/>
+<polygon fill="black" stroke="black" points="100.16,-15.9 110.16,-12.4 100.16,-8.9 100.16,-15.9"/>
+</g>
+<!-- hugeFileName -->
+<g id="node3" class="node">
+<title>hugeFileName</title>
+<polygon fill="white" stroke="black" points="310.7,-24.7 211.86,-24.7 211.86,-0.1 310.7,-0.1 310.7,-24.7"/>
+<text text-anchor="middle" x="261.28" y="-8.2" font-family="Times,serif" font-size="14.00">hugeFileName</text>
+</g>
+<!-- largeFile&#45;&gt;hugeFileName -->
+<g id="edge2" class="edge">
+<title>largeFile&#45;&gt;hugeFileName</title>
+<path fill="none" stroke="black" d="M176.22,-12.4C184.13,-12.4 192.86,-12.4 201.6,-12.4"/>
+<polygon fill="black" stroke="black" points="201.82,-15.9 211.82,-12.4 201.82,-8.9 201.82,-15.9"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The graph of inter-dependent tasks is evaluated in topological order; that
+means that the body of a task will not even begin to evaluate if one of its
+upstream dependencies has failed. Similar, even if the upstream tasks is
+not used in one branch of an <code>if</code> condition, it will get computed regardless
+before the <code>if</code> condition is even considered.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The output below demonstrates this behavior, with the <code>println</code> defined
+in <code>def largeFile</code> above running even though the <code>largeFile()</code> branch of the
+<code>if</code> conditional does not get used:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show lineCount
+18
+
+&gt; ./mill show hugeFileName # This still runs `largestFile` even though `lineCount() &lt; 999`
+Finding Largest File
+"&lt;no-huge-file&gt;"</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_custom_return_types"><a class="anchor" href="#_custom_return_types"></a>Custom Return Types</h3>
+<div class="paragraph">
+<p>All Task return types must be JSON serializable via
+<a href="https://github.com/com-lihaoyi/upickle">uPickle</a>, and
+uPickle comes with built-in support for most Scala primitive types and
+builtin data structures: tuples, collections, <code>PathRef</code>s, etc. can be
+returned and automatically serialized/de-serialized as necessary. One
+notable exception is <code>case class</code>es: if you want return your own
+<code>case class</code>, you must mark it JSON-serializable by adding
+<code>derives upickle.default.ReadWriter</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">case class ClassFileData(totalFileSize: Long, largestFile: String)
+    derives upickle.default.ReadWriter
+
+def summarizeClassFileStats = Task {
+  val files = os.walk(classFiles().path)
+  ClassFileData(
+    totalFileSize = files.map(os.size(_)).sum,
+    largestFile = files.maxBy(os.size(_)).last
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<center>
+<svg width="278px" height="33px"
+ viewBox="0.00 0.00 278.19 32.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 28.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-28.8 274.19,-28.8 274.19,4 -4,4"/>
+<!-- classFiles -->
+<g id="node1" class="node">
+<title>classFiles</title>
+<polygon fill="white" stroke="white" points="70.65,-24.7 -0.22,-24.7 -0.22,-0.1 70.65,-0.1 70.65,-24.7"/>
+<text text-anchor="middle" x="35.22" y="-8.2" font-family="Times,serif" font-size="14.00">classFiles</text>
+</g>
+<!-- summarizedClassFileStats -->
+<g id="node2" class="node">
+<title>summarizedClassFileStats</title>
+<polygon fill="white" stroke="black" points="270.06,-24.7 106.56,-24.7 106.56,-0.1 270.06,-0.1 270.06,-24.7"/>
+<text text-anchor="middle" x="188.31" y="-8.2" font-family="Times,serif" font-size="14.00">summarizedClassFileStats</text>
+</g>
+<!-- classFiles&#45;&gt;summarizedClassFileStats -->
+<g id="edge1" class="edge">
+<title>classFiles&#45;&gt;summarizedClassFileStats</title>
+<path fill="none" stroke="black" d="M70.5,-12.4C78.35,-12.4 87.05,-12.4 96.06,-12.4"/>
+<polygon fill="black" stroke="black" points="96.34,-15.9 106.34,-12.4 96.34,-8.9 96.34,-15.9"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show summarizeClassFileStats
+{
+  "totalFileSize": ...,
+  "largestFile": "..."
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For more details on how to use uPickle, check out the
+<a href="https://github.com/com-lihaoyi/upickle">uPickle library documentation</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_commands"><a class="anchor" href="#_commands"></a>Commands</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(mainClass: String, args: String*) = Task.Command {
+  os.call(
+    cmd = (
+      "java",
+      "-cp",
+      s"${classFiles().path}:${resources().path}",
+      mainClass,
+      args
+    ),
+    stdout = os.Inherit
+  )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<center>
+<svg width="149px" height="76px"
+ viewBox="0.00 0.00 149.09 75.80" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1.0 1.0) rotate(0.0) translate(4.0 71.8)">
+<title>G</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-71.8 145.09,-71.8 145.09,4 -4,4"/>
+<!-- classFiles -->
+<g id="node1" class="node">
+<title>classFiles</title>
+<polygon fill="white" stroke="white" points="70.65,-67.7 -0.22,-67.7 -0.22,-43.1 70.65,-43.1 70.65,-67.7"/>
+<text text-anchor="middle" x="35.22" y="-51.2" font-family="Times,serif" font-size="14.00">classFiles</text>
+</g>
+<!-- run -->
+<g id="node2" class="node">
+<title>run</title>
+<polygon fill="white" stroke="black" points="140.92,-45.7 106.6,-45.7 106.6,-21.1 140.92,-21.1 140.92,-45.7"/>
+<text text-anchor="middle" x="123.76" y="-29.2" font-family="Times,serif" font-size="14.00">run</text>
+</g>
+<!-- classFiles&#45;&gt;run -->
+<g id="edge1" class="edge">
+<title>classFiles&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M70.92,-46.58C79.42,-44.42 88.38,-42.14 96.42,-40.1"/>
+<polygon fill="black" stroke="black" points="97.5,-43.43 106.33,-37.58 95.78,-36.65 97.5,-43.43"/>
+</g>
+<!-- resources -->
+<g id="node3" class="node">
+<title>resources</title>
+<polygon fill="white" stroke="white" points="69.57,-24.7 0.86,-24.7 0.86,-0.1 69.57,-0.1 69.57,-24.7"/>
+<text text-anchor="middle" x="35.22" y="-8.2" font-family="Times,serif" font-size="14.00">resources</text>
+</g>
+<!-- resources&#45;&gt;run -->
+<g id="edge2" class="edge">
+<title>resources&#45;&gt;run</title>
+<path fill="none" stroke="black" d="M69.92,-20.58C78.74,-22.72 88.1,-24.99 96.46,-27.02"/>
+<polygon fill="black" stroke="black" points="95.86,-30.47 106.4,-29.43 97.51,-23.67 95.86,-30.47"/>
+</g>
+</g>
+</svg>
+
+</center>
+</div>
+<div class="paragraph">
+<p>Defined using <code>Task.Command {&#8230;&#8203;}</code> syntax, <code>Command</code>s can run arbitrary code, with
+dependencies declared using the same <code>foo()</code> syntax (e.g. <code>classFiles()</code> above).
+Commands can be parametrized, but their output is not cached, so they will
+re-evaluate every time even if none of their inputs have changed. The only times
+<code>Command</code>s may be skipped is due to <a href="../large/selective-execution.html" class="xref page">Selective Test Execution</a>.</p>
+</div>
+<div class="paragraph">
+<p>A command with no parameter is defined as <code>def myCommand() = Task.Command {&#8230;&#8203;}</code>.
+It is a compile error if <code>()</code> is missing.</p>
+</div>
+<div class="paragraph">
+<p>Tasks can take command line params, parsed by the <a href="https://github.com/com-lihaoyi/mainargs">MainArgs</a>
+library. Thus the signature <code>def run(mainClass: String, args: String*)</code> takes
+params of the form <code>--main-class &lt;str&gt; &lt;arg1&gt; &lt;arg2&gt; &#8230;&#8203; &lt;argn&gt;</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run --main-class foo.Foo hello world
+Foo.value: 31337
+args: hello world
+foo.txt resource: My Example Text</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Command line arguments can take most primitive types: <code>String</code>, <code>Int</code>, <code>Boolean</code>, etc.,
+along with <code>Option[T]</code> representing optional values and <code>Seq[T]</code> representing repeatable values,
+and <code>mainargs.Flag</code> representing flags and <code>mainargs.Leftover[T]</code> representing any command line
+arguments not parsed earlier. Default values for command line arguments are also supported.
+See the mainargs documentation for more details:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://github.com/com-lihaoyi/mainargs">MainArgs Library Documentation</a></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>By default, all command parameters need to be named, except for variadic parameters
+of type <code>T*</code> or <code>mainargs.Leftover[T]</code>, or those marked as <code>@arg(positional = true)</code>.
+You can use also the flag <code>--allow-positional-command-args</code> to globally allow
+arguments to be passed positionally, as shown below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill run foo.Foo hello world # this raises an error because `--main-class` is not given
+error: Missing argument: --mainClass &lt;str&gt;
+Expected Signature: run
+  --mainClass &lt;str&gt;
+  args &lt;str&gt;...
+...
+
+&gt; ./mill --allow-positional run foo.Foo hello world # this succeeds due to --allow-positional
+Foo.value: 31337
+args: hello world
+foo.txt resource: My Example Text</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Like <a href="#_tasks">Tasks</a>, a command only evaluates after all its upstream
+dependencies have completed, and will not begin to run if any upstream
+dependency has failed.</p>
+</div>
+<div class="paragraph">
+<p>Commands are assigned the same scratch/output folder <code>out/run.dest/</code> as
+Tasks are, and their returned metadata stored at the same <code>out/run.json</code>
+path for consumption by external tools.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_other_tasks"><a class="anchor" href="#_other_tasks"></a>Other Tasks</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_inputs"><a class="anchor" href="#_inputs"></a>Inputs</h3>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-19-fe3d72/mill-dist-1.0.2-19-fe3d72-example-fundamentals-tasks-4-inputs.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2-19-fe3d72/example/fundamentals/tasks/4-inputs">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*
+import mill.api.BuildCtx
+
+def myInput = Task.Input {
+  os.call(cmd = ("git", "rev-parse", "HEAD"), cwd = BuildCtx.workspaceRoot)
+    .out
+    .text()
+    .trim()
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A generalization of <a href="#_sources">Sources</a>, <code>Task.Input</code>s are tasks that re-evaluate
+<em>every time</em>, containing an
+arbitrary block of code.</p>
+</div>
+<div class="paragraph">
+<p>Inputs can be used to force re-evaluation of some external property that may
+affect your build. For example, if I have cached a <a href="#_tasks">Task</a> <code>bar</code> that
+calls out to <code>git</code> to compute the latest commit hash and message directly,
+that target does not have any <code>Task</code> inputs and so will never re-compute
+even if the external <code>git</code> status changes:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusTask = Task {
+  "version-" +
+    os.call(cmd = ("git", "log", "-1", "--pretty=format:%h-%B "), cwd = BuildCtx.workspaceRoot)
+      .out.text().trim()
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git init .
+&gt; git commit --allow-empty -m "Initial-Commit"
+
+&gt; ./mill show gitStatusTask
+"version-...-Initial-Commit"
+
+&gt; git commit --allow-empty -m "Second-Commit"
+
+&gt; ./mill show gitStatusTask # Mill didn't pick up the git change!
+"version-...-Initial-Commit"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>gitStatusTask</code> will not know that <code>git rev-parse</code> can change, and will
+not know to re-evaluate when your <code>git log</code> <em>does</em> change. This means
+<code>gitStatusTask</code> will continue to use any previously cached value, and
+<code>gitStatusTask</code>'s output will  be out of date!</p>
+</div>
+<div class="paragraph">
+<p>To fix this, you can wrap your <code>git log</code> in a <code>Task.Input</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def gitStatusInput = Task.Input {
+  os.call(cmd = ("git", "log", "-1", "--pretty=format:%h-%B "), cwd = BuildCtx.workspaceRoot)
+    .out.text().trim()
+}
+
+def gitStatusTask2 = Task { "version-" + gitStatusInput() }</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This makes <code>gitStatusInput</code> to always re-evaluate every build, and only if
+the output of <code>gitStatusInput</code> changes will <code>gitStatusTask2</code> re-compute</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; git commit --allow-empty -m "Initial-Commit"
+
+&gt; ./mill show gitStatusTask2
+"version-...-Initial-Commit"
+
+&gt; git commit --allow-empty -m "Second-Commit"
+
+&gt; ./mill show gitStatusTask2 # Mill picked up git change
+"version-...-Second-Commit"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that because <code>Task.Input</code>s re-evaluate every time, you should ensure that the
+code you put in <code>Task.Input</code> runs quickly. Ideally it should just be a simple check
+"did anything change?" and any heavy-lifting should be delegated to downstream
+tasks where it can be cached if possible.</p>
+</div>
+<div class="sect3">
+<h4 id="_system_properties_inputs"><a class="anchor" href="#_system_properties_inputs"></a>System Properties Inputs</h4>
+<div class="paragraph">
+<p>One major use case of <code>Input</code> tasks is to make your build configurable via
+JVM system properties of environment variables. If you directly access
+<code>sys.props</code> or <code>sys.env</code> inside a cached <a href="#_tasks">Task</a>, the
+cached value will be used even if the property or environment variable changes
+in subsequent runs, when you really want it to be re-evaluated. Thus, accessing
+system properties should be done in a <code>Task.Input</code>, and usage of the property
+should be done downstream in a cached <a href="#_tasks">task</a>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myPropertyInput = Task.Input {
+  sys.props("my-property")
+}
+
+def myPropertyTask = Task {
+  "Hello Prop " + myPropertyInput()
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show myPropertyTask
+"Hello Prop null"
+
+&gt; ./mill -Dmy-property=world show myPropertyTask # Task is correctly invalidated when prop is added
+"Hello Prop world"
+
+&gt; ./mill show myPropertyTask # Task is correctly invalidated when prop is removed
+"Hello Prop null"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Again, <code>Task.Input</code> runs every time, and thus you should only do the bare minimum
+in your <code>Task.Input</code> that is necessary to detect changes. Any further processing
+should be done in downstream <a href="#_tasks">cached tasks</a> to allow for proper
+caching and re-use</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_environment_variable_inputs"><a class="anchor" href="#_environment_variable_inputs"></a>Environment Variable Inputs</h4>
+<div class="paragraph">
+<p>Like system properties, environment variables should be referenced in <code>Task.Input</code>s. Unlike
+system properties, you need to use the special API <code>Task.env</code> to access the environment,
+due to JVM limitations:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def myEnvInput = Task.Input {
+  Task.env.getOrElse("MY_ENV", null)
+}
+
+def myEnvTask = Task {
+  "Hello Env " + myEnvInput()
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show myEnvTask
+"Hello Env null"
+
+&gt; MY_ENV=world ./mill show myEnvTask # Task is correctly invalidated when env is added
+"Hello Env world"
+
+&gt; ./mill show myEnvTask # Task is correctly invalidated when env is removed
+"Hello Env null"</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_persistent_tasks"><a class="anchor" href="#_persistent_tasks"></a>Persistent Tasks</h3>
+<div class="paragraph">
+<p>Persistent tasks defined using <code>Task(persistent = true)</code> are similar to normal
+cached <code>Task</code>s, except their <code>Task.dest</code> folder is not cleared before every
+evaluation. This makes them useful for caching things on disk in a more
+fine-grained manner than Mill&#8217;s own Task-level caching: the task can
+maintain a cache of one or more files on disk, and decide itself which files
+(or parts of which files!) need to invalidate, rather than having all generated
+files wiped out every time (which is the default behavior for normal Tasks).</p>
+</div>
+<div class="paragraph">
+<p>Below is a semi-realistic example of using <code>Task(persistent = true)</code> to compress
+files in an input folder, cache the previously-compressed files in <code>Task.dest / "cache"</code>,
+and re-use previously-compressed files if a file in the
+input folder did not change:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-19-fe3d72/mill-dist-1.0.2-19-fe3d72-example-fundamentals-tasks-5-persistent-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2-19-fe3d72/example/fundamentals/tasks/5-persistent-tasks">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+import java.util.Arrays
+import java.io.ByteArrayOutputStream
+import java.util.zip.GZIPOutputStream
+
+def data = Task.Source("data")
+
+def compressedData = Task(persistent = true) {
+  println("Evaluating compressedData")
+  os.makeDir.all(Task.dest / "cache")
+  os.remove.all(Task.dest / "compressed")
+
+  for (p &lt;- os.list(data().path)) {
+    val compressedPath = Task.dest / "compressed" / s"${p.last}.gz"
+    val bytes = os.read.bytes(p)
+    val hash = Arrays.hashCode(bytes)
+    val cachedPath = Task.dest / "cache" / hash.toHexString
+    if (!os.exists(cachedPath)) {
+      println("Compressing: " + p.last)
+      os.write(cachedPath, compressBytes(bytes))
+    } else {
+      println("Reading Cached from disk: " + p.last)
+    }
+    os.copy(cachedPath, compressedPath, createFolders = true)
+  }
+
+  os.list(Task.dest / "compressed").map(PathRef(_))
+}
+
+def compressBytes(input: Array[Byte]) = {
+  val bos = new ByteArrayOutputStream(input.length)
+  val gzip = new GZIPOutputStream(bos)
+  gzip.write(input)
+  gzip.close()
+  bos.toByteArray
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this example, we implement a <code>compressedData</code> task that takes a folder
+of files in <code>data</code> and compresses them, while maintaining a cache of
+compressed contents for each file. That means that if the <code>data</code> folder
+is modified, but some files remain unchanged, those files would not be
+unnecessarily re-compressed when <code>compressedData</code> evaluates.</p>
+</div>
+<div class="paragraph">
+<p>Since persistent tasks have long-lived state on disk that lives beyond a
+single evaluation, this raises the possibility of the disk contents getting
+into a bad state and causing all future evaluations to fail. It is left up
+to user of <code>Task(persistent = true)</code> to ensure their implementation
+is eventually consistent. You can also use <code>mill clean</code> to manually purge
+the disk contents to start fresh.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show compressedData
+Evaluating compressedData
+Compressing: hello.txt
+Compressing: world.txt
+[
+  ".../hello.txt.gz",
+  ".../world.txt.gz"
+]
+
+&gt; ./mill compressedData # when no input changes, compressedData does not evaluate at all
+
+&gt; sed -i.bak 's/Hello/HELLO/g' data/hello.txt
+
+&gt; ./mill compressedData # when one input file changes, only that file is re-compressed
+Compressing: hello.txt
+Reading Cached from disk: world.txt
+
+&gt; ./mill clean compressedData
+
+&gt; ./mill compressedData
+Evaluating compressedData
+Compressing: hello.txt
+Compressing: world.txt</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_workers"><a class="anchor" href="#_workers"></a>Workers</h3>
+<div class="paragraph">
+<p>Mill workers defined using <code>Task.Worker</code> are long-lived in-memory objects that
+can persistent across multiple evaluations. These are similar to persistent
+tasks in that they let you cache things, but the fact that they let you
+cache the worker object in-memory allows for greater performance and
+flexibility: you are no longer limited to caching only serializable data
+and paying the cost of serializing it to disk every evaluation.</p>
+</div>
+<div class="paragraph">
+<p>Common things to put in workers include:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>References to third-party daemon processes, e.g. Webpack or wkhtmltopdf,
+which perform their own in-memory caching</p>
+</li>
+<li>
+<p>Classloaders containing plugin code, to avoid classpath conflicts while
+avoiding the cost of launching subprocesses</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>This example uses a Worker to provide simple two-level cache: in-memory caching
+for compressed files, in addition to caching them on disk. This means that if the
+Mill process is persistent (e.g. with <code>--watch</code>/<code>-w</code>) the cache lookups are instant,
+but even if the Mill process is restarted it can load the cache values from disk
+without having to recompute them:</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-19-fe3d72/mill-dist-1.0.2-19-fe3d72-example-fundamentals-tasks-6-workers.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2-19-fe3d72/example/fundamentals/tasks/6-workers">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*, scalalib.*
+import java.util.Arrays
+import java.io.ByteArrayOutputStream
+import java.util.zip.GZIPOutputStream
+
+def data = Task.Source("data")
+
+def compressWorker = Task.Worker { new CompressWorker(Task.dest) }
+
+def compressedData = Task {
+  println("Evaluating compressedData")
+  for (p &lt;- os.list(data().path)) {
+    os.write(
+      Task.dest / s"${p.last}.gz",
+      compressWorker().compress(p.last, os.read.bytes(p))
+    )
+  }
+  os.list(Task.dest).map(PathRef(_))
+}
+
+class CompressWorker(dest: os.Path) {
+  val cache = collection.mutable.Map.empty[Int, Array[Byte]]
+  def compress(name: String, bytes: Array[Byte]): Array[Byte] = {
+    val hash = Arrays.hashCode(bytes)
+    if (!synchronized(cache.contains(hash))) {
+      val cachedPath = dest / hash.toHexString
+      if (!os.exists(cachedPath)) {
+        println("Compressing: " + name)
+        val compressed = compressBytes(bytes)
+        synchronized {
+          cache(hash) = compressed
+          os.write(cachedPath, cache(hash))
+        }
+      } else {
+        println("Cached from disk: " + name)
+        synchronized {
+          cache(hash) = os.read.bytes(cachedPath)
+        }
+      }
+    } else {
+      println("Cached from memory: " + name)
+    }
+    synchronized { cache(hash) }
+  }
+}
+
+def compressBytes(input: Array[Byte]) = {
+  val bos = new ByteArrayOutputStream(input.length)
+  val gzip = new GZIPOutputStream(bos)
+  gzip.write(input)
+  gzip.close()
+  bos.toByteArray
+}</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <em>initialization</em> of a <code>Task.Worker</code>'s value is single threaded,
+but <em>usage</em> of the worker&#8217;s value may be done concurrently. The user of
+<code>Task.Worker</code> is responsible for ensuring it&#8217;s value is safe to use in a
+multi-threaded environment via techniques like locks, atomics, or concurrent data
+structures. The example above uses <code>synchronized{}</code> around all access to the
+shared <code>cache</code> state to allow the slow <code>compressBytes</code> operation to run in
+parallel while the fast mutation of the <code>cache</code> is single-threaded.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Workers live as long as the Mill process. By default, consecutive <code>mill</code>
+commands in the same folder will re-use the same Mill process and workers,
+unless <code>--no-daemon</code> is passed which will terminate the Mill process and
+workers after every command. Commands run repeatedly using <code>--watch</code> will
+also preserve the workers between them.</p>
+</div>
+<div class="paragraph">
+<p>Workers can also make use of their <code>Task.dest</code> folder as a cache that persist
+when the worker shuts down, as a second layer of caching. The example usage
+below demonstrates how using the <code>--no-daemon</code> flag will make the worker
+read from its disk cache, where it would have normally read from its
+in-memory cache</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show compressedData
+Evaluating compressedData
+Compressing: hello.txt
+Compressing: world.txt
+[
+  ".../hello.txt.gz",
+  "...world.txt.gz"
+]
+
+&gt; ./mill compressedData # when no input changes, compressedData does not evaluate at all
+
+&gt; sed -i.bak 's/Hello/HELLO/g' data/hello.txt
+
+&gt; ./mill compressedData # not --no-daemon, we read the data from memory
+Compressing: hello.txt
+Cached from memory: world.txt
+
+&gt; ./mill compressedData # --no-daemon, we read the data from disk
+Compressing: hello.txt
+Cached from disk: world.txt</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Mill uses workers to manage long-lived instances of heavyweight objects like the
+<a href="https://github.com/sbt/zinc">Zinc Incremental Compiler</a>.
+This lets us keep them in-memory with warm caches and fast incremental execution.</p>
+</div>
+<div class="paragraph">
+<p>Like any other task, you can use <code>./mill clean</code> to wipe out any cached in-memory or
+on-disk state belonging to workers. This may be necessary if your worker implementation
+has bugs that cause the worker disk or in-memory data structures to get into a bad state.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_autoclosable_workers"><a class="anchor" href="#_autoclosable_workers"></a><code>Autoclosable</code> Workers</h3>
+<div class="paragraph">
+<p>As <a href="#_workers">Workers</a> may also hold limited resources, it may be necessary to free up these
+resources once a worker is no longer needed. For example, <code>java.net.URLClassLoader</code>s
+need the <code>.close()</code> method to be called, third-party subprocesses spawned by <code>os.spawn</code>
+need to <code>.destroy()</code> to be called, otherwise these externally-managed resources may leak
+causes your build or system to run out of memory.</p>
+</div>
+<div class="paragraph">
+<p>To implement resource cleanup, your worker can implement <code>java.lang.AutoCloseable</code>.
+Once the worker is no longer needed, Mill will call the <code>close()</code> method on it before any newer version of this worker is created.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
+import java.lang.AutoCloseable
+
+class MyWorker() extends AutoCloseable {
+  // ...
+  override def close() = { /* cleanup and free resources */ }
+}
+
+def myWorker = Task.Worker { new MyWorker() }</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cachedfactory_workers"><a class="anchor" href="#_cachedfactory_workers"></a><code>CachedFactory</code> Workers</h3>
+<div class="paragraph">
+<p>One very common use case for workers is managing long-lived mutable state. The issue
+with long-lived mutable state is that in the presence of parallelism (the default in
+Mill), managing such state can be tricky:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If you allow unrestricted access to the mutable state across multiple threads,
+you are subject to race conditions and non-deterministic bugs</p>
+</li>
+<li>
+<p>If you just synchronize/lock all access to the mutable state, you lose all benefits
+for parallelism</p>
+</li>
+<li>
+<p>If you re-generate the mutable state each time for each thread, you lose the benefits
+of it being long lived</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The solution to these issues is to maintain an in-memory cache, with proper locking,
+eviction, and invalidation. Doing so is tedious and error prone, and so Mill provides
+the <code>CachedFactory</code> helper to make it easier. The example below re-implements a simplified
+version of <code>CompressWorker</code> we saw earlier, but using <code>CacheFactory</code> to cache, reset, and
+re-use the <code>ByteArrayOutputStream</code> between calls to <code>cachedCompressWorker().compress</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill.*
+import java.lang.AutoCloseable
+import mill.util.CachedFactory
+import java.io.ByteArrayOutputStream
+
+def cachedCompressWorker = Task.Worker { new CachedCompressWorker(Task.dest) }
+class CachedCompressWorker(dest: os.Path) <i class="conum" data-value="1"></i><b>(1)</b>
+    extends CachedFactory[Unit, ByteArrayOutputStream] {
+
+  def setup(key: Unit): ByteArrayOutputStream = { <i class="conum" data-value="2"></i><b>(2)</b>
+    println("setup ByteArrayOutputStream")
+    new ByteArrayOutputStream()
+  }
+
+  def maxCacheSize = 2 <i class="conum" data-value="3"></i><b>(3)</b>
+
+  def teardown(key: Unit, value: ByteArrayOutputStream): Unit = { <i class="conum" data-value="4"></i><b>(4)</b>
+    println("teardown ByteArrayOutputStream")
+    value.reset()
+  }
+
+  val cache = collection.mutable.Map.empty[Int, Array[Byte]]
+  def compress(name: String, bytes: Array[Byte]): Array[Byte] = {
+    val hash = Arrays.hashCode(bytes)
+    if (!synchronized(cache.contains(hash))) {
+      println("Compressing: " + name)
+      val compressed = withValue(()) { bos =&gt; compressBytes2(bos, bytes) }
+      synchronized { cache(hash) = compressed }
+    } else {
+      println("Cached from memory: " + name)
+    }
+    synchronized { cache(hash) }
+  }
+}
+
+def compressBytes2(bos: ByteArrayOutputStream, input: Array[Byte]) = {
+  bos.reset()
+  Thread.sleep(1000) // Simulate a slow operation
+  val gzip = new GZIPOutputStream(bos)
+  gzip.write(input)
+  gzip.close()
+  bos.toByteArray
+}</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>CachedFactory</code> takes two type parameters, a <code>K</code> key type and a <code>V</code> value type.
+In this case <code>K</code> is <code>Unit</code> since all <code>ByteArrayOutputStream</code>s are the same, but if you
+are caching things which take some kind of configuration (e.g. compilers with compiler
+flags) you can set <code>K</code> to be the config class so that values with different input
+configuration are cached separately.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td><code>def setup</code> creates the <code>ByteArrayOutputStream</code> when a new one is necessary</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td><code>def maxCacheSize</code> configures the maximum number of cached entries to keep around while they are not in use,</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td><code>def teardown</code> cleans up the <code>ByteArrayOutputStream</code>s and when the count
+of cached entries exceeds that <code>maxCacheSize`</code></td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Although this example is synthetic (you don&#8217;t actually need to reset, reuse, and teardown
+<code>ByteArrayOutputStream</code>s) the same techniques would apply to any long-lived mutable state
+or components you need to manage. This is especially important when
+<a href="../extending/running-jvm-code.html" class="xref page">running JVM code in classloaders or subprocesses</a>,
+as those are both expensive to initialize and need to be properly closed or terminated
+when you are done with them.</p>
+</div>
+<div class="paragraph">
+<p>The above <code>cachedCompressWorker</code> can be used as shown below, with three
+<code>def compressed*</code> tasks using it to call <code>.compress</code>:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def compressed1 = Task {
+  cachedCompressWorker().compress("foo.txt", "I am cow".getBytes)
+}
+
+def compressed2 = Task {
+  cachedCompressWorker().compress("bar.txt", "Hear me moo".getBytes)
+}
+
+def compressed3 = Task {
+  cachedCompressWorker().compress("qux.txt", "I weigh twice as much as you".getBytes)
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; # 3 streams are created on demand, 1 is torn down after due to maxCacheSize = 2 limit
+&gt; ./mill show '{compressed1,compressed2,compressed3}'
+setup ByteArrayOutputStream
+setup ByteArrayOutputStream
+setup ByteArrayOutputStream
+Compressing: foo.txt
+Compressing: bar.txt
+Compressing: qux.txt
+teardown ByteArrayOutputStream
+{
+  "compressed1": ...
+  "compressed2": ...
+  "compressed3": ...
+}
+
+&gt; # `clean` clears the CachedFactory and tears down the two streams in the cache
+&gt; ./mill clean cachedCompressWorker
+teardown ByteArrayOutputStream
+teardown ByteArrayOutputStream</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_anonymous_tasks"><a class="anchor" href="#_anonymous_tasks"></a>Anonymous Tasks</h3>
+<div class="paragraph">
+<p>You can define anonymous tasks using the <code>Task.Anon {&#8230;&#8203;}</code> syntax. These are
+not runnable from the command-line, but can be used to share common code you
+find yourself repeating in <code>Task</code>s and <code>Command</code>s.</p>
+</div>
+<div class="listingblock">
+<div class="title">build.mill (<a href="https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2-19-fe3d72/mill-dist-1.0.2-19-fe3d72-example-fundamentals-tasks-3-anonymous-tasks.zip">download</a>, <a href="https://github.com/com-lihaoyi/mill/blob/1.0.2-19-fe3d72/example/fundamentals/tasks/3-anonymous-tasks">browse</a>)</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill.*
+
+def data = Task.Source("data")
+
+def anonTask(fileName: String): Task[String] = Task.Anon {
+  os.read(data().path / fileName)
+}
+
+def helloFileData = Task { anonTask("hello.txt")() }
+def printFileData(fileName: String) = Task.Command {
+  println(anonTask(fileName)())
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Anonymous task&#8217;s output does not need to be JSON-serializable, their output is
+not cached, and they can be defined with or without arguments.
+Unlike <a href="#_tasks">Tasks</a> or <a href="#_commands">Commands</a>, anonymous tasks can be defined
+anywhere and passed around any way you want, until you finally make use of them
+within a downstream task or command.</p>
+</div>
+<div class="paragraph">
+<p>While an anonymous task <code>foo</code>'s own output is not cached, if it is used in a
+downstream task <code>baz</code> and the upstream task <code>bar</code> hasn&#8217;t changed,
+<code>baz</code>'s cached output will be used and <code>foo</code>'s evaluation will be skipped
+altogether.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill show helloFileData
+"Hello"
+
+&gt; ./mill printFileData --file-name hello.txt
+Hello
+
+&gt; ./mill printFileData --file-name world.txt
+World!</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="../migrating/auto-migrating.html">Automated Migration Tools</a></span>
+  <span class="next"><a href="modules.html">Modules</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../../../_/js/site.js" data-ui-root-path="../../../_"></script>
+<script async src="../../../_/js/vendor/highlight.js"></script>
+<script src="../../../_/js/vendor/lunr.js"></script>
+<script src="../../../_/js/search-ui.js" id="search-ui-script" data-site-root-path="../../.." data-snippet-length="100" data-stylesheet="../../../_/css/search.css"></script>
+<script async src="../../../search-index.js"></script>
+  </body>
+</html>
