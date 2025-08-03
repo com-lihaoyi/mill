@@ -49,9 +49,9 @@ public class ProxyStream {
         out.write(ProxyStream.END);
         out.write(exitCode);
         out.flush();
-      }
-      catch (SocketException e) {
-        // If the client has already closed the connection, we don't really care about sending the exit code to it.
+      } catch (SocketException e) {
+        // If the client has already closed the connection, we don't really care about sending the
+        // exit code to it.
         if (!clientHasClosedConnection(e)) throw e;
       }
     }
