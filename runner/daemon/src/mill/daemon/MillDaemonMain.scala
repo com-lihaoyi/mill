@@ -50,7 +50,7 @@ class MillDaemonMain(
 
   def stateCache0 = RunnerState.empty
 
-  val out: os.Path = BuildCtx.workspaceRoot / OutFiles.out
+  val out: os.Path = os.Path(OutFiles.out, BuildCtx.workspaceRoot)
 
   val outLock = MillMain0.doubleLock(out)
 
