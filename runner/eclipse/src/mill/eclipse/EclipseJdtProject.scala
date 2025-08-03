@@ -40,15 +40,11 @@ final case class LinkedResource(absolutePath: Path, name: String)
  *  directories.
  *
  *  @param relativePath to the source folder
- *  @param sourceSetName name of this source set, will be used for the output directory
  *  @param isTest whether this contains test code or nor
- *  @param isLinkedResource whether or not this source folder is coming from a linked resource
  */
 final case class SourceFolder(
     relativePath: String,
-    sourceSetName: String | Null,
-    isTest: Boolean,
-    isLinkedResource: Boolean
+    var isTest: Boolean
 )
 
 /**

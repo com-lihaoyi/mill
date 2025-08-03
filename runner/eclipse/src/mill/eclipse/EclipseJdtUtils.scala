@@ -84,14 +84,14 @@ object EclipseJdtUtils {
    *  @return the XML entry
    */
   private def getSourceClasspathEntry(sourceFolder: SourceFolder): Elem = {
+    // In order to not collide with output folder names we create unique ones for every single
+    // source folder based on its relative path (which are unique as well).
+    val outputName = sourceFolder.relativePath.replace("\\", "-").replace("/", "-")
+
     if (sourceFolder.isTest) {
       <classpathentry kind="src"
                         path={sourceFolder.relativePath}
-                        output={
-        if (sourceFolder.sourceSetName != null || sourceFolder.isLinkedResource)
-          "bin/" + sourceFolder.sourceSetName + "-classes"
-        else "bin/classes"
-      }>
+                        output={s"bin/$outputName-classes"}>
           <attributes>
             <attribute name="test" value="true" />
           </attributes>
@@ -99,11 +99,7 @@ object EclipseJdtUtils {
     } else {
       <classpathentry kind="src"
                         path={sourceFolder.relativePath}
-                        output={
-        if (sourceFolder.sourceSetName != null || sourceFolder.isLinkedResource)
-          "bin/" + sourceFolder.sourceSetName + "-classes"
-        else "bin/classes"
-      } />
+                        output={s"bin/$outputName-classes"} />
     }
   }
 

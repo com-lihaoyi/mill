@@ -93,8 +93,9 @@ object GenEclipseUtils {
 
     // Source folder classpath entry only created when there are actually sources in it
     if (srcFolderName != null) {
+      val adjustedSrcFolderName = srcFolderName.replace("/", "-").replace("\\", "-")
       assert(fileContent.contains(
-        s"<classpathentry kind=\"src\" path=\"$srcFolderName\" output=\"bin/classes\"/>"
+        s"<classpathentry kind=\"src\" path=\"$srcFolderName\" output=\"bin/$adjustedSrcFolderName-classes\"/>"
       ))
     }
 
@@ -107,7 +108,8 @@ object GenEclipseUtils {
 
     // Check for test module source folders
     for (testSrcFolderName <- testSrcFolderNames) {
-      assert(fileContent.contains(s"<classpathentry kind=\"src\" path=\"$testSrcFolderName\""))
+      val adjustedTestSrcFolderName = testSrcFolderName.replace("/", "-").replace("\\", "-")
+      assert(fileContent.contains(s"<classpathentry kind=\"src\" path=\"$testSrcFolderName\" output=\"bin/$adjustedTestSrcFolderName-classes\""))
     }
     assert(getOccurrences(
       fileContent,

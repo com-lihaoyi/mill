@@ -27,6 +27,11 @@ import scala.collection.mutable
  *
  *  For more information as well as limited references for the file format, see the latest
  *  <a href="https://help.eclipse.org/latest/index.jsp">Eclipse IDE documentation</a>.
+ *
+ *  This can be improved in the future for finding the project Java source and target version by
+ *  looking at [[JavaModuleApi.javacOptions]] for the "-source" and "-target" flags! This is not
+ *  yet implemented and relies on the Java Runtime version of the Mill process due to the fact that
+ *  the Mill Modules are aggregated as much as possible for generating Eclipse JDT Projects!
  */
 class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
   import GenEclipseImpl._
@@ -37,6 +42,30 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
   /** This aggregates all the (transitive) modules into one flat sequence */
   private def transitiveModules(module: ModuleApi): Seq[ModuleApi] = {
     Seq(module) ++ module.moduleDirectChildren.flatMap(transitiveModules)
+  }
+
+  /**
+   *  As we try to aggregate Mill Modules into combined Eclipse JDT Projects, we try to find a
+   *  possible parent Java Module for another ones path.
+   *
+   *  @param aggregatedJavaModules all the aggregated Java Modules so far
+   *  @param modulePath the to be added ones path
+   *  @return a possible parent or null if none found
+   */
+  private def findParentJavaModule(
+      aggregatedJavaModules: mutable.Map[Path, JavaModuleDto],
+      modulePath: Path
+  ): JavaModuleDto | Null = {
+    var currentPath = modulePath
+    while (currentPath.getParent != null) {
+      if (aggregatedJavaModules.contains(currentPath)) {
+        return aggregatedJavaModules(currentPath)
+      }
+
+      currentPath = currentPath.getParent
+    }
+
+    null
   }
 
   /**
@@ -53,26 +82,20 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
       .filter(module => isOnlyJavaModuleApi(module))
       .collect(module => module.asInstanceOf[JavaModuleApi])
 
-    var pathOfLastJavaModuleAdded: Path | Null = null
     for (javaModule <- allJavaModules) {
       val childModuleDir = javaModule.moduleDirJava
 
-      if (aggregatedJavaModules.contains(childModuleDir)) {
-        // There is another module already present at this folder, e.g. a Maven Module for which the source code is in a
-        // parallel structure for the source sets.
-        aggregatedJavaModules(childModuleDir).addSourceSetModule(javaModule)
-      } else if (isTestModule(javaModule) && pathOfLastJavaModuleAdded != null) {
-        // This is a test module that will be added to the last (parent) Java Module. That will be the case for any form
-        // of JavaModule (directly or a child implementation excluding Scala / Kotlin) including the objects of type
-        // TestModule inside them.
-        aggregatedJavaModules(pathOfLastJavaModuleAdded).addSourceSetModule(javaModule)
-      } else {
-        // This will either be the first Java Module added (therefore no element yet in "aggregatedJavaModules") or some
-        // other kind of JavaModuleApi-extending hybrid that we provide forward facing support for!
+      val parentJavaModule = findParentJavaModule(aggregatedJavaModules, childModuleDir)
+      if (!isTestModule(javaModule) || parentJavaModule == null) {
+        // Modules not having tests will automatically be added to a new Eclipse project. If there
+        // is a test module but for whatever reason no parent with production code, then also add
+        // a new DTO for it as well!
         aggregatedJavaModules +=
           (childModuleDir ->
             JavaModuleDto(evaluator, javaModule, mutable.Set.empty[JavaModuleApi]))
-        pathOfLastJavaModuleAdded = childModuleDir
+      } else {
+        // This is a test module that will be added to the parent Java Module.
+        parentJavaModule.addSourceSetModule(javaModule)
       }
     }
 
@@ -135,7 +158,6 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
       : Map[Path, EclipseJdtProject] = {
     val eclipseProjects = mutable.Map.empty[Path, EclipseJdtProject]
 
-    // TODO: Somehow get the Java source and target version!?
     var javaRunningVersion = scala.util.Properties.javaVersion.split("\\.").head
     if (javaRunningVersion.toInt < 9) javaRunningVersion = s"1.$javaRunningVersion"
 
@@ -159,22 +181,17 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
           val directoryName = source.getFileName.toString
 
           linkedResources += LinkedResource(source, directoryName)
-          sourceFolders +=
-            SourceFolder(
-              directoryName,
-              directoryName,
-              isMainTestModule,
-              true
-            )
+          addSourceFolder(
+            sourceFolders,
+            directoryName,
+            isMainTestModule
+          )
         } else if (Files.exists(source)) {
-          val relativePath = path.relativize(source).toString
-          sourceFolders +=
-            SourceFolder(
-              relativePath,
-              null,
-              isMainTestModule,
-              false
-            )
+          addSourceFolder(
+            sourceFolders,
+            path.relativize(source).toString,
+            isMainTestModule
+          )
         }
       }
 
@@ -185,10 +202,6 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
       dependentLibraryPaths ++= projectModule.allLibraryDependencies
 
       for (sourceSetModule <- value.sourceSetResolvedModules) {
-        val sourceSetProjectName = moduleName(
-          sourceSetModule.segments,
-          sourceSetModule.module.moduleDirJava
-        )
         val isSourceSetTestModule = isTestModule(sourceSetModule.module)
 
         for (source <- sourceSetModule.allSources) {
@@ -196,22 +209,17 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
             val directoryName = source.getFileName.toString
 
             linkedResources += LinkedResource(source, directoryName)
-            sourceFolders +=
-              SourceFolder(
-                directoryName,
-                sourceSetProjectName.stripPrefix(projectName + "."),
-                isSourceSetTestModule,
-                true
-              )
+            addSourceFolder(
+              sourceFolders,
+              directoryName,
+              isSourceSetTestModule
+            )
           } else if (Files.exists(source)) {
-            val relativePath = path.relativize(source).toString
-            sourceFolders +=
-              SourceFolder(
-                relativePath,
-                sourceSetProjectName.stripPrefix(projectName + "."),
-                isSourceSetTestModule,
-                false
-              )
+            addSourceFolder(
+              sourceFolders,
+              path.relativize(source).toString,
+              isSourceSetTestModule
+            )
           }
         }
 
@@ -398,6 +406,34 @@ object GenEclipseImpl {
     // Eclipse IDE if they like.
     if (name.isBlank) path.getFileName.toString
     else name
+  }
+
+  /**
+   *  To add a new source folder based on a relative path and whether this contains test sources or
+   *  not. Due to user configuration in the Mill configuration, it can happen that a relative
+   *  folder is already configured to be a source folder.
+   *
+   *  In this case, don't add a new one as this is not possible in Eclipse and rather adjust the
+   *  existing one. This means if it is configured once to have test sources and once to only have
+   *  production code, consider it to have test sources
+   *
+   *  @param sourceFolders with all the current (test) source folders of a project
+   *  @param relativePath the new source folder relative path
+   *  @param isTest whether it contains tests or not
+   */
+  private def addSourceFolder(
+      sourceFolders: mutable.Set[SourceFolder],
+      relativePath: String,
+      isTest: Boolean
+  ): Unit = {
+    try {
+      val existingElement = sourceFolders.filter(
+        sourceFolder => sourceFolder.relativePath == relativePath
+      ).head
+      existingElement.isTest = existingElement.isTest || isTest
+    } catch {
+      case _: NoSuchElementException => sourceFolders += SourceFolder(relativePath, isTest)
+    }
   }
 
   /**
