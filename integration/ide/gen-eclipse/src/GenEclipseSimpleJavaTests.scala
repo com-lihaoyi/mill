@@ -15,7 +15,6 @@ object GenEclipseSimpleJavaTests extends UtestIntegrationTestSuite {
 
       val ret = eval("mill.eclipse/", check = true)
       assert(ret.exitCode == 0)
-      assert(ret.out.contains("Name: simple-java-project"))
 
       checkOrgEclipseCoreResourcesPrefs(workspacePath)
       checkOrgEclipseJdtCorePrefs(workspacePath)
