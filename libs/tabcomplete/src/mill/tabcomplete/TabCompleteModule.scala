@@ -62,7 +62,8 @@ private[this] object TabCompleteModule extends ExternalModule {
                   .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
               }
               for (ep <- entryPoints.headOption) {
-                val taskArgs = v.remaining.drop(index - 1)
+                val taskArgs = v.remaining.drop(1)
+                val taskArgsIndex = index - parsedArgCount - 1
 
                 val grouped2 = mainargs.TokenGrouping.groupArgs(
                   taskArgs,
@@ -75,8 +76,8 @@ private[this] object TabCompleteModule extends ExternalModule {
 
                 def handleRemaining(remaining: Seq[String]) = {
                   val commandParsedArgCount = v.remaining.length - remaining.length - 1
-                  if (index - parsedArgCount - 1 == commandParsedArgCount) {
-                    findMatchingArgs(remaining.headOption, ep.flattenedArgSigs.map(_._1))
+                  if (taskArgsIndex == commandParsedArgCount) {
+                    findMatchingArgs(remaining.lift(taskArgsIndex), ep.flattenedArgSigs.map(_._1))
                       .getOrElse(delegateToBash(args, index))
                   } else delegateToBash(args, index)
                 }

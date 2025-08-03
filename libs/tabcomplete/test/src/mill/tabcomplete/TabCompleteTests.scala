@@ -16,6 +16,7 @@ object TabCompleteTests extends TestSuite {
     object foo extends Module
     object bar extends Module {
       def task2(argA3: String, argB4: Int) = Task.Command { 456 }
+      def taskPositional(@mainargs.arg(positional = true) argA3: String, @mainargs.arg(positional = true) argB4: Int) = Task.Command { 456 }
 
     }
     object qux extends Cross[QuxModule](12, 34, 56)
@@ -91,14 +92,14 @@ object TabCompleteTests extends TestSuite {
       test("exactModule") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "bar"),
-          Set("bar", "bar.task2")
+          Set("bar", "bar.task2", "bar.taskPositional")
         )
       }
 
       test("nested") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "bar."),
-          Set("bar.task2")
+          Set("bar.task2", "bar.taskPositional")
         )
       }
 
@@ -239,29 +240,72 @@ object TabCompleteTests extends TestSuite {
       }
     }
     test("commandflags") {
-      test {
-        assertGoldenLiteral(
-          evalComplete("2", "./mill", "task1", "--a"),
-          Set("--arg-a", "--arg-b-2")
-        )
+      test("required") {
+        test {
+          assertGoldenLiteral(
+            evalComplete("2", "./mill", "task1", "--a"),
+            Set("--arg-a", "--arg-b-2")
+          )
+        }
+        test {
+          assertGoldenLiteral(
+            evalComplete("2", "./mill", "task1", "--arg-b"),
+            Set("--arg-b-2")
+          )
+        }
       }
-      test {
-        assertGoldenLiteral(
-          evalComplete("2", "./mill", "task1", "--arg-b"),
-          Set("--arg-b-2")
-        )
+      test("positional") {
+        test {
+          assertGoldenLiteral(
+            evalComplete("2", "./mill", "bar.taskPositional", "--"),
+            Set()
+          )
+        }
+        test {
+          assertGoldenLiteral(
+            evalComplete("2", "./mill", "bar.taskPositional", ""),
+            Set("file2.txt", "file1.txt", "out")
+          )
+        }
       }
-      test {
-        assertGoldenLiteral(
-          evalComplete("2", "./mill", "bar.task2", "--a"),
-          Set("--arg-a-3", "--arg-b-4")
-        )
-      }
-      test {
-        assertGoldenLiteral(
-          evalComplete("2", "./mill", "bar.task2", "--arg-b"),
-          Set("--arg-b-4")
-        )
+      test("optional") {
+        test {
+          assertGoldenLiteral(
+            evalComplete("2", "./mill", "bar.task2", "--a"),
+            Set("--arg-a-3", "--arg-b-4")
+          )
+        }
+        test {
+          assertGoldenLiteral(
+            evalComplete("2", "./mill", "bar.task2", "--arg-b"),
+            Set("--arg-b-4")
+          )
+        }
+
+        test {
+          assertGoldenLiteral(
+            evalComplete("3", "./mill", "bar.task2", "--arg-a", "--"),
+            Set()
+          )
+        }
+        test {
+          assertGoldenLiteral(
+            evalComplete("3", "./mill", "bar.task2", "--arg-a", ""),
+            Set("file2.txt", "file1.txt", "out")
+          )
+        }
+        test {
+          assertGoldenLiteral(
+            evalComplete("5", "./mill", "bar.task2", "--arg-a", "", "--arg-b", ""),
+            Set("file2.txt", "file1.txt", "out")
+          )
+        }
+        test {
+          assertGoldenLiteral(
+            evalComplete("3", "./mill", "bar.task2", "--arg-a", "", "--arg-b", ""),
+            Set("file2.txt", "file1.txt", "out")
+          )
+        }
       }
     }
   }
