@@ -47,7 +47,7 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
-  ): mill.api.Result[List[Resolved]]
+  ): mill.api.Result[List[Resolved]] = mill.api.Result.Success(Nil)
 
   def resolveTasks(
       scriptArgs: Seq[String],

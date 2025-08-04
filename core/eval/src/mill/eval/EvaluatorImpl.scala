@@ -63,7 +63,7 @@ final class EvaluatorImpl private[mill] (
       )
     }
   }
-  def resolveRaw(
+  override def resolveRaw(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean = false,

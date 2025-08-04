@@ -40,81 +40,81 @@ private[this] object TabCompleteModule extends ExternalModule {
       )
     }
 
-    val outputs: Seq[String] = group(args.drop(1), MillCliConfig.parser.main.flattenedArgSigs, true) match {
-      // Initial parse fails. Only failure mode is `incomplete`:
-      //
-      // - `missing` should be empty since all Mill flags have defaults
-      // - `duplicate` should be empty since we use `allowRepeats = true`
-      // - `unknown` should be empty since unknown tokens end up in `leftoverArgs`
-      case mainargs.Result.Failure.MismatchedArguments(Nil, unknown, Nil, Some(_)) =>
-        // In this case, we cannot really identify any tokens in the argument list
-        // which are task selectors, since the last flag is incomplete and prior
-        // flags are all completed. So just delegate to bash completion
-        delegateToBash(args, index)
+    val outputs: Seq[String] =
+      group(args.drop(1), MillCliConfig.parser.main.flattenedArgSigs, true) match {
+        // Initial parse fails. Only failure mode is `incomplete`:
+        //
+        // - `missing` should be empty since all Mill flags have defaults
+        // - `duplicate` should be empty since we use `allowRepeats = true`
+        // - `unknown` should be empty since unknown tokens end up in `leftoverArgs`
+        case mainargs.Result.Failure.MismatchedArguments(Nil, unknown, Nil, Some(_)) =>
+          // In this case, we cannot really identify any tokens in the argument list
+          // which are task selectors, since the last flag is incomplete and prior
+          // flags are all completed. So just delegate to bash completion
+          delegateToBash(args, index)
 
-      // Initial parse succeeds, `leftoverArgs` contains either the task selector,
-      // or the start of another flag
-      case mainargs.Result.Success(v) =>
-        val parsedArgCount = args.length - v.remaining.length
+        // Initial parse succeeds, `leftoverArgs` contains either the task selector,
+        // or the start of another flag
+        case mainargs.Result.Success(v) =>
+          val parsedArgCount = args.length - v.remaining.length
 
-        // The cursor is after the task being run, we try to resolve the task to
-        // see if it is a command with flags we can autocpmplete
-        if (index > parsedArgCount) {
-          val resolved = ev.resolveTasks(Seq(args(parsedArgCount)), SelectMode.Multi)
+          // The cursor is after the task being run, we try to resolve the task to
+          // see if it is a command with flags we can autocpmplete
+          if (index > parsedArgCount) {
+            val resolved = ev.resolveTasks(Seq(args(parsedArgCount)), SelectMode.Multi)
 
-          val entrypointOpt = resolved match {
-            case _: Result.Failure => None
-            case Result.Success(ts) =>
-              val entryPoints: Seq[mainargs.MainData[_, _]] = ts.flatMap { t =>
-                ev
-                  .rootModule
-                  .moduleCtx
-                  .discover
-                  .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
-              }
+            val entrypointOpt = resolved match {
+              case _: Result.Failure => None
+              case Result.Success(ts) =>
+                val entryPoints: Seq[mainargs.MainData[_, _]] = ts.flatMap { t =>
+                  ev
+                    .rootModule
+                    .moduleCtx
+                    .discover
+                    .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
+                }
 
-              // If we find multiple entrypoints for the tasks selected, pick one arbitrarily
-              entryPoints.headOption
-          }
-
-          entrypointOpt.map{ep =>
-            val taskArgs = v.remaining.drop(1)
-            val taskArgsIndex = index - parsedArgCount - 1
-
-            val remaining = group(taskArgs, ep.flattenedArgSigs, false) match {
-              case mainargs.Result.Success(grouping) => grouping.remaining
-              case r: mainargs.Result.Failure.MismatchedArguments => r.unknown
+                // If we find multiple entrypoints for the tasks selected, pick one arbitrarily
+                entryPoints.headOption
             }
 
-            val commandParsedArgCount = v.remaining.length - remaining.length - 1
-            if (taskArgsIndex == commandParsedArgCount) {
-              findMatchingArgs(remaining.lift(taskArgsIndex), flattenSigs(ep), isZsh.value)
-                .getOrElse(delegateToBash(args, index))
-            } else delegateToBash(args, index)
-          }.getOrElse(Nil)
-        }
+            entrypointOpt.map { ep =>
+              val taskArgs = v.remaining.drop(1)
+              val taskArgsIndex = index - parsedArgCount - 1
 
-        // The cursor is before the task being run. It can't be an incomplete
-        // `-f` or `--flag` because parsing succeeded, so delegate to file completion
-        else if (index < parsedArgCount) {
-          val argSigs = flattenSigs(MillCliConfig.parser.main)
-          findMatchingArgs(args.lift(index), argSigs, isZsh.value)
-            .getOrElse(delegateToBash(args, index))
-        }
-        // This is the task I need to autocomplete, or the next incomplete flag
-        else if (index == parsedArgCount) {
-          val argSigs = flattenSigs(MillCliConfig.parser.main)
-          findMatchingArgs(args.lift(index), argSigs, isZsh.value)
-            .getOrElse(completeTasks(ev, index, args, isZsh.value))
+              val remaining = group(taskArgs, ep.flattenedArgSigs, false) match {
+                case mainargs.Result.Success(grouping) => grouping.remaining
+                case r: mainargs.Result.Failure.MismatchedArguments => r.unknown
+              }
 
-        } else ???
-    }
+              val commandParsedArgCount = v.remaining.length - remaining.length - 1
+              if (taskArgsIndex == commandParsedArgCount) {
+                findMatchingArgs(remaining.lift(taskArgsIndex), flattenSigs(ep), isZsh.value)
+                  .getOrElse(delegateToBash(args, index))
+              } else delegateToBash(args, index)
+            }.getOrElse(Nil)
+          }
 
+          // The cursor is before the task being run. It can't be an incomplete
+          // `-f` or `--flag` because parsing succeeded, so delegate to file completion
+          else if (index < parsedArgCount) {
+            val argSigs = flattenSigs(MillCliConfig.parser.main)
+            findMatchingArgs(args.lift(index), argSigs, isZsh.value)
+              .getOrElse(delegateToBash(args, index))
+          }
+          // This is the task I need to autocomplete, or the next incomplete flag
+          else if (index == parsedArgCount) {
+            val argSigs = flattenSigs(MillCliConfig.parser.main)
+            findMatchingArgs(args.lift(index), argSigs, isZsh.value)
+              .getOrElse(completeTasks(ev, index, args, isZsh.value))
 
-    val prefixes = outputs.collect{case s"$prefix:$suffix" => prefix}
+          } else ???
+      }
+
+    val prefixes = outputs.collect { case s"$prefix:$_" => prefix }
     val offset = prefixes.map(_.length).maxOption.getOrElse(0) + 2
 
-    val res = outputs.map{
+    val res = outputs.map {
       case s"$prefix:$suffix" => s"$prefix${" " * (offset - prefix.length)}$suffix"
       case s => s
     }
@@ -122,16 +122,19 @@ private[this] object TabCompleteModule extends ExternalModule {
     res.foreach(println)
   }
 
-
   def flattenSigs(ep: mainargs.MainData[_, _]) = ep.flattenedArgSigs.map(_._1)
 
-  def findMatchingArgs(stringOpt: Option[String],
-                       argSigs: Seq[mainargs.ArgSig],
-                       isZsh: Boolean): Option[Seq[String]] = {
+  def findMatchingArgs(
+      stringOpt: Option[String],
+      argSigs: Seq[mainargs.ArgSig],
+      isZsh: Boolean
+  ): Option[Seq[String]] = {
     def findMatchArgs0(prefix: String, nameField: ArgSig => Option[String]): Option[Seq[String]] = {
       val res = for (arg <- argSigs if !arg.positional) yield {
-        if (stringOpt.exists(_.startsWith(prefix)) &&
-          nameField(arg).zip(stringOpt).exists((n, s) => (prefix + n).startsWith(s))) {
+        if (
+          stringOpt.exists(_.startsWith(prefix)) &&
+          nameField(arg).zip(stringOpt).exists((n, s) => (prefix + n).startsWith(s))
+        ) {
 
           val typeStringPrefix = arg.reader match {
             case s: mainargs.TokensReader.ShortNamed[_] => s"<${s.shortName}> "
@@ -151,11 +154,10 @@ private[this] object TabCompleteModule extends ExternalModule {
 
       }
 
-      Option.when (res.flatten.nonEmpty) {
+      Option.when(res.flatten.nonEmpty) {
         res.flatten
       }
     }
-
 
     findMatchArgs0("--", _.longName(mainargs.Util.kebabCaseNameMapper))
       .orElse(findMatchArgs0("-", _.shortName.map(_.toString)))
@@ -217,7 +219,8 @@ private[this] object TabCompleteModule extends ExternalModule {
       val unescapedStr = unescapedOpt.getOrElse("")
       val filtered = res.flatMap { r =>
         val rendered = r.segments.render
-        Option.when(rendered.startsWith(unescapedStr))(rendered + (if (isZsh) ":" + getDocs(r) else ""))
+        Option.when(rendered.startsWith(unescapedStr))(rendered + (if (isZsh) ":" + getDocs(r)
+                                                                   else ""))
       }
       val moreFiltered = unescapedOpt match {
         case Some(u) if filtered.contains(u) =>

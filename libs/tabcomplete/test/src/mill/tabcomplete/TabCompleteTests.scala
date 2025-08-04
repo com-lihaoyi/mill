@@ -14,8 +14,10 @@ object TabCompleteTests extends TestSuite {
     def task1(argA: String = "", argB2: Int = 0) = Task.Command { 123 }
     object foo extends Module
     object bar extends Module {
-      def task2(@mainargs.arg(doc = "arg a 3 docs") argA3: String,
-                @mainargs.arg(doc = "arg b 4 docs") argB4: Int) = Task.Command { 456 }
+      def task2(
+          @mainargs.arg(doc = "arg a 3 docs") argA3: String,
+          @mainargs.arg(doc = "arg b 4 docs") argB4: Int
+      ) = Task.Command { 456 }
       def taskPositional(
           @mainargs.arg(positional = true) argA3: String,
           @mainargs.arg(positional = true) argB4: Int
@@ -304,15 +306,15 @@ object TabCompleteTests extends TestSuite {
       }
     }
     test("docs") {
-      test{
+      test {
         assertGoldenLiteral(
           evalComplete("2", "--is-zsh", "./mill", "bar.task2", "--"),
           Set("--arg-a-3  <str> arg a 3 docs", "--arg-b-4  <int> arg b 4 docs")
         )
       }
-      test{
+      test {
         assertGoldenLiteral(
-          evalComplete( "1", "--is-zsh", "./mill", "--h"),
+          evalComplete("1", "--is-zsh", "./mill", "--h"),
           Set(
             "--help           Print this help message and exit.",
             "--help-advanced  Print a internal or advanced command flags not intended for common usage"

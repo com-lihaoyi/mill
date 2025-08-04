@@ -35,7 +35,7 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
     )
   }
 
-  private[mill] def resolveRaw(
+  override private[mill] def resolveRaw(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
       allowPositionalCommandArgs: Boolean,
