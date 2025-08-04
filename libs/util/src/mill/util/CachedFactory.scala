@@ -17,6 +17,15 @@ package mill.util
  * @tparam V the cached value
  */
 abstract class CachedFactoryWithInitData[K, InitData, V] extends AutoCloseable {
+
+  /**
+   * Returns true if the cache entry associated with the given key is still valid, false otherwise.
+   *
+   * If false, the entry will be removed from the cache and [[setup]] will be invoked.
+   */
+  // noinspection ScalaWeakerAccess
+  def cacheEntryStillValid(key: K, initData: => InitData, value: V): Boolean = true
+
   def setup(key: K, initData: InitData): V
   def teardown(key: K, value: V): Unit
   def maxCacheSize: Int
@@ -29,9 +38,11 @@ abstract class CachedFactoryWithInitData[K, InitData, V] extends AutoCloseable {
     val valueOpt: Option[V] = synchronized {
       keyValues.iterator.zipWithIndex.collectFirst { case ((`key`, v), i) => (v, i) } match {
         case None => None
-        case Some((v, i)) =>
-          keyValues = keyValues.patch(i, Nil, 1)
-          Some(v)
+        case Some((v, index)) =>
+          // Remove the entry from the list, as it will be reinserted at the end of this function
+          keyValues = keyValues.patch(index, Nil, 1)
+          // Check if the cache entry is still valid
+          if (!cacheEntryStillValid(key, initData, v)) None else Some(v)
       }
     }
 

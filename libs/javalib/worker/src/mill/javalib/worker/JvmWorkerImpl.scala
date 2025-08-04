@@ -113,6 +113,12 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
   ] {
     override def maxCacheSize: Int = jobs
 
+    override def cacheEntryStillValid(
+        key: SubprocessCacheKey,
+        initData: => SubprocessCacheInitialize,
+        value: SubprocessCacheValue
+    ): Boolean = value.process.isAlive
+
     override def setup(
         key: SubprocessCacheKey,
         init: SubprocessCacheInitialize
@@ -122,11 +128,10 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       os.makeDir.all(daemonDir)
       os.write.over(workerDir / "java-home", key.javaHome.map(_.toString).getOrElse("<default>"))
       os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.options.mkString("\n"))
-      val locks = Locks.files(daemonDir.toString)
-      val mainClass = "mill.javalib.zinc.ZincWorkerMain"
 
+      val mainClass = "mill.javalib.zinc.ZincWorkerMain"
       val result = ServerLauncher.ensureServerIsRunning(
-        locks,
+        Locks.files(daemonDir.toString),
         daemonDir.toNIO,
         () =>
           Jvm.spawnProcess(
