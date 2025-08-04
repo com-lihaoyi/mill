@@ -114,7 +114,7 @@ private[this] object TabCompleteModule extends ExternalModule {
     val prefixes = outputs.collect{case s"$prefix:$suffix" => prefix}
     val offset = prefixes.map(_.length).maxOption.getOrElse(0) + 2
 
-    val allowedSuffixLength = 120 - offset
+    val allowedSuffixLength = 100 - offset
     val res = outputs.map{
       case s"$prefix:$suffix" =>
         val truncatedSuffix =
