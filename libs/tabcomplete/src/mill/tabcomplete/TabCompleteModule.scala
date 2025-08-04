@@ -55,13 +55,13 @@ private[this] object TabCompleteModule extends ExternalModule {
       case mainargs.Result.Success(v) =>
         val parsedArgCount = args.value.length - v.remaining.length
 
-        // The cursor is after the task being run, we don't know anything about those
-        // flags so delegate to bash completion
+        // The cursor is after the task being run, we try to resolve the task to
+        // see if it is a command with flags we can autocpmplete
         if (index > parsedArgCount) {
           val resolved = ev.resolveTasks(Seq(args.value(parsedArgCount)), SelectMode.Multi)
 
-          resolved match {
-            case _: Result.Failure => delegateToBash(args, index)
+          val entrypointOpt = resolved match {
+            case _: Result.Failure => None
             case Result.Success(ts) =>
               val entryPoints: Seq[mainargs.MainData[_, _]] = ts.flatMap { t =>
                 ev
@@ -70,53 +70,45 @@ private[this] object TabCompleteModule extends ExternalModule {
                   .discover
                   .resolveEntrypoint(t.ctx.enclosingCls, t.ctx.segments.last.value)
               }
-              for (ep <- entryPoints.headOption) {
-                val taskArgs = v.remaining.drop(1)
-                val taskArgsIndex = index - parsedArgCount - 1
 
-                def handleRemaining(remaining: Seq[String]) = {
-                  val commandParsedArgCount = v.remaining.length - remaining.length - 1
-                  if (taskArgsIndex == commandParsedArgCount) {
-                    if (
-                      !findMatchingArgs(
-                        remaining.lift(taskArgsIndex),
-                        ep.flattenedArgSigs.map(_._1)
-                      )
-                    ) {
-                      delegateToBash(args, index)
-                    }
-                  } else delegateToBash(args, index)
-                }
-
-                group(taskArgs, ep.flattenedArgSigs, false) match {
-                  case mainargs.Result.Success(grouping) => handleRemaining(grouping.remaining)
-                  case mainargs.Result.Failure.MismatchedArguments(
-                        missing,
-                        unknown,
-                        duplicate,
-                        incomplete
-                      ) =>
-                    handleRemaining(unknown)
-                }
-              }
-
+              // If we find multiple entrypoints for the tasks selected, pick one arbitrarily
+              entryPoints.headOption
           }
 
+          for(ep <- entrypointOpt){
+            val taskArgs = v.remaining.drop(1)
+            val taskArgsIndex = index - parsedArgCount - 1
+
+            val remaining = group(taskArgs, ep.flattenedArgSigs, false) match {
+              case mainargs.Result.Success(grouping) => grouping.remaining
+              case r: mainargs.Result.Failure.MismatchedArguments => r.unknown
+            }
+
+            val commandParsedArgCount = v.remaining.length - remaining.length - 1
+            if (taskArgsIndex == commandParsedArgCount) {
+              if (!findMatchingArgs(remaining.lift(taskArgsIndex), flattenSigs(ep))) {
+                delegateToBash(args, index)
+              }
+            } else delegateToBash(args, index)
+          }
         }
+
         // The cursor is before the task being run. It can't be an incomplete
         // `-f` or `--flag` because parsing succeeded, so delegate to file completion
         else if (index < parsedArgCount) {
-          val argSigs = MillCliConfig.parser.main.flattenedArgSigs.map(_._1)
+          val argSigs = flattenSigs(MillCliConfig.parser.main)
           if (!findMatchingArgs(args.value.lift(index), argSigs)) delegateToBash(args, index)
         }
         // This is the task I need to autocomplete, or the next incomplete flag
         else if (index == parsedArgCount) {
-          val argSigs = MillCliConfig.parser.main.flattenedArgSigs.map(_._1)
+          val argSigs = flattenSigs(MillCliConfig.parser.main)
           if (!findMatchingArgs(args.value.lift(index), argSigs))
             completeTasks(ev, index, args.value)
         } else ???
     }
   }
+
+  def flattenSigs(ep: mainargs.MainData[_, _]) = ep.flattenedArgSigs.map(_._1)
 
   def findMatchingArgs(stringOpt: Option[String], argSigs: Seq[mainargs.ArgSig]): Boolean = {
     def findMatchArgs0(prefix: String, nameField: ArgSig => Option[String]): Boolean = {
