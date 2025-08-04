@@ -5,6 +5,7 @@ import mill.api.{Result, SelectMode}
 import mill.api.{Discover, Evaluator, ExternalModule}
 import mill.internal.MillCliConfig
 import mainargs.{ArgSig, TokensReader, arg}
+import mill.api.internal.Resolved
 
 /**
  * Handles Bash and Zsh tab completions, which provide an array of tokens in the current
@@ -145,6 +146,22 @@ private[this] object TabCompleteModule extends ExternalModule {
     res.out.lines().foreach(println)
   }
 
+  def getDocs(resolved: Resolved) = {
+
+    val allDocs: Iterable[String] = resolved match {
+      case _: Resolved.Module =>
+        mill.util.Inspect.scaladocForModule(resolved.cls)
+      case _ =>
+        mill.util.Inspect.scaladocForTask(resolved.segments, resolved.cls)
+    }
+
+    allDocs.mkString("\n") match {
+      case "" => ""
+      case txt => txt.linesIterator.next
+    }
+  }
+
+
   def completeTasks(ev: Evaluator, index: Int, args: Seq[String]) = {
 
     val (query, unescapedOpt) = args.lift(index) match {
@@ -168,19 +185,26 @@ private[this] object TabCompleteModule extends ExternalModule {
         (query, Some(unescaped))
     }
 
-    ev.resolveSegments(Seq(query), SelectMode.Multi).map { res =>
+    ev.resolveRaw(Seq(query), SelectMode.Multi).map { res =>
       val unescapedStr = unescapedOpt.getOrElse("")
-      val filtered = res.map(_.render).filter(_.startsWith(unescapedStr))
+      val filtered = res.flatMap{r =>
+        val rendered = r.segments.render
+        Option.when(rendered.startsWith(unescapedStr))(rendered + ":" + getDocs(r))
+      }
       val moreFiltered = unescapedOpt match {
         case Some(u) if filtered.contains(u) =>
-          ev.resolveSegments(Seq(u + "._"), SelectMode.Multi) match {
-            case Result.Success(v) => v.map(_.render)
+          ev.resolveRaw(Seq(u + "._"), SelectMode.Multi) match {
+            case Result.Success(v) =>
+              v.map { res =>
+                res.segments.render + ":" + getDocs(res)
+              }
             case Result.Failure(error) => Nil
           }
 
         case _ => Nil
       }
 
+      (filtered ++ moreFiltered).foreach(mill.constants.DebugLog.println(_))
       (filtered ++ moreFiltered).foreach(println)
     }
   }

@@ -7,10 +7,10 @@ import pprint.{Renderer, Tree, Truncated}
 import mill.moduledefs.Scaladoc
 import scala.reflect.NameTransformer.decode
 
-private object Inspect {
+private[mill] object Inspect {
   private lazy val inspectItemIndent = "    "
 
-  private def cleanupScaladoc(v: String): Array[String] = {
+  def cleanupScaladoc(v: String): Array[String] = {
     v.linesIterator.map(
       _.dropWhile(_.isWhitespace)
         .stripPrefix("/**")
@@ -29,19 +29,54 @@ private object Inspect {
       .reverse
   }
 
+
+  /** Find a parent classes of the given class queue. */
+  @tailrec
+  def resolveParents(queue: List[Class[?]], seen: Seq[Class[?]] = Seq()): Seq[Class[?]] = {
+    queue match {
+      case Nil => seen
+      case cand :: rest if seen.contains(cand) => resolveParents(rest, seen)
+      case cand :: rest =>
+        val sups = Option(cand.getSuperclass).toList ++ cand.getInterfaces.toList
+        resolveParents(sups ::: rest, seen ++ Seq(cand))
+    }
+  }
+
+  def scaladocForTask(segments: Segments, enclosingCls: Class[?]) = {
+    val annots = for {
+      c <- resolveParents(List(enclosingCls))
+      m <- c.getMethods
+      if m.getName == segments.last.pathSegments.head
+      a = m.getAnnotation(classOf[mill.moduledefs.Scaladoc])
+      if a != null
+    } yield a
+    
+    for (a <- annots.distinct)
+      yield cleanupScaladoc(a.value).map("\n" + inspectItemIndent + _).mkString
+  }
+
+  def scaladocForModule(cls: Class[?]) = {
+
+    // For `RootModule`s named `package_`, the scaladoc annotation ends
+    // up on the companion `class` rather than on the `object`.
+    val companionClsName = cls.getName match {
+      case s"$prefix.package_$$" => Some(s"$prefix.package_")
+      case _ => None
+    }
+
+    val companionClsOpt = companionClsName.map(cls.getClassLoader.loadClass(_))
+
+    val annotation = cls.getAnnotation(classOf[Scaladoc])
+    val companionAnnotation =
+      companionClsOpt.map(_.getAnnotation(classOf[Scaladoc])).flatMap(Option(_))
+    val scaladocOpt = (Option(annotation) ++ companionAnnotation).map(annotation =>
+      cleanupScaladoc(annotation.value).map("\n" + inspectItemIndent + _).mkString
+    )
+
+    scaladocOpt
+  }
   def inspect(evaluator: Evaluator, tasks: Seq[String]) = {
 
-    /** Find a parent classes of the given class queue. */
-    @tailrec
-    def resolveParents(queue: List[Class[?]], seen: Seq[Class[?]] = Seq()): Seq[Class[?]] = {
-      queue match {
-        case Nil => seen
-        case cand :: rest if seen.contains(cand) => resolveParents(rest, seen)
-        case cand :: rest =>
-          val sups = Option(cand.getSuperclass).toList ++ cand.getInterfaces.toList
-          resolveParents(sups ::: rest, seen ++ Seq(cand))
-      }
-    }
 
     def renderFileName(ctx: mill.api.ModuleCtx) = {
       // handle both Windows or Unix separators
@@ -71,17 +106,7 @@ private object Inspect {
         }
       }
 
-      val annots = for {
-        c <- resolveParents(List(t.ctx.enclosingCls))
-        m <- c.getMethods
-        if m.getName == t.ctx.segments.last.pathSegments.head
-        a = m.getAnnotation(classOf[mill.moduledefs.Scaladoc])
-        if a != null
-      } yield a
-
-      val allDocs =
-        for (a <- annots.distinct)
-          yield cleanupScaladoc(a.value).map("\n" + inspectItemIndent + _).mkString
+      val allDocs = scaladocForTask(t.ctx.segments, t.ctx.enclosingCls)
 
       pprint.Tree.Lazy { ctx =>
         val mainMethodSig =
@@ -140,22 +165,7 @@ private object Inspect {
     def pprintModule(module: mill.Module, evaluator: Evaluator): Tree.Lazy = {
       val cls = module.getClass
 
-      // For `RootModule`s named `package_`, the scaladoc annotation ends
-      // up on the companion `class` rather than on the `object`.
-      val companionClsName = cls.getName match {
-        case s"$prefix.package_$$" => Some(s"$prefix.package_")
-        case _ => None
-      }
-
-      val companionClsOpt = companionClsName.map(cls.getClassLoader.loadClass(_))
-
-      val annotation = cls.getAnnotation(classOf[Scaladoc])
-      val companionAnnotation =
-        companionClsOpt.map(_.getAnnotation(classOf[Scaladoc])).flatMap(Option(_))
-      val scaladocOpt = (Option(annotation) ++ companionAnnotation).map(annotation =>
-        cleanupScaladoc(annotation.value).map("\n" + inspectItemIndent + _).mkString
-      )
-
+      val scaladocOpt = scaladocForModule(cls)
       def parentFilter(parent: Class[?]) =
         classOf[Module].isAssignableFrom(parent) && classOf[Module] != parent
 

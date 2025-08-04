@@ -35,6 +35,20 @@ final class EvaluatorProxy(var delegate0: () => Evaluator) extends Evaluator {
     )
   }
 
+  private[mill] def resolveRaw(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean,
+      resolveToModuleTasks: Boolean
+  ): mill.api.Result[List[Resolved]] = {
+    delegate.resolveRaw(
+      scriptArgs,
+      selectMode,
+      allowPositionalCommandArgs,
+      resolveToModuleTasks
+    )
+  }
+
   def resolveTasks(
       scriptArgs: Seq[String],
       selectMode: SelectMode,
