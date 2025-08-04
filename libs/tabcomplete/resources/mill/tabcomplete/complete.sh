@@ -11,7 +11,9 @@ _mill_zsh() {
   #
   # zsh $CURRENT is 1-indexed while bash $COMP_CWORD is 0-indexed, so
   # subtract 1 from zsh's variable so Mill gets a consistent index
-  compadd -S '' -- $($words[1] --tab-complete "$((CURRENT - 1))" $words)
+  local -a descriptions
+  descriptions=("${(f)$($words[1] --tab-complete "$((CURRENT - 1))" $words)}")
+  _describe 'mill options' descriptions
 }
 
 if [ -n "${ZSH_VERSION:-}" ]; then
