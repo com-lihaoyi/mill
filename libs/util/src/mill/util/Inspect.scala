@@ -29,7 +29,6 @@ private[mill] object Inspect {
       .reverse
   }
 
-
   /** Find a parent classes of the given class queue. */
   @tailrec
   def resolveParents(queue: List[Class[?]], seen: Seq[Class[?]] = Seq()): Seq[Class[?]] = {
@@ -50,7 +49,7 @@ private[mill] object Inspect {
       a = m.getAnnotation(classOf[mill.moduledefs.Scaladoc])
       if a != null
     } yield a
-    
+
     for (a <- annots.distinct)
       yield cleanupScaladoc(a.value).map("\n" + inspectItemIndent + _).mkString
   }
@@ -76,7 +75,6 @@ private[mill] object Inspect {
     scaladocOpt
   }
   def inspect(evaluator: Evaluator, tasks: Seq[String]) = {
-
 
     def renderFileName(ctx: mill.api.ModuleCtx) = {
       // handle both Windows or Unix separators

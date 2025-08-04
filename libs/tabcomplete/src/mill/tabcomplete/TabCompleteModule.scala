@@ -77,7 +77,12 @@ private[this] object TabCompleteModule extends ExternalModule {
                 def handleRemaining(remaining: Seq[String]) = {
                   val commandParsedArgCount = v.remaining.length - remaining.length - 1
                   if (taskArgsIndex == commandParsedArgCount) {
-                    if (!findMatchingArgs(remaining.lift(taskArgsIndex), ep.flattenedArgSigs.map(_._1))) {
+                    if (
+                      !findMatchingArgs(
+                        remaining.lift(taskArgsIndex),
+                        ep.flattenedArgSigs.map(_._1)
+                      )
+                    ) {
                       delegateToBash(args, index)
                     }
                   } else delegateToBash(args, index)
@@ -107,7 +112,8 @@ private[this] object TabCompleteModule extends ExternalModule {
         // This is the task I need to autocomplete, or the next incomplete flag
         else if (index == parsedArgCount) {
           val argSigs = MillCliConfig.parser.main.flattenedArgSigs.map(_._1)
-          if (!findMatchingArgs(args.value.lift(index), argSigs)) completeTasks(ev, index, args.value)
+          if (!findMatchingArgs(args.value.lift(index), argSigs))
+            completeTasks(ev, index, args.value)
         } else ???
     }
   }
@@ -116,12 +122,13 @@ private[this] object TabCompleteModule extends ExternalModule {
     def findMatchArgs0(prefix: String, nameField: ArgSig => Option[String]): Boolean = {
       if (stringOpt.exists(_.startsWith(prefix))) {
         for (arg <- argSigs if !arg.positional) {
-          val typeStringPrefix = arg.reader match{
+          val typeStringPrefix = arg.reader match {
             case s: mainargs.TokensReader.ShortNamed[_] => s"<${s.shortName}> "
             case _ => ""
           }
           for (name <- nameField(arg) if !arg.doc.contains("Unsupported")) {
-            val str = s"$prefix$name:$typeStringPrefix${arg.doc.getOrElse("").trim.linesIterator.next()}"
+            val str =
+              s"$prefix$name:$typeStringPrefix${arg.doc.getOrElse("").trim.linesIterator.next()}"
             mill.constants.DebugLog.println(str)
             println(str)
           }
@@ -161,7 +168,6 @@ private[this] object TabCompleteModule extends ExternalModule {
     }
   }
 
-
   def completeTasks(ev: Evaluator, index: Int, args: Seq[String]) = {
 
     val (query, unescapedOpt) = args.lift(index) match {
@@ -187,7 +193,7 @@ private[this] object TabCompleteModule extends ExternalModule {
 
     ev.resolveRaw(Seq(query), SelectMode.Multi).map { res =>
       val unescapedStr = unescapedOpt.getOrElse("")
-      val filtered = res.flatMap{r =>
+      val filtered = res.flatMap { r =>
         val rendered = r.segments.render
         Option.when(rendered.startsWith(unescapedStr))(rendered + ":" + getDocs(r))
       }

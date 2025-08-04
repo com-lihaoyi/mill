@@ -23,7 +23,6 @@ import java.lang.reflect.Method
  */
 private object ResolveCore {
 
-
   sealed trait Result
 
   case class Success(value: Seq[Resolved]) extends Result {
