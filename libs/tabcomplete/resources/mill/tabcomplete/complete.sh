@@ -11,9 +11,15 @@ _mill_zsh() {
   #
   # zsh $CURRENT is 1-indexed while bash $COMP_CWORD is 0-indexed, so
   # subtract 1 from zsh's variable so Mill gets a consistent index
-  local -a descriptions
-  descriptions=("${(f)$($words[1] --tab-complete "$((CURRENT - 1))" --is-zsh $words)}")
-  _describe 'mill options' descriptions
+  local -a descs opts expl
+  descs=("${(f)$($words[1] --tab-complete "$((CURRENT - 1))" --is-zsh $words)}")
+  for d in $descs; do
+    opts+=("${d%% *}")      # before the space
+    expl+=("${d}")       # after the space
+  done
+  echo opts > ~/hello.txt
+  # -S '' = no suffix; -d expl = descriptions array
+  compadd -S '' -d expl -- $opts
 }
 
 if [ -n "${ZSH_VERSION:-}" ]; then

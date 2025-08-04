@@ -40,7 +40,7 @@ private[this] object TabCompleteModule extends ExternalModule {
       )
     }
 
-    group(args.drop(1), MillCliConfig.parser.main.flattenedArgSigs, true) match {
+    val outputs: Seq[String] = group(args.drop(1), MillCliConfig.parser.main.flattenedArgSigs, true) match {
       // Initial parse fails. Only failure mode is `incomplete`:
       //
       // - `missing` should be empty since all Mill flags have defaults
@@ -77,7 +77,7 @@ private[this] object TabCompleteModule extends ExternalModule {
               entryPoints.headOption
           }
 
-          for(ep <- entrypointOpt){
+          entrypointOpt.map{ep =>
             val taskArgs = v.remaining.drop(1)
             val taskArgsIndex = index - parsedArgCount - 1
 
@@ -88,35 +88,53 @@ private[this] object TabCompleteModule extends ExternalModule {
 
             val commandParsedArgCount = v.remaining.length - remaining.length - 1
             if (taskArgsIndex == commandParsedArgCount) {
-              if (!findMatchingArgs(remaining.lift(taskArgsIndex), flattenSigs(ep), isZsh.value)) {
-                delegateToBash(args, index)
-              }
+              findMatchingArgs(remaining.lift(taskArgsIndex), flattenSigs(ep), isZsh.value)
+                .getOrElse(delegateToBash(args, index))
             } else delegateToBash(args, index)
-          }
+          }.getOrElse(Nil)
         }
 
         // The cursor is before the task being run. It can't be an incomplete
         // `-f` or `--flag` because parsing succeeded, so delegate to file completion
         else if (index < parsedArgCount) {
           val argSigs = flattenSigs(MillCliConfig.parser.main)
-          if (!findMatchingArgs(args.lift(index), argSigs, isZsh.value)) delegateToBash(args, index)
+          findMatchingArgs(args.lift(index), argSigs, isZsh.value)
+            .getOrElse(delegateToBash(args, index))
         }
         // This is the task I need to autocomplete, or the next incomplete flag
         else if (index == parsedArgCount) {
           val argSigs = flattenSigs(MillCliConfig.parser.main)
-          if (!findMatchingArgs(args.lift(index), argSigs, isZsh.value))
-            completeTasks(ev, index, args, isZsh.value)
+          findMatchingArgs(args.lift(index), argSigs, isZsh.value)
+            .getOrElse(completeTasks(ev, index, args, isZsh.value))
+
         } else ???
     }
+
+
+    val prefixes = outputs.collect{case s"$prefix:$suffix" => prefix}
+    val offset = prefixes.map(_.length).maxOption.getOrElse(0) + 2
+
+    val allowedSuffixLength = 120 - offset
+    val res = outputs.map{
+      case s"$prefix:$suffix" =>
+        val truncatedSuffix =
+          if (suffix.length <= allowedSuffixLength) suffix
+          else suffix.take(allowedSuffixLength - 3) + "..."
+        s"$prefix${" " * (offset - prefix.length)}$truncatedSuffix"
+      case s => s
+    }
+
+    res.foreach(println)
   }
+
 
   def flattenSigs(ep: mainargs.MainData[_, _]) = ep.flattenedArgSigs.map(_._1)
 
   def findMatchingArgs(stringOpt: Option[String],
                        argSigs: Seq[mainargs.ArgSig],
-                       isZsh: Boolean): Boolean = {
-    def findMatchArgs0(prefix: String, nameField: ArgSig => Option[String]): Boolean = {
-      val bools = for (arg <- argSigs if !arg.positional) yield {
+                       isZsh: Boolean): Option[Seq[String]] = {
+    def findMatchArgs0(prefix: String, nameField: ArgSig => Option[String]): Option[Seq[String]] = {
+      val res = for (arg <- argSigs if !arg.positional) yield {
         if (stringOpt.exists(_.startsWith(prefix)) &&
           nameField(arg).zip(stringOpt).exists((n, s) => (prefix + n).startsWith(s))) {
 
@@ -125,29 +143,27 @@ private[this] object TabCompleteModule extends ExternalModule {
             case _ => ""
           }
 
-          for (name <- nameField(arg) if !arg.doc.contains("Unsupported")) {
+          for (name <- nameField(arg) if !arg.doc.contains("Unsupported")) yield {
             val suffix =
               if (!isZsh) ""
               else {
                 val docLine = firstLine(arg.doc.getOrElse(""))
                 s":$typeStringPrefix$docLine"
               }
-            val str = s"$prefix$name$suffix"
-            mill.constants.DebugLog.println(str)
-            println(str)
+            s"$prefix$name$suffix"
           }
-          true
-        } else false
+        } else Nil
 
       }
 
-      mill.constants.DebugLog.println("bools " + bools)
-      bools.exists(identity)
+      Option.when (res.flatten.nonEmpty) {
+        res.flatten
+      }
     }
 
 
-    findMatchArgs0("--", _.longName(mainargs.Util.kebabCaseNameMapper)) ||
-    findMatchArgs0("-", _.shortName.map(_.toString))
+    findMatchArgs0("--", _.longName(mainargs.Util.kebabCaseNameMapper))
+      .orElse(findMatchArgs0("-", _.shortName.map(_.toString)))
   }
 
   def delegateToBash(args: Seq[String], index: Int) = {
@@ -160,12 +176,12 @@ private[this] object TabCompleteModule extends ExternalModule {
       check = false
     )
 
-    res.out.lines().foreach(println)
+    res.out.lines()
   }
 
   def firstLine(s: String) = s match {
     case "" => ""
-    case txt => txt.linesIterator.next
+    case txt => txt.trim.linesIterator.next
   }
 
   def getDocs(resolved: Resolved) = {
@@ -221,9 +237,8 @@ private[this] object TabCompleteModule extends ExternalModule {
         case _ => Nil
       }
 
-      (filtered ++ moreFiltered).foreach(mill.constants.DebugLog.println(_))
-      (filtered ++ moreFiltered).foreach(println)
-    }
+      (filtered ++ moreFiltered)
+    }.toOption.getOrElse(Nil)
   }
 
   /**
