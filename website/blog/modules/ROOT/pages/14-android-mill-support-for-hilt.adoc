@@ -227,12 +227,13 @@ curl https://raw.githubusercontent.com/com-lihaoyi/mill/6351d7f3a29dd272c9393f69
 ----
 
 Start the emulator and run the app
-[source,bash]
+
+[source,console]
 ----
-./mill show app.createAndroidVirtualDevice
-./mill show app.startAndroidEmulator
-./mill show app.androidInstall
-./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
+> ./mill show app.createAndroidVirtualDevice
+> ./mill show app.startAndroidEmulator
+> ./mill show app.androidInstall
+> ./mill show app.androidRun --activity com.example.android.architecture.blueprints.todoapp.TodoActivity
 ----
 
 Run the instrumented tests and watch the app being tested inside the emulator:
