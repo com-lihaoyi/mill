@@ -18,7 +18,7 @@ object GenEclipseSimpleJavaTests extends UtestIntegrationTestSuite {
 
       checkOrgEclipseCoreResourcesPrefs(workspacePath)
       checkOrgEclipseJdtCorePrefs(workspacePath)
-      checkProjectFile(workspacePath, Seq.empty[String])
+      checkProjectFile(workspacePath, true, Seq.empty[String])
       checkClasspathFile(
         workspacePath,
         "src",

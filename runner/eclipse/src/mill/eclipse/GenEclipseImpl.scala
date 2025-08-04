@@ -269,14 +269,45 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
 
     // Create the actual Eclipse JDT project object that will then be used to write the Eclipse
     // project specific files on disk.
-    log("Creating all the Eclipse JDT Projects ...")
+    log("Creating all the Eclipse Projects ...")
 
     val eclipseProjects: Map[Path, EclipseJdtProject] = getEclipseProjects(resolvedJavaModules)
+    val pp = new scala.xml.PrettyPrinter(999, 2)
+    
+    // When the main directory of the Mill Build does not contain any Eclipse JDT Project, create a
+    // synthetic one in this directory. Since this is not a Java (Test) Module, we don't create a
+    // Eclipse JDT Project but a normal Eclipse Project!
+    val rootModuleDir = evaluators.head.rootModule.moduleDirJava
+    if (!eclipseProjects.keySet.contains(rootModuleDir)) {
+      val projectName = "mill-build-parent"
+      
+      log("Writing parent Eclipse project for the Mill Build file on disk:")
+      log(" Name: " + projectName)
+      log(" Path: " + rootModuleDir.toString)
+
+      val projectFile = os.Path(rootModuleDir) / ".project"
+      val orgEclipseCoreResourcesPrefsFile =
+        os.Path(rootModuleDir) / ".settings" / "org.eclipse.core.resources.prefs"
+
+      os.remove.all(projectFile)
+      os.remove.all(orgEclipseCoreResourcesPrefsFile)
+      
+      val projectFileContent =
+        EclipseJdtUtils.createNormalProjectFileContent(projectName)
+      val orgEclipseCoreResourcesPrefsFileContent =
+        EclipseJdtUtils.getOrgEclipseCoreResourcesPrefsContent
+      
+      os.write.over(projectFile, pp.format(projectFileContent), createFolders = true)
+      os.write.over(
+        orgEclipseCoreResourcesPrefsFile,
+        orgEclipseCoreResourcesPrefsFileContent,
+        createFolders = true
+      )
+    }
 
     // Write all the Java project files on disk, based on the "dependentProjectPaths" get the name
     // of the encapsulating project - the one that was a Mill Module "containing" other (test) Mill
     // Modules.
-    val pp = new scala.xml.PrettyPrinter(999, 2)
 
     for ((projectDir, eclipseProject) <- eclipseProjects) {
       log("Writing Eclipse JDT Project on disk:")
@@ -299,7 +330,7 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
       // ii) Get the content to make sure that we only write everything at all on disk and not only
       // parts of it in case of a failure.
       val projectFileContent =
-        EclipseJdtUtils.createProjectFileContent(
+        EclipseJdtUtils.createJdtProjectFileContent(
           eclipseProject.projectName,
           eclipseProject.linkedResources
         )

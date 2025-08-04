@@ -45,15 +45,26 @@ object GenEclipseUtils {
    *  Checks for the standard ".project" file and its content generated correctly. Optionally check
    *  for linked resources, otherwise check none exists.
    */
-  def checkProjectFile(projectPath: os.Path, linkedResourceNames: Seq[String]): Unit = {
+  def checkProjectFile(
+      projectPath: os.Path,
+      isJdtProject: Boolean,
+      linkedResourceNames: Seq[String]
+  ): Unit = {
     val generatedFile = projectPath / ".project"
     assert(os.exists(generatedFile))
-
-    val workspaceFolderName = projectPath.toNIO.getFileName.toString
+    
     val fileContent = os.read.lines(generatedFile).mkString("\n")
-    assert(fileContent.contains(s"<name>$workspaceFolderName</name>"))
-    assert(fileContent.contains("<name>org.eclipse.jdt.core.javabuilder</name>"))
-    assert(fileContent.contains("<nature>org.eclipse.jdt.core.javanature</nature>"))
+    
+    if (isJdtProject) {
+      val workspaceFolderName = projectPath.toNIO.getFileName.toString
+      assert(fileContent.contains(s"<name>$workspaceFolderName</name>"))
+      assert(fileContent.contains("<name>org.eclipse.jdt.core.javabuilder</name>"))
+      assert(fileContent.contains("<nature>org.eclipse.jdt.core.javanature</nature>"))
+    } else {
+      assert(fileContent.contains("<name>mill-build-parent</name>"))
+      assert(!fileContent.contains("<name>org.eclipse.jdt.core.javabuilder</name>"))
+      assert(!fileContent.contains("<nature>org.eclipse.jdt.core.javanature</nature>"))
+    }
 
     if (linkedResourceNames.nonEmpty) {
       assert(fileContent.contains("<link>"))

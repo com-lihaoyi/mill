@@ -18,12 +18,16 @@ object GenEclipseMultiGeneratedJavaTests extends UtestIntegrationTestSuite {
       assert(ret.exitCode == 0)
       assert(ret.out.contains("Name: base"))
       assert(ret.out.contains("Name: runner"))
+      
+      // Check the Mill Build parent non-JDT project
+      checkOrgEclipseCoreResourcesPrefs(workspacePath)
+      checkProjectFile(workspacePath, false, Seq.empty[String])
 
       // Check the base project only containing the generated sources
       val baseProjectPath = workspacePath / "base"
       checkOrgEclipseCoreResourcesPrefs(baseProjectPath)
       checkOrgEclipseJdtCorePrefs(baseProjectPath)
-      checkProjectFile(baseProjectPath, Seq("generatedSources.dest"))
+      checkProjectFile(baseProjectPath, true, Seq("generatedSources.dest"))
       checkClasspathFile(
         baseProjectPath,
         null,
@@ -37,7 +41,7 @@ object GenEclipseMultiGeneratedJavaTests extends UtestIntegrationTestSuite {
       val runnerProjectPath = workspacePath / "runner"
       checkOrgEclipseCoreResourcesPrefs(runnerProjectPath)
       checkOrgEclipseJdtCorePrefs(runnerProjectPath)
-      checkProjectFile(runnerProjectPath, Seq.empty[String])
+      checkProjectFile(runnerProjectPath, true, Seq.empty[String])
       checkClasspathFile(
         runnerProjectPath,
         "src",

@@ -5,27 +5,66 @@ import scala.xml.{Elem, MetaData, NodeSeq, Null, UnprefixedAttribute}
 object EclipseJdtUtils {
 
   /**
-   *  This creates the XML content for the ".project" file.
+   *  Create the ".project" file content for normal, non-JDT projects
    *
-   *  @see <a href="https://help.eclipse.org/latest/index.jsp?topic=%2Forg.eclipse.platform.doc.isv%2Freference%2Fmisc%2Fproject_description_file.html">Eclipse Reference</a>
    *  @param projectName name of the Eclipse project
    *  @return the XML content of the file
    */
-  def createProjectFileContent(projectName: String, linkedResources: Seq[LinkedResource]): Elem = {
+  def createNormalProjectFileContent(projectName: String): Elem =
+    createProjectFileContent(projectName, false, Seq.empty[LinkedResource])
+
+  /**
+   *  Create the ".project" file content for JDT projects
+   *
+   *  @param projectName name of the Eclipse project
+   *  @param linkedResources used to create the links with the correct name and path
+   *  @return the XML content of the file
+   */
+  def createJdtProjectFileContent(
+      projectName: String,
+      linkedResources: Seq[LinkedResource]
+  ): Elem = createProjectFileContent(projectName, true, linkedResources)
+
+  /**
+   * This creates the XML content for the ".project" file.
+   *
+   * @see <a href="https://help.eclipse.org/latest/index.jsp?topic=%2Forg.eclipse.platform.doc.isv%2Freference%2Fmisc%2Fproject_description_file.html">Eclipse Reference</a>
+   * @param projectName name of the Eclipse project
+   * @param isJdtProject used for setting the build command / nature of JDT
+   * @param linkedResources used to create the links with the correct name and path
+   * @return the XML content of the file
+   */
+  def createProjectFileContent(
+      projectName: String,
+      isJdtProject: Boolean,
+      linkedResources: Seq[LinkedResource]
+  ): Elem = {
     <projectDescription>
       <name>{projectName}</name>
       <comment></comment>
       <projects>
       </projects>
       <buildSpec>
-        <buildCommand>
-          <name>org.eclipse.jdt.core.javabuilder</name>
-          <arguments>
-          </arguments>
-        </buildCommand>
+        {
+        if (isJdtProject) {
+          <buildCommand>
+            <name>org.eclipse.jdt.core.javabuilder</name>
+            <arguments>
+            </arguments>
+          </buildCommand>
+        } else {
+          NodeSeq.Empty
+        }
+        }
       </buildSpec>
       <natures>
-        <nature>org.eclipse.jdt.core.javanature</nature>
+        {
+        if (isJdtProject) {
+          <nature>org.eclipse.jdt.core.javanature</nature>
+        } else {
+          NodeSeq.Empty
+        }
+        }
       </natures>
       <linkedResources>
         {for (linkedResource <- linkedResources) yield getLink(linkedResource)}

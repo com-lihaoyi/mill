@@ -17,11 +17,15 @@ object GenEclipseMavenJavaTests extends UtestIntegrationTestSuite {
       assert(ret.exitCode == 0)
       assert(ret.out.contains("Name: project"))
 
-      val generatedProjectPath = workspacePath / "project"
+      // Check the Mill Build parent non-JDT project
+      checkOrgEclipseCoreResourcesPrefs(workspacePath)
+      checkProjectFile(workspacePath, false, Seq.empty[String])
 
+      // Check the Maven project generated
+      val generatedProjectPath = workspacePath / "project"
       checkOrgEclipseCoreResourcesPrefs(generatedProjectPath)
       checkOrgEclipseJdtCorePrefs(generatedProjectPath)
-      checkProjectFile(generatedProjectPath, Seq.empty[String])
+      checkProjectFile(generatedProjectPath, true, Seq.empty[String])
       checkClasspathFile(
         generatedProjectPath,
         "src/main/java",
