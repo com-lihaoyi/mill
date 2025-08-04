@@ -18,7 +18,7 @@ object GenEclipseMultiGeneratedJavaTests extends UtestIntegrationTestSuite {
       assert(ret.exitCode == 0)
       assert(ret.out.contains("Name: base"))
       assert(ret.out.contains("Name: runner"))
-      
+
       // Check the Mill Build parent non-JDT project
       checkOrgEclipseCoreResourcesPrefs(workspacePath)
       checkProjectFile(workspacePath, false, Seq.empty[String])

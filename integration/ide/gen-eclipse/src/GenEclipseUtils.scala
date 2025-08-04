@@ -52,9 +52,9 @@ object GenEclipseUtils {
   ): Unit = {
     val generatedFile = projectPath / ".project"
     assert(os.exists(generatedFile))
-    
+
     val fileContent = os.read.lines(generatedFile).mkString("\n")
-    
+
     if (isJdtProject) {
       val workspaceFolderName = projectPath.toNIO.getFileName.toString
       assert(fileContent.contains(s"<name>$workspaceFolderName</name>"))

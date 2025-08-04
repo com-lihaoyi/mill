@@ -46,25 +46,25 @@ object EclipseJdtUtils {
       </projects>
       <buildSpec>
         {
-        if (isJdtProject) {
-          <buildCommand>
+      if (isJdtProject) {
+        <buildCommand>
             <name>org.eclipse.jdt.core.javabuilder</name>
             <arguments>
             </arguments>
           </buildCommand>
-        } else {
-          NodeSeq.Empty
-        }
-        }
+      } else {
+        NodeSeq.Empty
+      }
+    }
       </buildSpec>
       <natures>
         {
-        if (isJdtProject) {
-          <nature>org.eclipse.jdt.core.javanature</nature>
-        } else {
-          NodeSeq.Empty
-        }
-        }
+      if (isJdtProject) {
+        <nature>org.eclipse.jdt.core.javanature</nature>
+      } else {
+        NodeSeq.Empty
+      }
+    }
       </natures>
       <linkedResources>
         {for (linkedResource <- linkedResources) yield getLink(linkedResource)}

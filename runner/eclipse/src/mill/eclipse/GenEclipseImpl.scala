@@ -273,14 +273,14 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
 
     val eclipseProjects: Map[Path, EclipseJdtProject] = getEclipseProjects(resolvedJavaModules)
     val pp = new scala.xml.PrettyPrinter(999, 2)
-    
+
     // When the main directory of the Mill Build does not contain any Eclipse JDT Project, create a
     // synthetic one in this directory. Since this is not a Java (Test) Module, we don't create a
     // Eclipse JDT Project but a normal Eclipse Project!
     val rootModuleDir = evaluators.head.rootModule.moduleDirJava
     if (!eclipseProjects.keySet.contains(rootModuleDir)) {
       val projectName = "mill-build-parent"
-      
+
       log("Writing parent Eclipse project for the Mill Build file on disk:")
       log(" Name: " + projectName)
       log(" Path: " + rootModuleDir.toString)
@@ -291,12 +291,12 @@ class GenEclipseImpl(private val evaluators: Seq[EvaluatorApi]) {
 
       os.remove.all(projectFile)
       os.remove.all(orgEclipseCoreResourcesPrefsFile)
-      
+
       val projectFileContent =
         EclipseJdtUtils.createNormalProjectFileContent(projectName)
       val orgEclipseCoreResourcesPrefsFileContent =
         EclipseJdtUtils.getOrgEclipseCoreResourcesPrefsContent
-      
+
       os.write.over(projectFile, pp.format(projectFileContent), createFolders = true)
       os.write.over(
         orgEclipseCoreResourcesPrefsFile,
