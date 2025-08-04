@@ -337,7 +337,7 @@ object ScriptTests extends TestSuite {
       )
     )
     test {
-      val lines = for (versionPaths <- versions) {
+      for (versionPaths <- versions) {
         val res = os.call(
           cmd = millCmd,
           env = Map(

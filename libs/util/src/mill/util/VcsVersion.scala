@@ -109,7 +109,7 @@ trait VcsVersion extends Module {
           stderr = os.Pipe
         ).out.trim())
       } catch {
-        case e: SubprocessException =>
+        case _: SubprocessException =>
           logger.error(s"${vcsBasePath} is not a git repository.")
           None
       }

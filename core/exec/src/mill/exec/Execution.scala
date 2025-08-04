@@ -1,14 +1,12 @@
 package mill.exec
 
-import mill.api.*
-import mill.api.internal.*
 import mill.api.daemon.internal.*
-import mill.constants.OutFiles.{millChromeProfile, millProfile}
+import mill.constants.OutFiles.millProfile
 import mill.api.*
-import mill.internal.PrefixLogger
+import mill.internal.{JsonArrayLogger, PrefixLogger}
+
 import java.util.concurrent.{ConcurrentHashMap, ThreadPoolExecutor}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-
 import scala.collection.mutable
 import scala.concurrent.*
 
@@ -17,7 +15,6 @@ import scala.concurrent.*
  */
 private[mill] case class Execution(
     baseLogger: Logger,
-    chromeProfileLogger: JsonArrayLogger.ChromeProfile,
     profileLogger: JsonArrayLogger.Profile,
     workspace: os.Path,
     outPath: os.Path,
@@ -58,7 +55,6 @@ private[mill] case class Execution(
       headerData: String
   ) = this(
     baseLogger,
-    new JsonArrayLogger.ChromeProfile(os.Path(outPath) / millChromeProfile),
     new JsonArrayLogger.Profile(os.Path(outPath) / millProfile),
     os.Path(workspace),
     os.Path(outPath),
@@ -107,230 +103,223 @@ private[mill] case class Execution(
       serialCommandExec: Boolean
   ): Execution.Results = {
     os.makeDir.all(outPath)
-
-    val threadNumberer = new ThreadNumberer()
-    val plan = PlanImpl.plan(goals)
-    val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
-    val terminals0 = plan.sortedGroups.keys().toVector
     val failed = new AtomicBoolean(false)
     val count = new AtomicInteger(1)
     val rootFailedCount = new AtomicInteger(0) // Track only root failures
-    val indexToTerminal = plan.sortedGroups.keys().toArray
+    val planningLogger = new PrefixLogger(
+      logger0 = baseLogger,
+      key0 = Seq("planning"),
+      message = "planning"
+    )
+    val (
+      plan,
+      interGroupDeps,
+      indexToTerminal,
+      classToTransitiveClasses,
+      allTransitiveClassMethods
+    ) = planningLogger.withPromptLine {
+      val plan = PlanImpl.plan(goals)
+      val interGroupDeps = Execution.findInterGroupDeps(plan.sortedGroups)
+      val indexToTerminal = plan.sortedGroups.keys().toArray
+      ExecutionLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
+      // Prepare a lookup tables up front of all the method names that each class owns,
+      // and the class hierarchy, so during evaluation it is cheap to look up what class
+      // each task belongs to determine of the enclosing class code signature changed.
+      val (classToTransitiveClasses, allTransitiveClassMethods) =
+        CodeSigUtils.precomputeMethodNamesPerClass(PlanImpl.transitiveNamed(goals))
+      (plan, interGroupDeps, indexToTerminal, classToTransitiveClasses, allTransitiveClassMethods)
+    }
+    baseLogger.withChromeProfile("execution") {
+      val uncached = new ConcurrentHashMap[Task[?], Unit]()
+      val changedValueHash = new ConcurrentHashMap[Task[?], Unit]()
 
-    ExecutionLogs.logDependencyTree(interGroupDeps, indexToTerminal, outPath)
+      val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
 
-    // Prepare a lookup tables up front of all the method names that each class owns,
-    // and the class hierarchy, so during evaluation it is cheap to look up what class
-    // each task belongs to determine of the enclosing class code signature changed.
-    val (classToTransitiveClasses, allTransitiveClassMethods) =
-      CodeSigUtils.precomputeMethodNamesPerClass(PlanImpl.transitiveNamed(goals))
+      def formatHeaderPrefix(countMsg: String, keySuffix: String) =
+        s"$countMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
 
-    val uncached = new ConcurrentHashMap[Task[?], Unit]()
-    val changedValueHash = new ConcurrentHashMap[Task[?], Unit]()
+      def evaluateTerminals(
+          terminals: Seq[Task[?]],
+          exclusive: Boolean
+      ) = {
+        val forkExecutionContext =
+          ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_))
+        implicit val taskExecutionContext =
+          if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
+        // We walk the task graph in topological order and schedule the futures
+        // to run asynchronously. During this walk, we store the scheduled futures
+        // in a dictionary. When scheduling each future, we are guaranteed that the
+        // necessary upstream futures will have already been scheduled and stored,
+        // due to the topological order of traversal.
+        for (terminal <- terminals) {
+          val deps = interGroupDeps(terminal)
 
-    val futures = mutable.Map.empty[Task[?], Future[Option[GroupExecution.Results]]]
+          val group = plan.sortedGroups.lookupKey(terminal)
+          val exclusiveDeps = deps.filter(d => d.isExclusiveCommand)
 
-    def formatHeaderPrefix(countMsg: String, keySuffix: String) =
-      s"$countMsg$keySuffix${Execution.formatFailedCount(rootFailedCount.get())}"
+          if (!terminal.isExclusiveCommand && exclusiveDeps.nonEmpty) {
+            val failure = ExecResult.Failure(
+              s"Non-exclusive task ${terminal} cannot depend on exclusive task " +
+                exclusiveDeps.mkString(", ")
+            )
+            val taskResults: Map[Task[?], ExecResult.Failing[Nothing]] = group
+              .map(t => (t, failure))
+              .toMap
 
-    def evaluateTerminals(
-        terminals: Seq[Task[?]],
-        exclusive: Boolean
-    ) = {
-      val forkExecutionContext =
-        ec.fold(ExecutionContexts.RunNow)(new ExecutionContexts.ThreadPool(_))
-      implicit val taskExecutionContext =
-        if (exclusive) ExecutionContexts.RunNow else forkExecutionContext
-      // We walk the task graph in topological order and schedule the futures
-      // to run asynchronously. During this walk, we store the scheduled futures
-      // in a dictionary. When scheduling each future, we are guaranteed that the
-      // necessary upstream futures will have already been scheduled and stored,
-      // due to the topological order of traversal.
-      for (terminal <- terminals) {
-        val deps = interGroupDeps(terminal)
+            futures(terminal) = Future.successful(
+              Some(GroupExecution.Results(taskResults, group.toSeq, false, -1, -1, false, Nil))
+            )
+          } else {
+            futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
+              try {
+                val countMsg = mill.api.internal.Util.leftPad(
+                  count.getAndIncrement().toString,
+                  terminals.length.toString.length,
+                  '0'
+                )
 
-        val group = plan.sortedGroups.lookupKey(terminal)
-        val exclusiveDeps = deps.filter(d => d.isExclusiveCommand)
-
-        if (!terminal.isExclusiveCommand && exclusiveDeps.nonEmpty) {
-          val failure = ExecResult.Failure(
-            s"Non-exclusive task ${terminal} cannot depend on exclusive task " +
-              exclusiveDeps.mkString(", ")
-          )
-          val taskResults: Map[Task[?], ExecResult.Failing[Nothing]] = group
-            .map(t => (t, failure))
-            .toMap
-
-          futures(terminal) = Future.successful(
-            Some(GroupExecution.Results(taskResults, group.toSeq, false, -1, -1, false, Nil))
-          )
-        } else {
-          futures(terminal) = Future.sequence(deps.map(futures)).map { upstreamValues =>
-            try {
-              val countMsg = mill.api.internal.Util.leftPad(
-                count.getAndIncrement().toString,
-                terminals.length.toString.length,
-                '0'
-              )
-
-              val keySuffix = s"/${terminals0.size}"
-              logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
-              if (failed.get()) None
-              else {
-                val upstreamResults = upstreamValues
-                  .iterator
-                  .flatMap(_.iterator.flatMap(_.newResults))
-                  .toMap
-
-                val upstreamPathRefs = upstreamValues
-                  .iterator
-                  .flatMap(_.iterator.flatMap(_.serializedPaths))
-                  .toSeq
-
-                val startTime = System.nanoTime() / 1000
-
-                // should we log progress?
-                val inputResults = for {
-                  task <- group.toIndexedSeq.filterNot(upstreamResults.contains)
-                  item <- task.inputs.filterNot(group.contains)
-                } yield upstreamResults(item).map(_._1)
-                val logRun = inputResults.forall(_.isInstanceOf[ExecResult.Success[?]])
-
-                val tickerPrefix =
-                  if (logRun && logger.prompt.enableTicker) terminal.toString else ""
+                val keySuffix = s"/${indexToTerminal.size}"
 
                 val contextLogger = new PrefixLogger(
                   logger0 = logger,
-                  key0 = if (!logger.prompt.enableTicker) Nil else Seq(countMsg),
+                  key0 = Seq(countMsg),
                   keySuffix = keySuffix,
-                  message = tickerPrefix,
+                  message = terminal.toString,
                   noPrefix = exclusive
                 )
 
-                val res = executeGroupCached(
-                  terminal = terminal,
-                  group = plan.sortedGroups.lookupKey(terminal).toSeq,
-                  results = upstreamResults,
-                  countMsg = countMsg,
-                  zincProblemReporter = reporter,
-                  testReporter = testReporter,
-                  logger = contextLogger,
-                  deps = deps,
-                  classToTransitiveClasses,
-                  allTransitiveClassMethods,
-                  forkExecutionContext,
-                  exclusive,
-                  upstreamPathRefs
-                )
+                contextLogger.withPromptLine {
+                  logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
 
-                // Count new failures - if there are upstream failures, tasks should be skipped, not failed
-                val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
+                  if (failed.get()) None
+                  else {
+                    val upstreamResults = upstreamValues
+                      .iterator
+                      .flatMap(_.iterator.flatMap(_.newResults))
+                      .toMap
 
-                rootFailedCount.addAndGet(newFailures)
+                    val upstreamPathRefs = upstreamValues
+                      .iterator
+                      .flatMap(_.iterator.flatMap(_.serializedPaths))
+                      .toSeq
 
-                // Always show failed count in header if there are failures
-                logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
+                    val startTime = System.nanoTime() / 1000
 
-                if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
-                  failed.set(true)
+                    val res = executeGroupCached(
+                      terminal = terminal,
+                      group = plan.sortedGroups.lookupKey(terminal).toSeq,
+                      results = upstreamResults,
+                      countMsg = countMsg,
+                      zincProblemReporter = reporter,
+                      testReporter = testReporter,
+                      logger = contextLogger,
+                      deps = deps,
+                      classToTransitiveClasses,
+                      allTransitiveClassMethods,
+                      forkExecutionContext,
+                      exclusive,
+                      upstreamPathRefs
+                    )
 
-                val endTime = System.nanoTime() / 1000
-                val duration = endTime - startTime
+                    // Count new failures - if there are upstream failures, tasks should be skipped, not failed
+                    val newFailures = res.newResults.values.count(r => r.asFailing.isDefined)
 
-                val threadId = threadNumberer.getThreadId(Thread.currentThread())
-                chromeProfileLogger.log(
-                  terminal.toString,
-                  "job",
-                  startTime,
-                  duration,
-                  threadId,
-                  res.cached
-                )
+                    rootFailedCount.addAndGet(newFailures)
 
-                if (!res.cached) uncached.put(terminal, ())
-                if (res.valueHashChanged) changedValueHash.put(terminal, ())
+                    // Always show failed count in header if there are failures
+                    logger.prompt.setPromptHeaderPrefix(formatHeaderPrefix(countMsg, keySuffix))
 
-                profileLogger.log(
-                  terminal.toString,
-                  duration,
-                  res.cached,
-                  res.valueHashChanged,
-                  deps.map(_.toString),
-                  res.inputsHash,
-                  res.previousInputsHash
-                )
+                    if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty))
+                      failed.set(true)
 
-                Some(res)
+                    val endTime = System.nanoTime() / 1000
+                    val duration = endTime - startTime
+
+                    if (!res.cached) uncached.put(terminal, ())
+                    if (res.valueHashChanged) changedValueHash.put(terminal, ())
+
+                    profileLogger.log(
+                      terminal.toString,
+                      duration,
+                      res.cached,
+                      res.valueHashChanged,
+                      deps.map(_.toString),
+                      res.inputsHash,
+                      res.previousInputsHash
+                    )
+
+                    Some(res)
+                  }
+                }
+              } catch {
+                case e: Throwable if !scala.util.control.NonFatal(e) =>
+                  throw new Exception(e)
               }
-            } catch {
-              case e: Throwable if !scala.util.control.NonFatal(e) =>
-                throw new Exception(e)
             }
           }
         }
+
+        // Make sure we wait for all tasks from this batch to finish before starting the next
+        // one, so we don't mix up exclusive and non-exclusive tasks running at the same time
+        terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
       }
 
-      // Make sure we wait for all tasks from this batch to finish before starting the next
-      // one, so we don't mix up exclusive and non-exclusive tasks running at the same time
-      terminals.map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
-    }
+      val tasks0 = indexToTerminal.filter {
+        case _: Task.Command[_] => false
+        case _ => true
+      }
 
-    val tasks0 = terminals0.filter {
-      case _: Task.Command[_] => false
-      case _ => true
-    }
+      val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(tasks0)).toSet
+      val (tasks, leafExclusiveCommands) = indexToTerminal.partition {
+        case t: Task.Named[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
+        case _ => !serialCommandExec
+      }
 
-    val tasksTransitive = PlanImpl.transitiveTasks(Seq.from(tasks0)).toSet
-    val (tasks, leafExclusiveCommands) = terminals0.partition {
-      case t: Task.Named[_] => tasksTransitive.contains(t) || !t.isExclusiveCommand
-      case _ => !serialCommandExec
-    }
+      // Run all non-command tasks according to the threads
+      // given but run the commands in linear order
+      val nonExclusiveResults = evaluateTerminals(tasks, exclusive = false)
 
-    // Run all non-command tasks according to the threads
-    // given but run the commands in linear order
-    val nonExclusiveResults = evaluateTerminals(tasks, exclusive = false)
+      val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
 
-    val exclusiveResults = evaluateTerminals(leafExclusiveCommands, exclusive = true)
+      logger.prompt.clearPromptStatuses()
 
-    logger.prompt.clearPromptStatuses()
+      val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
 
-    val finishedOptsMap = (nonExclusiveResults ++ exclusiveResults).toMap
+      ExecutionLogs.logInvalidationTree(
+        interGroupDeps,
+        indexToTerminal,
+        outPath,
+        uncached,
+        changedValueHash
+      )
 
-    ExecutionLogs.logInvalidationTree(
-      interGroupDeps,
-      indexToTerminal,
-      outPath,
-      uncached,
-      changedValueHash
-    )
+      val results0: Array[(Task[?], ExecResult[(Val, Int)])] = indexToTerminal
+        .map { t =>
+          finishedOptsMap(t) match {
+            case None => (t, ExecResult.Skipped)
+            case Some(res) =>
+              Tuple2(
+                t,
+                (Seq(t) ++ plan.sortedGroups.lookupKey(t))
+                  .flatMap { t0 => res.newResults.get(t0) }
+                  .sortBy(!_.isInstanceOf[ExecResult.Failing[_]])
+                  .head
+              )
 
-    val results0: Vector[(Task[?], ExecResult[(Val, Int)])] = terminals0
-      .map { t =>
-        finishedOptsMap(t) match {
-          case None => (t, ExecResult.Skipped)
-          case Some(res) =>
-            Tuple2(
-              t,
-              (Seq(t) ++ plan.sortedGroups.lookupKey(t))
-                .flatMap { t0 => res.newResults.get(t0) }
-                .sortBy(!_.isInstanceOf[ExecResult.Failing[_]])
-                .head
-            )
-
+          }
         }
-      }
 
-    val results: Map[Task[?], ExecResult[(Val, Int)]] = results0.toMap
+      val results: Map[Task[?], ExecResult[(Val, Int)]] = results0.toMap
 
-    Execution.Results(
-      goals.toIndexedSeq.map(results(_).map(_._1)),
-      finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
-      results.map { case (k, v) => (k, v.map(_._1)) }
-    )
+      Execution.Results(
+        goals.toIndexedSeq.map(results(_).map(_._1)),
+        finishedOptsMap.values.flatMap(_.toSeq.flatMap(_.newEvaluated)).toSeq,
+        results.map { case (k, v) => (k, v.map(_._1)) }
+      )
+    }
   }
 
   def close(): Unit = {
-    chromeProfileLogger.close()
     profileLogger.close()
   }
 }
@@ -347,17 +336,18 @@ private[mill] object Execution {
 
   def findInterGroupDeps(sortedGroups: MultiBiMap[Task[?], Task[?]])
       : Map[Task[?], Seq[Task[?]]] = {
-    sortedGroups
-      .items()
-      .map { case (terminal, group) =>
-        terminal -> Seq.from(group)
-          .flatMap(_.inputs)
-          .filterNot(group.contains)
-          .distinct
-          .map(sortedGroups.lookupValue)
-          .distinct
-      }
-      .toMap
+    val out = Map.newBuilder[Task[?], Seq[Task[?]]]
+    for ((terminal, group) <- sortedGroups) {
+      val groupSet = group.toSet
+      out.addOne(
+        terminal -> groupSet
+          .flatMap(
+            _.inputs.collect { case f if !groupSet.contains(f) => sortedGroups.lookupValue(f) }
+          )
+          .toArray
+      )
+    }
+    out.result()
   }
   private[Execution] case class Results(
       results: Seq[ExecResult[Val]],

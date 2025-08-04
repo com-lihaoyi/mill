@@ -22,11 +22,18 @@ private[mill] object Reflect {
     true
   }
 
-  def getMethods(cls: Class[?], decode: String => String): Array[(Method, String)] =
+  def getMethods(
+      cls: Class[?],
+      noParams: Boolean,
+      inner: Class[?],
+      decode: String => String
+  ): Array[(Method, String)] =
     for {
       m <- cls.getMethods
       n = decode(m.getName)
       if isLegalIdentifier(n) && (m.getModifiers & Modifier.STATIC) == 0
+        && (!noParams || m.getParameterCount == 0) &&
+        inner.isAssignableFrom(m.getReturnType)
     } yield (m, n)
 
   private val classSeqOrdering =
@@ -39,16 +46,10 @@ private[mill] object Reflect {
       inner: Class[?],
       filter: String => Boolean,
       noParams: Boolean,
-      getMethods: Class[?] => Array[(java.lang.reflect.Method, String)]
+      getMethods: (Class[?], Boolean, Class[?]) => Array[(java.lang.reflect.Method, String)]
   ): Array[java.lang.reflect.Method] = {
-    val arr: Array[java.lang.reflect.Method] = getMethods(outer)
-      .collect {
-        case (m, n)
-            if filter(n) &&
-              (!noParams || m.getParameterCount == 0) &&
-              inner.isAssignableFrom(m.getReturnType) =>
-          m
-      }
+    val arr: Array[java.lang.reflect.Method] = getMethods(outer, noParams, inner)
+      .collect { case (m, n) if filter(n) => m }
 
     // There can be multiple methods of the same name on a class if a sub-class
     // overrides a super-class method and narrows the return type.
@@ -78,13 +79,10 @@ private[mill] object Reflect {
     arr.distinctBy(_.getName)
   }
 
-  // For some reason, this fails to pick up concrete `object`s nested directly within
-  // another top-level concrete `object`. This is fine for now, since Mill's Ammonite
-  // script/REPL runner always wraps user code in a wrapper object/trait
   def reflectNestedObjects0[T: ClassTag](
       outerCls: Class[?],
       filter: String => Boolean = Function.const(true),
-      getMethods: Class[?] => Array[(java.lang.reflect.Method, String)]
+      getMethods: (Class[?], Boolean, Class[?]) => Array[(java.lang.reflect.Method, String)]
   ): Array[(String, java.lang.reflect.Member)] = {
 
     val first = reflect(
@@ -97,9 +95,12 @@ private[mill] object Reflect {
       .map(m => (m.getName, m))
 
     val companionClassOpt = outerCls.getName match {
-      case s"$prefix$$" =>
+      // This case only happens when the modules are nested within a top-level static `object`,
+      // which itself only happens for `ExternalModule`s. So only check in that
+      // case to minimize the performance overhead since `Class.forName` is pretty slow
+      case s"$prefix$$" if outerCls.getSuperclass == classOf[mill.api.ExternalModule] =>
         try Some(Class.forName(prefix))
-        catch { case e: Throwable => None }
+        catch { case _: Throwable => None }
       case _ => None
     }
     val second = (Array(outerCls) ++ companionClassOpt)
@@ -124,7 +125,7 @@ private[mill] object Reflect {
   def reflectNestedObjects02[T: ClassTag](
       outerCls: Class[?],
       filter: String => Boolean = Function.const(true),
-      getMethods: Class[?] => Array[(java.lang.reflect.Method, String)]
+      getMethods: (Class[?], Boolean, Class[?]) => Array[(java.lang.reflect.Method, String)]
   ): Array[(name: String, `class`: Class[?], getter: Any => T)] = {
     reflectNestedObjects0[T](outerCls, filter, getMethods).map {
       case (name, m: java.lang.reflect.Method) =>

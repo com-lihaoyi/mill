@@ -4,7 +4,6 @@ import ch.epfl.scala.bsp4j
 import ch.epfl.scala.bsp4j.*
 import com.google.gson.JsonObject
 import mill.api.*
-import mill.api.internal.*
 import mill.api.Segment.Label
 import mill.bsp.Constants
 import mill.bsp.worker.Utils.{makeBuildTarget, outputPaths, sanitizeUri}
@@ -375,7 +374,7 @@ private class MillBuildServer(
         s"Getting sources of ${sourcesParams.getTargets.asScala.map(_.getUri).mkString(", ")}",
       originId = ""
     ) {
-      case (_, _, id, _: JavaModuleApi, result) => new SourcesItem(
+      case (_, _, id, _, result) => new SourcesItem(
           id,
           (
             result.sources.map(p => sourceItem(os.Path(p), false)) ++
@@ -706,7 +705,7 @@ private class MillBuildServer(
             val mainModule = ev.rootModule.asInstanceOf[mill.api.daemon.internal.MainModuleApi]
             val compileTaskName = (module.moduleSegments ++ Label("compile")).render
             logger.debug(s"about to clean: ${compileTaskName}")
-            val cleanTask = mainModule.bspClean(ev, Seq(compileTaskName)*)
+            val cleanTask = mainModule.bspMainModule().bspClean(ev, Seq(compileTaskName)*)
             val cleanResult = evaluate(
               ev,
               s"Cleaning cache of ${module.bspDisplayName}",
@@ -1010,13 +1009,9 @@ private class MillBuildServer(
       case None =>
         logger.info("Done")
       case Some(error) =>
-        logger.error(error)
+        logger.warn(error)
         logger.info("Failed")
-        client.onBuildLogMessage(new LogMessageParams(MessageType.ERROR, error))
-        client.onBuildShowMessage(new ShowMessageParams(
-          MessageType.ERROR,
-          s"$requestDescription failed, see Mill logs for more details"
-        ))
+        client.onBuildLogMessage(new LogMessageParams(MessageType.WARNING, error))
     }
     result.executionResults
   }

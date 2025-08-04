@@ -6,7 +6,7 @@ import mill.scalalib._
 import mill.contrib.buildinfo.BuildInfo
 import mill.T
 import mill.api.Cross
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import millbuild.*
 
 /**
@@ -36,8 +36,7 @@ object `package` extends MillStableScalaModule with BuildInfo {
   def moduleDeps = Seq(
     build.core.api.daemon,
     build.core.constants,
-    build.core.api,
-    build.core.coursierutil
+    build.core.api
   )
 
   // Exclude most coursier transitive dependencies from the compile classpath so users
@@ -47,8 +46,10 @@ object `package` extends MillStableScalaModule with BuildInfo {
   def mvnDeps = Seq(
     Deps.millModuledefs,
     Deps.coursier.exclude("*" -> "*"),
+    Deps.coursierArchiveCache.exclude("*" -> "*"),
     Deps.coursierCore.exclude("*" -> "*"),
     Deps.coursierCache.exclude("*" -> "*"),
+    Deps.coursierPaths.exclude("*" -> "*"),
     Deps.coursierUtil.exclude("*" -> "*"),
     Deps.coursierVersions.exclude("*" -> "*"),
     Deps.coursierJvm.exclude("*" -> "*"),

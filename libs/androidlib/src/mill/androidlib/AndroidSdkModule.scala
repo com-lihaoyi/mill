@@ -72,6 +72,20 @@ trait AndroidSdkModule extends Module {
   def platformsVersion: T[String] = Task { "android-" + buildToolsVersion().split('.').head }
 
   /**
+   * Specifies the version of the internal Command Line Tools to be used.
+   */
+  private def millCmdlineToolsVersion: T[String] = Task {
+    Versions.millCmdlineToolsVersion
+  }
+
+  /**
+   * Specifies the version of the Command Line Tools to be used.
+   */
+  def cmdlineToolsVersion: T[String] = Task {
+    millCmdlineToolsVersion()
+  }
+
+  /**
    * URL to download bundle tool, used for creating Android app bundles (AAB files).
    */
   def bundleToolUrl: T[String] = Task {
@@ -147,7 +161,7 @@ trait AndroidSdkModule extends Module {
    */
   def lintToolPath: T[PathRef] = Task {
     installAndroidSdkComponents()
-    PathRef(sdkPath().path / "cmdline-tools/latest/bin/lint")
+    PathRef(cmdlineToolsPath().path / "bin/lint")
   }
 
   /**
@@ -205,7 +219,7 @@ trait AndroidSdkModule extends Module {
    *  For more information refer to the official Android documentation [[https://developer.android.com/tools/avdmanager]]
    */
   def avdPath: T[PathRef] = Task {
-    PathRef(sdkPath().path / "cmdline-tools/latest/bin/avdmanager")
+    PathRef(cmdlineToolsPath().path / "bin/avdmanager")
   }
 
   /**
@@ -226,21 +240,12 @@ trait AndroidSdkModule extends Module {
   }
 
   /**
-   * Provides the path for the Android SDK Manager tool
-   *
-   * @return A task containing a [[PathRef]] pointing to the SDK directory.
-   */
-  def sdkManagerPath: T[PathRef] = Task {
-    PathRef(sdkPath().path / "cmdline-tools/latest/bin/sdkmanager")
-  }
-
-  /**
    * Provides the path for the r8 tool, used for code shrinking and optimization.
    *
    * @return A task containing a [[PathRef]] pointing to the r8 directory.
    */
   def r8Exe: T[PathRef] = Task {
-    PathRef(sdkPath().path / "cmdline-tools/latest/bin/r8")
+    PathRef(cmdlineToolsPath().path / "bin/r8")
   }
 
   def ndkPath: T[PathRef] = Task {
@@ -263,28 +268,169 @@ trait AndroidSdkModule extends Module {
     PathRef(ndkPath().path / "build" / "cmake" / "android.toolchain.cmake")
   }
 
+  def autoAcceptLicenses: T[Boolean] = Task {
+    // Automatically accept licenses in CI environments
+    isCI
+  }
+
+  private def acceptLicenses(sdkManagerExePath: os.Path) = {
+    // Use `echo` to ensure compatibility with Windows environments
+    os.proc(
+      "echo",
+      "y\n" * 10
+    ).pipeTo(os.proc(sdkManagerExePath.toString, "--licenses")).call()
+  }
+
+  private def isCI: Boolean = {
+    val ciEnvironments = Seq(
+      "CI",
+      "CONTINUOUS_INTEGRATION",
+      "JENKINS_URL",
+      "TRAVIS",
+      "CIRCLECI",
+      "GITHUB_ACTIONS",
+      "GITLAB_CI",
+      "BITBUCKET_PIPELINE",
+      "TEAMCITY_VERSION"
+    )
+    ciEnvironments.exists(env => sys.env.contains(env))
+  }
+
+  // TODO: Replace hardcoded mapping with automated parsing
+  // of [[remoteReposInfo]]
+  private def cmdlineToolsShortToLong(versionShort: String): String = {
+    versionShort match {
+      case "7.0" => "8512546"
+      case "8.0" => "9123335"
+      case "9.0" => "9477386"
+      case "10.0" => "9862592"
+      case "11.0" => "10406996"
+      case "12.0" => "11076708"
+      case "13.0" => "11479570"
+      case "16.0" => "12266719"
+      case "17.0" => "12700392"
+      case "19.0" => "13114758"
+      case _ =>
+        throw new IllegalArgumentException(s"Unsupported cmdline tools version: $versionShort")
+    }
+  }
+
+  private def cmdlineToolsURL(versionLong: String): String = {
+    val osName: Option[String] = sys.props.get("os.name").map(_.toLowerCase)
+
+    val platform = Seq("linux", "mac", "windows").find(osName.contains) match {
+      case Some(p) => p
+      case None =>
+        throw new IllegalStateException(s"Unsupported platform for cmdline tools: $osName")
+    }
+
+    s"https://dl.google.com/android/repository/commandlinetools-$platform-${versionLong}_latest.zip"
+  }
+
+  private def installCmdlineTools(
+      sdkPath: os.Path,
+      millVersionShort: String,
+      versionShort: String,
+      remoteReposInfo: os.Path,
+      destination: os.Path,
+      autoAcceptLicenses: Boolean
+  ) = {
+    val millCmdlineToolsPath = sdkPath / "cmdline-tools" / millVersionShort
+    val millSdkManagerExe = millCmdlineToolsPath / "bin" / "sdkmanager"
+    if (!os.exists(millSdkManagerExe)) {
+      val zipDestination = destination / "cmdline-tools.zip"
+      os.write(
+        zipDestination,
+        requests.get(cmdlineToolsURL(cmdlineToolsShortToLong(millVersionShort)))
+      )
+
+      os.unzip(zipDestination, destination)
+
+      // Move the extracted tools to the version-specific directory
+      os.move(
+        destination / "cmdline-tools",
+        millCmdlineToolsPath,
+        createFolders = true,
+        atomicMove = true
+      )
+    }
+    if (!isLicenseAccepted(sdkPath, remoteReposInfo, s"cmdline-tools;$versionShort")) {
+      if (autoAcceptLicenses) {
+        acceptLicenses(millSdkManagerExe)
+      } else {
+        throw new IllegalStateException(
+          s"License for cmdline-tools;$versionShort is not accepted. " +
+            s"Please run `${millSdkManagerExe.toString} --licenses` to review and accept the licenses" +
+            ", or override `autoAcceptLicenses` to `true`."
+        )
+      }
+    }
+    if (versionShort != millVersionShort) {
+      os.call(
+        Seq(
+          millSdkManagerExe.toString,
+          s"cmdline-tools;$versionShort"
+        ),
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      )
+    }
+  }
+
+  /**
+   * Provides the path for the Cmdline Tools, which is essential for managing Android SDK components.
+   * Downloads if missing.
+   * @return A task containing a [[PathRef]] pointing to the SDK directory.
+   */
+  private def cmdlineToolsPath: Task[PathRef] = Task.Anon {
+    AndroidCmdlineToolsLock.synchronized {
+      val cmdlineToolsVersionShort = cmdlineToolsVersion()
+      val cmdlineToolsPath0 = sdkPath().path / "cmdline-tools" / cmdlineToolsVersionShort
+      if (!os.exists(cmdlineToolsPath0)) {
+        Task.log.info(
+          s"Cmdline tools version $cmdlineToolsVersionShort not found. Downloading and installing, this may take a while..."
+        )
+        installCmdlineTools(
+          sdkPath().path,
+          millCmdlineToolsVersion(),
+          cmdlineToolsVersionShort,
+          remoteReposInfo().path,
+          Task.dest,
+          autoAcceptLicenses()
+        )
+      } else if (!os.exists(cmdlineToolsPath0 / "bin" / "sdkmanager")) {
+        throw new IllegalStateException(
+          s"$cmdlineToolsPath0 exists but is not setup correctly. " +
+            "Please remove it and retry or fix the installation manually (e.g. via Android Studio)."
+        )
+      }
+
+      PathRef(cmdlineToolsPath0)
+    }
+  }
+
+  /**
+   * Provides the path for the Android SDK Manager tool
+   * @return A task containing a [[PathRef]] pointing to the SDK directory.
+   */
+  def sdkManagerPath: Task[PathRef] = Task.Anon {
+    PathRef(cmdlineToolsPath().path / "bin" / "sdkmanager")
+  }
+
   /**
    * Installs the necessary Android SDK components such as platform-tools, build-tools, and Android platforms.
    *
    * For more details on the `sdkmanager` tool, refer to:
    * [[https://developer.android.com/tools/sdkmanager sdkmanager Documentation]]
    */
-  def installAndroidSdkComponents: T[Unit] = Task {
+  def installAndroidSdkComponents: Task[Unit] = Task.Anon {
     val sdkPath0 = sdkPath()
-    val sdkManagerPath = findLatestSdkManager(sdkPath0.path) match {
-      case Some(x) => x
-      case _ => throw new IllegalStateException(
-          s"Cannot locate cmdline-tools in Android SDK $sdkPath0. Download" +
-            " it at https://developer.android.com/studio#command-tools. See https://developer.android.com/tools" +
-            " for more details."
-        )
-    }
+    val sdkManagerPath0 = sdkManagerPath().path
 
     val packages = Seq(
       "platform-tools",
       s"build-tools;${buildToolsVersion()}",
       s"platforms;${platformsVersion()}",
-      "cmdline-tools;latest",
       "tools"
     )
     // sdkmanager executable and state of the installed package is a shared resource, which can be accessed
@@ -292,19 +438,25 @@ trait AndroidSdkModule extends Module {
     AndroidSdkLock.synchronized {
       val missingPackages = packages.filter(p => !isPackageInstalled(sdkPath0.path, p))
       val packagesWithoutLicense = missingPackages
-        .map(p => (p, isLicenseAccepted(sdkPath0.path, remoteReposInfo()().path, p)))
+        .map(p => (p, isLicenseAccepted(sdkPath0.path, remoteReposInfo().path, p)))
         .filter(!_._2)
       if (packagesWithoutLicense.nonEmpty) {
-        throw new IllegalStateException(
-          "Failed to install the following SDK packages, because their respective" +
-            s" licenses are not accepted:\n\n${packagesWithoutLicense.map(_._1).mkString("\n")}"
-        )
+        if (autoAcceptLicenses()) {
+          acceptLicenses(sdkManagerPath0)
+        } else {
+          throw new IllegalStateException(
+            "Failed to install the following SDK packages, because their respective" +
+              s" licenses are not accepted:\n\n${packagesWithoutLicense.map(_._1).mkString("\n")}" +
+              s"\nPlease run `${sdkManagerPath0.toString} --licenses` to review and accept the licenses" +
+              ", or override `autoAcceptLicenses` to `true`."
+          )
+        }
       }
 
       if (missingPackages.nonEmpty) {
         val callResult = os.call(
           // Install platform-tools, build-tools, and the Android platform
-          Seq(sdkManagerPath.toString) ++ missingPackages,
+          Seq(sdkManagerPath0.toString) ++ missingPackages,
           stdout = os.Inherit
         )
         if (callResult.exitCode != 0) {
@@ -376,17 +528,18 @@ trait AndroidSdkModule extends Module {
     (licenseName, licenseHash)
   }
 
-  def remoteReposInfo(): Command[PathRef] = Task.Command {
+  def remoteReposInfo: Task[PathRef] = Task.Anon {
+    val repositoryFile = Task.dest / "repository.xml"
     if (Task.offline) Result.Failure("Can't fetch remote repositories in offline mode.")
     else Result.create {
       // shouldn't be persistent, allow it to be re-downloaded again.
       // it will be called only if some packages are not installed.
-      val path = Task.dest / "repository.xml"
-      os.write(
-        Task.dest / "repository.xml",
-        requests.get(remotePackagesUrl).bytes
+      os.write.over(
+        repositoryFile,
+        requests.get(remotePackagesUrl).bytes,
+        createFolders = true
       )
-      PathRef(path)
+      PathRef(repositoryFile)
     }
   }
 
@@ -395,31 +548,11 @@ trait AndroidSdkModule extends Module {
   private def hexArray(arr: Array[Byte]) =
     String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
 
-  // TODO consolidate with sdkmanager path
-  private def findLatestSdkManager(sdkPath: os.Path): Option[os.Path] = {
-    var sdkManagerPath = sdkPath / "cmdline-tools/latest/bin/sdkmanager"
-    if (!os.exists(sdkManagerPath)) {
-      // overall it can be cmdline-tools/<version>
-      val candidates = os.list(sdkPath / "cmdline-tools")
-        .filter(os.isDir)
-      if (candidates.nonEmpty) {
-        val latestCmdlineToolsPath = candidates
-          .map(p => (p, p.baseName.split('.')))
-          .filter(_._2 match {
-            case Array(_, _) => true
-            case _ => false
-          })
-          .maxBy(_._2.head.toInt)._1
-        sdkManagerPath = latestCmdlineToolsPath / "bin/sdkmanager"
-      }
-    }
-    Some(sdkManagerPath).filter(os.exists)
-  }
-
 }
 
 private object AndroidSdkLock
 private object AndroidNdkLock
+private object AndroidCmdlineToolsLock
 
 object AndroidSdkModule {
 

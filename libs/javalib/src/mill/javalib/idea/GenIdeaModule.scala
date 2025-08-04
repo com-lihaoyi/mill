@@ -6,7 +6,7 @@ import mill.Task
 import mill.api.Segments
 import mill.api.daemon.internal.idea.{GenIdeaInternalApi, ResolvedModule}
 import mill.api.daemon.internal.internal
-import mill.api.{Discover, ExternalModule, ModuleCtx, PathRef}
+import mill.api.{ModuleCtx, PathRef}
 import mill.javalib.{BoundDep, Dep, JavaModule}
 import mill.api.JsonFormatters.given
 trait GenIdeaModule extends mill.api.Module with GenIdeaInternalApi {
@@ -16,7 +16,6 @@ trait GenIdeaModule extends mill.api.Module with GenIdeaInternalApi {
 
   def javaModuleRef: mill.api.ModuleRef[JavaModule]
   private lazy val javaModule = javaModuleRef()
-  import javaModule._
   private[mill] def allMvnDeps = Task {
     Seq(
       javaModule.coursierDependency,

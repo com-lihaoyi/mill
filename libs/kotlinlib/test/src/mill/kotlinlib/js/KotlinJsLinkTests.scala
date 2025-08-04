@@ -3,8 +3,8 @@ package mill.kotlinlib.js
 import mill.api.Discover
 import mill.testkit.{TestRootModule, UnitTester}
 import mill.{Cross, T}
-import utest.{TestSuite, Tests, assert, test}
-import mill.util.TokenReaders._
+import utest.{TestSuite, Tests, test, assert}
+import mill.util.TokenReaders.*
 object KotlinJsLinkTests extends TestSuite {
 
   private val kotlinVersion = "1.9.25"

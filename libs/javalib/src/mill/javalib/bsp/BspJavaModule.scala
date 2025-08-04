@@ -5,7 +5,7 @@ import java.nio.file.Path
 import mill.api.daemon.internal.bsp.BspJavaModuleApi
 import mill.Task
 import mill.api.daemon.internal.{EvaluatorApi, TaskApi, internal}
-import mill.api.{Discover, ExternalModule, ModuleCtx}
+import mill.api.ModuleCtx
 import mill.javalib.{JavaModule, SemanticDbJavaModule}
 import mill.api.JsonFormatters.given
 
@@ -85,7 +85,10 @@ trait BspJavaModule extends mill.api.Module with BspJavaModuleApi {
   override private[mill] def bspBuildTargetSources
       : Task.Simple[(sources: Seq[Path], generatedSources: Seq[Path])] =
     Task {
-      (jm.sources().map(_.path.toNIO), jm.generatedSources().map(_.path.toNIO))
+      (
+        jm.sources().map(_.path.toNIO),
+        jm.generatedSources().map(_.path.toNIO) ++ Seq(jm.compileGeneratedSources().toNIO)
+      )
     }
 
   override private[mill] def bspBuildTargetResources = Task.Anon {

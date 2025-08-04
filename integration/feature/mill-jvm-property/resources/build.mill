@@ -1,6 +1,0 @@
-package build
-import mill._
-
-def printSysProp(propName: String) = Task.Command {
-  println(sys.props(propName))
-}

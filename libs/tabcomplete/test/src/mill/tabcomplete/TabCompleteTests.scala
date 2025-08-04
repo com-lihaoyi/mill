@@ -4,18 +4,24 @@ import mill.Task
 import mill.api.{Cross, Discover, Module}
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
-import utest.{TestSuite, Tests, assert, test}
+import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 
 object TabCompleteTests extends TestSuite {
-
   object mainModule extends TestRootModule {
     lazy val millDiscover = Discover[this.type]
-    def task1 = Task { 123 }
+    def task1(argA: String = "", argB2: Int = 0) = Task.Command { 123 }
     object foo extends Module
     object bar extends Module {
-      def task2 = Task { 456 }
+      def task2(
+          @mainargs.arg(doc = "arg a 3 docs") argA3: String,
+          @mainargs.arg(doc = "arg b 4 docs") argB4: Int
+      ) = Task.Command { 456 }
+      def taskPositional(
+          @mainargs.arg(positional = true) argA3: String,
+          @mainargs.arg(positional = true) argB4: Int
+      ) = Task.Command { 456 }
 
     }
     object qux extends Cross[QuxModule](12, 34, 56)
@@ -35,144 +41,286 @@ object TabCompleteTests extends TestSuite {
         outStream = new PrintStream(outStream),
         errStream = new PrintStream(errStream)
       ).scoped { tester =>
+        os.write(tester.evaluator.workspace / "file1.txt", "")
+        os.write(tester.evaluator.workspace / "file2.txt", "")
         tester.evaluator.evaluate(Seq("mill.tabcomplete.TabCompleteModule/complete") ++ s).get
       }
-      outStream.toString
+      outStream.toString.linesIterator.toSet
     }
 
-    test("empty-bash") - {
-      val out = evalComplete("1", "./mill", "")
-      val expected =
-        """bar
-          |foo
-          |qux
-          |task1
-          |""".stripMargin
-      assert(out == expected)
-    }
-    test("empty-zsh") - {
-      val out = evalComplete("1", "./mill")
-      val expected =
-        """bar
-          |foo
-          |qux
-          |task1
-          |""".stripMargin
-      assert(out == expected)
-    }
-    test("task") - {
-      val out = evalComplete("1", "./mill", "t")
-      val expected =
-        """task1
-          |""".stripMargin
-      assert(out == expected)
-    }
-    test("firstTask") - {
-      val out = evalComplete("1", "./mill", "t", "bar.task2")
-      val expected =
-        """task1
-          |""".stripMargin
-      assert(out == expected)
-    }
+    test("tasks") {
+      test("empty-bash") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", ""),
+          Set("bar", "foo", "qux", "task1")
+        )
+      }
+      test("empty-zsh") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill"),
+          Set("bar", "foo", "qux", "task1")
+        )
+      }
+      test("task") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "t"),
+          Set("task1")
+        )
+      }
+      test("firstTask") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "t", "bar.task2"),
+          Set("task1")
+        )
+      }
 
-    test("secondTask") - {
-      val out = evalComplete("2", "./mill", "bar.task2", "t")
-      val expected =
-        """task1
-          |""".stripMargin
-      assert(out == expected)
-    }
+      test("secondNonTask") {
+        assertGoldenLiteral(
+          evalComplete("2", "./mill", "bar.task2", "f"),
+          Set("file2.txt", "file1.txt")
+        )
+      }
+      test("secondNonTaskEmpty") {
+        assertGoldenLiteral(
+          evalComplete("2", "./mill", "bar.task2", ""),
+          Set("file2.txt", "file1.txt", "out")
+        )
+      }
 
-    test("module") - {
-      val out = evalComplete("1", "./mill", "fo")
-      val expected =
-        """foo
-          |""".stripMargin
-      assert(out == expected)
-    }
+      test("module") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "fo"),
+          Set("foo")
+        )
+      }
 
-    test("exactModule") - {
-      val out = evalComplete("1", "./mill", "bar")
-      val expected =
-        """bar
-          |bar.task2
-          |""".stripMargin
-      assert(out == expected)
-    }
+      test("exactModule") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "bar"),
+          Set("bar", "bar.task2", "bar.taskPositional")
+        )
+      }
 
-    test("nested") - {
-      val out = evalComplete("1", "./mill", "bar.")
-      val expected =
-        """bar.task2
-          |""".stripMargin
-      assert(out == expected)
-    }
+      test("nested") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "bar."),
+          Set("bar.task2", "bar.taskPositional")
+        )
+      }
 
-    test("cross") - {
-      val out = evalComplete("1", "./mill", "qux[")
-      val expected =
-        """qux[12]
-          |qux[34]
-          |qux[56]
-          |""".stripMargin
-      assert(out == expected)
-    }
+      test("cross") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "qux["),
+          Set("qux[12]", "qux[34]", "qux[56]")
+        )
+      }
 
-    test("cross2") - {
-      val out = evalComplete("1", "./mill", "qux")
-      val expected =
-        """qux
-          |qux[12]
-          |qux[34]
-          |qux[56]
-          |""".stripMargin
-      assert(out == expected)
-    }
+      test("cross2") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "qux"),
+          Set("qux", "qux[12]", "qux[34]", "qux[56]")
+        )
+      }
 
-    test("crossPartial") - {
-      val out = evalComplete("1", "./mill", "qux[1")
-      val expected =
-        """qux[12]
-          |""".stripMargin
-      assert(out == expected)
-    }
+      test("crossPartial") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "qux[1"),
+          Set("qux[12]")
+        )
+      }
 
-    test("crossNested") - {
-      val out = evalComplete("1", "./mill", "qux[12]")
-      val expected =
-        """qux[12].task3
-          |""".stripMargin
-      assert(out == expected)
-    }
+      test("crossNested") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "qux[12]"),
+          Set("qux[12].task3")
+        )
+      }
 
-    test("crossNestedSlashed") - {
-      val out = evalComplete("1", "./mill", "qux\\[12\\]")
-      val expected =
-        """qux[12].task3
-          |""".stripMargin
-      assert(out == expected)
-    }
-    test("crossNestedSingleQuoted") - {
-      val out = evalComplete("1", "./mill", "'qux[12]")
-      val expected =
-        """qux[12].task3
-          |""".stripMargin
-      assert(out == expected)
-    }
-    test("crossNestedDoubleQuoted") - {
-      val out = evalComplete("1", "./mill", "\"qux[12]")
-      val expected =
-        """qux[12].task3
-          |""".stripMargin
-      assert(out == expected)
-    }
+      test("crossNestedSlashed") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "qux\\[12\\]"),
+          Set("qux[12].task3")
+        )
+      }
+      test("crossNestedSingleQuoted") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "'qux[12]"),
+          Set("qux[12].task3")
+        )
+      }
+      test("crossNestedDoubleQuoted") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "\"qux[12]"),
+          Set("qux[12].task3")
+        )
+      }
 
-    test("crossComplete") - {
-      val out = evalComplete("1", "./mill", "qux[12].task3")
-      val expected =
-        """qux[12].task3
-          |""".stripMargin
-      assert(out == expected)
+      test("crossComplete") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "qux[12].task3"),
+          Set("qux[12].task3")
+        )
+
+      }
+    }
+    test("flags") {
+      test("short") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "-"),
+          Set("-j", "-w", "-k", "-b", "-v", "-d", "-i", "-D")
+        )
+      }
+      test("emptyAfterFlag") {
+        assertGoldenLiteral(
+          evalComplete("2", "./mill", "-v"),
+          Set("bar", "foo", "qux", "task1")
+        )
+
+      }
+      test("filterAfterFlag") {
+        assertGoldenLiteral(
+          evalComplete("2", "./mill", "-v", "f"),
+          Set("foo")
+        )
+      }
+      test("filterAfterFlagAfterTask") {
+        assertGoldenLiteral(
+          evalComplete("3", "./mill", "-v", "task1", "f"),
+          Set("file2.txt", "file1.txt")
+        )
+      }
+
+      test("long") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "--"),
+          Set(
+            "--jobs",
+            "--no-filesystem-checker",
+            "--keep-going",
+            "--watch",
+            "--no-build-lock",
+            "--interactive",
+            "--no-wait-for-build-lock",
+            "--help",
+            "--color",
+            "--help-advanced",
+            "--tab-complete",
+            "--offline",
+            "--allow-positional",
+            "--ticker",
+            "--bsp",
+            "--meta-level",
+            "--version",
+            "--no-daemon",
+            "--import",
+            "--bsp-install",
+            "--task",
+            "--notify-watch",
+            "--bsp-watch",
+            "--define",
+            "--bell",
+            "--debug"
+          )
+        )
+      }
+      test("longflagsfiltered") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "--h"),
+          Set("--help", "--help-advanced")
+        )
+      }
+      test("longFlagBrokenEarlier") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "--jo", "1", "task1"),
+          Set("--jobs")
+        )
+      }
+    }
+    test("commandflags") {
+      test("required") {
+        test {
+          assertGoldenLiteral(
+            evalComplete("2", "./mill", "task1", "--a"),
+            Set("--arg-a", "--arg-b-2")
+          )
+        }
+        test {
+          assertGoldenLiteral(
+            evalComplete("2", "./mill", "task1", "--arg-b"),
+            Set("--arg-b-2")
+          )
+        }
+      }
+      test("positional") {
+        test {
+          assertGoldenLiteral(
+            evalComplete("2", "./mill", "bar.taskPositional", "--"),
+            Set()
+          )
+        }
+        test {
+          assertGoldenLiteral(
+            evalComplete("2", "./mill", "bar.taskPositional", ""),
+            Set("file2.txt", "file1.txt", "out")
+          )
+        }
+      }
+      test("optional") {
+        test {
+          assertGoldenLiteral(
+            evalComplete("2", "./mill", "bar.task2", "--a"),
+            Set("--arg-a-3", "--arg-b-4")
+          )
+        }
+        test {
+          assertGoldenLiteral(
+            evalComplete("2", "./mill", "bar.task2", "--arg-b"),
+            Set("--arg-b-4")
+          )
+        }
+
+        test {
+          assertGoldenLiteral(
+            evalComplete("3", "./mill", "bar.task2", "--arg-a", "--"),
+            Set()
+          )
+        }
+        test {
+          assertGoldenLiteral(
+            evalComplete("3", "./mill", "bar.task2", "--arg-a", ""),
+            Set("file2.txt", "file1.txt", "out")
+          )
+        }
+        test {
+          assertGoldenLiteral(
+            evalComplete("5", "./mill", "bar.task2", "--arg-a", "", "--arg-b", ""),
+            Set("file2.txt", "file1.txt", "out")
+          )
+        }
+        test {
+          assertGoldenLiteral(
+            evalComplete("3", "./mill", "bar.task2", "--arg-a", "", "--arg-b", ""),
+            Set("file2.txt", "file1.txt", "out")
+          )
+        }
+      }
+    }
+    test("docs") {
+      test {
+        assertGoldenLiteral(
+          evalComplete("2", "--is-zsh", "./mill", "bar.task2", "--"),
+          Set("--arg-a-3  <str> arg a 3 docs", "--arg-b-4  <int> arg b 4 docs")
+        )
+      }
+      test {
+        assertGoldenLiteral(
+          evalComplete("1", "--is-zsh", "./mill", "--h"),
+          Set(
+            "--help           Print this help message and exit.",
+            "--help-advanced  Print a internal or advanced command flags not intended for common usage"
+          )
+        )
+      }
     }
   }
 }

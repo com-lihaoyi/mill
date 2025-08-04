@@ -19,21 +19,21 @@ object VcsVersionTests extends TestSuite {
   )
 
   def tests = Tests {
-    "VcsState.format" - {
-      "With default format options" - {
-        "without any tag and commit" - {
+    test("VcsState.format") {
+      test("With default format options") {
+        test("without any tag and commit") {
           assert(state(null, 0, null).format() == "0.0.0-0-abcdef")
         }
-        "without any tag" - {
+        test("without any tag") {
           assert(state(null, 2, null).format() == "0.0.0-2-abcdef")
         }
-        "locally changed without any tag" - {
+        test("locally changed without any tag") {
           assert(state(null, 1, "d23456789").format() == "0.0.0-1-abcdef-DIRTYd2345678")
         }
-        "locally changed without any tag and commit" - {
+        test("locally changed without any tag and commit") {
           assert(state(null, 0, "d23456789").format() == "0.0.0-0-abcdef-DIRTYd2345678")
         }
-        "other" - {
+        test("other") {
           assert(
             state("0.0.1", 2, "d23456789")
               .format() == "0.0.1-2-abcdef-DIRTYd2345678"
@@ -41,14 +41,14 @@ object VcsVersionTests extends TestSuite {
         }
       }
 
-      "should strip the `v` prefix from the tag by default" - {
+      test("should strip the `v` prefix from the tag by default") {
         assert(
           state("v0.7.3", 0).format() == "0.7.3"
         )
 
       }
 
-      "should be able to use a tag modifier to change the tag" - {
+      test("should be able to use a tag modifier to change the tag") {
         assert(
           state("v0.7.3", 0, null)
             .format(tagModifier = {
@@ -58,7 +58,7 @@ object VcsVersionTests extends TestSuite {
         )
       }
 
-      "should not render the commit count when commitCountPad is negative" - {
+      test("should not render the commit count when commitCountPad is negative") {
         assert(
           state("0.7.3", 4, "a6ea44d3726", "61568ec80f2465f3f01ea2c7e92273f4fbf94b01")
             .format(
@@ -73,7 +73,7 @@ object VcsVersionTests extends TestSuite {
         )
       }
 
-      "should append a -SNAPSHOT suffix" - {
+      test("should append a -SNAPSHOT suffix") {
         assert(
           state("0.7.3", 0, null, "61568ec80f2465f3f01ea2c7e92273f4fbf94b01")
             .format(untaggedSuffix = "-SNAPSHOT") == "0.7.3"
@@ -88,14 +88,14 @@ object VcsVersionTests extends TestSuite {
         )
       }
 
-      "should format with fallback tag when no vcs" - {
+      test("should format with fallback tag when no vcs") {
         assert(
           state(null, 0, null, "no-vcs", null).format() == "0.0.0-0-no-vcs"
         )
       }
 
-      "Example format configs" - {
-        "mill" - {
+      test("Example format configs") {
+        test("mill") {
           assert(
             state("0.7.3", 4, "a6ea44d3726", "61568ec80f2465f3f01ea2c7e92273f4fbf94b01")
               .format(
@@ -109,7 +109,7 @@ object VcsVersionTests extends TestSuite {
               .format(dirtyHashDigits = 8, commitCountPad = 0, countSep = "-") == "0.7.3-4-61568e"
           )
         }
-        "Comfis" - {
+        test("Comfis") {
           assert(
             state("5.3.7", 30, "d23456789", "618c86095ce483feea2e331cc4e28e6466d634f7")
               .format(

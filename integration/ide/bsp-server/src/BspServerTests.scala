@@ -41,7 +41,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
         millTestSuiteEnv
       ) { (buildServer, initRes) =>
         val kotlinVersion = sys.props.getOrElse("TEST_KOTLIN_VERSION", ???)
-        val kotlinTransitiveSubstitutions = transitiveDependenciesSubstitutions(
+        transitiveDependenciesSubstitutions(
           coursierapi.Dependency.of(
             "org.jetbrains.kotlin",
             "kotlin-stdlib",
@@ -72,13 +72,13 @@ object BspServerTests extends UtestIntegrationTestSuite {
 
         val targetIds = buildTargets.getTargets.asScala.map(_.getId).asJava
         val metaBuildTargetId = new b.BuildTargetIdentifier(
-          (workspacePath / "mill-build").toNIO.toUri.toASCIIString.stripSuffix("/")
+          (workspacePath / "mill-build").toURI.toASCIIString.stripSuffix("/")
         )
         assert(targetIds.contains(metaBuildTargetId))
         val targetIdsSubset = targetIds.asScala.filter(_ != metaBuildTargetId).asJava
 
         val appTargetId = new b.BuildTargetIdentifier(
-          (workspacePath / "app").toNIO.toUri.toASCIIString.stripSuffix("/")
+          (workspacePath / "app").toURI.toASCIIString.stripSuffix("/")
         )
         assert(targetIds.contains(appTargetId))
 
@@ -99,7 +99,7 @@ object BspServerTests extends UtestIntegrationTestSuite {
             buildServer
               .buildTargetInverseSources(
                 new b.InverseSourcesParams(
-                  new b.TextDocumentIdentifier(file.toNIO.toUri().toASCIIString)
+                  new b.TextDocumentIdentifier(file.toURI.toASCIIString)
                 )
               )
               .get(),
@@ -417,7 +417,6 @@ object BspServerTests extends UtestIntegrationTestSuite {
       }
       val expectedMessages = Seq(
         // no message for errored.compilation-error, compilation diagnostics are enough
-        (b.MessageType.ERROR, "Compiling errored.exception failed, see Mill logs for more details")
       )
       assert(expectedMessages == messages0)
     }

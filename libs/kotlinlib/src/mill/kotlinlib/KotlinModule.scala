@@ -10,9 +10,9 @@ import coursier.core.VariantSelector.VariantMatcher
 import coursier.params.ResolutionParams
 import mill.api.Result
 import mill.api.ModuleRef
-import mill.kotlinlib.worker.api.{KotlinWorker, KotlinWorkerTarget}
+import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.javalib.api.{CompilationResult, JvmWorkerApi}
-import mill.api.daemon.internal.{CompileProblemReporter, internal}
+import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, internal}
 import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
 import mill.*
@@ -24,7 +24,7 @@ import mill.api.daemon.internal.bsp.{BspBuildTarget, BspModuleApi}
 /**
  * Core configuration required to compile a single Kotlin module
  */
-trait KotlinModule extends JavaModule { outer =>
+trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
   /**
    * The Kotlin version to be used (for API and Language level settings).
@@ -181,14 +181,12 @@ trait KotlinModule extends JavaModule { outer =>
   }
 
   /**
-   * The documentation jar, containing all the Dokka HTML files, for
+   * The generated documentation, containing all the Dokka HTML files, for
    * publishing to Maven Central. You can control Dokka version by using [[dokkaVersion]]
    * and option by using [[dokkaOptions]].
    */
-  override def docJar: T[PathRef] = Task[PathRef] {
-    val outDir = Task.dest
-
-    val dokkaDir = outDir / "dokka"
+  def dokkaGenerated: T[PathRef] = Task[PathRef] {
+    val dokkaDir = Task.dest / "dokka"
     os.makeDir.all(dokkaDir)
 
     val files = Lib.findSourceFiles(docSources(), Seq("java", "kt"))
@@ -232,7 +230,16 @@ trait KotlinModule extends JavaModule { outer =>
       )
     }
 
-    PathRef(Jvm.createJar(outDir / "out.jar", Seq(dokkaDir)))
+    PathRef(dokkaDir)
+  }
+
+  /**
+   * The documentation jar, containing all the Dokka HTML files, for
+   * publishing to Maven Central. You can control Dokka version by using [[dokkaVersion]]
+   * and option by using [[dokkaOptions]].
+   */
+  override def docJar: T[PathRef] = Task[PathRef] {
+    PathRef(Jvm.createJar(Task.dest / "out.jar", Seq(dokkaGenerated().path)))
   }
 
   /**

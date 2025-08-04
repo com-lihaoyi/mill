@@ -5,7 +5,7 @@ import coursier.maven.MavenRepository
 import mill.*
 import mill.util.Tasks
 import mill.scalalib.*
-import mill.jvmlib.api.JvmWorkerUtil
+import mill.javalib.api.JvmWorkerUtil
 import mill.scalalib.publish.*
 import mill.util.Jvm
 import mill.api.SelectMode
@@ -80,6 +80,7 @@ object `package` extends Module {
 
   object cli extends Module {
     object builtins extends Cross[ExampleCrossModule](build.listCross)
+    object header extends Cross[ExampleCrossModule](build.listCross)
   }
 
   object fundamentals extends Module {

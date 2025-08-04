@@ -1,8 +1,12 @@
 package mill.api.daemon.internal
 
+import mill.api.daemon.internal.bsp.BspMainModuleApi
+
 trait MainModuleApi extends ModuleApi {
-  private[mill] def bspClean(
-      evaluator: EvaluatorApi,
-      tasks: String*
-  ): TaskApi[Seq[java.nio.file.Path]]
+
+  /**
+   * Internal access to some BSP helper tasks
+   */
+  private[mill] def bspMainModule: () => BspMainModuleApi
+
 }

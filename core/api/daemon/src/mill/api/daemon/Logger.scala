@@ -1,6 +1,6 @@
 package mill.api.daemon
 
-import java.io.PrintStream
+import java.io.{ByteArrayInputStream, PrintStream}
 
 /**
  * The standard logging interface of the Mill build tool.
@@ -72,7 +72,17 @@ trait Logger {
   private[mill] final def withPromptLine[T](t: => T): T = {
     prompt.setPromptLine(logKey, keySuffix, message)
     try t
-    finally prompt.removePromptLine(logKey)
+    finally prompt.removePromptLine(logKey, message)
+  }
+
+  /**
+   * Helper method to enable this logger as a line item in the global prompt
+   * while the given code block is running
+   */
+  private[mill] final def withChromeProfile[T](text: String)(t: => T): T = {
+    prompt.beginChromeProfileEntry(text)
+    try t
+    finally prompt.endChromeProfileEntry()
   }
 
   /**
@@ -112,6 +122,27 @@ trait Logger {
 }
 
 object Logger {
+  object DummyLogger extends Logger {
+    def colored = false
+
+    val streams = new SystemStreams(
+      new PrintStream(_ => ()),
+      new PrintStream(_ => ()),
+      new ByteArrayInputStream(Array())
+    )
+
+    def info(s: String) = ()
+
+    def warn(s: String) = ()
+
+    def error(s: String) = ()
+
+    def ticker(s: String) = ()
+
+    def debug(s: String) = ()
+
+    def prompt = new Logger.Prompt.NoOp
+  }
 
   /**
    * APIs that allow a logger to interact with the global prompt: setting and unsetting
@@ -119,15 +150,20 @@ object Logger {
    * to logger unchanged without any customization.
    */
   private[mill] trait Prompt {
-
     private[mill] def setPromptDetail(key: Seq[String], s: String): Unit
     private[mill] def reportKey(key: Seq[String]): Unit
     private[mill] def setPromptLine(key: Seq[String], keySuffix: String, message: String): Unit
     private[mill] def setPromptHeaderPrefix(s: String): Unit
     private[mill] def clearPromptStatuses(): Unit
-    private[mill] def removePromptLine(key: Seq[String]): Unit
+    private[mill] def removePromptLine(key: Seq[String], message: String): Unit
     private[mill] def withPromptPaused[T](t: => T): T
     private[mill] def withPromptUnpaused[T](t: => T): T
+
+    private[mill] def beginChromeProfileEntry(text: String): Unit
+    private[mill] def endChromeProfileEntry(): Unit
+
+    private[mill] def logBeginChromeProfileEntry(message: String, timestamp: Long) = ()
+    private[mill] def logEndChromeProfileEntry(timestamp: Long) = ()
 
     def debugEnabled: Boolean
 
@@ -146,9 +182,13 @@ object Logger {
         ()
       private[mill] def setPromptHeaderPrefix(s: String): Unit = ()
       private[mill] def clearPromptStatuses(): Unit = ()
-      private[mill] def removePromptLine(key: Seq[String]): Unit = ()
+      private[mill] def removePromptLine(key: Seq[String], message: String): Unit = ()
       private[mill] def withPromptPaused[T](t: => T): T = t
       private[mill] def withPromptUnpaused[T](t: => T): T = t
+
+      private[mill] def beginChromeProfileEntry(text: String): Unit = ()
+
+      private[mill] def endChromeProfileEntry(): Unit = ()
 
       def debugEnabled: Boolean = false
 

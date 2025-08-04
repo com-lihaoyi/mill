@@ -13,7 +13,7 @@ import ch.epfl.scala.bsp4j.{
   ScalacOptionsParams,
   ScalacOptionsResult
 }
-import mill.api.daemon.internal.{JavaModuleApi, ScalaModuleApi, TaskApi, TestModuleApi}
+import mill.api.daemon.internal.{ScalaModuleApi, TestModuleApi}
 import mill.bsp.worker.Utils.sanitizeUri
 
 import java.util.concurrent.CompletableFuture
@@ -82,7 +82,7 @@ private trait MillScalaBuildServer extends ScalaBuildServer { this: MillBuildSer
     handlerTasks(
       targetIds = _ => p.getTargets.asScala.toSeq,
       tasks = {
-        case m: ScalaModuleApi with TestModuleApi => m.bspBuildTargetScalaTestClasses
+        case m: (ScalaModuleApi & TestModuleApi) => m.bspBuildTargetScalaTestClasses
       },
       requestDescription = "Getting test classes of {}",
       originId = p.getOriginId

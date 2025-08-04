@@ -1,0 +1,6 @@
+package build.foo
+
+import mill.*
+
+def fooBoom = Task { sys.error("boom"); 1 }
+def fooVersionsBoom = Task { myProjectVersion; 1 }

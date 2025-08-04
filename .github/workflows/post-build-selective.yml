@@ -23,10 +23,13 @@ on:
       timeout-minutes:
         default: 60
         type: number
-      install-android-sdk:
+      setup-android:
         default: false
         type: boolean
       install-sbt:
+        default: false
+        type: boolean
+      install-xvfb:
         default: false
         type: boolean
 
@@ -49,10 +52,16 @@ jobs:
           os: ${{ inputs.os }}
 
       - uses: ./.github/actions/setup-android
-        if: ${{ inputs.install-android-sdk }}
+        if: ${{ inputs.setup-android }}
 
       - uses: sbt/setup-sbt@v1
         if: ${{ inputs.install-sbt }}
+      - run: |
+          sudo apt-get install -y xvfb      
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1024x768x16 &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+        if: ${{ inputs.install-xvfb }}
 
       - uses: ./.github/actions/post-build-selective
 

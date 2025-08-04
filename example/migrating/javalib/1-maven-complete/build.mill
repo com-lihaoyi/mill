@@ -8,18 +8,14 @@
 
 > ./mill init
 converting Maven build
-writing Mill build file to geo/package.mill
-writing Mill build file to geo-mem/package.mill
-writing Mill build file to build.mill
+...
 init completed, run "mill resolve _" to list available tasks
 
 > ./mill __.compile
 compiling 9 Java sources to ...geo...
 compiling 2 Java sources to ...geo-mem...
 compiling 10 Java sources to ...geo...test...
-done compiling
 compiling 1 Java source to ...geo-mem...test...
-done compiling
 
 > ./mill __.test # all tests pass immediately
 Test run com.github.davidmoten.geo.GeoHashTest finished: 0 failed, 0 ignored, 66 total, ...

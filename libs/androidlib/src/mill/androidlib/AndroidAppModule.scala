@@ -2,6 +2,7 @@ package mill.androidlib
 
 import coursier.params.ResolutionParams
 import mill.*
+import mill.androidlib.keytool.KeytoolModule
 import mill.api.Logger
 import mill.api.internal.*
 import mill.api.daemon.internal.internal
@@ -9,9 +10,10 @@ import mill.api.{ModuleRef, PathRef, Task}
 import mill.javalib.*
 import os.{Path, RelPath, zip}
 import upickle.default.*
+import scala.concurrent.duration.*
+
 import scala.jdk.OptionConverters.RichOptional
 import scala.xml.*
-
 import mill.api.daemon.internal.bsp.BspBuildTarget
 import mill.api.daemon.internal.EvaluatorApi
 import mill.javalib.testrunner.TestResult
@@ -314,10 +316,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     PathRef(alignedApk)
   }
 
-  // TODO alias, keystore pass and pass below are sensitive credentials and shouldn't be leaked to disk/console.
-  // In the current state they are leaked, because Task dumps output to the json.
-  // Should be fixed ASAP.
-
   /**
    * Name of the key alias in the release keystore. Default is not set.
    */
@@ -345,32 +343,68 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
+   * Saves the private keystore password into a file to be passed to [[androidApk]] via [[androidSignKeyDetails]]
+   * as a file parameter without risking exposing the release password in the logs.
+   *
+   * See more [[https://developer.android.com/tools/apksigner]]
+   * @return
+   */
+  def androidReleaseKeyStorePassFile: T[PathRef] = Task {
+    val filePass = Task.dest / "keystore_password.txt"
+    val keystorePass = androidReleaseKeyStorePass().getOrElse("")
+    os.write(filePass, keystorePass)
+    PathRef(filePass)
+  }
+
+  /**
+   * Saves the private key password into a file to be passed to [[androidApk]] via [[androidSignKeyDetails]]
+   * as a file parameter without risking exposing the release password in the logs.
+   *
+   * See more [[https://developer.android.com/tools/apksigner]]
+   *
+   * @return
+   */
+  def androidReleaseKeyPassFile: T[PathRef] = Task {
+    val filePass = Task.dest / "key_password.txt"
+    val keyPass = androidReleaseKeyPass().getOrElse("")
+    os.write(filePass, keyPass)
+    PathRef(filePass)
+  }
+
+  def androidSignKeyPasswordParams: Task[Seq[String]] = Task.Anon {
+    if (androidIsDebug())
+      Seq(
+        "--ks-pass",
+        s"pass:$debugKeyStorePass",
+        "--key-pass",
+        s"pass:$debugKeyPass"
+      )
+    else
+      Seq(
+        "--ks-pass",
+        s"file:${androidReleaseKeyStorePassFile().path}",
+        "--key-pass",
+        s"file:${androidReleaseKeyPassFile().path}"
+      )
+  }
+
+  /**
    * Generates the command-line arguments required for Android app signing.
    *
    * Uses the release keystore if release build type is set; otherwise, defaults to a generated debug keystore.
    */
   def androidSignKeyDetails: T[Seq[String]] = Task {
 
-    val keystorePass = {
-      if (androidIsDebug()) debugKeyStorePass else androidReleaseKeyStorePass().get
-    }
     val keyAlias = {
       if (androidIsDebug()) debugKeyAlias else androidReleaseKeyAlias().get
-    }
-    val keyPass = {
-      if (androidIsDebug()) debugKeyPass else androidReleaseKeyPass().get
     }
 
     Seq(
       "--ks",
       androidKeystore().path.toString,
       "--ks-key-alias",
-      keyAlias,
-      "--ks-pass",
-      s"pass:$keystorePass",
-      "--key-pass",
-      s"pass:$keyPass"
-    )
+      keyAlias
+    ) ++ androidSignKeyPasswordParams()
   }
 
   /**
@@ -583,7 +617,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     bootMessage.get
   }
 
-  def adbDevices: T[String] = Task {
+  def adbDevices(): Command[String] = Task.Command {
     os.call((androidSdkModule().adbPath().path, "devices", "-l")).out.text()
   }
 
@@ -664,46 +698,45 @@ trait AndroidAppModule extends AndroidModule { outer =>
     Task.Sources(subPaths*)
   }
 
+  private def androidMillHomeDir: Task[PathRef] = Task.Anon {
+    val globalDebugFileLocation = os.home / ".mill-android"
+    if (!os.exists(globalDebugFileLocation))
+      os.makeDir(globalDebugFileLocation)
+    PathRef(globalDebugFileLocation)
+  }
+
+  private def debugKeystoreFile: Task[PathRef] = Task.Anon {
+    PathRef(androidMillHomeDir().path / "mill-debug.jks")
+  }
+
+  private def keytoolModuleRef: ModuleRef[KeytoolModule] = ModuleRef(KeytoolModule)
+
   /*
     The debug keystore is stored in `$HOME/.mill-android`. The practical
   purpose of a global keystore is to avoid the user having to uninstall the
   app everytime the task directory is deleted (as the app signatures will not match).
    */
-  private def androidDebugKeystore: Task[PathRef] = Task(persistent = true) {
-    val debugFileName = "mill-debug.jks"
-    val globalDebugFileLocation = os.home / ".mill-android"
-
-    if (!os.exists(globalDebugFileLocation)) {
-      os.makeDir(globalDebugFileLocation)
-    }
-
-    val debugKeystoreFile = globalDebugFileLocation / debugFileName
-
-    if (!os.exists(debugKeystoreFile)) {
-      // TODO test on windows and mac and/or change implementation with java APIs
-      os.call((
-        "keytool",
-        "-genkeypair",
-        "-keystore",
-        debugKeystoreFile,
-        "-alias",
-        debugKeyAlias,
-        "-dname",
-        "CN=MILL, OU=MILL, O=MILL, L=MILL, S=MILL, C=MILL",
-        "-validity",
-        "10000",
-        "-keyalg",
-        "RSA",
-        "-keysize",
-        "2048",
-        "-storepass",
+  private def androidDebugKeystore: Task[PathRef] = Task.Anon {
+    val debugKeystoreFilePath = debugKeystoreFile().path
+    os.makeDir.all(androidMillHomeDir().path)
+    keytoolModuleRef().createKeystoreWithCertificate(
+      Task.Anon(Seq(
+        "--keystore",
+        outer.debugKeystoreFile().path.toString,
+        "--storepass",
         debugKeyStorePass,
-        "-keypass",
-        debugKeyPass
+        "--alias",
+        debugKeyAlias,
+        "--keypass",
+        debugKeyPass,
+        "--dname",
+        s"CN=$debugKeyAlias, OU=$debugKeyAlias, O=$debugKeyAlias, L=$debugKeyAlias, S=$debugKeyAlias, C=$debugKeyAlias",
+        "--validity",
+        10000.days.toString,
+        "--skip-if-exists"
       ))
-    }
-
-    PathRef(debugKeystoreFile)
+    )()
+    PathRef(debugKeystoreFilePath)
   }
 
   protected def androidKeystore: T[PathRef] = Task {
@@ -785,21 +818,24 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     os.call(dex.dexCliArgs)
 
-    dex.outPath
+    PathRef(dex.outPath.path)
 
   }
 
   // uses the d8 tool to generate the dex file, when minification is disabled
-  private def androidD8Dex: T[(outPath: PathRef, dexCliArgs: Seq[String])] = Task {
+  private def androidD8Dex
+      : Task[(outPath: PathRef, dexCliArgs: Seq[String], appCompiledFiles: Seq[PathRef])] = Task {
 
     val outPath = Task.dest
 
-    val appCompiledFiles = (androidPackagedCompiledClasses() ++ androidPackagedClassfiles())
-      .map(_.path.toString())
+    val appCompiledPathRefs = androidPackagedCompiledClasses() ++ androidPackagedClassfiles()
 
-    val libsJarFiles = androidPackagedDeps()
+    val appCompiledFiles = appCompiledPathRefs.map(_.path.toString())
+
+    val libsJarPathRefs = androidPackagedDeps()
       .filter(_ != androidSdkModule().androidJarPath())
-      .map(_.path.toString())
+
+    val libsJarFiles = libsJarPathRefs.map(_.path.toString())
 
     val proguardFile = Task.dest / "proguard-rules.pro"
     val knownProguardRules = androidUnpackArchives()
@@ -837,7 +873,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     Task.log.info(s"Running d8 with the command: ${d8Args.mkString(" ")}")
 
-    PathRef(outPath) -> d8Args
+    (PathRef(outPath), d8Args, appCompiledPathRefs ++ libsJarPathRefs)
   }
 
   trait AndroidAppTests extends AndroidAppModule with JavaTests {

@@ -30,25 +30,25 @@ object Ivy {
   ): String = {
 
     val mainPublishInfo = {
-      val pomInfo = PublishInfo(null, ivyType = "pom", ext = "pom", ivyConfig = "pom")
+      val pomInfo = PublishInfo.IvyMetadata.Pom
       if (hasJar)
         Seq(
           pomInfo,
-          PublishInfo.jar(null),
-          PublishInfo.sourcesJar(null),
-          PublishInfo.docJar(null)
+          PublishInfo.IvyMetadata.Jar,
+          PublishInfo.IvyMetadata.SourcesJar,
+          PublishInfo.IvyMetadata.DocJar
         )
       else
         Seq(pomInfo)
     }
 
-    def renderArtifact(e: PublishInfo): Elem = {
+    def renderArtifact(e: PublishInfo.IvyMetadata): Elem = {
       e.classifier match {
         case None =>
-          <artifact name={artifact.id} type={e.ivyType} ext={e.ext} conf={e.ivyConfig} />
+          <artifact name={artifact.id} type={e.`type`} ext={e.extension} conf={e.config} />
         case Some(c) =>
-          <artifact name={artifact.id} type={e.ivyType} ext={e.ext} conf={
-            e.ivyConfig
+          <artifact name={artifact.id} type={e.`type`} ext={e.extension} conf={
+            e.config
           } e:classifier={c} />
       }
     }
@@ -71,10 +71,10 @@ object Ivy {
         </configurations>
 
         <publications>
-          {(mainPublishInfo ++ extras).map(renderArtifact)}
+          {(mainPublishInfo ++ extras.iterator.map(_.toIvyMetadata)).map(renderArtifact)}
         </publications>
         <dependencies>
-          {dependencies.map(renderDependency).toSeq}
+          {dependencies.map(renderDependency)}
           {overrides.map(renderOverride)}
         </dependencies>
       </ivy-module>

@@ -22,7 +22,7 @@ object CheckstyleModuleTest extends TestSuite {
 
       test("check") {
 
-        intercept[RuntimeException](
+        assertThrows[RuntimeException](
           testJava(resources / "non-compatible", check = true)
         )
       }
@@ -54,7 +54,7 @@ object CheckstyleModuleTest extends TestSuite {
           )
         )
 
-        intercept[UnsupportedOperationException](
+        assertThrows[UnsupportedOperationException](
           testJava(resources / "non-compatible", sources = Seq("hope/this/path/does/not/exist"))
         )
       }
@@ -89,7 +89,7 @@ object CheckstyleModuleTest extends TestSuite {
           testJava(resources / "compatible-java", "xml", "6.3")
         )
 
-        intercept[UnsupportedOperationException](
+        assertThrows[UnsupportedOperationException](
           testJava(resources / "compatible-java", "sarif", "8.42")
         )
       }
@@ -115,7 +115,7 @@ object CheckstyleModuleTest extends TestSuite {
       }
 
       test("cannot set options for legacy version") {
-        intercept[UnsupportedOperationException](
+        assertThrows[UnsupportedOperationException](
           testJava(resources / "compatible-java", version = "6.3", options = Seq("-d"))
         )
       }

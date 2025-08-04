@@ -1,7 +1,6 @@
 package mill.daemon
 
 import mill.api.SystemStreams
-import mill.api.daemon.internal.internal
 import mill.api.daemon.Watchable
 import mill.api.BuildCtx
 import mill.internal.Colors
@@ -9,14 +8,12 @@ import mill.internal.Colors
 import java.io.InputStream
 import java.nio.channels.ClosedChannelException
 import scala.annotation.tailrec
-import scala.concurrent.Future
-import scala.util.{Try, Using}
+import scala.util.Using
 
 /**
  * Logic around the "watch and wait" functionality in Mill: re-run on change,
  * re-run when the user presses Enter, printing status messages, etc.
  */
-@internal
 object Watching {
   case class Result[T](watched: Seq[Watchable], error: Option[String], result: T)
 

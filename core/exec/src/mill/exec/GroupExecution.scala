@@ -3,7 +3,6 @@ package mill.exec
 import mill.api.ExecResult.{OuterStack, Success}
 
 import mill.api.*
-import mill.api.*
 import mill.internal.MultiLogger
 import mill.internal.FileLogger
 
@@ -42,7 +41,7 @@ private trait GroupExecution {
     // recursively convert java data structure to ujson.Value
     val envWithPwd = env ++ Seq(
       "PWD" -> workspace.toString,
-      "PWD_URI" -> workspace.toNIO.toUri.toString,
+      "PWD_URI" -> workspace.toURI.toString,
       "MILL_VERSION" -> mill.constants.BuildInfo.millVersion,
       "MILL_BIN_PLATFORM" -> mill.constants.BuildInfo.millBinPlatform
     )
@@ -91,160 +90,159 @@ private trait GroupExecution {
       exclusive: Boolean,
       upstreamPathRefs: Seq[PathRef]
   ): GroupExecution.Results = {
-    logger.withPromptLine {
-      val externalInputsHash = MurmurHash3.orderedHash(
-        group.flatMap(_.inputs).filter(!group.contains(_))
-          .flatMap(results(_).asSuccess.map(_.value._2))
-      )
 
-      val sideHashes = MurmurHash3.orderedHash(group.iterator.map(_.sideHash))
+    val externalInputsHash = MurmurHash3.orderedHash(
+      group.flatMap(_.inputs).filter(!group.contains(_))
+        .flatMap(results(_).asSuccess.map(_.value._2))
+    )
 
-      val scriptsHash = MurmurHash3.orderedHash(
-        group
-          .iterator
-          .collect { case namedTask: Task.Named[_] =>
-            CodeSigUtils.codeSigForTask(
-              namedTask,
-              classToTransitiveClasses,
-              allTransitiveClassMethods,
-              codeSignatures,
-              constructorHashSignatures
-            )
-          }
-          .flatten
-      )
+    val sideHashes = MurmurHash3.orderedHash(group.iterator.map(_.sideHash))
 
-      val javaHomeHash = sys.props("java.home").hashCode
-      val inputsHash =
-        externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash + javaHomeHash
+    val scriptsHash = MurmurHash3.orderedHash(
+      group
+        .iterator
+        .collect { case namedTask: Task.Named[_] =>
+          CodeSigUtils.codeSigForTask(
+            namedTask,
+            classToTransitiveClasses,
+            allTransitiveClassMethods,
+            codeSignatures,
+            constructorHashSignatures
+          )
+        }
+        .flatten
+    )
 
-      terminal match {
+    val javaHomeHash = sys.props("java.home").hashCode
+    val inputsHash =
+      externalInputsHash + sideHashes + classLoaderSigHash + scriptsHash + javaHomeHash
 
-        case labelled: Task.Named[_] =>
-          labelled.ctx.segments.value match {
-            case Seq(Segment.Label(single)) if parsedHeaderData.contains(single) =>
-              val jsonData = parsedHeaderData(single)
-              val (resultData, serializedPaths) = PathRef.withSerializedPaths {
-                upickle.default.read[Any](jsonData)(
-                  using labelled.readWriterOpt.get.asInstanceOf[upickle.default.Reader[Any]]
-                )
-              }
-              GroupExecution.Results(
-                Map(labelled -> ExecResult.Success(Val(resultData), resultData.##)),
-                Nil,
-                cached = true,
-                inputsHash,
-                -1,
-                false,
-                serializedPaths
+    terminal match {
+
+      case labelled: Task.Named[_] =>
+        labelled.ctx.segments.value match {
+          case Seq(Segment.Label(single)) if parsedHeaderData.contains(single) =>
+            val jsonData = parsedHeaderData(single)
+            val (resultData, serializedPaths) = PathRef.withSerializedPaths {
+              upickle.default.read[Any](jsonData)(
+                using labelled.readWriterOpt.get.asInstanceOf[upickle.default.Reader[Any]]
               )
-            case _ =>
-              val out = if (!labelled.ctx.external) outPath else externalOutPath
-              val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
-              val cached = loadCachedJson(logger, inputsHash, labelled, paths)
+            }
+            GroupExecution.Results(
+              Map(labelled -> ExecResult.Success(Val(resultData), resultData.##)),
+              Nil,
+              cached = true,
+              inputsHash,
+              -1,
+              false,
+              serializedPaths
+            )
+          case _ =>
+            val out = if (!labelled.ctx.external) outPath else externalOutPath
+            val paths = ExecutionPaths.resolve(out, labelled.ctx.segments)
+            val cached = loadCachedJson(logger, inputsHash, labelled, paths)
 
-              // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
-              val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled, cached.isEmpty)
+            // `cached.isEmpty` means worker metadata file removed by user so recompute the worker
+            val upToDateWorker = loadUpToDateWorker(logger, inputsHash, labelled, cached.isEmpty)
 
-              val cachedValueAndHash =
-                upToDateWorker.map(w => (w -> Nil, inputsHash))
-                  .orElse(cached.flatMap { case (_, valOpt, valueHash) =>
-                    valOpt.map((_, valueHash))
-                  })
+            val cachedValueAndHash =
+              upToDateWorker.map(w => (w -> Nil, inputsHash))
+                .orElse(cached.flatMap { case (_, valOpt, valueHash) =>
+                  valOpt.map((_, valueHash))
+                })
 
-              cachedValueAndHash match {
-                case Some(((v, serializedPaths), hashCode)) =>
-                  val res = ExecResult.Success((v, hashCode))
-                  val newResults: Map[Task[?], ExecResult[(Val, Int)]] =
-                    Map(labelled -> res)
+            cachedValueAndHash match {
+              case Some(((v, serializedPaths), hashCode)) =>
+                val res = ExecResult.Success((v, hashCode))
+                val newResults: Map[Task[?], ExecResult[(Val, Int)]] =
+                  Map(labelled -> res)
 
-                  GroupExecution.Results(
-                    newResults,
-                    Nil,
-                    cached = true,
-                    inputsHash,
-                    -1,
-                    valueHashChanged = false,
-                    serializedPaths
+                GroupExecution.Results(
+                  newResults,
+                  Nil,
+                  cached = true,
+                  inputsHash,
+                  -1,
+                  valueHashChanged = false,
+                  serializedPaths
+                )
+
+              case _ =>
+                // uncached
+                if (!labelled.persistent) os.remove.all(paths.dest)
+
+                val (newResults, newEvaluated) =
+                  executeGroup(
+                    group = group,
+                    results = results,
+                    inputsHash = inputsHash,
+                    paths = Some(paths),
+                    taskLabelOpt = Some(terminal.toString),
+                    counterMsg = countMsg,
+                    reporter = zincProblemReporter,
+                    testReporter = testReporter,
+                    logger = logger,
+                    executionContext = executionContext,
+                    exclusive = exclusive,
+                    deps = deps,
+                    upstreamPathRefs = upstreamPathRefs,
+                    terminal = labelled
                   )
 
-                case _ =>
-                  // uncached
-                  if (!labelled.persistent) os.remove.all(paths.dest)
+                val (valueHash, serializedPaths) = newResults(labelled) match {
+                  case ExecResult.Success((v, _)) =>
+                    val valueHash = getValueHash(v, terminal, inputsHash)
+                    val serializedPaths =
+                      handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
+                    (valueHash, serializedPaths)
 
-                  val (newResults, newEvaluated) =
-                    executeGroup(
-                      group = group,
-                      results = results,
-                      inputsHash = inputsHash,
-                      paths = Some(paths),
-                      taskLabelOpt = Some(terminal.toString),
-                      counterMsg = countMsg,
-                      reporter = zincProblemReporter,
-                      testReporter = testReporter,
-                      logger = logger,
-                      executionContext = executionContext,
-                      exclusive = exclusive,
-                      deps = deps,
-                      upstreamPathRefs = upstreamPathRefs,
-                      terminal = labelled
-                    )
+                  case _ =>
+                    // Wipe out any cached meta.json file that exists, so
+                    // a following run won't look at the cached metadata file and
+                    // assume it's associated with the possibly-borked state of the
+                    // destPath after an evaluation failure.
+                    os.remove.all(paths.meta)
+                    (0, Nil)
+                }
 
-                  val (valueHash, serializedPaths) = newResults(labelled) match {
-                    case ExecResult.Success((v, _)) =>
-                      val valueHash = getValueHash(v, terminal, inputsHash)
-                      val serializedPaths =
-                        handleTaskResult(v, valueHash, paths.meta, inputsHash, labelled)
-                      (valueHash, serializedPaths)
+                GroupExecution.Results(
+                  newResults,
+                  newEvaluated.toSeq,
+                  cached = if (labelled.isInstanceOf[Task.Input[?]]) null else false,
+                  inputsHash,
+                  cached.map(_._1).getOrElse(-1),
+                  !cached.map(_._3).contains(valueHash),
+                  serializedPaths
+                )
+            }
+        }
+      case _ =>
+        val (newResults, newEvaluated) = executeGroup(
+          group = group,
+          results = results,
+          inputsHash = inputsHash,
+          paths = None,
+          taskLabelOpt = None,
+          counterMsg = countMsg,
+          reporter = zincProblemReporter,
+          testReporter = testReporter,
+          logger = logger,
+          executionContext = executionContext,
+          exclusive = exclusive,
+          deps = deps,
+          upstreamPathRefs = upstreamPathRefs,
+          terminal = terminal
+        )
+        GroupExecution.Results(
+          newResults,
+          newEvaluated.toSeq,
+          null,
+          inputsHash,
+          -1,
+          valueHashChanged = false,
+          serializedPaths = Nil
+        )
 
-                    case _ =>
-                      // Wipe out any cached meta.json file that exists, so
-                      // a following run won't look at the cached metadata file and
-                      // assume it's associated with the possibly-borked state of the
-                      // destPath after an evaluation failure.
-                      os.remove.all(paths.meta)
-                      (0, Nil)
-                  }
-
-                  GroupExecution.Results(
-                    newResults,
-                    newEvaluated.toSeq,
-                    cached = if (labelled.isInstanceOf[Task.Input[?]]) null else false,
-                    inputsHash,
-                    cached.map(_._1).getOrElse(-1),
-                    !cached.map(_._3).contains(valueHash),
-                    serializedPaths
-                  )
-              }
-          }
-        case _ =>
-          val (newResults, newEvaluated) = executeGroup(
-            group = group,
-            results = results,
-            inputsHash = inputsHash,
-            paths = None,
-            taskLabelOpt = None,
-            counterMsg = countMsg,
-            reporter = zincProblemReporter,
-            testReporter = testReporter,
-            logger = logger,
-            executionContext = executionContext,
-            exclusive = exclusive,
-            deps = deps,
-            upstreamPathRefs = upstreamPathRefs,
-            terminal = terminal
-          )
-          GroupExecution.Results(
-            newResults,
-            newEvaluated.toSeq,
-            null,
-            inputsHash,
-            -1,
-            valueHashChanged = false,
-            serializedPaths = Nil
-          )
-
-      }
     }
   }
 
@@ -540,7 +538,8 @@ private object GroupExecution {
           if (!isCommand && !isInput && mill.api.FilesystemCheckerEnabled.value) {
             if (path.startsWith(workspace) && !validReadDests.exists(path.startsWith(_))) {
               sys.error(
-                s"Reading from ${path.relativeTo(workspace)} not allowed during execution of `$terminal`"
+                s"Reading from ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
+                  "You can only read files referenced by `Task.Source` or `Task.Sources`, or within a `Task.Input"
               )
             }
           }
@@ -551,7 +550,8 @@ private object GroupExecution {
         if (!isCommand && mill.api.FilesystemCheckerEnabled.value) {
           if (path.startsWith(workspace) && !validWriteDests.exists(path.startsWith(_))) {
             sys.error(
-              s"Writing to ${path.relativeTo(workspace)} not allowed during execution of `$terminal`"
+              s"Writing to ${path.relativeTo(workspace)} not allowed during execution of `$terminal`.\n" +
+                "Normal `Task`s can only write to files within their `Task.dest` folder, only `Task.Command`s can write to other arbitrary files."
             )
           }
         }

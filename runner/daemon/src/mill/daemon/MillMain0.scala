@@ -1,14 +1,22 @@
 package mill.daemon
 
 import ch.epfl.scala.bsp4j.BuildClient
-import mill.api.daemon.internal.bsp.{BspServerHandle, BspServerResult}
-import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi, internal}
+import mill.api.daemon.internal.bsp.BspServerHandle
+import mill.api.daemon.internal.{CompileProblemReporter, EvaluatorApi}
 import mill.api.{Logger, MillException, Result, SystemStreams}
 import mill.bsp.BSP
 import mill.client.lock.Lock
 import mill.constants.{DaemonFiles, OutFiles}
 import mill.api.BuildCtx
-import mill.internal.{Colors, MultiStream, PrefixLogger, PromptLogger, SimpleLogger}
+import mill.internal.{
+  Colors,
+  JsonArrayLogger,
+  MultiStream,
+  PrefixLogger,
+  PromptLogger,
+  SimpleLogger,
+  MillCliConfig
+}
 import mill.server.Server
 import mill.util.BuildInfo
 import mill.api
@@ -24,7 +32,6 @@ import scala.concurrent.duration.Duration
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Using}
 
-@internal
 object MillMain0 {
 
   def handleMillException[T](
@@ -253,7 +260,6 @@ object MillMain0 {
                             !config.noFilesystemChecker.value
                           ) {
                             tailManager.withOutErr(logger.streams.out, logger.streams.err) {
-
                               new MillBuildBootstrap(
                                 projectRoot = BuildCtx.workspaceRoot,
                                 output = out,
@@ -293,7 +299,8 @@ object MillMain0 {
                               .orElse(Option.when(config.disableTicker.value)(false)),
                             daemonDir,
                             colored = colored,
-                            colors = colors
+                            colors = colors,
+                            out = out
                           )) { logger =>
                             proceed(logger)
                           }
@@ -418,6 +425,17 @@ object MillMain0 {
                         runnerState.result.frames.flatMap(_.evaluator)
                       ).run()
                       (true, RunnerState(None, Nil, None))
+                    } else if (
+                      config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/eclipse") ||
+                      config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/") ||
+                      config.leftoverArgs.value == Seq("mill.eclipse/")
+                    ) {
+                      val runnerState =
+                        runMillBootstrap(false, None, Seq("version"), streams, "BSP:initialize")
+                      new mill.eclipse.GenEclipseImpl(
+                        runnerState.result.frames.flatMap(_.evaluator)
+                      ).run()
+                      (true, RunnerState(None, Nil, None))
                     } else {
                       // When starting a --watch, clear the `mill-selective-execution.json`
                       // file, so that the first run always selects everything and only
@@ -522,7 +540,8 @@ object MillMain0 {
       enableTicker: Option[Boolean],
       daemonDir: os.Path,
       colored: Boolean,
-      colors: Colors
+      colors: Colors,
+      out: os.Path
   ): Logger & AutoCloseable = {
     new PromptLogger(
       colored = colored,
@@ -534,7 +553,8 @@ object MillMain0 {
       debugEnabled = config.debugLog.value,
       titleText = config.leftoverArgs.value.mkString(" "),
       terminfoPath = daemonDir / DaemonFiles.terminfo,
-      currentTimeMillis = () => System.currentTimeMillis()
+      currentTimeMillis = () => System.currentTimeMillis(),
+      chromeProfileLogger = new JsonArrayLogger.ChromeProfile(out / OutFiles.millChromeProfile)
     )
   }
 
@@ -601,7 +621,7 @@ object MillMain0 {
 
   def checkMillVersionFromFile(projectDir: os.Path, stderr: PrintStream): Unit = {
     readBestMillVersion(projectDir).foreach { case (file, version) =>
-      if (BuildInfo.millVersion != version.stripSuffix("-native")) {
+      if (BuildInfo.millVersion != version.stripSuffix("-native").stripSuffix("-jvm")) {
         val msg =
           s"""Mill version ${BuildInfo.millVersion} is different than configured for this directory!
              |Configured version is ${version} (${file})""".stripMargin
