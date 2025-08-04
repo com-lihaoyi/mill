@@ -12,7 +12,7 @@ _mill_zsh() {
   # zsh $CURRENT is 1-indexed while bash $COMP_CWORD is 0-indexed, so
   # subtract 1 from zsh's variable so Mill gets a consistent index
   local -a descriptions
-  descriptions=("${(f)$($words[1] --tab-complete "$((CURRENT - 1))" $words)}")
+  descriptions=("${(f)$($words[1] --tab-complete "$((CURRENT - 1))" --is-zsh $words)}")
   _describe 'mill options' descriptions
 }
 
