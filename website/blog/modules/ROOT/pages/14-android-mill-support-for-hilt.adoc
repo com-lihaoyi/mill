@@ -221,9 +221,9 @@ Install mill
 
 Configure the mill build
 
-[source,bash]
+[source,console]
 ----
-curl https://raw.githubusercontent.com/com-lihaoyi/mill/6351d7f3a29dd272c9393f690a3eb82ffa2b4f41/example/thirdparty/androidtodo/build.mill >>build.mill
+> curl https://raw.githubusercontent.com/com-lihaoyi/mill/6351d7f3a29dd272c9393f690a3eb82ffa2b4f41/example/thirdparty/androidtodo/build.mill >>build.mill
 ----
 
 Start the emulator and run the app
