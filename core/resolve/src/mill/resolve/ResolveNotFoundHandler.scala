@@ -1,7 +1,7 @@
 package mill.resolve
 
+import mill.api.internal.Resolved
 import mill.api.{Segment, Segments}
-import mill.resolve.ResolveCore.Resolved
 
 /**
  * Reports errors in the case where nothing was resolved

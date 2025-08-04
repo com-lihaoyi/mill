@@ -9,13 +9,15 @@ import utest.*
 import java.io.{ByteArrayOutputStream, PrintStream}
 
 object TabCompleteTests extends TestSuite {
-
   object mainModule extends TestRootModule {
     lazy val millDiscover = Discover[this.type]
     def task1(argA: String = "", argB2: Int = 0) = Task.Command { 123 }
     object foo extends Module
     object bar extends Module {
-      def task2(argA3: String, argB4: Int) = Task.Command { 456 }
+      def task2(
+          @mainargs.arg(doc = "arg a 3 docs") argA3: String,
+          @mainargs.arg(doc = "arg b 4 docs") argB4: Int
+      ) = Task.Command { 456 }
       def taskPositional(
           @mainargs.arg(positional = true) argA3: String,
           @mainargs.arg(positional = true) argB4: Int
@@ -165,7 +167,7 @@ object TabCompleteTests extends TestSuite {
       test("short") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "-"),
-          Set("-v", "-b", "-d", "-k", "-D", "-j", "-i", "-w", "-h", "-s")
+          Set("-j", "-w", "-k", "-b", "-v", "-d", "-i", "-D")
         )
       }
       test("emptyAfterFlag") {
@@ -193,26 +195,19 @@ object TabCompleteTests extends TestSuite {
           evalComplete("1", "./mill", "--"),
           Set(
             "--jobs",
+            "--no-filesystem-checker",
+            "--keep-going",
             "--watch",
             "--no-build-lock",
             "--interactive",
-            "--repl",
-            "--home",
             "--no-wait-for-build-lock",
             "--help",
             "--color",
             "--help-advanced",
             "--tab-complete",
-            "--disable-ticker",
             "--offline",
             "--allow-positional",
             "--ticker",
-            "--disable-prompt",
-            "--no-server",
-            "--enable-ticker",
-            "--no-filesystem-checker",
-            "--disable-callgraph",
-            "--keep-going",
             "--bsp",
             "--meta-level",
             "--version",
@@ -224,7 +219,6 @@ object TabCompleteTests extends TestSuite {
             "--bsp-watch",
             "--define",
             "--bell",
-            "--silent",
             "--debug"
           )
         )
@@ -232,7 +226,7 @@ object TabCompleteTests extends TestSuite {
       test("longflagsfiltered") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "--h"),
-          Set("--help", "--help-advanced", "--home")
+          Set("--help", "--help-advanced")
         )
       }
       test("longFlagBrokenEarlier") {
@@ -309,6 +303,23 @@ object TabCompleteTests extends TestSuite {
             Set("file2.txt", "file1.txt", "out")
           )
         }
+      }
+    }
+    test("docs") {
+      test {
+        assertGoldenLiteral(
+          evalComplete("2", "--is-zsh", "./mill", "bar.task2", "--"),
+          Set("--arg-a-3  <str> arg a 3 docs", "--arg-b-4  <int> arg b 4 docs")
+        )
+      }
+      test {
+        assertGoldenLiteral(
+          evalComplete("1", "--is-zsh", "./mill", "--h"),
+          Set(
+            "--help           Print this help message and exit.",
+            "--help-advanced  Print a internal or advanced command flags not intended for common usage"
+          )
+        )
       }
     }
   }
