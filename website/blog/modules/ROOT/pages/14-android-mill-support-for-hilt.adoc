@@ -238,9 +238,9 @@ Start the emulator and run the app
 
 Run the instrumented tests and watch the app being tested inside the emulator:
 
-[source,bash]
+[source,console]
 ----
-./mill app.androidTest
+> ./mill app.androidTest
 ----
 
 .Screenshots: Instrumentation tests running inside emulator via Mill
