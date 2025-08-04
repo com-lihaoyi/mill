@@ -11,14 +11,21 @@ _mill_zsh() {
   #
   # zsh $CURRENT is 1-indexed while bash $COMP_CWORD is 0-indexed, so
   # subtract 1 from zsh's variable so Mill gets a consistent index
-  local -a descs opts
+  local -a descs opts expl
   descs=("${(f)$($words[1] --tab-complete "$((CURRENT - 1))" --is-zsh $words)}")
   for d in $descs; do
     opts+=("${d%% *}")      # before the space
+    if (( ${#d} > COLUMNS )); then
+      # leave room for “…” (3 chars)
+      expl+=("${d:0:$((COLUMNS-3))}...")
+    else
+      expl+=("$d")
+    fi
+
   done
 
   # -S '' = no suffix; -d expl = descriptions array
-  compadd -S '' -d descs -- $opts
+  compadd -S '' -d expl -- $opts
 }
 
 if [ -n "${ZSH_VERSION:-}" ]; then
