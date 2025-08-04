@@ -211,12 +211,12 @@ cd architecture-samples
 
 Install mill
 
-[source,bash]
+[source,console]
 ----
-curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2/mill-dist-1.0.2-mill.sh -o mill
-chmod +x mill
-echo "//| mill-version: 1.0.2-3-e42a40" > build.mill
-./mill version
+> curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2/mill-dist-1.0.2-mill.sh -o mill
+> chmod +x mill
+> echo "//| mill-version: 1.0.2-3-e42a40" > build.mill
+> ./mill version
 ----
 
 Configure the mill build
