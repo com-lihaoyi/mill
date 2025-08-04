@@ -307,18 +307,15 @@ object TabCompleteTests extends TestSuite {
       test{
         assertGoldenLiteral(
           evalComplete("2", "--is-zsh", "./mill", "bar.task2", "--"),
-          Set(
-            "--arg-a-3:<str> arg a 3 docs",
-            "--arg-b-4:<int> arg b 4 docs"
-          )
+          Set("--arg-a-3  <str> arg a 3 docs", "--arg-b-4  <int> arg b 4 docs")
         )
       }
       test{
         assertGoldenLiteral(
           evalComplete( "1", "--is-zsh", "./mill", "--h"),
           Set(
-            "--help:Print this help message and exit.",
-            "--help-advanced:Print a internal or advanced command flags not intended for common usage"
+            "--help           Print this help message and exit.",
+            "--help-advanced  Print a internal or advanced command flags not intended for common usage"
           )
         )
       }
