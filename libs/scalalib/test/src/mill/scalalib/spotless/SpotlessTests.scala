@@ -129,7 +129,7 @@ object SpotlessTests extends TestSuite {
 
         call("git", "init", "-b", "ratchet")
         call("git", "add", ".gitignore", legacy)
-        call("git", "commit", "-m", "0") // minimum 1 commit required
+        call("git", "commit", "-c", "commit.gpgsign=false", "-m", "0") // minimum 1 commit required
 
         val Right(_) = eval("ratchet")
         var log = logStream.toString
@@ -157,7 +157,7 @@ object SpotlessTests extends TestSuite {
         )
 
         call("git", "add", "--all") // re-stage formatted files
-        call("git", "commit", "-m", "1")
+        call("git", "commit", "-c", "commit.gpgsign=false", "-m", "1")
         logStream.reset()
         val Right(_) = eval("ratchet", "HEAD^", "HEAD")
         log = logStream.toString
