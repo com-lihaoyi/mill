@@ -15,9 +15,9 @@ _mill_zsh() {
   descs=("${(f)$($words[1] --tab-complete "$((CURRENT - 1))" --is-zsh $words)}")
   for d in $descs; do
     opts+=("${d%% *}")      # before the space
-    expl+=("${d}")       # after the space
+    expl+=("${d}")
   done
-  echo opts > ~/hello.txt
+
   # -S '' = no suffix; -d expl = descriptions array
   compadd -S '' -d expl -- $opts
 }
