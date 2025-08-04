@@ -101,16 +101,12 @@ private[this] object TabCompleteModule extends ExternalModule {
         // `-f` or `--flag` because parsing succeeded, so delegate to file completion
         else if (index < parsedArgCount) {
           val argSigs = MillCliConfig.parser.main.flattenedArgSigs.map(_._1)
-          if (!findMatchingArgs(args.value.lift(index), argSigs)) {
-            delegateToBash(args, index)
-          }
+          if (!findMatchingArgs(args.value.lift(index), argSigs)) delegateToBash(args, index)
         }
         // This is the task I need to autocomplete, or the next incomplete flag
         else if (index == parsedArgCount) {
           val argSigs = MillCliConfig.parser.main.flattenedArgSigs.map(_._1)
-          if (!findMatchingArgs(args.value.lift(index), argSigs)) {
-            completeTasks(ev, index, args.value)
-          }
+          if (!findMatchingArgs(args.value.lift(index), argSigs)) completeTasks(ev, index, args.value)
         } else ???
     }
   }
