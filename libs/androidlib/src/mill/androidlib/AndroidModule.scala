@@ -344,7 +344,7 @@ trait AndroidModule extends JavaModule {
     androidUnpackArchives().flatMap(_.manifest)
   }
 
-  def androidMergedManifestArgs: Task[Seq[String]] = Task {
+  def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {
     Seq(
       "--main",
       androidManifest().path.toString(),

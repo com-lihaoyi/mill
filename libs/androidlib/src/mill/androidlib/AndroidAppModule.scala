@@ -275,7 +275,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
     debugManifest ++ libManifests
   }
 
-  override def androidMergedManifestArgs: Task[Seq[String]] = Task {
+  override def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {
     Seq(
       "--main",
       androidManifest().path.toString(),
@@ -982,7 +982,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
      *
      * See [[https://developer.android.com/build/manage-manifests]] for more details.
      */
-    override def androidMergedManifestArgs: Task[Seq[String]] = Task {
+    override def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {
       Seq(
         "--main",
         androidManifest().path.toString(),
