@@ -25,8 +25,9 @@ _2025-08-05_
 :prev-version: 1.0.2
 
 * Mill now tab-completes flags like `-j` or `--jobs` ({link-pr}/5642[#5642]),
-   as well as flags belonging to `Task.Command`s that the user defines ({link-pr}/5643[#5643]),
-   and displays the description for flags and tasks that get tab completed
+   as well as flags belonging to ``Task.Command``s that the user defines ({link-pr}/5643[#5643])
+   in addition to tab-completing modules and tasks that it did before. 
+   Mill also now displays the description for flags and tasks that get tab completed
    ({link-pr}/5648[#5648], {link-pr}/5650[#5650]). Note that these improvements require
    you to re-run `./mill mill.tabcomplete/install` to activate
 
