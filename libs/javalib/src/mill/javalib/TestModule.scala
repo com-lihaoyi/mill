@@ -251,6 +251,7 @@ trait TestModule
         forkArgs(),
         globSelectors(),
         jvmWorker().scalalibClasspath(),
+        resources(),
         testFramework(),
         runClasspath(),
         testClasspath(),

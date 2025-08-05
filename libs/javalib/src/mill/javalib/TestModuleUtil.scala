@@ -20,6 +20,7 @@ import mill.api.BuildCtx
 import mill.javalib.testrunner.{GetTestTasksMain, TestArgs, TestResult, TestRunnerUtils}
 import os.Path
 
+import scala.annotation.unused
 import scala.concurrent.Future
 
 /**
@@ -31,6 +32,7 @@ final class TestModuleUtil(
     forkArgs: Seq[String],
     selectors: Seq[String],
     scalalibClasspath: Seq[PathRef],
+    @unused resources: Seq[PathRef],
     testFramework: String,
     runClasspath: Seq[PathRef],
     testClasspath: Seq[PathRef],
