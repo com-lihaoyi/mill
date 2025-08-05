@@ -318,7 +318,7 @@ private[mill] object CrossMacros {
               $wrappedElems.map((segArg: elems) => ${ pathSegmentsTree('segArg) }),
             crossValuesListLists = $valuesTree,
             crossValuesRaw = $wrappedT
-          )
+          )(using compiletime.summonInline[reflect.ClassTag[T]])
         }
         // report.errorAndAbort(s"made factory ${ref.show}")
         ref

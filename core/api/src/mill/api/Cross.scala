@@ -1,8 +1,9 @@
 package mill.api
 
+import scala.annotation.unused
 import scala.collection.mutable
-
 import scala.quoted.*
+import scala.reflect.ClassTag
 
 object Cross {
 
@@ -123,7 +124,7 @@ object Cross {
       val crossValuesListLists: Seq[Seq[Any]],
       val crossSegmentsList: Seq[Seq[String]],
       val crossValuesRaw: Seq[Any]
-  )
+  )(using @unused ct: ClassTag[T])
 
   object Factory {
     import scala.language.implicitConversions
