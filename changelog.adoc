@@ -13,6 +13,60 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+
+[#1-0-3]
+=== 1.0.3
+_2025-08-05_
+
+
+:version: 1.0.3
+:milestone-name: 1.0.3
+:milestone: 123
+:prev-version: 1.0.2
+
+* Mill now tab-completes flags like `-j` or `--jobs` ({link-pr}/5642[#5642]),
+   as well as flags belonging to `Task.Command`s that the user defines ({link-pr}/5643[#5643]),
+   and displays the description for flags and tasks that get tab completed
+   ({link-pr}/5648[#5648], {link-pr}/5650[#5650]). Note that these improvements require
+   you to re-run `./mill mill.tabcomplete/install` to activate
+
+```
+$ ./mill -<tab>
+-D  <k=v> Define (or overwrite) a system property.
+-b  Ring the bell once if the run completes successfully, twice if it fails.
+-d  Show debug output on STDOUT
+-i  Run Mill in interactive mode, suitable for opening REPLs and taking user input.
+-j  <str> The number of parallel threads. It can be an integer e.g. `5`
+-k  Continue build, even after build failures.
+-v  Show mill version information and exit.
+-w  Watch and re-run the given tasks when when their inputs change.
+
+$ ./mill core.<tab>
+core.api        This module contains the data types necessary for defining a Mill build:
+core.constants  This module contains basic constants and helpers shared between the client,
+core.eval       This folder contains the core evaluator logic for the Mill build tool,
+core.exec       This module contains code related to planning and execution of the Mill
+core.internal   This package contains internal helpers and utilities used throughout
+core.resolve    This module contains logic around resolving Mill command line
+```
+
+
+
+* Add a generator for Eclipse JDT project files ({link-pr}/5614[#5614]). This can be run
+  with `./mill mill.eclipse/` to generate the configuration that you can then import
+  into Eclipse JDT
+
+* Flesh out `os.Checker` error messages to make them more actionable ({link-pr}/5640[#5640])
+
+* Display individual test class timings in `mill-chrome-profile.json` ({link-pr}/5635[#5635])
+
+* Add `compileGeneratedSources` directory for Java annotation processors to place generated
+  sources to be picked up by IDEs ({link-pr}/5629[#5629])
+
+* Improvements to Android build support ({link-pr}/5623[#5623] {link-pr}/5608[#5608] {link-pr}/5634[#5634])
+
+
+
 [#0-12-15]
 === 0.12.15 - 2025-08-01
 :version: 0.12.15
