@@ -302,7 +302,7 @@ private[mill] case class Execution(
                 t,
                 (Seq(t) ++ plan.sortedGroups.lookupKey(t))
                   .flatMap { t0 => res.newResults.get(t0) }
-                  .sortBy(!_.isInstanceOf[ExecResult.Failing[_]])
+                  .sortBy(!_.isInstanceOf[ExecResult.Failing[?]])
                   .head
               )
 

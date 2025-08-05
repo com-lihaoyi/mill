@@ -397,7 +397,7 @@ object Task {
   }
 
   class Anon[T](
-      val inputs: Seq[Task[_]],
+      val inputs: Seq[Task[?]],
       evaluate0: (Seq[Any], mill.api.TaskCtx) => Result[T],
       enclosing: sourcecode.Enclosing
   ) extends Task[T] {

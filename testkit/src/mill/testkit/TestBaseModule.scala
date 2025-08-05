@@ -12,7 +12,7 @@ abstract class TestRootModule(
     millModuleLine0: sourcecode.Line,
     millModuleFile0: sourcecode.File
 ) extends RootModule0(millSourcePath0 = baseModuleSourcePath)(
-      millModuleEnclosing0,
+      using millModuleEnclosing0,
       millModuleLine0,
       millModuleFile0
     ) {

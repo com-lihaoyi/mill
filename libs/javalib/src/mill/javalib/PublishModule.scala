@@ -629,7 +629,7 @@ trait PublishModule extends JavaModule { outer =>
       pom = pom().path,
       artifact = artifactMetadata(),
       publishInfos = publishInfos
-    )(new TaskCtx.Log {
+    )(using new TaskCtx.Log {
       // Silence logging for publishLocalTestRepo since it's very spammy during
       // development, and since it's all local we can just see the files on disk
       override def log: Logger = mill.api.Logger.DummyLogger

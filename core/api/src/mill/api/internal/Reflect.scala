@@ -37,7 +37,7 @@ private[mill] object Reflect {
     } yield (m, n)
 
   private val classSeqOrdering =
-    Ordering.Implicits.seqOrdering[Seq, Class[?]]((c1, c2) =>
+    Ordering.Implicits.seqOrdering[Seq, Class[?]](using (c1, c2) =>
       if (c1 == c2) 0 else if (c1.isAssignableFrom(c2)) 1 else -1
     )
 

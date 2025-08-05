@@ -43,7 +43,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
         // "-Wsafe-init",
         // "-Wnonunit-statement",
         // "-Wimplausible-patterns",
-        // "-rewrite", "-source", "3.6-migration"
+        // "-rewrite", "-source", "3.7-migration"
       )
       else Seq(
         "-P:acyclic:force",

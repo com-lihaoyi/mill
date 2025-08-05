@@ -16,7 +16,7 @@ abstract class ExternalModule(implicit
     millModuleLine0: sourcecode.Line,
     millFile0: sourcecode.File
 ) extends RootModule0(BuildCtx.workspaceRoot, external0 = true)(
-      millModuleEnclosing0,
+      using millModuleEnclosing0,
       millModuleLine0,
       millFile0
     ) {

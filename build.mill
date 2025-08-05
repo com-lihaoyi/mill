@@ -7,6 +7,8 @@ package build
 import coursier.{MavenRepository, Repository}
 import millbuild.*
 
+import scala.language.reflectiveCalls
+
 //import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
 import coursier.VersionConstraint

@@ -39,7 +39,7 @@ trait GitlabTokenLookup {
     val token = LazyList
       .from(tokenSearchOrder)
       .map(token => buildHeaders(token, env, prop, workspace))
-      .find(_.isInstanceOf[Result.Success[_]])
+      .find(_.isInstanceOf[Result.Success[?]])
       .flatMap(_.toOption)
 
     token match {

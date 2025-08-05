@@ -214,7 +214,7 @@ object Watching {
           if (alreadyStale) None
           else doWatch(notifiablesChanged = () => pathChangesDetected)
         }
-      }(closable =>
+      }(using closable =>
         try closable.close()
         catch {
           case e: java.io.IOException =>

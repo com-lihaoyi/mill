@@ -41,6 +41,7 @@ object Main {
         case (true, false) => true
         case (false, true) => false
         case (true, true) => Ordering[T].lt(sortedLeft(leftIdx), sortedRight(rightIdx))
+        case (false, false) => throw Exception("impossible")
       }
       if (takeLeft) {
         output += sortedLeft(leftIdx)
