@@ -99,7 +99,12 @@ private[mill] object Utils {
         outputPathItem(topLevelProjectRoot / ".idea"),
         outputPathItem(topLevelProjectRoot / "out"),
         outputPathItem(topLevelProjectRoot / ".bsp"),
-        outputPathItem(topLevelProjectRoot / ".bloop")
+        outputPathItem(topLevelProjectRoot / ".bloop"),
+
+        // All Eclipse JDT related project files (likely generated)
+        outputPathItem(topLevelProjectRoot / ".project"),
+        outputPathItem(topLevelProjectRoot / ".classpath"),
+        outputPathItem(topLevelProjectRoot / ".settings")
       )
     else Nil
   }

@@ -1,6 +1,7 @@
 package mill.api.daemon.internal
 
 import mill.api.daemon.internal.bsp.BspJavaModuleApi
+import mill.api.daemon.internal.eclipse.GenEclipseInternalApi
 import mill.api.daemon.internal.idea.{GenIdeaInternalApi, GenIdeaModuleApi}
 import mill.api.daemon.internal.{EvaluatorApi, ModuleApi, TaskApi, UnresolvedPathApi}
 
@@ -38,6 +39,11 @@ trait JavaModuleApi extends ModuleApi with GenIdeaModuleApi {
    */
   private[mill] def genIdeaInternal: () => GenIdeaInternalApi
 
+  /**
+   *  Internal access to some GenEclipse helper tasks. These are used when constructing the necessary information to
+   *  create a resolved module. This in turn will be used later for creating the actual Eclipse JDT project files!
+   */
+  private[mill] def genEclipseInternal: () => GenEclipseInternalApi = null
 }
 
 object JavaModuleApi

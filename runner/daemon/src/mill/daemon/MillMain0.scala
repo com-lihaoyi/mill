@@ -434,6 +434,17 @@ object MillMain0 {
                         runnerState.result.frames.flatMap(_.evaluator)
                       ).run()
                       (true, RunnerState(None, Nil, None))
+                    } else if (
+                      config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/eclipse") ||
+                      config.leftoverArgs.value == Seq("mill.eclipse.GenEclipse/") ||
+                      config.leftoverArgs.value == Seq("mill.eclipse/")
+                    ) {
+                      val runnerState =
+                        runMillBootstrap(false, None, Seq("version"), streams, "BSP:initialize")
+                      new mill.eclipse.GenEclipseImpl(
+                        runnerState.result.frames.flatMap(_.evaluator)
+                      ).run()
+                      (true, RunnerState(None, Nil, None))
                     } else {
                       // When starting a --watch, clear the `mill-selective-execution.json`
                       // file, so that the first run always selects everything and only

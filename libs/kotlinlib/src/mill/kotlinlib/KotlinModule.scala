@@ -15,6 +15,7 @@ import mill.javalib.api.CompilationResult
 import mill.javalib.api.{JvmWorkerApi => PublicJvmWorkerApi}
 import mill.javalib.api.internal.JvmWorkerApi
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
+import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, internal}
 import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
 import mill.*
@@ -27,7 +28,7 @@ import mill.javalib.api.internal.{JavaCompilerOptions, ZincCompileJava}
 /**
  * Core configuration required to compile a single Kotlin module
  */
-trait KotlinModule extends JavaModule { outer =>
+trait KotlinModule extends JavaModule with KotlinModuleApi { outer =>
 
   /**
    * The Kotlin version to be used (for API and Language level settings).
