@@ -120,7 +120,7 @@ private[this] object TabCompleteModule extends ExternalModule {
         // inserting the description at the point of completion
         //
         // https://stackoverflow.com/a/10130007/871202
-        if (outputs.length == 1) prefix
+        if (outputs.length == 1 || suffix.isEmpty) prefix
         else s"$prefix${" " * (offset - prefix.length)}$suffix"
 
       case s => s
