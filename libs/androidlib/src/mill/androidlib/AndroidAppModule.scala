@@ -87,24 +87,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
-   * Provides os.Path to an XML file containing configuration and metadata about your android application.
-   * TODO dynamically add android:debuggable
-   */
-  override def androidManifest: T[PathRef] = Task {
-    val manifestFromSourcePath = androidManifestLocation().path
-
-    val manifestElem = XML.loadFile(manifestFromSourcePath.toString())
-    // add the application package
-    val manifestWithPackage =
-      manifestElem % Attribute(None, "package", Text(androidNamespace), Null)
-
-    val generatedManifestPath = Task.dest / "AndroidManifest.xml"
-    os.write(generatedManifestPath, manifestWithPackage.mkString)
-
-    PathRef(generatedManifestPath)
-  }
-
-  /**
    * Specifies the file format(s) of the lint report. Available file formats are defined in AndroidLintReportFormat,
    * such as [[AndroidLintReportFormat.Html]], [[AndroidLintReportFormat.Xml]], [[AndroidLintReportFormat.Txt]],
    * and [[AndroidLintReportFormat.Sarif]].

@@ -55,8 +55,19 @@ trait AndroidModule extends JavaModule {
   def androidManifest: T[PathRef] = Task {
     val manifestFromSourcePath = androidManifestLocation().path
 
-    val manifestElem = XML.loadFile(manifestFromSourcePath.toString()) %
-      Attribute(None, "xmlns:android", Text("http://schemas.android.com/apk/res/android"), Null)
+    val original = XML.loadFile(manifestFromSourcePath.toString())
+
+    val manifestElem = Option(original.scope.getURI("android")) match {
+      case Some(_) =>
+        original
+      case None =>
+        original % Attribute(
+          None,
+          "xmlns:android",
+          Text("http://schemas.android.com/apk/res/android"),
+          Null
+        )
+    }
     // add the application package
     val manifestWithPackage =
       manifestElem % Attribute(None, "package", Text(androidNamespace), Null)
