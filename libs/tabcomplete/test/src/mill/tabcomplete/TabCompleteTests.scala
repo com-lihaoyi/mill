@@ -167,7 +167,16 @@ object TabCompleteTests extends TestSuite {
       test("short") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "-"),
-          Set("-j", "-w", "-k", "-b", "-v", "-d", "-i", "-D")
+          Set(
+            "-b  Ring the bell once if the run completes successfully, twice if it fails.",
+            "-w  Watch and re-run the given tasks when when their inputs change.",
+            "-i  Run Mill in interactive mode, suitable for opening REPLs and taking user input.",
+            "-v  Show mill version information and exit.",
+            "-k  Continue build, even after build failures.",
+            "-D  <k=v> Define (or overwrite) a system property.",
+            "-d  Show debug output on STDOUT",
+            "-j  <str> The number of parallel threads. It can be an integer e.g. `5`"
+          )
         )
       }
       test("emptyAfterFlag") {
@@ -194,45 +203,69 @@ object TabCompleteTests extends TestSuite {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "--"),
           Set(
-            "--jobs",
-            "--no-filesystem-checker",
-            "--keep-going",
-            "--watch",
-            "--no-build-lock",
-            "--interactive",
-            "--no-wait-for-build-lock",
-            "--help",
-            "--color",
-            "--help-advanced",
-            "--tab-complete",
-            "--offline",
-            "--allow-positional",
-            "--ticker",
-            "--bsp",
-            "--meta-level",
-            "--version",
-            "--no-daemon",
-            "--import",
-            "--bsp-install",
-            "--task",
-            "--notify-watch",
-            "--bsp-watch",
-            "--define",
-            "--bell",
-            "--debug"
+            "--bsp                     Enable BSP server mode.",
+            "--debug                   Show debug output on STDOUT",
+            "--bell                    Ring the bell once if the run completes successfully, twice if it fails.",
+            "--color                   <bool> Toggle colored output; by default enabled only if the console is interactive",
+            "--no-build-lock           Evaluate tasks / commands without acquiring an exclusive lock on the Mill output directory",
+            "--import                  <str> Additional ivy dependencies to load into mill, e.g. plugins.",
+            "--jobs                    <str> The number of parallel threads. It can be an integer e.g. `5`",
+            "--bsp-install             Create mill-bsp.json with Mill details under .bsp/",
+            "--no-daemon               Run without a long-lived background daemon. Must be the first argument.",
+            "--help                    Print this help message and exit.",
+            "--allow-positional        Allows command args to be passed positionally without `--arg` by default",
+            "--watch                   Watch and re-run the given tasks when when their inputs change.",
+            "--interactive             Run Mill in interactive mode, suitable for opening REPLs and taking user input.",
+            "--no-wait-for-build-lock  Do not wait for an exclusive lock on the Mill output directory to evaluate tasks / commands.",
+            "--help-advanced           Print a internal or advanced command flags not intended for common usage",
+            "--ticker                  <bool> Enable or disable the ticker log, which provides information on running",
+            "--tab-complete            Runs Mill in tab-completion mode",
+            "--meta-level              <int> Select a meta-level to run the given tasks. Level 0 is the main project in `build.mill`,",
+            "--keep-going              Continue build, even after build failures.",
+            "--define                  <k=v> Define (or overwrite) a system property.",
+            "--notify-watch            <bool> Use filesystem based file watching instead of polling based one (defaults to true).",
+            "--bsp-watch               <bool> Automatically reload the build when its sources change when running the BSP server (defaults to true).",
+            "--offline                 Try to work offline.",
+            "--no-filesystem-checker   Globally disables the checks that prevent you from reading and writing to disallowed ",
+            "--version                 Show mill version information and exit.",
+            "--task                    <str> The name or a query of the tasks(s) you want to build."
           )
         )
       }
       test("longflagsfiltered") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "--h"),
-          Set("--help", "--help-advanced")
+          Set(
+            "--help           Print this help message and exit.",
+            "--help-advanced  Print a internal or advanced command flags not intended for common usage"
+          )
         )
       }
       test("longFlagBrokenEarlier") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "--jo", "1", "task1"),
-          Set("--jobs")
+          Set(
+            "--jobs",
+            "--jobs,  <str> The number of parallel threads. It can be an integer e.g. `5`"
+          )
+        )
+      }
+      test("longFlagCompleteEarlier") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "--jobs", "1", "task1"),
+          Set(
+            "--jobs",
+            "--jobs,  <str> The number of parallel threads. It can be an integer e.g. `5`"
+          )
+        )
+      }
+      test("longFlagIncomplete") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "--jobs"),
+          Set(
+            "--jobs",
+            "--jobs,  <str> The number of parallel threads. It can be an integer e.g. `5`"
+          )
         )
       }
     }
@@ -241,13 +274,13 @@ object TabCompleteTests extends TestSuite {
         test {
           assertGoldenLiteral(
             evalComplete("2", "./mill", "task1", "--a"),
-            Set("--arg-a", "--arg-b-2")
+            Set("--arg-a    <str> ", "--arg-b-2  <int> ")
           )
         }
         test {
           assertGoldenLiteral(
             evalComplete("2", "./mill", "task1", "--arg-b"),
-            Set("--arg-b-2")
+            Set("--arg-b-2", "--arg-b-2,  <int> ")
           )
         }
       }
@@ -269,13 +302,13 @@ object TabCompleteTests extends TestSuite {
         test {
           assertGoldenLiteral(
             evalComplete("2", "./mill", "bar.task2", "--a"),
-            Set("--arg-a-3", "--arg-b-4")
+            Set("--arg-a-3  <str> arg a 3 docs", "--arg-b-4  <int> arg b 4 docs")
           )
         }
         test {
           assertGoldenLiteral(
             evalComplete("2", "./mill", "bar.task2", "--arg-b"),
-            Set("--arg-b-4")
+            Set("--arg-b-4", "--arg-b-4,  <int> arg b 4 docs")
           )
         }
 
@@ -303,23 +336,6 @@ object TabCompleteTests extends TestSuite {
             Set("file2.txt", "file1.txt", "out")
           )
         }
-      }
-    }
-    test("docs") {
-      test {
-        assertGoldenLiteral(
-          evalComplete("2", "--is-zsh", "./mill", "bar.task2", "--"),
-          Set("--arg-a-3  <str> arg a 3 docs", "--arg-b-4  <int> arg b 4 docs")
-        )
-      }
-      test {
-        assertGoldenLiteral(
-          evalComplete("1", "--is-zsh", "./mill", "--h"),
-          Set(
-            "--help           Print this help message and exit.",
-            "--help-advanced  Print a internal or advanced command flags not intended for common usage"
-          )
-        )
       }
     }
   }
