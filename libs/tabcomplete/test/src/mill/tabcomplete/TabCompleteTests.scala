@@ -97,7 +97,7 @@ object TabCompleteTests extends TestSuite {
       test("exactModule") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "bar"),
-          Set("bar")
+          Set("bar", "bar.task2", "bar.taskPositional")
         )
       }
 
@@ -118,7 +118,7 @@ object TabCompleteTests extends TestSuite {
       test("cross2") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "qux"),
-          Set("qux")
+          Set("qux", "qux[12]", "qux[34]", "qux[56]")
         )
       }
 

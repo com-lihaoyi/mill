@@ -39,7 +39,7 @@ private[this] object TabCompleteModule extends ExternalModule {
       )
     }
 
-    val outputs: Seq[String] =
+    val outputs: Seq[(String, String)] =
       group(args.drop(1), MillCliConfig.parser.main.flattenedArgSigs, true) match {
         // Initial parse fails. Only failure mode is `incomplete`:
         //
@@ -104,17 +104,20 @@ private[this] object TabCompleteModule extends ExternalModule {
           // This is the task I need to autocomplete, or the next incomplete flag
           else if (index == parsedArgCount) {
             val argSigs = flattenSigs(MillCliConfig.parser.main)
+
+            mill.constants.DebugLog.println("index == parsedArgCount")
             findMatchingArgs(args.lift(index), argSigs)
               .getOrElse(completeTasks(ev, index, args))
 
           } else ???
       }
 
-    val prefixes = outputs.collect { case s"$prefix:$_" => prefix }
+    val prefixes = outputs.map(_._1)
     val offset = prefixes.map(_.length).maxOption.getOrElse(0) + 2
 
+    mill.constants.DebugLog.println("outputs " + pprint.apply(outputs))
     val res = outputs.map {
-      case s"$prefix:$suffix" =>
+      case (prefix, suffix) =>
         // When there is only one output, trim off the description, since Bash doesn't
         // have the ability to trim them off automatically and we need to stop it from
         // inserting the description at the point of completion
@@ -134,8 +137,8 @@ private[this] object TabCompleteModule extends ExternalModule {
   def findMatchingArgs(
       stringOpt: Option[String],
       argSigs: Seq[mainargs.ArgSig],
-  ): Option[Seq[String]] = {
-    def findMatchArgs0(prefix: String, nameField: ArgSig => Option[String]): Option[Seq[String]] = {
+  ): Option[Seq[(String, String)]] = {
+    def findMatchArgs0(prefix: String, nameField: ArgSig => Option[String]): Option[Seq[(String, String)]] = {
       val res = for (arg <- argSigs if !arg.positional) yield {
         if (
           stringOpt.exists(_.startsWith(prefix)) &&
@@ -150,8 +153,8 @@ private[this] object TabCompleteModule extends ExternalModule {
           for (name <- nameField(arg) if !arg.doc.contains("Unsupported")) yield {
             val suffix =
               val docLine = firstLine(arg.doc.getOrElse(""))
-              s":$typeStringPrefix$docLine"
-            s"$prefix$name$suffix"
+              s"$typeStringPrefix$docLine"
+            (s"$prefix$name" -> suffix)
           }
         } else Nil
 
@@ -176,7 +179,7 @@ private[this] object TabCompleteModule extends ExternalModule {
       check = false
     )
 
-    res.out.lines()
+    res.out.lines().map((_, ""))
   }
 
   def firstLine(s: String) = s match {
@@ -222,14 +225,14 @@ private[this] object TabCompleteModule extends ExternalModule {
       val unescapedStr = unescapedOpt.getOrElse("")
       val filtered = res.flatMap { r =>
         val rendered = r.segments.render
-        Option.when(rendered.startsWith(unescapedStr))(rendered +  ":" + getDocs(r))
+        Option.when(rendered.startsWith(unescapedStr))(rendered -> getDocs(r))
       }
       val moreFiltered = unescapedOpt match {
-        case Some(u) if filtered.contains(u) =>
+        case Some(u) if filtered.exists(_._1 == u) =>
           ev.resolveRaw(Seq(u + "._"), SelectMode.Multi) match {
             case Result.Success(v) =>
               v.map { res =>
-                res.segments.render +  ":" + getDocs(res)
+                (res.segments.render -> getDocs(res))
               }
             case Result.Failure(error) => Nil
           }
