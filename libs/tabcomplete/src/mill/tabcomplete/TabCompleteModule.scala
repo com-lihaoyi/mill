@@ -136,9 +136,12 @@ private[this] object TabCompleteModule extends ExternalModule {
 
   def findMatchingArgs(
       stringOpt: Option[String],
-      argSigs: Seq[mainargs.ArgSig],
+      argSigs: Seq[mainargs.ArgSig]
   ): Option[Seq[(String, String)]] = {
-    def findMatchArgs0(prefix: String, nameField: ArgSig => Option[String]): Option[Seq[(String, String)]] = {
+    def findMatchArgs0(
+        prefix: String,
+        nameField: ArgSig => Option[String]
+    ): Option[Seq[(String, String)]] = {
       val res = for (arg <- argSigs if !arg.positional) yield {
         if (
           stringOpt.exists(_.startsWith(prefix)) &&
