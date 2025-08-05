@@ -22,15 +22,22 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
 
   def semanticDbVersion = Deps.semanticDBscala.version
 
+  def isScala3: T[Boolean] = Task { JvmWorkerUtil.isScala3(scalaVersion()) }
+
+  def ciScalacOptions: T[Seq[String]] = Task {
+    if (isCI()) {
+      // Turn warnings into errors on CI
+      if (isScala3()) Seq("-Werror") else Seq("-Xfatal-warnings")
+    } else Nil
+  }
+
   def scalacOptions =
     super.scalacOptions() ++ Seq(
       "-deprecation",
       "-feature"
-    ) ++ (
-      if (JvmWorkerUtil.isScala3(scalaVersion())) Seq(
-        "-Werror",
+    ) ++ ciScalacOptions() ++ (
+      if (isScala3()) Seq(
         "-Wunused:all",
-        // "-Xfatal-warnings",
         "-Wconf:msg=An existential type that came from a Scala-2 classfile:silent",
         "-Wconf:msg=import scala.language.implicitConversions:silent",
         "-Wconf:msg=IterableOnceExtensionMethods:silent",
@@ -47,7 +54,6 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       )
       else Seq(
         "-P:acyclic:force",
-        "-Xfatal-warnings",
         "-Xlint:unused",
         "-Xlint:adapted-args",
         "-Xsource:3",

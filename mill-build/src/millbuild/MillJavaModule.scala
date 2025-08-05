@@ -88,17 +88,31 @@ trait MillJavaModule extends JavaModule {
       }.getOrElse(dep)
     }
   }
+
   val forcedVersions: Seq[Dep] = Deps.transitiveDeps ++ Seq(
     Deps.jline,
     Deps.jna
   )
 
-  override def javacOptions = super.javacOptions() ++ Seq(
-    "-Werror",
-    "-Xlint",
-    "-Xlint:-serial", // we don't care about java serialization
-    "-Xlint:-try" // TODO: a bunch of code needs reviewing with this lint
-  )
+  def isCI: T[Boolean] = Task.Input {
+    Task.env.get("CI").contains("1")
+  }
+
+  def ciJavacOptions: Task[Seq[String]] = Task {
+    if (isCI()) Seq(
+      // When in CI make the warnings fatal
+      "-Werror"
+    )
+    else Nil
+  }
+
+  override def javacOptions = Task {
+    super.javacOptions() ++ ciJavacOptions() ++ Seq(
+      "-Xlint",
+      "-Xlint:-serial", // we don't care about java serialization
+      "-Xlint:-try" // TODO: a bunch of code needs reviewing with this lint)
+    )
+  }
 
   def javadocOptions = super.javadocOptions() ++ Seq(
     // Disable warnings for missing documentation comments or tags (for example,
