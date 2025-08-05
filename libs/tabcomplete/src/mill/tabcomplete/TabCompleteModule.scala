@@ -115,7 +115,7 @@ private[this] object TabCompleteModule extends ExternalModule {
     val prefixes = outputs.map(_._1)
     val offset = prefixes.map(_.length).maxOption.getOrElse(0) + 2
 
-    val res = outputs match{
+    val res = outputs match {
       // When there is only one output and it has a description, trim off the description
       // and include it as a second output. This ensures that shells like Bash won't
       // insert the description at the prompt, since Bash doesn't have the ability to trim
@@ -125,7 +125,7 @@ private[this] object TabCompleteModule extends ExternalModule {
       // https://stackoverflow.com/a/10130007/871202
       case Seq((prefix, suffix)) if suffix.nonEmpty => Seq(prefix, prefix + ",  " + suffix)
       case _ =>
-        for((prefix, suffix) <- outputs) yield{
+        for ((prefix, suffix) <- outputs) yield {
           if (suffix.isEmpty) prefix
           else s"$prefix${" " * (offset - prefix.length)}$suffix"
         }
