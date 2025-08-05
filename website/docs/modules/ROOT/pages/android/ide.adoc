@@ -1,0 +1,44 @@
+= Android IDE Support
+:page-aliases: android_ide.adoc
+
+This page outlines the current IDE support for Android projects built with Mill.
+Mill integrates with IntelliJ IDEA and Android Studio through the BSP (Build Server Protocol) plugin.
+
+== Static Import Features and `R` Class Support
+
+Mill provides syntax highlighting and code completion for Android-specific classes such as `R` in supported IDEs.
+This enables a smooth editing experience similar to standard Android development.
+
+image::android/RClassSupport.png[R Class Support]
+
+[NOTE]
+====
+To ensure correct resolution of generated paths and resources, you must run a compilation from the command line after making changes to resource files or `build.mill` definitions.
+This ensures the BSP server updates the IDE with the latest sources and class files.
+====
+
+== File Type Associations and Project Layout
+
+The IDE properly recognizes file types and project layout when imported through BSP.
+
+- Source files, resource folders, and generated outputs are color-coded as expected.
+- Test directories are identified and appear in green.
+- Output folders (e.g., `out/`) and build targets appear in orange, indicating generated content.
+
+[NOTE]
+====
+Ensure `mill --bsp-install` has been run before importing the project via BSP.
+====
+
+== Logcat Integration
+
+While Logcat is primarily an Android Studio feature, it can be accessed in IntelliJ IDEA with the Android plugins installed.
+
+image::android/Logcat.png[Logcat Integration]
+
+== Troubleshooting
+If IDE features seem incomplete or broken:
+
+- Run `mill __.compile` to regenerate class files and trigger updates.
+- Resync the BSP project in your IDE.
+- Delete the `out` directory in case of persistent issues, then recompile the project.
