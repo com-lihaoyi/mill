@@ -23,7 +23,7 @@ object TestRunnerParallelismTests extends TestSuite {
       os.Path(sys.env("MILL_TEST_RESOURCE_DIR")) / "utestSingleTest"
     ).scoped { eval =>
       val Right(result) = eval.apply(utestSingleTest.testForked()): @unchecked
-      val (/*doneMsg*/ _, results) = result.value
+      val ( /*doneMsg*/ _, results) = result.value
       // Only one test should have been run
       assert(results.size == 1)
       // If we are actually running in serial mode (because there was only 1 group and 1 test case, so we disabled

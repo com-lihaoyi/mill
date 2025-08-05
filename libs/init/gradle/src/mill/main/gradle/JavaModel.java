@@ -172,8 +172,8 @@ public interface JavaModel extends Serializable {
     static ProjectDep from(ProjectDependency dep, VersionNumber gradleVersionNumber) {
       @SuppressWarnings("deprecation")
       var path = gradleVersionNumber.compareTo(VersionNumber.parse("8.11")) >= 0
-        ? dep.getPath()
-        : dep.getDependencyProject().getPath();
+          ? dep.getPath()
+          : dep.getDependencyProject().getPath();
 
       return new Impl(path);
     }
