@@ -115,6 +115,11 @@ private[this] object TabCompleteModule extends ExternalModule {
 
     val res = outputs.map {
       case s"$prefix:$suffix" =>
+        // When there is only one output, trim off the description, since Bash doesn't
+        // have the ability to trim them off automatically and we need to stop it from
+        // inserting the description at the point of completion
+        //
+        // https://stackoverflow.com/a/10130007/871202
         if (outputs.length == 1) prefix
         else s"$prefix${" " * (offset - prefix.length)}$suffix"
 
