@@ -21,7 +21,6 @@ private[this] object TabCompleteModule extends ExternalModule {
   def complete(
       ev: Evaluator,
       @arg(positional = true) index: Int,
-      isZsh: mainargs.Flag,
       args0: mainargs.Leftover[String]
   ) = Task.Command(exclusive = true)[Unit] {
     val args = args0.value
@@ -89,7 +88,7 @@ private[this] object TabCompleteModule extends ExternalModule {
 
               val commandParsedArgCount = v.remaining.length - remaining.length - 1
               if (taskArgsIndex == commandParsedArgCount) {
-                findMatchingArgs(remaining.lift(taskArgsIndex), flattenSigs(ep), isZsh.value)
+                findMatchingArgs(remaining.lift(taskArgsIndex), flattenSigs(ep))
                   .getOrElse(delegateToBash(args, index))
               } else delegateToBash(args, index)
             }.getOrElse(Nil)
@@ -99,14 +98,14 @@ private[this] object TabCompleteModule extends ExternalModule {
           // `-f` or `--flag` because parsing succeeded, so delegate to file completion
           else if (index < parsedArgCount) {
             val argSigs = flattenSigs(MillCliConfig.parser.main)
-            findMatchingArgs(args.lift(index), argSigs, isZsh.value)
+            findMatchingArgs(args.lift(index), argSigs)
               .getOrElse(delegateToBash(args, index))
           }
           // This is the task I need to autocomplete, or the next incomplete flag
           else if (index == parsedArgCount) {
             val argSigs = flattenSigs(MillCliConfig.parser.main)
-            findMatchingArgs(args.lift(index), argSigs, isZsh.value)
-              .getOrElse(completeTasks(ev, index, args, isZsh.value))
+            findMatchingArgs(args.lift(index), argSigs)
+              .getOrElse(completeTasks(ev, index, args))
 
           } else ???
       }
@@ -115,7 +114,10 @@ private[this] object TabCompleteModule extends ExternalModule {
     val offset = prefixes.map(_.length).maxOption.getOrElse(0) + 2
 
     val res = outputs.map {
-      case s"$prefix:$suffix" => s"$prefix${" " * (offset - prefix.length)}$suffix"
+      case s"$prefix:$suffix" =>
+        if (outputs.length == 1) prefix
+        else s"$prefix${" " * (offset - prefix.length)}$suffix"
+
       case s => s
     }
 
@@ -127,7 +129,6 @@ private[this] object TabCompleteModule extends ExternalModule {
   def findMatchingArgs(
       stringOpt: Option[String],
       argSigs: Seq[mainargs.ArgSig],
-      isZsh: Boolean
   ): Option[Seq[String]] = {
     def findMatchArgs0(prefix: String, nameField: ArgSig => Option[String]): Option[Seq[String]] = {
       val res = for (arg <- argSigs if !arg.positional) yield {
@@ -143,11 +144,8 @@ private[this] object TabCompleteModule extends ExternalModule {
 
           for (name <- nameField(arg) if !arg.doc.contains("Unsupported")) yield {
             val suffix =
-              if (!isZsh) ""
-              else {
-                val docLine = firstLine(arg.doc.getOrElse(""))
-                s":$typeStringPrefix$docLine"
-              }
+              val docLine = firstLine(arg.doc.getOrElse(""))
+              s":$typeStringPrefix$docLine"
             s"$prefix$name$suffix"
           }
         } else Nil
@@ -192,7 +190,7 @@ private[this] object TabCompleteModule extends ExternalModule {
     firstLine(allDocs.mkString("\n"))
   }
 
-  def completeTasks(ev: Evaluator, index: Int, args: Seq[String], isZsh: Boolean) = {
+  def completeTasks(ev: Evaluator, index: Int, args: Seq[String]) = {
 
     val (query, unescapedOpt) = args.lift(index) match {
       // Zsh has the index pointing off the end of the args list, while
@@ -219,15 +217,14 @@ private[this] object TabCompleteModule extends ExternalModule {
       val unescapedStr = unescapedOpt.getOrElse("")
       val filtered = res.flatMap { r =>
         val rendered = r.segments.render
-        Option.when(rendered.startsWith(unescapedStr))(rendered + (if (isZsh) ":" + getDocs(r)
-                                                                   else ""))
+        Option.when(rendered.startsWith(unescapedStr))(rendered +  ":" + getDocs(r))
       }
       val moreFiltered = unescapedOpt match {
         case Some(u) if filtered.contains(u) =>
           ev.resolveRaw(Seq(u + "._"), SelectMode.Multi) match {
             case Result.Success(v) =>
               v.map { res =>
-                res.segments.render + (if (isZsh) ":" + getDocs(res) else "")
+                res.segments.render +  ":" + getDocs(res)
               }
             case Result.Failure(error) => Nil
           }
