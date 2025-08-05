@@ -244,7 +244,19 @@ object TabCompleteTests extends TestSuite {
       test("longFlagBrokenEarlier") {
         assertGoldenLiteral(
           evalComplete("1", "./mill", "--jo", "1", "task1"),
-          Set("--jobs")
+          Set("--jobs", "--jobs,  <str> The number of parallel threads. It can be an integer e.g. `5`")
+        )
+      }
+      test("longFlagCompleteEarlier") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "--jobs", "1", "task1"),
+          Set("--jobs", "--jobs,  <str> The number of parallel threads. It can be an integer e.g. `5`")
+        )
+      }
+      test("longFlagIncomplete") {
+        assertGoldenLiteral(
+          evalComplete("1", "./mill", "--jobs"),
+          Set("--jobs", "--jobs,  <str> The number of parallel threads. It can be an integer e.g. `5`")
         )
       }
     }
@@ -259,7 +271,7 @@ object TabCompleteTests extends TestSuite {
         test {
           assertGoldenLiteral(
             evalComplete("2", "./mill", "task1", "--arg-b"),
-            Set("--arg-b-2")
+            Set("--arg-b-2", "--arg-b-2,  <int> ")
           )
         }
       }
@@ -287,7 +299,7 @@ object TabCompleteTests extends TestSuite {
         test {
           assertGoldenLiteral(
             evalComplete("2", "./mill", "bar.task2", "--arg-b"),
-            Set("--arg-b-4")
+            Set("--arg-b-4", "--arg-b-4,  <int> arg b 4 docs")
           )
         }
 

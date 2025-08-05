@@ -39,24 +39,15 @@ private[this] object TabCompleteModule extends ExternalModule {
       )
     }
 
+    val argSigs = flattenSigs(MillCliConfig.parser.main)
+
     val outputs: Seq[(String, String)] =
       group(args.drop(1), MillCliConfig.parser.main.flattenedArgSigs, true) match {
-        // Initial parse fails. Only failure mode is `incomplete`:
-        //
-        // - `missing` should be empty since all Mill flags have defaults
-        // - `duplicate` should be empty since we use `allowRepeats = true`
-        // - `unknown` should be empty since unknown tokens end up in `leftoverArgs`
-        case mainargs.Result.Failure.MismatchedArguments(Nil, unknown, Nil, Some(_)) =>
-          // In this case, we cannot really identify any tokens in the argument list
-          // which are task selectors, since the last flag is incomplete and prior
-          // flags are all completed. So just delegate to bash completion
-          delegateToBash(args, index)
 
         // Initial parse succeeds, `leftoverArgs` contains either the task selector,
         // or the start of another flag
         case mainargs.Result.Success(v) =>
           val parsedArgCount = args.length - v.remaining.length
-
           // The cursor is after the task being run, we try to resolve the task to
           // see if it is a command with flags we can autocpmplete
           if (index > parsedArgCount) {
@@ -97,36 +88,47 @@ private[this] object TabCompleteModule extends ExternalModule {
           // The cursor is before the task being run. It can't be an incomplete
           // `-f` or `--flag` because parsing succeeded, so delegate to file completion
           else if (index < parsedArgCount) {
-            val argSigs = flattenSigs(MillCliConfig.parser.main)
             findMatchingArgs(args.lift(index), argSigs)
               .getOrElse(delegateToBash(args, index))
           }
           // This is the task I need to autocomplete, or the next incomplete flag
           else if (index == parsedArgCount) {
-            val argSigs = flattenSigs(MillCliConfig.parser.main)
-
-            mill.constants.DebugLog.println("index == parsedArgCount")
             findMatchingArgs(args.lift(index), argSigs)
               .getOrElse(completeTasks(ev, index, args))
 
           } else ???
+
+        // Initial parse fails. Only failure mode is `incomplete`:
+        //
+        // - `missing` should be empty since all Mill flags have defaults
+        // - `duplicate` should be empty since we use `allowRepeats = true`
+        // - `unknown` should be empty since unknown tokens end up in `leftoverArgs`
+        case _ =>
+          // In this case, we cannot really identify any tokens in the argument list
+          // which are task selectors, since the last flag is incomplete and prior
+          // flags are all completed. So just delegate to bash completion
+          findMatchingArgs(args.lift(index), argSigs)
+            .getOrElse(delegateToBash(args, index))
+
       }
 
     val prefixes = outputs.map(_._1)
     val offset = prefixes.map(_.length).maxOption.getOrElse(0) + 2
 
-    mill.constants.DebugLog.println("outputs " + pprint.apply(outputs))
-    val res = outputs.map {
-      case (prefix, suffix) =>
-        // When there is only one output, trim off the description, since Bash doesn't
-        // have the ability to trim them off automatically and we need to stop it from
-        // inserting the description at the point of completion
-        //
-        // https://stackoverflow.com/a/10130007/871202
-        if (outputs.length == 1 || suffix.isEmpty) prefix
-        else s"$prefix${" " * (offset - prefix.length)}$suffix"
-
-      case s => s
+    val res = outputs match{
+      // When there is only one output and it has a description, trim off the description
+      // and include it as a second output. This ensures that shells like Bash won't
+      // insert the description at the prompt, since Bash doesn't have the ability to trim
+      // them off automatically, and also ensures the description gets printed so the
+      // user can read it even if there's only one output
+      //
+      // https://stackoverflow.com/a/10130007/871202
+      case Seq((prefix, suffix)) if suffix.nonEmpty => Seq(prefix, prefix + ",  " + suffix)
+      case _ =>
+        for((prefix, suffix) <- outputs) yield{
+          if (suffix.isEmpty) prefix
+          else s"$prefix${" " * (offset - prefix.length)}$suffix"
+        }
     }
 
     res.foreach(println)
