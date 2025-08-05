@@ -14,7 +14,6 @@ import mill.kotlinlib.worker.api.KotlinWorkerTarget
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.{JvmWorkerApi => PublicJvmWorkerApi}
 import mill.javalib.api.internal.JvmWorkerApi
-import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.api.daemon.internal.{CompileProblemReporter, KotlinModuleApi, internal}
 import mill.javalib.{JavaModule, JvmWorkerModule, Lib}
 import mill.util.Jvm
