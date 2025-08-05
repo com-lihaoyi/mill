@@ -214,13 +214,14 @@ object Watching {
           if (alreadyStale) None
           else doWatch(notifiablesChanged = () => pathChangesDetected)
         }
-      }(using closable =>
-        try closable.close()
-        catch {
-          case e: java.io.IOException =>
-          // Not sure why this happens, but if it does happen it probably means the
-          // file handle has already been closed, so just continue on without crashing
-        }
+      }(using
+        closable =>
+          try closable.close()
+          catch {
+            case _: java.io.IOException =>
+            // Not sure why this happens, but if it does happen it probably means the
+            // file handle has already been closed, so just continue on without crashing
+          }
       )
     }
 

@@ -75,6 +75,7 @@ private object TabCompleteModule extends ExternalModule {
               val remaining = group(taskArgs, ep.flattenedArgSigs, false) match {
                 case mainargs.Result.Success(grouping) => grouping.remaining
                 case r: mainargs.Result.Failure.MismatchedArguments => r.unknown
+                case other => throw Exception(s"Unexpected result: $other")
               }
 
               val commandParsedArgCount = v.remaining.length - remaining.length - 1
@@ -221,6 +222,7 @@ private object TabCompleteModule extends ExternalModule {
           case Some('[') => trimmed + "__]"
           case Some(',') => trimmed + "__]"
           case Some(']') => trimmed + "._"
+          case Some(other) => throw Exception(s"Unexpected char: $other")
         }
 
         (query, Some(unescaped))

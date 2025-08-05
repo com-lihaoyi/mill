@@ -5,7 +5,6 @@ import mill.util.TokenReaders.*
 import mill.testkit.UnitTester
 import mill.testkit.TestRootModule
 import utest.*
-import utest.framework.TestPath
 
 object CrossVersionTests extends TestSuite {
 
@@ -132,12 +131,13 @@ object CrossVersionTests extends TestSuite {
 
   def check(
       mod: JavaModule,
+      // TODO review: unused, removed in https://github.com/com-lihaoyi/mill/commit/1d12ccb6a56b9840a926f6cba642e0098cafe5db#diff-497c3d3724a2d2e3daa4ec3b6965cd82799711327d26f609dee4cceb786b4805L151
       expectedDeps: Seq[String],
       expectedLibs: Seq[String],
       expectedMvnDepsTree: Option[String] = None
-  )(using
-      testPath: TestPath
   ) = {
+    val _ = expectedDeps
+
     init().scoped { eval =>
       val Right(result) = eval.apply(mod.showMvnDepsTree(MvnDepsTreeArgs())): @unchecked
 

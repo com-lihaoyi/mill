@@ -9,7 +9,7 @@ import mill.api.internal.{Applicative, Cacher, NamedParameterOnlyDummy}
 import upickle.default.ReadWriter
 import upickle.default.Writer
 
-import scala.annotation.targetName
+import scala.annotation.{targetName, unused}
 import scala.language.implicitConversions
 import scala.quoted.*
 
@@ -149,7 +149,7 @@ object Task {
       inline ctx: mill.api.ModuleCtx
   ): os.Path = value match {
     // TODO: support "."
-    case str: String => ctx.millSourcePath / os.up / os.PathChunk.segmentsFromString(str)
+//    case str: String => ctx.millSourcePath / os.up / os.PathChunk.segmentsFromString(str)
     case sub: os.SubPath => ctx.millSourcePath / os.up / os.PathChunk.SubPathChunk(sub)
     case rel: os.RelPath => ctx.millSourcePath / os.up / os.PathChunk.RelPathChunk(rel)
     case p: os.Path => p
@@ -210,7 +210,7 @@ object Task {
    *                   runs.
    */
   def Command(
-      t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
+      @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       exclusive: Boolean = false,
       persistent: Boolean = false
   ): CommandFactory = new CommandFactory(exclusive = exclusive, persistent = persistent)
@@ -279,7 +279,7 @@ object Task {
    * Violating that invariant can result in confusing mis-behaviors
    */
   def apply(
-      t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
+      @unused t: NamedParameterOnlyDummy = new NamedParameterOnlyDummy,
       persistent: Boolean = false
   ): ApplyFactory = new ApplyFactory(persistent)
   class ApplyFactory private[mill] (val persistent: Boolean) {
@@ -517,7 +517,7 @@ object Task {
         ctx: Expr[mill.api.ModuleCtx]
     ): Expr[Simple[Seq[PathRef]]] = {
       val expr = appImpl[Simple, Seq[PathRef]](
-        (in, ev) => '{ new Sources($ev, $ctx, ${ taskIsPrivate() }) },
+        ( /*in*/ _, ev) => '{ new Sources($ev, $ctx, ${ taskIsPrivate() }) },
         values,
         allowTaskReferences = false
       )
@@ -531,7 +531,7 @@ object Task {
     ): Expr[Simple[PathRef]] = {
 
       val expr = appImpl[Simple, PathRef](
-        (in, ev) => '{ new Source($ev, $ctx, ${ taskIsPrivate() }) },
+        ( /*in*/ _, ev) => '{ new Source($ev, $ctx, ${ taskIsPrivate() }) },
         value,
         allowTaskReferences = false
       )
@@ -547,7 +547,7 @@ object Task {
     ): Expr[Simple[T]] = {
 
       val expr = appImpl[Simple, T](
-        (in, ev) => '{ new Input[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
+        ( /*in*/ _, ev) => '{ new Input[T]($ev, $ctx, $w, ${ taskIsPrivate() }) },
         value,
         allowTaskReferences = false
       )

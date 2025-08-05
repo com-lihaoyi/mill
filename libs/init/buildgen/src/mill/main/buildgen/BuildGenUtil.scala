@@ -148,7 +148,6 @@ object BuildGenUtil {
   def renderImports(
       baseModule: Option[String],
       isNested: Boolean,
-      packagesSize: Int,
       extraImports: Seq[String]
   ): SortedSet[String] = {
     scala.collection.immutable.SortedSet(
@@ -475,9 +474,13 @@ object BuildGenUtil {
     if (isNullOrEmpty(artifact)) ""
     else s"def pomParentProject = Some($artifact)"
 
-  def renderPomSettings(arg: String | Null, superArg: String | Null = null): String =
+  // TODO review: should there be `if (arg != superArg)` check or `superArg` isn't needed?
+  def renderPomSettings(arg: String | Null, superArg: String | Null = null): String = {
+    val _ = superArg
+
     if (isNullOrEmpty(arg)) ""
     else s"def pomSettings = $arg"
+  }
 
   def renderPublishVersion(arg: String | Null, superArg: String | Null = null): String =
     if (arg != superArg)
@@ -486,8 +489,7 @@ object BuildGenUtil {
     else ""
 
   def renderPublishProperties(
-      args: Seq[(String, String)],
-      superArgs: Seq[(String, String)] = Seq.empty
+      args: Seq[(String, String)]
   ): String = {
     val tuples = args.iterator.map { case (k, v) => s"(${escape(k)}, ${escape(v)})" }
     optional("def publishProperties = super.publishProperties() ++ Map", tuples)

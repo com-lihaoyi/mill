@@ -1,7 +1,6 @@
 package mill.api
 
 import scala.collection.mutable
-import scala.reflect.ClassTag
 
 import scala.quoted.*
 
@@ -119,7 +118,7 @@ object Cross {
     )
   }
 
-  class Factory[T: ClassTag](
+  class Factory[T](
       val makeList: Seq[(Class[?], mill.api.ModuleCtx => T)],
       val crossValuesListLists: Seq[Seq[Any]],
       val crossSegmentsList: Seq[Seq[String]],

@@ -37,8 +37,9 @@ private[mill] object Reflect {
     } yield (m, n)
 
   private val classSeqOrdering =
-    Ordering.Implicits.seqOrdering[Seq, Class[?]](using (c1, c2) =>
-      if (c1 == c2) 0 else if (c1.isAssignableFrom(c2)) 1 else -1
+    Ordering.Implicits.seqOrdering[Seq, Class[?]](using
+      (c1, c2) =>
+        if (c1 == c2) 0 else if (c1.isAssignableFrom(c2)) 1 else -1
     )
 
   def reflect(
@@ -132,6 +133,7 @@ private[mill] object Reflect {
         (name, m.getReturnType, (outer: Any) => m.invoke(outer).asInstanceOf[T])
       case (name, m: java.lang.reflect.Field) =>
         (name, m.getType, (outer: Any) => m.get(outer).asInstanceOf[T])
+      case other => throw new IllegalArgumentException(s"Unexpected member: $other")
     }
   }
 

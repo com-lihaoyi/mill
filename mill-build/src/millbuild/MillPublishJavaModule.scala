@@ -25,7 +25,7 @@ trait MillPublishJavaModule extends MillJavaModule with PublishModule {
     "info.releaseNotesURL" -> Settings.changelogUrl
   )
   def pomSettings = MillPublishJavaModule.commonPomSettings(artifactName())
-  def javacOptions = Seq("-source", "11", "-target", "11", "-encoding", "UTF-8")
+  def javacOptions = super.javacOptions() ++ Seq("-source", "11", "-target", "11", "-encoding", "UTF-8")
 }
 
 object MillPublishJavaModule {

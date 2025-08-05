@@ -23,7 +23,6 @@ object Dependency extends ExternalModule {
         ev,
         Task.ctx(),
         ev.rootModule,
-        ev.rootModule.moduleCtx.discover,
         allowPreRelease
       )
     }

@@ -170,11 +170,12 @@ public interface JavaModel extends Serializable {
     }
 
     static ProjectDep from(ProjectDependency dep, VersionNumber gradleVersionNumber) {
-      //noinspection deprecation
-      return new Impl(
-          gradleVersionNumber.compareTo(VersionNumber.parse("8.11")) >= 0
-              ? dep.getPath()
-              : dep.getDependencyProject().getPath());
+      @SuppressWarnings("deprecation")
+      var path = gradleVersionNumber.compareTo(VersionNumber.parse("8.11")) >= 0
+        ? dep.getPath()
+        : dep.getDependencyProject().getPath();
+
+      return new Impl(path);
     }
   }
 

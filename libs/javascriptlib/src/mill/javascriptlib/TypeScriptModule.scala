@@ -571,7 +571,6 @@ trait TypeScriptModule extends Module { outer =>
         .map {
           case (key, "") => Some(s"--$key")
           case (key, value) => Some(s"--$key=$value")
-          case _ => None
         }.toSeq ++ Seq(if (enableEsm()) Some("--loader") else None)).flatten
 
     val runnable: Shellable = (

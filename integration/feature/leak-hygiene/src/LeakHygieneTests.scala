@@ -83,7 +83,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         )
 
         // Exercise clean compile all
-        for (i <- Range(0, 2)) {
+        for (_ <- Range(0, 2)) {
           tester.eval(("show", "clean"))
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
@@ -114,7 +114,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         }
 
         // Exercise no-op compile all
-        for (i <- Range(0, 2)) {
+        for (_ <- Range(0, 2)) {
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
             Map(
@@ -168,7 +168,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         )
 
         // Exercise clean compile all post-shutdown
-        for (i <- Range(0, 2)) {
+        for (_ <- Range(0, 2)) {
           tester.eval(("show", "clean"))
           tester.eval(("show", "__.compile"))
           checkClassloaders(tester)(
@@ -198,7 +198,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
         }
 
         // Exercise modifying build.mill
-        for (i <- Range(0, 2)) {
+        for (_ <- Range(0, 2)) {
           tester.modifyFile(tester.workspacePath / "build.mill", _ + "\n")
 
           tester.eval(("show", "__.compile"))
@@ -229,7 +229,7 @@ object LeakHygieneTests extends UtestIntegrationTestSuite {
 
         }
         // Exercise modifying Foo.java, Foo.kt, Foo.scala
-        for (i <- Range(0, 2)) {
+        for (_ <- Range(0, 2)) {
           tester.modifyFile(tester.workspacePath / "hello-java/src/Foo.java", "//hello\n" + _)
           tester.modifyFile(tester.workspacePath / "hello-kotlin/src/Foo.kt", "//hello\n" + _)
           tester.modifyFile(tester.workspacePath / "hello-scala/src/Foo.scala", "//hello\n" + _)

@@ -28,7 +28,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       "-feature"
     ) ++ (
       if (JvmWorkerUtil.isScala3(scalaVersion())) Seq(
-        // "-Werror",
+        "-Werror",
         "-Wunused:all",
         // "-Xfatal-warnings",
         "-Wconf:msg=An existential type that came from a Scala-2 classfile:silent",
@@ -47,7 +47,7 @@ trait MillScalaModule extends ScalaModule with MillJavaModule with ScalafixModul
       )
       else Seq(
         "-P:acyclic:force",
-        // "-Xfatal-warnings",
+        "-Xfatal-warnings",
         "-Xlint:unused",
         "-Xlint:adapted-args",
         "-Xsource:3",

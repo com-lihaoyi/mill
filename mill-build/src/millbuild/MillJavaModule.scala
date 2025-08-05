@@ -93,6 +93,13 @@ trait MillJavaModule extends JavaModule {
     Deps.jna
   )
 
+  override def javacOptions = super.javacOptions() ++ Seq(
+    "-Werror",
+    "-Xlint",
+    "-Xlint:-serial", // we don't care about java serialization
+    "-Xlint:-try" // TODO: a bunch of code needs reviewing with this lint
+  )
+
   def javadocOptions = super.javadocOptions() ++ Seq(
     // Disable warnings for missing documentation comments or tags (for example,
     // a missing comment or class, or a missing @return tag or similar tag on a method).

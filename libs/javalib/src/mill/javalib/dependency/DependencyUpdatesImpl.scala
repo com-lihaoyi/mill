@@ -11,7 +11,6 @@ object DependencyUpdatesImpl {
       evaluator: Evaluator,
       ctx: TaskCtx,
       rootModule: RootModule0,
-      discover: Discover,
       allowPreRelease: Boolean
   ): Seq[ModuleDependenciesUpdates] = {
 

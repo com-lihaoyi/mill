@@ -31,7 +31,6 @@ final class TestModuleUtil(
     forkArgs: Seq[String],
     selectors: Seq[String],
     scalalibClasspath: Seq[PathRef],
-    resources: Seq[PathRef],
     testFramework: String,
     runClasspath: Seq[PathRef],
     testClasspath: Seq[PathRef],

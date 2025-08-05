@@ -95,8 +95,8 @@ object SpotlessTests extends TestSuite {
         import module.moduleDir
 
         val Right(_) = eval("spotless"): @unchecked
-        var log = logStream.toString
-        var header = os.read.lines.stream(moduleDir / "src/LicenseHeader").head
+        val log = logStream.toString
+        val header = os.read.lines.stream(moduleDir / "src/LicenseHeader").head
         assert(
           log.contains("formatting src/LicenseHeader"),
           header == "// GPL"

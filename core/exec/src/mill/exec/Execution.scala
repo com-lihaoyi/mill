@@ -98,8 +98,10 @@ private[mill] case class Execution(
   private def execute0(
       goals: Seq[Task[?]],
       logger: Logger,
-      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = TestReporter.DummyTestReporter,
+      reporter: Int => Option[
+        CompileProblemReporter
+      ] /* = _ => Option.empty[CompileProblemReporter]*/,
+      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/,
       serialCommandExec: Boolean
   ): Execution.Results = {
     os.makeDir.all(outPath)

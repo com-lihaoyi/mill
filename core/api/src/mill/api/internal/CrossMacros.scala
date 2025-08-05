@@ -25,8 +25,8 @@ private[mill] object CrossMacros {
     def crossName(n: Int): String = s"crossValue${if n > 0 then (n + 1).toString else ""}"
 
     val elems0: Type[?] = t match {
-      case '{ $t1: Seq[elems] } => TypeRepr.of[elems].widen.asType
-      case '{ $t1: elems } => TypeRepr.of[elems].widen.asType
+      case '{ ${ _ }: Seq[elems] } => TypeRepr.of[elems].widen.asType
+      case '{ ${ _ }: elems } => TypeRepr.of[elems].widen.asType
     }
     def tupleToList[T: Type](acc: List[Type[?]]): List[Type[?]] = Type.of[T] match {
       case '[t *: ts] => tupleToList[ts](Type.of[t] :: acc)
@@ -236,7 +236,7 @@ private[mill] object CrossMacros {
     val pathSegmentsTree: Expr[?] => Expr[List[String]] =
       pathSegmentsTrees.result().reduceLeft((a, b) => arg => '{ ${ a(arg) } ++ ${ b(arg) } })
 
-    def newCtor(cls: Symbol): (List[String], List[TypeRepr]) =
+    def newCtor: (List[String], List[TypeRepr]) =
       (List("local_ctx"), List(TypeRepr.of[mill.api.ModuleCtx]))
 
     def newClassDecls(cls: Symbol): List[Symbol] = {
@@ -248,7 +248,7 @@ private[mill] object CrossMacros {
         parent = cls,
         name = s"${cls.name}_impl",
         parents = List(TypeRepr.of[mill.api.Module.BaseClass], tpe),
-        ctor = newCtor,
+        ctor = _ => newCtor,
         decls = newClassDecls,
         selfType = None
       )
@@ -318,7 +318,7 @@ private[mill] object CrossMacros {
               $wrappedElems.map((segArg: elems) => ${ pathSegmentsTree('segArg) }),
             crossValuesListLists = $valuesTree,
             crossValuesRaw = $wrappedT
-          )(using compiletime.summonInline[reflect.ClassTag[T]])
+          )
         }
         // report.errorAndAbort(s"made factory ${ref.show}")
         ref
