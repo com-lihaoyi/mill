@@ -312,9 +312,9 @@ class MillBuildBootstrap(
           // one, to avoid memory leaks, as well as all the workers in each subsequent
           // frame's `workerCache`s that may depend on classes loaded by that classloader
 
-          prevRunnerState.frames.take(depth)
-            .map(f => f.workerCache)
-            .foreach(_.collect { case (_, (_, Val(v: AutoCloseable))) => v.close() })
+          prevRunnerState.frames.lift(depth - 1).foreach(
+            _.workerCache.collect { case (_, (_, Val(v: AutoCloseable))) => v.close() }
+          )
 
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
           val cl = mill.util.Jvm.createClassLoader(
