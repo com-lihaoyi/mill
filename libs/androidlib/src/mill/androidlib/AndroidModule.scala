@@ -504,7 +504,7 @@ trait AndroidModule extends JavaModule {
 
       os.call(aapt2Compile ++ aapt2Args)
     }
-    Seq(PathRef(Task.dest)) ++ androidTransitiveCompiledResources()
+    androidTransitiveCompiledResources() ++ Seq(PathRef(Task.dest))
   }
 
   /**
