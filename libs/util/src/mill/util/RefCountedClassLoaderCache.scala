@@ -54,8 +54,10 @@ class RefCountedClassLoaderCache(
         cl
     }
   }
+  class Foo
 
   def close() = {
+    new Foo()
     cache.values.map { case (cl, _) => cl.close() }
     cache.clear()
   }
