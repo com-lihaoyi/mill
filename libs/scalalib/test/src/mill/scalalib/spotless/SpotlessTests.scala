@@ -128,6 +128,7 @@ object SpotlessTests extends TestSuite {
         val legacyRef0 = PathRef(legacy)
 
         call("git", "init", "-b", "ratchet")
+        call("git", "config", "set", "--local", "commit.gpgsign", "false")
         call("git", "add", ".gitignore", legacy)
         call("git", "commit", "-m", "0") // minimum 1 commit required
 
