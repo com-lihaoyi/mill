@@ -1,0 +1,32 @@
+= How to show Tab-Completion Descriptions in Bash and Zsh
+
+:link-github: https://github.com/com-lihaoyi/mill
+:link-pr: {link-github}/pull
+
+// tag::header[]
+:author: Li Haoyi
+:revdate: 10 July 2025
+
+_{author}, {revdate}_
+
+Bash and Zsh tab-completion can be very handy for anyone trying to use an unfamiliar
+API. The latest version 1.0.3 of the {mill-doc-url}[Mill build tool] has Bash and Zsh
+tab-completion that shows a description of each command or flag being completed:
+
+image::CompletionDescriptions.png[]
+image::CompletionDescriptions2.png[]
+
+It also shows the description of a command or flag when you press `<tab>` after
+the token is complete:
+
+image::CompletionSingleDescription.png[]
+
+
+Completion descriptions take some configuring in Zsh, are not normally available in
+the Bash shell, and neither shell shows any completion when you press `<tab>` after
+a token is already complete. But with some work this can be implemented regardless.
+This blog post discusses how it is done in Mill, and how you can do it yourself for
+your own command-line completion scripts
+
+// end::header[]
+
