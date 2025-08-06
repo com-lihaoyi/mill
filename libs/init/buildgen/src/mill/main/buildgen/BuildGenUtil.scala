@@ -474,12 +474,11 @@ object BuildGenUtil {
     if (isNullOrEmpty(artifact)) ""
     else s"def pomParentProject = Some($artifact)"
 
-  // TODO review: should there be `if (arg != superArg)` check or `superArg` isn't needed?
   def renderPomSettings(arg: String | Null, superArg: String | Null = null): String = {
-    val _ = superArg
-
-    if (isNullOrEmpty(arg)) ""
-    else s"def pomSettings = $arg"
+    if (arg != superArg)
+      if (isNullOrEmpty(arg)) ""
+      else s"def pomSettings = $arg"
+    else ""
   }
 
   def renderPublishVersion(arg: String | Null, superArg: String | Null = null): String =

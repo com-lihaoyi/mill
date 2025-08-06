@@ -234,7 +234,7 @@ object CoursierModule {
         coursier.cache.FileCache[coursier.util.Task] => coursier.cache.FileCache[coursier.util.Task]
       ] = None,
       resolutionParams: ResolutionParams = ResolutionParams(),
-      // TODO review: this does nothing? :/
+      // TODO: this does nothing? :/
       // Introduced in https://github.com/com-lihaoyi/mill/commit/451df6846861a9c7d265bffec0c5fcf07133b320
       @unused offline: Boolean,
       checkGradleModules: Boolean
