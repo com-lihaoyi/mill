@@ -15,7 +15,6 @@ import mill.api.daemon.Watchable
 import mill.api.internal.RootModule
 import mill.api.{BuildCtx, PathRef, SelectMode}
 import mill.internal.PrefixLogger
-import mill.meta
 import mill.meta.{FileImportGraph, MillBuildRootModule}
 import mill.meta.CliImports
 import mill.util.BuildInfo
@@ -315,7 +314,7 @@ class MillBuildBootstrap(
 
           prevRunnerState.frames.take(depth)
             .map(f => f.workerCache)
-            .foreach(_.collect { case (k, (n, Val(v: AutoCloseable))) => v.close()})
+            .foreach(_.collect { case (_, (_, Val(v: AutoCloseable))) => v.close() })
 
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
           val cl = mill.util.Jvm.createClassLoader(
