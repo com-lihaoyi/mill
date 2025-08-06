@@ -21,6 +21,8 @@ This ensures the BSP server updates the IDE with the latest sources and class fi
 
 The IDE properly recognizes file types and project layout when imported through BSP.
 
+image::android/ImportBSP.png[Importing via BSP]
+
 - Source files, resource folders, and generated outputs are color-coded as expected.
 - Test directories are identified and appear in green.
 - Output folders (e.g., `out/`) and build targets appear in orange, indicating generated content.
