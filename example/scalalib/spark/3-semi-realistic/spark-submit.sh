@@ -25,7 +25,7 @@ install_spark_manual() {
   SPARK_VERSION="3.3.0"
   HADOOP_VERSION="3"
   SPARK_PACKAGE="spark-${SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}"
-  DOWNLOAD_URL="https://mirror.lyrahosting.com/apache/spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tgz"
+  DOWNLOAD_URL="https://www.apache.org/dyn/mirrors/mirrors.cgi?action=download&filename=spark/spark-${SPARK_VERSION}/${SPARK_PACKAGE}.tgz"
   INSTALL_DIR="$HOME/spark"
 
   mkdir -p "$INSTALL_DIR"
