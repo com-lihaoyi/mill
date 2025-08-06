@@ -141,7 +141,7 @@ class MillBuildBootstrap(
         }
 
       val classloaderChanged =
-        prevOuterFrameOpt.flatMap(_.classLoaderOpt) !=
+        prevRunnerState.frames.lift(depth + 1).flatMap(_.classLoaderOpt) !=
           nestedState.frames.headOption.flatMap(_.classLoaderOpt)
 
       // If the classloader changed, it means the old classloader was closed
