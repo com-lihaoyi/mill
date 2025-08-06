@@ -35,7 +35,7 @@ case class Retry(
 ) {
 
   def apply[T](t: => T): T = {
-    indexed(i => t)
+    indexed(_ => t)
   }
 
   def indexed[T](t: Int => T): T = {

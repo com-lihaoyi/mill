@@ -1,7 +1,6 @@
 package mill.javalib
 
 import java.lang.reflect.Modifier
-
 import scala.util.control.NonFatal
 import mill.api.BuildCtx
 import mainargs.arg
@@ -313,6 +312,8 @@ object RunModule {
         runBackgroundLogToConsole: Boolean = false,
         propagateEnv: java.lang.Boolean = null
     )(implicit ctx: TaskCtx): Unit = {
+      val _ = propagateEnv // silence unused, this is used in the override
+
       run(
         args,
         mainClass,

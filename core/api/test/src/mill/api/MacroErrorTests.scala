@@ -1,7 +1,9 @@
 package mill.api
 
-import utest._
+import utest.*
 import mill.testkit.TestRootModule
+
+import scala.annotation.unused
 
 object MacroErrorTests extends TestSuite {
 
@@ -89,7 +91,7 @@ object MacroErrorTests extends TestSuite {
       // come from inside the Task{...} block
       test("pos") {
         // This should compile
-        object foo extends TestRootModule {
+        @unused object foo extends TestRootModule {
           def a = Task { 1 }
           val arr = Array(a)
           def b = {

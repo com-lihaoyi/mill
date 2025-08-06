@@ -8,7 +8,7 @@ package mill.util
 class Secret[+A](val value: A) {
   override def toString: String = "<REDACTED>"
 
-  private def canEqual(other: Any): Boolean = other.isInstanceOf[Secret[_]]
+  private def canEqual(other: Any): Boolean = other.isInstanceOf[Secret[?]]
 
   override def equals(other: Any): Boolean = other match {
     case that: Secret[_] => that.canEqual(this) && value == that.value

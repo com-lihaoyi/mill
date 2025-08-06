@@ -42,11 +42,11 @@ object SpotlessTests extends TestSuite {
         import module.moduleDir
 
         val numDirty = os.walk.stream(moduleDir / "src").filter(os.isFile).count()
-        val Left(_) = eval("spotless", "--check")
+        val Left(_) = eval("spotless", "--check"): @unchecked
         val log = logStream.toString()
         assert(log.contains(s"format errors in $numDirty files"))
 
-        val Right(_) = eval("spotless")
+        val Right(_) = eval("spotless"): @unchecked
         assert(diff(resources / "clean", moduleDir / "src") == 0)
       }
     }
@@ -58,7 +58,7 @@ object SpotlessTests extends TestSuite {
       UnitTester(module, resources / "suppress", errStream = errStream).scoped { eval =>
         import module.moduleDir
 
-        val Left(_) = eval("spotless")
+        val Left(_) = eval("spotless"): @unchecked
         var log = logStream.toString
         val lints = Seq(
           "Diktat.kt:L12 diktat(diktat-ruleset:debug-print) [DEBUG_PRINT] use a dedicated logging library: found println()",
@@ -71,7 +71,7 @@ object SpotlessTests extends TestSuite {
           _.map(_.copy(suppressions = Seq(Format.Suppress(step = "ktlint"))))
         )
         logStream.reset()
-        val Left(_) = eval("spotless")
+        val Left(_) = eval("spotless"): @unchecked
         log = logStream.toString
         for lint <- lints.take(2) do assert(log.contains(lint))
         assert(
@@ -83,7 +83,7 @@ object SpotlessTests extends TestSuite {
         updateFormats(moduleDir)(
           _.map(_.copy(suppressions = Seq(Format.Suppress()))) // suppress all
         )
-        val Right(_) = eval("spotless")
+        val Right(_) = eval("spotless"): @unchecked
       }
     }
 
@@ -94,9 +94,9 @@ object SpotlessTests extends TestSuite {
       UnitTester(module, resources / "invalidation", errStream = errStream).scoped { eval =>
         import module.moduleDir
 
-        val Right(_) = eval("spotless")
-        var log = logStream.toString
-        var header = os.read.lines.stream(moduleDir / "src/LicenseHeader").head
+        val Right(_) = eval("spotless"): @unchecked
+        val log = logStream.toString
+        val header = os.read.lines.stream(moduleDir / "src/LicenseHeader").head
         assert(
           log.contains("formatting src/LicenseHeader"),
           header == "// GPL"
@@ -132,7 +132,7 @@ object SpotlessTests extends TestSuite {
         call("git", "add", ".gitignore", legacy)
         call("git", "commit", "-m", "0") // minimum 1 commit required
 
-        val Right(_) = eval("ratchet")
+        val Right(_) = eval("ratchet"): @unchecked
         var log = logStream.toString
         assert(log.contains("ratchet found no changes"))
 
@@ -145,7 +145,7 @@ object SpotlessTests extends TestSuite {
 
         call("git", "add", "--all")
         logStream.reset()
-        val Right(_) = eval("ratchet", "--staged")
+        val Right(_) = eval("ratchet", "--staged"): @unchecked
         log = logStream.toString
         assert(
           log.contains(s"ratchet found changes in ${patch.length} files"),
@@ -160,7 +160,7 @@ object SpotlessTests extends TestSuite {
         call("git", "add", "--all") // re-stage formatted files
         call("git", "commit", "-m", "1")
         logStream.reset()
-        val Right(_) = eval("ratchet", "HEAD^", "HEAD")
+        val Right(_) = eval("ratchet", "HEAD^", "HEAD"): @unchecked
         log = logStream.toString
         assert(
           log.contains(s"ratchet found changes in ${patch.length} files"),
@@ -174,7 +174,7 @@ object SpotlessTests extends TestSuite {
         os.move(patch(2), pkg / patch(2).last) // ChangeType.RENAME
         os.copy(patch(3), pkg / patch(3).last) // ChangeType.COPY
         logStream.reset()
-        val Right(_) = eval("ratchet")
+        val Right(_) = eval("ratchet"): @unchecked
         log = logStream.toString
         assert(
           log.contains("ratchet found changes in 3 files"), // DELETE is ignored
@@ -191,7 +191,7 @@ object SpotlessTests extends TestSuite {
       val logStream = ByteArrayOutputStream()
       val errStream = PrintStream(logStream, true)
       UnitTester(rootModule, resources / "multiModule", errStream = errStream).scoped { eval =>
-        val Left(_) = eval("spotless", "--check")
+        val Left(_) = eval("spotless", "--check"): @unchecked
         var log = logStream.toString
         assert(
           log.contains("format errors in bar/src/bar/Bar.scala"),
@@ -200,7 +200,7 @@ object SpotlessTests extends TestSuite {
         )
 
         logStream.reset()
-        val Right(_) = eval("spotless")
+        val Right(_) = eval("spotless"): @unchecked
         log = logStream.toString
         assert(
           log.contains("formatting bar/src/bar/Bar.scala"),
@@ -214,7 +214,7 @@ object SpotlessTests extends TestSuite {
       val logStream = ByteArrayOutputStream()
       val errStream = PrintStream(logStream, true)
       UnitTester(nestedModule, resources / "multiModule", errStream = errStream).scoped { eval =>
-        val Left(_) = eval("bar.spotless", "--check")
+        val Left(_) = eval("bar.spotless", "--check"): @unchecked
         var log = logStream.toString
         assert(
           log.contains("format errors in src/bar/Bar.scala"),
@@ -222,7 +222,7 @@ object SpotlessTests extends TestSuite {
         )
 
         logStream.reset()
-        val Left(_) = eval("foo.spotless", "--check")
+        val Left(_) = eval("foo.spotless", "--check"): @unchecked
         log = logStream.toString
         assert(
           log.contains("format errors in src/foo/Foo.java"),
@@ -230,7 +230,7 @@ object SpotlessTests extends TestSuite {
         )
 
         logStream.reset()
-        val Right(_) = eval("__.spotless")
+        val Right(_) = eval("__.spotless"): @unchecked
         log = logStream.toString
         assert(
           log.contains("formatting src/bar/Bar.scala"),

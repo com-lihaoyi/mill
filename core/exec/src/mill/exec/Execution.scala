@@ -98,8 +98,10 @@ private[mill] case class Execution(
   private def execute0(
       goals: Seq[Task[?]],
       logger: Logger,
-      reporter: Int => Option[CompileProblemReporter] = _ => Option.empty[CompileProblemReporter],
-      testReporter: TestReporter = TestReporter.DummyTestReporter,
+      reporter: Int => Option[
+        CompileProblemReporter
+      ] /* = _ => Option.empty[CompileProblemReporter]*/,
+      testReporter: TestReporter /* = TestReporter.DummyTestReporter*/,
       serialCommandExec: Boolean
   ): Execution.Results = {
     os.makeDir.all(outPath)
@@ -302,7 +304,7 @@ private[mill] case class Execution(
                 t,
                 (Seq(t) ++ plan.sortedGroups.lookupKey(t))
                   .flatMap { t0 => res.newResults.get(t0) }
-                  .sortBy(!_.isInstanceOf[ExecResult.Failing[_]])
+                  .sortBy(!_.isInstanceOf[ExecResult.Failing[?]])
                   .head
               )
 

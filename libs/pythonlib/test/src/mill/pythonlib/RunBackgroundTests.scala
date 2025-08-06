@@ -21,7 +21,7 @@ object RunBackgroundTests extends TestSuite {
       UnitTester(HelloWorldPython, resourcePath).scoped { eval =>
 
         val lockedFile = os.temp()
-        val Right(result) =
+        val Right(_) =
           eval.apply(HelloWorldPython.foo.runBackground(Args(lockedFile))): @unchecked
         val maxSleep = 20000
         val now1 = System.currentTimeMillis()
