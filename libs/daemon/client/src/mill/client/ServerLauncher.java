@@ -7,12 +7,15 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import mill.client.lock.Locked;
 import mill.client.lock.Locks;
 import mill.constants.DaemonFiles;
+import mill.constants.DebugLog;
 import mill.constants.InputPumper;
 import mill.constants.ProxyStream;
 
@@ -86,6 +89,7 @@ public abstract class ServerLauncher {
   public static Socket launchOrConnectToServer(
       Locks locks,
       Path daemonDir,
+      String debugName,
       int serverInitWaitMillis,
       InitServer initServer,
       Consumer<ServerLaunchFailure> onFailure)
@@ -94,12 +98,17 @@ public abstract class ServerLauncher {
     result.failure.ifPresent(onFailure);
 
     var startTime = System.currentTimeMillis();
+    DebugLog.apply(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + " Reading server port: " + daemonDir.toAbsolutePath());
     var port = readServerPort(daemonDir, startTime, serverInitWaitMillis);
-    return connectToServer(startTime, serverInitWaitMillis, port);
+    DebugLog.apply(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + " Read server port: " + port);
+    return connectToServer(
+      startTime, serverInitWaitMillis, port,
+      debugName + ". Daemon directory: " + daemonDir.toAbsolutePath()
+    );
   }
 
   public static Integer readServerPort(
-      Path daemonDir, long startTimeMillis, int serverInitWaitMillis) throws Exception {
+      Path daemonDir, long startTimeMillis, long serverInitWaitMillis) throws Exception {
     return withTimeout(startTimeMillis, serverInitWaitMillis, "Failed to read server port", () -> {
       try {
         return Optional.of(
@@ -113,15 +122,20 @@ public abstract class ServerLauncher {
   /// Connects to the Mill server at the given port.
   ///
   /// @return a socket that should then be used with {@link ServerLauncher#runWithConnection}
-  public static Socket connectToServer(long startTimeMillis, int serverInitWaitMillis, int port)
-      throws Exception {
-    return withTimeout(startTimeMillis, serverInitWaitMillis, "Failed to connect to server", () -> {
-      try {
-        return Optional.of(new Socket(InetAddress.getLoopbackAddress(), port));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
+  public static Socket connectToServer(
+    long startTimeMillis, long serverInitWaitMillis, int port, String errorMessage
+  ) throws Exception {
+    return withTimeout(
+      startTimeMillis, serverInitWaitMillis,
+      "Failed to connect to server within " + serverInitWaitMillis + "ms on port " + port + ". " + errorMessage,
+      () -> {
+        try {
+          return Optional.of(new Socket(InetAddress.getLoopbackAddress(), port));
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       }
-    });
+    );
   }
 
   public static <A> A withTimeout(

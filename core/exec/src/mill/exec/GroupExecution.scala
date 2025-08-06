@@ -34,7 +34,7 @@ private trait GroupExecution {
   def failFast: Boolean
   def ec: Option[ThreadPoolExecutor]
   def codeSignatures: Map[String, Int]
-  def systemExit: Int => Nothing
+  def systemExit: ( /* reason */ String, /* exitCode */ Int) => Nothing
   def exclusiveSystemStreams: SystemStreams
   def getEvaluator: () => EvaluatorApi
   def headerData: String
@@ -292,7 +292,7 @@ private trait GroupExecution {
             reporter = reporter,
             testReporter = testReporter,
             workspace = workspace,
-            systemExit = systemExit,
+            _systemExitWithReason = systemExit,
             fork = executionContext,
             jobs = effectiveThreadCount,
             offline = offline

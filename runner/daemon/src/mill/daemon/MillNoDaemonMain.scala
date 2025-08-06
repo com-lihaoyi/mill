@@ -30,7 +30,8 @@ object MillNoDaemonMain {
       exit = msg => {
         System.err.println(msg)
         System.exit(0)
-      }
+      },
+      log = System.err.println
     )
 
     val outLock = MillMain0.doubleLock(out)
@@ -46,7 +47,7 @@ object MillNoDaemonMain {
           setIdle = _ => (),
           userSpecifiedProperties0 = Map(),
           initialSystemProperties = sys.props.toMap,
-          systemExit = i => sys.exit(i),
+          systemExit = ( /*reason*/ _, exitCode) => sys.exit(exitCode),
           daemonDir = daemonDir,
           outLock = outLock
         )

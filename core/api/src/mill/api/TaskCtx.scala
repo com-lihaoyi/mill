@@ -23,7 +23,13 @@ trait TaskCtx extends TaskCtx.Dest
   def reporter: Int => Option[CompileProblemReporter]
 
   def testReporter: TestReporter
-  def systemExit: Int => Nothing
+
+  @deprecated("Use `systemExitWithReason` instead", "Mill 1.0.4")
+  def systemExit: Int => Nothing = systemExitWithReason("invoked by user without a reason", _)
+
+  /** Stops the Mill process. */
+  def systemExitWithReason(reason: String, exitCode: Int): Nothing =
+    throw NotImplementedError("This should be implemented by the mill runner")
 }
 
 /**
@@ -39,11 +45,14 @@ object TaskCtx {
       val reporter: Int => Option[CompileProblemReporter],
       val testReporter: TestReporter,
       val workspace: os.Path,
-      val systemExit: Int => Nothing,
+      _systemExitWithReason: (String, Int) => Nothing,
       val fork: TaskCtx.Fork.Api,
       val jobs: Int,
       val offline: Boolean
   ) extends TaskCtx {
+    override def systemExitWithReason(reason: String, exitCode: Int): Nothing =
+      _systemExitWithReason(reason, exitCode)
+
     def dest: os.Path = dest0()
 
     def arg[T](index: Int): T = {

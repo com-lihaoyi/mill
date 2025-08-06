@@ -88,7 +88,10 @@ abstract class MillDaemonServer[State](
           )
         }
 
-        stopServer(ClientUtil.ExitServerCodeWhenVersionMismatch())
+        stopServer(
+          s"version mismatch (millVersionChanged=$millVersionChanged, javaVersionChanged=$javaVersionChanged)",
+          ClientUtil.ExitServerCodeWhenVersionMismatch()
+        )
       }
     }
     lastMillVersion = Some(clientMillVersion)
@@ -116,7 +119,7 @@ abstract class MillDaemonServer[State](
       setIdle(_),
       data.userSpecifiedProperties.asScala.toMap,
       initialSystemProperties,
-      systemExit = stopServer(_)
+      stopServer = stopServer
     )
 
     stateCache = newStateCache
@@ -133,7 +136,7 @@ abstract class MillDaemonServer[State](
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
-      systemExit: Int => Nothing
+      stopServer: Server.StopServer
   ): (Boolean, State)
 }
 

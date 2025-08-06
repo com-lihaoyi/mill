@@ -54,8 +54,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
 
     val cl = mill.util.Jvm.createClassLoader(
       classpath().map(_.path),
-      getClass.getClassLoader,
-      label = getClass.getName
+      getClass.getClassLoader
     )
 
     val factory =

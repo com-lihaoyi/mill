@@ -11,13 +11,13 @@ import mill.api.BuildCtx
 import mill.internal.{
   Colors,
   JsonArrayLogger,
+  MillCliConfig,
   MultiStream,
   PrefixLogger,
   PromptLogger,
-  SimpleLogger,
-  MillCliConfig
+  SimpleLogger
 }
-import mill.server.MillDaemonServer
+import mill.server.{MillDaemonServer, Server}
 import mill.util.BuildInfo
 import mill.api
 import mill.api.daemon.internal.bsp.BspServerResult
@@ -106,7 +106,7 @@ object MillMain0 {
       setIdle: Boolean => Unit,
       userSpecifiedProperties0: Map[String, String],
       initialSystemProperties: Map[String, String],
-      systemExit: Int => Nothing,
+      systemExit: Server.StopServer,
       daemonDir: os.Path,
       outLock: Lock
   ): (Boolean, RunnerState) =

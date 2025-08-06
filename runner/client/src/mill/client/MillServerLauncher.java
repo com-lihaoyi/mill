@@ -58,6 +58,7 @@ public abstract class MillServerLauncher extends ServerLauncher {
     try (var connection = launchOrConnectToServer(
         locks,
         daemonDir,
+        "From MillServerLauncher",
         serverInitWaitMillis,
         () -> initServer(daemonDir, memoryLock),
         failure -> {

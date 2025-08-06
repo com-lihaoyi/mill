@@ -57,7 +57,7 @@ object ClientServerTests extends TestSuite {
         setIdle: Boolean => Unit,
         systemProperties: Map[String, String],
         initialSystemProperties: Map[String, String],
-        systemExit: Int => Nothing
+        systemExit: Server.StopServer
     ) = {
       Thread.sleep(commandSleepMillis)
       if (!runCompleted) {

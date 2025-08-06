@@ -105,7 +105,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
   private case class SubprocessCacheInitialize(
       taskDest: os.Path
   )
-  private case class SubprocessCacheValue(port: Int, process: Process)
+  private case class SubprocessCacheValue(port: Int, daemonDir: os.Path, process: Process)
   private val subprocessCache = new CachedFactoryWithInitData[
     SubprocessCacheKey,
     SubprocessCacheInitialize,
@@ -155,10 +155,10 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         )
       }
 
-      val serverInitWaitMillis = 5.seconds.toMillis.toInt
+      val serverInitWaitMillis = 5.seconds.toMillis
       val startTime = System.currentTimeMillis
       val port = ServerLauncher.readServerPort(daemonDir.toNIO, startTime, serverInitWaitMillis)
-      SubprocessCacheValue(port, result.process)
+      SubprocessCacheValue(port, daemonDir, result.process)
     }
 
     override def teardown(key: SubprocessCacheKey, value: SubprocessCacheValue): Unit = {
@@ -198,11 +198,15 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       subprocessCache.withValue(
         cacheKey,
         SubprocessCacheInitialize(compilerBridge.workspace)
-      ) { case SubprocessCacheValue(port, _) =>
+      ) { case SubprocessCacheValue(port, daemonDir, _) =>
         Using.Manager { use =>
           val startTimeMillis = System.currentTimeMillis()
-          val socket =
-            use(ServerLauncher.connectToServer(startTimeMillis, 5.seconds.toMillis.toInt, port))
+          val socket = use(ServerLauncher.connectToServer(
+            startTimeMillis,
+            5.seconds.toMillis,
+            port,
+            s"From '${getClass.getName}'. Daemon directory: $daemonDir"
+          ))
           val stdin = use(PipedInputStream())
           val stdout = use(PipedOutputStream())
           val streams = ServerLauncher.Streams(

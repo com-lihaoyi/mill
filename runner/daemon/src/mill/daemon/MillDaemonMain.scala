@@ -63,7 +63,7 @@ class MillDaemonMain(
       setIdle: Boolean => Unit,
       userSpecifiedProperties: Map[String, String],
       initialSystemProperties: Map[String, String],
-      systemExit: Int => Nothing
+      systemExit: Server.StopServer
   ): (Boolean, RunnerState) = {
     try MillMain0.main0(
         args = args,
