@@ -11,6 +11,6 @@ class Foo extends AutoCloseable {
   }
 }
 
-def foo = Task.Worker{ new Foo }
+def foo = Task.Worker { new Foo }
 
-def bar = Task{ foo().x }
+def bar = Task { foo().x }

@@ -1,6 +1,13 @@
 package mill.daemon
 
-import mill.api.daemon.internal.{BuildFileApi, CompileProblemReporter, EvaluatorApi, MillScalaParser, PathRefApi, RootModuleApi}
+import mill.api.daemon.internal.{
+  BuildFileApi,
+  CompileProblemReporter,
+  EvaluatorApi,
+  MillScalaParser,
+  PathRefApi,
+  RootModuleApi
+}
 import mill.api.{Logger, Result, SystemStreams, Val}
 import mill.constants.CodeGenConstants.*
 import mill.constants.OutFiles.{millBuild, millRunnerState}
@@ -174,8 +181,14 @@ class MillBuildBootstrap(
                 // Make sure we close the old classloader every time we create a new one
                 // to avoid memory leaks, after closing all workers that may include classes
                 // instantiated from that classloader
-                if (prevOuterFrameOpt.flatMap(_.classLoaderOpt) != nestedState.frames.headOption.flatMap(_.classLoaderOpt)) {
-                  prevFrameOpt.map(_.workerCache).foreach(_.collect{case (k, (n, Val(v: AutoCloseable))) => v.close()})
+                if (
+                  prevOuterFrameOpt.flatMap(
+                    _.classLoaderOpt
+                  ) != nestedState.frames.headOption.flatMap(_.classLoaderOpt)
+                ) {
+                  prevFrameOpt.map(_.workerCache).foreach(_.collect {
+                    case (k, (n, Val(v: AutoCloseable))) => v.close()
+                  })
                   prevOuterFrameOpt.flatMap(_.classLoaderOpt).foreach(_.close())
                   Map.empty
                 } else {
