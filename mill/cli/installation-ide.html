@@ -391,15 +391,7 @@
 <ul class="nav-list">
 
   <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/maven.html">Importing Maven Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/gradle.html">Importing Gradle Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="../migrating/sbt.html">Importing <code>sbt</code> Projects</a>
+    <a class="nav-link" href="../migrating/auto-migrating.html">Automated Migration Tools</a>
   </li>
 </ul>
   </li>
@@ -621,7 +613,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.2</span>
+    <span class="version">1.0.3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -631,7 +623,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.2</a>
+          <a href="../index.html">1.0.3</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -695,20 +687,20 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2/mill-dist-1.0.2-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3/mill-dist-1.0.3-mill.sh -o mill
 &gt; chmod +x mill
-&gt; echo "//| mill-version: 1.0.2" &gt; build.mill
+&gt; echo "//| mill-version: 1.0.3" &gt; build.mill
 &gt; ./mill version
-1.0.2</code></pre>
+1.0.3</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.2/mill-dist-1.0.2-mill.bat -o mill.bat
-&gt; echo "//| mill-version: 1.0.2" &gt; build.mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3/mill-dist-1.0.3-mill.bat -o mill.bat
+&gt; echo "//| mill-version: 1.0.3" &gt; build.mill
 &gt; ./mill version
-1.0.2</code></pre>
+1.0.3</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -866,6 +858,10 @@ of your Github repository</p>
 Your IDEs may already auto-detect the Mill project and run this command on
 behalf of you when opening/importing the project.</p>
 </div>
+<div class="paragraph">
+<p>Mill can also generate project files for the Eclipse IDE that is not supporting
+the Build Server Protocol (BSP).</p>
+</div>
 <div class="sect2">
 <h3 id="_intellij"><a class="anchor" href="#_intellij"></a>IntelliJ</h3>
 <div class="paragraph">
@@ -1021,6 +1017,95 @@ those updates by opening the "BSP" tab and clicking the "Refresh" button</p>
 <div class="content">
 <img src="../_images/basic/VSCodeRefresh.png" alt="VSCodeRefresh">
 </div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_eclipse_ide"><a class="anchor" href="#_eclipse_ide"></a>Eclipse IDE</h3>
+<div class="paragraph">
+<p>There is no direct support yet for Mill or the
+<a href="https://build-server-protocol.github.io/">Build Server Protocol (BSP)</a> from any
+plug-in in the <a href="https://eclipseide.org">Eclipse IDE</a>. Instead, Mill can generate
+project files for Java projects. To use them, first ensure you have the
+<a href="https://projects.eclipse.org/projects/eclipse.jdt">Java Development Tools (JDT)</a>
+installed in your IDE which enables the support for Java projects.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Scala and Kotlin are not supported by this generator. For these languages
+use either VSCode (supporting Scala) or IntelliJ IDEA (supporting both Scala
+and Kotlin).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Since Mill build files are written in Scala and there is no Eclipse plug-in
+providing support for Scala, Mill itself or the Build Server Protocol (BSP)
+actively maintained, this won&#8217;t provide assistance in <code>build.mill</code> files.</p>
+</div>
+<div class="paragraph">
+<p>To generate Eclipse project files, run:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; ./mill mill.eclipse/</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will generate the XML and preference files Eclipse uses to configure
+projects. The command output will also provide you with the information on how
+many Eclipse projects were generated and their respective location.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-none hljs">.settings/org.eclipse.core.resources.prefs
+.settings/org.eclipse.jdt.core.prefs
+.classpath
+.project</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Be aware that, contrary to IntelliJ IDEA, in Eclipse there won&#8217;t be
+only one project for your whole Mill project, but multiple ones depending on
+your project structure. There might be dependencies between the generated
+Eclipse projects.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After the files are generated, you can import the project(s) into an existing
+Eclipse workspace in your IDE.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/EclipseImportProjects.png" alt="EclipseImportProjects">
+</div>
+</div>
+<div class="paragraph">
+<p>You can choose to import all generated Eclipse projects inside the Mill project
+folder or only a subset.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/EclipseSelectProjects.png" alt="EclipseSelectProjects">
+</div>
+</div>
+<div class="paragraph">
+<p>If you make changes to you Mill build files, you can update the project files
+by running <code>./mill mill.eclipse/</code> again. Afterwards, refresh the projects
+inside the Eclipse workspace by selecting them and hitting <code>F5</code>.</p>
 </div>
 </div>
 <div class="sect2">

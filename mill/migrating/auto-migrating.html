@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Importing Maven Projects :: The Mill Build Tool</title>
-    <link rel="canonical" href="https://mill-build.org/mill/migrating/maven.html">
+    <title>Automated Migration Tools :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/mill/migrating/auto-migrating.html">
     <link rel="prev" href="migrating.html">
-    <link rel="next" href="gradle.html">
+    <link rel="next" href="../fundamentals/tasks.html">
     <meta name="generator" content="Antora 3.1.9">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
@@ -391,15 +391,7 @@
 <ul class="nav-list">
 
   <li class="nav-item is-current-page" data-depth="2">
-    <a class="nav-link" href="maven.html">Importing Maven Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="gradle.html">Importing Gradle Projects</a>
-  </li>
-
-  <li class="nav-item" data-depth="2">
-    <a class="nav-link" href="sbt.html">Importing <code>sbt</code> Projects</a>
+    <a class="nav-link" href="auto-migrating.html">Automated Migration Tools</a>
   </li>
 </ul>
   </li>
@@ -621,7 +613,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">1.0.2</span>
+    <span class="version">1.0.3</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -631,7 +623,7 @@
           <a href="../main-branch/index.html">main-branch</a>
         </li>
         <li class="version is-current is-latest">
-          <a href="../index.html">1.0.2</a>
+          <a href="../index.html">1.0.3</a>
         </li>
         <li class="version">
           <a href="../0.12.x/index.html">0.12.14</a>
@@ -667,23 +659,27 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">Importing Maven Projects</h1>
+<h1 class="page">Automated Migration Tools</h1>
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>The Mill <code>init</code> command can be used to convert a Maven build to Mill. This has
-<a href="#limitations">limitations</a> and is not intended to reliably migrate 100% of
-Maven builds out there in the wild, but is instead meant to provide the basic
+<p>The Mill <code>init</code> command can be used to convert a Maven, Gradle, or SBT build to Mill.
+This has <a href="#limitations">limitations</a> and is not intended to reliably migrate 100% of
+existing builds out there in the wild, but is instead meant to provide the basic
 scaffolding of a Mill build for you to further refine and update manually.</p>
 </div>
 <div class="paragraph">
-<p>Each Maven module with a <code>pom.xml</code> is converted to a Mill <code>build.mill</code>/<code>package.mill</code>
-file containing a top-level <code>MavenModule</code>.
-A nested <code>test</code> module is defined, if <code>src/test</code> exists, and is configured with a supported <a href="../javalib/testing.html" class="xref page">test framework</a>, if found.</p>
+<p>Each Maven module with a <code>pom.xml</code>, Gradle module with a <code>.gradle</code> file, or SBT module
+is converted to a Mill <code>build.mill</code>/<code>package.mill</code> file containing a top-level <code>MavenModule</code>
+or <code>SbtModule</code>. A nested <code>test</code> module is defined, if <code>src/test</code> exists, and is configured
+with a supported <a href="../javalib/testing.html" class="xref page">test framework</a>, if found.</p>
 </div>
 <div class="paragraph">
 <p>Again, note that <code>mill init</code> importing Maven builds is best-effort.
 This means that while small projects can be expected to complete without issue:</p>
+</div>
+<div class="paragraph">
+<p><strong>Maven</strong></p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -695,18 +691,14 @@ This means that while small projects can be expected to complete without issue:<
 
 &gt; ./mill init
 converting Maven build
-writing Mill build file to geo/package.mill
-writing Mill build file to geo-mem/package.mill
-writing Mill build file to build.mill
+...
 init completed, run "mill resolve _" to list available tasks
 
 &gt; ./mill __.compile
 compiling 9 Java sources to ...geo...
 compiling 2 Java sources to ...geo-mem...
 compiling 10 Java sources to ...geo...test...
-done compiling
 compiling 1 Java source to ...geo-mem...test...
-done compiling
 
 &gt; ./mill __.test # all tests pass immediately
 Test run com.github.davidmoten.geo.GeoHashTest finished: 0 failed, 0 ignored, 66 total, ...
@@ -715,7 +707,62 @@ Test run com.github.davidmoten.geo.DirectionTest finished: 0 failed, 0 ignored, 
 </div>
 </div>
 <div class="paragraph">
+<p><strong>Gradle</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; rm build.mill # remove any existing build file
+
+&gt; git init .
+&gt; git remote add -f origin https://github.com/komamitsu/fluency.git
+&gt; git checkout 2.7.3 # multi-module Java project that requires Java 16+
+
+&gt; ./mill init --base-module FluencyModule --jvm-id 16
+converting Gradle build
+...
+init completed, run "mill resolve _" to list available tasks
+
+&gt; ./mill __.compile
+compiling 9 Java sources to ...fluency-aws-s3...
+compiling 6 Java sources to ...fluency-aws-s3...test...
+compiling 27 Java sources to ...fluency-core...
+compiling 8 Java sources to ...fluency-core...test...
+
+&gt; ./mill fluency-core.test # mac/linux
+Test org.komamitsu.fluency.flusher.FlusherTest finished, ...
+Test org.komamitsu.fluency.recordformat.MessagePackRecordFormatterTest finished, ...
+...</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>SBT</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; rm build.mill # remove any existing build file
+
+&gt; git init .
+&gt; git remote add -f origin https://github.com/scala/scala3-example-project.git
+&gt; git checkout 853808c50601e88edaa7272bcfb887b96be0e22a
+
+&gt; ./mill init
+converting sbt build
+...
+init completed, run "mill resolve _" to list available tasks
+
+&gt; ./mill compile
+compiling 13 Scala sources to ...
+
+&gt; ./mill test
+MySuite:
+  + example test that succeeds ...</code></pre>
+</div>
+</div>
+<div class="paragraph">
 <p>Larger projects often require some manual tweaking in order to work:</p>
+</div>
+<div class="paragraph">
+<p><strong>Maven</strong></p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -742,9 +789,52 @@ error: ...fastexcel-writer/src/main/java/module-info.java:2:14: module not found
 </div>
 </div>
 <div class="paragraph">
+<p><strong>Gradle</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; rm build.mill # remove any existing build file
+
+&gt; git init .
+&gt; git remote add -f origin https://github.com/mockito/mockito.git
+&gt; git checkout v5.15.2 # multi-module Java project that requires Java 17+
+
+&gt; ./mill init --base-module MockitoModule --jvm-id 17   # init ignores custom dependency configurations
+converting Gradle build
+ignoring errorprone dependency (com.google.errorprone,error_prone_core,2.23.0)
+init completed, run "mill resolve _" to list available tasks
+
+&gt; ./mill __.compile   # compilation error can be by fixed by using the Mill plugin for ErrorProne
+error: plug-in not found: ErrorProne</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>SBT</strong></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; rm build.mill # remove any existing build file
+
+&gt; git init .
+&gt; git remote add -f origin https://github.com/tototoshi/scala-csv.git
+&gt; git checkout 2.0.0
+
+&gt; ./mill init
+converting sbt build
+...
+init completed, run "mill resolve _" to list available tasks
+
+&gt; ./mill compile # You will have to further configure the `CrossScalaModule` for different Scala versions
+compiling 7 Scala sources and 3 Java sources to ...
+error: class CSVReader protected (private val lineReader: LineReader)(implicit format: CSVFormat) extends Closeable with CSVReaderCompat {
+error:                                                                                                                   ^
+error: one error found</code></pre>
+</div>
+</div>
+<div class="paragraph">
 <p>Nevertheless, even for larger builds <code>mill init</code> automates most of the tedious
 busy-work of writing <code>build.mill</code>/<code>package.mill</code> files, and makes it much quicker
-to get a working Mill build for any existing Maven project. For example,
+to get a working Mill build for any existing  project. For example,
 the <code>iluwatar/java-design-patterns</code> repo has 363 subprojects
 (including test projects) and <code>./mill init</code> is able to get it imported,
 compiling, and passing all tests in Mill:</p>
@@ -768,8 +858,6 @@ compiling 4 Java sources to ...update-method...
 
 &gt; ./mill acyclic-visitor.test # run a subproject's tests
 ...
-Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForDos() started
-Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForDos() finished, took ...
 Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForUnix() started
 Test com.iluwatar.acyclicvisitor.ZoomTest#testAcceptForUnix() finished, took ...
 Test com.iluwatar.acyclicvisitor.ZoomTest finished, took ...
@@ -793,26 +881,36 @@ Test com.iluwatar.acyclicvisitor.ZoomTest finished, took ...
 <p>captures publish settings</p>
 </li>
 <li>
-<p>configures dependencies for scopes</p>
+<p>configures dependencies for configurations:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>compile</p>
+<p>no configuration</p>
 </li>
 <li>
-<p>provided</p>
+<p>Compile</p>
 </li>
 <li>
-<p>runtime</p>
+<p>Test</p>
 </li>
 <li>
-<p>test</p>
+<p>Runtime</p>
+</li>
+<li>
+<p>Provided</p>
+</li>
+<li>
+<p>Optional</p>
 </li>
 </ul>
 </div>
 </li>
 <li>
-<p>configures testing frameworks</p>
+<p>configures testing frameworks:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Java:</p>
 <div class="ulist">
 <ul>
 <li>
@@ -823,6 +921,37 @@ Test com.iluwatar.acyclicvisitor.ZoomTest finished, took ...
 </li>
 <li>
 <p>TestNG</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Scala:</p>
+<div class="ulist">
+<ul>
+<li>
+<p>ScalaTest</p>
+</li>
+<li>
+<p>Specs2</p>
+</li>
+<li>
+<p>µTest</p>
+</li>
+<li>
+<p>MUnit</p>
+</li>
+<li>
+<p>Weaver</p>
+</li>
+<li>
+<p>ZIOTest</p>
+</li>
+<li>
+<p>ScalaCheck</p>
+</li>
+</ul>
+</div>
 </li>
 </ul>
 </div>
@@ -1033,22 +1162,21 @@ or <a href="../extending/thirdparty-plugins.html" class="xref page">third party<
 <div class="sect1">
 <h2 id="_faq"><a class="anchor" href="#_faq"></a>FAQ</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>How to fix compilation errors in generated build files?</p>
-</div>
+<div class="sect2">
+<h3 id="_how_to_fix_compilation_errors_in_generated_build_files"><a class="anchor" href="#_how_to_fix_compilation_errors_in_generated_build_files"></a>How to fix compilation errors in generated build files?</h3>
 <div class="paragraph">
 <p>This could happen if a module and task name collision occurs. Either rename the module or enclose the name in backticks.</p>
 </div>
-<div class="paragraph">
-<p>How to fix JPMS <code>module not found</code> compilation errors?</p>
 </div>
+<div class="sect2">
+<h3 id="_how_to_fix_jpms_module_not_found_compilation_errors"><a class="anchor" href="#_how_to_fix_jpms_module_not_found_compilation_errors"></a>How to fix JPMS <code>module not found</code> compilation errors?</h3>
 <div class="paragraph">
 <p>Add <a href="https://github.com/tfesenko/Java-Modules-JPMS-CheatSheet#how-to-export-or-open-a-package">options</a>
 for Java modules to <code>javacOptions</code>.</p>
 </div>
-<div class="paragraph">
-<p>How to fix test compilation errors?</p>
 </div>
+<div class="sect2">
+<h3 id="_how_to_fix_test_compilation_errors"><a class="anchor" href="#_how_to_fix_test_compilation_errors"></a>How to fix test compilation errors?</h3>
 <div class="ulist">
 <ul>
 <li>
@@ -1062,10 +1190,26 @@ test module; specify the dependencies again, in <code>mvnDeps</code> or <code>ru
 </ul>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_java_io_ioerror_java_lang_runtimeexception_packages_cannot_be_represented_as_uri"><a class="anchor" href="#_java_io_ioerror_java_lang_runtimeexception_packages_cannot_be_represented_as_uri"></a><code>java.io.IOError: java.lang.RuntimeException: /packages cannot be represented as URI</code></h3>
+<div class="paragraph">
+<p>This error:
+<code>java.lang.UnsupportedOperationException: The Security Manager is deprecated and will be removed in a future release</code>,
+<code>java.io.IOError: java.lang.RuntimeException: /packages cannot be represented as URI</code>,
+and <code>java.lang.RuntimeException: java.lang.reflect.InvocationTargetException</code>
+thrown by the <code>sbt</code> command invoked by <code>mill init</code></p>
+</div>
+<div class="paragraph">
+<p>Update the project&#8217;s <code>sbt</code> version to the latest or our tested version v1.10.10,
+and check whether you have the appropriate Java version,
+and try again.</p>
+</div>
+</div>
+</div>
 </div>
 <nav class="pagination">
   <span class="prev"><a href="migrating.html">Migrating to Mill</a></span>
-  <span class="next"><a href="gradle.html">Importing Gradle Projects</a></span>
+  <span class="next"><a href="../fundamentals/tasks.html">Tasks</a></span>
 </nav>
 </article>
   </div>
