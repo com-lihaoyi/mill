@@ -10,9 +10,7 @@ public abstract class Lock implements AutoCloseable {
     lock().release();
   }
 
-  /**
-   * Returns `true` if the lock is *available for taking*
-   */
+  /// Returns `true` if the lock is **available for taking**.
   public abstract boolean probe() throws Exception;
 
   public void delete() throws Exception {}

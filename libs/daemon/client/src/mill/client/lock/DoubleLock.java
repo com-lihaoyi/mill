@@ -6,9 +6,17 @@ public class DoubleLock extends Lock {
   private final Lock lock1;
   private final Lock lock2;
 
-  public DoubleLock(Lock lock1, Lock lock2) throws Exception {
+  public DoubleLock(Lock lock1, Lock lock2) {
     this.lock1 = lock1;
     this.lock2 = lock2;
+  }
+
+  @Override
+  public String toString() {
+    return "DoubleLock{" +
+      "lock1=" + lock1 +
+      ", lock2=" + lock2 +
+      '}';
   }
 
   @Override

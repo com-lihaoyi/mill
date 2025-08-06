@@ -17,6 +17,13 @@ class FileLock extends Lock {
   }
 
   @Override
+  public String toString() {
+    return "FileLock{@" + Integer.toHexString(hashCode()) +
+      ", path='" + path + '\'' +
+      '}';
+  }
+
+  @Override
   public Locked lock() throws Exception {
     return new FileLocked(chan.lock());
   }
@@ -34,7 +41,7 @@ class FileLock extends Lock {
 
   @Override
   public boolean probe() throws Exception {
-    java.nio.channels.FileLock l = chan.tryLock();
+    var l = chan.tryLock();
     if (l == null) return false;
     else {
       l.release();

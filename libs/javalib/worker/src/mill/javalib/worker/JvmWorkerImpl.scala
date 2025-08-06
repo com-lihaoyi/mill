@@ -3,7 +3,8 @@ package mill.javalib.worker
 import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.client.ServerLauncher
-import mill.client.lock.Locks
+import mill.client.lock.{DoubleLock, Locks}
+import mill.constants.DaemonFiles
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.*
 import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
@@ -14,8 +15,9 @@ import mill.util.{CachedFactoryWithInitData, HexFormat, Jvm}
 import org.apache.logging.log4j.core.util.NullOutputStream
 import sbt.internal.util.ConsoleOut
 
-import java.io.{BufferedReader, InputStreamReader, PipedInputStream, PipedOutputStream, PrintStream}
+import java.io.*
 import java.security.MessageDigest
+import java.util.Optional
 import scala.concurrent.duration.*
 import scala.jdk.OptionConverters.*
 import scala.util.Using
@@ -105,7 +107,13 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
   private case class SubprocessCacheInitialize(
       taskDest: os.Path
   )
-  private case class SubprocessCacheValue(port: Int, daemonDir: os.Path, process: Process)
+  private case class SubprocessCacheValue(port: Int, daemonDir: os.Path) {
+    def isRunning(): Boolean =
+      !Locks.files(daemonDir.toString).daemonLock.probe()
+
+    def killProcess(): Unit =
+      os.remove(daemonDir / DaemonFiles.processId)
+  }
   private val subprocessCache = new CachedFactoryWithInitData[
     SubprocessCacheKey,
     SubprocessCacheInitialize,
@@ -117,7 +125,21 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         key: SubprocessCacheKey,
         initData: => SubprocessCacheInitialize,
         value: SubprocessCacheValue
-    ): Boolean = value.process.isAlive
+    ): Boolean = value.isRunning()
+
+    private var memoryLocksByDaemonDir = Map.empty[os.Path, Locks]
+    private def memLockFor(daemonDir: os.Path): Locks = {
+      memoryLocksByDaemonDir.synchronized {
+        memoryLocksByDaemonDir.get(daemonDir) match {
+          case Some(lock) => lock
+
+          case None =>
+            val lock = Locks.memory()
+            memoryLocksByDaemonDir = memoryLocksByDaemonDir.updated(daemonDir, lock)
+            lock
+        }
+      }
+    }
 
     override def setup(
         key: SubprocessCacheKey,
@@ -125,44 +147,62 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     ): SubprocessCacheValue = {
       val workerDir = init.taskDest / "zinc-worker" / key.sha256
       val daemonDir = workerDir / "daemon"
+
       os.makeDir.all(daemonDir)
       os.write.over(workerDir / "java-home", key.javaHome.map(_.toString).getOrElse("<default>"))
       os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.options.mkString("\n"))
 
       val mainClass = "mill.javalib.zinc.ZincWorkerMain"
       val result = ServerLauncher.ensureServerIsRunning(
-        Locks.files(daemonDir.toString),
+        // File locks are non-reentrant, so we need to lock on the memory lock first
+        {
+          val fileLocks = Locks.files(daemonDir.toString)
+          Locks(
+            DoubleLock(memLockFor(daemonDir).launcherLock, fileLocks.launcherLock),
+            fileLocks.daemonLock
+          )
+        },
         daemonDir.toNIO,
         () =>
-          Jvm.spawnProcess(
+          Optional.of(Jvm.spawnProcess(
             mainClass = mainClass,
             mainArgs = Seq(daemonDir.toString),
             javaHome = key.javaHome,
             jvmArgs = key.runtimeOptions.options,
             classPath = classPath
-          ).wrapped
+          ).wrapped)
       )
-      result.failure.toScala.foreach { failure =>
-        throw Exception(
+
+      def onFail(error: Any) = {
+        throw IllegalStateException(
           s"""Failed to launch '$mainClass' for:
              |  javaHome = ${key.javaHome}
              |  runtimeOptions = ${key.runtimeOptions.options.mkString(",")}
              |  daemonDir = $daemonDir
              |
              |Failure:
-             |${failure.debugString()}
+             |${error}
              |""".stripMargin
         )
       }
 
-      val serverInitWaitMillis = 5.seconds.toMillis
-      val startTime = System.currentTimeMillis
-      val port = ServerLauncher.readServerPort(daemonDir.toNIO, startTime, serverInitWaitMillis)
-      SubprocessCacheValue(port, daemonDir, result.process)
+      def onSuccess() = {
+        val serverInitWaitMillis = 5.seconds.toMillis
+        val startTime = System.currentTimeMillis
+        val port = ServerLauncher.readServerPort(daemonDir.toNIO, startTime, serverInitWaitMillis)
+        SubprocessCacheValue(port, daemonDir)
+      }
+
+      result.fold(
+        success => onSuccess(),
+        alreadyRunning => onSuccess(),
+        couldNotStart => onFail(couldNotStart),
+        processDied => onFail(processDied)
+      )
     }
 
     override def teardown(key: SubprocessCacheKey, value: SubprocessCacheValue): Unit = {
-      value.process.destroy()
+      value.killProcess()
     }
   }
 
@@ -198,7 +238,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       subprocessCache.withValue(
         cacheKey,
         SubprocessCacheInitialize(compilerBridge.workspace)
-      ) { case SubprocessCacheValue(port, daemonDir, _) =>
+      ) { case SubprocessCacheValue(port, daemonDir) =>
         Using.Manager { use =>
           val startTimeMillis = System.currentTimeMillis()
           val socket = use(ServerLauncher.connectToServer(

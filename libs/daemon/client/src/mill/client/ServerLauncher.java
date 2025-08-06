@@ -9,10 +9,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import mill.client.lock.Locked;
+import java.util.stream.Collectors;
+
+import mill.client.lock.Lock;
 import mill.client.lock.Locks;
 import mill.constants.DaemonFiles;
 import mill.constants.DebugLog;
@@ -60,14 +64,15 @@ public abstract class ServerLauncher {
   /// @param streams        streams to use for the client logic
   /// @param closeConnectionAfterClientLogic whether to close the connection after running the
   // client logic
+
   /// @param runClientLogic the client logic to run
   /// @return the exit code that the server sent back
   public static <A> RunWithConnectionResult<A> runWithConnection(
-      Socket connection,
-      Streams streams,
-      boolean closeConnectionAfterClientLogic,
-      RunClientLogic<A> runClientLogic)
-      throws Exception {
+    Socket connection,
+    Streams streams,
+    boolean closeConnectionAfterClientLogic,
+    RunClientLogic<A> runClientLogic)
+    throws Exception {
     var socketInputStream = connection.getInputStream();
     var socketOutputStream = connection.getOutputStream();
     var pumperThread = startStreamPumpers(socketInputStream, socketOutputStream, streams);
@@ -87,16 +92,42 @@ public abstract class ServerLauncher {
    * @throws Exception if the server fails to start or a connection cannot be established
    */
   public static Socket launchOrConnectToServer(
-      Locks locks,
-      Path daemonDir,
-      String debugName,
-      int serverInitWaitMillis,
-      InitServer initServer,
-      Consumer<ServerLaunchFailure> onFailure)
-      throws Exception {
+    Locks locks,
+    Path daemonDir,
+    String debugName,
+    int serverInitWaitMillis,
+    InitServer initServer,
+    Consumer<ServerLaunchResult.CouldNotStart> onCouldNotStart,
+    Consumer<ServerLaunchResult.ProcessDied> onFailure)
+    throws Exception {
     var result = ensureServerIsRunning(locks, daemonDir, initServer);
-    result.failure.ifPresent(onFailure);
+    return result.fold(
+      success -> {
+        try {
+          return onServerRunning(daemonDir, debugName, serverInitWaitMillis);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      },
+      alreadyRunning -> {
+        try {
+          return onServerRunning(daemonDir, debugName, serverInitWaitMillis);
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+      },
+      couldNotStart -> {
+        onCouldNotStart.accept(couldNotStart);
+        throw new IllegalStateException(couldNotStart.toString());
+      },
+      processDied -> {
+        onFailure.accept(processDied);
+        throw new IllegalStateException(processDied.toString());
+      }
+    );
+  }
 
+  private static Socket onServerRunning(Path daemonDir, String debugName, int serverInitWaitMillis) throws Exception {
     var startTime = System.currentTimeMillis();
     DebugLog.apply(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + " Reading server port: " + daemonDir.toAbsolutePath());
     var port = readServerPort(daemonDir, startTime, serverInitWaitMillis);
@@ -108,11 +139,11 @@ public abstract class ServerLauncher {
   }
 
   public static Integer readServerPort(
-      Path daemonDir, long startTimeMillis, long serverInitWaitMillis) throws Exception {
+    Path daemonDir, long startTimeMillis, long serverInitWaitMillis) throws Exception {
     return withTimeout(startTimeMillis, serverInitWaitMillis, "Failed to read server port", () -> {
       try {
         return Optional.of(
-            Integer.parseInt(Files.readString(daemonDir.resolve(DaemonFiles.socketPort))));
+          Integer.parseInt(Files.readString(daemonDir.resolve(DaemonFiles.socketPort))));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -139,8 +170,8 @@ public abstract class ServerLauncher {
   }
 
   public static <A> A withTimeout(
-      long startTimeMillis, long timeoutMillis, String errorMessage, Supplier<Optional<A>> supplier)
-      throws Exception {
+    long startTimeMillis, long timeoutMillis, String errorMessage, Supplier<Optional<A>> supplier)
+    throws Exception {
     var current = Optional.<A>empty();
     Throwable throwable = null;
     while (current.isEmpty() && System.currentTimeMillis() - startTimeMillis < timeoutMillis) {
@@ -168,38 +199,80 @@ public abstract class ServerLauncher {
    * @param initServer the function to use to start the server
    */
   public static ServerLaunchResult ensureServerIsRunning(
-      Locks locks, Path daemonDir, InitServer initServer) throws Exception {
+    Locks locks, Path daemonDir, InitServer initServer) throws Exception {
     Files.createDirectories(daemonDir);
 
-    try (Locked ignored = locks.launcherLock.lock()) {
-      Process daemonProcess = null;
+    DebugLog.apply(
+      LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) +
+        " PID: " + ProcessHandle.current().pid() + ". " +
+        " Attempting to start server via " +
+        locks.launcherLock + "\n\n" + (Arrays.stream(new Exception().getStackTrace()).map(Objects::toString).collect(Collectors.joining("\n"))) + "\n\n"
+    );
+    try (var ignored = locks.launcherLock.lock()) {
+      // See if the server is already running.
+      if (locks.daemonLock.probe()) {
+        // The lock is available, there is no server running, thus we can start the server.
+        var maybeDaemonProcess = initServer.init();
 
-      if (locks.daemonLock.probe()) daemonProcess = initServer.init();
-
-      while (locks.daemonLock.probe()) {
-        if (daemonProcess != null && !daemonProcess.isAlive()) {
-          var stdout = daemonDir.toAbsolutePath().resolve(DaemonFiles.stdout);
-          var stderr = daemonDir.toAbsolutePath().resolve(DaemonFiles.stderr);
-
-          Optional<String> stdoutStr = Optional.empty();
-          if (Files.exists(stdout) && Files.size(stdout) > 0)
-            stdoutStr = Optional.of(Files.readString(stdout));
-
-          Optional<String> stderrStr = Optional.empty();
-          if (Files.exists(stderr) && Files.size(stderr) > 0)
-            stderrStr = Optional.of(Files.readString(stderr));
-
-          return new ServerLaunchResult(
-              daemonProcess,
-              Optional.of(new ServerLaunchFailure(stdoutStr, stderrStr, daemonProcess)));
+        if (maybeDaemonProcess.isPresent()) {
+          var daemonProcess = maybeDaemonProcess.get();
+          var maybeLaunchFailed = waitUntilDaemonTakesTheLock(locks.daemonLock, daemonDir, daemonProcess);
+          if (maybeLaunchFailed.isPresent())
+            return new ServerLaunchResult.ProcessDied(daemonProcess, maybeLaunchFailed.get());
+          else return new ServerLaunchResult.Success(daemonProcess);
         }
-
-        //noinspection BusyWait
-        Thread.sleep(1);
+        else {
+          var outputs = readOutputs(daemonDir);
+          return new ServerLaunchResult.CouldNotStart(outputs);
+        }
       }
-
-      return new ServerLaunchResult(daemonProcess, Optional.empty());
+      else {
+        // The lock is not available, there is already a server running.
+        return new ServerLaunchResult.AlreadyRunning();
+      }
     }
+  }
+
+  /// Busy-spins until the server process is running and has taken the `daemonLock`, returning an error if the daemon
+  /// process dies.
+  private static Optional<ServerLaunchOutputs> waitUntilDaemonTakesTheLock(
+    Lock daemonLock, Path daemonDir, Process daemonProcess
+  ) throws Exception {
+    while (daemonLock.probe()) {
+      var maybeLaunchFailed = checkIfLaunchFailed(daemonDir, daemonProcess);
+      if (maybeLaunchFailed.isPresent()) return maybeLaunchFailed;
+
+      //noinspection BusyWait
+      Thread.sleep(1);
+    }
+
+    return Optional.empty();
+  }
+
+  /// Checks if the server process has failed to start.
+  private static Optional<ServerLaunchOutputs> checkIfLaunchFailed(
+    Path daemonDir, Process daemonProcess
+  ) throws IOException {
+    if (daemonProcess.isAlive()) return Optional.empty();
+
+    var outputs = readOutputs(daemonDir);
+    return Optional.of(outputs);
+  }
+
+  /// Reads the output streams from the server process.
+  private static ServerLaunchOutputs readOutputs(Path daemonDir) throws IOException {
+    var stdout = daemonDir.toAbsolutePath().resolve(DaemonFiles.stdout);
+    var stderr = daemonDir.toAbsolutePath().resolve(DaemonFiles.stderr);
+
+    Optional<String> stdoutStr = Optional.empty();
+    if (Files.exists(stdout) && Files.size(stdout) > 0)
+      stdoutStr = Optional.of(Files.readString(stdout));
+
+    Optional<String> stderrStr = Optional.empty();
+    if (Files.exists(stderr) && Files.size(stderr) > 0)
+      stderrStr = Optional.of(Files.readString(stderr));
+
+    return new ServerLaunchOutputs(stdoutStr, stderrStr);
   }
 
   /**
@@ -210,7 +283,7 @@ public abstract class ServerLauncher {
    * @return a PumperThread that processes the output/error streams from the server
    */
   static PumperThread startStreamPumpers(
-      InputStream socketInputStream, OutputStream socketOutputStream, Streams streams) {
+    InputStream socketInputStream, OutputStream socketOutputStream, Streams streams) {
     var outPumper = new ProxyStream.Pumper(socketInputStream, streams.stdout, streams.stderr);
     var inPump = new InputPumper(() -> streams.stdin, () -> socketOutputStream, true);
     var outPumperThread = new PumperThread(outPumper, "outPump");
@@ -224,9 +297,9 @@ public abstract class ServerLauncher {
 
   public interface InitServer {
     /**
-     * Initializes the server process, returning it or null if it failed to start.
+     * Initializes the server process, returning it or None if it failed to start.
      */
-    Process init() throws Exception;
+    Optional<Process> init() throws Exception;
   }
 
   public interface RunClientLogic<A> {
