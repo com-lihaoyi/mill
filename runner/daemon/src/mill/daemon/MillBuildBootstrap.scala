@@ -18,10 +18,10 @@ import mill.internal.PrefixLogger
 import mill.meta.{FileImportGraph, MillBuildRootModule}
 import mill.meta.CliImports
 import mill.util.BuildInfo
+
 import java.io.File
 import java.net.URLClassLoader
 import java.util.concurrent.ThreadPoolExecutor
-
 import scala.jdk.CollectionConverters.ListHasAsScala
 import scala.util.Using
 import scala.collection.mutable.Buffer
@@ -140,6 +140,17 @@ class MillBuildBootstrap(
           (state, Some(parsedScriptFiles.headerData))
         }
 
+      val classloaderChanged =
+        prevRunnerState.frames.lift(depth + 1).flatMap(_.classLoaderOpt) !=
+          nestedState.frames.headOption.flatMap(_.classLoaderOpt)
+
+      // If the classloader changed, it means the old classloader was closed
+      // and all workers were closed as well, so we return an empty workerCache
+      // for the next evaluation
+      val newWorkerCache =
+        if (classloaderChanged) Map.empty
+        else prevFrameOpt.map(_.workerCache).getOrElse(Map.empty)
+
       val res =
         if (nestedState.errorOpt.isDefined) nestedState.add(errorOpt = nestedState.errorOpt)
         else if (depth == 0 && requestedDepth > nestedState.frames.size) {
@@ -153,7 +164,7 @@ class MillBuildBootstrap(
           // We already evaluated on a deeper level, hence we just need to make sure,
           // we return a proper structure with all already existing watch data
           val evalState = RunnerState.Frame(
-            prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
+            newWorkerCache,
             Seq.empty,
             Seq.empty,
             Map.empty,
@@ -188,7 +199,7 @@ class MillBuildBootstrap(
                 streams0,
                 selectiveExecution,
                 offline,
-                prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
+                newWorkerCache,
                 nestedState.frames.headOption.map(_.codeSignatures).getOrElse(Map.empty),
                 buildFileApi.rootModule,
                 // We want to use the grandparent buildHash, rather than the parent
@@ -221,7 +232,8 @@ class MillBuildBootstrap(
                     buildFileApi,
                     evaluator,
                     prevFrameOpt,
-                    prevOuterFrameOpt
+                    prevOuterFrameOpt,
+                    depth
                   )
                 }
               }
@@ -247,7 +259,8 @@ class MillBuildBootstrap(
       buildFileApi: BuildFileApi,
       evaluator: EvaluatorApi,
       prevFrameOpt: Option[RunnerState.Frame],
-      prevOuterFrameOpt: Option[RunnerState.Frame]
+      prevOuterFrameOpt: Option[RunnerState.Frame],
+      depth: Int
   ): RunnerState = {
     evaluateWithWatches(
       buildFileApi,
@@ -296,7 +309,13 @@ class MillBuildBootstrap(
 
         val classLoader = if (runClasspathChanged || moduleWatchChanged) {
           // Make sure we close the old classloader every time we create a new
-          // one, to avoid memory leaks
+          // one, to avoid memory leaks, as well as all the workers in each subsequent
+          // frame's `workerCache`s that may depend on classes loaded by that classloader
+
+          prevRunnerState.frames.lift(depth - 1).foreach(
+            _.workerCache.collect { case (_, (_, Val(v: AutoCloseable))) => v.close() }
+          )
+
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
           val cl = mill.util.Jvm.createClassLoader(
             runClasspath.map(p => os.Path(p.javaPath)),
