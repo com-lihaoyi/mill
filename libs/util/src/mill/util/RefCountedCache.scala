@@ -1,7 +1,5 @@
 package mill.util
 
-import mill.constants.DebugLog
-
 import scala.collection.mutable
 
 /**
@@ -17,7 +15,9 @@ class RefCountedCache[Key, InternalKey, InitData, Value](
     setup: (Key, InternalKey, InitData) => Value,
     closeValue: Value => Unit
 ) extends AutoCloseable {
-  DebugLog.apply("Hi RefCountedCache")
+  // Workaround for https://github.com/com-lihaoyi/mill/pull/5659
+  private val _ = RefCountedCache.Entry(0, 0)
+
   private val cache = mutable.LinkedHashMap.empty[InternalKey, RefCountedCache.Entry[Value]]
 
   /** Gets the value associated with the given key, creating a new value if necessary. */
@@ -59,8 +59,6 @@ class RefCountedCache[Key, InternalKey, InitData, Value](
   }
 
   override def close(): Unit = {
-    DebugLog(s"Closing the RefCountedCache: ${Exception().getStackTrace.mkString("\n")}")
-    DebugLog(s"Current classloader: ${getClass.getClassLoader}")
     cache.valuesIterator.foreach(entry => closeValue(entry.value))
     cache.clear()
   }

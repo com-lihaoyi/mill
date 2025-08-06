@@ -4,7 +4,6 @@ import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.client.ServerLauncher
 import mill.client.lock.Locks
-import mill.constants.DebugLog
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.*
 import mill.javalib.internal.{JvmWorkerArgs, RpcCompileProblemReporterMessage}
@@ -65,9 +64,6 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
   }
 
   override def close(): Unit = {
-    DebugLog(s"Closing the JvmWorkerImpl: ${Exception().getStackTrace.mkString("\n")}\n\n")
-    DebugLog(s"open classloaders:\n${MillURLClassLoader.openClassloaders.mkString("\n  ")}")
-    DebugLog(s"Current classloader: ${getClass.getClassLoader}")
     zincLocalWorker.close()
     subprocessCache.close()
     close0() // make sure this is invoked last as it closes the classloader that we need for other `.close` calls

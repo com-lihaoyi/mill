@@ -3,7 +3,6 @@ package mill.javalib
 import mainargs.Flag
 import mill.*
 import mill.api.{PathRef, Task, *}
-import mill.constants.DebugLog
 import mill.javalib.CoursierModule.Resolver
 import mill.javalib.api.JvmWorkerUtil.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.javalib.api.internal.JvmWorkerApi as InternalJvmWorkerApi
@@ -80,10 +79,7 @@ trait JvmWorkerModule extends OfflineSupportModule with CoursierModule {
       jobs = jobs,
       compileToJar = false,
       zincLogDebug = zincLogDebug(),
-      close0 = () => {
-        DebugLog(s"Closing the classloader: ${Exception().getStackTrace.mkString("\n")}")
-        cl.close()
-      }
+      close0 = () => cl.close()
     )
     factory.make(args)
   }

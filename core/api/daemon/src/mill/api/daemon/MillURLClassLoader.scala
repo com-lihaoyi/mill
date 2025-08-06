@@ -1,7 +1,5 @@
 package mill.api.daemon
 
-import mill.constants.DebugLog
-
 import java.net.URLClassLoader
 
 /**
@@ -21,24 +19,11 @@ class MillURLClassLoader(
   import MillURLClassLoader.*
   addOpenClassloader(label)
 
-  override def toString: String =
-    s"""MillURLClassLoader(
-       |  label=$label
-       |  parent=
-       |${("" + parent).indent(4)}
-       |  sharedPrefixes=$sharedPrefixes
-       |  sharedLoader=
-       |${("" + sharedLoader).indent(4)}
-       |  ${super.toString}
-       |)""".stripMargin
-
   override def findClass(name: String): Class[?] =
     if (sharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
     else super.findClass(name)
 
   override def close() = {
-    DebugLog(s"Closing the classloader $this: ${Exception().getStackTrace.mkString("\n")}")
-
     removeOpenClassloader(label)
     super.close()
   }

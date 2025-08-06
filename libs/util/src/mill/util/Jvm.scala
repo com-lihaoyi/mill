@@ -11,7 +11,6 @@ import coursier.parse.RepositoryParser
 import coursier.util.Task
 import coursier.{Artifacts, Classifier, Dependency, Repository, Resolution, Resolve, Type}
 import mill.api.*
-import mill.constants.DebugLog
 
 import java.io.{BufferedOutputStream, File}
 import java.nio.file.Files

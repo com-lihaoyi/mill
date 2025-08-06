@@ -298,12 +298,6 @@ class MillBuildBootstrap(
           // Make sure we close the old classloader every time we create a new
           // one, to avoid memory leaks
           prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
-          prevFrameOpt.foreach { f =>
-            f.workerCache.foreach {
-              case (_, (_, Val(a: AutoCloseable))) => a.close()
-              case _ => ()
-            }
-          }
           val cl = mill.util.Jvm.createClassLoader(
             runClasspath.map(p => os.Path(p.javaPath)),
             null,
