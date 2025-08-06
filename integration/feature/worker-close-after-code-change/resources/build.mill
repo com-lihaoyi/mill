@@ -1,0 +1,16 @@
+package build
+
+import mill._
+class Foo extends AutoCloseable {
+  def x = 123
+  class Late
+  override def close(): Unit = {
+    // Make sure using a class that is only initialized during worker teardown
+    // doesn't cause class loading errors
+    val _ = new Late()
+  }
+}
+
+def foo = Task.Worker{ new Foo }
+
+def bar = Task{ foo().x }
