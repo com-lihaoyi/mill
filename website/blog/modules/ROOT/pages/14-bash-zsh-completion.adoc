@@ -1,4 +1,4 @@
-= How to show Tab-Completion Descriptions in Bash and Zsh
+= Writing Your Own Simple Tab-Completions for Bash and Zsh
 
 :link-github: https://github.com/com-lihaoyi/mill
 :link-pr: {link-github}/pull
@@ -9,24 +9,174 @@
 
 _{author}, {revdate}_
 
-Bash and Zsh tab-completion can be very handy for anyone trying to use an unfamiliar
-API. The latest version 1.0.3 of the {mill-doc-url}[Mill build tool] has Bash and Zsh
-tab-completion that shows a description of each command or flag being completed:
+
+Tab-completion can be very handy for anyone trying to use an
+unfamiliar API. But setting up tab-completions is complicated by the fact
+that half your users would be using Bash-on-Linux, while the other half will be
+using Zsh-on-OSX. Furthermore, most users exploring an unfamiliar CLI tool using
+tab completion appreciate showing a description along with each completion so they
+can read what it is, but that's normally only available on Zsh and not on Bash:
 
 image::CompletionDescriptions.png[]
 image::CompletionDescriptions2.png[]
 
+But with some work, you can make your tab-completions work on both shells, including
+nice quality-of-life features like descriptions. This blog post will explore how it
+is done, based on our recent experience implementing this in the {mill-doc-url}[Mill build tool]
+
+
+
+// end::header[]
+
+
+== Basic Tab Completion
+
+The basic way tab-completion works in shells like Bash or Zsh is to register a handler
+function that is called when a user presses `<tab>` at the command line. This handler
+function is then given the words currently written, and the index of the word the
+user's cursor is currently over. From this information, the completion function generates
+a list of strings that are possible completions for the word at that index, and
+return it to the shell. At a glance, this looks something like:
+
+```bash
+_generate_my_command_completions() {
+  local idx=$1; shift
+  local words=( "$@" )
+  local prefix=${words[idx]}
+
+  local array=(apple avocado banana cherry durian)
+  for elem in "${array[@]}"; do
+    if [[ $elem == "$prefix"* ]]; then
+      echo "$elem"
+    fi
+  done
+}
+
+_complete_my_command_bash() {
+  compopt -o nospace 2>/dev/null
+  local IFS=$'\n'
+  local completions=($(_generate_my_command_completions "$COMP_CWORD" "${COMP_WORDS[@]}"))
+  COMPREPLY=( "${completions[@]}" )
+}
+
+_complete_my_command_zsh() {
+  local -a completions
+  completions=($(_generate_my_command_completions "$CURRENT" "${words[@]}"))
+  compadd -- $completions
+}
+
+if [ -n "${ZSH_VERSION:-}" ]; then
+  autoload -Uz compinit
+  compinit
+  compdef _complete_my_command_zsh my_command
+elif [ -n "${BASH_VERSION:-}" ]; then
+  complete -F _complete_my_command_bash my_command
+fi
+```
+
+- `_generate_my_command_completions` is a dummy function used
+  for demonstration purposes that prints out a hardcoded set of completions,
+  but in a real scenario would be the logic that generates completions for
+  your specific app or CLI tool.
+
+- `_complete_my_command_bash` and `_complete_my_command_zsh` are the shell-specific
+  completion functions that pass the current word to `_generate_my_command_completions`
+  and wire up the results to each shell's unique completion APIs. Bash completion
+  functions need to set the `COMPREPLY` environment variable, while Zsh completion
+  functions need to call `compadd` (or one of the other similar functions)
+
+- This example snippet would typically be put (or ``source``ed) in your
+  `~/.bashrc`, `~/.bash_profile`, and `~/.zshrc` so the `if`/`elif`/`fi` block at
+  the bottom registers the relevant hooks when the shell starts.
+  These hook into tab-completion whenever `my_command` is the
+  first word at the prompt.
+
+You can try this out live by pasting it into your Bash or Zsh shell and
+typing `my_command <tab>` or `my_command a<tab>`. Note that you don't
+actually need a `my_command` command installed:
+
+```bash
+$ my_command <tab>
+apple    avocado  banana   cherry   durian
+
+$ my_command a<tab>
+apple    avocado
+```
+
+That's all you need to get a basic tab-completer working. In real usage"
+
+* `my_command` would be the name of the command the user would invoke your CLI program with
+  (e.g. `mill`)
+
+* `_generate_my_command_completions` would be your bespoke logic
+  to print out a line-separated list of completions. This could be a hard-coded list
+  for programs that change infrequently, or it could actually invoke your binary and
+  ask it what completions are available for the given input (what `mill` does).
+
+* While this example only looks up `words[idx]` to try and find a prefix
+  match for the current word, the completer is allowed to use the entirety of `words`
+  to decide what completions to offer, e.g. based on what flags or command-names are present in that array
+
+== Basic Zsh Completion Descriptions
+
+The completions above work and provide a basic level of assistance for users of your CLI, but
+it would be nice for users if they could also see a description of each command they could
+complete in the terminal, as is done in the Mill build tool:
+
+image::CompletionDescriptions.png[]
+
+To do this, you can
+
+```bash
+_generate_my_command_completions() {
+  local idx=$1; shift
+  local words=( "$@" )
+  local prefix=${words[idx]}
+
+  local array=(apple avocado banana cherry durian)
+  local array=("a common fruit" "oily fruit that goes well with toast" banana cherry durian)
+  for elem in "${array[@]}"; do
+    if [[ $elem == "$prefix"* ]]; then
+      echo "$elem"
+    fi
+  done
+}
+
+_complete_my_command_bash() {
+  compopt -o nospace 2>/dev/null
+  local IFS=$'\n'
+  local completions=($(_generate_my_command_completions "$COMP_CWORD" "${COMP_WORDS[@]}"))
+  COMPREPLY=( "${completions[@]}" )
+}
+
+_complete_my_command_zsh() {
+  local -a completions
+  completions=($(_generate_my_command_completions "$CURRENT" "${words[@]}"))
+  compadd -- $completions
+}
+
+if [ -n "${ZSH_VERSION:-}" ]; then
+  autoload -Uz compinit
+  compinit
+  compdef _complete_my_command_zsh my_command
+elif [ -n "${BASH_VERSION:-}" ]; then
+  complete -F _complete_my_command_bash my_command
+fi
+```
+
+== Hacking Bash Completion Descriptions
+== Showing Single-Completion Descriptions
+
+The latest version 1.0.3 of the  has Bash and Zsh
+tab-completion that shows a description of each command or flag being completed:
+
+image::CompletionDescriptions.png[]
+
+
 It also shows the description of a command or flag when you press `<tab>` after
-the token is complete:
+the word is complete:
 
 image::CompletionSingleDescription.png[]
 
 
-Completion descriptions take some configuring in Zsh, are not normally available in
-the Bash shell, and neither shell shows any completion when you press `<tab>` after
-a token is already complete. But with some work this can be implemented regardless.
-This blog post discusses how it is done in Mill, and how you can do it yourself for
-your own command-line completion scripts
-
-// end::header[]
-
+== Completion
