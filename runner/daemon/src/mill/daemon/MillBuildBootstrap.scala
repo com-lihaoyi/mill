@@ -177,24 +177,16 @@ class MillBuildBootstrap(
             case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
             case Result.Success((buildFileApi)) =>
 
-              val newWorkerCache = {
-                // Make sure we close the old classloader every time we create a new one
-                // to avoid memory leaks, after closing all workers that may include classes
-                // instantiated from that classloader
-                if (
-                  prevOuterFrameOpt.flatMap(
-                    _.classLoaderOpt
-                  ) != nestedState.frames.headOption.flatMap(_.classLoaderOpt)
-                ) {
-                  prevFrameOpt.map(_.workerCache).foreach(_.collect {
-                    case (k, (n, Val(v: AutoCloseable))) => v.close()
-                  })
-                  prevOuterFrameOpt.flatMap(_.classLoaderOpt).foreach(_.close())
-                  Map.empty
-                } else {
-                  prevFrameOpt.map(_.workerCache).getOrElse(Map.empty)
-                }
-              }
+              val classloaderChanged =
+                prevOuterFrameOpt.flatMap(_.classLoaderOpt) !=
+                  nestedState.frames.headOption.flatMap(_.classLoaderOpt)
+
+              // If the classloader changed, it means the old classloader was closed
+              // and all workers were closed as well, so we return an empty workerCache
+              // for the next evaluation
+              val newWorkerCache =
+                if (classloaderChanged) Map.empty
+                else prevFrameOpt.map(_.workerCache).getOrElse(Map.empty)
 
               Using.resource(makeEvaluator(
                 projectRoot,
@@ -241,7 +233,8 @@ class MillBuildBootstrap(
                     buildFileApi,
                     evaluator,
                     prevFrameOpt,
-                    prevOuterFrameOpt
+                    prevOuterFrameOpt,
+                    depth
                   )
                 }
               }
@@ -267,7 +260,8 @@ class MillBuildBootstrap(
       buildFileApi: BuildFileApi,
       evaluator: EvaluatorApi,
       prevFrameOpt: Option[RunnerState.Frame],
-      prevOuterFrameOpt: Option[RunnerState.Frame]
+      prevOuterFrameOpt: Option[RunnerState.Frame],
+      depth: Int
   ): RunnerState = {
     evaluateWithWatches(
       buildFileApi,
@@ -316,7 +310,14 @@ class MillBuildBootstrap(
 
         val classLoader = if (runClasspathChanged || moduleWatchChanged) {
           // Make sure we close the old classloader every time we create a new
-          // one, to avoid memory leaks
+          // one, to avoid memory leaks, as well as all the workers in each subsequent
+          // frame's `workerCache`s that may depend on classes loaded by that classloader
+
+          prevRunnerState.frames.take(depth)
+            .map(f => f.workerCache)
+            .foreach(_.collect { case (k, (n, Val(v: AutoCloseable))) => v.close()})
+
+          prevFrameOpt.foreach(_.classLoaderOpt.foreach(_.close()))
           val cl = mill.util.Jvm.createClassLoader(
             runClasspath.map(p => os.Path(p.javaPath)),
             null,
