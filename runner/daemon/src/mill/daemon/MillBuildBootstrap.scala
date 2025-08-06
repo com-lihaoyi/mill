@@ -140,6 +140,17 @@ class MillBuildBootstrap(
           (state, Some(parsedScriptFiles.headerData))
         }
 
+      val classloaderChanged =
+        prevOuterFrameOpt.flatMap(_.classLoaderOpt) !=
+          nestedState.frames.headOption.flatMap(_.classLoaderOpt)
+
+      // If the classloader changed, it means the old classloader was closed
+      // and all workers were closed as well, so we return an empty workerCache
+      // for the next evaluation
+      val newWorkerCache =
+        if (classloaderChanged) Map.empty
+        else prevFrameOpt.map(_.workerCache).getOrElse(Map.empty)
+
       val res =
         if (nestedState.errorOpt.isDefined) nestedState.add(errorOpt = nestedState.errorOpt)
         else if (depth == 0 && requestedDepth > nestedState.frames.size) {
@@ -153,7 +164,7 @@ class MillBuildBootstrap(
           // We already evaluated on a deeper level, hence we just need to make sure,
           // we return a proper structure with all already existing watch data
           val evalState = RunnerState.Frame(
-            prevFrameOpt.map(_.workerCache).getOrElse(Map.empty),
+            newWorkerCache,
             Seq.empty,
             Seq.empty,
             Map.empty,
@@ -175,17 +186,6 @@ class MillBuildBootstrap(
           rootModuleRes match {
             case Result.Failure(err) => nestedState.add(errorOpt = Some(err))
             case Result.Success((buildFileApi)) =>
-
-              val classloaderChanged =
-                prevOuterFrameOpt.flatMap(_.classLoaderOpt) !=
-                  nestedState.frames.headOption.flatMap(_.classLoaderOpt)
-
-              // If the classloader changed, it means the old classloader was closed
-              // and all workers were closed as well, so we return an empty workerCache
-              // for the next evaluation
-              val newWorkerCache =
-                if (classloaderChanged) Map.empty
-                else prevFrameOpt.map(_.workerCache).getOrElse(Map.empty)
 
               Using.resource(makeEvaluator(
                 projectRoot,
