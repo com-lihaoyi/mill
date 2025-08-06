@@ -131,17 +131,17 @@ trait AndroidModule extends JavaModule {
   }
 
   /**
-   * Gets all the android resources (typically in res/ directory)
+   * Gets all the compiled Android resources (typically in res/ directory)
    * from the [[transitiveModuleCompileModuleDeps]]
-   * @return
+   * @return a sequence of PathRef to the compiled resources
    */
-  def androidTransitiveResources: T[Seq[PathRef]] = Task {
+  def androidTransitiveCompiledResources: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps) {
       case m: AndroidModule =>
-        Task.Anon(m.androidResources())
+        Task.Anon(m.androidCompiledModuleResources())
       case _ =>
         Task.Anon(Seq.empty)
-    }().flatten
+    }().flatten.distinct
   }
 
   /**
@@ -478,15 +478,15 @@ trait AndroidModule extends JavaModule {
   }
 
   /**
-   * Gets all the android resources from this module and its
-   * module dependencies and compiles them into flata files.
-   * @return
+   * Gets all the android resources from this module,
+   * compiles them into flata files and collects
+   * transitive compiled resources from dependencies.
+   * @return a sequence of PathRef to the compiled resources
    */
-  def androidCompiledModuleResources = Task {
+  def androidCompiledModuleResources: T[Seq[PathRef]] = Task {
 
-    val moduleResources =
-      androidResources().map(_.path).filter(os.exists) ++
-        androidTransitiveResources().map(_.path).filter(os.exists)
+    val moduleResources: Seq[os.Path] =
+      androidResources().map(_.path).filter(os.exists)
 
     val aapt2Compile = Seq(androidSdkModule().aapt2Path().path.toString(), "compile")
 
@@ -504,9 +504,7 @@ trait AndroidModule extends JavaModule {
 
       os.call(aapt2Compile ++ aapt2Args)
     }
-
-    PathRef(Task.dest)
-
+    Seq(PathRef(Task.dest)) ++ androidTransitiveCompiledResources()
   }
 
   /**
@@ -517,10 +515,11 @@ trait AndroidModule extends JavaModule {
    */
   def androidLinkedResources: T[PathRef] = Task {
     val compiledLibResDir = androidCompiledLibResources().path
-    val moduleResDir = androidCompiledModuleResources().path
+    val moduleResDirs = androidCompiledModuleResources()
+      .map(_.path)
 
     val filesToLink = os.walk(compiledLibResDir).filter(os.isFile(_)) ++
-      os.walk(moduleResDir).filter(os.isFile(_))
+      moduleResDirs.flatMap(os.walk(_).filter(os.isFile(_)))
 
     val javaRClassDir = Task.dest / "generatedSources/java"
     val apkDir = Task.dest / "apk"
