@@ -631,6 +631,8 @@ class GenIdeaImpl(
       compilerBridgeJar: Option[os.Path],
       scaladocExtraClasspath: Seq[os.Path]
   ): Elem = {
+    val _ = scaladocExtraClasspath // unused for now
+
     <component name="libraryTable">
       <library name={name} type="Scala">
         <properties>

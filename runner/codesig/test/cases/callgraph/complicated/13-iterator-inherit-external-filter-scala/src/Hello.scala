@@ -22,8 +22,8 @@ object Hello {
 
   class FilterBigTestIterator[A](parent: BigTestIterator[A], pred: A => Boolean)
       extends BigTestIterator[A] {
-    private[this] var hd: A = _
-    private[this] var hdDefined: Boolean = false
+    private var hd: A = compiletime.uninitialized
+    private var hdDefined: Boolean = false
 
     def hasNext: Boolean = hdDefined || {
       while ({

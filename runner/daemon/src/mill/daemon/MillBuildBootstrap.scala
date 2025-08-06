@@ -132,7 +132,7 @@ class MillBuildBootstrap(
             else {
               val bootstrapModule =
                 new MillBuildRootModule.BootstrapModule()(
-                  new RootModule.Info(currentRoot, output, projectRoot)
+                  using new RootModule.Info(currentRoot, output, projectRoot)
                 )
               RunnerState(Some(bootstrapModule), Nil, None, Some(parsedScriptFiles.buildFile))
             }

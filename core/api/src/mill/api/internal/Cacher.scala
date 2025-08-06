@@ -16,7 +16,7 @@ private[mill] object Cacher {
     import quotes.reflect.*
     // In Scala 3, the top level splice of a macro is owned by a symbol called "macro" with the macro flag set,
     // but not the method flag.
-    def isMacroOwner(sym: Symbol)(using Quotes): Boolean =
+    def isMacroOwner(sym: Symbol): Boolean =
       sym.name == "macro" && sym.flags.is(Flags.Macro | Flags.Synthetic) && !sym.flags.is(
         Flags.Method
       )

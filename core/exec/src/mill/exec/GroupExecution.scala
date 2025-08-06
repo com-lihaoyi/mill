@@ -382,7 +382,7 @@ private trait GroupExecution {
         workerCache.update(w.ctx.segments.render, (workerCacheHash(inputsHash), v))
       }
 
-    def normalJson(w: upickle.default.Writer[_]) = PathRef.withSerializedPaths {
+    def normalJson(w: upickle.default.Writer[?]) = PathRef.withSerializedPaths {
       upickle.default.writeJs(v.value)(using w.asInstanceOf[upickle.default.Writer[Any]])
     }
     lazy val workerJson = labelled.asWorker.map { _ =>

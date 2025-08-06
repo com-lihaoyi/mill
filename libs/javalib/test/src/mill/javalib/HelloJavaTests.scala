@@ -174,7 +174,7 @@ object HelloJavaTests extends TestSuite {
     test("test") - {
       testEval().scoped { eval =>
 
-        val Left(ExecResult.Failure(ref1)) =
+        val Left(ExecResult.Failure(_)) =
           eval.apply(HelloJava.core.test.testForked()): @unchecked
 
         //      assert(

@@ -290,7 +290,7 @@ object Format {
     given ReadWriter[RelPathRef] =
       new Visitor.MapReader[Any, String, RelPathRef](readwriter[String])
         with ReadWriter[RelPathRef] {
-        def write0[V](out: Visitor[_, V], v: RelPathRef) =
+        def write0[V](out: Visitor[?, V], v: RelPathRef) =
           summon[ReadWriter[PathRef]].write0(out, v.ref)
         def mapNonNullsFunction(t: String) =
           if t.startsWith("ref:") then RelPathRef(upickle.default.read[PathRef](t))

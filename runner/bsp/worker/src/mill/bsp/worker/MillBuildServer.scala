@@ -12,9 +12,9 @@ import mill.api.internal.WatchSig
 import mill.internal.PrefixLogger
 import mill.server.MillDaemonServer
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest
+
 import java.util.concurrent.{CompletableFuture, ConcurrentHashMap, LinkedBlockingQueue, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
-
 import scala.collection.mutable
 import scala.concurrent.{Await, Promise}
 import scala.concurrent.duration.Duration
@@ -22,7 +22,6 @@ import scala.jdk.CollectionConverters.*
 import scala.util.chaining.scalaUtilChainingOps
 import scala.util.control.NonFatal
 import scala.util.{Failure, Success, Try}
-
 import mill.api.daemon.internal.bsp.{
   BspModuleApi,
   BspServerResult,
@@ -30,6 +29,8 @@ import mill.api.daemon.internal.bsp.{
   ScalaBuildTarget
 }
 import mill.api.daemon.internal.*
+
+import scala.annotation.unused
 
 private class MillBuildServer(
     topLevelProjectRoot: os.Path,
@@ -989,12 +990,12 @@ private class MillBuildServer(
 
   private def evaluate(
       evaluator: EvaluatorApi,
-      requestDescription: String,
+      @unused requestDescription: String,
       goals: Seq[TaskApi[?]],
       logger: Logger,
       reporter: Int => Option[CompileProblemReporter],
       testReporter: TestReporter = TestReporter.DummyTestReporter,
-      errorOpt: EvaluatorApi.Result[Any] => Option[String] = evaluatorErrorOpt(_)
+      errorOpt: EvaluatorApi.Result[Any] => Option[String] = evaluatorErrorOpt
   ): ExecutionResultsApi = {
     val goalCount = goals.length
     logger.info(s"Evaluating $goalCount ${if (goalCount > 1) "tasks" else "task"}")

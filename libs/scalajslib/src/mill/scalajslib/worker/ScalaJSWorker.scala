@@ -66,8 +66,8 @@ private[scalajslib] class ScalaJSWorker(jobs: Int)
     moduleSplitStyle match {
       case api.ModuleSplitStyle.FewestModules => workerApi.ModuleSplitStyle.FewestModules
       case api.ModuleSplitStyle.SmallestModules => workerApi.ModuleSplitStyle.SmallestModules
-      case api.ModuleSplitStyle.SmallModulesFor(packages) =>
-        workerApi.ModuleSplitStyle.SmallModulesFor(packages)
+      case api.ModuleSplitStyle.SmallModulesFor(packages*) =>
+        workerApi.ModuleSplitStyle.SmallModulesFor(packages*)
     }
 
   private def toWorkerApi(jsEnvConfig: api.JsEnvConfig): workerApi.JsEnvConfig = {

@@ -130,13 +130,13 @@ object FileImportGraph {
         (false, multiple.head)
     }
 
-    (dummy, foundRootBuildFileName)
+    (dummy = dummy, foundRootBuildFileName = foundRootBuildFileName)
   }
 
   def walkBuildFiles(projectRoot: os.Path, output: os.Path): Seq[os.Path] = {
     if (!os.exists(projectRoot)) Nil
     else {
-      val (dummy, foundRootBuildFileName) = findRootBuildFiles(projectRoot)
+      val foundRootBuildFileName = findRootBuildFiles(projectRoot).foundRootBuildFileName
 
       val buildFileExtension =
         buildFileExtensions.asScala.find(ex => foundRootBuildFileName.endsWith(s".$ex")).get

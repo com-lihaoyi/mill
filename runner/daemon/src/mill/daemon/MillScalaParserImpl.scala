@@ -318,7 +318,7 @@ object MillScalaParserImpl extends MillScalaParser {
     buf.result()
   }
 
-  private def validSpan(sourcePos: SourcePosition)(using Context): Boolean =
+  private def validSpan(sourcePos: SourcePosition): Boolean =
     sourcePos.span.exists && !sourcePos.span.isSynthetic
 
   private def slice(start: Int, end: Int)(using Context): String =

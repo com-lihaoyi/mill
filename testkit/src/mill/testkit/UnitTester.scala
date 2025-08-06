@@ -13,6 +13,7 @@ import mill.resolve.Resolve
 import java.io.InputStream
 import java.io.PrintStream
 import java.util.concurrent.ThreadPoolExecutor
+import scala.annotation.targetName
 
 object UnitTester {
   case class Result[T](value: T, evalCount: Int)
@@ -161,9 +162,9 @@ class UnitTester(
     }
   }
 
+  @targetName("applyTasks")
   def apply(
-      tasks: Seq[Task[?]],
-      dummy: DummyImplicit = null
+      tasks: Seq[Task[?]]
   ): Either[ExecResult.Failing[?], UnitTester.Result[Seq[?]]] = {
 
     val evaluated = evaluator.execute(tasks).executionResults

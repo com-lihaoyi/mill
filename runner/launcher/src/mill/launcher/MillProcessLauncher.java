@@ -122,11 +122,13 @@ public class MillProcessLauncher {
                 Object conf = mill.launcher.ConfigReader.readYaml(
                     buildFile, buildFile.getFileName().toString());
                 if (!(conf instanceof Map)) return new String[] {};
-                Map<String, Object> conf2 = (Map<String, Object>) conf;
+                @SuppressWarnings("unchecked")
+                var conf2 = (Map<String, Object>) conf;
 
                 if (!conf2.containsKey(key)) return new String[] {};
                 if (conf2.get(key) instanceof List) {
-                  List<String> list = (List<String>) conf2.get(key);
+                  @SuppressWarnings("unchecked")
+                  var list = (List<String>) conf2.get(key);
                   String[] arr = new String[list.size()];
                   for (int i = 0; i < arr.length; i++) {
                     arr[i] = mill.constants.Util.interpolateEnvVars(list.get(i), env);
@@ -299,7 +301,7 @@ public class MillProcessLauncher {
     return Integer.parseInt(new String(proc.getInputStream().readAllBytes()).trim());
   }
 
-  private static AtomicReference<String> memoizedTerminalDims = new AtomicReference();
+  private static final AtomicReference<String> memoizedTerminalDims = new AtomicReference<>();
 
   private static final boolean canUseNativeTerminal;
 

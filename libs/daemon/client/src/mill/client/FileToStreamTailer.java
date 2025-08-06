@@ -97,7 +97,7 @@ public class FileToStreamTailer extends Thread implements AutoCloseable {
   }
 
   @Override
-  public void close() throws Exception {
+  public void close() {
     flush();
     interrupt();
   }
