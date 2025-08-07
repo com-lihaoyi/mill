@@ -13,9 +13,7 @@ public abstract class LaunchedServer {
 
     @Override
     public String toString() {
-      return "LaunchedServer.OsProcess{" +
-        "process=" + process +
-        '}';
+      return "LaunchedServer.OsProcess{" + "process=" + process + '}';
     }
 
     @Override
@@ -34,9 +32,7 @@ public abstract class LaunchedServer {
 
     @Override
     public String toString() {
-      return "LaunchedServer.NewThread{" +
-        "thread=" + thread +
-        '}';
+      return "LaunchedServer.NewThread{" + "thread=" + thread + '}';
     }
 
     @Override

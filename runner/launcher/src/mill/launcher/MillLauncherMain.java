@@ -4,7 +4,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
-
 import mill.client.*;
 import mill.client.lock.Locks;
 import mill.constants.OutFiles;
@@ -48,10 +47,10 @@ public class MillLauncherMain {
                 System.getenv(),
                 optsArgs.toArray(new String[0]),
                 null,
-                -1
-            ) {
+                -1) {
               public LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception {
-                return new LaunchedServer.OsProcess(MillProcessLauncher.launchMillDaemon(daemonDir));
+                return new LaunchedServer.OsProcess(
+                    MillProcessLauncher.launchMillDaemon(daemonDir));
               }
 
               public void prepareDaemonDir(Path daemonDir) throws Exception {

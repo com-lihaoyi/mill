@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-
 import mill.client.lock.Lock;
 import mill.client.lock.Locks;
 import mill.constants.DaemonFiles;
@@ -55,15 +54,16 @@ public abstract class ServerLauncher {
   ///
   /// @param connection     the socket connected to the server
   /// @param streams        streams to use for the client logic
-  /// @param closeConnectionAfterClientLogic whether to close the connection after running the client logic
+  /// @param closeConnectionAfterClientLogic whether to close the connection after running the
+  // client logic
   /// @param runClientLogic the client logic to run
   /// @return the exit code that the server sent back
   public static <A> RunWithConnectionResult<A> runWithConnection(
-    Socket connection,
-    Streams streams,
-    boolean closeConnectionAfterClientLogic,
-    RunClientLogic<A> runClientLogic)
-    throws Exception {
+      Socket connection,
+      Streams streams,
+      boolean closeConnectionAfterClientLogic,
+      RunClientLogic<A> runClientLogic)
+      throws Exception {
     var socketInputStream = connection.getInputStream();
     var socketOutputStream = connection.getOutputStream();
     var pumperThread = startStreamPumpers(socketInputStream, socketOutputStream, streams);
@@ -83,42 +83,40 @@ public abstract class ServerLauncher {
    * @throws Exception if the server fails to start or a connection cannot be established
    */
   public static Socket launchOrConnectToServer(
-    Locks locks,
-    Path daemonDir,
-    String debugName,
-    int serverInitWaitMillis,
-    InitServer initServer,
-    Consumer<ServerLaunchResult.ServerDied> onFailure,
-    Consumer<String> log
-  )
-    throws Exception {
+      Locks locks,
+      Path daemonDir,
+      String debugName,
+      int serverInitWaitMillis,
+      InitServer initServer,
+      Consumer<ServerLaunchResult.ServerDied> onFailure,
+      Consumer<String> log)
+      throws Exception {
     var result = ensureServerIsRunning(locks, daemonDir, initServer, log);
     return result.fold(
-      success -> {
-        try {
-          return onServerRunning(daemonDir, debugName, serverInitWaitMillis, log);
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      },
-      alreadyRunning -> {
-        try {
-          return onServerRunning(daemonDir, debugName, serverInitWaitMillis, log);
-        } catch (Exception e) {
-          throw new RuntimeException(e);
-        }
-      },
-      processDied -> {
-        onFailure.accept(processDied);
-        throw new IllegalStateException(processDied.toString());
-      }
-    );
+        success -> {
+          try {
+            return onServerRunning(daemonDir, debugName, serverInitWaitMillis, log);
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        },
+        alreadyRunning -> {
+          try {
+            return onServerRunning(daemonDir, debugName, serverInitWaitMillis, log);
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+        },
+        processDied -> {
+          onFailure.accept(processDied);
+          throw new IllegalStateException(processDied.toString());
+        });
   }
 
   /// Invoked when {@link ServerLauncher#ensureServerIsRunning} succeeds.
   public static Socket onServerRunning(
-    Path daemonDir, String debugName, int serverInitWaitMillis, Consumer<String> log
-  ) throws Exception {
+      Path daemonDir, String debugName, int serverInitWaitMillis, Consumer<String> log)
+      throws Exception {
     var startTime = System.currentTimeMillis();
     log.accept("Reading server port: " + daemonDir.toAbsolutePath());
     var port = readServerPort(daemonDir, startTime, serverInitWaitMillis);
@@ -131,11 +129,11 @@ public abstract class ServerLauncher {
   }
 
   public static Integer readServerPort(
-    Path daemonDir, long startTimeMillis, long serverInitWaitMillis) throws Exception {
+      Path daemonDir, long startTimeMillis, long serverInitWaitMillis) throws Exception {
     return withTimeout(startTimeMillis, serverInitWaitMillis, "Failed to read server port", () -> {
       try {
         return Optional.of(
-          Integer.parseInt(Files.readString(daemonDir.resolve(DaemonFiles.socketPort))));
+            Integer.parseInt(Files.readString(daemonDir.resolve(DaemonFiles.socketPort))));
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -163,8 +161,8 @@ public abstract class ServerLauncher {
   }
 
   public static <A> A withTimeout(
-    long startTimeMillis, long timeoutMillis, String errorMessage, Supplier<Optional<A>> supplier)
-    throws Exception {
+      long startTimeMillis, long timeoutMillis, String errorMessage, Supplier<Optional<A>> supplier)
+      throws Exception {
     var current = Optional.<A>empty();
     Throwable throwable = null;
     while (current.isEmpty() && System.currentTimeMillis() - startTimeMillis < timeoutMillis) {
@@ -192,8 +190,7 @@ public abstract class ServerLauncher {
   /// @param daemonDir  the directory where the server will write its port
   /// @param initServer the function to use to start the server
   public static ServerLaunchResult ensureServerIsRunning(
-    Locks locks, Path daemonDir, InitServer initServer, Consumer<String> log
-  ) throws Exception {
+      Locks locks, Path daemonDir, InitServer initServer, Consumer<String> log) throws Exception {
     Files.createDirectories(daemonDir);
 
     log.accept("Acquiring the launcher lock: " + locks.launcherLock);
@@ -207,30 +204,30 @@ public abstract class ServerLauncher {
         log.accept("The server has started: " + launchedServer);
 
         log.accept("Waiting for the server to take the daemon lock: " + locks.daemonLock);
-        var maybeLaunchFailed = waitUntilDaemonTakesTheLock(locks.daemonLock, daemonDir, launchedServer);
+        var maybeLaunchFailed =
+            waitUntilDaemonTakesTheLock(locks.daemonLock, daemonDir, launchedServer);
         if (maybeLaunchFailed.isPresent()) {
           var outputs = maybeLaunchFailed.get();
           log.accept("The server " + launchedServer + " failed to start: " + outputs);
 
           return new ServerLaunchResult.ServerDied(launchedServer, outputs);
-        }
-        else {
-          log.accept("The server " + launchedServer + " has taken the daemon lock: " + locks.daemonLock);
+        } else {
+          log.accept(
+              "The server " + launchedServer + " has taken the daemon lock: " + locks.daemonLock);
           return new ServerLaunchResult.Success(launchedServer);
         }
-      }
-      else {
+      } else {
         log.accept("The daemon lock is not available, there is already a server running.");
         return new ServerLaunchResult.AlreadyRunning();
       }
     }
   }
 
-  /// Busy-spins until the server process is running and has taken the `daemonLock`, returning an error if the daemon
+  /// Busy-spins until the server process is running and has taken the `daemonLock`, returning an
+  // error if the daemon
   /// process dies.
   private static Optional<ServerLaunchOutputs> waitUntilDaemonTakesTheLock(
-    Lock daemonLock, Path daemonDir, LaunchedServer server
-  ) throws Exception {
+      Lock daemonLock, Path daemonDir, LaunchedServer server) throws Exception {
     while (daemonLock.probe()) {
       var maybeLaunchFailed = checkIfLaunchFailed(daemonDir, server);
       if (maybeLaunchFailed.isPresent()) return maybeLaunchFailed;
@@ -244,8 +241,7 @@ public abstract class ServerLauncher {
 
   /// Checks if the server process has failed to start.
   private static Optional<ServerLaunchOutputs> checkIfLaunchFailed(
-    Path daemonDir, LaunchedServer server
-  ) throws IOException {
+      Path daemonDir, LaunchedServer server) throws IOException {
     if (server.isAlive()) return Optional.empty();
 
     var outputs = readOutputs(daemonDir);
@@ -276,7 +272,7 @@ public abstract class ServerLauncher {
    * @return a PumperThread that processes the output/error streams from the server
    */
   static PumperThread startStreamPumpers(
-    InputStream socketInputStream, OutputStream socketOutputStream, Streams streams) {
+      InputStream socketInputStream, OutputStream socketOutputStream, Streams streams) {
     var outPumper = new ProxyStream.Pumper(socketInputStream, streams.stdout, streams.stderr);
     var inPump = new InputPumper(() -> streams.stdin, () -> socketOutputStream, true);
     var outPumperThread = new PumperThread(outPumper, "outPump");
