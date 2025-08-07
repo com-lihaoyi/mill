@@ -29,10 +29,6 @@ import mill.androidlib.AndroidSdkModule
 def millVersionIsStable0(implicit ctx: mill.api.TaskCtx) = ctx.env.contains("MILL_STABLE_VERSION")
 def millVersionIsStable: T[Boolean] = Task.Input { millVersionIsStable0 }
 
-def millVersionTruth: T[VcsVersion.State] = Task.Input {
-  VcsVersion.calcVcsState(Task.log)
-}
-
 def millVersion: T[String] = Task.Input {
   if (millVersionIsStable0) {
     val vcsState = VcsVersion.calcVcsState(Task.log)
