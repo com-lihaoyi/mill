@@ -8,8 +8,17 @@ import scala.util.Using
 
 @mainargs.main
 case class SbtBuildGenMainArgs(
-    testModuleName: String = "test",
+    @mainargs.arg(short = 'D')
     depsObjectName: String = "Deps",
+    @mainargs.arg(short = 't')
+    testModuleName: String = "test",
+    @mainargs.arg(short = 'T')
+    baseTestTraitName: String = "Tests",
+    @mainargs.arg(short = 'B')
+    baseTraitSuffix: String = "Module",
+    @mainargs.arg(short = 'P')
+    basePublishTraitSuffix: String = "PublishModule",
+    @mainargs.arg(short = 'm')
     noMerge: mainargs.Flag,
     sbtCmd: Option[String],
     sbtOptions: mainargs.Leftover[String]
@@ -28,87 +37,83 @@ object SbtBuildGenMain {
         _,
         suffix = ".jar"
       ))
-    val out = os.temp()
+    val exportDir = os.temp.dir()
     // https://github.com/JetBrains/sbt-structure/#sideloading
     val script = Seq(
-      s"set SettingKey[(File, String)](\"millInitExportArgs\") in Global := (file(${literalize(out.toString())}), ${literalize(testModuleName)})",
+      s"set SettingKey[(File, String)](\"millInitExportArgs\") in Global := (file(${literalize(exportDir.toString())}), ${literalize(testModuleName)})",
       s"apply -cp ${literalize(jar.toString())} mill.main.sbt.ExportSbtBuildScript",
-      s"millInitExport"
+      s"+millInitExportModule"
     )
 
     val cmd = sbtCmd.getOrElse:
-      (if (isWindows) Left("sbt.bat")
-       else Seq("sbt", ".sbtx").collectFirst:
-         case exe if os.exists(os.pwd / exe) => s"./$exe"
-       .toRight("sbt")) match {
-        case Left(cmd) if os.call((cmd, "--help"), check = false).exitCode == 1 => cmd
-        case Left(cmd) => sys.error(s"no system-wide $cmd found")
-        case Right(cmd) => cmd
-      }
+      Either.cond(
+        !isWindows,
+        Seq("sbt", ".sbtx").collectFirst:
+          case exe if os.exists(os.pwd / exe) => s"./$exe"
+        .toLeft("sbt"),
+        "sbt.bat"
+      ).flatten.fold(
+        cmd =>
+          if (os.call((cmd, "--help"), check = false).exitCode == 1)
+            sys.error(s"no system-wide $cmd found")
+          else cmd,
+        identity
+      )
     os.proc(cmd, sbtOptions.value, script).call(stdout = os.Inherit, stderr = os.Inherit)
 
-    val sbtModules = upickle.default.read[Seq[SbtModuleRepr]](out.toNIO)
+    // ((moduleDir, isCrossPlatform), module)
+    type SbtModuleRepr = ((Seq[String], Boolean), ModuleRepr)
+    val sbtModules =
+      os.list.stream(exportDir).map(path =>
+        upickle.default.read[SbtModuleRepr](path.toNIO)
+      ).toSeq.distinct
     if (sbtModules.isEmpty) {
       println(s"no modules found using $cmd")
       return
     }
 
-    val packages = sbtModules.groupBy(_.moduleDir).map:
-      case (dir, Seq(sbtModule: SbtModuleRepr)) if dir == sbtModule.baseDir =>
-        import sbtModule.*
-        PackageRepr(segments = moduleDir, modules = Tree(module))
-      case (crossPlatformDir, sbtModules) =>
-        val modules = Tree(
-          root = ModuleRepr(),
-          children = sbtModules.map: sbtModule =>
-            Tree(sbtModule.module)
+    def toModule(crossVersionModules: Seq[ModuleRepr]): ModuleRepr =
+      if (crossVersionModules.tail.isEmpty) crossVersionModules.head
+      else
+        val module = crossVersionModules.iterator.reduce: (m1, m2) =>
+          m1.copy(
+            configs = ModuleConfig.abstracted(m1.configs, m2.configs),
+            crossConfigs = m1.crossConfigs ++ m2.crossConfigs,
+            testModule = (m1.testModule, m2.testModule) match
+              case (Some(m1), Some(m2)) =>
+                Some(m1.copy(
+                  configs = ModuleConfig.abstracted(m1.configs, m2.configs),
+                  crossConfigs = m1.crossConfigs ++ m2.crossConfigs
+                ))
+              case (m1, m2) => m1.orElse(m2)
+          )
+        module.copy(
+          crossConfigs =
+            module.crossConfigs.map((k, v) => (k, ModuleConfig.inherited(v, module.configs))),
+          testModule = module.testModule.map(module =>
+            module.copy(
+              crossConfigs =
+                module.crossConfigs.map((k, v) => (k, ModuleConfig.inherited(v, module.configs)))
+            )
+          )
         )
-        PackageRepr(segments = crossPlatformDir, modules = modules)
+    end toModule
+    val packages = sbtModules.groupMap(_._1)(_._2).iterator.map:
+      case ((_, false), crossVersionModules) => Tree(toModule(crossVersionModules))
+      case ((moduleDir, _), crossPlatformModules) => Tree(
+          root = ModuleRepr(moduleDir),
+          children = crossPlatformModules.groupBy(_.segments).iterator
+            .map((_, crossVersionModules) => Tree(toModule(crossVersionModules)))
+            .toSeq
+        )
     .toSeq
 
-    val packageTree = PackageTree.fill(packages)
-    val packageTree0 = if (noMerge.value) packageTree else packageTree.merged
+    var build = BuildRepr(packages)
+      .withDepsObject(DepsObject(depsObjectName))
+    // .withBaseTraits(baseTestTraitName, baseTraitSuffix, basePublishTraitSuffix)
 
-    val platformCrossTypeBySegments = sbtModules.iterator.collect {
-      case module if module.platformCrossType.nonEmpty =>
-        module.baseDir -> module.platformCrossType.get
-    }.toMap
-    val crossScalaVersionsBySegments = sbtModules.iterator.collect {
-      case module if module.crossScalaVersions.length > 1 =>
-        module.baseDir -> module.crossScalaVersions
-    }.toMap
-    val packageWriter = SbtPackageWriter(
-      platformCrossTypeBySegments,
-      crossScalaVersionsBySegments,
-      depsObjectName,
-      packageTree0.namesByDep
-    )
-    packageTree0.writeFiles(packageWriter)
+    if (!noMerge.value) build = build.merged
 
-    locally {
-      val jvmOptsSbt = os.pwd / ".jvmopts"
-      val jvmOptsMill = os.pwd / ".mill-jvm-opts"
-
-      if (os.exists(jvmOptsSbt)) {
-        println(s"copying ${jvmOptsSbt.last} to ${jvmOptsMill.last}")
-        if (os.exists(jvmOptsMill)) {
-          val backup = jvmOptsMill / os.up / s"${jvmOptsMill.last}.bak"
-          println(s"creating backup ${backup.last}")
-          os.move.over(jvmOptsMill, backup)
-        }
-        var reportOnce = true
-        // Since .jvmopts may contain multiple args per line, we warn the user
-        // as Mill wants each arg on a separate line
-        os.read.lines(jvmOptsSbt).collectFirst {
-          // Warn the user once when we find spaces, but ignore comments
-          case x if reportOnce && !x.trim().startsWith("#") && x.trim().contains(" ") =>
-            reportOnce = false
-            println(
-              s"${jvmOptsMill.last}: Please check that each arguments is on a separate line!"
-            )
-        }
-        os.copy(jvmOptsSbt, jvmOptsMill)
-      }
-    }
+    SbtBuildWriter.writeFiles(build)
   }
 }
