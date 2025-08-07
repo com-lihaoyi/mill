@@ -12,10 +12,10 @@ object MillInitCatsTests extends GitRepoIntegrationTestSuite {
     test - integrationTest { tester =>
       import tester.*
 
-      eval(("init", "--no-unify"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval(
-        "kernel-laws.jvm[2.13.16].compile",
+        ("kernel-laws.jvm[_].compile", "_"),
         stdout = os.Inherit,
         stderr = os.Inherit
       ).isSuccess ==> false
