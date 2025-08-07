@@ -44,7 +44,8 @@ user's cursor is currently over. From this information, the completion function 
 a list of strings that are possible completions for the word at that index, and
 return it to the shell. At a glance, this looks something like:
 
-```bash
+[,bash]
+----
 _generate_foo_completions() {
   local idx=$1; shift
   local words=( "$@" )
@@ -74,7 +75,7 @@ if [ -n "${ZSH_VERSION:-}" ]; then
 elif [ -n "${BASH_VERSION:-}" ]; then
   complete -F _complete_foo_bash foo
 fi
-```
+----
 
 - `_generate_foo_completions` is a dummy function used
   for demonstration purposes that prints out a hardcoded set of completions,
@@ -97,7 +98,8 @@ For example, the Mill build tool provides a `./mill mill.tabcomplete/install`
 builtin that automatically updates these files and instructs the user to
 restart the shell or `source` the relevant script to begin using completions:
 
-```bash
+[,console]
+----
 $ ./mill mill.tabcomplete/install
 [1/1] mill.tabcomplete.TabCompleteModule.install
 Writing to /Users/lihaoyi/.cache/mill/download/mill-completion.sh
@@ -105,7 +107,7 @@ Writing to /Users/lihaoyi/.bash_profile
 Writing to /Users/lihaoyi/.zshrc
 Writing to /Users/lihaoyi/.bashrc
 Please restart your shell or `source ~/.cache/mill/download/mill-completion.sh` to enable completions
-```
+----
 
 Although the Shell syntax can be very finnicky, e.g. passing arrays to as
 function arguments via `"${words[@]}"`, the actual underlying logic here isn't
@@ -118,13 +120,14 @@ You can try this out live by pasting it into your Bash or Zsh shell and
 typing `foo <TAB>` or `foo a<TAB>`. Note that you don't
 actually need a `foo` command installed:
 
-```bash
+[,console]
+----
 $ foo <TAB>
 apple    apricot  banana   cherry   durian
 
 $ foo a<TAB>
 apple    apricot
-```
+----
 
 That's all you need to get a basic tab-completer working. In real usage"
 
@@ -145,10 +148,11 @@ to commands like `./foo` as well. This is handy for programs like Mill, Maven, o
 which typically use a `./mill` xref:mill::cli/installation-ide.adoc#_bootstrap_scripts[Bootstrap Script]
 to run:
 
-```bash
+[,console]
+----
 $ ./foo a<TAB>
 apple    apricot
-```
+----
 
 == Zsh Completion Descriptions
 
@@ -164,7 +168,8 @@ completion descriptions by default so we trim off the description,
 but in Zsh we pass both the `trimmed` completion-words as well as the `raw` words and
 descriptions to `compadd -d raw -- $trimmed` as two parallel arrays.
 
-```bash
+[,bash]
+----
 _generate_foo_completions() {
   local idx=$1; shift
   local words=( "$@" )
@@ -207,13 +212,14 @@ if [ -n "${ZSH_VERSION:-}" ]; then
 elif [ -n "${BASH_VERSION:-}" ]; then
   complete -F _complete_foo_bash foo
 fi
-```
+----
 
 Zsh would then display the `raw` lines including both the completion-word as well
 as the descriptions when displaying the completion options, but use the `trimmed`
 lines which only contain the completion-words when completing the line
 
-```bash
+[,console]
+----
 $ foo a<TAB>
 $ foo ap
 
@@ -222,7 +228,7 @@ apple: a common fruit                          apricot: sour fruit with a large 
 
 $ foo app<TAB>
 $ foo apple
-```
+----
 
 However in this scenario the descriptions are entirely ignored by Bash. Because Bash
 does not have a concept of tab-complete descriptions, in Bash we only pass the `trimmed`
@@ -235,10 +241,11 @@ that the completions are generated dynamically every time we call
 `_generate_foo_completions`, and Bash and Zsh only inserts text
 that is a common prefix to all completion options
 
-```bash
+[,console]
+----
 $ foo a<TAB>
 $ foo ap
-```
+----
 
 Therefore, if we have multiple differing word-completions, we can actually append
 whatever we want to the right of those words in `_generate_foo_completions`!
@@ -250,7 +257,8 @@ The code below implements this: if there is only one completion we trim off the 
 following the `:` off as normal, but if there's more than one completion we leave the
 description intact for the user to see
 
-```bash
+[source,bash]
+----
 _complete_foo_bash() {
   local IFS=$'\n'
   local raw=($(_generate_foo_completions "$COMP_CWORD" "${COMP_WORDS[@]}"))
@@ -263,13 +271,14 @@ _complete_foo_bash() {
 
   COMPREPLY=( "${trimmed[@]}" )
 }
-```
+----
 
 Now when I use autocomplete in Bash, I can see the descriptions for each item, but when
 the tab-completion actually completes the token it only completes the word itself and
 does not include the description!
 
-```bash
+[,console]
+----
 $ foo <TAB>
 apple: a common fruit                     cherry: small and sweet with a large pit
 apricot: sour fruit with a large stone    durian: stinky spiky fruit
@@ -284,7 +293,7 @@ apple: a common fruit                   apricot: sour fruit with a large stone
 
 $ foo app<TAB>
 $ foo apple
-```
+----
 
 In this section, we only needed to make changes to the `_complete_foo_bash` function,
 as the Zsh completion logic in `_complete_foo_zsh` is completely unchanged.
@@ -294,9 +303,10 @@ as the Zsh completion logic in `_complete_foo_zsh` is completely unchanged.
 The last quality of life feature we will add is the ability to show completion
 descriptions when tabbing on a complete word:
 
-```bash
+[,console]
+----
 $ foo apple<TAB>
-```
+----
 
 For example, the Mill build tool does this so if you're not sure what a flag or command
 does, you can press `<TAB>` on it to see more details:
@@ -327,7 +337,8 @@ and descriptions for the user to see.
 
 Doing this in `_complete_foo_bash` looks like the following:
 
-```bash
+[,bash]
+----
 _complete_foo_bash() {
   local IFS=$'\n'
   local raw=($(_generate_foo_completions "$COMP_CWORD" "${COMP_WORDS[@]}"))
@@ -340,7 +351,7 @@ _complete_foo_bash() {
 
   COMPREPLY=( "${trimmed[@]}" )
 }
-```
+----
 
 Instead of checking the length of `raw` to decide whether we add a trimmed
 and non-trimmed lines to `trimmed`, we now instead _always_ add the non-trimmed lines
@@ -355,7 +366,8 @@ inserted into the user's command
 
 In Zsh, this can be similarly done via:
 
-```bash
+[,bash]
+----
 _complete_foo_zsh() {
   local -a raw trimmed
   local IFS=$'\n'
@@ -369,7 +381,7 @@ _complete_foo_zsh() {
 
   compadd -d raw -- $trimmed
 }
-```
+----
 
 The change here is similar to the Bash snippet above: when the number of completions is 1,
 we add an additional completion to make it ambiguous so Zsh prints the description. But
@@ -378,10 +390,11 @@ our `if` block needs to append items to both `trimmed` and `raw`.
 
 Using this, it now looks like
 
-```bash
+[,console]
+----
 $ foo apple<TAB>
 apple                  apple: a common fruit
-```
+----
 
 Although the UI is not quite perfect - the word `apple` gets duplicated twice -
 this nevertheless achieves the original goal of letting users `<TAB>` on an
@@ -392,7 +405,8 @@ already-completed flag or command to see the description or documentation for th
 
 At this point, our final code looks like this:
 
-```bash
+[,bash]
+----
 _generate_foo_completions() {
   local idx=$1; shift
   local words=( "$@" )
@@ -444,7 +458,7 @@ if [ -n "${ZSH_VERSION:-}" ]; then
 elif [ -n "${BASH_VERSION:-}" ]; then
   complete -F _complete_foo_bash foo
 fi
-```
+----
 
 And can be used in both Bash or Zsh to provide an identical user experience:
 
@@ -453,7 +467,8 @@ And can be used in both Bash or Zsh to provide an identical user experience:
 * Performing partial or entire-word completions
 * Showing the description or documentation when ``<TAB>``ing on an already-completed word
 
-```bash
+[,console]
+----
 $ foo <TAB>
 apple: a common fruit                     banana: starchy and high in potassium     durian: stinky spiky fruit
 apricot: sour fruit with a large stone    cherry: small and sweet with a large pit
@@ -469,7 +484,7 @@ $ foo apple
 
 $ foo apple<TAB>
 apple                  apple: a common fruit
-```
+----
 
 The actual docs for each shell's tab-completion system contains a lot more detail (e.g.
 https://zsh.sourceforge.io/Doc/Release/Completion-System.html[72 pages] for Zsh!), and
