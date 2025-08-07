@@ -129,9 +129,10 @@ public abstract class ServerLauncher {
     var port = readServerPort(daemonDir, startTime, serverInitWaitMillis);
     log.accept("Read server port, connecting: " + port);
     return connectToServer(
-      startTime, serverInitWaitMillis, port,
-      debugName + ". Daemon directory: " + daemonDir.toAbsolutePath()
-    );
+        startTime,
+        serverInitWaitMillis,
+        port,
+        debugName + ". Daemon directory: " + daemonDir.toAbsolutePath());
   }
 
   public static Integer readServerPort(
@@ -150,19 +151,20 @@ public abstract class ServerLauncher {
   ///
   /// @return a socket that should then be used with [#runWithConnection]
   public static Socket connectToServer(
-    long startTimeMillis, long serverInitWaitMillis, int port, String errorMessage
-  ) throws Exception {
+      long startTimeMillis, long serverInitWaitMillis, int port, String errorMessage)
+      throws Exception {
     return withTimeout(
-      startTimeMillis, serverInitWaitMillis,
-      "Failed to connect to server within " + serverInitWaitMillis + "ms on port " + port + ". " + errorMessage,
-      () -> {
-        try {
-          return Optional.of(new Socket(InetAddress.getLoopbackAddress(), port));
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
-    );
+        startTimeMillis,
+        serverInitWaitMillis,
+        "Failed to connect to server within " + serverInitWaitMillis + "ms on port " + port + ". "
+            + errorMessage,
+        () -> {
+          try {
+            return Optional.of(new Socket(InetAddress.getLoopbackAddress(), port));
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        });
   }
 
   public static <A> A withTimeout(
