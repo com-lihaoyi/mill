@@ -340,7 +340,7 @@ _complete_foo_bash() {
 
   COMPREPLY=( "${trimmed[@]}" )
 }
-````
+```
 
 Instead of checking the length of `raw` to decide whether we add a trimmed
 and non-trimmed lines to `trimmed`, we now instead _always_ add the non-trimmed lines
