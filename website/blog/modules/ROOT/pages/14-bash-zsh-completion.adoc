@@ -15,7 +15,7 @@ that half your users would be using Bash-on-Linux, while the other half will be
 using Zsh-on-OSX, each of which has different tab-completion APIs. Furthermore, most
 users exploring an unfamiliar CLI tool using tab completion appreciate showing a
 description along with each completion so they can read what it is, but that's
-normally only available on Zsh and not on Bash
+normally only available on Zsh and not on Bash.
 
 But with some work, you can make your tab-completions work on both shells, including
 nice quality-of-life features like completion descriptions. This blog post will explore how it
@@ -450,9 +450,8 @@ And can be used in both Bash or Zsh to provide an identical user experience:
 
 * Showing possible tab-completions when there are multiple available
 * Showing command or flag descriptions (even though this is not natively supported by Bash)
-* Performing partial or entire-word completions, depending on the length of the shared
-  prefix between the various choices
-* Showing the description or documentation when ``<TAB>``ing on an already-completed word:
+* Performing partial or entire-word completions
+* Showing the description or documentation when ``<TAB>``ing on an already-completed word
 
 ```bash
 $ foo <TAB>
@@ -475,5 +474,6 @@ apple                  apple: a common fruit
 The actual docs for each shell's tab-completion system contains a lot more detail (e.g.
 https://zsh.sourceforge.io/Doc/Release/Completion-System.html[72 pages] for Zsh!), and
 there are definitely many different ways you can set up your tab-completion scripts.
-This blog post just aims to provide the simplest working example that hopefully you
-can understand well enough to integrate into your own projects and tweak as necessary.
+This blog post just aims to provide the simplest working example that works in both
+Bash and Zsh, so hopefully you can understand it well enough to integrate into
+your own projects.
