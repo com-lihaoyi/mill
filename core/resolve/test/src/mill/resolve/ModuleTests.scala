@@ -199,7 +199,7 @@ object ModuleTests extends TestSuite {
         test("neg4") - check(
           "cross[doesntExist].suffix",
           Result.Failure(
-            "Cannot resolve cross[doesntExist].suffix. Try `mill resolve cross._` or `mill resolve __.suffix` to see what's available."
+            "Cannot resolve cross[doesntExist].suffix. Try `mill resolve cross._`, `mill resolve __.suffix` to see what's available, or `mill __.suffix` to run all `suffix` tasks"
           )
         )
         test("wildcard") - check(
@@ -250,7 +250,7 @@ object ModuleTests extends TestSuite {
           test("labelNeg1") - check(
             "_.suffix",
             Result.Failure(
-              "Cannot resolve _.suffix. Try `mill resolve _._` or `mill resolve __.suffix` to see what's available."
+              "Cannot resolve _.suffix. Try `mill resolve _._`, `mill resolve __.suffix` to see what's available, or `mill __.suffix` to run all `suffix` tasks"
             )
           )
           test("labelNeg2") - check(
@@ -587,21 +587,21 @@ object ModuleTests extends TestSuite {
       test - check(
         "niled.inner.task",
         Result.Failure(
-          "Cannot resolve niled.inner.task. Try `mill resolve niled._` or `mill resolve __.task` to see what's available."
+          "Cannot resolve niled.inner.task. Try `mill resolve niled._`, `mill resolve __.task` to see what's available, or `mill __.task` to run all `task` tasks"
         ),
         Set()
       )
       test - check(
         "niled._.task",
         Result.Failure(
-          "Cannot resolve niled._.task. Try `mill resolve niled._` or `mill resolve __.task` to see what's available."
+          "Cannot resolve niled._.task. Try `mill resolve niled._`, `mill resolve __.task` to see what's available, or `mill __.task` to run all `task` tasks"
         ),
         Set()
       )
       test - check(
         "niled._.tttask",
         Result.Failure(
-          "Cannot resolve niled._.tttask. Try `mill resolve niled._` or `mill resolve __.task` to see what's available."
+          "Cannot resolve niled._.tttask. Try `mill resolve niled._`, `mill resolve __.task` to see what's available, or `mill __.task` to run all `task` tasks"
         ),
         Set()
       )

@@ -65,6 +65,8 @@ trait TsLintModule extends Module {
 
   // eslint
   def checkFormatEslint(args: mill.api.Args): Command[Unit] = Task.Command {
+    val _ = args // silence unused parameter warning
+
     resolvedFmtConfig() match {
       case Eslint =>
         val cwd = BuildCtx.workspaceRoot
@@ -109,6 +111,8 @@ trait TsLintModule extends Module {
   }
 
   def reformatEslint(args: mill.api.Args): Command[Unit] = Task.Command {
+    val _ = args // silence unused parameter warning, part of API
+
     resolvedFmtConfig() match {
       case Eslint =>
         val cwd = BuildCtx.workspaceRoot

@@ -35,16 +35,16 @@ class Version private (
 
 final class MavenVersion(val underlying: Version) extends AnyVal {
   def isNewerThan(other: MavenVersion): Boolean = {
-    underlying.isNewerThan(other.underlying)(Version.MavenOrdering)
+    underlying.isNewerThan(other.underlying)(using Version.MavenOrdering)
   }
 }
 final class OsgiVersion(val underlying: Version) extends AnyVal {
   def isNewerThan(other: OsgiVersion): Boolean =
-    underlying.isNewerThan(other.underlying)(Version.OsgiOrdering)
+    underlying.isNewerThan(other.underlying)(using Version.OsgiOrdering)
 }
 final class IgnoreQualifierVersion(val underlying: Version) extends AnyVal {
   def isNewerThan(other: IgnoreQualifierVersion): Boolean =
-    underlying.isNewerThan(other.underlying)(Version.IgnoreQualifierOrdering)
+    underlying.isNewerThan(other.underlying)(using Version.IgnoreQualifierOrdering)
 }
 
 @experimental

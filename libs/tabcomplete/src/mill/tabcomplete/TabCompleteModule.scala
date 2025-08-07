@@ -11,7 +11,7 @@ import mill.api.internal.Resolved
  * Handles Bash and Zsh tab completions, which provide an array of tokens in the current
  * shell and the index of the token currently being completed.
  */
-private[this] object TabCompleteModule extends ExternalModule {
+private object TabCompleteModule extends ExternalModule {
 
   lazy val millDiscover = Discover[this.type]
 
@@ -26,7 +26,7 @@ private[this] object TabCompleteModule extends ExternalModule {
     val args = args0.value
     def group(
         tokens: Seq[String],
-        flattenedArgSigs: Seq[(ArgSig, TokensReader.Terminal[_])],
+        flattenedArgSigs: Seq[(ArgSig, TokensReader.Terminal[?])],
         allowLeftover: Boolean
     ) = {
       mainargs.TokenGrouping.groupArgs(
@@ -56,7 +56,7 @@ private[this] object TabCompleteModule extends ExternalModule {
             val entrypointOpt = resolved match {
               case _: Result.Failure => None
               case Result.Success(ts) =>
-                val entryPoints: Seq[mainargs.MainData[_, _]] = ts.flatMap { t =>
+                val entryPoints: Seq[mainargs.MainData[?, ?]] = ts.flatMap { t =>
                   ev
                     .rootModule
                     .moduleCtx
@@ -75,6 +75,7 @@ private[this] object TabCompleteModule extends ExternalModule {
               val remaining = group(taskArgs, ep.flattenedArgSigs, false) match {
                 case mainargs.Result.Success(grouping) => grouping.remaining
                 case r: mainargs.Result.Failure.MismatchedArguments => r.unknown
+                case other => throw Exception(s"Unexpected result: $other")
               }
 
               val commandParsedArgCount = v.remaining.length - remaining.length - 1
@@ -134,7 +135,7 @@ private[this] object TabCompleteModule extends ExternalModule {
     res.foreach(println)
   }
 
-  def flattenSigs(ep: mainargs.MainData[_, _]) = ep.flattenedArgSigs.map(_._1)
+  def flattenSigs(ep: mainargs.MainData[?, ?]) = ep.flattenedArgSigs.map(_._1)
 
   def findMatchingArgs(
       stringOpt: Option[String],
@@ -221,6 +222,7 @@ private[this] object TabCompleteModule extends ExternalModule {
           case Some('[') => trimmed + "__]"
           case Some(',') => trimmed + "__]"
           case Some(']') => trimmed + "._"
+          case Some(other) => throw Exception(s"Unexpected char: $other")
         }
 
         (query, Some(unescaped))

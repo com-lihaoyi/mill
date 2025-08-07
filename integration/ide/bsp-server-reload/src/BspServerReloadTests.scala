@@ -33,7 +33,7 @@ object BspServerReloadTests extends UtestIntegrationTestSuite {
         env = Map("MILL_EXECUTABLE_PATH" -> tester.millExecutable.toString)
       )
 
-      var didChangePromise = Promise[b.DidChangeBuildTarget]()
+      val didChangePromise = Promise[b.DidChangeBuildTarget]()
 
       val client = new DummyBuildClient {
         override def onBuildTargetDidChange(params: b.DidChangeBuildTarget): Unit =

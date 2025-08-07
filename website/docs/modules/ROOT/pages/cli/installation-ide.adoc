@@ -107,8 +107,35 @@ You can set up Bash and Zsh tab completions by subsequently running the command:
 ----
 
 This unpacks the completion script in `~/.cache/mill` and registers it in your `~/.bash_profile` and `~/.zshrc`.
-After that, doing `./mill <tab>` should begin showing possible modules and tasks for you
-to select at the command line.
+After that, doing `./mill <TAB>` should begin showing possible modules and tasks for you
+to select at the command line:
+
+image::basic/TabCompleteCommand.png[]
+
+`./mill -<TAB>` or `./mill --<TAB>` will show the possible short and long flags
+that Mill takes:
+
+image::basic/TabCompleteFlag.png[]
+
+Mill's command-line autocomplete also applies to custom xref:fundamentals/tasks.adoc#_commands[user-define commands],
+such as `customCommand` below:
+
+```scala
+package build
+import mill._, javalib._
+import mainargs.arg
+object foo extends JavaModule {
+  def customCommand(
+    @arg(doc = "string parameter to customCommand that controls this and that...")
+    str: String,
+    @arg(doc = "integer parameter to customCommand")
+    int: Int) = Task.Command{
+    // do stuff
+  }
+}
+```
+
+image::basic/TabCompleteCustomCommand.png[]
 
 You can also choose to write the tab-completion script to a manually-specified path via:
 
@@ -127,9 +154,10 @@ Github doesn't yet have built-in support for syntax highlighting `.mill` files a
 but you can set this up in your own projects by creating a `.gitattributes` file in the root
 of your Github repository
 
-```
+[,console]
+----
 > echo '*.mill linguist-language=Scala' > .gitattributes
-```
+----
 
 [#_ide_support]
 == IDE Support

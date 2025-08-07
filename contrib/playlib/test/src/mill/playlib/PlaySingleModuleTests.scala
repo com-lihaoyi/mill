@@ -75,7 +75,7 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
       )
 
       // don't recompile if nothing changed
-      val Right(result2) = eval.apply(playsingle.compile): @unchecked
+      val Right(_) = eval.apply(playsingle.compile): @unchecked
       // assert(unchangedEvalCount == 0)
     }
   }

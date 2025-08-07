@@ -1,8 +1,9 @@
 package build.core.api
 
+import com.github.lolgab.mill.mima.{DirectMissingMethodProblem, ProblemFilter}
 import mill.contrib.buildinfo.BuildInfo
-import mill._
-import mill.scalalib._
+import mill.*
+import mill.scalalib.*
 import millbuild.*
 
 /**
@@ -48,4 +49,14 @@ object `package` extends MillStableScalaModule with BuildInfo {
     BuildInfo.Value("coursierJvmIndexVersion", Deps.coursierJvmIndexVersion)
   )
 
+  override def mimaBinaryIssueFilters: T[Seq[ProblemFilter]] =
+    super.mimaBinaryIssueFilters() ++ Seq(
+      // internal APIs
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.api.internal.Util.renderSecondsSuffix"
+      ),
+      ProblemFilter.exclude[DirectMissingMethodProblem](
+        "mill.api.internal.Util.renderSecondsSuffix$default$2"
+      )
+    )
 }

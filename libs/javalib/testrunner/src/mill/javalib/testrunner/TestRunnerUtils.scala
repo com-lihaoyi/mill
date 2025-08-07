@@ -381,7 +381,8 @@ import scala.math.Ordering.Implicits.*
       cl: ClassLoader
   ): Array[String] = {
     val framework = frameworkInstances(cl)
-    val (runner, tasksArr) = getTestTasks(framework, args, classFilter, cl, testClassfilePath)
+    val ( /*runner*/ _, tasksArr) =
+      getTestTasks(framework, args, classFilter, cl, testClassfilePath)
     tasksArr.flatten.map(_.taskDef().fullyQualifiedName())
   }
 

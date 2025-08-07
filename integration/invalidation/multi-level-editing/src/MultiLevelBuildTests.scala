@@ -1,9 +1,9 @@
 package mill.integration
 
 import mill.testkit.{IntegrationTester, UtestIntegrationTestSuite}
-import mill.constants.OutFiles._
+import mill.constants.OutFiles.*
 import mill.daemon.RunnerState
-import utest._
+import utest.*
 
 import scala.util.matching.Regex
 
@@ -58,7 +58,9 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
    * appropriate files to get watched
    */
   def checkWatchedFiles(tester: IntegrationTester, expected0: Seq[os.Path]*): Unit = {
-    for ((expectedWatched0, (frame, path)) <- expected0.zip(loadFrames(tester, expected0.length))) {
+    for (
+      (expectedWatched0, (frame, /*path*/ _)) <- expected0.zip(loadFrames(tester, expected0.length))
+    ) {
       val frameWatched = frame
         .evalWatched
         .filter(_.startsWith(tester.workspacePath))
@@ -111,7 +113,7 @@ trait MultiLevelBuildTests extends UtestIntegrationTestSuite {
     }
 
     val currentClassLoaderIds =
-      for ((frame, path) <- loadFrames(tester, expectedChanged0.length))
+      for ((frame, /*path*/ _) <- loadFrames(tester, expectedChanged0.length))
         yield frame.classLoaderIdentity
 
     val changed = currentClassLoaderIds

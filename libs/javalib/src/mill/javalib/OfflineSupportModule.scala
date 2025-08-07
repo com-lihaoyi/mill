@@ -11,6 +11,8 @@ trait OfflineSupportModule extends mill.api.Module {
    * @param all If `true`, it also fetches resources not always needed.
    */
   def prepareOffline(all: Flag): Task.Command[Seq[PathRef]] = {
+    val _ = all // silence unused, this is used in the overrides
+
     val check = Task.Anon {
       if (Task.offline) {
         Task.log.warn("Running prepareOffline while in --offline mode is likely not what you want")

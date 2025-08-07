@@ -19,7 +19,7 @@ Mill uses the following environment variables as a way to pass the necessary sec
 for publishing:
 
 
-[source,sh]
+[,sh]
 ----
 # Sonatype Central Portal needs your public key to be uploaded so it can use for verification of artifacts from their end.
 #
@@ -59,7 +59,7 @@ export MILL_PGP_PASSPHRASE=...
 You can publish all eligible modules in your Mill project using 
 `mill.javalib.SonatypeCentralPublishModule/`:
 
-[source,console]
+[,console]
 ----
 > mill mill.javalib.SonatypeCentralPublishModule/
 ----
@@ -71,7 +71,7 @@ You can also specify individual modules you want to publish in two ways:
 > mill foo.publishSonatypeCentral
 ----
 
-[source.console]
+[,console]
 ----
 > mill mill.javalib.SonatypeCentralPublishModule/ --publishArtifacts foo.publishArtifacts
 ----
@@ -89,6 +89,7 @@ repository.
 See https://central.sonatype.org/publish/publish-portal-snapshots/[Sonatype Central documentation] for more information.
 
 You build file should look like:
+
 [source,scala]
 ----
 object mymodule extends JavaModule {
@@ -129,7 +130,8 @@ object myDownstreamModule extends JavaModule {
 
 To publish on Github Actions, you can use something like this:
 
-```yaml
+[,yaml]
+----
 # .github/workflows/publish-artifacts.yml
 name: Publish Artifacts
 on:
@@ -152,7 +154,7 @@ jobs:
           MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
           MILL_SONATYPE_PASSWORD: ${{ secrets.MILL_SONATYPE_PASSWORD }}
           MILL_SONATYPE_USERNAME: ${{ secrets.MILL_SONATYPE_USERNAME }}
-```
+----
 
 Where `MILL_PGP_PASSPHRASE`, `MILL_PGP_SECRET_BASE64`, `MILL_SONATYPE_PASSWORD`, and
 `MILL_SONATYPE_USERNAME` configured for the repository's or organization's Github Actions
@@ -224,7 +226,8 @@ Typically
 
 To publish on Github Actions, you can use something like this:
 
-```yaml
+[,yaml]
+----
 # .github/workflows/publish-artifacts.yml
 name: Publish Artifacts
 on:
@@ -247,7 +250,7 @@ jobs:
           MILL_PGP_SECRET_BASE64: ${{ secrets.MILL_PGP_SECRET_BASE64 }}
           MILL_SONATYPE_PASSWORD: ${{ secrets.MILL_SONATYPE_PASSWORD }}
           MILL_SONATYPE_USERNAME: ${{ secrets.MILL_SONATYPE_USERNAME }}
-```
+----
 
 Where `MILL_PGP_PASSPHRASE`, `MILL_PGP_SECRET_BASE64`, `MILL_SONATYPE_PASSWORD`, and
 `MILL_SONATYPE_USERNAME` configured for the repository's or organization's Github Actions
@@ -325,6 +328,7 @@ The `./mill mill.javalib.SonatypeCentralPublishModule/publishAll` takes the foll
 
 ==== Example command
 
+[,console]
 ----
 $ mill -i \
 mill.javalib.SonatypeCentralPublishModule/publishAll \

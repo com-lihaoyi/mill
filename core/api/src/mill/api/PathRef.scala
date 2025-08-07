@@ -32,7 +32,7 @@ case class PathRef private[mill] (
       path: os.Path = path,
       quick: Boolean = quick,
       sig: Int = sig,
-      revalidate: PathRef.Revalidate = revalidate
+      revalidate: PathRef.Revalidate
   ): PathRef = PathRef(path, quick, sig, revalidate)
 
   def withRevalidate(revalidate: PathRef.Revalidate): PathRef = copy(revalidate = revalidate)

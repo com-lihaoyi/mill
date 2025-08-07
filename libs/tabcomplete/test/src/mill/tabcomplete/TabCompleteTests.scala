@@ -7,20 +7,21 @@ import mill.testkit.TestRootModule
 import utest.*
 
 import java.io.{ByteArrayOutputStream, PrintStream}
+import scala.annotation.unused
 
 object TabCompleteTests extends TestSuite {
   object mainModule extends TestRootModule {
     lazy val millDiscover = Discover[this.type]
-    def task1(argA: String = "", argB2: Int = 0) = Task.Command { 123 }
+    def task1(@unused argA: String = "", @unused argB2: Int = 0) = Task.Command { 123 }
     object foo extends Module
     object bar extends Module {
       def task2(
-          @mainargs.arg(doc = "arg a 3 docs") argA3: String,
-          @mainargs.arg(doc = "arg b 4 docs") argB4: Int
+          @mainargs.arg(doc = "arg a 3 docs") @unused argA3: String,
+          @mainargs.arg(doc = "arg b 4 docs") @unused argB4: Int
       ) = Task.Command { 456 }
       def taskPositional(
-          @mainargs.arg(positional = true) argA3: String,
-          @mainargs.arg(positional = true) argB4: Int
+          @mainargs.arg(positional = true) @unused argA3: String,
+          @mainargs.arg(positional = true) @unused argB4: Int
       ) = Task.Command { 456 }
 
     }

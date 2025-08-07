@@ -40,7 +40,7 @@ object Applicative {
     import quotes.reflect.*
 
     def checkForNestedTasks() = {
-      val taskType = TypeRepr.of[Task[_]]
+      val taskType = TypeRepr.of[Task[?]]
 
       def isTask(tpr: TypeRepr): Boolean =
         // We use `typeSymbol` for a robust check.

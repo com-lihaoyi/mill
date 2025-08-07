@@ -51,7 +51,7 @@ object ExternalSummary {
       def load0(cls: JCls): Unit = {
         val visitor = new MyClassVisitor()
         val resourcePath =
-          os.resource(upstreamClassloader) / os.SubPath(cls.name.replace('.', '/') + ".class")
+          os.resource(using upstreamClassloader) / os.SubPath(cls.name.replace('.', '/') + ".class")
 
         new ClassReader(os.read.inputStream(resourcePath)).accept(
           visitor,
