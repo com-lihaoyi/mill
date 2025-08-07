@@ -269,12 +269,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     PathRef(unsignedApk)
   }
 
-  override def compileClasspath: T[Seq[PathRef]] = Task {
-    (androidOriginalCompileClasspath().filter(_.path.ext != "aar") ++ androidResolvedMvnDeps()).map(
-      _.path
-    ).distinct.map(PathRef(_)) ++ Seq(androidProcessedResources())
-  }
-
   override def androidPackagedDeps: T[Seq[PathRef]] =
     super.androidPackagedDeps() ++ Seq(androidProcessedResources())
 

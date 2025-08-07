@@ -184,15 +184,19 @@ trait AndroidModule extends JavaModule {
     super.compileClasspath()
   }
 
+  private def androidDepsClasspath: T[Seq[PathRef]] = Task {
+    (androidOriginalCompileClasspath().filter(_.path.ext != "aar") ++ androidResolvedMvnDeps()).map(
+      _.path
+    ).distinct.map(PathRef(_))
+  }
+
   /**
    * Replaces AAR files in [[androidOriginalCompileClasspath]] with their extracted JARs.
    */
   override def compileClasspath: T[Seq[PathRef]] = Task {
     // TODO process metadata shipped with Android libs. It can have some rules with Target SDK, for example.
     // TODO support baseline profiles shipped with Android libs.
-    (androidOriginalCompileClasspath().filter(_.path.ext != "aar") ++ androidResolvedMvnDeps()).map(
-      _.path
-    ).distinct.map(PathRef(_)) ++ androidTransitiveLibRClasspath()
+    androidDepsClasspath() ++ androidTransitiveLibRClasspath()
   }
 
   /**
@@ -581,7 +585,7 @@ trait AndroidModule extends JavaModule {
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = sources.map(_.path),
-        compileClasspath = Seq.empty,
+        compileClasspath = androidTransitiveLibRClasspath().map(_.path),
         javaHome = javaHome().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         reporter = Task.reporter.apply(hashCode),
@@ -596,7 +600,7 @@ trait AndroidModule extends JavaModule {
 
   /** All individual classfiles inherited from the classpath that will be included into the dex */
   def androidPackagedClassfiles: T[Seq[PathRef]] = Task {
-    compileClasspath()
+    androidDepsClasspath()
       .map(_.path).filter(os.isDir)
       .flatMap(os.walk(_))
       .filter(os.isFile)
