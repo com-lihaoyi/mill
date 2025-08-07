@@ -2,7 +2,7 @@ package mill.server
 
 import mill.api.SystemStreams
 import mill.client.lock.Locks
-import mill.client.{ServerLauncher, MillServerLauncher}
+import mill.client.{LaunchedServer, MillServerLauncher, ServerLauncher}
 import mill.constants.{DaemonFiles, Util}
 import utest.*
 
@@ -106,17 +106,19 @@ object ClientServerTests extends TestSuite {
         forceFailureForTestingMillisDelay
       ) {
         def prepareDaemonDir(daemonDir: Path) = { /*do nothing*/ }
+
         def initServer(daemonDir: Path, locks: Locks) = {
           val processId = "server-" + nextServerId
           nextServerId += 1
-          new Thread(new EchoServer(
+          val t = Thread(EchoServer(
             processId,
             os.Path(daemonDir, os.pwd),
             locks,
             testLogEvenWhenServerIdWrong,
             commandSleepMillis = commandSleepMillis
-          )).start()
-          null
+          ))
+          t.start()
+          LaunchedServer.NewThread(t);
         }
       }.run((outDir / "server-0").relativeTo(os.pwd).toNIO, "")
 

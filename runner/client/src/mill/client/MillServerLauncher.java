@@ -3,7 +3,6 @@ package mill.client;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.Optional;
 
 import mill.client.lock.Locks;
 import mill.constants.Util;
@@ -40,7 +39,7 @@ public abstract class MillServerLauncher extends ServerLauncher {
    *
    * @return the server process if available, or None
    */
-  public abstract Optional<Process> initServer(Path daemonDir, Locks locks) throws Exception;
+  public abstract LaunchedServer initServer(Path daemonDir, Locks locks) throws Exception;
 
   public abstract void prepareDaemonDir(Path daemonDir) throws Exception;
 
@@ -63,14 +62,9 @@ public abstract class MillServerLauncher extends ServerLauncher {
         "From MillServerLauncher",
         serverInitWaitMillis,
         () -> initServer(daemonDir, memoryLock),
-        failure -> {
-          System.err.println("Server failed to start:");
-          System.err.println(failure.outputs.debugString());
-          System.exit(1);
-        },
-       processDied -> {
+       serverDied -> {
          System.err.println("Server died during startup:");
-         System.err.println(processDied.toString());
+         System.err.println(serverDied.toString());
          System.exit(1);
        },
         ignored -> {}

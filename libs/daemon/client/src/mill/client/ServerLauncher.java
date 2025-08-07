@@ -88,8 +88,7 @@ public abstract class ServerLauncher {
     String debugName,
     int serverInitWaitMillis,
     InitServer initServer,
-    Consumer<ServerLaunchResult.CouldNotStart> onCouldNotStart,
-    Consumer<ServerLaunchResult.ProcessDied> onFailure,
+    Consumer<ServerLaunchResult.ServerDied> onFailure,
     Consumer<String> log
   )
     throws Exception {
@@ -108,10 +107,6 @@ public abstract class ServerLauncher {
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
-      },
-      couldNotStart -> {
-        onCouldNotStart.accept(couldNotStart);
-        throw new IllegalStateException(couldNotStart.toString());
       },
       processDied -> {
         onFailure.accept(processDied);
@@ -207,29 +202,21 @@ public abstract class ServerLauncher {
       log.accept("Checking if the daemon lock is available: " + locks.daemonLock);
       if (locks.daemonLock.probe()) {
         log.accept("The daemon lock is available, starting the server.");
-        var maybeDaemonProcess = initServer.init();
+        var launchedServer = initServer.init();
 
-        if (maybeDaemonProcess.isPresent()) {
-          var daemonProcess = maybeDaemonProcess.get();
-          log.accept("The server has started: " + daemonProcess);
+        log.accept("The server has started: " + launchedServer);
 
-          log.accept("Waiting for the server to take the daemon lock: " + locks.daemonLock);
-          var maybeLaunchFailed = waitUntilDaemonTakesTheLock(locks.daemonLock, daemonDir, daemonProcess);
-          if (maybeLaunchFailed.isPresent()) {
-            var outputs = maybeLaunchFailed.get();
-            log.accept("The server " + daemonProcess + " failed to start: " + outputs);
+        log.accept("Waiting for the server to take the daemon lock: " + locks.daemonLock);
+        var maybeLaunchFailed = waitUntilDaemonTakesTheLock(locks.daemonLock, daemonDir, launchedServer);
+        if (maybeLaunchFailed.isPresent()) {
+          var outputs = maybeLaunchFailed.get();
+          log.accept("The server " + launchedServer + " failed to start: " + outputs);
 
-            return new ServerLaunchResult.ProcessDied(daemonProcess, outputs);
-          }
-          else {
-            log.accept("The server " + daemonProcess + " has taken the daemon lock: " + locks.daemonLock);
-            return new ServerLaunchResult.Success(daemonProcess);
-          }
+          return new ServerLaunchResult.ServerDied(launchedServer, outputs);
         }
         else {
-          var outputs = readOutputs(daemonDir);
-          log.accept("The server failed to start: " + outputs);
-          return new ServerLaunchResult.CouldNotStart(outputs);
+          log.accept("The server " + launchedServer + " has taken the daemon lock: " + locks.daemonLock);
+          return new ServerLaunchResult.Success(launchedServer);
         }
       }
       else {
@@ -242,10 +229,10 @@ public abstract class ServerLauncher {
   /// Busy-spins until the server process is running and has taken the `daemonLock`, returning an error if the daemon
   /// process dies.
   private static Optional<ServerLaunchOutputs> waitUntilDaemonTakesTheLock(
-    Lock daemonLock, Path daemonDir, Process daemonProcess
+    Lock daemonLock, Path daemonDir, LaunchedServer server
   ) throws Exception {
     while (daemonLock.probe()) {
-      var maybeLaunchFailed = checkIfLaunchFailed(daemonDir, daemonProcess);
+      var maybeLaunchFailed = checkIfLaunchFailed(daemonDir, server);
       if (maybeLaunchFailed.isPresent()) return maybeLaunchFailed;
 
       //noinspection BusyWait
@@ -257,9 +244,9 @@ public abstract class ServerLauncher {
 
   /// Checks if the server process has failed to start.
   private static Optional<ServerLaunchOutputs> checkIfLaunchFailed(
-    Path daemonDir, Process daemonProcess
+    Path daemonDir, LaunchedServer server
   ) throws IOException {
-    if (daemonProcess.isAlive()) return Optional.empty();
+    if (server.isAlive()) return Optional.empty();
 
     var outputs = readOutputs(daemonDir);
     return Optional.of(outputs);
@@ -305,7 +292,7 @@ public abstract class ServerLauncher {
     /**
      * Initializes the server process, returning it or None if it failed to start.
      */
-    Optional<Process> init() throws Exception;
+    LaunchedServer init() throws Exception;
   }
 
   public interface RunClientLogic<A> {
