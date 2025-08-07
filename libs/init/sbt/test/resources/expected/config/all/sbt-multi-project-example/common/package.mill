@@ -19,15 +19,17 @@ object `package` extends PublishModule with SbtModule {
     "-encoding",
     "utf8"
   )
-  def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++ Seq(Deps.wartremover)
+
+  def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++
+    Seq(Dependencies.wartremover)
 
   def mvnDeps = super.mvnDeps() ++ Seq(
-    Deps.logbackClassic,
-    Deps.logstashLogbackEncoder,
-    Deps.scalaLogging,
-    Deps.jclOverSlf4j,
-    Deps.config,
-    Deps.akkaStream
+    Dependencies.logbackClassic,
+    Dependencies.logstashLogbackEncoder,
+    Dependencies.scalaLogging,
+    Dependencies.jclOverSlf4j,
+    Dependencies.config,
+    Dependencies.akkaStream
   )
 
   def pomSettings = PomSettings(
@@ -53,9 +55,9 @@ object `package` extends PublishModule with SbtModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
-  object test extends SbtTests with TestModule.ScalaTest {
+  object tests extends SbtTests with TestModule.ScalaTest {
 
     def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
-      Seq(Deps.scalatest, Deps.scalacheck)
+      Seq(Dependencies.scalatest, Dependencies.scalacheck)
   }
 }

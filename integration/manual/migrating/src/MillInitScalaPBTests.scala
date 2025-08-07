@@ -5,6 +5,7 @@ import utest.*
 
 object MillInitScalaPBTests extends GitRepoIntegrationTestSuite {
 
+  // sbt 1.11.2
   def gitRepoUrl = "git@github.com:scalapb/ScalaPB.git"
   def gitRepoBranch = "v0.11.19"
 
@@ -13,7 +14,8 @@ object MillInitScalaPBTests extends GitRepoIntegrationTestSuite {
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
+      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
 
       "requires sbt-projectmatrix"
     }

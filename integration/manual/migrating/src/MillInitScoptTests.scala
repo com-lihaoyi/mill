@@ -5,6 +5,10 @@ import utest.*
 
 object MillInitScoptTests extends GitRepoIntegrationTestSuite {
 
+  // sbt 1.5.2
+  // cross Scala versions 2.11.12 2.12.16 2.13.8 3.1.3
+  // sbt-crossproject 1.0.0
+  // single cross-platform/version root module
   def gitRepoUrl = "git@github.com:scopt/scopt.git"
   def gitRepoBranch = "v4.1.0"
 
