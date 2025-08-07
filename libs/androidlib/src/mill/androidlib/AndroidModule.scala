@@ -177,6 +177,13 @@ trait AndroidModule extends JavaModule {
   }
 
   /**
+   * Adds the Android SDK JAR file to the classpath during the compilation process.
+   */
+  override def unmanagedClasspath: T[Seq[PathRef]] = Task {
+    Seq(androidSdkModule().androidJarPath())
+  }
+
+  /**
    * The original compiled classpath (containing a mix of jars and aars).
    * @return
    */
