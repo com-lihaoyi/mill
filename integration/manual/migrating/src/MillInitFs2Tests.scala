@@ -5,6 +5,11 @@ import utest.*
 
 object MillInitFs2Tests extends GitRepoIntegrationTestSuite {
 
+  // sbt 1.10.11
+  // cross Scala versions 2.12.20 2.13.16 3.3.5
+  // sbt-crossproject 1.3.2
+  // cross partial source root core/jvm-native
+  // .sbtopts with JVM args
   def gitRepoUrl = "git@github.com:typelevel/fs2.git"
   def gitRepoBranch = "v3.12.0"
 
@@ -14,13 +19,9 @@ object MillInitFs2Tests extends GitRepoIntegrationTestSuite {
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(
-        ("benchmark[2.13.16].compile", "_"),
-        stdout = os.Inherit,
-        stderr = os.Inherit
-      ).isSuccess ==> false
+      eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
 
-      "unexpected compilation error"
+      "microsite project (in folder site) is not imported"
     }
   }
 }

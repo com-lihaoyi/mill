@@ -1,5 +1,9 @@
 package mill.main.buildgen
 
+/**
+ * A representation for a build defined as a tree of packages.
+ * A package here is defined as a tree of modules.
+ */
 case class BuildRepr private (
     packages: Tree[Tree[ModuleRepr]],
     depsObject: Option[DepsObject] = None
@@ -39,6 +43,9 @@ case class BuildRepr private (
 }
 object BuildRepr {
 
+  /**
+   * Generates a tree of packages from the given list filling in empty packages wherever required.
+   */
   def apply(packages: Seq[Tree[ModuleRepr]]): BuildRepr = BuildRepr(
     Tree.from(Seq.empty[String]): segments =>
       val pkg = packages.find(_.root.segments == segments).getOrElse(Tree(ModuleRepr(segments)))

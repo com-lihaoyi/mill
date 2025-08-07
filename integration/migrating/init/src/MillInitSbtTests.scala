@@ -112,7 +112,6 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
 
     val submodules = SortedSet(
       "gatling-app",
-      "gatling-benchmarks",
       "gatling-charts",
       "gatling-commons",
       "gatling-core-java",
@@ -130,14 +129,11 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
       "gatling-recorder",
       "gatling-redis-java",
       "gatling-redis",
-      "gatling-samples",
       "gatling-test-framework"
     )
     val submodulesWithoutTests = SortedSet(
       "gatling-app",
-      "gatling-benchmarks",
       "gatling-quicklens",
-      "gatling-samples",
       "gatling-test-framework"
     )
     val submodulesWithTests = submodules diff submodulesWithoutTests
@@ -178,12 +174,10 @@ object MillInitSbtGatlingTests extends BuildGenTestSuite {
             "gatling-charts.allSourceFiles" -> 58,
             "gatling-test-framework.allSourceFiles" -> 5,
             "gatling-recorder.test.allSourceFiles" -> 10,
-            "gatling-benchmarks.allSourceFiles" -> 3,
             "gatling-jms.test.allSourceFiles" -> 15,
             "gatling-core-java.test.allSourceFiles" -> 2,
             "gatling-jsonpath.test.allSourceFiles" -> 3,
             "gatling-jsonpath.allSourceFiles" -> 8,
-            "gatling-samples.allSourceFiles" -> 12,
             "gatling-core-java.allSourceFiles" -> 86,
             "gatling-http-java.test.allSourceFiles" -> 3
           ),

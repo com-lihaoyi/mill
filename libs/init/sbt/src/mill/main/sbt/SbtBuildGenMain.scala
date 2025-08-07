@@ -12,6 +12,7 @@ case class SbtBuildGenMainArgs(
     depsObjectName: String = "Deps",
     @mainargs.arg(short = 't')
     testModuleName: String = "test",
+    @mainargs.arg(short = 'c')
     sbtCmd: Option[String],
     sbtOptions: mainargs.Leftover[String]
 )
@@ -30,7 +31,7 @@ object SbtBuildGenMain {
         suffix = ".jar"
       ))
     val exportDir = os.temp.dir()
-    // https://github.com/JetBrains/sbt-structure/#sideloading
+    // run export with "+" to generate a file per project and cross scala version
     val script = Seq(
       s"set SettingKey[(File, String)](\"millInitExportArgs\") in Global := (file(${literalize(exportDir.toString())}), ${literalize(testModuleName)})",
       s"apply -cp ${literalize(jar.toString())} mill.main.sbt.ExportSbtBuildScript",
@@ -57,15 +58,15 @@ object SbtBuildGenMain {
     type SbtModuleRepr = ((Seq[String], Boolean), ModuleRepr)
     val sbtModules = os.list.stream(exportDir).map(path =>
       upickle.default.read[SbtModuleRepr](path.toNIO)
-    ).toSeq.distinct // a duplicate was returned in "scrypto" test (SBT ran the command twice for same scalaVersion)
+    ).toSeq.distinct // a duplicate was returned in "scrypto" test
     if (sbtModules.isEmpty) {
-      println(s"no modules found using $cmd")
-      return
+      sys.error(s"no modules found using $cmd")
     }
 
     def toModule(crossVersionModules: Seq[ModuleRepr]): ModuleRepr =
-      if (crossVersionModules.tail.isEmpty) crossVersionModules.head
+      if (crossVersionModules.tail.isEmpty) crossVersionModules.head // not cross version
       else
+        // compute the base config for all cross versions
         val module = crossVersionModules.iterator.reduce: (m1, m2) =>
           m1.copy(
             configs = ModuleConfig.abstracted(m1.configs, m2.configs),
@@ -78,13 +79,18 @@ object SbtBuildGenMain {
                 ))
               case (m1, m2) => m1.orElse(m2)
           )
+        // adjust the version specific configs
         module.copy(
           crossConfigs =
-            module.crossConfigs.map((k, v) => (k, ModuleConfig.inherited(v, module.configs))),
+            module.crossConfigs.map: (k, v) =>
+              (k, ModuleConfig.inherited(v, module.configs))
+            .sortBy(_._1),
           testModule = module.testModule.map(module =>
             module.copy(
               crossConfigs =
-                module.crossConfigs.map((k, v) => (k, ModuleConfig.inherited(v, module.configs)))
+                module.crossConfigs.map: (k, v) =>
+                  (k, ModuleConfig.inherited(v, module.configs))
+                .sortBy(_._1)
             )
           )
         )
@@ -93,14 +99,53 @@ object SbtBuildGenMain {
       case ((_, false), crossVersionModules) => Tree(toModule(crossVersionModules))
       case ((moduleDir, _), crossPlatformModules) => Tree(
           root = ModuleRepr(moduleDir),
-          children = crossPlatformModules.groupBy(_.segments).iterator
-            .map((_, crossVersionModules) => Tree(toModule(crossVersionModules)))
-            .toSeq
+          children = crossPlatformModules.groupBy(_.segments).iterator.map:
+            (_, crossVersionModules) =>
+              Tree(toModule(crossVersionModules))
+          .toSeq
         )
     .toSeq
 
     val build = BuildRepr(packages).withDepsObject(DepsObject(depsObjectName))
-
     SbtBuildWriter.writeFiles(build)
+
+    locally {
+      val jvmOptsSbt = os.pwd / ".jvmopts"
+      val jvmOptsMill = os.pwd / ".mill-jvm-opts"
+
+      if (os.exists(jvmOptsSbt)) {
+        println(s"copying ${jvmOptsSbt.last} to ${jvmOptsMill.last}")
+        if (os.exists(jvmOptsMill)) {
+          val backup = jvmOptsMill / os.up / s"${jvmOptsMill.last}.bak"
+          println(s"creating backup ${backup.last}")
+          os.move.over(jvmOptsMill, backup)
+        }
+        var reportOnce = true
+        // Since .jvmopts may contain multiple args per line, we warn the user
+        // as Mill wants each arg on a separate line
+        os.read.lines(jvmOptsSbt).collectFirst {
+          // Warn the user once when we find spaces, but ignore comments
+          case x if reportOnce && !x.trim().startsWith("#") && x.trim().contains(" ") =>
+            reportOnce = false
+            println(
+              s"${jvmOptsMill.last}: Please check that each arguments is on a separate line!"
+            )
+        }
+        os.copy(jvmOptsSbt, jvmOptsMill)
+      }
+
+      val sbtOpts = os.pwd / ".sbtopts"
+      if (os.exists(sbtOpts)) {
+        var jvmArgs = os.read.lines.stream(sbtOpts).collect:
+          case s if s.startsWith("-J") => s.substring("-J".length)
+        .toSeq
+        if (jvmArgs.nonEmpty && os.exists(jvmOptsMill)) {
+          jvmArgs = jvmArgs.diff(os.read.lines(jvmOptsMill))
+        }
+        if (jvmArgs.nonEmpty) {
+          os.write.append(jvmOptsMill, jvmArgs.mkString(System.lineSeparator()))
+        }
+      }
+    }
   }
 }

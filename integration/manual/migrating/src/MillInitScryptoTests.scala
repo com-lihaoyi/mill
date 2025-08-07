@@ -5,6 +5,10 @@ import utest.*
 
 object MillInitScryptoTests extends GitRepoIntegrationTestSuite {
 
+  // sbt 1.10.7
+  // cross Scala versions 2.11.12 2.12.20, 2.13.16 3.3.5
+  // sbt-crossproject 1.3.2
+  // root is a cross-platform/version module
   def gitRepoUrl = "git@github.com:input-output-hk/scrypto.git"
   def gitRepoBranch = "v3.1.0"
 

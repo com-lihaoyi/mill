@@ -2,6 +2,9 @@ package mill.main.buildgen
 
 import upickle.default.{ReadWriter, macroRW}
 
+/**
+ * A representation for a test module in a build that is optimized for code generation.
+ */
 case class TestModuleRepr(
     name: String,
     supertypes: Seq[String],
@@ -24,21 +27,5 @@ object TestModuleRepr {
     case ("com.disneystreaming", "weaver-scalacheck") => "TestModule.Weaver"
     case ("dev.zio", "zio-test" | "zio-test-sbt") => "TestModule.ZioTest"
     case ("org.scalacheck", "scalacheck") => "TestModule.ScalaCheck"
-  }
-
-  val settingsByDep: PartialFunction[(String, String, String), (String, String)] = {
-    case ("org.testng", "testng", v) => ("testngVersion", v)
-    case ("junit", "junit", v) => ("junit4Version", v)
-    case ("org.junit.platform", "junit-platform-launcher", v) => ("junitPlatformVersion", v)
-    case ("org.junit.jupiter", "junit-jupiter-api", v) => ("jupiterVersion", v)
-    case ("org.scalatest", "scalatest", v) => ("scalaTestVersion", v)
-    case ("org.scalatest", a, _) if a.startsWith("scalatest-") =>
-      ("scalaTestStyles", a.substring("scalatest-".length))
-    case ("org.specs2", "specs2-core", v) => ("specs2Version", v)
-    case ("com.lihaoyi", "utest", v) => ("utestVersion", v)
-    case ("org.scalameta", "munit", v) => ("munitVersion", v)
-    case ("com.disneystreaming", "weaver-scalacheck", v) => ("weaverVersion", v)
-    case ("dev.zio", "zio-test" | "zio-test-sbt", v) => ("zioTestVersion", v)
-    case ("org.scalacheck", "scalacheck", v) => ("scalaCheckVersion", v)
   }
 }
