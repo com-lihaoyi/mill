@@ -12,14 +12,6 @@ case class SbtBuildGenMainArgs(
     depsObjectName: String = "Deps",
     @mainargs.arg(short = 't')
     testModuleName: String = "test",
-    @mainargs.arg(short = 'T')
-    baseTestTraitName: String = "Tests",
-    @mainargs.arg(short = 'B')
-    baseTraitSuffix: String = "Module",
-    @mainargs.arg(short = 'P')
-    basePublishTraitSuffix: String = "PublishModule",
-    @mainargs.arg(short = 'm')
-    noMerge: mainargs.Flag,
     sbtCmd: Option[String],
     sbtOptions: mainargs.Leftover[String]
 )
@@ -108,10 +100,7 @@ object SbtBuildGenMain {
         )
     .toSeq
 
-    var build = BuildRepr(packages)
-      .withDepsObject(DepsObject(depsObjectName))
-
-    if (!noMerge.value) build = build.merged
+    val build = BuildRepr(packages).withDepsObject(DepsObject(depsObjectName))
 
     SbtBuildWriter.writeFiles(build)
   }

@@ -5,15 +5,6 @@ case class BuildRepr private (
     depsObject: Option[DepsObject] = None
 ) {
 
-  def merged = copy(packages =
-    packages.copy(root =
-      packages.root.copy(children =
-        packages.root.children ++ packages.children.map(_.transform: (pkg, children1) =>
-          Tree(pkg.root, pkg.children ++ children1))
-      )
-    )
-  )
-
   def withDepsObject(deps: DepsObject) =
     if (depsObject.isEmpty)
       def updated(configs: Seq[ModuleConfig]) = configs.map {
