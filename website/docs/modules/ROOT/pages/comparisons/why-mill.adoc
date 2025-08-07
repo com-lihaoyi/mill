@@ -389,7 +389,8 @@ and invalidation.
 It's worth contrasting the Mill config above with e.g. the equivalent Gradle configuration
 for setting up a line-count resource file:
 
-```kotlin
+[,kotlin]
+----
 import java.io.File
 
 tasks.register("generateLineCount") {
@@ -420,7 +421,7 @@ tasks.named("processResources") {
     dependsOn("generateLineCount")
     from(layout.buildDirectory.dir("generated-resources"))
 }
-```
+----
 
 While the Gradle config is a bit more verbose than Mill's, that is not where the problem
 lies. The problem lies in the fact that the Gradle "config as code" doesn't _actually_

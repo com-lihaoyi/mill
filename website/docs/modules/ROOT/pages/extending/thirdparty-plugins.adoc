@@ -41,15 +41,17 @@ object MyAliases extends Aliases {
 
 To show all the defined aliases:
 
-```sh
-./mill Alias/list
-```
+[,console]
+----
+> ./mill Alias/list
+----
 
 Run an alias:
 
-```sh
-./mill Alias/run testall
-```
+[,console]
+----
+> ./mill Alias/run testall
+----
 
 When run, each aliased task is checked if valid.
 
