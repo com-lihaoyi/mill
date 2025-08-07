@@ -5,6 +5,108 @@ import upickle.default.{ReadWriter, macroRW}
 sealed trait ModuleConfig
 object ModuleConfig {
   implicit val rw: ReadWriter[ModuleConfig] = macroRW
+
+  def abstracted(self: Seq[ModuleConfig], that: Seq[ModuleConfig]) = {
+    def args(self: Seq[String], that: Seq[String]) =
+      if (that.containsSlice(self)) self else if (self.containsSlice(that)) that else Nil
+    def value[A](self: A, that: A, default: A = null): A = if (self == that) self else default
+
+    self.flatMap {
+      case self: CoursierModuleConfig => that.collectFirst {
+          case that: CoursierModuleConfig => CoursierModuleConfig(
+              self.repositories.intersect(that.repositories)
+            )
+        }
+      case self: JavaModuleConfig => that.collectFirst {
+          case that: JavaModuleConfig => JavaModuleConfig(
+              self.mandatoryMvnDeps.intersect(that.mandatoryMvnDeps),
+              self.mvnDeps.intersect(that.mvnDeps),
+              self.compileMvnDeps.intersect(that.compileMvnDeps),
+              self.runMvnDeps.intersect(that.runMvnDeps),
+              self.moduleDeps.intersect(that.moduleDeps),
+              self.compileModuleDeps.intersect(that.compileModuleDeps),
+              self.runModuleDeps.intersect(that.runModuleDeps),
+              args(self.javacOptions, that.javacOptions)
+            )
+        }
+      case self: PublishModuleConfig => that.collectFirst {
+          case that: PublishModuleConfig => PublishModuleConfig(
+              value(self.pomSettings, that.pomSettings),
+              value(self.publishVersion, that.publishVersion),
+              value(self.versionScheme, that.versionScheme, None)
+            )
+        }
+      case self: ScalaModuleConfig => that.collectFirst {
+          case that: ScalaModuleConfig => ScalaModuleConfig(
+              value(self.scalaVersion, that.scalaVersion),
+              args(self.scalacOptions, that.scalacOptions),
+              self.scalacPluginMvnDeps.intersect(that.scalacPluginMvnDeps)
+            )
+        }
+      case self: ScalaJSModuleConfig => that.collectFirst {
+          case that: ScalaJSModuleConfig => ScalaJSModuleConfig(
+              value(self.scalaJSVersion, that.scalaJSVersion)
+            )
+        }
+      case self: ScalaNativeModuleConfig => that.collectFirst {
+          case that: ScalaNativeModuleConfig => ScalaNativeModuleConfig(
+              value(self.scalaNativeVersion, that.scalaNativeVersion)
+            )
+        }
+    }
+  }
+
+  def inherited(self: Seq[ModuleConfig], that: Seq[ModuleConfig]) = {
+    def args(self: Seq[String], base: Seq[String]) = self.indexOfSlice(base) match {
+      case -1 => self
+      case i => self.take(i) ++ self.drop(i + base.length)
+    }
+    def value[A](self: A, base: A, default: A = null): A = if (self == base) default else self
+
+    self.map {
+      case self: CoursierModuleConfig => that.collectFirst {
+          case that: CoursierModuleConfig => CoursierModuleConfig(
+              self.repositories.diff(that.repositories)
+            )
+        }.getOrElse(self)
+      case self: JavaModuleConfig => that.collectFirst {
+          case that: JavaModuleConfig => JavaModuleConfig(
+              self.mandatoryMvnDeps.diff(that.mandatoryMvnDeps),
+              self.mvnDeps.diff(that.mvnDeps),
+              self.compileMvnDeps.diff(that.compileMvnDeps),
+              self.runMvnDeps.diff(that.runMvnDeps),
+              self.moduleDeps.diff(that.moduleDeps),
+              self.compileModuleDeps.diff(that.compileModuleDeps),
+              self.runModuleDeps.diff(that.runModuleDeps),
+              args(self.javacOptions, that.javacOptions)
+            )
+        }.getOrElse(self)
+      case self: PublishModuleConfig => that.collectFirst {
+          case that: PublishModuleConfig => PublishModuleConfig(
+              value(self.pomSettings, that.pomSettings),
+              value(self.publishVersion, that.publishVersion),
+              value(self.versionScheme, that.versionScheme, None)
+            )
+        }.getOrElse(self)
+      case self: ScalaModuleConfig => that.collectFirst {
+          case that: ScalaModuleConfig => ScalaModuleConfig(
+              value(self.scalaVersion, that.scalaVersion),
+              args(self.scalacOptions, that.scalacOptions),
+              self.scalacPluginMvnDeps.diff(that.scalacPluginMvnDeps)
+            )
+        }.getOrElse(self)
+      case self: ScalaJSModuleConfig => that.collectFirst {
+          case that: ScalaJSModuleConfig => ScalaJSModuleConfig(
+              value(self.scalaJSVersion, that.scalaJSVersion)
+            )
+        }.getOrElse(self)
+      case self: ScalaNativeModuleConfig => that.collectFirst {
+          case that: ScalaNativeModuleConfig => ScalaNativeModuleConfig(
+              value(self.scalaNativeVersion, that.scalaNativeVersion)
+            )
+        }.getOrElse(self)
+    }
+  }
 }
 
 case class CoursierModuleConfig(repositories: Seq[String] = Nil) extends ModuleConfig
@@ -13,6 +115,7 @@ object CoursierModuleConfig {
 }
 
 case class JavaModuleConfig(
+    mandatoryMvnDeps: Seq[String] = Nil,
     mvnDeps: Seq[String] = Nil,
     compileMvnDeps: Seq[String] = Nil,
     runMvnDeps: Seq[String] = Nil,
@@ -30,8 +133,8 @@ object JavaModuleConfig {
 }
 
 case class PublishModuleConfig(
-    pomSettings: PublishModuleConfig.PomSettings,
-    publishVersion: String,
+    pomSettings: PublishModuleConfig.PomSettings = null,
+    publishVersion: String = null,
     versionScheme: Option[String] = None
 ) extends ModuleConfig
 object PublishModuleConfig {
@@ -89,7 +192,7 @@ object PublishModuleConfig {
 }
 
 case class ScalaModuleConfig(
-    scalaVersion: String = "",
+    scalaVersion: String = null,
     scalacOptions: Seq[String] = Nil,
     scalacPluginMvnDeps: Seq[String] = Nil
 ) extends ModuleConfig
@@ -97,12 +200,12 @@ object ScalaModuleConfig {
   implicit val rw: ReadWriter[ScalaModuleConfig] = macroRW
 }
 
-case class ScalaJSModuleConfig(scalaJSVersion: String = "") extends ModuleConfig
+case class ScalaJSModuleConfig(scalaJSVersion: String = null) extends ModuleConfig
 object ScalaJSModuleConfig {
   implicit val rw: ReadWriter[ScalaJSModuleConfig] = macroRW
 }
 
-case class ScalaNativeModuleConfig(scalaNativeVersion: String = "") extends ModuleConfig
+case class ScalaNativeModuleConfig(scalaNativeVersion: String = null) extends ModuleConfig
 object ScalaNativeModuleConfig {
   implicit val rw: ReadWriter[ScalaNativeModuleConfig] = macroRW
 }

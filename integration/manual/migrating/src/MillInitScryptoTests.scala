@@ -14,10 +14,10 @@ object MillInitScryptoTests extends GitRepoIntegrationTestSuite {
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("jvm[2.12.20].compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("jvm[2.12.20].publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("jvm[2.12.20].test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("js[2.13.16].compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
+      eval("jvm[_].compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("jvm[_].test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("jvm[_].publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("js[_].compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
 
       "requires ScalablyTypedConverterGenSourcePlugin"
     }
