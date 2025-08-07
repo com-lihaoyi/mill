@@ -15,10 +15,9 @@ object `package` extends mill.Module { scripts =>
     def templateFile: T[PathRef]
     def finalName: T[String]
     def substitutions: T[Map[String, String]] = Map(
-      "mill-version" -> build.millVersionTruth().format(),
+      "mill-version" -> build.millVersion(),
       "mill-repo-url" -> Settings.projectUrl,
       "mill-maven-url" -> Settings.mavenRepoUrl,
-      "mill-best-version" -> "0.12.10", // TODO: build.millVersionTruth()
       "mill-download-cache-unix" -> "~/.cache/mill/download",
       "mill-download-cache-win" -> "%USERPROFILE%\\\\.mill\\\\download",
       "template-file" -> templateFile().path.relativeTo(BuildCtx.workspaceRoot).toString
