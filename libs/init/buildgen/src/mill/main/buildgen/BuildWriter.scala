@@ -70,20 +70,16 @@ trait BuildWriter {
     writeModuleDeclaration(ps, rootModuleName, root)
     ps.println(" {")
     writeModuleConfigs(ps, root.configs, root.crossConfigs)
-    root.testModule.foreach(writeTestModule(ps, "object", _))
+    root.testModule.foreach(writeTestModule(ps, _))
     children.foreach(subtree => writeModules(ps, subtree.root.segments.last, subtree))
     embed()
     ps.println('}')
   }
 
-  protected def writeTestModule(ps: PrintStream, typ: String, module: TestModuleRepr): Unit = {
+  protected def writeTestModule(ps: PrintStream, module: TestModuleRepr): Unit = {
     import module.*
     ps.println()
-    ps.print(typ)
-    ps.print(" ")
-    ps.print(name)
-    ps.print(renderExtendsClause(supertypes))
-    ps.println(" {")
+    ps.println(s"object $name ${renderExtendsClause(supertypes)} {")
     writeModuleConfigs(ps, configs, crossConfigs)
     ps.println('}')
   }

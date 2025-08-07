@@ -110,7 +110,6 @@ object SbtBuildGenMain {
 
     var build = BuildRepr(packages)
       .withDepsObject(DepsObject(depsObjectName))
-    // .withBaseTraits(baseTestTraitName, baseTraitSuffix, basePublishTraitSuffix)
 
     if (!noMerge.value) build = build.merged
 
