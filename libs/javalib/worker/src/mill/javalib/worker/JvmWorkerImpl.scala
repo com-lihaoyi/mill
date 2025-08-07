@@ -3,7 +3,7 @@ package mill.javalib.worker
 import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
 import mill.client.ServerLauncher
-import mill.client.lock.{DoubleLock, Locks}
+import mill.client.lock.{DoubleLock, Locks, MemoryLock}
 import mill.constants.DaemonFiles
 import mill.javalib.api.CompilationResult
 import mill.javalib.api.internal.*
@@ -105,7 +105,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
     }
   }
   private case class SubprocessCacheInitialize(
-      taskDest: os.Path
+      taskDest: os.Path,
+      log: Logger
   )
   private case class SubprocessCacheValue(port: Int, daemonDir: os.Path) {
     def isRunning(): Boolean =
@@ -127,14 +128,14 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         value: SubprocessCacheValue
     ): Boolean = value.isRunning()
 
-    private var memoryLocksByDaemonDir = Map.empty[os.Path, Locks]
-    private def memLockFor(daemonDir: os.Path): Locks = {
+    private var memoryLocksByDaemonDir = Map.empty[os.Path, MemoryLock]
+    private def memLockFor(daemonDir: os.Path): MemoryLock = {
       memoryLocksByDaemonDir.synchronized {
         memoryLocksByDaemonDir.get(daemonDir) match {
           case Some(lock) => lock
 
           case None =>
-            val lock = Locks.memory()
+            val lock = MemoryLock()
             memoryLocksByDaemonDir = memoryLocksByDaemonDir.updated(daemonDir, lock)
             lock
         }
@@ -145,6 +146,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         key: SubprocessCacheKey,
         init: SubprocessCacheInitialize
     ): SubprocessCacheValue = {
+      import init.log
+
       val workerDir = init.taskDest / "zinc-worker" / key.sha256
       val daemonDir = workerDir / "daemon"
 
@@ -153,24 +156,32 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       os.write.over(workerDir / "java-runtime-options", key.runtimeOptions.options.mkString("\n"))
 
       val mainClass = "mill.javalib.zinc.ZincWorkerMain"
+      val locks = {
+        val fileLocks = Locks.files(daemonDir.toString)
+        Locks(
+          // File locks are non-reentrant, so we need to lock on the memory lock first
+          DoubleLock(memLockFor(daemonDir), fileLocks.launcherLock),
+          // We never take the daemon lock, just check if it's already taken
+          fileLocks.daemonLock
+        )
+      }
+
+      log.debug(s"Checking if $mainClass is already running for $key")
       val result = ServerLauncher.ensureServerIsRunning(
-        // File locks are non-reentrant, so we need to lock on the memory lock first
-        {
-          val fileLocks = Locks.files(daemonDir.toString)
-          Locks(
-            DoubleLock(memLockFor(daemonDir).launcherLock, fileLocks.launcherLock),
-            fileLocks.daemonLock
-          )
-        },
+        locks,
         daemonDir.toNIO,
-        () =>
-          Optional.of(Jvm.spawnProcess(
+        () => {
+          log.debug(s"Starting JVM subprocess for $mainClass for $key")
+          val process = Jvm.spawnProcess(
             mainClass = mainClass,
             mainArgs = Seq(daemonDir.toString),
             javaHome = key.javaHome,
             jvmArgs = key.runtimeOptions.options,
             classPath = classPath
-          ).wrapped)
+          )
+          Optional.of(process.wrapped)
+        },
+        log.debug
       )
 
       def onFail(error: Any) = {
@@ -189,7 +200,9 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       def onSuccess() = {
         val serverInitWaitMillis = 5.seconds.toMillis
         val startTime = System.currentTimeMillis
+        log.debug(s"Reading server port: $daemonDir")
         val port = ServerLauncher.readServerPort(daemonDir.toNIO, startTime, serverInitWaitMillis)
+        log.debug(s"Started $mainClass for $key on port $port")
         SubprocessCacheValue(port, daemonDir)
       }
 
@@ -237,10 +250,11 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
         : R = {
       subprocessCache.withValue(
         cacheKey,
-        SubprocessCacheInitialize(compilerBridge.workspace)
+        SubprocessCacheInitialize(compilerBridge.workspace, log)
       ) { case SubprocessCacheValue(port, daemonDir) =>
         Using.Manager { use =>
           val startTimeMillis = System.currentTimeMillis()
+          log.debug(s"Connecting to $daemonDir on port $port")
           val socket = use(ServerLauncher.connectToServer(
             startTimeMillis,
             5.seconds.toMillis,
@@ -262,7 +276,7 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
               val serverToClient = use(BufferedReader(InputStreamReader(PipedInputStream(stdout))))
               val clientToServer = use(PrintStream(PipedOutputStream(stdin)))
               val wireTransport = MillRpcWireTransport.ViaStreams(
-                s"TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}",
+                s"ZincWorker,TCP ${socket.getRemoteSocketAddress} -> ${socket.getLocalSocketAddress}",
                 serverToClient,
                 clientToServer
               )

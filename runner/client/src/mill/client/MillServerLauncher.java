@@ -72,7 +72,8 @@ public abstract class MillServerLauncher extends ServerLauncher {
          System.err.println("Server died during startup:");
          System.err.println(processDied.toString());
          System.exit(1);
-       }
+       },
+        ignored -> {}
       )) {
       var result = runWithConnection(connection, streams, false, rawServerStdin -> {
         initData.write(rawServerStdin);

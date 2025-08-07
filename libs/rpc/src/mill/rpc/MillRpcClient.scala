@@ -36,15 +36,15 @@ object MillRpcClient {
       finally currentRequestId = currentRequestId.requestFinished
     }
 
-    def logWarn(msg: String): Unit = log.warn(s"[RPC] $msg")
-    def logDebug(msg: String): Unit = log.debug(s"[RPC] $msg")
+    def logWarn(msg: String): Unit = log.warn(s"[RPC:${wireTransport.name}] $msg")
+    def logDebug(msg: String): Unit = log.debug(s"[RPC:${wireTransport.name}] $msg")
 
     def handleServerLog(msg: RpcLogger.Message): Unit = msg match {
-      case RpcLogger.Message.Error(msg) => log.error(s"[RPC-SERVER] $msg")
-      case RpcLogger.Message.Warn(msg) => log.warn(s"[RPC-SERVER] $msg")
-      case RpcLogger.Message.Info(msg) => log.info(s"[RPC-SERVER] $msg")
-      case RpcLogger.Message.Debug(msg) => log.debug(s"[RPC-SERVER] $msg")
-      case RpcLogger.Message.Ticker(msg) => log.ticker(s"[RPC-SERVER] $msg")
+      case RpcLogger.Message.Error(msg) => log.error(s"[RPC-SERVER:${wireTransport.name}] $msg")
+      case RpcLogger.Message.Warn(msg) => log.warn(s"[RPC-SERVER:${wireTransport.name}] $msg")
+      case RpcLogger.Message.Info(msg) => log.info(s"[RPC-SERVER:${wireTransport.name}] $msg")
+      case RpcLogger.Message.Debug(msg) => log.debug(s"[RPC-SERVER:${wireTransport.name}] $msg")
+      case RpcLogger.Message.Ticker(msg) => log.ticker(s"[RPC-SERVER:${wireTransport.name}] $msg")
     }
 
     def awaitForResponse[A: Reader](requestId: MillRpcRequestId): A = {
@@ -52,7 +52,8 @@ object MillRpcClient {
       // fulfill our request.
       var responseReceived = Option.empty[A]
       while (responseReceived.isEmpty) {
-        // TODO review: comment why we parse into json first
+        // We parse into generic JSON value first because the message can be either `Response` or other `Ask` and if
+        // we try to parse into `MillRpcServerToClient[A]` we will get an error if it's an `Ask`.
         wireTransport.readAndTryToParse[MillRpcServerToClient[ujson.Value]](logDebug) match {
           case None =>
             throw new IllegalStateException(

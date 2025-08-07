@@ -7,19 +7,13 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 import mill.client.lock.Lock;
 import mill.client.lock.Locks;
 import mill.constants.DaemonFiles;
-import mill.constants.DebugLog;
 import mill.constants.InputPumper;
 import mill.constants.ProxyStream;
 
@@ -57,14 +51,11 @@ public abstract class ServerLauncher {
     }
   }
 
-  /// Run a client logic with an connection established to a Mill server
-  /// (via {@link ServerLauncher#connectToServer}).
+  /// Run a client logic with a connection established to a Mill server (via [#connectToServer]).
   ///
   /// @param connection     the socket connected to the server
   /// @param streams        streams to use for the client logic
-  /// @param closeConnectionAfterClientLogic whether to close the connection after running the
-  // client logic
-
+  /// @param closeConnectionAfterClientLogic whether to close the connection after running the client logic
   /// @param runClientLogic the client logic to run
   /// @return the exit code that the server sent back
   public static <A> RunWithConnectionResult<A> runWithConnection(
@@ -98,20 +89,22 @@ public abstract class ServerLauncher {
     int serverInitWaitMillis,
     InitServer initServer,
     Consumer<ServerLaunchResult.CouldNotStart> onCouldNotStart,
-    Consumer<ServerLaunchResult.ProcessDied> onFailure)
+    Consumer<ServerLaunchResult.ProcessDied> onFailure,
+    Consumer<String> log
+  )
     throws Exception {
-    var result = ensureServerIsRunning(locks, daemonDir, initServer);
+    var result = ensureServerIsRunning(locks, daemonDir, initServer, log);
     return result.fold(
       success -> {
         try {
-          return onServerRunning(daemonDir, debugName, serverInitWaitMillis);
+          return onServerRunning(daemonDir, debugName, serverInitWaitMillis, log);
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
       },
       alreadyRunning -> {
         try {
-          return onServerRunning(daemonDir, debugName, serverInitWaitMillis);
+          return onServerRunning(daemonDir, debugName, serverInitWaitMillis, log);
         } catch (Exception e) {
           throw new RuntimeException(e);
         }
@@ -127,11 +120,14 @@ public abstract class ServerLauncher {
     );
   }
 
-  private static Socket onServerRunning(Path daemonDir, String debugName, int serverInitWaitMillis) throws Exception {
+  /// Invoked when {@link ServerLauncher#ensureServerIsRunning} succeeds.
+  public static Socket onServerRunning(
+    Path daemonDir, String debugName, int serverInitWaitMillis, Consumer<String> log
+  ) throws Exception {
     var startTime = System.currentTimeMillis();
-    DebugLog.apply(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + " Reading server port: " + daemonDir.toAbsolutePath());
+    log.accept("Reading server port: " + daemonDir.toAbsolutePath());
     var port = readServerPort(daemonDir, startTime, serverInitWaitMillis);
-    DebugLog.apply(LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) + " Read server port: " + port);
+    log.accept("Read server port, connecting: " + port);
     return connectToServer(
       startTime, serverInitWaitMillis, port,
       debugName + ". Daemon directory: " + daemonDir.toAbsolutePath()
@@ -152,7 +148,7 @@ public abstract class ServerLauncher {
 
   /// Connects to the Mill server at the given port.
   ///
-  /// @return a socket that should then be used with {@link ServerLauncher#runWithConnection}
+  /// @return a socket that should then be used with [#runWithConnection]
   public static Socket connectToServer(
     long startTimeMillis, long serverInitWaitMillis, int port, String errorMessage
   ) throws Exception {
@@ -191,43 +187,51 @@ public abstract class ServerLauncher {
     return current.get();
   }
 
-  /**
-   * Attempts to start a server process using {@link InitServer} if that is needed.
-   *
-   * @param locks      the locks to use for coordination
-   * @param daemonDir  the directory where the server will write its port
-   * @param initServer the function to use to start the server
-   */
+  /// Attempts to start a server process using [InitServer] if that is needed.
+  ///
+  /// After this succeeds you should call [#onServerRunning].
+  ///
+  /// @param locks      the locks to use for coordination
+  /// @param daemonDir  the directory where the server will write its port
+  /// @param initServer the function to use to start the server
   public static ServerLaunchResult ensureServerIsRunning(
-    Locks locks, Path daemonDir, InitServer initServer) throws Exception {
+    Locks locks, Path daemonDir, InitServer initServer, Consumer<String> log
+  ) throws Exception {
     Files.createDirectories(daemonDir);
 
-    DebugLog.apply(
-      LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME) +
-        " PID: " + ProcessHandle.current().pid() + ". " +
-        " Attempting to start server via " +
-        locks.launcherLock + "\n\n" + (Arrays.stream(new Exception().getStackTrace()).map(Objects::toString).collect(Collectors.joining("\n"))) + "\n\n"
-    );
+    log.accept("Acquiring the launcher lock: " + locks.launcherLock);
     try (var ignored = locks.launcherLock.lock()) {
       // See if the server is already running.
+      log.accept("Checking if the daemon lock is available: " + locks.daemonLock);
       if (locks.daemonLock.probe()) {
-        // The lock is available, there is no server running, thus we can start the server.
+        log.accept("The daemon lock is available, starting the server.");
         var maybeDaemonProcess = initServer.init();
 
         if (maybeDaemonProcess.isPresent()) {
           var daemonProcess = maybeDaemonProcess.get();
+          log.accept("The server has started: " + daemonProcess);
+
+          log.accept("Waiting for the server to take the daemon lock: " + locks.daemonLock);
           var maybeLaunchFailed = waitUntilDaemonTakesTheLock(locks.daemonLock, daemonDir, daemonProcess);
-          if (maybeLaunchFailed.isPresent())
-            return new ServerLaunchResult.ProcessDied(daemonProcess, maybeLaunchFailed.get());
-          else return new ServerLaunchResult.Success(daemonProcess);
+          if (maybeLaunchFailed.isPresent()) {
+            var outputs = maybeLaunchFailed.get();
+            log.accept("The server " + daemonProcess + " failed to start: " + outputs);
+
+            return new ServerLaunchResult.ProcessDied(daemonProcess, outputs);
+          }
+          else {
+            log.accept("The server " + daemonProcess + " has taken the daemon lock: " + locks.daemonLock);
+            return new ServerLaunchResult.Success(daemonProcess);
+          }
         }
         else {
           var outputs = readOutputs(daemonDir);
+          log.accept("The server failed to start: " + outputs);
           return new ServerLaunchResult.CouldNotStart(outputs);
         }
       }
       else {
-        // The lock is not available, there is already a server running.
+        log.accept("The daemon lock is not available, there is already a server running.");
         return new ServerLaunchResult.AlreadyRunning();
       }
     }

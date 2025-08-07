@@ -2,7 +2,7 @@ package mill.client.lock;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-class MemoryLock extends Lock {
+public class MemoryLock extends Lock {
 
   private final ReentrantLock innerLock = new ReentrantLock();
 
