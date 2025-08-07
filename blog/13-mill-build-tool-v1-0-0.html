@@ -272,7 +272,7 @@ meaning running <code>./mill</code> commands in the terminal can often complete 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$  time ./mill foo.compile
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$  time ./mill foo.compile
 [35/35] foo.compile
 [35] [info] compiling 1 Java source...
 [35] [info] done compiling
@@ -305,7 +305,7 @@ processes.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ echo temurin:23 &gt; .mill-jvm-version
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ echo temurin:23 &gt; .mill-jvm-version
 
 $ ./mill foo.test
 https://github.com/adoptium/temurin23-binaries/releases/download/jdk-23.0.2%2B7/OpenJDK23U-jdk_aarch64_mac_hotspot_23.0.2_7.tar.gz
@@ -348,7 +348,7 @@ This can be installed via</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill mill.tabcomplete/install
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill mill.tabcomplete/install
 Writing to /Users/lihaoyi/.cache/mill/download/mill-completion.sh
 Writing to /Users/lihaoyi/.bash_profile
 Writing to /Users/lihaoyi/.zshrc</code></pre>
@@ -359,7 +359,7 @@ Writing to /Users/lihaoyi/.zshrc</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill f&lt;TAB&gt;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill f&lt;TAB&gt;
 $ ./mill foo
 
 $ ./mill foo.run&lt;TAB&gt;
@@ -414,7 +414,7 @@ immediate error:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill foo.bannedWriteTask
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill foo.bannedWriteTask
 error: ...Writing to banned-path not allowed during execution of `foo.bannedWriteTask`</code></pre>
 </div>
 </div>
@@ -441,10 +441,8 @@ contains configuration like the <code>mill-version</code>, <code>mill-jvm-versio
 This is reminiscent of <a href="https://jekyllrb.com/docs/front-matter/">Jekyll FrontMatter</a> or Python&#8217;s
 <a href="https://peps.python.org/pep-0723/">PEP723 Inline script metadata</a>:</p>
 </div>
-<div class="paragraph">
-<p><em>build.mill</em></p>
-</div>
 <div class="listingblock">
+<div class="title"><code>build.mill</code></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mill-version: 1.0.0
 //| mill-jvm-version: 17

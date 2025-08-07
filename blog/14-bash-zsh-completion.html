@@ -350,7 +350,7 @@ restart the shell or <code>source</code> the relevant script to begin using comp
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill mill.tabcomplete/install
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill mill.tabcomplete/install
 [1/1] mill.tabcomplete.TabCompleteModule.install
 Writing to /Users/lihaoyi/.cache/mill/download/mill-completion.sh
 Writing to /Users/lihaoyi/.bash_profile
@@ -374,7 +374,7 @@ actually need a <code>foo</code> command installed:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ foo &lt;TAB&gt;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ foo &lt;TAB&gt;
 apple    apricot  banana   cherry   durian
 
 $ foo a&lt;TAB&gt;
@@ -411,7 +411,7 @@ to run:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./foo a&lt;TAB&gt;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./foo a&lt;TAB&gt;
 apple    apricot</code></pre>
 </div>
 </div>
@@ -490,7 +490,7 @@ lines which only contain the completion-words when completing the line</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ foo a&lt;TAB&gt;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ foo a&lt;TAB&gt;
 $ foo ap
 
 $ foo ap&lt;TAB&gt;
@@ -518,7 +518,7 @@ that is a common prefix to all completion options</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ foo a&lt;TAB&gt;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ foo a&lt;TAB&gt;
 $ foo ap</code></pre>
 </div>
 </div>
@@ -557,7 +557,7 @@ does not include the description!</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ foo &lt;TAB&gt;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ foo &lt;TAB&gt;
 apple: a common fruit                     cherry: small and sweet with a large pit
 apricot: sour fruit with a large stone    durian: stinky spiky fruit
 banana: starchy and high in potassium
@@ -588,7 +588,7 @@ descriptions when tabbing on a complete word:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ foo apple&lt;TAB&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ foo apple&lt;TAB&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -699,7 +699,7 @@ our <code>if</code> block needs to append items to both <code>trimmed</code> and
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ foo apple&lt;TAB&gt;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ foo apple&lt;TAB&gt;
 apple                  apple: a common fruit</code></pre>
 </div>
 </div>
@@ -792,7 +792,7 @@ fi</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ foo &lt;TAB&gt;
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ foo &lt;TAB&gt;
 apple: a common fruit                     banana: starchy and high in potassium     durian: stinky spiky fruit
 apricot: sour fruit with a large stone    cherry: small and sweet with a large pit
 
