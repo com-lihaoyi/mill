@@ -69,9 +69,7 @@ trait AndroidR8AppModule extends AndroidAppModule {
     }
     val userProguardFiles = proguardFilesFromBuildSettings.localFiles
     BuildCtx.withFilesystemCheckerDisabled {
-      (defaultProguardFile.toSeq ++ userProguardFiles).map(PathRef(
-        _
-      )) ++ androidLibraryProguardConfigs()
+      (defaultProguardFile.toSeq).map(PathRef(_)) ++ userProguardFiles ++ androidLibraryProguardConfigs()
     }
   }
 

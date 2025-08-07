@@ -1,6 +1,7 @@
 package mill.androidlib
 
 import mill.api.JsonFormatters.pathReadWrite
+import mill.api.PathRef
 
 /**
  * Build type settings for
@@ -16,7 +17,7 @@ case class AndroidBuildTypeSettings(
     enableDesugaring: Boolean = true,
     proguardFiles: ProguardFiles = ProguardFiles()
 ) {
-  def withProguardLocalFiles(localFiles: Seq[os.Path]): AndroidBuildTypeSettings =
+  def withProguardLocalFiles(localFiles: Seq[PathRef]): AndroidBuildTypeSettings =
     copy(proguardFiles = proguardFiles.copy(localFiles = localFiles))
 
   def withDefaultProguardFile(fileName: String): AndroidBuildTypeSettings =
@@ -25,7 +26,7 @@ case class AndroidBuildTypeSettings(
 
 case class ProguardFiles(
     defaultProguardFile: Option[String] = None,
-    localFiles: Seq[os.Path] = List.empty
+    localFiles: Seq[PathRef] = List.empty
 )
 
 object AndroidBuildTypeSettings {

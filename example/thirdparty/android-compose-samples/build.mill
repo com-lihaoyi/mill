@@ -25,14 +25,14 @@ object JetLagged extends mill.api.Module {
     // without some reportedly missing classes.
     override def androidR8Args = Seq("--map-diagnostics", "error", "warning")
 
-    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task.Input {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false
       ).withDefaultProguardFile("proguard-android-optimize.txt")
         .withProguardLocalFiles(
           Seq(
-            moduleDir / "proguard-rules.pro"
+            PathRef(moduleDir / "proguard-rules.pro")
           )
         )
     }
@@ -151,14 +151,14 @@ object JetNews extends mill.api.Module {
     // without some reportedly missing classes.
     override def androidR8Args = Seq("--map-diagnostics", "error", "warning")
 
-    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task.Input {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false
       ).withDefaultProguardFile("proguard-android-optimize.txt")
         .withProguardLocalFiles(
           Seq(
-            moduleDir / "proguard-rules.pro"
+            PathRef(moduleDir / "proguard-rules.pro")
           )
         )
     }

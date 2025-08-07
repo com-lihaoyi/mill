@@ -25,14 +25,14 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
   def kotlinLanguageVersion = Versions.kotlinLanguageVersion
   def kspVersion = Versions.kspVersion
 
-  override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+  override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task.Input {
     AndroidBuildTypeSettings(
       isMinifyEnabled = false,
       isShrinkEnabled = false
     ).withDefaultProguardFile("proguard-android.txt")
       .withProguardLocalFiles(
         Seq(
-          moduleDir / "proguard-rules.pro"
+          PathRef(moduleDir / "proguard-rules.pro")
         )
       )
   }
@@ -155,15 +155,15 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
 
     override def kspVersion = Versions.kspVersion
 
-    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task {
+    override def androidDebugSettings: T[AndroidBuildTypeSettings] = Task.Input {
       AndroidBuildTypeSettings(
         isMinifyEnabled = false,
         isShrinkEnabled = false
       ).withDefaultProguardFile("proguard-android.txt")
         .withProguardLocalFiles(
           Seq(
-            moduleDir / "proguardTest-rules.pro",
-            moduleDir / "proguard-rules.pro"
+            PathRef(moduleDir / "proguardTest-rules.pro"),
+            PathRef(moduleDir / "proguard-rules.pro")
           )
         )
     }
