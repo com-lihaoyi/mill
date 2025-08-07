@@ -30,8 +30,6 @@ image::CompletionDescriptions.png[]
 image::CompletionDescriptions2.png[]
 
 
-
-
 // end::header[]
 
 
