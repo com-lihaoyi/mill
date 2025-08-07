@@ -3,14 +3,15 @@
 > rm build.mill # remove any existing build file
 
 > git init .
-> git remote add -f origin https://github.com/tototoshi/scala-csv.git
-> git checkout 2.0.0
+> git remote add -f origin https://github.com/fthomas/refined.git
+> git checkout v0.11.3
 
 > ./mill init
 converting sbt build
 ...
 init completed, run "mill resolve _" to list available tasks
 
-> ./mill [2.12.19].compile # compile one of the cross modules
-compiling 8 Scala sources and 3 Java sources to ...
+> ./mill modules.core.jvm[2.12.20].compile # custom version range 3.0- not supported
+compiling 22 Scala sources to ...
+error: ...object boolean is not a member of package eu.timepit.refined
 */
