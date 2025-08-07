@@ -19,7 +19,6 @@ import java.io.*
 import java.security.MessageDigest
 import java.util.Optional
 import scala.concurrent.duration.*
-import scala.jdk.OptionConverters.*
 import scala.util.Using
 
 @internal

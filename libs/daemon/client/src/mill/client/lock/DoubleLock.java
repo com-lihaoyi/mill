@@ -13,10 +13,7 @@ public class DoubleLock extends Lock {
 
   @Override
   public String toString() {
-    return "DoubleLock{" +
-      "lock1=" + lock1 +
-      ", lock2=" + lock2 +
-      '}';
+    return "DoubleLock{" + "lock1=" + lock1 + ", lock2=" + lock2 + '}';
   }
 
   @Override
