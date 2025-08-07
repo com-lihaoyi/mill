@@ -14,9 +14,9 @@ object MillInitNscalaTimeTests extends GitRepoIntegrationTestSuite {
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("[2.11.12].compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("[2.11.12].test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("[2.11.12].publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("[_].compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("[_].test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("[_].publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
     }
   }
 }

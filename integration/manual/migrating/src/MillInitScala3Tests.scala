@@ -13,9 +13,10 @@ object MillInitScala3Tests extends GitRepoIntegrationTestSuite {
       import tester.*
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
+      eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
+      eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
 
-      "multiple modules have the same base directory"
+      "nothing is compiled because the project uses non-Maven layout"
     }
   }
 }
