@@ -1501,7 +1501,7 @@ Scala MDoc simply compiles properly marked Scala snippets in plain md files and 
 <p>Project home: <a href="https://github.com/lefou/millw" class="bare">https://github.com/lefou/millw</a></p>
 </div>
 <div class="paragraph">
-<p>This porject has been moved into the Mill repository with Mill 0.13 / 1.0</p>
+<p>This project has been moved into the Mill repository with Mill 0.13 / 1.0</p>
 </div>
 </div>
 </div>
@@ -1634,6 +1634,52 @@ Finished generating 'hello' in 2m 0s.</code></pre>
 <div class="paragraph">
 <p>For more configuration options, building binaries inside Docker, a sample project
 and more, check the project readme.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_openapi"><a class="anchor" href="#_openapi"></a>OpenApi</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill plugin for generating source files from an OpenApi spec.</p>
+</div>
+<div class="paragraph">
+<p>Project home: <a href="https://github.com/mikybars/openapi-generator-mill-plugin" class="bare">https://github.com/mikybars/openapi-generator-mill-plugin</a></p>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.mill</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">//| mvnDeps: [&quot;io.github.mikybars::openapi-generator-mill-plugin::0.1.0&quot;]
+package build
+
+import mill._, scalalib._
+import mill.api.BuildCtx
+
+import io.github.mikybars.mill.openapi.OpenApiModule
+
+object foo extends JavaModule, OpenApiModule {
+
+  object openapi extends OpenApiConfig {
+     def inputSpec = Task.Source(BuildCtx.workspaceRoot / &quot;api/rest/v1/openapi.yml&quot;)
+    def apiPackage: T[String] = &quot;com.example.foo.rest.api&quot;
+    def modelPackage: T[String] = &quot;com.example.foo.rest.model&quot;
+    def generatorName: T[String] = &quot;spring&quot;
+    def modelNameSuffix: T[String] = &quot;Dto&quot;
+    def additionalProperties: T[Map[String, String]] = Map(
+      // ...
+      &quot;useSpringBoot3&quot; -&gt; &quot;true&quot;,
+      // ...
+    )
+  }
+
+}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Generate source files</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">$ ./mill foo.openapi.generate</code></pre>
+</div>
 </div>
 </div>
 </div>
