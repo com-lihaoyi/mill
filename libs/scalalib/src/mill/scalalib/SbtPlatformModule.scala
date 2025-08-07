@@ -22,12 +22,21 @@ trait SbtPlatformModule extends PlatformScalaModule with SbtModule { outer =>
 }
 object SbtPlatformModule {
 
+  private def crossPartials(platformCrossSuffix: String, platforms: String*) =
+    platforms.diff(platformCrossSuffix).iterator
+      .map(platform => os.SubPath(Seq(platformCrossSuffix, platform).sorted.mkString("-")))
+      .toSeq
+
   trait CrossTypeFull extends SbtPlatformModule {
-    override def sourcesRootFolders = Seq(os.sub / "shared", os.sub / platformCrossSuffix)
+    override def sourcesRootFolders = Seq(
+      os.sub / "shared",
+      os.sub / platformCrossSuffix
+    ) ++ crossPartials(platformCrossSuffix, "js", "jvm", "native")
   }
 
   trait CrossTypePure extends SbtPlatformModule {
-    override def sourcesRootFolders = Seq(os.sub)
+    override def sourcesRootFolders =
+      Seq(os.sub) ++ crossPartials(platformCrossSuffix, ".js", ".jvm", ".native")
   }
 
   trait CrossTypeDummy extends SbtPlatformModule {

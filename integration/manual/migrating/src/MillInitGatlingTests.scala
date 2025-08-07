@@ -15,8 +15,8 @@ object MillInitGatlingTests extends GitRepoIntegrationTestSuite {
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval("__.publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
       eval("__.test", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
+      eval("__.publishLocal", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
 
       "scaladoc generation and some tests fail"
     }

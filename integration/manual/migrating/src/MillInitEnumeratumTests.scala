@@ -16,7 +16,7 @@ object MillInitEnumeratumTests extends GitRepoIntegrationTestSuite {
       eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval(("__.compile", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
 
-      "cross version mismatch in benchmark -> enumeratum-play dependency"
+      "publish disabled for Scala 3 https://github.com/json4s/json4s/issues/1035"
     }
   }
 }

@@ -121,17 +121,33 @@ object SbtBuildWriter extends BuildWriter {
       ps.println()
     }
     if (moduleDeps.nonEmpty)
+      ps.println()
       ps.println(moduleDeps.map(renderModuleDep)
         .mkString("def moduleDeps = super.moduleDeps ++ Seq(", ", ", ")"))
     if (compileModuleDeps.nonEmpty)
+      ps.println()
       ps.println(compileModuleDeps.map(renderModuleDep)
         .mkString("def compileModuleDeps = super.compileModuleDeps ++ Seq(", ", ", ")"))
     if (runModuleDeps.nonEmpty)
+      ps.println()
       ps.println(runModuleDeps.map(renderModuleDep)
         .mkString("def runModuleDeps = super.runModuleDeps ++ Seq(", ", ", ")"))
-    if (javacOptions.nonEmpty)
-      ps.println(javacOptions.map(literalize(_))
-        .mkString("def javacOptions = super.javacOptions() ++ Seq(", ", ", ")"))
+    val crossJavacOptions = crossConfigs.collect:
+      case (cross, config) if config.javacOptions.nonEmpty => (cross, config.javacOptions)
+    if (javacOptions.nonEmpty || crossJavacOptions.nonEmpty) {
+      ps.println()
+      ps.print("def javacOptions = super.javacOptions()")
+      if (javacOptions.nonEmpty)
+        ps.print(javacOptions.map(literalize(_)).mkString(" ++ Seq(", ", ", ")"))
+      if (crossJavacOptions.nonEmpty)
+        ps.println(" ++ (scalaVersion() match {")
+        crossJavacOptions.foreach: (cross, options) =>
+          ps.println(options.map(literalize(_))
+            .mkString(s"case ${literalize(cross)} => Seq(", ", ", ")"))
+        ps.println("case _ => Seq()")
+        ps.println("})")
+      ps.println()
+    }
   }
 
   def writeCrossScalaModuleConfig(
@@ -142,7 +158,7 @@ object SbtBuildWriter extends BuildWriter {
     import config.*
     val crossScalacOptions = crossConfigs.collect:
       case (cross, config) if config.scalacOptions.nonEmpty => (cross, config.scalacOptions)
-    if (scalacOptions.nonEmpty || crossScalacOptions.nonEmpty)
+    if (scalacOptions.nonEmpty || crossScalacOptions.nonEmpty) {
       ps.println()
       ps.print("def scalacOptions = super.scalacOptions()")
       if (scalacOptions.nonEmpty)
@@ -150,17 +166,16 @@ object SbtBuildWriter extends BuildWriter {
       if (crossScalacOptions.nonEmpty)
         ps.println(" ++ (scalaVersion() match {")
         crossScalacOptions.foreach: (cross, options) =>
-          ps.println(options.map(literalize(_)).mkString(
-            s"case ${literalize(cross)} => Seq(",
-            ", ",
-            ")"
-          ))
+          ps.println(options.map(literalize(_))
+            .mkString(s"case ${literalize(cross)} => Seq(", ", ", ")"))
         ps.println("case _ => Seq()")
         ps.println("})")
+      ps.println()
+    }
     val crossScalaPluginMvnDeps = crossConfigs.collect:
       case (cross, config) if config.scalacPluginMvnDeps.nonEmpty =>
         (cross, config.scalacPluginMvnDeps)
-    if (scalacPluginMvnDeps.nonEmpty || crossScalacOptions.nonEmpty)
+    if (scalacPluginMvnDeps.nonEmpty || crossScalacOptions.nonEmpty) {
       ps.println()
       ps.print("def scalacPluginMvnDeps = super.scalacPluginMvnDeps()")
       if (scalacPluginMvnDeps.nonEmpty)
@@ -171,5 +186,7 @@ object SbtBuildWriter extends BuildWriter {
           ps.println(deps.mkString(s"case ${literalize(cross)} => Seq(", ", ", ")"))
         ps.println("case _ => Seq()")
         ps.println("})")
+      ps.println()
+    }
   }
 }

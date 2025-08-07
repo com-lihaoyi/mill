@@ -55,10 +55,9 @@ object SbtBuildGenMain {
 
     // ((moduleDir, isCrossPlatform), module)
     type SbtModuleRepr = ((Seq[String], Boolean), ModuleRepr)
-    val sbtModules =
-      os.list.stream(exportDir).map(path =>
-        upickle.default.read[SbtModuleRepr](path.toNIO)
-      ).toSeq.distinct
+    val sbtModules = os.list.stream(exportDir).map(path =>
+      upickle.default.read[SbtModuleRepr](path.toNIO)
+    ).toSeq.distinct // a duplicate was returned in "scrypto" test (SBT ran the command twice for same scalaVersion)
     if (sbtModules.isEmpty) {
       println(s"no modules found using $cmd")
       return
