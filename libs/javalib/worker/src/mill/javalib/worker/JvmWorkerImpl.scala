@@ -159,7 +159,9 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       val locks = {
         val fileLocks = Locks.files(daemonDir.toString)
         Locks(
-          // File locks are non-reentrant, so we need to lock on the memory lock first
+          // File locks are non-reentrant, so we need to lock on the memory lock first.
+          //
+          // We can get multiple lock acquisitions when we compile several modules in parallel,
           DoubleLock(memLockFor(daemonDir), fileLocks.launcherLock),
           // We never take the daemon lock, just check if it's already taken
           fileLocks.daemonLock
@@ -207,8 +209,8 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       }
 
       result.fold(
-        success => onSuccess(),
-        alreadyRunning => onSuccess(),
+        /*success*/ _ => onSuccess(),
+        /*alreadyRunning*/ _ => onSuccess(),
         couldNotStart => onFail(couldNotStart),
         processDied => onFail(processDied)
       )
