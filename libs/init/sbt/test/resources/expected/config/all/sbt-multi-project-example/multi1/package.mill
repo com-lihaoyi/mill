@@ -1,15 +1,14 @@
-package build.nested.nested
+package build.multi1
 
-import mill._
+import build._
 import mill.javalib._
 import mill.javalib.publish._
-import mill.scalalib.SbtModule
+import mill.scalalib._
 
-object `package` extends SbtModule with PublishModule {
-
+object `package` extends PublishModule with SbtModule {
   def scalaVersion = "2.12.3"
 
-  def scalacOptions = Seq(
+  def scalacOptions = super.scalacOptions() ++ Seq(
     "-unchecked",
     "-feature",
     "-language:existentials",
@@ -18,17 +17,25 @@ object `package` extends SbtModule with PublishModule {
     "-language:postfixOps",
     "-deprecation",
     "-encoding",
-    "utf8"
+    "utf8",
+    "-V"
   )
 
-  def repositories = Seq(
-    "https://oss.sonatype.org/service/local/repositories/releases/content/",
-    "https://oss.sonatype.org/content/repositories/snapshots"
+  def scalacPluginMvnDeps = super.scalacPluginMvnDeps() ++
+    Seq(Dependencies.wartremover)
+
+  def mvnDeps = super.mvnDeps() ++ Seq(
+    Dependencies.logbackClassic,
+    Dependencies.logstashLogbackEncoder,
+    Dependencies.scalaLogging,
+    Dependencies.jclOverSlf4j,
+    Dependencies.config,
+    Dependencies.akkaStream,
+    Dependencies.monocleCore,
+    Dependencies.monocleMacro
   )
 
-  def mvnDeps = Seq(
-    mvn"io.netty:netty-transport-native-epoll:4.1.118.Final;type=pom;classifier=linux-x86_64;exclude=io.netty:netty-transport-native-epoll"
-  )
+  def moduleDeps = super.moduleDeps ++ Seq(build.common)
 
   def pomSettings = PomSettings(
     "This is an sbt sample project for testing Mill's init command.",
@@ -40,7 +47,7 @@ object `package` extends SbtModule with PublishModule {
       "https://www.apache.org/licenses/LICENSE-2.0.txt",
       false,
       false,
-      "repo"
+      ""
     )),
     VersionControl(
       Some("https://github.com/com-lihaoyi/mill"),
@@ -53,4 +60,9 @@ object `package` extends SbtModule with PublishModule {
 
   def publishVersion = "0.1.0-SNAPSHOT"
 
+  object tests extends SbtTests with TestModule.ScalaTest {
+
+    def mandatoryMvnDeps = super.mandatoryMvnDeps() ++
+      Seq(Dependencies.scalatest, Dependencies.scalacheck)
+  }
 }

@@ -1,11 +1,11 @@
 package mill.main.sbt
 
+import mill.main.buildgen.BuildGenChecker
 import utest.*
 
 object BuildGenTests extends TestSuite {
 
   def tests: Tests = Tests {
-    /* TODO enable tests after finalizing imported tasks and main args
     val checker = BuildGenChecker()
 
     test("scala-seed-project") {
@@ -27,35 +27,20 @@ object BuildGenTests extends TestSuite {
 
     test("config") {
       val commonArgs = Array(
-        "--base-module",
-        "BaseModule",
-        "--jvm-id",
-        "11",
-        "--test-module",
+        "-t",
         "tests",
-        "--deps-object",
-        "Deps",
-        "--merge"
+        "-D",
+        "Dependencies"
       )
       test("sbt-multi-project-example") {
         val sourceRoot = os.sub / "sbt-multi-project-example"
-        test("without-base-project") {
-          val expectedRoot =
-            os.sub / "expected/config/without-base-project/sbt-multi-project-example"
-          val args = commonArgs
-          assert(
-            checker.check(SbtBuildGenMain.main(args), sourceRoot, expectedRoot)
-          )
-        }
         test("all") {
           val expectedRoot = os.sub / "expected/config/all/sbt-multi-project-example"
-          val args = commonArgs ++ Array("--baseProject", "common")
           assert(
-            checker.check(SbtBuildGenMain.main(args), sourceRoot, expectedRoot)
+            checker.check(SbtBuildGenMain.main(commonArgs), sourceRoot, expectedRoot)
           )
         }
       }
     }
-     */
   }
 }

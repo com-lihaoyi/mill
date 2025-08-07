@@ -5,6 +5,8 @@ import utest.*
 
 object MillInitLilaTests extends GitRepoIntegrationTestSuite {
 
+  // sbt 1.11.3
+  // Scala version 3.7.2
   def gitRepoUrl = "git@github.com:lichess-org/lila.git"
   def gitRepoBranch = "master"
 
@@ -15,7 +17,8 @@ object MillInitLilaTests extends GitRepoIntegrationTestSuite {
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
 
-      "requires sbt-play and module dependency core.test does not exist"
+      """module dependency core.test does not exist
+        |requires sbt-play""".stripMargin
     }
   }
 }

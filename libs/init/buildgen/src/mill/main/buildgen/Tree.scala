@@ -2,6 +2,9 @@ package mill.main.buildgen
 
 import upickle.default.{ReadWriter, macroRW}
 
+/**
+ * A data structure that captures parent-child relationships between elements.
+ */
 case class Tree[+A](root: A, children: Seq[Tree[A]] = Nil) {
 
   def iterator: Iterator[A] = Iterator(root) ++ children.iterator.flatMap(_.iterator)

@@ -8,7 +8,7 @@ import java.io.PrintStream
 
 object SbtBuildWriter extends BuildWriter {
 
-  def computeImports(pkg: Tree[ModuleRepr]) = {
+  def writeImports(ps: PrintStream, pkg: Tree[ModuleRepr]) = {
     val b = Set.newBuilder[String]
     b += "mill.scalalib._"
     for module <- pkg.iterator do
@@ -24,7 +24,10 @@ object SbtBuildWriter extends BuildWriter {
         case _ =>
     end for
     if (pkg.root.segments.nonEmpty) b += s"$rootModuleAlias._"
-    b.result().toSeq.sorted
+
+    ps.println()
+    b.result().toSeq.sorted.foreach: s =>
+      ps.println(s"import $s")
   }
 
   protected def writeCrossModuleConfigs(
@@ -32,6 +35,7 @@ object SbtBuildWriter extends BuildWriter {
       configs: Seq[ModuleConfig],
       crossConfigs: Seq[(String, Seq[ModuleConfig])]
   ): Unit = {
+    // cross config export is limited to JavaModuleConfig and ScalaModuleConfig
     configs.foreach:
       case config: CoursierModuleConfig => writeCoursierModuleConfig(ps, config)
       case config: JavaModuleConfig => writeCrossJavaModuleConfig(
@@ -39,8 +43,8 @@ object SbtBuildWriter extends BuildWriter {
           config,
           crossConfigs.flatMap: (cross, configs) =>
             configs.collectFirst {
-              case config: JavaModuleConfig => config
-            }.map((cross, _))
+              case config: JavaModuleConfig => (cross, config)
+            }
         )
       case config: PublishModuleConfig => writePublishModuleConfig(ps, config)
       case config: ScalaModuleConfig => writeCrossScalaModuleConfig(
@@ -48,8 +52,8 @@ object SbtBuildWriter extends BuildWriter {
           config,
           crossConfigs.flatMap: (cross, configs) =>
             configs.collectFirst {
-              case config: ScalaModuleConfig => config
-            }.map((cross, _))
+              case config: ScalaModuleConfig => (cross, config)
+            }
         )
       case config: ScalaJSModuleConfig => writeScalaJSModuleConfig(ps, config)
       case config: ScalaNativeModuleConfig => writeScalaNativeModuleConfig(ps, config)
@@ -70,10 +74,12 @@ object SbtBuildWriter extends BuildWriter {
         ps.print(mandatoryMvnDeps.mkString(" ++ Seq(", ", ", ")"))
       if (crossMandatoryMvnDeps.nonEmpty)
         ps.println(" ++ (scalaVersion() match {")
-        crossMandatoryMvnDeps.foreach: (cross, deps) =>
-          ps.println(deps.mkString(s"case ${literalize(cross)} => Seq(", ", ", ")"))
+        crossMandatoryMvnDeps.groupMap(_._2)(_._1).foreach: (deps, crosses) =>
+          ps.println(deps
+            .mkString(s"case ${crosses.map(literalize(_)).mkString(" | ")} => Seq(", ", ", ")"))
         ps.println("case _ => Seq()")
-        ps.println("})")
+        ps.print("})")
+      ps.println()
     }
     val crossMvnDeps = crossConfigs.collect:
       case (cross, config) if config.mvnDeps.nonEmpty => (cross, config.mvnDeps)
@@ -84,10 +90,11 @@ object SbtBuildWriter extends BuildWriter {
         ps.print(mvnDeps.mkString(" ++ Seq(", ", ", ")"))
       if (crossMvnDeps.nonEmpty)
         ps.println(" ++ (scalaVersion() match {")
-        crossMvnDeps.foreach: (cross, deps) =>
-          ps.println(deps.mkString(s"case ${literalize(cross)} => Seq(", ", ", ")"))
+        crossMvnDeps.groupMap(_._2)(_._1).foreach: (deps, crosses) =>
+          ps.println(deps
+            .mkString(s"case ${crosses.map(literalize(_)).mkString(" | ")} => Seq(", ", ", ")"))
         ps.println("case _ => Seq()")
-        ps.println("})")
+        ps.print("})")
       ps.println()
     }
     val crossCompileMvnDeps = crossConfigs.collect:
@@ -99,10 +106,11 @@ object SbtBuildWriter extends BuildWriter {
         ps.print(compileMvnDeps.mkString(" ++ Seq(", ", ", ")"))
       if (crossCompileMvnDeps.nonEmpty)
         ps.println(" ++ (scalaVersion() match {")
-        crossCompileMvnDeps.foreach: (cross, deps) =>
-          ps.println(deps.mkString(s"case ${literalize(cross)} => Seq(", ", ", ")"))
+        crossCompileMvnDeps.groupMap(_._2)(_._1).foreach: (deps, crosses) =>
+          ps.println(deps
+            .mkString(s"case ${crosses.map(literalize(_)).mkString(" | ")} => Seq(", ", ", ")"))
         ps.println("case _ => Seq()")
-        ps.println("})")
+        ps.print("})")
       ps.println()
     }
     val crossRunMvnDeps = crossConfigs.collect:
@@ -114,10 +122,11 @@ object SbtBuildWriter extends BuildWriter {
         ps.print(runMvnDeps.mkString(" ++ Seq(", ", ", ")"))
       if (crossRunMvnDeps.nonEmpty)
         ps.println(" ++ (scalaVersion() match {")
-        crossRunMvnDeps.foreach: (cross, deps) =>
-          ps.println(deps.mkString(s"case ${literalize(cross)} => Seq(", ", ", ")"))
+        crossRunMvnDeps.groupMap(_._2)(_._1).foreach: (deps, crosses) =>
+          ps.println(deps
+            .mkString(s"case ${crosses.map(literalize(_)).mkString(" | ")} => Seq(", ", ", ")"))
         ps.println("case _ => Seq()")
-        ps.println("})")
+        ps.print("})")
       ps.println()
     }
     if (moduleDeps.nonEmpty)
@@ -141,11 +150,11 @@ object SbtBuildWriter extends BuildWriter {
         ps.print(javacOptions.map(literalize(_)).mkString(" ++ Seq(", ", ", ")"))
       if (crossJavacOptions.nonEmpty)
         ps.println(" ++ (scalaVersion() match {")
-        crossJavacOptions.foreach: (cross, options) =>
+        crossJavacOptions.groupMap(_._2)(_._1).foreach: (options, crosses) =>
           ps.println(options.map(literalize(_))
-            .mkString(s"case ${literalize(cross)} => Seq(", ", ", ")"))
+            .mkString(s"case ${crosses.map(literalize(_)).mkString(" | ")} => Seq(", ", ", ")"))
         ps.println("case _ => Seq()")
-        ps.println("})")
+        ps.print("})")
       ps.println()
     }
   }
@@ -165,11 +174,11 @@ object SbtBuildWriter extends BuildWriter {
         ps.print(scalacOptions.map(literalize(_)).mkString(" ++ Seq(", ", ", ")"))
       if (crossScalacOptions.nonEmpty)
         ps.println(" ++ (scalaVersion() match {")
-        crossScalacOptions.foreach: (cross, options) =>
+        crossScalacOptions.groupMap(_._2)(_._1).foreach: (options, crosses) =>
           ps.println(options.map(literalize(_))
-            .mkString(s"case ${literalize(cross)} => Seq(", ", ", ")"))
+            .mkString(s"case ${crosses.map(literalize(_)).mkString(" | ")} => Seq(", ", ", ")"))
         ps.println("case _ => Seq()")
-        ps.println("})")
+        ps.print("})")
       ps.println()
     }
     val crossScalaPluginMvnDeps = crossConfigs.collect:
@@ -182,10 +191,11 @@ object SbtBuildWriter extends BuildWriter {
         ps.print(scalacPluginMvnDeps.mkString(" ++ Seq(", ", ", ")"))
       if (crossScalaPluginMvnDeps.nonEmpty)
         ps.println(" ++ (scalaVersion() match {")
-        crossScalaPluginMvnDeps.foreach: (cross, deps) =>
-          ps.println(deps.mkString(s"case ${literalize(cross)} => Seq(", ", ", ")"))
+        crossScalaPluginMvnDeps.groupMap(_._2)(_._1).foreach: (deps, crosses) =>
+          ps.println(deps
+            .mkString(s"case ${crosses.map(literalize(_)).mkString(" | ")} => Seq(", ", ", ")"))
         ps.println("case _ => Seq()")
-        ps.println("})")
+        ps.print("})")
       ps.println()
     }
   }

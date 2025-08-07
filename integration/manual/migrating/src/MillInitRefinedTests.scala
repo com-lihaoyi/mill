@@ -5,6 +5,9 @@ import utest.*
 
 object MillInitRefinedTests extends GitRepoIntegrationTestSuite {
 
+  // sbt 1.10.7
+  // cross Scala versions 2.12.20 2.13.15 3.3.4
+  // sbt-crossproject 1.3.2
   def gitRepoUrl = "git@github.com:fthomas/refined.git"
   def gitRepoBranch = "v0.11.3"
 
@@ -14,13 +17,9 @@ object MillInitRefinedTests extends GitRepoIntegrationTestSuite {
 
       eval("init", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
       eval(("resolve", "_"), stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> true
-      eval(
-        "modules.core.jvm[2.12.20].compile",
-        stdout = os.Inherit,
-        stderr = os.Inherit
-      ).isSuccess ==> false
+      eval("__.compile", stdout = os.Inherit, stderr = os.Inherit).isSuccess ==> false
 
-      "custom version range 3.0- not supported"
+      "custom version range source roots 3.0+/3.0- not supported"
     }
   }
 }
