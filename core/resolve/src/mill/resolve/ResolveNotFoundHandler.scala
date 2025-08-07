@@ -51,11 +51,11 @@ private object ResolveNotFoundHandler {
 
     val searchStr = (Seq(search) ++ lastSearchOpt)
       .map { s => s"`mill resolve $s`" }
-      .mkString(" or ")
+      .mkString(", ")
 
     val everythingSuffix = lastSearchSuffixOpt match {
       case None => "."
-      case Some(s) => s", or `mill __.$s` to `$s` everything."
+      case Some(s) => s", or `mill __.$s` to run all `$s` tasks"
     }
     s" Try $searchStr to see what's available$everythingSuffix"
   }
