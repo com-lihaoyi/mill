@@ -269,6 +269,15 @@ trait AndroidAppModule extends AndroidModule { outer =>
     PathRef(unsignedApk)
   }
 
+  override def compileClasspath: T[Seq[PathRef]] = Task {
+    (androidOriginalCompileClasspath().filter(_.path.ext != "aar") ++ androidResolvedMvnDeps()).map(
+      _.path
+    ).distinct.map(PathRef(_)) ++ Seq(androidProcessedResources())
+  }
+
+  override def androidPackagedDeps: T[Seq[PathRef]] =
+    super.androidPackagedDeps() ++ Seq(androidProcessedResources())
+
   override def androidMergeableManifests: Task[Seq[PathRef]] = Task {
     val debugManifest = Seq(androidDebugManifestLocation()).filter(pr => os.exists(pr.path))
     val libManifests = androidUnpackArchives().flatMap(_.manifest)
