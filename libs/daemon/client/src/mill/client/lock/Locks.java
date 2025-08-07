@@ -21,12 +21,6 @@ public final class Locks implements AutoCloseable {
         new FileLock(daemonDir + "/" + DaemonFiles.daemonLock));
   }
 
-  public static Locks doubleLocks(Locks memory, Locks files) {
-    return new Locks(
-        new DoubleLock(memory.launcherLock, files.launcherLock),
-        new DoubleLock(memory.daemonLock, files.daemonLock));
-  }
-
   public static Locks memory() {
     return new Locks(new MemoryLock(), new MemoryLock());
   }
