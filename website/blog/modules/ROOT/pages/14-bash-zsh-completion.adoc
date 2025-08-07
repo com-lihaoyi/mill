@@ -150,7 +150,7 @@ $ ./foo a<TAB>
 apple    apricot
 ```
 
-== Basic Zsh Completion Descriptions
+== Zsh Completion Descriptions
 
 The completions above work and provide a basic level of assistance for users of your CLI, but
 it would be nice for users if they could also see a description of each command they could
@@ -297,6 +297,11 @@ descriptions when tabbing on a complete word:
 ```bash
 $ foo apple<TAB>
 ```
+
+For example, the Mill build tool does this so if you're not sure what a flag or command
+does, you can press `<TAB>` on it to see more details:
+
+image::CompletionSingleDescription.png[]
 
 Tab-completion is a common way to explore unfamiliar APIs, and just because someone
 finished writing a flat or command doesn't mean they aren't curious about what
