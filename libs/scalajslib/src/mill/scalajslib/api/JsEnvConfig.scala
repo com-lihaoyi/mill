@@ -80,7 +80,7 @@ object JsEnvConfig {
     class ChromeOptions private (val headless: Boolean) extends Capabilities {
       def withHeadless(value: Boolean): Unit = copy(headless = value)
       private def copy(
-          headless: Boolean = this.headless
+          headless: Boolean
       ): ChromeOptions = new ChromeOptions(
         headless = headless
       )
@@ -94,7 +94,7 @@ object JsEnvConfig {
     class FirefoxOptions private (val headless: Boolean) extends Capabilities {
       def withHeadless(value: Boolean): Unit = copy(headless = value)
       private def copy(
-          headless: Boolean = this.headless
+          headless: Boolean
       ): FirefoxOptions = new FirefoxOptions(
         headless = headless
       )

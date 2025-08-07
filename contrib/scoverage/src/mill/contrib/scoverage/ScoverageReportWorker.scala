@@ -12,7 +12,7 @@ import ScoverageReportWorkerApi2.{Ctx => ApiCtx}
 
 class ScoverageReportWorker {
 
-  def bridge(classpath: Seq[PathRef])(implicit ctx: TaskCtx): ScoverageReportWorkerApiBridge = {
+  def bridge(classpath: Seq[PathRef]): ScoverageReportWorkerApiBridge = {
     def ctx0(implicit ctx: TaskCtx): ApiCtx = {
       val logger = new ApiLogger {
         def error(msg: String): Unit = ctx.log.error(msg)

@@ -137,7 +137,7 @@ final class JLineNativeLoader {
 
     System.load(loader.millJLineNativeLibLocation.toString());
 
-    Class cls = org.jline.nativ.JLineNativeLoader.class;
+    var cls = org.jline.nativ.JLineNativeLoader.class;
     java.lang.reflect.Field fld;
     try {
       fld = cls.getDeclaredField("loaded");

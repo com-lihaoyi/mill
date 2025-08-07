@@ -52,7 +52,7 @@ object `package` extends MillPublishScalaModule with BuildInfo {
   )
 
   trait MillAndroidModule extends MillPublishScalaModule {
-    override def javacOptions = {
+    override def javacOptions = super.javacOptions() ++ {
       val release = Seq("-source", "1.8", "-target", "1.8")
       release ++ Seq("-encoding", "UTF-8", "-deprecation")
     }
