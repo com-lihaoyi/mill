@@ -1,4 +1,5 @@
 
+* xref:14-bash-zsh-completion.adoc[]
 * xref:13-mill-build-tool-v1-0-0.adoc[]
 * xref:12-direct-style-build-tool.adoc[]
 * xref:11-jvm-test-parallelism.adoc[]

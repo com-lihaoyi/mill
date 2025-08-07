@@ -1,0 +1,479 @@
+= Writing Your Own Simple Tab-Completions for Bash and Zsh
+
+:link-github: https://github.com/com-lihaoyi/mill
+:link-pr: {link-github}/pull
+
+// tag::header[]
+:author: Li Haoyi
+:revdate: 7 August 2025
+
+_{author}, {revdate}_
+
+
+Shell tab-completions can be very handy, but setting them up is complicated by the fact
+that half your users would be using Bash-on-Linux, while the other half will be
+using Zsh-on-OSX, each of which has different tab-completion APIs. Furthermore, most
+users exploring an unfamiliar CLI tool using tab completion appreciate showing a
+description along with each completion so they can read what it is, but that's
+normally only available on Zsh and not on Bash.
+
+But with some work, you can make your tab-completions work on both shells, including
+nice quality-of-life features like completion descriptions. This blog post will explore how it
+can be done, based on our recent experience implementing this in the {mill-doc-url}[Mill build tool]
+version https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#103[1.0.3],
+providing the great tab-completion experience you see below in a way that works across
+both common shells. Hopefully based on this, you will know enough and have enough reference
+examples to set up Bash and Zsh completions for your own command-line tooling.
+
+
+image::CompletionDescriptions.png[]
+image::CompletionDescriptions2.png[]
+
+
+
+
+// end::header[]
+
+
+== Basic Tab Completion
+
+The basic way tab-completion works in shells like Bash or Zsh is to register a handler
+function that is called when a user presses `<TAB>` at the command line. This handler
+function is then given the words currently written, and the index of the word the
+user's cursor is currently over. From this information, the completion function generates
+a list of strings that are possible completions for the word at that index, and
+return it to the shell. At a glance, this looks something like:
+
+```bash
+_generate_foo_completions() {
+  local idx=$1; shift
+  local words=( "$@" )
+  local current_word=${words[idx]}
+
+  local array=(apple apricot banana cherry durian)
+  for elem in "${array[@]}"; do
+    if [[ $elem == "$current_word"* ]]; then echo "$elem"; fi
+  done
+}
+
+_complete_foo_bash() {
+  local raw=($(_generate_foo_completions "$COMP_CWORD" "${COMP_WORDS[@]}"))
+  COMPREPLY=( "${raw[@]}" )
+}
+
+_complete_foo_zsh() {
+  local -a raw
+  raw=($(_generate_foo_completions "$CURRENT" "${words[@]}"))
+  compadd -- $raw
+}
+
+if [ -n "${ZSH_VERSION:-}" ]; then
+  autoload -Uz compinit
+  compinit
+  compdef _complete_foo_zsh foo
+elif [ -n "${BASH_VERSION:-}" ]; then
+  complete -F _complete_foo_bash foo
+fi
+```
+
+- `_generate_foo_completions` is a dummy function used
+  for demonstration purposes that prints out a hardcoded set of completions,
+  but in a real scenario would be the logic that generates completions for
+  your specific app or CLI tool.
+
+- `_complete_foo_bash` and `_complete_foo_zsh` are the shell-specific
+  completion functions that pass the current word to `_generate_foo_completions`
+  and wire up the results to each shell's unique completion APIs. Bash completion
+  functions need to set the `COMPREPLY` environment variable, while Zsh completion
+  functions need to call `compadd` (or one of the other similar functions)
+
+- This example snippet would typically be put (or ``source``ed) in your
+  `~/.bashrc`, `~/.bash_profile`, and `~/.zshrc` so the `if`/`elif`/`fi` block at
+  the bottom registers the relevant hooks when the shell starts.
+  These hook into tab-completion whenever `foo` is the
+  first word at the prompt.
+
+For example, the Mill build tool provides a `./mill mill.tabcomplete/install`
+builtin that automatically updates these files and instructs the user to
+restart the shell or `source` the relevant script to begin using completions:
+
+```bash
+$ ./mill mill.tabcomplete/install
+[1/1] mill.tabcomplete.TabCompleteModule.install
+Writing to /Users/lihaoyi/.cache/mill/download/mill-completion.sh
+Writing to /Users/lihaoyi/.bash_profile
+Writing to /Users/lihaoyi/.zshrc
+Writing to /Users/lihaoyi/.bashrc
+Please restart your shell or `source ~/.cache/mill/download/mill-completion.sh` to enable completions
+```
+
+Although the Shell syntax can be very finnicky, e.g. passing arrays to as
+function arguments via `"${words[@]}"`, the actual underlying logic here isn't
+too complicated. `_complete_foo_bash` and `_complete_foo_zsh` take the
+local variables from the shell, pass it to `_generate_foo_completions`
+that uses them to return the possible completions, and passes the completions
+back to the shell via `COMPREPLY` or `compadd`.
+
+You can try this out live by pasting it into your Bash or Zsh shell and
+typing `foo <TAB>` or `foo a<TAB>`. Note that you don't
+actually need a `foo` command installed:
+
+```bash
+$ foo <TAB>
+apple    apricot  banana   cherry   durian
+
+$ foo a<TAB>
+apple    apricot
+```
+
+That's all you need to get a basic tab-completer working. In real usage"
+
+* `foo` would be the name of the command the user would invoke your CLI program with
+  (e.g. `mill`)
+
+* `_generate_foo_completions` would be your bespoke logic
+  to print out a line-separated list of completions. This could be a hard-coded list
+  for programs that change infrequently, or it could actually invoke your binary and
+  ask it what completions are available for the given input (what `mill` does).
+
+* While this example only looks up `words[idx]` to try and find a prefix
+  match for the current word, the completer is allowed to use the entirety of `words`
+  to decide what completions to offer, e.g. based on what flags or command-names are present in that array
+
+Note that when you register completion hooks for `foo` in Bash and Zsh, they apply
+to commands like `./foo` as well. This is handy for programs like Mill, Maven, or Gradle
+which typically use a `./mill` xref:mill::cli/installation-ide.adoc#_bootstrap_scripts[Bootstrap Script]
+to run:
+
+```bash
+$ ./foo a<TAB>
+apple    apricot
+```
+
+== Zsh Completion Descriptions
+
+The completions above work and provide a basic level of assistance for users of your CLI, but
+it would be nice for users if they could also see a description of each command they could
+complete in the terminal, as is done in the Mill build tool:
+
+image::CompletionDescriptions.png[]
+
+To do this, we can make `_generate_foo_completions` generate an array of
+longer strings containing both the completion and a description. Bash does not support
+completion descriptions by default so we trim off the description,
+but in Zsh we pass both the `trimmed` completion-words as well as the `raw` words and
+descriptions to `compadd -d raw -- $trimmed` as two parallel arrays.
+
+```bash
+_generate_foo_completions() {
+  local idx=$1; shift
+  local words=( "$@" )
+  local current_word=${words[idx]}
+
+  local array=(
+    "apple: a common fruit"
+    "apricot: sour fruit with a large stone"
+    "banana: starchy and high in potassium"
+    "cherry: small and sweet with a large pit"
+    "durian: stinky spiky fruit"
+  )
+  for elem in "${array[@]}"; do
+    if [[ $elem == "$current_word"* ]]; then echo "$elem"; fi
+  done
+}
+
+_complete_foo_bash() {
+  local IFS=$'\n'
+  local raw=($(_generate_foo_completions "$COMP_CWORD" "${COMP_WORDS[@]}"))
+  local trimmed=()
+  for d in "${raw[@]}"; do trimmed+=( "${d%%:*}" ); done
+
+  COMPREPLY=( "${trimmed[@]}" )
+}
+
+_complete_foo_zsh() {
+  local -a raw trimmed
+  local IFS=$'\n'
+  raw=($(_generate_foo_completions "$CURRENT" "${words[@]}"))
+
+  for d in $raw; do trimmed+=( "${d%%:*}" ); done
+  compadd -d raw -- $trimmed
+}
+
+if [ -n "${ZSH_VERSION:-}" ]; then
+  autoload -Uz compinit
+  compinit
+  compdef _complete_foo_zsh foo
+elif [ -n "${BASH_VERSION:-}" ]; then
+  complete -F _complete_foo_bash foo
+fi
+```
+
+Zsh would then display the `raw` lines including both the completion-word as well
+as the descriptions when displaying the completion options, but use the `trimmed`
+lines which only contain the completion-words when completing the line
+
+```bash
+$ foo a<TAB>
+$ foo ap
+
+$ foo ap<TAB>
+apple: a common fruit                          apricot: sour fruit with a large stone
+
+$ foo app<TAB>
+$ foo apple
+```
+
+However in this scenario the descriptions are entirely ignored by Bash. Because Bash
+does not have a concept of tab-complete descriptions, in Bash we only pass the `trimmed`
+word-completions to `COMPREPLY` and discard the `raw` lines containing the descriptions.
+
+== Hacking Bash Completion Descriptions
+
+To make Bash show completion "descriptions", we can take advantage of the fact
+that the completions are generated dynamically every time we call
+`_generate_foo_completions`, and Bash and Zsh only inserts text
+that is a common prefix to all completion options
+
+```bash
+$ foo a<TAB>
+$ foo ap
+```
+
+Therefore, if we have multiple differing word-completions, we can actually append
+whatever we want to the right of those words in `_generate_foo_completions`!
+This "appended text" will be shown to users if there are multiple completions
+available, but since the word-completions differ, Bash will never insert the entire word,
+and thus never insert the appended text either.
+
+The code below implements this: if there is only one completion we trim off the description
+following the `:` off as normal, but if there's more than one completion we leave the
+description intact for the user to see
+
+```bash
+_complete_foo_bash() {
+  local IFS=$'\n'
+  local raw=($(_generate_foo_completions "$COMP_CWORD" "${COMP_WORDS[@]}"))
+  local trimmed=()
+  if (( ${#raw[@]} == 1 )); then
+    trimmed=( "${raw[0]%%:*}" )
+  else
+    trimmed=( "${raw[@]}" )
+  fi
+
+  COMPREPLY=( "${trimmed[@]}" )
+}
+```
+
+Now when I use autocomplete in Bash, I can see the descriptions for each item, but when
+the tab-completion actually completes the token it only completes the word itself and
+does not include the description!
+
+```bash
+$ foo <TAB>
+apple: a common fruit                     cherry: small and sweet with a large pit
+apricot: sour fruit with a large stone    durian: stinky spiky fruit
+banana: starchy and high in potassium
+
+$ foo a<TAB>
+$ foo ap
+
+$ foo ap<TAB>
+apple: a common fruit                   apricot: sour fruit with a large stone
+
+
+$ foo app<TAB>
+$ foo apple
+```
+
+In this section, we only needed to make changes to the `_complete_foo_bash` function,
+as the Zsh completion logic in `_complete_foo_zsh` is completely unchanged.
+
+== Showing Single-Completion Descriptions
+
+The last quality of life feature we will add is the ability to show completion
+descriptions when tabbing on a complete word:
+
+```bash
+$ foo apple<TAB>
+```
+
+For example, the Mill build tool does this so if you're not sure what a flag or command
+does, you can press `<TAB>` on it to see more details:
+
+image::CompletionSingleDescription.png[]
+
+Tab-completion is a common way to explore unfamiliar APIs, and just because someone
+finished writing a flat or command doesn't mean they aren't curious about what
+it does! But while Zsh tab-completion displays descriptions when multiple
+options match the prefix, and we managed to hack Bash tab-completion to do the same
+thing, neither displays any information if the word you are tab-completing is already
+complete.
+
+This behavior can be annoying, if the user wants to see the description, they will
+need to first:
+
+* Delete enough characters to make the token match multiple completions
+* Press `<TAB>`
+* Visually scan the multiple completions printed to find the word description
+  they care about
+* Type back in all the missing characters so they can run the command
+
+To solve this, we can hack Bash and Zsh to print tab-completion descriptions even
+if the token is already a complete word. We do this by checking if the token
+is a complete word, and if so adding a second "dummy" completion: this makes
+the tab-completion ambiguous, which cases Bash and Zsh to print out the completions
+and descriptions for the user to see.
+
+Doing this in `_complete_foo_bash` looks like the following:
+
+```bash
+_complete_foo_bash() {
+  local IFS=$'\n'
+  local raw=($(_generate_foo_completions "$COMP_CWORD" "${COMP_WORDS[@]}"))
+  local trimmed=()
+  trimmed+=( "${raw[@]}" )
+
+  if (( ${#raw[@]} == 1 )); then
+    trimmed+=( "${raw[0]%%:*}" )
+  fi
+
+  COMPREPLY=( "${trimmed[@]}" )
+}
+```
+
+Instead of checking the length of `raw` to decide whether we add a trimmed
+and non-trimmed lines to `trimmed`, we now instead _always_ add the non-trimmed lines
+that contain the completion descriptions, and in the case where there's only
+one line we then add an additional word-only completion with the description
+trimmed off.
+
+This means that all completions are ambiguous and will print the description -
+even completions with a single real choice - but the additional trimmed line
+when there is only 1 real choice ensures that the description text never gets
+inserted into the user's command
+
+In Zsh, this can be similarly done via:
+
+```bash
+_complete_foo_zsh() {
+  local -a raw trimmed
+  local IFS=$'\n'
+  raw=($(_generate_foo_completions "$CURRENT" "${words[@]}"))
+
+  for d in $raw; do trimmed+=( "${d%%:*}" ); done
+  if (( ${#raw} == 1 )); then
+    trimmed+=( "${raw[1]}" )
+    raw+=( "${trimmed[1]}" )
+  fi
+
+  compadd -d raw -- $trimmed
+}
+```
+
+The change here is similar to the Bash snippet above: when the number of completions is 1,
+we add an additional completion to make it ambiguous so Zsh prints the description. But
+because Zsh expects to pass two parallel arrays of descriptions and tokens to `compadd`,
+our `if` block needs to append items to both `trimmed` and `raw`.
+
+Using this, it now looks like
+
+```bash
+$ foo apple<TAB>
+apple                  apple: a common fruit
+```
+
+Although the UI is not quite perfect - the word `apple` gets duplicated twice -
+this nevertheless achieves the original goal of letting users `<TAB>` on an
+already-completed flag or command to see the description or documentation for that word.
+
+== Conclusion
+
+
+At this point, our final code looks like this:
+
+```bash
+_generate_foo_completions() {
+  local idx=$1; shift
+  local words=( "$@" )
+  local current_word=${words[idx]}
+
+  local array=(
+    "apple: a common fruit"
+    "apricot: sour fruit with a large stone"
+    "banana: starchy and high in potassium"
+    "cherry: small and sweet with a large pit"
+    "durian: stinky spiky fruit"
+  )
+  for elem in "${array[@]}"; do
+    if [[ $elem == "$current_word"* ]]; then echo "$elem"; fi
+  done
+}
+
+_complete_foo_bash() {
+  local IFS=$'\n'
+  local raw=($(_generate_foo_completions "$COMP_CWORD" "${COMP_WORDS[@]}"))
+  local trimmed=()
+  trimmed+=( "${raw[@]}" )
+
+  if (( ${#raw[@]} == 1 )); then
+    trimmed+=( "${raw[0]%%:*}" )
+  fi
+
+  COMPREPLY=( "${trimmed[@]}" )
+}
+
+_complete_foo_zsh() {
+  local -a raw trimmed
+  local IFS=$'\n'
+  raw=($(_generate_foo_completions "$CURRENT" "${words[@]}"))
+
+  for d in $raw; do trimmed+=( "${d%%:*}" ); done
+  if (( ${#raw} == 1 )); then
+    trimmed+=( "${raw[1]}" )
+    raw+=( "${trimmed[1]}" )
+  fi
+
+  compadd -d raw -- $trimmed
+}
+
+if [ -n "${ZSH_VERSION:-}" ]; then
+  autoload -Uz compinit
+  compinit
+  compdef _complete_foo_zsh foo
+elif [ -n "${BASH_VERSION:-}" ]; then
+  complete -F _complete_foo_bash foo
+fi
+```
+
+And can be used in both Bash or Zsh to provide an identical user experience:
+
+* Showing possible tab-completions when there are multiple available
+* Showing command or flag descriptions (even though this is not natively supported by Bash)
+* Performing partial or entire-word completions
+* Showing the description or documentation when ``<TAB>``ing on an already-completed word
+
+```bash
+$ foo <TAB>
+apple: a common fruit                     banana: starchy and high in potassium     durian: stinky spiky fruit
+apricot: sour fruit with a large stone    cherry: small and sweet with a large pit
+
+$ foo a<TAB>
+$ foo ap
+
+$ foo ap<TAB>
+apple: a common fruit                   apricot: sour fruit with a large stone
+
+$ foo app<TAB>
+$ foo apple
+
+$ foo apple<TAB>
+apple                  apple: a common fruit
+```
+
+The actual docs for each shell's tab-completion system contains a lot more detail (e.g.
+https://zsh.sourceforge.io/Doc/Release/Completion-System.html[72 pages] for Zsh!), and
+there are definitely many different ways you can set up your tab-completion scripts.
+This blog post just aims to provide the simplest working example that works in both
+Bash and Zsh, so hopefully you can understand it well enough to integrate into
+your own projects.
