@@ -29,21 +29,18 @@ import mill.androidlib.AndroidSdkModule
 def millVersionIsStable0(implicit ctx: mill.api.TaskCtx) = ctx.env.contains("MILL_STABLE_VERSION")
 def millVersionIsStable: T[Boolean] = Task.Input { millVersionIsStable0 }
 
-def isCI: T[Boolean] = Task.Input {
-  Task.env.contains("CI")
-}
 
 def millVersionTruth: T[VcsVersion.State] = Task.Input {
   VcsVersion.calcVcsState(Task.log)
 }
 
-def millVersion: T[String] = Task {
-  if (millVersionIsStable()) {
-    val vcsState = millVersionTruth()
+def millVersion: T[String] = Task.Input {
+  if (millVersionIsStable0) {
+    val vcsState = VcsVersion.calcVcsState(Task.log)
     // Ignore local changes when computing the VCS version string in CI,
     // since we make those in CI and can promise they are safe, but make
     // sure we include local dirty changes when iterating locally.
-    if (isCI()) vcsState.copy(dirtyHash = None).format()
+    if (Task.env.contains("CI")) vcsState.copy(dirtyHash = None).format()
     else vcsState.format()
   } else "SNAPSHOT"
 }
