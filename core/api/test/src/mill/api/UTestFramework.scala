@@ -9,4 +9,6 @@ class UTestFramework extends utest.runner.Framework {
 
     os.remove.all(os.pwd / "target/workspace")
   }
+
+  override def formatTruncateHeight: Int = 1000
 }
