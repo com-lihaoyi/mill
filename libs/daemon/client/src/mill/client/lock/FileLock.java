@@ -18,9 +18,7 @@ class FileLock extends Lock {
 
   @Override
   public String toString() {
-    return "FileLock{@" + Integer.toHexString(hashCode()) +
-      ", path='" + path + '\'' +
-      '}';
+    return "FileLock{@" + Integer.toHexString(hashCode()) + ", path='" + path + '\'' + '}';
   }
 
   @Override

@@ -17,11 +17,11 @@ public class ServerLaunchOutputs {
   public String debugString() {
     var sb = new StringBuilder();
     stdout.ifPresentOrElse(
-      s -> sb.append("Daemon stdout:\n\n").append(s).append("\n\n"),
-      () -> sb.append("No daemon stdout\n\n"));
+        s -> sb.append("Daemon stdout:\n\n").append(s).append("\n\n"),
+        () -> sb.append("No daemon stdout\n\n"));
     stderr.ifPresentOrElse(
-      s -> sb.append("Daemon stderr:\n\n").append(s).append("\n\n"),
-      () -> sb.append("No daemon stderr\n\n"));
+        s -> sb.append("Daemon stderr:\n\n").append(s).append("\n\n"),
+        () -> sb.append("No daemon stderr\n\n"));
     return sb.toString();
   }
 

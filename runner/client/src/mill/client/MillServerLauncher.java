@@ -4,7 +4,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Optional;
-
 import mill.client.lock.Locks;
 import mill.constants.Util;
 
@@ -68,13 +67,12 @@ public abstract class MillServerLauncher extends ServerLauncher {
           System.err.println(failure.outputs.debugString());
           System.exit(1);
         },
-       processDied -> {
-         System.err.println("Server died during startup:");
-         System.err.println(processDied.toString());
-         System.exit(1);
-       },
-        ignored -> {}
-      )) {
+        processDied -> {
+          System.err.println("Server died during startup:");
+          System.err.println(processDied.toString());
+          System.exit(1);
+        },
+        ignored -> {})) {
       var result = runWithConnection(connection, streams, false, rawServerStdin -> {
         initData.write(rawServerStdin);
         forceTestFailure(daemonDir);
