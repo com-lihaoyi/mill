@@ -472,8 +472,8 @@ $ foo apple<TAB>
 apple                  apple: a common fruit
 ```
 
-Hopefully this ~50 line example is short enough that you can understand what it is doing.
 The actual docs for each shell's tab-completion system contains a lot more detail (e.g.
-https://zsh.sourceforge.io/Doc/Release/Completion-System.html[72 pages] for Zsh!), so
-this blog post just aims to provide the simplest working example for you to integrate
-into your projects and tweak as necessary.
+https://zsh.sourceforge.io/Doc/Release/Completion-System.html[72 pages] for Zsh!), and
+there are definitely many different ways you can set up your tab-completion scripts.
+This blog post just aims to provide the simplest working example that hopefully you
+can understand well enough to integrate into your own projects and tweak as necessary.
