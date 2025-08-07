@@ -30,13 +30,14 @@ Mill 1.0.0 defaults to using a https://www.graalvm.org/latest/reference-manual/n
 launchers by default. This shaves significant overhead off of Mill command line invocations,
 meaning running `./mill` commands in the terminal can often complete in as little as 100ms:
 
-```bash
+[,console]
+----
 $  time ./mill foo.compile
 [35/35] foo.compile
 [35] [info] compiling 1 Java source...
 [35] [info] done compiling
 ./mill foo.compile  0.01s user 0.01s system 20% cpu 0.109 total
-```
+----
 
 Slow startups and long warmup times have always been a pain point working in the
 JVM ecosystem, and this has always applied to JVM command-line tooling as well. Mill had
@@ -59,7 +60,8 @@ no longer needs a JVM pre-installed in order to run. The launcher binary is self
 and is able to download and cache any JVM it needs in order to start itself or other Java
 processes.
 
-```bash
+[,console]
+----
 $ echo temurin:23 > .mill-jvm-version
 
 $ ./mill foo.test
@@ -70,7 +72,7 @@ https://github.com/adoptium/temurin23-binaries/releases/download/jdk-23.0.2%2B7/
 [build.mill-60] [info] done compiling
 [81/95] foo.compile
 [81] [info] compiling 1 Java source...
-```
+----
 
 This means that Mill is able to manage your JVM installations completely on your behalf,
 without you needing to first install a JVM ahead of time, external tools like
@@ -96,16 +98,18 @@ Mill 1.0.0 comes with built-in support for
 xref:mill::cli/installation-ide.adoc#_bashzsh_tab_completion[Bash and Zsh tab-completion].
 This can be installed via
 
-```bash
+[,console]
+----
 $ ./mill mill.tabcomplete/install
 Writing to /Users/lihaoyi/.cache/mill/download/mill-completion.sh
 Writing to /Users/lihaoyi/.bash_profile
 Writing to /Users/lihaoyi/.zshrc
-```
+----
 
 Once set up, you can then use `<TAB>` to auto-complete Mill modules and tasks from the command-line:
 
-```bash
+[,console]
+----
 $ ./mill f<TAB>
 $ ./mill foo
 
@@ -115,7 +119,7 @@ foo.runBackground      foo.runLocal           foo.runMainBackground  foo.runMvnD
 
 $ ./mill foo.runB<TAB>
 $ ./mill foo.runBackground
-```
+----
 
 While this is not rocket science, we expect that this will be a significant quality-of-life
 improvement to everyone using Mill. Nobody memorizes the names of every module and task within
@@ -133,8 +137,8 @@ although Mill relies on the assumption that tasks would only write to their dest
 folder (available as `Task.dest` within any task body), and that module initialization
 did not write to the filesystem, there was never enforcement of these expectations:
 
-
-```scala
+[,scala]
+----
 object foo extends Module {
   def bannedWriteTask = Task {
     os.write(BuildCtx.workspaceRoot / "banned-path", "hello")  // bad!
@@ -142,7 +146,7 @@ object foo extends Module {
 
   os.write(moduleDir / "banned-write.txt", "hello") // bad!
 }
-```
+----
 
 This meant it was possible to write code that violated Mill's internal expectations,
 which could cause all sorts of things to go wrong: cache invalidation issues, race
@@ -154,10 +158,11 @@ In Mill 1.0.0, most common filesystem read/write APIs have been instrumented to 
 that they are not misused. That means code that violates Mill's conventions raises an
 immediate error:
 
-```bash
+[,console]
+----
 $ ./mill foo.bannedWriteTask
 error: ...Writing to banned-path not allowed during execution of `foo.bannedWriteTask`
-```
+----
 
 These sandboxes are not intended to be fully hermetic: there are escape hatches
 (e.g. `BuildCtx.withFilesystemCheckerDisabled{ ... }`), not all APIs are instrumented
@@ -178,8 +183,9 @@ contains configuration like the `mill-version`, `mill-jvm-version`, the `build.m
 This is reminiscent of https://jekyllrb.com/docs/front-matter/[Jekyll FrontMatter] or Python's
 https://peps.python.org/pep-0723/[PEP723 Inline script metadata]:
 
-_build.mill_
-```scala
+.`build.mill`
+[,scala]
+----
 //| mill-version: 1.0.0
 //| mill-jvm-version: 17
 //| repositories: [$PWD_URI/custom-repo]
@@ -189,7 +195,7 @@ _build.mill_
 
 package build
 ...
-```
+----
 
 Previously, Mill had a wide variety of ways these things were configured:
 

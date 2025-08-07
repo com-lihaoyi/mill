@@ -154,9 +154,10 @@ Github doesn't yet have built-in support for syntax highlighting `.mill` files a
 but you can set this up in your own projects by creating a `.gitattributes` file in the root
 of your Github repository
 
-```
+[,console]
+----
 > echo '*.mill linguist-language=Scala' > .gitattributes
-```
+----
 
 [#_ide_support]
 == IDE Support
