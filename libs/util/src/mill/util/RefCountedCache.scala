@@ -15,10 +15,6 @@ class RefCountedCache[Key, InternalKey, InitData, Value](
     setup: (Key, InternalKey, InitData) => Value,
     closeValue: Value => Unit
 ) extends AutoCloseable {
-  // Workaround for https://github.com/com-lihaoyi/mill/pull/5659 by forcing to load the class immediately so that
-  // `.close` would not fail with `NoClassDefFoundError`
-  private val _ = RefCountedCache.Entry(0, 0)
-
   private val cache = mutable.LinkedHashMap.empty[InternalKey, RefCountedCache.Entry[Value]]
 
   /** Gets the value associated with the given key, creating a new value if necessary. */
