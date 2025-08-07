@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Writing Your Own Simple Tab-Completions for Bash and Zsh :: The Mill Build Tool</title>
+    <link rel="canonical" href="https://mill-build.org/blog/14-bash-zsh-completion.html">
+    <link rel="prev" href="index.html">
+    <link rel="next" href="13-mill-build-tool-v1-0-0.html">
+    <meta name="generator" content="Antora 3.1.9">
+    <link rel="stylesheet" href="../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1C582ZJR85"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-1C582ZJR85')</script>
+<link rel="icon" href="../_/favicon.png" type="image/x-icon">
+  </head>
+  <body class="article">
+<header class="header">
+  <style>
+  /* auto-hyphenation is super ugly */
+  *{
+    hyphens: manual !important;
+  }
+
+  /* Reduce font size from 17px to something reasonable */
+  .doc {
+   font-size: 16px !important;
+  }
+  .doc pre {
+   font-size: 14px !important;
+  }
+  /* Shrink unreasonably large top bar */
+  nav.navbar{
+    height: 2.5rem;
+  }
+  body.article{
+    padding-top: 2.5rem;
+  }
+  div.nav-container{
+    top: 2.5rem;
+  }
+  div.toolbar{
+    top: 2.5rem;
+  }
+  aside.nav{
+    top: 2.5rem;
+    height: calc(100vh - 2.5rem);
+  }
+  </style>
+  <script>
+  gtag('config', 'AW-16649289906');
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const links = document.querySelectorAll('a');
+    links.forEach(link => {
+      if (link.textContent.trim().toLowerCase() === 'download') {
+        link.addEventListener('click', function(event) {
+          console.log("download link clicked")
+          gtag('event', 'conversion', {'send_to': 'AW-16649289906/rsphCKfVq8QZELKBgIM-'});
+        });
+      }
+    });
+  });
+  </script>
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <!-- TODO: add mill icon -->
+      <a class="navbar-item" href="https://mill-build.org"><img src="../_/logo-white.svg" height="20" />&nbsp;The Mill Build Tool</a>
+      <div class="navbar-item search">
+        <input id="search-input" type="text" placeholder="Search the docs">
+      </div>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill">GitHub</a>
+        <a class="navbar-item" href="https://mill-build.org/blog/index.html">Blog</a>
+        <a class="navbar-item" href="https://mill-build.org/api/latest/mill.html">API</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/issues">Issues</a>
+        <a class="navbar-item" href="https://github.com/com-lihaoyi/mill/discussions">Discuss</a>
+
+
+            <!--
+        <a class="navbar-item" href="#">Home</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Documentation</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#"></a>
+            <a class="navbar-item" href="#">Product B</a>
+            <a class="navbar-item" href="#">Product C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Plugins</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Service A</a>
+            <a class="navbar-item" href="#">Service B</a>
+            <a class="navbar-item" href="#">Service C</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Resources</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="#">Resource A</a>
+            <a class="navbar-item" href="#">Resource B</a>
+            <a class="navbar-item" href="#">Resource C</a>
+          </div>
+        </div>
+        <div class="navbar-item">
+          <span class="control">
+            <a class="button is-primary" href="#">Download</a>
+          </span>
+        </div>
+        -->
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="blog" data-version="">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+<ul class="nav-list">
+
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="14-bash-zsh-completion.html">Writing Your Own Simple Tab-Completions for Bash and Zsh</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="13-mill-build-tool-v1-0-0.html">Mill Build Tool v1.0.0 Release Highlights</a>
+  </li>
+
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="12-direct-style-build-tool.html">Mill as a Direct Style Build Tool</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="11-jvm-test-parallelism.html">Strategies for Efficiently Parallelizing JVM Test Suites</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="10-bytecode-callgraph-analysis.html">Invalidating build caches using JVM bytecode callgraph analysis</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="9-mill-faster-assembly-jars.html">Fast Incremental JVM Assembly Jar Creation with Mill</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="8-what-is-a-build-tool.html">What does a Build Tool do?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="7-graal-native-executables.html">How to Compile Java into Native Binaries with Mill and Graal</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="6-garbage-collector-perf.html">Understanding JVM Garbage Collector Performance</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="5-executable-jars.html">How JVM Executable Assembly Jars Work</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="4-flaky-tests.html">How To Manage Flaky Tests in your CI Workflows</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="3-selective-testing.html">Faster CI with Selective Testing</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="2-monorepo-build-tool.html">Why Use a Monorepo Build Tool?</a>
+  </li>
+
+  <li class="nav-item is-active" data-depth="1">
+    <a class="nav-link" href="1-java-compile.html">How Fast Does Java Compile?</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">The Mill Build Engineering Blog</span>
+    <span class="version"></span>
+  </div>
+  <ul class="components">
+    <li class="component">
+      <div class="title"><a href="../mill/index.html">Mill Documentation</a></div>
+      <ul class="versions">
+        <li class="version">
+          <a href="../mill/main-branch/index.html">main-branch</a>
+        </li>
+        <li class="version is-latest">
+          <a href="../mill/index.html">1.0.3</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.12.x/index.html">0.12.14</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.11.x/index.html">0.11.13</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.10.15/index.html">0.10.15</a>
+        </li>
+        <li class="version">
+          <a href="../mill/0.9.12/index.html">0.9.12</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <div class="title"><a href="index.html">The Mill Build Engineering Blog</a></div>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+
+<div class="toolbar" role="navigation" style="position: fixed; top: 2.5rem; height: 2rem; left: 0px;">
+<button class="nav-toggle"></button>
+</div>
+<div class="toolbar" style="position: fixed; top: 2.5rem; height: 1.5rem; right: 0px; ">
+<div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/edit/main/out/website/blogFolder.dest/modules/ROOT/pages/14-bash-zsh-completion.adoc">Edit this Page</a></div>
+</div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Writing Your Own Simple Tab-Completions for Bash and Zsh</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p><em>Li Haoyi, 7 August 2025</em></p>
+</div>
+<div class="paragraph">
+<p>Shell tab-completions can be very handy, but setting them up is complicated by the fact
+that half your users would be using Bash-on-Linux, while the other half will be
+using Zsh-on-OSX, each of which has different tab-completion APIs. Furthermore, most
+users exploring an unfamiliar CLI tool using tab completion appreciate showing a
+description along with each completion so they can read what it is, but that&#8217;s
+normally only available on Zsh and not on Bash.</p>
+</div>
+<div class="paragraph">
+<p>But with some work, you can make your tab-completions work on both shells, including
+nice quality-of-life features like completion descriptions. This blog post will explore how it
+can be done, based on our recent experience implementing this in the <a href="https://mill-build.org">Mill build tool</a>
+version <a href="https://github.com/com-lihaoyi/mill/blob/main/changelog.adoc#103">1.0.3</a>,
+providing the great tab-completion experience you see below in a way that works across
+both common shells. Hopefully based on this, you will know enough and have enough reference
+examples to set up Bash and Zsh completions for your own command-line tooling.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/CompletionDescriptions.png" alt="CompletionDescriptions">
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/CompletionDescriptions2.png" alt="CompletionDescriptions2">
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_basic_tab_completion"><a class="anchor" href="#_basic_tab_completion"></a>Basic Tab Completion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The basic way tab-completion works in shells like Bash or Zsh is to register a handler
+function that is called when a user presses <code>&lt;TAB&gt;</code> at the command line. This handler
+function is then given the words currently written, and the index of the word the
+user&#8217;s cursor is currently over. From this information, the completion function generates
+a list of strings that are possible completions for the word at that index, and
+return it to the shell. At a glance, this looks something like:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">_generate_foo_completions() {
+  local idx=$1; shift
+  local words=( "$@" )
+  local current_word=${words[idx]}
+
+  local array=(apple apricot banana cherry durian)
+  for elem in "${array[@]}"; do
+    if [[ $elem == "$current_word"* ]]; then echo "$elem"; fi
+  done
+}
+
+_complete_foo_bash() {
+  local raw=($(_generate_foo_completions "$COMP_CWORD" "${COMP_WORDS[@]}"))
+  COMPREPLY=( "${raw[@]}" )
+}
+
+_complete_foo_zsh() {
+  local -a raw
+  raw=($(_generate_foo_completions "$CURRENT" "${words[@]}"))
+  compadd -- $raw
+}
+
+if [ -n "${ZSH_VERSION:-}" ]; then
+  autoload -Uz compinit
+  compinit
+  compdef _complete_foo_zsh foo
+elif [ -n "${BASH_VERSION:-}" ]; then
+  complete -F _complete_foo_bash foo
+fi</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>_generate_foo_completions</code> is a dummy function used
+for demonstration purposes that prints out a hardcoded set of completions,
+but in a real scenario would be the logic that generates completions for
+your specific app or CLI tool.</p>
+</li>
+<li>
+<p><code>_complete_foo_bash</code> and <code>_complete_foo_zsh</code> are the shell-specific
+completion functions that pass the current word to <code>_generate_foo_completions</code>
+and wire up the results to each shell&#8217;s unique completion APIs. Bash completion
+functions need to set the <code>COMPREPLY</code> environment variable, while Zsh completion
+functions need to call <code>compadd</code> (or one of the other similar functions)</p>
+</li>
+<li>
+<p>This example snippet would typically be put (or <code>source</code>ed) in your
+<code>~/.bashrc</code>, <code>~/.bash_profile</code>, and <code>~/.zshrc</code> so the <code>if</code>/<code>elif</code>/<code>fi</code> block at
+the bottom registers the relevant hooks when the shell starts.
+These hook into tab-completion whenever <code>foo</code> is the
+first word at the prompt.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For example, the Mill build tool provides a <code>./mill mill.tabcomplete/install</code>
+builtin that automatically updates these files and instructs the user to
+restart the shell or <code>source</code> the relevant script to begin using completions:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./mill mill.tabcomplete/install
+[1/1] mill.tabcomplete.TabCompleteModule.install
+Writing to /Users/lihaoyi/.cache/mill/download/mill-completion.sh
+Writing to /Users/lihaoyi/.bash_profile
+Writing to /Users/lihaoyi/.zshrc
+Writing to /Users/lihaoyi/.bashrc
+Please restart your shell or `source ~/.cache/mill/download/mill-completion.sh` to enable completions</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Although the Shell syntax can be very finnicky, e.g. passing arrays to as
+function arguments via <code>"${words[@]}"</code>, the actual underlying logic here isn&#8217;t
+too complicated. <code>_complete_foo_bash</code> and <code>_complete_foo_zsh</code> take the
+local variables from the shell, pass it to <code>_generate_foo_completions</code>
+that uses them to return the possible completions, and passes the completions
+back to the shell via <code>COMPREPLY</code> or <code>compadd</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can try this out live by pasting it into your Bash or Zsh shell and
+typing <code>foo &lt;TAB&gt;</code> or <code>foo a&lt;TAB&gt;</code>. Note that you don&#8217;t
+actually need a <code>foo</code> command installed:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ foo &lt;TAB&gt;
+apple    apricot  banana   cherry   durian
+
+$ foo a&lt;TAB&gt;
+apple    apricot</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>That&#8217;s all you need to get a basic tab-completer working. In real usage"</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>foo</code> would be the name of the command the user would invoke your CLI program with
+(e.g. <code>mill</code>)</p>
+</li>
+<li>
+<p><code>_generate_foo_completions</code> would be your bespoke logic
+to print out a line-separated list of completions. This could be a hard-coded list
+for programs that change infrequently, or it could actually invoke your binary and
+ask it what completions are available for the given input (what <code>mill</code> does).</p>
+</li>
+<li>
+<p>While this example only looks up <code>words[idx]</code> to try and find a prefix
+match for the current word, the completer is allowed to use the entirety of <code>words</code>
+to decide what completions to offer, e.g. based on what flags or command-names are present in that array</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Note that when you register completion hooks for <code>foo</code> in Bash and Zsh, they apply
+to commands like <code>./foo</code> as well. This is handy for programs like Mill, Maven, or Gradle
+which typically use a <code>./mill</code> <a href="../mill/cli/installation-ide.html#_bootstrap_scripts" class="xref page">Bootstrap Script</a>
+to run:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ ./foo a&lt;TAB&gt;
+apple    apricot</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_zsh_completion_descriptions"><a class="anchor" href="#_zsh_completion_descriptions"></a>Zsh Completion Descriptions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The completions above work and provide a basic level of assistance for users of your CLI, but
+it would be nice for users if they could also see a description of each command they could
+complete in the terminal, as is done in the Mill build tool:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/CompletionDescriptions.png" alt="CompletionDescriptions">
+</div>
+</div>
+<div class="paragraph">
+<p>To do this, we can make <code>_generate_foo_completions</code> generate an array of
+longer strings containing both the completion and a description. Bash does not support
+completion descriptions by default so we trim off the description,
+but in Zsh we pass both the <code>trimmed</code> completion-words as well as the <code>raw</code> words and
+descriptions to <code>compadd -d raw&#8201;&#8212;&#8201;$trimmed</code> as two parallel arrays.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">_generate_foo_completions() {
+  local idx=$1; shift
+  local words=( "$@" )
+  local current_word=${words[idx]}
+
+  local array=(
+    "apple: a common fruit"
+    "apricot: sour fruit with a large stone"
+    "banana: starchy and high in potassium"
+    "cherry: small and sweet with a large pit"
+    "durian: stinky spiky fruit"
+  )
+  for elem in "${array[@]}"; do
+    if [[ $elem == "$current_word"* ]]; then echo "$elem"; fi
+  done
+}
+
+_complete_foo_bash() {
+  local IFS=$'\n'
+  local raw=($(_generate_foo_completions "$COMP_CWORD" "${COMP_WORDS[@]}"))
+  local trimmed=()
+  for d in "${raw[@]}"; do trimmed+=( "${d%%:*}" ); done
+
+  COMPREPLY=( "${trimmed[@]}" )
+}
+
+_complete_foo_zsh() {
+  local -a raw trimmed
+  local IFS=$'\n'
+  raw=($(_generate_foo_completions "$CURRENT" "${words[@]}"))
+
+  for d in $raw; do trimmed+=( "${d%%:*}" ); done
+  compadd -d raw -- $trimmed
+}
+
+if [ -n "${ZSH_VERSION:-}" ]; then
+  autoload -Uz compinit
+  compinit
+  compdef _complete_foo_zsh foo
+elif [ -n "${BASH_VERSION:-}" ]; then
+  complete -F _complete_foo_bash foo
+fi</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Zsh would then display the <code>raw</code> lines including both the completion-word as well
+as the descriptions when displaying the completion options, but use the <code>trimmed</code>
+lines which only contain the completion-words when completing the line</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ foo a&lt;TAB&gt;
+$ foo ap
+
+$ foo ap&lt;TAB&gt;
+apple: a common fruit                          apricot: sour fruit with a large stone
+
+$ foo app&lt;TAB&gt;
+$ foo apple</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>However in this scenario the descriptions are entirely ignored by Bash. Because Bash
+does not have a concept of tab-complete descriptions, in Bash we only pass the <code>trimmed</code>
+word-completions to <code>COMPREPLY</code> and discard the <code>raw</code> lines containing the descriptions.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_hacking_bash_completion_descriptions"><a class="anchor" href="#_hacking_bash_completion_descriptions"></a>Hacking Bash Completion Descriptions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To make Bash show completion "descriptions", we can take advantage of the fact
+that the completions are generated dynamically every time we call
+<code>_generate_foo_completions</code>, and Bash and Zsh only inserts text
+that is a common prefix to all completion options</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ foo a&lt;TAB&gt;
+$ foo ap</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Therefore, if we have multiple differing word-completions, we can actually append
+whatever we want to the right of those words in <code>_generate_foo_completions</code>!
+This "appended text" will be shown to users if there are multiple completions
+available, but since the word-completions differ, Bash will never insert the entire word,
+and thus never insert the appended text either.</p>
+</div>
+<div class="paragraph">
+<p>The code below implements this: if there is only one completion we trim off the description
+following the <code>:</code> off as normal, but if there&#8217;s more than one completion we leave the
+description intact for the user to see</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">_complete_foo_bash() {
+  local IFS=$'\n'
+  local raw=($(_generate_foo_completions "$COMP_CWORD" "${COMP_WORDS[@]}"))
+  local trimmed=()
+  if (( ${#raw[@]} == 1 )); then
+    trimmed=( "${raw[0]%%:*}" )
+  else
+    trimmed=( "${raw[@]}" )
+  fi
+
+  COMPREPLY=( "${trimmed[@]}" )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now when I use autocomplete in Bash, I can see the descriptions for each item, but when
+the tab-completion actually completes the token it only completes the word itself and
+does not include the description!</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ foo &lt;TAB&gt;
+apple: a common fruit                     cherry: small and sweet with a large pit
+apricot: sour fruit with a large stone    durian: stinky spiky fruit
+banana: starchy and high in potassium
+
+$ foo a&lt;TAB&gt;
+$ foo ap
+
+$ foo ap&lt;TAB&gt;
+apple: a common fruit                   apricot: sour fruit with a large stone
+
+
+$ foo app&lt;TAB&gt;
+$ foo apple</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In this section, we only needed to make changes to the <code>_complete_foo_bash</code> function,
+as the Zsh completion logic in <code>_complete_foo_zsh</code> is completely unchanged.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_showing_single_completion_descriptions"><a class="anchor" href="#_showing_single_completion_descriptions"></a>Showing Single-Completion Descriptions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The last quality of life feature we will add is the ability to show completion
+descriptions when tabbing on a complete word:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ foo apple&lt;TAB&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For example, the Mill build tool does this so if you&#8217;re not sure what a flag or command
+does, you can press <code>&lt;TAB&gt;</code> on it to see more details:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/CompletionSingleDescription.png" alt="CompletionSingleDescription">
+</div>
+</div>
+<div class="paragraph">
+<p>Tab-completion is a common way to explore unfamiliar APIs, and just because someone
+finished writing a flat or command doesn&#8217;t mean they aren&#8217;t curious about what
+it does! But while Zsh tab-completion displays descriptions when multiple
+options match the prefix, and we managed to hack Bash tab-completion to do the same
+thing, neither displays any information if the word you are tab-completing is already
+complete.</p>
+</div>
+<div class="paragraph">
+<p>This behavior can be annoying, if the user wants to see the description, they will
+need to first:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Delete enough characters to make the token match multiple completions</p>
+</li>
+<li>
+<p>Press <code>&lt;TAB&gt;</code></p>
+</li>
+<li>
+<p>Visually scan the multiple completions printed to find the word description
+they care about</p>
+</li>
+<li>
+<p>Type back in all the missing characters so they can run the command</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>To solve this, we can hack Bash and Zsh to print tab-completion descriptions even
+if the token is already a complete word. We do this by checking if the token
+is a complete word, and if so adding a second "dummy" completion: this makes
+the tab-completion ambiguous, which cases Bash and Zsh to print out the completions
+and descriptions for the user to see.</p>
+</div>
+<div class="paragraph">
+<p>Doing this in <code>_complete_foo_bash</code> looks like the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">_complete_foo_bash() {
+  local IFS=$'\n'
+  local raw=($(_generate_foo_completions "$COMP_CWORD" "${COMP_WORDS[@]}"))
+  local trimmed=()
+  trimmed+=( "${raw[@]}" )
+
+  if (( ${#raw[@]} == 1 )); then
+    trimmed+=( "${raw[0]%%:*}" )
+  fi
+
+  COMPREPLY=( "${trimmed[@]}" )
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Instead of checking the length of <code>raw</code> to decide whether we add a trimmed
+and non-trimmed lines to <code>trimmed</code>, we now instead <em>always</em> add the non-trimmed lines
+that contain the completion descriptions, and in the case where there&#8217;s only
+one line we then add an additional word-only completion with the description
+trimmed off.</p>
+</div>
+<div class="paragraph">
+<p>This means that all completions are ambiguous and will print the description -
+even completions with a single real choice - but the additional trimmed line
+when there is only 1 real choice ensures that the description text never gets
+inserted into the user&#8217;s command</p>
+</div>
+<div class="paragraph">
+<p>In Zsh, this can be similarly done via:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">_complete_foo_zsh() {
+  local -a raw trimmed
+  local IFS=$'\n'
+  raw=($(_generate_foo_completions "$CURRENT" "${words[@]}"))
+
+  for d in $raw; do trimmed+=( "${d%%:*}" ); done
+  if (( ${#raw} == 1 )); then
+    trimmed+=( "${raw[1]}" )
+    raw+=( "${trimmed[1]}" )
+  fi
+
+  compadd -d raw -- $trimmed
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The change here is similar to the Bash snippet above: when the number of completions is 1,
+we add an additional completion to make it ambiguous so Zsh prints the description. But
+because Zsh expects to pass two parallel arrays of descriptions and tokens to <code>compadd</code>,
+our <code>if</code> block needs to append items to both <code>trimmed</code> and <code>raw</code>.</p>
+</div>
+<div class="paragraph">
+<p>Using this, it now looks like</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ foo apple&lt;TAB&gt;
+apple                  apple: a common fruit</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Although the UI is not quite perfect - the word <code>apple</code> gets duplicated twice -
+this nevertheless achieves the original goal of letting users <code>&lt;TAB&gt;</code> on an
+already-completed flag or command to see the description or documentation for that word.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_conclusion"><a class="anchor" href="#_conclusion"></a>Conclusion</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>At this point, our final code looks like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">_generate_foo_completions() {
+  local idx=$1; shift
+  local words=( "$@" )
+  local current_word=${words[idx]}
+
+  local array=(
+    "apple: a common fruit"
+    "apricot: sour fruit with a large stone"
+    "banana: starchy and high in potassium"
+    "cherry: small and sweet with a large pit"
+    "durian: stinky spiky fruit"
+  )
+  for elem in "${array[@]}"; do
+    if [[ $elem == "$current_word"* ]]; then echo "$elem"; fi
+  done
+}
+
+_complete_foo_bash() {
+  local IFS=$'\n'
+  local raw=($(_generate_foo_completions "$COMP_CWORD" "${COMP_WORDS[@]}"))
+  local trimmed=()
+  trimmed+=( "${raw[@]}" )
+
+  if (( ${#raw[@]} == 1 )); then
+    trimmed+=( "${raw[0]%%:*}" )
+  fi
+
+  COMPREPLY=( "${trimmed[@]}" )
+}
+
+_complete_foo_zsh() {
+  local -a raw trimmed
+  local IFS=$'\n'
+  raw=($(_generate_foo_completions "$CURRENT" "${words[@]}"))
+
+  for d in $raw; do trimmed+=( "${d%%:*}" ); done
+  if (( ${#raw} == 1 )); then
+    trimmed+=( "${raw[1]}" )
+    raw+=( "${trimmed[1]}" )
+  fi
+
+  compadd -d raw -- $trimmed
+}
+
+if [ -n "${ZSH_VERSION:-}" ]; then
+  autoload -Uz compinit
+  compinit
+  compdef _complete_foo_zsh foo
+elif [ -n "${BASH_VERSION:-}" ]; then
+  complete -F _complete_foo_bash foo
+fi</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And can be used in both Bash or Zsh to provide an identical user experience:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Showing possible tab-completions when there are multiple available</p>
+</li>
+<li>
+<p>Showing command or flag descriptions (even though this is not natively supported by Bash)</p>
+</li>
+<li>
+<p>Performing partial or entire-word completions</p>
+</li>
+<li>
+<p>Showing the description or documentation when <code>&lt;TAB&gt;</code>ing on an already-completed word</p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">$ foo &lt;TAB&gt;
+apple: a common fruit                     banana: starchy and high in potassium     durian: stinky spiky fruit
+apricot: sour fruit with a large stone    cherry: small and sweet with a large pit
+
+$ foo a&lt;TAB&gt;
+$ foo ap
+
+$ foo ap&lt;TAB&gt;
+apple: a common fruit                   apricot: sour fruit with a large stone
+
+$ foo app&lt;TAB&gt;
+$ foo apple
+
+$ foo apple&lt;TAB&gt;
+apple                  apple: a common fruit</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The actual docs for each shell&#8217;s tab-completion system contains a lot more detail (e.g.
+<a href="https://zsh.sourceforge.io/Doc/Release/Completion-System.html">72 pages</a> for Zsh!), and
+there are definitely many different ways you can set up your tab-completion scripts.
+This blog post just aims to provide the simplest working example that works in both
+Bash and Zsh, so hopefully you can understand it well enough to integrate into
+your own projects.</p>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="index.html">The Mill Build Engineering Blog</a></span>
+  <span class="next"><a href="13-mill-build-tool-v1-0-0.html">Mill Build Tool v1.0.0 Release Highlights</a></span>
+</nav>
+</article>
+  </div>
+</main>
+</div>
+<script id="site-script" src="../_/js/site.js" data-ui-root-path="../_"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
+<script src="../_/js/vendor/lunr.js"></script>
+<script src="../_/js/search-ui.js" id="search-ui-script" data-site-root-path=".." data-snippet-length="100" data-stylesheet="../_/css/search.css"></script>
+<script async src="../search-index.js"></script>
+  </body>
+</html>
