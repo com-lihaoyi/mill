@@ -100,7 +100,7 @@ object `package` extends MillPublishScalaModule {
   }
 
   object sbt extends MillPublishScalaModule with BuildInfo {
-    def moduleDeps = Seq(api(Deps.scalaVersion), buildgen)
+    def moduleDeps = Seq(buildgen.api(Deps.scalaVersion), buildgen)
     def sbtScriptJarResource = Task {
       os.copy(exportscript.assembly().path, Task.dest / "exportscript-assembly.jar")
       PathRef(Task.dest)
@@ -112,15 +112,10 @@ object `package` extends MillPublishScalaModule {
       BuildInfo.Value("exportscriptAssemblyResource", "/exportscript-assembly.jar")
     )
 
-    object api extends Cross[ApiModule](Deps.sbtScalaVersion212, Deps.scalaVersion)
-    trait ApiModule extends MillPublishCrossScalaModule {
-      def moduleDeps = Seq(buildgen.api())
-    }
-
     object exportscript extends ScalaModule {
       def scalaVersion = Deps.sbtScalaVersion212
       def mvnDeps = Seq(Deps.osLib)
-      def moduleDeps = Seq(api(Deps.sbtScalaVersion212))
+      def moduleDeps = Seq(buildgen.api(Deps.sbtScalaVersion212))
       def compileMvnDeps = Seq(Deps.sbt)
       def assemblyRules = Seq(Rule.ExcludePattern("scala\\.*"))
     }
