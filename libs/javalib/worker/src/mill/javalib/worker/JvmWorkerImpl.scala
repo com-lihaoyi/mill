@@ -2,7 +2,7 @@ package mill.javalib.worker
 
 import mill.api.*
 import mill.api.daemon.internal.{CompileProblemReporter, internal}
-import mill.client.ServerLauncher
+import mill.client.{LaunchedServer, ServerLauncher}
 import mill.client.lock.{DoubleLock, Locks, MemoryLock}
 import mill.constants.DaemonFiles
 import mill.javalib.api.CompilationResult
@@ -17,7 +17,6 @@ import sbt.internal.util.ConsoleOut
 
 import java.io.*
 import java.security.MessageDigest
-import java.util.Optional
 import scala.concurrent.duration.*
 import scala.util.Using
 
@@ -180,23 +179,10 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
             jvmArgs = key.runtimeOptions.options,
             classPath = classPath
           )
-          Optional.of(process.wrapped)
+          LaunchedServer.OsProcess(process.wrapped)
         },
         log.debug
       )
-
-      def onFail(error: Any) = {
-        throw IllegalStateException(
-          s"""Failed to launch '$mainClass' for:
-             |  javaHome = ${key.javaHome}
-             |  runtimeOptions = ${key.runtimeOptions.options.mkString(",")}
-             |  daemonDir = $daemonDir
-             |
-             |Failure:
-             |${error}
-             |""".stripMargin
-        )
-      }
 
       def onSuccess() = {
         val serverInitWaitMillis = 5.seconds.toMillis
@@ -210,8 +196,17 @@ class JvmWorkerImpl(args: JvmWorkerArgs[Unit]) extends JvmWorkerApi with AutoClo
       result.fold(
         /*success*/ _ => onSuccess(),
         /*alreadyRunning*/ _ => onSuccess(),
-        couldNotStart => onFail(couldNotStart),
-        processDied => onFail(processDied)
+        processDied =>
+          throw IllegalStateException(
+            s"""Failed to launch '$mainClass' for:
+               |  javaHome = ${key.javaHome}
+               |  runtimeOptions = ${key.runtimeOptions.options.mkString(",")}
+               |  daemonDir = $daemonDir
+               |
+               |Failure:
+               |$processDied
+               |""".stripMargin
+          )
       )
     }
 
