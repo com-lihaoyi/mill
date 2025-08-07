@@ -689,7 +689,7 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Mac/Linux</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-13-dfa56f/mill-dist-1.0.3-mill.sh -o mill
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-14-afeef7/mill-dist-1.0.3-mill.sh -o mill
 &gt; chmod +x mill
 &gt; echo &quot;//| mill-version: 1.0.3&quot; &gt; build.mill
 &gt; ./mill version
@@ -699,7 +699,7 @@ bootstrap script, included. You can also download the bootstrap script manually:
 <div class="listingblock">
 <div class="title">Windows</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-13-dfa56f/mill-dist-1.0.3-mill.bat -o mill.bat
+<pre class="highlightjs highlight"><code class="language-console hljs" data-lang="console">&gt; curl.exe -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.3-14-afeef7/mill-dist-1.0.3-mill.bat -o mill.bat
 &gt; echo &quot;//| mill-version: 1.0.3&quot; &gt; build.mill
 &gt; ./mill version
 1.0.3</code></pre>
@@ -818,8 +818,47 @@ in order to run.</p>
 </div>
 <div class="paragraph">
 <p>This unpacks the completion script in <code>~/.cache/mill</code> and registers it in your <code>~/.bash_profile</code> and <code>~/.zshrc</code>.
-After that, doing <code>./mill &lt;tab&gt;</code> should begin showing possible modules and tasks for you
-to select at the command line.</p>
+After that, doing <code>./mill &lt;TAB&gt;</code> should begin showing possible modules and tasks for you
+to select at the command line:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/TabCompleteCommand.png" alt="TabCompleteCommand" />
+</div>
+</div>
+<div class="paragraph">
+<p><code>./mill -&lt;TAB&gt;</code> or <code>./mill --&lt;TAB&gt;</code> will show the possible short and long flags
+that Mill takes:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/TabCompleteFlag.png" alt="TabCompleteFlag" />
+</div>
+</div>
+<div class="paragraph">
+<p>Mill’s command-line autocomplete also applies to custom <a href="../fundamentals/tasks.html#_commands" class="xref page">user-define commands</a>,
+such as <code>customCommand</code> below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">package build
+import mill._, javalib._
+import mainargs.arg
+object foo extends JavaModule {
+  def customCommand(
+    @arg(doc = &quot;string parameter to customCommand that controls this and that...&quot;)
+    str: String,
+    @arg(doc = &quot;integer parameter to customCommand&quot;)
+    int: Int) = Task.Command{
+    // do stuff
+  }
+}</code></pre>
+</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="../_images/basic/TabCompleteCustomCommand.png" alt="TabCompleteCustomCommand" />
+</div>
 </div>
 <div class="paragraph">
 <p>You can also choose to write the tab-completion script to a manually-specified path via:</p>
