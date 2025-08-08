@@ -1,6 +1,7 @@
 package mill.androidlib
 
-import mill.api.Result
+import mill.api.{PathRef, Result}
+import mill.javalib.CoursierModule
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
 import mill.{T, Task}
 
@@ -55,5 +56,27 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule {
 
   override def kotlincOptions: T[Seq[String]] = Task {
     super.kotlincOptions() ++ kotlincFriendPaths().toSeq
+  }
+
+  def kspDependencyResolver: Task[CoursierModule.Resolver] = Task.Anon {
+    new CoursierModule.Resolver(
+      repositories = repositoriesTask(),
+      bind = bindDependency(),
+      mapDependencies = Some(mapDependencies()),
+      customizer = resolutionCustomizer(),
+      coursierCacheCustomizer = coursierCacheCustomizer(),
+      resolutionParams = resolutionParams(),
+      offline = Task.offline,
+      checkGradleModules = false
+    )
+  }
+
+  override def kotlincPluginJars: T[Seq[PathRef]] = Task {
+    val jars = kspDependencyResolver().classpath(
+      kotlincPluginMvnDeps()
+        // Don't resolve transitive jars
+        .map(d => d.exclude("*" -> "*"))
+    )
+    jars
   }
 }
