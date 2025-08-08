@@ -5,7 +5,6 @@ import mill.testkit.TestRootModule
 import mill.Task
 import mill.api.Result.Success
 import utest._
-import utest.framework.TestPath
 
 object CacherTests extends TestSuite {
   object Base extends Base {
@@ -30,7 +29,7 @@ object CacherTests extends TestSuite {
   }
 
   val tests = Tests {
-    def eval[T <: mill.testkit.TestRootModule, V](mapping: T, v: Task[V])(implicit tp: TestPath) = {
+    def eval[T <: mill.testkit.TestRootModule, V](mapping: T, v: Task[V]) = {
       UnitTester(mapping, null).scoped { evaluator =>
         evaluator(v).toOption.get.value
       }

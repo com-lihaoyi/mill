@@ -5,7 +5,7 @@ import mill.api.*
 import mill.api.daemon.Watchable
 import mill.api.BuildCtx
 import mill.api.daemon.internal.{EvaluatorApi, TaskApi}
-import mill.api.internal.RootModule0
+import mill.api.internal.{Resolved, RootModule0}
 
 import scala.util.DynamicVariable
 import scala.collection.mutable
@@ -41,6 +41,21 @@ trait Evaluator extends AutoCloseable with EvaluatorApi {
       allowPositionalCommandArgs: Boolean = false,
       resolveToModuleTasks: Boolean = false
   ): mill.api.Result[List[Segments]]
+
+  private[mill] def resolveRaw(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
+  ): mill.api.Result[List[Resolved]] = {
+    // These are used in the overrides.
+    val _ = scriptArgs
+    val _ = selectMode
+    val _ = allowPositionalCommandArgs
+    val _ = resolveToModuleTasks
+
+    mill.api.Result.Success(Nil)
+  }
 
   def resolveTasks(
       scriptArgs: Seq[String],

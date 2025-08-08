@@ -78,7 +78,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
     val typedef = IrTrait(
       cfg.shared.basicConfig.jvmId,
       baseModule,
-      getModuleSupertypes(cfg),
+      getModuleSupertypes,
       javacOptions,
       scalaVersion,
       scalacOptions,
@@ -134,7 +134,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
     )
   }
 
-  def getModuleSupertypes(cfg: Config): Seq[String] = Seq("PublishModule", "MavenModule")
+  def getModuleSupertypes: Seq[String] = Seq("PublishModule", "MavenModule")
 
   def getProjectGav(model: Model): (String, String, String) =
     (model.getGroupId, model.getArtifactId, model.getVersion)
@@ -144,7 +144,7 @@ object MavenBuildGenMain extends BuildGenBase.MavenAndGradle[Model, Dependency] 
   def getMillSourcePath(model: Model): Path = os.Path(model.getProjectDirectory)
 
   override def getSupertypes(cfg: Config, baseInfo: IrBaseInfo, build: Node[Model]): Seq[String] =
-    cfg.shared.basicConfig.baseModule.fold(getModuleSupertypes(cfg))(Seq(_))
+    cfg.shared.basicConfig.baseModule.fold(getModuleSupertypes)(Seq(_))
 
   def processResources(
       input: java.util.List[org.apache.maven.model.Resource],

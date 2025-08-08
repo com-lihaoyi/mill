@@ -107,8 +107,35 @@ You can set up Bash and Zsh tab completions by subsequently running the command:
 ----
 
 This unpacks the completion script in `~/.cache/mill` and registers it in your `~/.bash_profile` and `~/.zshrc`.
-After that, doing `./mill <tab>` should begin showing possible modules and tasks for you
-to select at the command line.
+After that, doing `./mill <TAB>` should begin showing possible modules and tasks for you
+to select at the command line:
+
+image::basic/TabCompleteCommand.png[]
+
+`./mill -<TAB>` or `./mill --<TAB>` will show the possible short and long flags
+that Mill takes:
+
+image::basic/TabCompleteFlag.png[]
+
+Mill's command-line autocomplete also applies to custom xref:fundamentals/tasks.adoc#_commands[user-define commands],
+such as `customCommand` below:
+
+```scala
+package build
+import mill._, javalib._
+import mainargs.arg
+object foo extends JavaModule {
+  def customCommand(
+    @arg(doc = "string parameter to customCommand that controls this and that...")
+    str: String,
+    @arg(doc = "integer parameter to customCommand")
+    int: Int) = Task.Command{
+    // do stuff
+  }
+}
+```
+
+image::basic/TabCompleteCustomCommand.png[]
 
 You can also choose to write the tab-completion script to a manually-specified path via:
 
@@ -127,9 +154,10 @@ Github doesn't yet have built-in support for syntax highlighting `.mill` files a
 but you can set this up in your own projects by creating a `.gitattributes` file in the root
 of your Github repository
 
-```
+[,console]
+----
 > echo '*.mill linguist-language=Scala' > .gitattributes
-```
+----
 
 [#_ide_support]
 == IDE Support
@@ -139,6 +167,9 @@ Mill supports IntelliJ and VSCode and in general any client of the standard
 https://build-server-protocol.github.io/[Build Server Protocol (BSP)].
 Your IDEs may already auto-detect the Mill project and run this command on
 behalf of you when opening/importing the project.
+
+Mill can also generate project files for the Eclipse IDE that is not supporting
+the Build Server Protocol (BSP).
 
 === IntelliJ
 
@@ -244,6 +275,61 @@ If you make changes to your Mill `build.mill`, you can ask VSCode to load
 those updates by opening the "BSP" tab and clicking the "Refresh" button
 
 image::basic/VSCodeRefresh.png[]
+
+=== Eclipse IDE
+
+There is no direct support yet for Mill or the
+https://build-server-protocol.github.io/[Build Server Protocol (BSP)] from any
+plug-in in the https://eclipseide.org[Eclipse IDE]. Instead, Mill can generate
+project files for Java projects. To use them, first ensure you have the
+https://projects.eclipse.org/projects/eclipse.jdt[Java Development Tools (JDT)]
+installed in your IDE which enables the support for Java projects.
+
+NOTE: Scala and Kotlin are not supported by this generator. For these languages
+use either VSCode (supporting Scala) or IntelliJ IDEA (supporting both Scala
+and Kotlin).
+
+Since Mill build files are written in Scala and there is no Eclipse plug-in
+providing support for Scala, Mill itself or the Build Server Protocol (BSP)
+actively maintained, this won't provide assistance in `build.mill` files.
+
+To generate Eclipse project files, run:
+
+[source,console]
+----
+> ./mill mill.eclipse/
+----
+
+This will generate the XML and preference files Eclipse uses to configure
+projects. The command output will also provide you with the information on how
+many Eclipse projects were generated and their respective location.
+
+[source]
+----
+.settings/org.eclipse.core.resources.prefs
+.settings/org.eclipse.jdt.core.prefs
+.classpath
+.project
+----
+
+CAUTION: Be aware that, contrary to IntelliJ IDEA, in Eclipse there won't be
+only one project for your whole Mill project, but multiple ones depending on
+your project structure. There might be dependencies between the generated
+Eclipse projects.
+
+After the files are generated, you can import the project(s) into an existing
+Eclipse workspace in your IDE.
+
+image::basic/EclipseImportProjects.png[]
+
+You can choose to import all generated Eclipse projects inside the Mill project
+folder or only a subset.
+
+image::basic/EclipseSelectProjects.png[]
+
+If you make changes to you Mill build files, you can update the project files
+by running `./mill mill.eclipse/` again. Afterwards, refresh the projects
+inside the Eclipse workspace by selecting them and hitting `F5`.
 
 === Other Editors / Metals
 

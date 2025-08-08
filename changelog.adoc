@@ -13,6 +13,61 @@ _The changelog below is for tagged, stable releases. For unstable releases,
 see the list at https://repo1.maven.org/maven2/com/lihaoyi/mill-dist_
 
 
+
+[#1-0-3]
+=== 1.0.3
+_2025-08-05_
+
+
+:version: 1.0.3
+:milestone-name: 1.0.3
+:milestone: 123
+:prev-version: 1.0.2
+
+* Mill now tab-completes flags like `-j` or `--jobs` ({link-pr}/5642[#5642]),
+   as well as flags belonging to ``Task.Command``s that the user defines ({link-pr}/5643[#5643])
+   in addition to tab-completing modules and tasks that it did before. 
+   Mill also now displays the description for flags and tasks that get tab completed
+   ({link-pr}/5648[#5648], {link-pr}/5650[#5650]). Note that these improvements require
+   you to re-run `./mill mill.tabcomplete/install` to activate
++
+[,console]
+----
+$ ./mill -<tab>
+-D  <k=v> Define (or overwrite) a system property.
+-b  Ring the bell once if the run completes successfully, twice if it fails.
+-d  Show debug output on STDOUT
+-i  Run Mill in interactive mode, suitable for opening REPLs and taking user input.
+-j  <str> The number of parallel threads. It can be an integer e.g. `5`
+-k  Continue build, even after build failures.
+-v  Show mill version information and exit.
+-w  Watch and re-run the given tasks when when their inputs change.
+
+$ ./mill core.<tab>
+core.api        This module contains the data types necessary for defining a Mill build:
+core.constants  This module contains basic constants and helpers shared between the client,
+core.eval       This folder contains the core evaluator logic for the Mill build tool,
+core.exec       This module contains code related to planning and execution of the Mill
+core.internal   This package contains internal helpers and utilities used throughout
+core.resolve    This module contains logic around resolving Mill command line
+----
+
+
+* Add a generator for Eclipse JDT project files ({link-pr}/5614[#5614]). This can be run
+  with `./mill mill.eclipse/` to generate the configuration that you can then import
+  into Eclipse JDT
+
+* Flesh out `os.Checker` error messages to make them more actionable ({link-pr}/5640[#5640])
+
+* Display individual test class timings in `mill-chrome-profile.json` ({link-pr}/5635[#5635])
+
+* Add `compileGeneratedSources` directory for Java annotation processors to place generated
+  sources to be picked up by IDEs ({link-pr}/5629[#5629])
+
+* Improvements to Android build support ({link-pr}/5623[#5623] {link-pr}/5608[#5608] {link-pr}/5634[#5634])
+
+
+
 [#0-12-15]
 === 0.12.15 - 2025-08-01
 :version: 0.12.15
@@ -146,16 +201,20 @@ script in order to work, due to changes in the Sonatype Central package registry
 forced a change in the download URLs for new releases going forward. To update your
 bootstrap script, you can use:
 +
-```
-# linux
-curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-mill.sh -o mill
-chmod +x mill
-echo 1.0.0 > .mill-version
-
-# windows
-curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-mill.bat -o mill.bat
-echo 1.0.0 > .mill-version
-```
+.Linux
+[,console]
+----
+> curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-mill.sh -o mill
+> chmod +x mill
+> echo 1.0.0 > .mill-version
+----
++
+.Windows
+[,console]
+----
+> curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/1.0.0/mill-dist-1.0.0-mill.bat -o mill.bat
+> echo 1.0.0 > .mill-version
+----
 
 ==== Major Breaking Changes
 
@@ -165,7 +224,8 @@ echo 1.0.0 > .mill-version
   use Scala 3 language features such as https://docs.scala-lang.org/scala3/reference/other-new-features/indentation.html[Optional Braces]
   in your `.mill` files
 +
-```scala
+[,scala]
+----
 package build
 import mill.*, javalib.*
 
@@ -179,7 +239,7 @@ object foo extends JavaModule:
     def mvnDeps = Seq(
       mvn"com.google.guava:guava:33.3.0-jre"
     )
-```
+----
 
 
 * Mill now supports a YAML front-matter syntax (YAML version 1.2) in your root `build.mill`
@@ -187,7 +247,8 @@ object foo extends JavaModule:
   the `import $ivy...` syntax and allows external configuration files like `.mill-version`,
   `.mill-jvm-version`, etc. to be configured together e.g.
 +
-```scala
+[,scala]
+----
 //| mill-version: 1.0.0
 //| mill-jvm-version: 17
 //| repositories: [$PWD_URI/custom-repo]
@@ -197,7 +258,7 @@ object foo extends JavaModule:
 
 package build
 ...
-```
+----
 
 * The YAML front-matter allows you to configure arbitrary tasks in the meta-build.
   Above we show how to configure the `def repositories` and `def mvnDeps` tasks for the
@@ -213,23 +274,25 @@ package build
 * The `Agg()`/`Agg[T]` collection types have been removed and replaced by `Seq()`/`Seq[T]`
   ({link-pr}/4525[#4525]):
 +
-```diff
+[,diff]
+----
 -def ivyDeps = Agg(
 +def mvnDeps = Seq(
    mvn"org.scalameta::munit::0.7.29"
 )
-```
+----
 
 * `import $file` has been removed and replaced by direct references to the
   definitions ({link-pr}/4462[#4462]), e.g. if you have a `package build.foo.bar`
   containing `def qux` you can refer to the definition via `build.foo.bar.qux`
   or `import build.foo.bar.qux` without needing the `import $file`
 +
-```diff
+[,diff]
+----
 -import $file.foo.bar.Qux
 +import build.foo.bar.Qux
 ...Qux...
-```
+----
 
 * `import $packages` and `import $meta` are no longer necessary and have been removed
 
@@ -252,14 +315,15 @@ package build
 
 * The `T.*` methods have been removed. These were replaced by `Task.*` equivalents in 0.12.x.
 +
-```diff
+[,diff]
+----
 - def foo = T {
 -   ...T.dest...
 - }
 + def foo = Task{
 +   ...Task.dest...
 + }
-```
+----
 
 * `def zincWorker`, `ZincWorkerModule`, and `ZincWorkerUtil` have been renamed to
   `jvmWorker`, `JvmWorkerModule`, and `JvmWorkerUtil` {link-pr}/4834[#4834])
@@ -322,12 +386,13 @@ package build
   superclass, as they can be identified unambiguously by the `object package` name, so
   setting up the appropriate superclass is now taken care of by Mill automatically ({link-pr}/5008[#5008])
 +
-```diff
+[,diff]
+----
 -object `package` extends RootModule with JavaModule {
 +object `package` extends JavaModule {
    ...
  }
-```
+----
 
 * `Jvm.*` methods to spawn subprocesses and classloaders have been consolidated from 20+ helpers
   into 4 main functions ({link-pr}/4456[#4456]): `Jvm.createClassLoader`, `Jvm.withClassLoader`,
@@ -344,11 +409,12 @@ package build
   tasks ({link-pr}/4524[#4524]). Most cases where a `Task.Sources` was receiving an upstream
   task can be replaced by a separate `Task.Sources` and `Task{}`
 +
-```diff
+[,diff]
+----
 - def sources = Task.Sources{ super.sources() ++ Seq(PathRef(...)) }
 + def customSources =  Task.Sources(...)
 + def sources = Task { super.sources() ++ customSources() }
-```
+----
 
 * Mill's plugin infrastructure has changed with the release of Mill 1.0.0: plugins now need
   to use Scala 3.7.0, should now depend on `mill-libs` rather than `mill-dist`, and integration
@@ -394,11 +460,12 @@ package build
 
 * `Cross` can now be applied to root modules ({link-pr}/4593[#4593])
 +
-```scala
+[,scala]
+----
 object `package` extends Cross[FooModule]("3.6.2", "2.13.16") {
   ...
 }
-```
+----
 
 * Mill now supports a `--offline` option to run in offline mode.
   Custom tasks that need to download remote resources should respect that mode via
@@ -421,12 +488,13 @@ object `package` extends Cross[FooModule]("3.6.2", "2.13.16") {
 * Scala 3.7 https://docs.scala-lang.org/sips/named-tuples.html[Scala 3.7.0 Named Tuples]
   can be used as task return values:
 +
-```scala
+[,scala]
+----
 import upickle.implicits.namedTuples.default.given
 def namedTupleTask = Task {
   (hello = "world", i = Seq("am", "cow"))
 }
-```
+----
 
 * `def repositories: T[Seq[String]]` is now provided as a simpler alternative to
   `def repositoriesTask`, making it easier to add the most common URL/file-based repositories
@@ -498,10 +566,11 @@ _2025-05-18_
   Central that forced a change in the download URLs for new releases going forward. To update your 
   bootstrap script, you can use
 +
-```
-curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.13/mill-dist-0.12.13-mill.sh -o mill
-chmod +x mill
-```
+[,console]
+----
+> curl -L https://repo1.maven.org/maven2/com/lihaoyi/mill-dist/0.12.13/mill-dist-0.12.13-mill.sh -o mill
+> chmod +x mill
+----
 
 * Backport `mill.scalalib.SonatypeCentralPublishModule/` from `main` ({link-pr}/5107[#5107]). With
 the https://central.sonatype.org/news/20250326_ossrh_sunset/[Sunset of `oss.sonatype.org`],
@@ -1061,8 +1130,8 @@ parallel builds {link-pr}/3577[#3577]
 ** Mill now shows all active tasks and their duration at the bottom of your terminal
 ** Stream task logs are now prefixed with the task index on the left and the task
 name above, so you can attribute each line of logs to the task that generated it
-
-```
++
+----
 ...
 [3861/4712] main.client.publishLocalCached
 [3861] Publishing Artifact(com.lihaoyi,mill-libs-client,0.12.0-RC2-67-a566d8-DIRTY875bcbb1) to ivy repo /Users/lihaoyi/.ivy2/local
@@ -1074,7 +1143,7 @@ name above, so you can attribute each line of logs to the task that generated it
 [3706] contrib.playlib.worker[2.9].docJar 1s
 [3707] contrib.playlib.worker[2.6].docJar 1s
 ... and 3 more threads
-```
+----
 
 * Add API for tasks to spawn concurrent and parallel futures via `Task.fork.{async,await}` {link-pr}/3478[#3478]
 
@@ -1084,8 +1153,9 @@ by overriding `def testForkGrouping` {link-pr}/3478[#3478]
 * Use coursier thread pool to run coursier-related tasks to avoid deadlocks {link-pr}/3614[#3614]
 
 * `inspect` now shows useful information when used on modules, not just tasks {link-pr}/3532[#3532]
-
-```
++
+[,console]
+----
 $ ./mill inspect dist0
 dist0(build.mill:745)
     Version of [[dist]] meant for local integration testing within the Mill
@@ -1099,7 +1169,7 @@ Module Dependencies: runner, idea
 Default Task: dist0.run
 
 Tasks: dist0.fix, dist0.testTransitiveDeps
-```
+----
 
 * `mill init` now supports creating a project based on examples from Mill's documentation {link-pr}/3583[#3583],
 and unpacks the example into the current folder rather than a subfolder {link-pr}/3626[#3626]

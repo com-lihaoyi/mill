@@ -291,6 +291,8 @@ $txt
 ----
 $txt
 ----"""
+            case (kind, txt) =>
+              throw Exception(s"Unknown kind: $kind\n\nText: $txt")
           }
           .mkString("\n")
       )

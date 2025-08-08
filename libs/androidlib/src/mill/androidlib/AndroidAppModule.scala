@@ -87,24 +87,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   /**
-   * Provides os.Path to an XML file containing configuration and metadata about your android application.
-   * TODO dynamically add android:debuggable
-   */
-  override def androidManifest: T[PathRef] = Task {
-    val manifestFromSourcePath = androidManifestLocation().path
-
-    val manifestElem = XML.loadFile(manifestFromSourcePath.toString())
-    // add the application package
-    val manifestWithPackage =
-      manifestElem % Attribute(None, "package", Text(androidNamespace), Null)
-
-    val generatedManifestPath = Task.dest / "AndroidManifest.xml"
-    os.write(generatedManifestPath, manifestWithPackage.mkString)
-
-    PathRef(generatedManifestPath)
-  }
-
-  /**
    * Specifies the file format(s) of the lint report. Available file formats are defined in AndroidLintReportFormat,
    * such as [[AndroidLintReportFormat.Html]], [[AndroidLintReportFormat.Xml]], [[AndroidLintReportFormat.Txt]],
    * and [[AndroidLintReportFormat.Sarif]].
@@ -147,13 +129,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
     baseDirectory = Some((moduleDir / "src/main").toNIO),
     tags = Seq("application")
   )
-
-  /**
-   * Adds the Android SDK JAR file to the classpath during the compilation process.
-   */
-  override def unmanagedClasspath: T[Seq[PathRef]] = Task {
-    Seq(androidSdkModule().androidJarPath())
-  }
 
   /**
    * Collect files from META-INF folder of classes.jar (not META-INF of aar in case of Android library).
@@ -269,13 +244,16 @@ trait AndroidAppModule extends AndroidModule { outer =>
     PathRef(unsignedApk)
   }
 
+  override def androidPackagedDeps: T[Seq[PathRef]] =
+    super.androidPackagedDeps() ++ Seq(androidProcessedResources())
+
   override def androidMergeableManifests: Task[Seq[PathRef]] = Task {
     val debugManifest = Seq(androidDebugManifestLocation()).filter(pr => os.exists(pr.path))
     val libManifests = androidUnpackArchives().flatMap(_.manifest)
     debugManifest ++ libManifests
   }
 
-  override def androidMergedManifestArgs: Task[Seq[String]] = Task {
+  override def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {
     Seq(
       "--main",
       androidManifest().path.toString(),
@@ -982,7 +960,7 @@ trait AndroidAppModule extends AndroidModule { outer =>
      *
      * See [[https://developer.android.com/build/manage-manifests]] for more details.
      */
-    override def androidMergedManifestArgs: Task[Seq[String]] = Task {
+    override def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {
       Seq(
         "--main",
         androidManifest().path.toString(),

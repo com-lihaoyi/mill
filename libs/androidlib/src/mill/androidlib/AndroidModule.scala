@@ -55,8 +55,19 @@ trait AndroidModule extends JavaModule {
   def androidManifest: T[PathRef] = Task {
     val manifestFromSourcePath = androidManifestLocation().path
 
-    val manifestElem = XML.loadFile(manifestFromSourcePath.toString()) %
-      Attribute(None, "xmlns:android", Text("http://schemas.android.com/apk/res/android"), Null)
+    val original = XML.loadFile(manifestFromSourcePath.toString())
+
+    val manifestElem = Option(original.scope.getURI("android")) match {
+      case Some(_) =>
+        original
+      case None =>
+        original % Attribute(
+          None,
+          "xmlns:android",
+          Text("http://schemas.android.com/apk/res/android"),
+          Null
+        )
+    }
     // add the application package
     val manifestWithPackage =
       manifestElem % Attribute(None, "package", Text(androidNamespace), Null)
@@ -131,17 +142,17 @@ trait AndroidModule extends JavaModule {
   }
 
   /**
-   * Gets all the android resources (typically in res/ directory)
+   * Gets all the compiled Android resources (typically in res/ directory)
    * from the [[transitiveModuleCompileModuleDeps]]
-   * @return
+   * @return a sequence of PathRef to the compiled resources
    */
-  def androidTransitiveResources: T[Seq[PathRef]] = Task {
+  def androidTransitiveCompiledResources: T[Seq[PathRef]] = Task {
     Task.traverse(transitiveModuleCompileModuleDeps) {
       case m: AndroidModule =>
-        Task.Anon(m.androidResources())
+        Task.Anon(m.androidCompiledModuleResources())
       case _ =>
         Task.Anon(Seq.empty)
-    }().flatten
+    }().flatten.distinct
   }
 
   /**
@@ -177,11 +188,24 @@ trait AndroidModule extends JavaModule {
   }
 
   /**
+   * Adds the Android SDK JAR file to the classpath during the compilation process.
+   */
+  override def unmanagedClasspath: T[Seq[PathRef]] = Task {
+    Seq(androidSdkModule().androidJarPath())
+  }
+
+  /**
    * The original compiled classpath (containing a mix of jars and aars).
    * @return
    */
   def androidOriginalCompileClasspath: T[Seq[PathRef]] = Task {
     super.compileClasspath()
+  }
+
+  private def androidDepsClasspath: T[Seq[PathRef]] = Task {
+    (androidOriginalCompileClasspath().filter(_.path.ext != "aar") ++ androidResolvedMvnDeps()).map(
+      _.path
+    ).distinct.map(PathRef(_))
   }
 
   /**
@@ -190,9 +214,7 @@ trait AndroidModule extends JavaModule {
   override def compileClasspath: T[Seq[PathRef]] = Task {
     // TODO process metadata shipped with Android libs. It can have some rules with Target SDK, for example.
     // TODO support baseline profiles shipped with Android libs.
-    (androidOriginalCompileClasspath().filter(_.path.ext != "aar") ++ androidResolvedMvnDeps()).map(
-      _.path
-    ).distinct.map(PathRef(_)) ++ androidTransitiveLibRClasspath()
+    androidDepsClasspath() ++ androidTransitiveLibRClasspath()
   }
 
   /**
@@ -344,7 +366,7 @@ trait AndroidModule extends JavaModule {
     androidUnpackArchives().flatMap(_.manifest)
   }
 
-  def androidMergedManifestArgs: Task[Seq[String]] = Task {
+  def androidMergedManifestArgs: Task[Seq[String]] = Task.Anon {
     Seq(
       "--main",
       androidManifest().path.toString(),
@@ -478,15 +500,15 @@ trait AndroidModule extends JavaModule {
   }
 
   /**
-   * Gets all the android resources from this module and its
-   * module dependencies and compiles them into flata files.
-   * @return
+   * Gets all the android resources from this module,
+   * compiles them into flata files and collects
+   * transitive compiled resources from dependencies.
+   * @return a sequence of PathRef to the compiled resources
    */
-  def androidCompiledModuleResources = Task {
+  def androidCompiledModuleResources: T[Seq[PathRef]] = Task {
 
-    val moduleResources =
-      androidResources().map(_.path).filter(os.exists) ++
-        androidTransitiveResources().map(_.path).filter(os.exists)
+    val moduleResources: Seq[os.Path] =
+      androidResources().map(_.path).filter(os.exists)
 
     val aapt2Compile = Seq(androidSdkModule().aapt2Path().path.toString(), "compile")
 
@@ -504,9 +526,7 @@ trait AndroidModule extends JavaModule {
 
       os.call(aapt2Compile ++ aapt2Args)
     }
-
-    PathRef(Task.dest)
-
+    androidTransitiveCompiledResources() ++ Seq(PathRef(Task.dest))
   }
 
   /**
@@ -517,10 +537,11 @@ trait AndroidModule extends JavaModule {
    */
   def androidLinkedResources: T[PathRef] = Task {
     val compiledLibResDir = androidCompiledLibResources().path
-    val moduleResDir = androidCompiledModuleResources().path
+    val moduleResDirs = androidCompiledModuleResources()
+      .map(_.path)
 
     val filesToLink = os.walk(compiledLibResDir).filter(os.isFile(_)) ++
-      os.walk(moduleResDir).filter(os.isFile(_))
+      moduleResDirs.flatMap(os.walk(_).filter(os.isFile(_)))
 
     val javaRClassDir = Task.dest / "generatedSources/java"
     val apkDir = Task.dest / "apk"
@@ -582,7 +603,7 @@ trait AndroidModule extends JavaModule {
       .compileJava(
         upstreamCompileOutput = upstreamCompileOutput(),
         sources = sources.map(_.path),
-        compileClasspath = Seq.empty,
+        compileClasspath = androidTransitiveLibRClasspath().map(_.path),
         javaHome = javaHome().map(_.path),
         javacOptions = javacOptions() ++ mandatoryJavacOptions(),
         reporter = Task.reporter.apply(hashCode),
@@ -597,7 +618,7 @@ trait AndroidModule extends JavaModule {
 
   /** All individual classfiles inherited from the classpath that will be included into the dex */
   def androidPackagedClassfiles: T[Seq[PathRef]] = Task {
-    compileClasspath()
+    androidDepsClasspath()
       .map(_.path).filter(os.isDir)
       .flatMap(os.walk(_))
       .filter(os.isFile)

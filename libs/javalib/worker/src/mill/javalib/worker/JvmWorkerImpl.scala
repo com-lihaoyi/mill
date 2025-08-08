@@ -516,6 +516,7 @@ class JvmWorkerImpl(
       auxiliaryClassFileExtensions: Seq[String],
       zincCache: os.SubPath = os.sub / "zinc"
   )(implicit ctx: JvmWorkerApi.Ctx): Result[CompilationResult] = {
+    val _ = javaHome // unused for now
     import JvmWorkerImpl.{ForwardingReporter, TransformingReporter, PositionMapper}
 
     val requireReporter = ctx.env.get("MILL_JVM_WORKER_REQUIRE_REPORTER").contains("true")

@@ -49,7 +49,7 @@ class RefCountedClassLoaderCache(
           parent = parent,
           sharedLoader = sharedLoader,
           sharedPrefixes = sharedPrefixes
-        )(e)
+        )(using e)
         cache.update(compilersSig, (cl, 1))
         cl
     }

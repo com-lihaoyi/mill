@@ -4,7 +4,7 @@ import mill.api.daemon.internal.{CompileProblemReporter, ExecutionResultsApi, Te
 import mill.constants.OutFiles
 import mill.constants.OutFiles.*
 import mill.api.{PathRef, *}
-import mill.api.internal.{ResolveChecker, RootModule0}
+import mill.api.internal.{ResolveChecker, Resolved, RootModule0}
 import mill.api.daemon.Watchable
 import mill.exec.{Execution, PlanImpl}
 import mill.internal.PrefixLogger
@@ -55,6 +55,22 @@ final class EvaluatorImpl private[mill] (
   ): mill.api.Result[List[Segments]] = {
     os.checker.withValue(ResolveChecker(workspace)) {
       Resolve.Segments.resolve(
+        rootModule,
+        scriptArgs,
+        selectMode,
+        allowPositionalCommandArgs,
+        resolveToModuleTasks
+      )
+    }
+  }
+  override def resolveRaw(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode,
+      allowPositionalCommandArgs: Boolean = false,
+      resolveToModuleTasks: Boolean = false
+  ): mill.api.Result[List[Resolved]] = {
+    os.checker.withValue(ResolveChecker(workspace)) {
+      Resolve.Raw.resolve(
         rootModule,
         scriptArgs,
         selectMode,

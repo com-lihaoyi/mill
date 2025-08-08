@@ -64,7 +64,6 @@ trait BuildGenBase[M, D, I] {
               BuildGenUtil.renderImports(
                 shared.baseModule,
                 isNested,
-                moduleNodes.size,
                 extraImports
               ),
             companions =
