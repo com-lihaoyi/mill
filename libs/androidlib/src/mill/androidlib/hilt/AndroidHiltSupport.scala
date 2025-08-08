@@ -24,7 +24,7 @@ trait AndroidHiltSupport extends KspModule with AndroidKotlinModule {
     super.kspClasspath()
 
   def androidHiltProcessorPath: T[Seq[PathRef]] = Task {
-    defaultResolver().classpath(
+    kspDependencyResolver().classpath(
       kotlinSymbolProcessors().flatMap {
         dep =>
           if (dep.dep.module.name.value == "hilt-android-compiler")
@@ -66,6 +66,12 @@ trait AndroidHiltSupport extends KspModule with AndroidKotlinModule {
 
   def hiltProcessorClasspath: T[Seq[PathRef]] = Task {
     kspApClasspath() ++ kspClasspath()
+  }
+
+  override def kotlinSymbolProcessorsResolved: T[Seq[PathRef]] = Task {
+    kspDependencyResolver().classpath(
+      kotlinSymbolProcessors()
+    )
   }
 
   override def androidProguard: T[PathRef] = Task {
