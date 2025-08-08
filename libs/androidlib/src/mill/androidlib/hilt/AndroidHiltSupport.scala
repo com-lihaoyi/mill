@@ -79,25 +79,9 @@ trait AndroidHiltSupport extends KspModule with AndroidKotlinModule {
 
     val hiltContent: String =
       """
-        |# Hilt generated Application, Activities, Fragments
-        |-keep class dagger.hilt.internal.GeneratedApplication { *; }
-        |-keep class * extends android.app.Application
-        |-keep class * extends dagger.hilt.android.internal.lifecycle.HiltViewModelFactory
-        |-keep class dagger.hilt.internal.aggregatedroot.codegen.** { *; }
-        |-keep class dagger.hilt.android.internal.managers.** { *; }
-        |-keep class dagger.hilt.android.components.** { *; }
-        |-keep class dagger.hilt.internal.components.** { *; }
-        |-keep class dagger.hilt.internal.GeneratedComponent { *; }
-        |-keep class **_HiltModules_* { *; }
-        |
         |# Keep any class annotated with @HiltAndroidApp, @AndroidEntryPoint, etc.
         |-keep @dagger.hilt.android.HiltAndroidApp class * { *; }
         |-keep @dagger.hilt.android.AndroidEntryPoint class * { *; }
-        |-keep @dagger.hilt.InstallIn class * { *; }
-        |-keep @dagger.hilt.components.SingletonComponent class * { *; }
-        |
-        |# Keep any Hilt-generated code related to entry points and components
-        |-keep class * extends dagger.hilt.android.internal.lifecycle.HiltViewModelFactory$HiltViewModelFactoryModule { *; }
         |""".stripMargin
 
     val globalProguard = Task.dest / "global-proguard.pro"
