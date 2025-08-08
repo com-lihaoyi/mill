@@ -1,5 +1,6 @@
 package mill.androidlib
 
+import coursier.params.ResolutionParams
 import mill.api.{ModuleRef, PathRef, Task}
 import mill.kotlinlib.{Dep, DepSyntax}
 import mill.javalib.TestModule.Junit5
@@ -36,6 +37,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { out
 
     override final def kotlinVersion: T[String] = outer.kotlinVersion
     override final def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
+    override def resolutionParams: Task[ResolutionParams] = Task.Anon(outer.resolutionParams())
 
     private def kotlinSources = Task.Sources("src/androidTest/kotlin")
 
