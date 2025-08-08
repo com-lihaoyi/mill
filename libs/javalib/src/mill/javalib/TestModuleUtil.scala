@@ -336,6 +336,7 @@ final class TestModuleUtil(
           val claimLog = processFolder / "claim.log"
           os.write.over(claimLog, Array.empty[Byte])
 
+          var currentTestClassNanoTime = Option.empty[(String, Long)]
           var seenLines = 0
           callTestRunnerSubprocess(
             processFolder,
@@ -344,17 +345,21 @@ final class TestModuleUtil(
             () => {
               val lines = os.read.lines(claimLog)
               lines.drop(seenLines).collect {
-                case s"CLAIM $currentTestClass $nanoTime" =>
-                  logger.prompt.logBeginChromeProfileEntry(currentTestClass, nanoTime.toLong)
+                case s"CLAIM $currentTestClass $nanoTime0" =>
+                  val nanoTime = nanoTime0.toLong
+                  logger.prompt.logBeginChromeProfileEntry(currentTestClass, nanoTime)
+                  testClassTimeMap.putIfAbsent(currentTestClass, nanoTime)
+                  currentTestClassNanoTime = Some(currentTestClass -> nanoTime)
                 case s"COMPLETED $nanoTime" =>
                   logger.prompt.logEndChromeProfileEntry(nanoTime.toLong)
+                  None
               }
               seenLines = lines.length
-              val now = System.currentTimeMillis()
-              lines.collect { case s"CLAIM $currentTestClass $_" =>
-                testClassTimeMap.putIfAbsent(currentTestClass, now)
-                val last = testClassTimeMap.get(currentTestClass)
-                logger.ticker(s"$currentTestClass${Util.renderSecondsSuffix(now - last)}")
+              for ((currentTestClass, nanoTime) <- currentTestClassNanoTime) {
+                val now = System.nanoTime()
+                logger.ticker(
+                  s"$currentTestClass${Util.renderSecondsSuffix((now - nanoTime) / 1000000)}"
+                )
               }
             }
           )

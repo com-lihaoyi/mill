@@ -41,7 +41,7 @@ At a glance, Mill looks similar to other build tools you may be familiar with, w
 `build.mill` file in the root of a project defining the dependencies and testing
 setup for a module:
 
-[source,scala]
+[,scala]
 ----
 package build
 import mill._, javalib._
@@ -61,7 +61,7 @@ what this build means: a `JavaModule` with two ivy dependencies `argparse4j` and
 and a `test` submodule supporting `Junit4`.
 This build can then be compiled, tested, run, or packaged into an assembly from the command line:
 
-[source,console]
+[,console]
 ----
 > /mill foo.compile
 compiling 1 Java source...
@@ -181,7 +181,7 @@ but if we remove these built in classes we can see how Mill works under the hood
 the following Mill tasks that define some source files, use the `javac` executable to compile
 them into classfiles, and then the `jar` executable to package them together into an assembly:
 
-[source,scala]
+[,scala]
 ----
 def mainClass: T[Option[String]] = Some("foo.Foo")
 
