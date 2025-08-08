@@ -801,8 +801,8 @@ trait AndroidAppModule extends AndroidModule { outer =>
   }
 
   def knownProguardRules: T[String] = Task {
-    // TODO need also collect rules from other modules,
-    // but Android lib module doesn't yet exist
+    // TODO need also pick proguard files from
+    // [[moduleDeps]]
     androidUnpackArchives()
       .flatMap(_.proguardRules)
       .map(p => os.read(p.path))
