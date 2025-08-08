@@ -33,6 +33,7 @@
 * Experimental Platform Support
 ** Building Android Apps
 *** xref:android/android-initial-setup.adoc[]
+*** xref:android/ide.adoc[]
 *** xref:android/java.adoc[]
 *** xref:android/kotlin.adoc[]
 *** xref:android/android-linting.adoc[]
