@@ -141,6 +141,42 @@ trait AndroidModule extends JavaModule {
     }
   }
 
+  def providerProguardConfigRules: T[Seq[String]] = Task {
+    val androidNs = "http://schemas.android.com/apk/res/android"
+    val manifest = androidMergedManifest().path
+    val manifestXML = scala.xml.XML.loadFile(manifest.toString)
+
+    val providerElements = (manifestXML \\ "application" \\ "provider")
+
+    // Collect provider class names
+    val providerClasses = providerElements.flatMap { provider =>
+      provider.attribute(androidNs, "name").map(_.text.trim)
+    }
+
+    // Collect meta-data android:name values under each provider
+    val metaDataClasses = providerElements.flatMap { provider =>
+      (provider \ "meta-data").flatMap { meta =>
+        meta.attribute(androidNs, "name").map(_.text.trim)
+      }
+    }
+
+    // Union of both sets, deduplicated
+    val allClasses = (providerClasses ++ metaDataClasses).distinct
+
+    // Generate ProGuard rules
+    val rules = allClasses.map { className =>
+      s"-keep class $className { <init>(); }"
+    }
+
+    rules
+  }
+
+  def androidProguard: T[PathRef] = Task {
+    val globalProguardFile = Task.dest / "global-proguard.pro"
+    os.write(globalProguardFile, "")
+    PathRef(globalProguardFile)
+  }
+
   /**
    * Gets all the compiled Android resources (typically in res/ directory)
    * from the [[transitiveModuleCompileModuleDeps]]

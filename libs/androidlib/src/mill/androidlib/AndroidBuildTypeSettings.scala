@@ -1,6 +1,5 @@
 package mill.androidlib
 
-import mill.api.JsonFormatters.pathReadWrite
 import mill.api.PathRef
 
 /**
