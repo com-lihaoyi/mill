@@ -17,8 +17,8 @@ case class AndroidBuildTypeSettings(
     enableDesugaring: Boolean = true,
     proguardFiles: ProguardFiles = ProguardFiles()
 ) {
-  def withProguardLocalFiles(localFiles: Seq[PathRef]): AndroidBuildTypeSettings =
-    copy(proguardFiles = proguardFiles.copy(localFiles = localFiles))
+  def withProguardLocalFiles(localFiles: Seq[os.Path]): AndroidBuildTypeSettings =
+    copy(proguardFiles = proguardFiles.copy(localFiles = localFiles.map(PathRef(_))))
 
   def withDefaultProguardFile(fileName: String): AndroidBuildTypeSettings =
     copy(proguardFiles = proguardFiles.copy(defaultProguardFile = Some(fileName)))

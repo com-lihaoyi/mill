@@ -54,7 +54,7 @@ object app extends AndroidR8AppModule { // <2>
       )
     ).withProguardLocalFiles(
       Seq(
-        PathRef(moduleDir / "proguard-rules.pro")
+        moduleDir / "proguard-rules.pro"
       )
     )
   }
@@ -78,7 +78,7 @@ object app extends AndroidR8AppModule { // <2>
     override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task.Input {
       AndroidBuildTypeSettings(isMinifyEnabled = false).withProguardLocalFiles(
         Seq(
-          PathRef(moduleDir / "test-proguard-rules.pro")
+          moduleDir / "test-proguard-rules.pro"
         )
       )
     }

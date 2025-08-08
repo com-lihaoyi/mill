@@ -32,7 +32,7 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
     ).withDefaultProguardFile("proguard-android.txt")
       .withProguardLocalFiles(
         Seq(
-          PathRef(moduleDir / "proguard-rules.pro")
+          moduleDir / "proguard-rules.pro"
         )
       )
   }
@@ -162,8 +162,8 @@ object app extends AndroidAppKotlinModule, AndroidR8AppModule, AndroidBuildConfi
       ).withDefaultProguardFile("proguard-android.txt")
         .withProguardLocalFiles(
           Seq(
-            PathRef(moduleDir / "proguardTest-rules.pro"),
-            PathRef(moduleDir / "proguard-rules.pro")
+            moduleDir / "proguardTest-rules.pro",
+            moduleDir / "proguard-rules.pro"
           )
         )
     }
