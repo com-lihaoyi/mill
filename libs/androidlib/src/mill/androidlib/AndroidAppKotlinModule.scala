@@ -23,25 +23,16 @@ import mill.androidlib.Versions
  * [[https://developer.android.com/studio Android Studio Documentation]]
  */
 @mill.api.experimental
-trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule { outer =>
+trait AndroidAppKotlinModule extends AndroidKotlinModule, AndroidAppModule { outer =>
 
   private def kotlinSources = Task.Sources("src/main/kotlin")
   override def sources: T[Seq[PathRef]] =
     super[AndroidAppModule].sources() ++ kotlinSources()
 
-  trait AndroidAppKotlinTests extends AndroidAppKotlinModule with AndroidAppTests {
-    override def kotlinVersion: T[String] = outer.kotlinVersion
+  trait AndroidAppKotlinTests extends AndroidKotlinTestModule
 
-    private def kotlinSources = Task.Sources("src/test/kotlin")
-
-    override def sources: T[Seq[PathRef]] =
-      super[AndroidAppTests].sources() ++ kotlinSources()
-
-    override def kotlincPluginMvnDeps: T[Seq[Dep]] = outer.kotlincPluginMvnDeps()
-  }
-
-  trait AndroidAppKotlinInstrumentedTests extends AndroidAppKotlinModule
-      with AndroidAppInstrumentedTests {
+  trait AndroidAppKotlinInstrumentedTests extends AndroidAppInstrumentedTests,
+        AndroidAppKotlinModule {
 
     override final def kotlinVersion: T[String] = outer.kotlinVersion
     override final def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
@@ -55,7 +46,7 @@ trait AndroidAppKotlinModule extends AndroidKotlinModule with AndroidAppModule {
 
   }
 
-  trait AndroidAppKotlinScreenshotTests extends AndroidAppKotlinModule with TestModule with Junit5 {
+  trait AndroidAppKotlinScreenshotTests extends AndroidAppKotlinModule, TestModule, Junit5 {
 
     override def androidApplicationId: String = outer.androidApplicationId
 

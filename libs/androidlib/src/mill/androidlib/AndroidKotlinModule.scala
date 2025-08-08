@@ -1,13 +1,13 @@
 package mill.androidlib
 
 import mill.api.{PathRef, Result}
-import mill.javalib.CoursierModule
+import mill.javalib.{CoursierModule, Dep}
 import mill.kotlinlib.{Dep, DepSyntax, KotlinModule}
 import mill.{T, Task}
 
 // TODO expose Compose configuration options
 // https://kotlinlang.org/docs/compose-compiler-options.html possible options
-trait AndroidKotlinModule extends KotlinModule with AndroidModule {
+trait AndroidKotlinModule extends KotlinModule with AndroidModule { outer =>
 
   /**
    * Enable Jetpack Compose support in the module. Default is `false`.
@@ -78,5 +78,16 @@ trait AndroidKotlinModule extends KotlinModule with AndroidModule {
         .map(d => d.exclude("*" -> "*"))
     )
     jars
+  }
+
+  trait AndroidKotlinTestModule extends KotlinTests, AndroidTestModule {
+    override def kotlinVersion: T[String] = outer.kotlinVersion
+
+    private def kotlinSources = Task.Sources("src/test/kotlin")
+
+    override def sources: T[Seq[PathRef]] =
+      super.sources() ++ kotlinSources()
+
+    override def kotlincPluginMvnDeps: T[Seq[Dep]] = outer.kotlincPluginMvnDeps()
   }
 }

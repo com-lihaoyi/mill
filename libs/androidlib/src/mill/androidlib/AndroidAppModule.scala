@@ -854,38 +854,12 @@ trait AndroidAppModule extends AndroidModule { outer =>
     (PathRef(outPath), d8Args, appCompiledPathRefs ++ libsJarPathRefs)
   }
 
-  trait AndroidAppTests extends AndroidAppModule with JavaTests {
-
-    override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
-    override def androidMinSdk: T[Int] = outer.androidMinSdk()
-    override def androidTargetSdk: T[Int] = outer.androidTargetSdk()
-    override def androidSdkModule: ModuleRef[AndroidSdkModule] = outer.androidSdkModule
-    override def androidManifest: T[PathRef] = outer.androidManifest()
-
+  trait AndroidAppTests extends AndroidTestModule, AndroidAppModule {
     override def androidApplicationId: String = s"${outer.androidApplicationId}.test"
-
     override def androidApplicationNamespace: String = s"${outer.androidApplicationNamespace}.test"
-
-    override def moduleDir: Path = outer.moduleDir
-
-    override def sources: T[Seq[PathRef]] = Task.Sources("src/test/java")
-    def androidResources: T[Seq[PathRef]] = Task.Sources()
-
-    override def bspBuildTarget: BspBuildTarget = super.bspBuildTarget.copy(
-      baseDirectory = Some((moduleDir / "src/test").toNIO),
-      canTest = true
-    )
-
   }
 
-  trait AndroidAppInstrumentedTests extends AndroidAppModule with AndroidTestModule {
-    override def moduleDir = outer.moduleDir
-
-    override def moduleDeps: Seq[JavaModule] = Seq(outer)
-
-    override def androidCompileSdk: T[Int] = outer.androidCompileSdk()
-    override def androidMinSdk: T[Int] = outer.androidMinSdk()
-    override def androidTargetSdk: T[Int] = outer.androidTargetSdk()
+  trait AndroidAppInstrumentedTests extends AndroidTestModule, AndroidAppModule {
 
     override def androidIsDebug: T[Boolean] = Task { true }
 
@@ -905,6 +879,10 @@ trait AndroidAppModule extends AndroidModule { outer =>
     override def sources: T[Seq[PathRef]] = Task.Sources("src/androidTest/java")
 
     def androidResources: T[Seq[PathRef]] = Task.Sources("src/androidTest/res")
+
+    override def testFramework: T[String] = Task {
+      "androidx.test.runner.AndroidJUnitRunner"
+    }
 
     private def androidInstrumentedTestsBaseManifest: Task[Elem] = Task.Anon {
       val label = s"Tests for ${outer.androidApplicationId}"
@@ -980,8 +958,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     override def androidVirtualDeviceIdentifier: String = outer.androidVirtualDeviceIdentifier
     override def androidEmulatorArchitecture: String = outer.androidEmulatorArchitecture
-
-    def testFramework: T[String]
 
     /**
      * Re/Installs the app apk and then the test apk on the [[runningEmulator]]
