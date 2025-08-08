@@ -9,6 +9,7 @@ import mill.api.PathRef
  *
  * Useful for getting different packaging strategies for code shrinking and
  * supporting build variants
+ * Needs to be called from a `Task.Input` if local Proguard files are used.
  */
 case class AndroidBuildTypeSettings(
     isMinifyEnabled: Boolean = false,

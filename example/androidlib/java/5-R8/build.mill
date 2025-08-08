@@ -45,10 +45,16 @@ object app extends AndroidR8AppModule { // <2>
   override def androidVirtualDeviceIdentifier: String = "java-test"
   override def androidIsDebug: T[Boolean] = Task { false }
 
-  override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
-    super.androidReleaseSettings().withProguardLocalFiles(
+  def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task.Input {
+    AndroidBuildTypeSettings(
+      isMinifyEnabled = true,
+      isShrinkEnabled = true,
+      proguardFiles = ProguardFiles(
+        defaultProguardFile = Some("proguard-android-optimize.txt")
+      )
+    ).withProguardLocalFiles(
       Seq(
-        moduleDir / "proguard-rules.pro"
+        PathRef(moduleDir / "proguard-rules.pro")
       )
     )
   }
@@ -69,10 +75,10 @@ object app extends AndroidR8AppModule { // <2>
       false
     }
 
-    override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task {
+    override def androidReleaseSettings: T[AndroidBuildTypeSettings] = Task.Input {
       AndroidBuildTypeSettings(isMinifyEnabled = false).withProguardLocalFiles(
         Seq(
-          moduleDir / "test-proguard-rules.pro"
+          PathRef(moduleDir / "test-proguard-rules.pro")
         )
       )
     }
