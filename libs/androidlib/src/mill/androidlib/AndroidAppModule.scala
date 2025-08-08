@@ -131,13 +131,6 @@ trait AndroidAppModule extends AndroidModule { outer =>
   )
 
   /**
-   * Adds the Android SDK JAR file to the classpath during the compilation process.
-   */
-  override def unmanagedClasspath: T[Seq[PathRef]] = Task {
-    Seq(androidSdkModule().androidJarPath())
-  }
-
-  /**
    * Collect files from META-INF folder of classes.jar (not META-INF of aar in case of Android library).
    */
   def androidLibsClassesJarMetaInf: T[Seq[PathRef]] = Task {
@@ -250,6 +243,9 @@ trait AndroidAppModule extends AndroidModule { outer =>
 
     PathRef(unsignedApk)
   }
+
+  override def androidPackagedDeps: T[Seq[PathRef]] =
+    super.androidPackagedDeps() ++ Seq(androidProcessedResources())
 
   override def androidMergeableManifests: Task[Seq[PathRef]] = Task {
     val debugManifest = Seq(androidDebugManifestLocation()).filter(pr => os.exists(pr.path))
